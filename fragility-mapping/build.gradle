@@ -1,8 +1,10 @@
-
+//the initial draft used spring boot.
+// (probably should change this to jersey to 
+//  match the fragility-server)
 apply plugin: 'org.springframework.boot'
 apply plugin: 'war'
 
-
+//configure the war properties
 war {
     baseName = 'fragility-mapping'
     version =  '0.0.1'
@@ -13,6 +15,9 @@ war {
 
 
 
+//the build script needs to know where the spring-boot gradle plugins live
+// (these are used to run the build scripts, not dependencies for the 
+//   actual project)
 buildscript {
   dependencies {
       classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.2.RELEASE")
@@ -22,14 +27,19 @@ buildscript {
     mavenLocal()
     maven { url 'https://github.com/steffenschaefer/gwt-gradle-plugin/raw/maven-repo/' }
   }
-
 }
+
+
+//dependencies for the project itself
 dependencies {
 
+    //these libs come from maven central
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-actuator")
     compile("org.springframework.boot:spring-boot-starter-test")
     compile("org.jamel.dbf:dbf-reader:0.2.0")
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.8.4'
+
+    //this depends on the tools-common gradle project that is a sibling of this one
     compile project(':tools-common');
 }

@@ -13,8 +13,7 @@ buildscript {
 //apply base plugins to the root, so we can run all the server
 //webapps in a single gretty/jetty server
 apply plugin: "org.akhikhl.gretty"
-//apply plugin: 'java'
-//apply plugin: 'war'
+
 
 //define repositories needed for all builds
 //(this is different than the buildscript block.
@@ -57,14 +56,6 @@ subprojects {
     dependencies {
       compile "log4j:log4j:1.2.16"
     }
-
-}
-
-project (":repo")  {
-
-}
-
-project (":fragility-mapping") {
 
 }
 
