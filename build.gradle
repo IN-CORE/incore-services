@@ -1,0 +1,101 @@
+//add dependencies for plugins needed to run the build
+buildscript {
+	repositories {
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+	}
+	dependencies {
+		classpath "org.akhikhl.gretty:gretty:1.4.0"
+	}
+}
+
+//apply base plugins to the root, so we can run all the server
+//webapps in a single gretty/jetty server
+apply plugin: "org.akhikhl.gretty"
+//apply plugin: 'java'
+//apply plugin: 'war'
+
+//define repositories needed for all builds
+//(this is different than the buildscript block.
+//  The buildscript repositories are for RUNNING the build script,
+//  This is for repositories needed to find dependencies of the projects)
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+      url "https://oss.sonatype.org/content/repositories/snapshots/" 
+      url "https://plugins.gradle.org/m2/"
+    }
+}
+
+
+//a "farm" is the gretty term for multiple webapps that can be run
+//in the same webapp service.
+farm {
+  webapp ':fragility-server'
+  webapp ':fragility-mapping'
+}
+
+
+//For now, all subprojects are java projects. Later this might change.
+//Until then, give them all a basic java build
+subprojects {
+
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+          url "https://oss.sonatype.org/content/repositories/snapshots/" 
+        	url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+      compile "log4j:log4j:1.2.16"
+    }
+
+}
+
+project (":repo")  {
+
+}
+
+project (":fragility-mapping") {
+
+}
+
+
+//All of our service plugins have some common configuration.
+// (war and gretty builds, some basic jersey and mongo dependencies, etc)
+// Common configuration between them can be specified here like this.
+["fragility-server","fragility-mapping"].each { name ->
+  project(":$name") {
+
+    apply plugin: 'war'
+    apply plugin: "org.akhikhl.gretty"
+
+    gretty {
+      port 8080
+    }
+
+
+    dependencies {
+      compile "javax.ws.rs:jsr311-api:1.1.1"
+
+      compile 'com.sun.jersey:jersey-server:1.16'
+      compile 'com.sun.jersey:jersey-core:1.16'
+      compile 'com.sun.jersey:jersey-client:1.16'
+      compile 'com.sun.jersey:jersey-servlet:1.16'
+      compile 'com.sun.jersey:jersey-json:1.16'
+
+
+
+      compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
+      compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
+    }
+  }
+}

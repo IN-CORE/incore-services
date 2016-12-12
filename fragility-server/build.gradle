@@ -1,0 +1,57 @@
+//apply plugin: 'java'
+//apply plugin: 'war'
+//apply plugin: "org.akhikhl.gretty"
+apply plugin: 'idea'
+
+//repositories {
+	//mavenCentral()
+	//maven {
+		//url "https://plugins.gradle.org/m2/"
+	//}
+//}
+
+war {
+	archiveName "incore.war"
+}
+
+gretty {
+	port 8080
+	contextPath '/incore'
+}
+
+//buildscript {
+	//repositories {
+		//maven {
+			//url "https://plugins.gradle.org/m2/"
+		//}
+	//}
+	//dependencies {
+		//classpath "org.akhikhl.gretty:gretty:1.4.0"
+	//}
+//}
+
+dependencies {
+	//compile "javax.ws.rs:jsr311-api:1.1.1"
+
+	//compile 'com.sun.jersey:jersey-server:1.16'
+	//compile 'com.sun.jersey:jersey-core:1.16'
+	//compile 'com.sun.jersey:jersey-client:1.16'
+	//compile 'com.sun.jersey:jersey-servlet:1.16'
+	//compile 'com.sun.jersey:jersey-json:1.16'
+
+	compile 'com.yammer.metrics:metrics-core:2.2.0'
+	compile 'com.yammer.metrics:metrics-servlet:2.2.0'
+	compile 'com.yammer.metrics:metrics-jersey:2.2.0'
+	compile 'com.yammer.metrics:metrics-graphite:2.2.0'
+
+	//compile 'log4j:log4j:1.2.16'
+
+	testCompile "junit:junit-dep:4.10"
+
+	//compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
+	//compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '3.2'
+}

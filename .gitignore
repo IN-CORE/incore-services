@@ -1,0 +1,30 @@
+
+# java binaries
+*.jar
+*.war
+*.ear
+*.class
+bin/
+/*/bin
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# vim swap files
+*.swp
+
+# local idea config file
+*.iml
+/.idea/workspace.xml
+/.idea/libraries
+build/
+
+# apple metadata nonsense
+.DS_Store
+
+# local gradle files
+.gradle
+/local.properties
+
+# Windows thumbnail db
+Thumbs.db
