@@ -1,12 +1,12 @@
 //configure the war plugin, give it a war filename
 war {
-	archiveName "incore.war"
+	archiveName "incore-repo.war"
 }
 
 //configuration for gretty webapp server
 gretty {
 	port 8080
-	contextPath '/incore'
+	contextPath '/repo'
 }
 
 
@@ -14,19 +14,13 @@ gretty {
 // (it will inherit common dependencies from the parent build script)
 dependencies {
 
-	compile 'com.yammer.metrics:metrics-core:2.2.0'
-	compile 'com.yammer.metrics:metrics-servlet:2.2.0'
-	compile 'com.yammer.metrics:metrics-jersey:2.2.0'
-	compile 'com.yammer.metrics:metrics-graphite:2.2.0'
-
 	compile "javax.ws.rs:jsr311-api:1.1.1"
 
-	compile 'com.sun.jersey:jersey-server:1.16'
-	compile 'com.sun.jersey:jersey-core:1.16'
-	compile 'com.sun.jersey:jersey-client:1.16'
-	compile 'com.sun.jersey:jersey-servlet:1.16'
+	compile 'com.sun.jersey:jersey-bundle:1.16'
 	compile 'com.sun.jersey:jersey-json:1.16'
-
+	compile 'asm:asm-all:3.3.1'
+	// https://mvnrepository.com/artifact/org.json/json
+	compile group: 'org.json', name: 'json', version: '20160810'
 
 
 	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'

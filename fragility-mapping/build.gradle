@@ -1,44 +1,34 @@
 //the initial draft used spring boot.
 // (probably should change this to jersey to 
 //  match the fragility-server)
-apply plugin: 'org.springframework.boot'
 apply plugin: 'war'
 
 //configure the war properties
 war {
     baseName = 'fragility-mapping'
     version =  '0.0.1'
-    dependencies {
-      providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
-    }
 }
 
-
-
-//the build script needs to know where the spring-boot gradle plugins live
-// (these are used to run the build scripts, not dependencies for the 
-//   actual project)
-buildscript {
-  dependencies {
-      classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.2.RELEASE")
-  }
-  repositories {
-    mavenCentral()
-    mavenLocal()
-    maven { url 'https://github.com/steffenschaefer/gwt-gradle-plugin/raw/maven-repo/' }
-  }
+gretty {
+    contextPath '/fragilitymapping'
 }
 
-
-//dependencies for the project itself
 dependencies {
 
     //these libs come from maven central
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-actuator")
-    compile("org.springframework.boot:spring-boot-starter-test")
+//    compile 'com.yammer.metrics:metrics-core:2.2.0'
+//    compile 'com.yammer.metrics:metrics-servlet:2.2.0'
+//    compile 'com.yammer.metrics:metrics-jersey:2.2.0'
+//    compile 'com.yammer.metrics:metrics-graphite:2.2.0'
     compile("org.jamel.dbf:dbf-reader:0.2.0")
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.8.4'
+
+    compile "javax.ws.rs:jsr311-api:1.1.1"
+
+    compile 'com.sun.jersey:jersey-bundle:1.16'
+    compile 'com.sun.jersey:jersey-json:1.16'
+    compile 'asm:asm-all:3.3.1'
+
+    compile group: 'org.json', name: 'json', version: '20160810'
 
     //this depends on the tools-common gradle project that is a sibling of this one
     compile project(':tools-common');

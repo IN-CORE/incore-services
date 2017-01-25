@@ -13,6 +13,7 @@ buildscript {
 //apply base plugins to the root, so we can run all the server
 //webapps in a single gretty/jetty server
 apply plugin: "org.akhikhl.gretty"
+apply plugin: 'idea'
 
 
 //define repositories needed for all builds
@@ -34,6 +35,7 @@ repositories {
 farm {
   webapp ':fragility-server'
   webapp ':fragility-mapping'
+  webapp ':repo'
 }
 
 
@@ -42,7 +44,6 @@ farm {
 subprojects {
 
     apply plugin: 'java'
-    apply plugin: 'idea'
 
     repositories {
         mavenLocal()
@@ -63,7 +64,7 @@ subprojects {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server","fragility-mapping"].each { name ->
+["fragility-server","fragility-mapping", "repo"].each { name ->
   project(":$name") {
 
     apply plugin: 'war'
@@ -75,18 +76,7 @@ subprojects {
 
 
     dependencies {
-      compile "javax.ws.rs:jsr311-api:1.1.1"
 
-      compile 'com.sun.jersey:jersey-server:1.16'
-      compile 'com.sun.jersey:jersey-core:1.16'
-      compile 'com.sun.jersey:jersey-client:1.16'
-      compile 'com.sun.jersey:jersey-servlet:1.16'
-      compile 'com.sun.jersey:jersey-json:1.16'
-
-
-
-      compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
-      compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
     }
   }
 }

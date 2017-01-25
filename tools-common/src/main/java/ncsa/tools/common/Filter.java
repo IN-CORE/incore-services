@@ -14,4 +14,5 @@ public interface Filter
 	 * @throws FailedComparisonException
 	 */
 	public boolean matches(Object o) throws FailedComparisonException;
+
 }

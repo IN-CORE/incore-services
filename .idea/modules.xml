@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fragility-mapping/fragility-mapping.iml" filepath="$PROJECT_DIR$/.idea/modules/fragility-mapping/fragility-mapping.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server.iml" filepath="$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore.iml" filepath="$PROJECT_DIR$/.idea/modules/incore.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/repo/repo.iml" filepath="$PROJECT_DIR$/.idea/modules/repo/repo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tools-common/tools-common.iml" filepath="$PROJECT_DIR$/.idea/modules/tools-common/tools-common.iml" />
+    </modules>
+  </component>
+</project>
