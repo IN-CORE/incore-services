@@ -1,6 +1,5 @@
 package edu.illinois.ncsa.incore.services.fragilitymapping;
 
-import ncsa.tools.common.data.HashCodeMap;
 import ncsa.tools.common.exceptions.FailedComparisonException;
 
 import java.util.*;
