@@ -13,8 +13,6 @@ war {
     }
 }
 
-
-
 //the build script needs to know where the spring-boot gradle plugins live
 // (these are used to run the build scripts, not dependencies for the 
 //   actual project)
@@ -25,10 +23,9 @@ buildscript {
   repositories {
     mavenCentral()
     mavenLocal()
-    maven { url 'https://github.com/steffenschaefer/gwt-gradle-plugin/raw/maven-repo/' }
+    jCenter()
   }
 }
-
 
 //dependencies for the project itself
 dependencies {
