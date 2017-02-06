@@ -26,11 +26,14 @@ public abstract class Dimension implements ISymbolizable {
     }
 
     @Override
+    // TODO
     public boolean equals(Object obj) {
         if(obj instanceof Dimension) {
 
         } else {
             return false;
         }
+
+        return false;
     }
 }

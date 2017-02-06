@@ -4,9 +4,8 @@ import Semantic.Model.Validation.ValidationResult;
 
 import java.util.List;
 
-public class CurrencyAttribute extends Attribute<Number> {
+public class CurrencyAttribute extends ValueAttribute<Number> {
 
-    @Override
     public List<ValidationResult> validateValue(Number value) {
         return null;
     }

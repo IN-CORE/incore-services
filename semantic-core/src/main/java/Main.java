@@ -1,5 +1,4 @@
 import Semantic.Model.Attributes.Attribute;
-import Semantic.Model.Attributes.EnumerationAttribute;
 import Semantic.Model.Dataset.Dataset;
 import Semantic.Units.Instances.SIDerivedUnits;
 import Semantic.Units.Instances.SIUnits;

@@ -8,7 +8,6 @@ import java.util.List;
 public class UnitAttribute extends ValueAttribute<Number> {
     public Unit unit;
 
-    @Override
     public List<ValidationResult> validateValue(Number value) {
         return null;
     }

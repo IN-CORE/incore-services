@@ -31,7 +31,7 @@ public class Quantity implements Comparable<Quantity> {
     // TODO
     @Override
     public int compareTo(Quantity compare) {
-        if(this.unit.equals(compare.unit)) {
+        /*if(this.unit.equals(compare.unit)) {
             return Number.compare(this.value, compare.value);
         } else if (this.unit.equivalentTo(compare.unit)) {
 
@@ -48,6 +48,7 @@ public class Quantity implements Comparable<Quantity> {
         // if the units are equivalent
         // if the units are not equal/equivalent then convertTo one to the other then compare
 
+        */
         return 0;
     }
 }
