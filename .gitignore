@@ -15,6 +15,7 @@ hs_err_pid*
 *.iml
 /.idea/workspace.xml
 /.idea/libraries
+/.idea/artifacts
 build/
 
 # apple metadata nonsense

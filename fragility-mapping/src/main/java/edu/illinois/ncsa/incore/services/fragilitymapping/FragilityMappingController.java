@@ -1,12 +1,17 @@
 package edu.illinois.ncsa.incore.services.fragilitymapping;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ncsa.tools.common.exceptions.DeserializationException;
 import ncsa.tools.common.util.XmlUtils;
 import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfRow;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,6 +24,9 @@ import java.util.Map;
 
 @Path("mapping")
 public class FragilityMappingController {
+
+    @Context
+    ServletContext context;
 
     @GET
     @Produces("application/json")
@@ -34,6 +42,36 @@ public class FragilityMappingController {
         result.put("1", "2");
         result.put("3", "4");
         return result;
+    }
+
+    @GET
+    @Produces("application/json")
+    @Path("byJson")
+    public Map<String, String> getMappings(@QueryParam("json") String inventoryJson) {
+
+        Map<String,String> result = new HashMap<>();
+
+        try {
+
+            URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
+            MatchFilterMap matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
+            if (matchFilterMap == null) {
+                return null;
+            }
+            final FragilityMapper mapper = new FragilityMapper();
+            mapper.addMappingSet(matchFilterMap);
+
+            HashMap<String,Object> inventoryRow = new ObjectMapper().readValue(inventoryJson, HashMap.class);
+
+            String fragilityFor = mapper.getFragilityFor("", inventoryRow, new HashMap<String,Object>());
+            result.put("fragilityId", fragilityFor);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+
     }
 
     @GET
@@ -56,7 +94,7 @@ public class FragilityMappingController {
         }
 
         //prepare the params
-        HashMap<String,Object> params = null;
+        HashMap<String, Object> params = null;
 //        try {
 //            params = new ObjectMapper().readValue(optionsJson, HashMap.class);
 //        } catch (IOException e) {
@@ -64,12 +102,12 @@ public class FragilityMappingController {
 //            return null;
 //        }
 
-        Map<String,String> result = new HashMap<>();
+        Map<String, String> result = new HashMap<>();
         //iterate through the silly thing and map each row
         DbfReader reader = new DbfReader(localCopy);
         int fieldsCount = reader.getHeader().getFieldsCount();
         DbfRow row;
-        Map<String,Object> inventoryRow = new HashMap<>();
+        Map<String, Object> inventoryRow = new HashMap<>();
         while ((row = reader.nextRow()) != null) {
             inventoryRow.clear();
             for (int i = 0; i < fieldsCount; i++) {
@@ -108,10 +146,19 @@ public class FragilityMappingController {
 
     private MatchFilterMap loadMatchFilterMapFromUrl(String mappingUrl) {
         try {
+            return loadMatchFilterMapFromUrl(new URL(mappingUrl));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private MatchFilterMap loadMatchFilterMapFromUrl(URL mappingUrl) {
+        try {
             MappingDatasetStub stub = new MappingDatasetStub();
-            XmlUtils.deserializeUserFacingBeanFromFile(new URL(mappingUrl), stub);
+            XmlUtils.deserializeUserFacingBeanFromFile(mappingUrl, stub);
             return stub.getMatchFilterMap();
-        } catch (DeserializationException | MalformedURLException e) {
+        } catch (DeserializationException e) {
             e.printStackTrace();
         }
         return null;

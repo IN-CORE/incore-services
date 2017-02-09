@@ -27,7 +27,7 @@ public class FragilityMapper {
                 .flatMap(mappingSet -> mappingSet.getPropertyMatches().stream())
                 .filter(propMatch -> {
                     try {
-                        return propMatch.getMatchFilter().matches(combinedParams);
+                        return propMatch.getMatchFilter().matches(combinedParams, true);
                     } catch (FailedComparisonException e) {
                         return false;
                     }
@@ -36,7 +36,7 @@ public class FragilityMapper {
 
         if (matched.isPresent()) {
 //            return matched.get().getKey();
-            return matched.get().getMap().get("Restrainer Cables Retrofit Fragility ID Code");
+            return matched.get().getMap().get(row.get("retrofit"));
         }
 
         return "";

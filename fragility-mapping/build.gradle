@@ -25,6 +25,8 @@ dependencies {
 
     compile group: 'org.json', name: 'json', version: '20160810'
 
+    compile 'org.keycloak:keycloak-servlet-filter-adapter:2.5.1.Final'
+
     //this depends on the tools-common gradle project that is a sibling of this one
     compile project(':tools-common');
 }

@@ -29,4 +29,17 @@
     </servlet-mapping>
 
 
+    <!--
+    <filter>
+        <filter-name>Keycloak Filter</filter-name>
+        <filter-class>org.keycloak.adapters.servlet.KeycloakOIDCFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>Keycloak Filter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+        <url-pattern>/keycloak/*</url-pattern>
+    </filter-mapping>
+    -->
+
+
 </web-app>
