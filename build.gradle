@@ -1,9 +1,8 @@
 //add dependencies for plugins needed to run the build
 buildscript {
 	repositories {
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
+        maven { url 'http://repo.grails.org/grails/repo' }
+        maven { url 'http://repo.grails.org/grails/plugins' }
 	}
 	dependencies {
 		classpath "org.akhikhl.gretty:gretty:1.4.0"
@@ -23,10 +22,9 @@ apply plugin: 'idea'
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-      url "https://oss.sonatype.org/content/repositories/snapshots/" 
-      url "https://plugins.gradle.org/m2/"
-    }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url 'http://repo.grails.org/grails/repo' }
+    maven { url 'http://repo.grails.org/grails/plugins' }
 }
 
 
@@ -48,18 +46,15 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven {
-          url "https://oss.sonatype.org/content/repositories/snapshots/" 
-        	url "https://plugins.gradle.org/m2/"
-        }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'http://repo.grails.org/grails/repo' }
+        maven { url 'http://repo.grails.org/grails/plugins' }
     }
 
     dependencies {
       compile "log4j:log4j:1.2.16"
     }
-
 }
-
 
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
