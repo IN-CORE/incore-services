@@ -1,11 +1,10 @@
 //configure the war plugin, give it a war filename
-war {
-	archiveName "incore-repo.war"
-}
+//war {
+//	archiveName "incore-repo.war"
+//}
 
 //configuration for gretty webapp server
 gretty {
-	port 8080
 	contextPath '/repo'
 }
 

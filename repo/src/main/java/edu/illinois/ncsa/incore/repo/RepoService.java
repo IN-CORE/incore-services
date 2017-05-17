@@ -4,21 +4,29 @@ import com.sun.jersey.api.container.httpserver.HttpServerFactory;
 import java.io.IOException;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
 
-/**
- * Created by tolbert on 1/10/17.
- */
-// The Java class will be hosted at the URI path "/helloworld"
-@Path("/helloworld")
+@Path("/datasets")
 public class RepoService {
     // The Java method will process HTTP GET requests
     @GET
-    // The Java method will produce content identified by the MIME Media type "text/plain"
-    @Produces("text/plain")
-    public String getClichedMessage() {
-        // Return some cliched textual content
-        return "Hello World";
+    @Path("{datasetId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getDatasetById(@PathParam("datasetId") String id ) {
+        Object dataset = loadDataFromRepository(id);
+        return formatAsGeoJson(dataset);
+    }
+
+    private String formatAsGeoJson(Object dataset) {
+        return "{\"foo\": \"bar\"}";
+    }
+
+    private Object loadDataFromRepository(String id) {
+        return new Object(){
+            public String foo = "bar";
+        };
     }
 }

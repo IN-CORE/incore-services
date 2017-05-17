@@ -1,19 +1,21 @@
 //add dependencies for plugins needed to run the build
 buildscript {
-	repositories {
-        maven { url 'http://repo.grails.org/grails/repo' }
-        maven { url 'http://repo.grails.org/grails/plugins' }
-	}
-	dependencies {
-		classpath "org.akhikhl.gretty:gretty:1.4.0"
-	}
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+//        maven { url 'http://repo.grails.org/grails/repo' }
+//        maven { url 'http://repo.grails.org/grails/plugins' }
+    }
+    dependencies {
+        classpath 'org.akhikhl.gretty:gretty:1.4.0'
+    }
 }
 
 //apply base plugins to the root, so we can run all the server
 //webapps in a single gretty/jetty server
-apply plugin: "org.akhikhl.gretty"
 apply plugin: 'idea'
-
 
 //define repositories needed for all builds
 //(this is different than the buildscript block.
@@ -22,20 +24,25 @@ apply plugin: 'idea'
 repositories {
     mavenLocal()
     mavenCentral()
+    jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    maven { url 'http://repo.grails.org/grails/repo' }
-    maven { url 'http://repo.grails.org/grails/plugins' }
+//    maven { url 'http://repo.grails.org/grails/repo' }
+//    maven { url 'http://repo.grails.org/grails/plugins' }
 }
 
+
+apply plugin: 'war'
+
+if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
+    project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
 
 //a "farm" is the gretty term for multiple webapps that can be run
 //in the same webapp service.
 farm {
-  webapp ':fragility-server'
-  webapp ':fragility-mapping'
-  webapp ':repo'
+    webapp ':fragility-server'
+    webapp ':fragility-mapping'
+    webapp ':repo'
 }
-
 
 //For now, all subprojects are java projects. Later this might change.
 //Until then, give them all a basic java build
@@ -47,31 +54,34 @@ subprojects {
         mavenLocal()
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url 'http://repo.grails.org/grails/repo' }
-        maven { url 'http://repo.grails.org/grails/plugins' }
+//        maven { url 'http://repo.grails.org/grails/repo' }
+//        maven { url 'http://repo.grails.org/grails/plugins' }
     }
 
     dependencies {
-      compile "log4j:log4j:1.2.16"
+        compile "log4j:log4j:1.2.16"
     }
 }
 
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server","fragility-mapping", "repo"].each { name ->
-  project(":$name") {
+["fragility-server", "fragility-mapping", "repo"].each { name ->
+    project(":$name") {
 
-    apply plugin: 'war'
-    apply plugin: "org.akhikhl.gretty"
+        apply plugin: 'war'
+        if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
+            project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
 
-    gretty {
-      port 8080
+
+
+        gretty {
+            httpPort 8080
+        }
+
+
+        dependencies {
+
+        }
     }
-
-
-    dependencies {
-
-    }
-  }
 }
