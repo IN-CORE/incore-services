@@ -41,8 +41,6 @@ dependencies {
 	compile group: 'org.geotools', name: 'gt-geojson', version: '17.0'
 	compile group: 'org.geotools', name: 'gt-shapefile', version: '17.0'
 
-
-
 	compile 'javax.media.jai:com.springsource.javax.media.jai.core:1.1.3'
 
 }
