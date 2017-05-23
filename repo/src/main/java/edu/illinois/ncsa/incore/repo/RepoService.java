@@ -18,6 +18,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.io.FilenameUtils;
+
 @Path("/datasets")
 public class RepoService {
     // The Java method will process HTTP GET requests like the following:
@@ -25,6 +27,7 @@ public class RepoService {
     @GET
     @Path("{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
+
     public String getDatasetById(@PathParam("datasetId") String id ) {
         File dataset = null;
         try {
@@ -51,7 +54,41 @@ public class RepoService {
             fjson.writeFeatureCollection(featureCollection, writer);
             geoJson = writer.toString();
         }
+
+        deleteTmpDir(shapefile);
+
         return geoJson;
+    }
+
+    private void deleteTmpDir(File shapefile) {
+        String[] extensionsToGrab = new String[]{"dbf", "prj", "shp", "shx"};
+
+        String fileName = shapefile.getAbsolutePath();
+        String filePath = fileName.substring(0, fileName.lastIndexOf(shapefile.separator));
+        int extLoc = shapefile.getName().indexOf(".");
+        String extName = shapefile.getName().substring(extLoc);
+        String fileNameWithNoExt = FilenameUtils.removeExtension(fileName);
+
+        for (String extension : extensionsToGrab) {
+            String delFileName = fileNameWithNoExt + "." + extension;
+            File delFile = new File(delFileName);
+            try {
+                if (delFile.delete()) {
+                    System.out.println("file deleted: " + delFileName);
+                } else {
+                    System.out.println("file did not deleted: " + delFileName);
+                }
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+        File delDir = new File(filePath);
+        try {
+            delDir.delete();
+            System.out.println("Directory deleted: " + filePath);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private File loadDataFromRepository(String id) throws IOException {
@@ -59,9 +96,7 @@ public class RepoService {
         String shapefileDatasetUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/datasets/" + urlPart;
         String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
 
-        String[] extensionsToGrab = new String[]{
-                "dbf", "prj", "shp", "fix", "qix", "shx"
-        };
+        String[] extensionsToGrab = new String[]{"dbf", "prj", "shp", "shx"};
 
         String tempDir = Files.createTempDirectory("repo_download_").toString();
         for (String extension : extensionsToGrab) {
