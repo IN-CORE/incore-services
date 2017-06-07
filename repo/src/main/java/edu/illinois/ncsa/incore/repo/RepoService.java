@@ -32,10 +32,10 @@ public class RepoService {
 
     public String getDatasetById(@PathParam("datasetId") String id ) {
         File dataset = null;
-        try {
+        try{
             dataset = loadDataFromRepository(id);
             return formatAsGeoJson(dataset);
-        } catch (IOException e) {
+        }catch (IOException e) {
             e.printStackTrace();
             return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
