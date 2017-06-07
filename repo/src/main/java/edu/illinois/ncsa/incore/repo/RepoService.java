@@ -22,6 +22,8 @@ import org.apache.commons.io.FilenameUtils;
 
 @Path("/datasets")
 public class RepoService {
+    public static final String[] EXTENSIONS_TO_GRAB = new String[]{"dbf", "prj", "shp", "shx"};
+
     // The Java method will process HTTP GET requests like the following:
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658$converted$all_bldgs_ver5_WGS1984
     @GET
@@ -61,15 +63,13 @@ public class RepoService {
     }
 
     private void deleteTmpDir(File shapefile) {
-        String[] extensionsToGrab = new String[]{"dbf", "prj", "shp", "shx"};
-
         String fileName = shapefile.getAbsolutePath();
         String filePath = fileName.substring(0, fileName.lastIndexOf(shapefile.separator));
         int extLoc = shapefile.getName().indexOf(".");
         String extName = shapefile.getName().substring(extLoc);
         String fileNameWithNoExt = FilenameUtils.removeExtension(fileName);
 
-        for (String extension : extensionsToGrab) {
+        for (String extension : EXTENSIONS_TO_GRAB) {
             String delFileName = fileNameWithNoExt + "." + extension;
             File delFile = new File(delFileName);
             try {
@@ -96,10 +96,8 @@ public class RepoService {
         String shapefileDatasetUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/datasets/" + urlPart;
         String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
 
-        String[] extensionsToGrab = new String[]{"dbf", "prj", "shp", "shx"};
-
         String tempDir = Files.createTempDirectory("repo_download_").toString();
-        for (String extension : extensionsToGrab) {
+        for (String extension : EXTENSIONS_TO_GRAB) {
             HttpDownloader.downloadFile(shapefileDatasetUrl + "." + extension, tempDir);
         }
 
@@ -108,4 +106,5 @@ public class RepoService {
 
         return new File(shapefile);
     }
+
 }
