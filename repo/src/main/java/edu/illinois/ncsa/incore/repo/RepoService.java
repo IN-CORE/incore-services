@@ -57,38 +57,9 @@ public class RepoService {
             geoJson = writer.toString();
         }
 
-        deleteTmpDir(shapefile);
+        RepoUtils.deleteTmpDir(shapefile, EXTENSIONS_TO_GRAB);
 
         return geoJson;
-    }
-
-    private void deleteTmpDir(File shapefile) {
-        String fileName = shapefile.getAbsolutePath();
-        String filePath = fileName.substring(0, fileName.lastIndexOf(shapefile.separator));
-        int extLoc = shapefile.getName().indexOf(".");
-        String extName = shapefile.getName().substring(extLoc);
-        String fileNameWithNoExt = FilenameUtils.removeExtension(fileName);
-
-        for (String extension : EXTENSIONS_TO_GRAB) {
-            String delFileName = fileNameWithNoExt + "." + extension;
-            File delFile = new File(delFileName);
-            try {
-                if (delFile.delete()) {
-                    System.out.println("file deleted: " + delFileName);
-                } else {
-                    System.out.println("file did not deleted: " + delFileName);
-                }
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
-        File delDir = new File(filePath);
-        try {
-            delDir.delete();
-            System.out.println("Directory deleted: " + filePath);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private File loadDataFromRepository(String id) throws IOException {
