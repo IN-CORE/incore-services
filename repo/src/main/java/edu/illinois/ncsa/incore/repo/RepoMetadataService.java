@@ -1,137 +1,131 @@
 package edu.illinois.ncsa.incore.repo;
-import com.sun.net.httpserver.HttpServer;
-import com.sun.jersey.api.container.httpserver.HttpServerFactory;
+
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.geojson.feature.FeatureJSON;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.file.Files;
-
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
+import java.io.*;
+import java.nio.file.Files;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
-import org.apache.commons.io.FilenameUtils;
-
-@Path("/datasets")
-public class RepoService {
-    public static final String[] EXTENSIONS_TO_GRAB = new String[]{"dbf", "prj", "shp", "shx"};
+@Path("/properties")
+public class RepoMetadataService {
+    public static final String METADATA_EXTENSION = "mvz";
 
     // The Java method will process HTTP GET requests like the following:
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658$converted$all_bldgs_ver5_WGS1984
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658$converted$all_bldgs_ver5_WGS1984
+    //http://localhost:8080/repo/api/properties/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658
     @GET
-    @Path("{datasetId}/geojson")
+    @Path("{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
 
-    public String getDatasetById(@PathParam("datasetId") String id ) {
-        File dataset = null;
+    public String getMetadataById(@PathParam("datasetId") String id) {
+        File metadata = null;
         try {
-            dataset = loadDataFromRepository(id);
-            return formatAsGeoJson(dataset);
+            metadata = loadMetadataFromRepository(id);
+            String utf16String = formatAsString(metadata);
+//            return convertUtf16to8(utf16String);
+            return utf16String;
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace();;
             return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
     }
 
-    @GET
-    @Path("{datasetId}")
-    @Produces(MediaType.APPLICATION_XML)
-
-    public void getMetadataById(@PathParam("datasetId") String id) {
-        System.out.println("metadata called");
-        File dataset = null;
+    public String convertUtf16to8(String inStr){
         try {
-            loadMetadataFromRepository(id);
-//            return formatAsGeoJson(dataset);
+            // Convert from UTF-8 to UTF-8
+//            byte[] str16Bytes = inStr.getBytes("UTF-16");
+//            String str16 = new String(str16Bytes, "UTF-16");
+
+            // Convert from UTF-8 to Unicode
+//            String byte16Str = new String(str16Bytes,  "UTF-16");
+//            byte[] out8Byte = str16.getBytes("UTF-8");
+//            String outStr = new String(out8Byte, "UTF-8");
+            String tmpString = URLEncoder.encode(inStr, "UTF-16");
+            System.out.println(tmpString);
+            String outStr = URLDecoder.decode(inStr, "UTF-8");
+            System.out.println(outStr);
+            return outStr;
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
+    }
+
+    private String formatAsString(File metadataFile) throws IOException {
+        //TODO: this should return the data in geoJSON format
+        String outString;
+
+        StringBuilder metadataSB = new StringBuilder();
+        try {
+            BufferedReader metadataReader = new BufferedReader(new FileReader(metadataFile));
+            String metadataLine;
+
+            while ((metadataLine = metadataReader.readLine()) != null) {
+                metadataSB.append(convertUtf16to8(metadataLine));
+            }
+            outString = metadataSB.toString();
         } catch (IOException e) {
             e.printStackTrace();;
-//            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            outString = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
 
-//        return "";
+        deleteTmpDir(metadataFile);
+
+        return outString;
     }
 
-    private String formatAsGeoJson(File shapefile) throws IOException {
-        //TODO: this should return the data in geoJSON format
-        String geoJson;
-
-        shapefile.setReadOnly();
-
-        ShapefileDataStore store = new ShapefileDataStore(shapefile.toURI().toURL());
-        SimpleFeatureSource source = store.getFeatureSource();
-        SimpleFeatureCollection featureCollection = source.getFeatures();
-        FeatureJSON fjson = new FeatureJSON();
-
-        try (StringWriter writer = new StringWriter()) {
-            fjson.writeFeatureCollection(featureCollection, writer);
-            geoJson = writer.toString();
-        }
-
-        deleteTmpDir(shapefile);
-
-        return geoJson;
-    }
-
-    private void deleteTmpDir(File shapefile) {
-        String fileName = shapefile.getAbsolutePath();
-        String filePath = fileName.substring(0, fileName.lastIndexOf(shapefile.separator));
-        int extLoc = shapefile.getName().indexOf(".");
-        String extName = shapefile.getName().substring(extLoc);
+    private void deleteTmpDir(File metadataFile) {
+        String fileName = metadataFile.getAbsolutePath();
+        System.out.println(fileName);
+        String filePath = fileName.substring(0, fileName.lastIndexOf(metadataFile.separator));
+        int extLoc = metadataFile.getName().indexOf(".");
+        String extName = metadataFile.getName().substring(extLoc);
         String fileNameWithNoExt = FilenameUtils.removeExtension(fileName);
 
-        for (String extension : EXTENSIONS_TO_GRAB) {
-            String delFileName = fileNameWithNoExt + "." + extension;
-            File delFile = new File(delFileName);
-            try {
-                if (delFile.delete()) {
-                    System.out.println("file deleted: " + delFileName);
-                } else {
-                    System.out.println("file did not deleted: " + delFileName);
-                }
-            } catch(Exception e) {
-                e.printStackTrace();
+        String delFileName = fileNameWithNoExt + "." + METADATA_EXTENSION;
+        File delFile = new File(delFileName);
+        try {
+            if (delFile.delete()) {
+                System.out.println("file deleted: " + delFileName);
+            } else {
+                System.out.println("file did not deleted: " + delFileName);
             }
+        } catch(Exception e) {
+            e.printStackTrace();
         }
+
         File delDir = new File(filePath);
         try {
-            delDir.delete();
-            System.out.println("Directory deleted: " + filePath);
+            if (delDir.delete()) {
+                System.out.println("Directory deleted: " + filePath);
+            } else {
+                System.out.println("Directory not deleted: " + filePath);
+            }
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
 
-    private File loadDataFromRepository(String id) throws IOException {
-        String urlPart = id.replace("$", "/");
-        String shapefileDatasetUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/datasets/" + urlPart;
-        String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
-
-        String tempDir = Files.createTempDirectory("repo_download_").toString();
-        for (String extension : EXTENSIONS_TO_GRAB) {
-            HttpDownloader.downloadFile(shapefileDatasetUrl + "." + extension, tempDir);
-        }
-
-        //ok, now the files should be here with the shapefile
-        String shapefile = tempDir + File.separator + baseName + ".shp";
-
-        return new File(shapefile);
-    }
-
-    private void loadMetadataFromRepository(String id) throws IOException {
+    private File loadMetadataFromRepository(String id) throws IOException {
         String urlPart = id.replace("$", "/");
         System.out.println(urlPart);
-        String shapefileDatasetUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/properties/" + urlPart;
-        System.out.println(shapefileDatasetUrl);
-        String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
-//        return new File(metadataFile);
+        String metadataUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/properties/" + urlPart;
+        System.out.println(metadataUrl);
+        String baseName = FilenameUtils.getBaseName(metadataUrl);
+        String tempDir = Files.createTempDirectory("repo_download_").toString();
+
+        HttpDownloader.downloadFile(metadataUrl + "." + METADATA_EXTENSION, tempDir);
+
+        String metadataFile = tempDir + File.separator + baseName + "." + METADATA_EXTENSION;
+
+        return new File(metadataFile);
     }
 }
