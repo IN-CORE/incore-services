@@ -13,13 +13,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.io.*;
 import java.nio.file.Files;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.XML;
 
 @Path("/properties")
 public class RepoMetadataService {
     public static final String METADATA_EXTENSION = "mvz";
-    public File uft8file;
+    public static int INDENT_SPACE = 4;
 
     // The Java method will process HTTP GET requests like the following:
     //http://localhost:8080/repo/api/properties/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658
@@ -32,30 +34,35 @@ public class RepoMetadataService {
 
         try {
             metadata = loadMetadataFromRepository(id);
-            return(formatAsString(metadata));
+            return(formatAsJson(metadata));
         } catch (IOException e) {
             e.printStackTrace();;
             return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
     }
 
-    private String formatAsString(File metadataFile) throws IOException {
+    private String formatAsJson(File metadataFile) throws IOException {
         // convert from UTF-16 to UTF-8
-        String outString = "";
+        String xmlString = "";
         metadataFile.setReadOnly();
         Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
         char metaCharBuffer[] = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
-            outString = outString + new String(metaCharBuffer);
+            xmlString = xmlString + new String(metaCharBuffer);
         }
         metadataReader.close();
         RepoUtils.deleteTmpDir(metadataFile, METADATA_EXTENSION);
 
-        return outString;
+        try {
+            JSONObject metaJsonObj = XML.toJSONObject(xmlString);
+            String jsonString = metaJsonObj.toString(INDENT_SPACE);
+            return jsonString;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        }
     }
-
-
 
     private File loadMetadataFromRepository(String id) throws IOException {
         String urlPart = id.replace("$", "/");
