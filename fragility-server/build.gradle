@@ -1,31 +1,30 @@
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'org.akhikhl.gretty'
-apply plugin: 'idea'
+//apply plugin: 'org.akhikhl.gretty'
+//apply plugin: 'idea'
 
 repositories {
 	mavenCentral()
-	maven { url 'http://repo.grails.org/grails/repo' }
-	maven { url 'http://repo.grails.org/grails/plugins' }
+//	maven { url 'http://repo.grails.org/grails/repo' }
+//	maven { url 'http://repo.grails.org/grails/plugins' }
 }
 
-war {
-	archiveName "incore.war"
-}
+//war {
+//	archiveName "incore.war"
+//}
 
 gretty {
-	port 8080
 	contextPath '/incore'
 }
 
 buildscript {
-	repositories {
-		maven { url 'http://repo.grails.org/grails/repo' }
-		maven { url 'http://repo.grails.org/grails/plugins' }
-	}
-	dependencies {
-		classpath "org.akhikhl.gretty:gretty:1.4.0"
-	}
+//	repositories {
+//		maven { url 'http://repo.grails.org/grails/repo' }
+//		maven { url 'http://repo.grails.org/grails/plugins' }
+//	}
+//	dependencies {
+//		classpath "org.akhikhl.gretty:gretty:1.4.0"
+//	}
 }
 
 dependencies {

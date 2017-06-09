@@ -1,44 +1,48 @@
 //add dependencies for plugins needed to run the build
 buildscript {
-	repositories {
-        maven { url 'http://repo.grails.org/grails/repo' }
-        maven { url 'http://repo.grails.org/grails/plugins' }
-	}
-	dependencies {
-		classpath "org.akhikhl.gretty:gretty:1.4.0"
-	}
+    repositories {
+        maven { url 'http://download.osgeo.org/webdav/geotools/' }
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+    dependencies {
+        classpath 'org.akhikhl.gretty:gretty:1.4.0'
+    }
 }
 
 //apply base plugins to the root, so we can run all the server
 //webapps in a single gretty/jetty server
-apply plugin: "org.akhikhl.gretty"
 apply plugin: 'idea'
-
 
 //define repositories needed for all builds
 //(this is different than the buildscript block.
 //  The buildscript repositories are for RUNNING the build script,
 //  This is for repositories needed to find dependencies of the projects)
 repositories {
+    maven { url 'http://download.osgeo.org/webdav/geotools/' }
     mavenLocal()
     mavenCentral()
+    jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    maven { url 'http://repo.grails.org/grails/repo' }
-    maven { url 'http://repo.grails.org/grails/plugins' }
     maven { url "http://repo.boundlessgeo.com/main/" }
-    maven { url "http://download.osgeo.org/webdav/geotools/" }
 }
 
+
+apply plugin: 'war'
+
+if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
+    project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
 
 //a "farm" is the gretty term for multiple webapps that can be run
 //in the same webapp service.
 farm {
-  webapp ':fragility-server'
-  webapp ':fragility-mapping'
-  webapp ':repo'
-  webapp ':hazard-service'
+    webapp ':fragility-server'
+    webapp ':fragility-mapping'
+    webapp ':repo'
+    webapp ':hazard-service'
 }
-
 
 //For now, all subprojects are java projects. Later this might change.
 //Until then, give them all a basic java build
@@ -47,17 +51,15 @@ subprojects {
     apply plugin: 'java'
 
     repositories {
+        maven { url 'http://download.osgeo.org/webdav/geotools/' }
         mavenLocal()
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url 'http://repo.grails.org/grails/repo' }
-        maven { url 'http://repo.grails.org/grails/plugins' }
         maven { url "http://repo.boundlessgeo.com/main/" }
-	maven { url "http://download.osgeo.org/webdav/geotools/" }
     }
 
     dependencies {
-      compile "log4j:log4j:1.2.16"
+        compile "log4j:log4j:1.2.16"
     }
 }
 
@@ -67,16 +69,19 @@ subprojects {
 ["fragility-server","fragility-mapping", "repo", "hazard-service"].each { name ->
   project(":$name") {
 
-    apply plugin: 'war'
-    apply plugin: "org.akhikhl.gretty"
+        apply plugin: 'war'
+        if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
+            project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
 
-    gretty {
-      port 8080
+
+
+        gretty {
+            httpPort 8080
+        }
+
+
+        dependencies {
+
+        }
     }
-
-
-    dependencies {
-
-    }
-  }
 }
