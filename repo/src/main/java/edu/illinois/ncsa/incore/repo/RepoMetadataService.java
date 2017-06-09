@@ -49,10 +49,11 @@ public class RepoMetadataService {
         char metaCharBuffer[] = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
-            xmlString = xmlString + new String(metaCharBuffer);
+            xmlString = xmlString + new String(metaCharBuffer, 0, len);
         }
         metadataReader.close();
         RepoUtils.deleteTmpDir(metadataFile, METADATA_EXTENSION);
+
 
         try {
             JSONObject metaJsonObj = XML.toJSONObject(xmlString);
