@@ -9,6 +9,8 @@ import org.geotools.geojson.feature.FeatureJSON;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
@@ -30,7 +32,7 @@ public class RepoService {
     // The Java method will process HTTP GET requests like the following:
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658$converted$all_bldgs_ver5_WGS1984
     @GET
-    @Path("{datasetId}/files")
+    @Path("{datasetId}/geojson")
     @Produces(MediaType.APPLICATION_JSON)
 
     public String getDatasetById(@PathParam("datasetId") String id ) {
@@ -57,6 +59,23 @@ public class RepoService {
         } catch (IOException e) {
             e.printStackTrace();;
             return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        }
+    }
+
+    @GET
+    @Path("{datasetId}/files")
+    @Produces(MediaType.TEXT_PLAIN)
+    public File getShapefileById(@PathParam("datasetId") String id) {
+        File dataset = null;
+
+        try{
+            dataset = loadZipdataFromRepository(id);
+//            return formatDatasetAsGeoJson(dataset);
+            return dataset;
+        }catch (IOException e) {
+            e.printStackTrace();
+//            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            return null;
         }
     }
 
@@ -117,6 +136,41 @@ public class RepoService {
         String shapefile = tempDir + File.separator + baseName + ".shp";
 
         return new File(shapefile);
+    }
+
+    private File loadZipdataFromRepository(String id) throws IOException {
+        String urlPart = id.replace("$", "/");
+        String shapefileDatasetUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/datasets/" + urlPart;
+        String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
+
+        String tempDir = Files.createTempDirectory("repo_download_").toString();
+        for (String extension : EXTENSIONS_TO_GRAB) {
+            HttpDownloader.downloadFile(shapefileDatasetUrl + "." + extension, tempDir);
+        }
+
+        String zipfile = tempDir + File.separator + baseName + ".zip";
+
+        // create zip file
+        byte[] buffer = new byte[1024];
+        FileOutputStream fileOS = new FileOutputStream(zipfile);
+        ZipOutputStream zipOS = new ZipOutputStream(fileOS);
+        for (String extension : EXTENSIONS_TO_GRAB) {
+            String sFileName = baseName + "." + extension;
+            ZipEntry zEntry = new ZipEntry(sFileName);
+            zipOS.putNextEntry(zEntry);
+
+            FileInputStream in = new FileInputStream(tempDir + File.separator + sFileName);
+            int index;
+            while ((index = in.read(buffer)) > 0) {
+                zipOS.write(buffer, 0, index);
+            }
+            in.close();
+        }
+
+        zipOS.closeEntry();
+        zipOS.close();
+        System.out.println("zip file has been created");
+        return new File(zipfile);
     }
 
     private File loadMetadataFromRepository(String id) throws IOException {
