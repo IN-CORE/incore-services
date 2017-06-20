@@ -11,7 +11,6 @@ import org.geotools.geojson.feature.FeatureJSON;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -31,7 +30,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 
-@Path("/datasets")
+@Path("")
 public class RepoService {
     public static final String REPO_SERVER_URL = "https://earthquake.ncsa.illinois.edu/";
     public static final String REPO_PROP_DIR = "ergo-repo/properties/";
@@ -45,14 +44,14 @@ public class RepoService {
     public static final String TAG_PROPERTIES = "gis-dataset-properties";
     public static final String TAG_LOCATION ="location";
     public static final String TAG_DATASET_ID = "dataset-id";
-    public String datasetId = "";
 
     // The Java method will process HTTP GET requests like the following:
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658$converted$all_bldgs_ver5_WGS1984
     @GET
-    @Path("")
+    @Path("/datasets")
     @Produces(MediaType.TEXT_HTML)
-
+    // test this with
+    // http://localhost:8080/repo/api/datasets
     public String getDirectoryList() {
         try {
             return (loadDirectoryList());
@@ -63,15 +62,43 @@ public class RepoService {
     }
 
     @GET
-    @Path("{datasetId}/geojson")
+    @Path("/datasets@type={typeId}")
     @Produces(MediaType.APPLICATION_JSON)
+    // test this with
+    // http://localhost:8080/repo/api/datasets?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
+    public String getDataListByTypeId(@PathParam("typeId") String typeId) {
+        String propUrl = REPO_PROP_URL + typeId;
+        File metadata = null;
 
-    public String getDatasetById(@PathParam("datasetId") String id ) {
+        List<String> resHref = getDirectoryContent(propUrl, typeId);
+        String outJsonStr = "[\n";
+        String combinedId = "";
+
+        for (String res: resHref) {
+            outJsonStr = outJsonStr;
+
+            combinedId = typeId + "/" + res;
+            try {
+                metadata = loadMetadataFromRepository(res);
+                outJsonStr = outJsonStr + formatMetadataAsJson(metadata, combinedId) +",\n";
+            } catch (IOException e) {
+                e.printStackTrace();;
+                return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            }
+        }
+        outJsonStr = outJsonStr.substring(0, outJsonStr.length() - 2);
+
+        return outJsonStr + "\n]";
+    }
+
+    @GET
+    @Path("/datasets/{datasetId}/geojson")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getDatasetById(@PathParam("datasetId") String datasetId ) {
         File dataset = null;
 
         try{
-            dataset = loadDataFromRepository(id);
-            datasetId = id;
+            dataset = loadDataFromRepository(datasetId);
             return formatDatasetAsGeoJson(dataset);
         }catch (IOException e) {
             e.printStackTrace();
@@ -80,11 +107,11 @@ public class RepoService {
     }
 
     @GET
-    @Path("{datasetId}")
+    @Path("/datasets/{datasetId}")
     @Produces(MediaType.TEXT_HTML)
-    public String getDirectoryListWithId(@PathParam("datasetId") String id) {
+    public String getDirectoryListWithId(@PathParam("datasetId") String datasetId) {
         try {
-            return (loadDirectoryList(id));
+            return (loadDirectoryList(datasetId));
         } catch (Exception e) {
             e.printStackTrace();
             return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
@@ -92,16 +119,15 @@ public class RepoService {
     }
 
     @GET
-    @Path("{datasetId}/{dataId}")
+    @Path("/datasets/{typeId}/{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getMetadataById(@PathParam("datasetId") String dataTypeId, @PathParam("dataId") String dataId) {
+    public String getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File metadata = null;
-        String id = dataTypeId + "/" + dataId;
-        System.out.println("Show Json");
+        String combinedId = typeId + "/" + datasetId;
+
         try {
-            metadata = loadMetadataFromRepository(id);
-            datasetId = id;
-            return(formatMetadataAsJson(metadata));
+            metadata = loadMetadataFromRepository(combinedId);
+            return(formatMetadataAsJson(metadata, combinedId));
         } catch (IOException e) {
             e.printStackTrace();;
             return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
@@ -109,14 +135,13 @@ public class RepoService {
     }
 
     @GET
-    @Path("{datasetId}/files")
+    @Path("/datasets/{datasetId}/files")
     @Produces(MediaType.TEXT_PLAIN)
-    public File getShapefileById(@PathParam("datasetId") String id) {
+    public File getShapefileById(@PathParam("datasetId") String datasetId) {
         File dataset = null;
 
         try{
-            dataset = loadZipdataFromRepository(id);
-            datasetId = id;
+            dataset = loadZipdataFromRepository(datasetId);
             return dataset;
         }catch (IOException e) {
             e.printStackTrace();
@@ -125,27 +150,9 @@ public class RepoService {
         }
     }
 
-    @GET
-    @Path("{datasetId}/html")
-    @Produces(MediaType.TEXT_HTML)
-
-    public String getHtmlById(@PathParam("datasetId") String id ) {
-        File dataset = null;
-
-        try{
-            dataset = loadMetadataFromRepository(id);
-            String jsonStr = formatMetadataAsJson(dataset);
-            datasetId = id;
-            return jsonStr;
-        }catch (IOException e) {
-            e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-        }
-    }
-
     private String formatDatasetAsGeoJson(File shapefile) throws IOException {
         //TODO: this should return the data in geoJSON format
-        String geoJson;
+        String geoJsonStr;
 
         shapefile.setReadOnly();
 
@@ -156,15 +163,15 @@ public class RepoService {
 
         try (StringWriter writer = new StringWriter()) {
             fjson.writeFeatureCollection(featureCollection, writer);
-            geoJson = writer.toString();
+            geoJsonStr = writer.toString();
         }
 
         RepoUtils.deleteTmpDir(shapefile, EXTENSIONS_SHAPEFILE);
 
-        return geoJson;
+        return geoJsonStr;
     }
 
-    private String formatMetadataAsJson(File metadataFile) throws IOException {
+    private String formatMetadataAsJson(File metadataFile, String datasetId) throws IOException {
         // convert from UTF-16 to UTF-8
         String xmlString = "";
         metadataFile.setReadOnly();
@@ -190,8 +197,8 @@ public class RepoService {
         }
     }
 
-    private File loadDataFromRepository(String id) throws IOException {
-        String urlPart = id.replace("$", "/");
+    private File loadDataFromRepository(String inId) throws IOException {
+        String urlPart = inId.replace("$", "/");
         String shapefileDatasetUrl = REPO_DS_URL + urlPart;
         String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
 
@@ -205,8 +212,8 @@ public class RepoService {
         return new File(shapefile);
     }
 
-    private File loadZipdataFromRepository(String id) throws IOException {
-        String urlPart = id.replace("$", "/");
+    private File loadZipdataFromRepository(String inId) throws IOException {
+        String urlPart = inId.replace("$", "/");
         String fileDatasetUrl = REPO_DS_URL + urlPart;
         String baseName = FilenameUtils.getBaseName(fileDatasetUrl);
         String tempDir = Files.createTempDirectory("repo_download_").toString();
@@ -246,55 +253,63 @@ public class RepoService {
         return outHtml;
     }
 
-    private String loadDirectoryList(String datasetId) {
-        String outHtml = createListHtml(datasetId);
+    private String loadDirectoryList(String inId) {
+        String outHtml = createListHtml(inId);
         return outHtml;
     }
 
-    private String createListHtml(String datasetId){
-        Sardine sardine = SardineFactory.begin();
+    private String createListHtml(String inId){
+
         String outHtml = "<HTML><BODY>";
         String tmpRepoUrl = "";
-        if (datasetId.length() > 0) {
-            tmpRepoUrl = REPO_DS_URL + datasetId;
+        if (inId.length() > 0) {
+            tmpRepoUrl = REPO_DS_URL + inId;
         } else {
             tmpRepoUrl = REPO_PROP_URL;
         }
-        try {
-            List<DavResource> resources = sardine.list(tmpRepoUrl);
-            List<String> resHref = new LinkedList<String>();
-            for (DavResource res: resources) {
-                String[] tmpUrls = res.getHref().toString().split("/");
-                String tmpUrl = "";
-                if (datasetId.length() > 0) {
-                    tmpUrl = tmpUrls[tmpUrls.length - 2] + "/" + tmpUrls[tmpUrls.length - 1];
-                } else {
-                    tmpUrl = tmpUrls[tmpUrls.length - 1];
-                }
-                resHref.add(tmpUrl);
-            }
-            Collections.sort(resHref, null);
 
-            String realMvzUrl;
+        List<String> resHref = getDirectoryContent(tmpRepoUrl, inId);
 
-            for (String tmpUrl: resHref) {
-                // get only the last elemente after back slashes
-                if (datasetId.length() > 0) {
-                    realMvzUrl = tmpRepoUrl + "/" + tmpUrl;
-                    String[] linkUrls = tmpUrl.split("/");
-                    outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + linkUrls[linkUrls.length - 1] + "</a>";
-                } else {
-                    realMvzUrl = tmpRepoUrl + "/" + tmpUrl;
-                    outHtml = outHtml + "<a href =\"datasets/" + tmpUrl + "\">" + tmpUrl + "</a>";
-                }
-                outHtml = outHtml + "</BR>";
+        for (String tmpUrl: resHref) {
+            // get only the last elemente after back slashes
+            if (inId.length() > 0) {
+                String[] linkUrls = tmpUrl.split("/");
+                outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + linkUrls[linkUrls.length - 1] + "</a>";
+            } else {
+                outHtml = outHtml + "<a href =\"datasets/" + tmpUrl + "\">" + tmpUrl + "</a>";
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            outHtml = outHtml + "</BR>";
         }
 
         outHtml = outHtml + "</BODY></HTML>";
         return outHtml;
+    }
+
+    private List<String> getDirectoryContent(String inUrl, String inId){
+        List<String> outList = new LinkedList<String>();
+        Sardine sardine = SardineFactory.begin();
+        try {
+            List<DavResource> resources = sardine.list(inUrl);
+
+            for (DavResource res : resources) {
+                String[] tmpUrls = res.getHref().toString().split("/");
+                String tmpUrl = "";
+                if (inId.length() > 0) {
+                    tmpUrl = tmpUrls[tmpUrls.length - 2] + "/" + tmpUrls[tmpUrls.length - 1];
+                } else {
+                    tmpUrl = tmpUrls[tmpUrls.length - 1];
+                }
+
+                if (!tmpUrls[tmpUrls.length -1].equals(inId)) {
+                    outList.add(tmpUrl);
+                }
+            }
+            Collections.sort(outList, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return outList;
     }
 
     private List<String> createFileListFromUrl(String inUrl) {
@@ -363,14 +378,20 @@ public class RepoService {
         return realUrl;
     }
 
-    private File loadMetadataFromRepository(String id) throws IOException {
-        String urlPart = id.replace("$", "/");
+    private File loadMetadataFromRepository(String inId) throws IOException {
+        String urlPart = inId.replace("$", "/");
         String[] urlStrs = urlPart.split("/converted/");    // split the url using the folder name "converted"
         String metadataUrl = REPO_PROP_URL + urlStrs[0];
         String baseName = FilenameUtils.getBaseName(metadataUrl);
         String tempDir = Files.createTempDirectory("repo_download_").toString();
 
-        HttpDownloader.downloadFile(metadataUrl + "." + EXTENSION_META, tempDir);
+        // check if metadataUrl ends with EXTENSION_META that is .mvz
+        String tmpEndStr = metadataUrl.substring(metadataUrl.lastIndexOf('.') + 1);
+        if (!tmpEndStr.equals(EXTENSION_META)) {
+            HttpDownloader.downloadFile(metadataUrl + "." + EXTENSION_META, tempDir);
+        } else {
+            HttpDownloader.downloadFile(metadataUrl, tempDir);
+        }
 
         String metadataFile = tempDir + File.separator + baseName + "." + EXTENSION_META;
 
