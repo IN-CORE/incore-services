@@ -1,6 +1,7 @@
 package edu.illinois.ncsa.incore.repo;
-import com.sun.net.httpserver.HttpServer;
-import com.sun.jersey.api.container.httpserver.HttpServerFactory;
+import com.github.sardine.DavResource;
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -9,6 +10,10 @@ import org.geotools.geojson.feature.FeatureJSON;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -18,19 +23,45 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.io.FilenameUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
 
 @Path("/datasets")
 public class RepoService {
-    public static final String[] EXTENSIONS_TO_GRAB = new String[]{"dbf", "prj", "shp", "shx"};
+    public static final String REPO_SERVER_URL = "https://earthquake.ncsa.illinois.edu/";
+    public static final String REPO_PROP_DIR = "ergo-repo/properties/";
+    public static final String REPO_DS_DIR = "ergo-repo/datasets/";
+    public static final String REPO_PROP_URL = REPO_SERVER_URL + REPO_PROP_DIR;
+    public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
+    public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";
+    public static final String[] EXTENSIONS_SHAPEFILE = new String[]{"dbf", "prj", "shp", "shx"};
     public static final String EXTENSION_META = "mvz";
     public static final int INDENT_SPACE = 4;
+    public static final String TAG_PROPERTIES = "gis-dataset-properties";
+    public static final String TAG_LOCATION ="location";
+    public static final String TAG_DATASET_ID = "dataset-id";
+    public String datasetId = "";
 
     // The Java method will process HTTP GET requests like the following:
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658$converted$all_bldgs_ver5_WGS1984
+    @GET
+    @Path("")
+    @Produces(MediaType.TEXT_HTML)
+
+    public String getDirectoryList() {
+        try {
+            return (loadDirectoryList());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        }
+    }
+
     @GET
     @Path("{datasetId}/geojson")
     @Produces(MediaType.APPLICATION_JSON)
@@ -40,6 +71,7 @@ public class RepoService {
 
         try{
             dataset = loadDataFromRepository(id);
+            datasetId = id;
             return formatDatasetAsGeoJson(dataset);
         }catch (IOException e) {
             e.printStackTrace();
@@ -49,12 +81,26 @@ public class RepoService {
 
     @GET
     @Path("{datasetId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getMetadataById(@PathParam("datasetId") String id) {
-        File metadata = null;
+    @Produces(MediaType.TEXT_HTML)
+    public String getDirectoryListWithId(@PathParam("datasetId") String id) {
+        try {
+            return (loadDirectoryList(id));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        }
+    }
 
+    @GET
+    @Path("{datasetId}/{dataId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getMetadataById(@PathParam("datasetId") String dataTypeId, @PathParam("dataId") String dataId) {
+        File metadata = null;
+        String id = dataTypeId + "/" + dataId;
+        System.out.println("Show Json");
         try {
             metadata = loadMetadataFromRepository(id);
+            datasetId = id;
             return(formatMetadataAsJson(metadata));
         } catch (IOException e) {
             e.printStackTrace();;
@@ -70,12 +116,30 @@ public class RepoService {
 
         try{
             dataset = loadZipdataFromRepository(id);
-//            return formatDatasetAsGeoJson(dataset);
+            datasetId = id;
             return dataset;
         }catch (IOException e) {
             e.printStackTrace();
 //            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
             return null;
+        }
+    }
+
+    @GET
+    @Path("{datasetId}/html")
+    @Produces(MediaType.TEXT_HTML)
+
+    public String getHtmlById(@PathParam("datasetId") String id ) {
+        File dataset = null;
+
+        try{
+            dataset = loadMetadataFromRepository(id);
+            String jsonStr = formatMetadataAsJson(dataset);
+            datasetId = id;
+            return jsonStr;
+        }catch (IOException e) {
+            e.printStackTrace();
+            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
     }
 
@@ -95,7 +159,7 @@ public class RepoService {
             geoJson = writer.toString();
         }
 
-        RepoUtils.deleteTmpDir(shapefile, EXTENSIONS_TO_GRAB);
+        RepoUtils.deleteTmpDir(shapefile, EXTENSIONS_SHAPEFILE);
 
         return geoJson;
     }
@@ -115,6 +179,9 @@ public class RepoService {
 
         try {
             JSONObject metaJsonObj = XML.toJSONObject(xmlString);
+            JSONObject locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES).getJSONObject(TAG_DATASET_ID);
+            String newUrl = SERVER_URL_PREFIX + datasetId + "/files";
+            locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(INDENT_SPACE);
             return jsonString;
         } catch (JSONException e) {
@@ -125,11 +192,11 @@ public class RepoService {
 
     private File loadDataFromRepository(String id) throws IOException {
         String urlPart = id.replace("$", "/");
-        String shapefileDatasetUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/datasets/" + urlPart;
+        String shapefileDatasetUrl = REPO_DS_URL + urlPart;
         String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
 
         String tempDir = Files.createTempDirectory("repo_download_").toString();
-        for (String extension : EXTENSIONS_TO_GRAB) {
+        for (String extension : EXTENSIONS_SHAPEFILE) {
             HttpDownloader.downloadFile(shapefileDatasetUrl + "." + extension, tempDir);
         }
         //ok, now the files should be here with the shapefile
@@ -140,12 +207,14 @@ public class RepoService {
 
     private File loadZipdataFromRepository(String id) throws IOException {
         String urlPart = id.replace("$", "/");
-        String shapefileDatasetUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/datasets/" + urlPart;
-        String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
-
+        String fileDatasetUrl = REPO_DS_URL + urlPart;
+        String baseName = FilenameUtils.getBaseName(fileDatasetUrl);
         String tempDir = Files.createTempDirectory("repo_download_").toString();
-        for (String extension : EXTENSIONS_TO_GRAB) {
-            HttpDownloader.downloadFile(shapefileDatasetUrl + "." + extension, tempDir);
+        String realUrl = getRealUrl(fileDatasetUrl);
+        List<String> fileList = createFileListFromUrl(fileDatasetUrl);
+
+        for (int i=0; i < fileList.size();i++) {
+            HttpDownloader.downloadFile(realUrl + fileList.get(i), tempDir);
         }
 
         String zipfile = tempDir + File.separator + baseName + ".zip";
@@ -154,12 +223,11 @@ public class RepoService {
         byte[] buffer = new byte[1024];
         FileOutputStream fileOS = new FileOutputStream(zipfile);
         ZipOutputStream zipOS = new ZipOutputStream(fileOS);
-        for (String extension : EXTENSIONS_TO_GRAB) {
-            String sFileName = baseName + "." + extension;
-            ZipEntry zEntry = new ZipEntry(sFileName);
+        for (int i=0; i < fileList.size();i++) {
+            ZipEntry zEntry = new ZipEntry(fileList.get(i));
             zipOS.putNextEntry(zEntry);
 
-            FileInputStream in = new FileInputStream(tempDir + File.separator + sFileName);
+            FileInputStream in = new FileInputStream(tempDir + File.separator + fileList.get(i));
             int index;
             while ((index = in.read(buffer)) > 0) {
                 zipOS.write(buffer, 0, index);
@@ -173,10 +241,132 @@ public class RepoService {
         return new File(zipfile);
     }
 
+    private String loadDirectoryList() {
+        String outHtml = createListHtml("");
+        return outHtml;
+    }
+
+    private String loadDirectoryList(String datasetId) {
+        String outHtml = createListHtml(datasetId);
+        return outHtml;
+    }
+
+    private String createListHtml(String datasetId){
+        Sardine sardine = SardineFactory.begin();
+        String outHtml = "<HTML><BODY>";
+        String tmpRepoUrl = "";
+        if (datasetId.length() > 0) {
+            tmpRepoUrl = REPO_DS_URL + datasetId;
+        } else {
+            tmpRepoUrl = REPO_PROP_URL;
+        }
+        try {
+            List<DavResource> resources = sardine.list(tmpRepoUrl);
+            List<String> resHref = new LinkedList<String>();
+            for (DavResource res: resources) {
+                String[] tmpUrls = res.getHref().toString().split("/");
+                String tmpUrl = "";
+                if (datasetId.length() > 0) {
+                    tmpUrl = tmpUrls[tmpUrls.length - 2] + "/" + tmpUrls[tmpUrls.length - 1];
+                } else {
+                    tmpUrl = tmpUrls[tmpUrls.length - 1];
+                }
+                resHref.add(tmpUrl);
+            }
+            Collections.sort(resHref, null);
+
+            String realMvzUrl;
+
+            for (String tmpUrl: resHref) {
+                // get only the last elemente after back slashes
+                if (datasetId.length() > 0) {
+                    realMvzUrl = tmpRepoUrl + "/" + tmpUrl;
+                    String[] linkUrls = tmpUrl.split("/");
+                    outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + linkUrls[linkUrls.length - 1] + "</a>";
+                } else {
+                    realMvzUrl = tmpRepoUrl + "/" + tmpUrl;
+                    outHtml = outHtml + "<a href =\"datasets/" + tmpUrl + "\">" + tmpUrl + "</a>";
+                }
+                outHtml = outHtml + "</BR>";
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        outHtml = outHtml + "</BODY></HTML>";
+        return outHtml;
+    }
+
+    private List<String> createFileListFromUrl(String inUrl) {
+        String realUrl = getRealUrl(inUrl);
+        List<String> linkList = getDirList(realUrl);
+
+//        URL dirUrl = null;
+//        URLConnection dirUC = null;
+//        String inLine = "";
+//        String outLine = "";
+//        try {
+//            dirUrl = new URL(REPO_URL_PREFIX + "properties");
+//            dirUC = dirUrl.openConnection();
+//            InputStreamReader isr = new InputStreamReader(dirUC.getInputStream());
+//            BufferedReader buffReader = new BufferedReader(isr);
+//
+//            while((inLine = buffReader.readLine()) != null){
+//                linkList.add(inLine);
+//                outLine = outLine + inLine;
+//            }
+//
+//            Document doc = Jsoup.parse(outLine);
+//            Document doc = Jsoup.connect(String.valueOf(dirUrl)).get();
+//            Elements links = doc.select("a");
+//            String linkAtr = "";
+//
+//            for (int i=0;i < links.size();i++){
+//                linkList.add(links.get(i).attr("href"));
+//            }
+//        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+        return linkList;
+    }
+
+    private List<String> getDirList(String inUrl){
+        List<String> linkList = new LinkedList<String> ();
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(inUrl).get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Elements links = doc.select("a");
+        String linkAtr = "";
+
+        for (int i=0;i < links.size();i++){
+            linkAtr = links.get(i).attr("href");
+//            System.out.println(linkAtr);
+            if (linkAtr.length() > 3) {
+                linkList.add(linkAtr);
+            }
+        }
+
+        return linkList;
+    }
+
+    private String getRealUrl(String inUrl) {
+        String strs[] = inUrl.split("/converted/");
+        String urlPrefix = strs[0];
+        String realUrl = urlPrefix + "/converted/";
+
+        return realUrl;
+    }
+
     private File loadMetadataFromRepository(String id) throws IOException {
         String urlPart = id.replace("$", "/");
         String[] urlStrs = urlPart.split("/converted/");    // split the url using the folder name "converted"
-        String metadataUrl = "https://earthquake.ncsa.illinois.edu/ergo-repo/properties/" + urlStrs[0];
+        String metadataUrl = REPO_PROP_URL + urlStrs[0];
         String baseName = FilenameUtils.getBaseName(metadataUrl);
         String tempDir = Files.createTempDirectory("repo_download_").toString();
 
