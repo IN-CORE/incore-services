@@ -70,17 +70,16 @@ public class RepoService {
         String propUrl = REPO_PROP_URL + typeId;
         File metadata = null;
 
-        List<String> resHref = getDirectoryContent(propUrl, typeId);
+        List<String> resourceUrls = getDirectoryContent(propUrl, typeId);
         String outJsonStr = "[\n";
         String combinedId = "";
 
-        for (String res: resHref) {
+        for (String rUrl: resourceUrls) {
             outJsonStr = outJsonStr;
 
-            combinedId = typeId + "/" + res;
             try {
-                metadata = loadMetadataFromRepository(res);
-                outJsonStr = outJsonStr + formatMetadataAsJson(metadata, combinedId) +",\n";
+                metadata = loadMetadataFromRepository(rUrl);
+                outJsonStr = outJsonStr + formatMetadataAsJson(metadata, rUrl) +",\n";
             } catch (IOException e) {
                 e.printStackTrace();;
                 return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
@@ -135,13 +134,14 @@ public class RepoService {
     }
 
     @GET
-    @Path("/datasets/{datasetId}/files")
+    @Path("/datasets/{typeId}/{datasetId}/files")
     @Produces(MediaType.TEXT_PLAIN)
-    public File getShapefileById(@PathParam("datasetId") String datasetId) {
+    public File getShapefileById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File dataset = null;
 
+        String combinedId = typeId + "/" + datasetId + "/converted/";
         try{
-            dataset = loadZipdataFromRepository(datasetId);
+            dataset = loadZipdataFromRepository(combinedId);
             return dataset;
         }catch (IOException e) {
             e.printStackTrace();
@@ -171,7 +171,7 @@ public class RepoService {
         return geoJsonStr;
     }
 
-    private String formatMetadataAsJson(File metadataFile, String datasetId) throws IOException {
+    private String formatMetadataAsJson(File metadataFile, String inId) throws IOException {
         // convert from UTF-16 to UTF-8
         String xmlString = "";
         metadataFile.setReadOnly();
@@ -184,10 +184,16 @@ public class RepoService {
         metadataReader.close();
         RepoUtils.deleteTmpDir(metadataFile, EXTENSION_META);
 
+        // remove metadata file extestion from inId if there is any
+        String tmpEndStr = inId.substring(inId.lastIndexOf('.') + 1);
+        if (tmpEndStr.equals(EXTENSION_META)) {
+            inId = inId.substring(0, inId.length() - 4);
+        }
+
         try {
             JSONObject metaJsonObj = XML.toJSONObject(xmlString);
             JSONObject locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES).getJSONObject(TAG_DATASET_ID);
-            String newUrl = SERVER_URL_PREFIX + datasetId + "/files";
+            String newUrl = SERVER_URL_PREFIX + inId + "/files";
             locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(INDENT_SPACE);
             return jsonString;
