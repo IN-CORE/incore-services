@@ -72,7 +72,7 @@ public class RepoService {
     }
 
     @GET
-    @Path("/datasets?type={typeId}")
+    @Path("/datasets@type={typeId}")
     @Produces(MediaType.APPLICATION_JSON)
     // test this with
     // http://localhost:8080/repo/api/datasets?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
@@ -121,9 +121,9 @@ public class RepoService {
     @GET
     @Path("/datasets/{typeId}")
     @Produces(MediaType.TEXT_HTML)
-    public String getDirectoryListWithId(@PathParam("typeId") String datasetId) {
+    public String getDirectoryListWithId(@PathParam("typeId") String typeId) {
         try {
-            return (loadDirectoryList(datasetId));
+            return (loadDirectoryList(typeId));
         } catch (Exception e) {
             e.printStackTrace();
             return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
@@ -356,7 +356,7 @@ public class RepoService {
                 String[] linkUrls = tmpUrl.split("/");
                 outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + linkUrls[linkUrls.length - 1] + "</a>";
             } else {
-                outHtml = outHtml + "<a href =\"datasets/" + tmpUrl + "\">" + tmpUrl + "</a>";
+                outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + tmpUrl + "</a>";
             }
             outHtml = outHtml + "</BR>";
         }
