@@ -41,7 +41,8 @@ public class RepoService {
     public static final String[] EXTENSIONS_SHAPEFILE = new String[]{"dbf", "prj", "shp", "shx"};
     public static final String EXTENSION_META = "mvz";
     public static final int INDENT_SPACE = 4;
-    public static final String TAG_PROPERTIES = "gis-dataset-properties";
+    public static final String TAG_PROPERTIES_GIS = "gis-dataset-properties";
+    public static final String TAG_PROPERTIES_MAP = "mapped-dataset-properties";
     public static final String TAG_LOCATION ="location";
     public static final String TAG_DATASET_ID = "dataset-id";
 
@@ -62,7 +63,7 @@ public class RepoService {
     }
 
     @GET
-    @Path("/datasets@type={typeId}")
+    @Path("/datasets?type={typeId}")
     @Produces(MediaType.APPLICATION_JSON)
     // test this with
     // http://localhost:8080/repo/api/datasets?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
@@ -91,13 +92,16 @@ public class RepoService {
     }
 
     @GET
-    @Path("/datasets/{datasetId}/geojson")
+    @Path("/datasets/{typeid}/{datasetId}/geojson")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getDatasetById(@PathParam("datasetId") String datasetId ) {
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
+    public String getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
         File dataset = null;
 
+        String combinedId = typeId + "/" + datasetId + "/converted/";
+
         try{
-            dataset = loadDataFromRepository(datasetId);
+            dataset = loadDataFromRepository(combinedId);
             return formatDatasetAsGeoJson(dataset);
         }catch (IOException e) {
             e.printStackTrace();
@@ -106,9 +110,9 @@ public class RepoService {
     }
 
     @GET
-    @Path("/datasets/{datasetId}")
+    @Path("/datasets/{typeId}")
     @Produces(MediaType.TEXT_HTML)
-    public String getDirectoryListWithId(@PathParam("datasetId") String datasetId) {
+    public String getDirectoryListWithId(@PathParam("typeId") String datasetId) {
         try {
             return (loadDirectoryList(datasetId));
         } catch (Exception e) {
@@ -120,6 +124,7 @@ public class RepoService {
     @GET
     @Path("/datasets/{typeId}/{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
+//    http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
     public String getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File metadata = null;
         String combinedId = typeId + "/" + datasetId;
@@ -136,6 +141,7 @@ public class RepoService {
     @GET
     @Path("/datasets/{typeId}/{datasetId}/files")
     @Produces(MediaType.TEXT_PLAIN)
+    // http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/files
     public File getShapefileById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File dataset = null;
 
@@ -192,7 +198,13 @@ public class RepoService {
 
         try {
             JSONObject metaJsonObj = XML.toJSONObject(xmlString);
-            JSONObject locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES).getJSONObject(TAG_DATASET_ID);
+            JSONObject locObj = null;
+            if (metaJsonObj.has(TAG_PROPERTIES_GIS)) {
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_GIS).getJSONObject(TAG_DATASET_ID);
+            }
+            if (metaJsonObj.has(TAG_PROPERTIES_MAP)) {
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_MAP).getJSONObject(TAG_DATASET_ID);
+            }
             String newUrl = SERVER_URL_PREFIX + inId + "/files";
             locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(INDENT_SPACE);
@@ -206,11 +218,22 @@ public class RepoService {
     private File loadDataFromRepository(String inId) throws IOException {
         String urlPart = inId.replace("$", "/");
         String shapefileDatasetUrl = REPO_DS_URL + urlPart;
-        String baseName = FilenameUtils.getBaseName(shapefileDatasetUrl);
+//        String[] urlStrs = urlPart.split("/converted/");
 
+        List<String> fileList = createFileListFromUrl(shapefileDatasetUrl);
+        String shapefileStr = "";
+        for (int i=0; i < fileList.size();i++) {
+            String fileExt = FilenameUtils.getExtension(fileList.get(i));
+            if (fileExt.equals("shp")) {
+                shapefileStr = fileList.get(i);
+            }
+        }
+        // get the base name of the shapefile
+        String shapefileNames[] = shapefileStr.split(".shp");
+        String baseName = shapefileNames[0];
         String tempDir = Files.createTempDirectory("repo_download_").toString();
         for (String extension : EXTENSIONS_SHAPEFILE) {
-            HttpDownloader.downloadFile(shapefileDatasetUrl + "." + extension, tempDir);
+            HttpDownloader.downloadFile(shapefileDatasetUrl + baseName + "." + extension, tempDir);
         }
         //ok, now the files should be here with the shapefile
         String shapefile = tempDir + File.separator + baseName + ".shp";
@@ -388,7 +411,10 @@ public class RepoService {
         String urlPart = inId.replace("$", "/");
         String[] urlStrs = urlPart.split("/converted/");    // split the url using the folder name "converted"
         String metadataUrl = REPO_PROP_URL + urlStrs[0];
-        String baseName = FilenameUtils.getBaseName(metadataUrl);
+        // what if there is a dot in the basename? avoid use getBasename
+//        String baseName = FilenameUtils.getBaseName(metadataUrl);
+        String baseNameStrs[] = urlStrs[0].split("/");
+        String baseName = baseNameStrs[baseNameStrs.length - 1];
         String tempDir = Files.createTempDirectory("repo_download_").toString();
 
         // check if metadataUrl ends with EXTENSION_META that is .mvz
