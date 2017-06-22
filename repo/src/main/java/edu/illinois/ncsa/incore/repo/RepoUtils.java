@@ -42,7 +42,7 @@ public class RepoUtils {
     public static void deleteFiles(File delFile, String delFileName){
         try {
             if (delFile.delete()) {
-                System.out.println("file or directory deleted: " + delFileName);
+//                System.out.println("file or directory deleted: " + delFileName);
             } else {
                 System.out.println("file or directory did not deleted: " + delFileName);
             }

@@ -43,16 +43,25 @@ public class RepoService {
     public static final int INDENT_SPACE = 4;
     public static final String TAG_PROPERTIES_GIS = "gis-dataset-properties";
     public static final String TAG_PROPERTIES_MAP = "mapped-dataset-properties";
+    public static final String TAG_PROPERTIES_FILE = "file-dataset-properties";
+    public static final String TAG_PROPERTIES_RASTER = "raster-dataset-properties";
+    public static final String TAG_PROPERTIES_SCENARIO = "dataset-properties";
     public static final String TAG_LOCATION ="location";
     public static final String TAG_DATASET_ID = "dataset-id";
 
-    // The Java method will process HTTP GET requests like the following:
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0$Shelby_County_RES31224702005658$converted$all_bldgs_ver5_WGS1984
     @GET
     @Path("/datasets")
+    @Produces(MediaType.APPLICATION_JSON)
+    // test this with       http://localhost:8080/repo/api/datasets
+    public String getDirectoryListJson(){
+        String dirStr = loadDirectoryListJsonString();
+        return dirStr;
+    }
+
+    @GET
+    @Path("/datasets/list")     // this should be changed later for the appropriate line
     @Produces(MediaType.TEXT_HTML)
-    // test this with
-    // http://localhost:8080/repo/api/datasets
+    // test this with       http://localhost:8080/repo/api/datasets/list
     public String getDirectoryList() {
         try {
             return (loadDirectoryList());
@@ -205,6 +214,16 @@ public class RepoService {
             if (metaJsonObj.has(TAG_PROPERTIES_MAP)) {
                 locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_MAP).getJSONObject(TAG_DATASET_ID);
             }
+            if (metaJsonObj.has(TAG_PROPERTIES_FILE)) {
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_FILE).getJSONObject(TAG_DATASET_ID);
+            }
+            if (metaJsonObj.has(TAG_PROPERTIES_RASTER)) {
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_RASTER).getJSONObject(TAG_DATASET_ID);
+            }
+            if (metaJsonObj.has(TAG_PROPERTIES_SCENARIO)) {
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_SCENARIO).getJSONObject(TAG_DATASET_ID);
+            }
+
             String newUrl = SERVER_URL_PREFIX + inId + "/files";
             locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(INDENT_SPACE);
@@ -235,7 +254,6 @@ public class RepoService {
         for (String extension : EXTENSIONS_SHAPEFILE) {
             HttpDownloader.downloadFile(shapefileDatasetUrl + baseName + "." + extension, tempDir);
         }
-        //ok, now the files should be here with the shapefile
         String shapefile = tempDir + File.separator + baseName + ".shp";
 
         return new File(shapefile);
@@ -275,6 +293,39 @@ public class RepoService {
         zipOS.close();
         System.out.println("zip file has been created");
         return new File(zipfile);
+    }
+
+    // get directory list in the root directory and crate one big json file using mvz files located under each directory
+    private String loadDirectoryListJsonString(){
+        String outStr = "[\n";
+        String tmpRepoUrl = REPO_PROP_URL;
+
+        List<String> resHref = getDirectoryContent(tmpRepoUrl, "");
+
+        for (String tmpUrl: resHref) {
+            String metaDirUrl = REPO_PROP_URL + tmpUrl;
+            List<String> metaHref = getDirectoryContent(metaDirUrl, "");
+            for (String metaFileName: metaHref) {
+                String fileExtStr = FilenameUtils.getExtension(metaFileName);
+                // get only the mvz file
+                if (fileExtStr.equals(EXTENSION_META)) {
+                    String combinedId = tmpUrl + "/" + metaFileName;
+                    File metadataFile = null;
+                    try {
+                        metadataFile = loadMetadataFromRepository(combinedId);
+                        String jsonStr = formatMetadataAsJson(metadataFile, combinedId);
+                        outStr = outStr + jsonStr + ",\n";
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        outStr = outStr.substring(0, outStr.length() - 2);
+        outStr = outStr + "\n]";
+
+        return outStr;
     }
 
     private String loadDirectoryList() {
@@ -390,7 +441,6 @@ public class RepoService {
 
         for (int i=0;i < links.size();i++){
             linkAtr = links.get(i).attr("href");
-//            System.out.println(linkAtr);
             if (linkAtr.length() > 3) {
                 linkList.add(linkAtr);
             }
@@ -422,6 +472,9 @@ public class RepoService {
         if (!tmpEndStr.equals(EXTENSION_META)) {
             HttpDownloader.downloadFile(metadataUrl + "." + EXTENSION_META, tempDir);
         } else {
+            // remove mvz extension from the basename
+            baseNameStrs = baseName.split("." + EXTENSION_META);
+            baseName = baseNameStrs[0];
             HttpDownloader.downloadFile(metadataUrl, tempDir);
         }
 
