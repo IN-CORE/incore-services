@@ -16,10 +16,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import org.json.JSONException;
@@ -59,24 +56,11 @@ public class RepoService {
     }
 
     @GET
-    @Path("/datasets/list")     // this should be changed later for the appropriate line
-    @Produces(MediaType.TEXT_HTML)
-    // test this with       http://localhost:8080/repo/api/datasets/list
-    public String getDirectoryList() {
-        try {
-            return (loadDirectoryList());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-        }
-    }
-
-    @GET
-    @Path("/datasets@type={typeId}")
+    @Path("/datasets/query")
     @Produces(MediaType.APPLICATION_JSON)
     // test this with
-    // http://localhost:8080/repo/api/datasets?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    public String getDataListByTypeId(@PathParam("typeId") String typeId) {
+    // http://localhost:8080/repo/api/datasets/query?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
+    public String getDatasetById(@QueryParam("type") String typeId) {
         String propUrl = REPO_PROP_URL + typeId;
         File metadata = null;
 
@@ -98,6 +82,19 @@ public class RepoService {
         outJsonStr = outJsonStr.substring(0, outJsonStr.length() - 2);
 
         return outJsonStr + "\n]";
+    }
+
+    @GET
+    @Path("/datasets/list")     // this should be changed later for the appropriate line
+    @Produces(MediaType.TEXT_HTML)
+    // test this with       http://localhost:8080/repo/api/datasets/list
+    public String getDirectoryList() {
+        try {
+            return (loadDirectoryList());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        }
     }
 
     @GET
