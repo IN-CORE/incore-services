@@ -101,18 +101,22 @@ public class RepoService {
     @Path("/datasets/{typeid}/{datasetId}/geojson")
     @Produces(MediaType.APPLICATION_JSON)
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
-    public String getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
+    public Object getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
         File dataset = null;
 
         String combinedId = typeId + "/" + datasetId + "/converted/";
-
+        JsonResultDataset jrDataset = new JsonResultDataset();
         try{
             dataset = loadDataFromRepository(combinedId);
-            return formatDatasetAsGeoJson(dataset);
+            String outJson = formatDatasetAsGeoJson(dataset);
+            jrDataset.setJsonStr(outJson);
         }catch (IOException e) {
             e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            jrDataset.setJsonStr(err);
         }
+
+        return jrDataset;
     }
 
     @GET
