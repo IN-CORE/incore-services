@@ -1,8 +1,10 @@
 package edu.illinois.ncsa.incore.repo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.jmx.Agent;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -101,22 +103,44 @@ public class RepoService {
     @Path("/datasets/{typeid}/{datasetId}/geojson")
     @Produces(MediaType.APPLICATION_JSON)
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
-    public Object getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
+    public String getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
         File dataset = null;
 
         String combinedId = typeId + "/" + datasetId + "/converted/";
-        JsonResultDataset jrDataset = new JsonResultDataset();
+
         try{
             dataset = loadDataFromRepository(combinedId);
             String outJson = formatDatasetAsGeoJson(dataset);
-            jrDataset.setJsonStr(outJson);
+            return outJson;
         }catch (IOException e) {
             e.printStackTrace();
             String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-            jrDataset.setJsonStr(err);
+            return err;
         }
+    }
 
-        return jrDataset;
+    @GET
+    @Path("/datasets/{typeid}/{datasetId}/objtest")
+    @Produces(MediaType.APPLICATION_JSON)
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/objtest
+    public JsonResultDataset serialTest(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
+        File dataset = null;
+
+        String combinedId = typeId + "/" + datasetId + "/converted/";
+
+        try{
+            dataset = loadDataFromRepository(combinedId);
+            String outJson = formatDatasetAsGeoJson(dataset);
+            JsonResultDataset jrDataset = new JsonResultDataset(outJson);
+//            return outJson;
+            return jrDataset;
+        }catch (IOException e) {
+            e.printStackTrace();
+            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            JsonResultDataset jrDataset = new JsonResultDataset(err);
+            return jrDataset;
+//            return err;
+        }
     }
 
     @GET
