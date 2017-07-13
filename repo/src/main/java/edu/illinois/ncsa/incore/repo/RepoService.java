@@ -52,9 +52,10 @@ public class RepoService {
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
     // test this with       http://localhost:8080/repo/api/datasets
-    public String getDirectoryListJson(){
+    public JsonResultDataset getDirectoryListJson(){
         String dirStr = loadDirectoryListJsonString();
-        return dirStr;
+//        return(dirStr);
+        return new JsonResultDataset(dirStr);
     }
 
     @GET
@@ -62,7 +63,7 @@ public class RepoService {
     @Produces(MediaType.APPLICATION_JSON)
     // test this with
     // http://localhost:8080/repo/api/datasets/query?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    public String getDatasetById(@QueryParam("type") String typeId) {
+    public JsonResultDataset getDatasetById(@QueryParam("type") String typeId) {
         String propUrl = REPO_PROP_URL + typeId;
         File metadata = null;
 
@@ -78,12 +79,14 @@ public class RepoService {
                 outJsonStr = outJsonStr + formatMetadataAsJson(metadata, rUrl) +",\n";
             } catch (IOException e) {
                 e.printStackTrace();;
-                return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+                String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+                return (new JsonResultDataset(err));
             }
         }
         outJsonStr = outJsonStr.substring(0, outJsonStr.length() - 2);
+        outJsonStr = outJsonStr + "\n]";
 
-        return outJsonStr + "\n]";
+        return new JsonResultDataset(outJsonStr);
     }
 
     @GET
@@ -103,7 +106,7 @@ public class RepoService {
     @Path("/datasets/{typeid}/{datasetId}/geojson")
     @Produces(MediaType.APPLICATION_JSON)
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
-    public String getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
+    public JsonResultDataset getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
         File dataset = null;
 
         String combinedId = typeId + "/" + datasetId + "/converted/";
@@ -111,35 +114,11 @@ public class RepoService {
         try{
             dataset = loadDataFromRepository(combinedId);
             String outJson = formatDatasetAsGeoJson(dataset);
-            return outJson;
+            return new JsonResultDataset(outJson);
         }catch (IOException e) {
             e.printStackTrace();
             String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-            return err;
-        }
-    }
-
-    @GET
-    @Path("/datasets/{typeid}/{datasetId}/objtest")
-    @Produces(MediaType.APPLICATION_JSON)
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/objtest
-    public JsonResultDataset serialTest(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
-        File dataset = null;
-
-        String combinedId = typeId + "/" + datasetId + "/converted/";
-
-        try{
-            dataset = loadDataFromRepository(combinedId);
-            String outJson = formatDatasetAsGeoJson(dataset);
-            JsonResultDataset jrDataset = new JsonResultDataset(outJson);
-//            return outJson;
-            return jrDataset;
-        }catch (IOException e) {
-            e.printStackTrace();
-            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-            JsonResultDataset jrDataset = new JsonResultDataset(err);
-            return jrDataset;
-//            return err;
+            return new JsonResultDataset(err);
         }
     }
 
@@ -159,16 +138,18 @@ public class RepoService {
     @Path("/datasets/{typeId}/{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
 //    http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
-    public String getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
+    public JsonResultDataset getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File metadata = null;
         String combinedId = typeId + "/" + datasetId;
 
         try {
             metadata = loadMetadataFromRepository(combinedId);
-            return(formatMetadataAsJson(metadata, combinedId));
+            String outJson = formatMetadataAsJson(metadata, combinedId);
+            return new JsonResultDataset(outJson);
         } catch (IOException e) {
             e.printStackTrace();;
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            String err =  "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            return new JsonResultDataset(err);
         }
     }
 
