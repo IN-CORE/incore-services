@@ -20,6 +20,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,10 +53,11 @@ public class RepoService {
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
     // test this with       http://localhost:8080/repo/api/datasets
-    public JsonResultDataset getDirectoryListJson(){
+    public Response getDirectoryListJson(){
         String dirStr = loadDirectoryListJsonString();
 //        return(dirStr);
-        return new JsonResultDataset(dirStr);
+//        return new JsonResultDataset(dirStr);
+        return Response.ok(dirStr).status(Response.Status.OK).build();
     }
 
     @GET
@@ -63,7 +65,7 @@ public class RepoService {
     @Produces(MediaType.APPLICATION_JSON)
     // test this with
     // http://localhost:8080/repo/api/datasets/query?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    public JsonResultDataset getDatasetById(@QueryParam("type") String typeId) {
+    public Response getDatasetById(@QueryParam("type") String typeId) {
         String propUrl = REPO_PROP_URL + typeId;
         File metadata = null;
 
@@ -80,13 +82,15 @@ public class RepoService {
             } catch (IOException e) {
                 e.printStackTrace();;
                 String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-                return (new JsonResultDataset(err));
+//                return (new JsonResultDataset(err));
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
         }
         outJsonStr = outJsonStr.substring(0, outJsonStr.length() - 2);
         outJsonStr = outJsonStr + "\n]";
 
-        return new JsonResultDataset(outJsonStr);
+//        return new JsonResultDataset(outJsonStr);
+        return Response.ok(outJsonStr).status(Response.Status.OK).build();
     }
 
     @GET
@@ -104,9 +108,10 @@ public class RepoService {
 
     @GET
     @Path("/datasets/{typeid}/{datasetId}/geojson")
+//    @Produces("application/vnd.geo+json")
     @Produces(MediaType.APPLICATION_JSON)
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
-    public JsonResultDataset getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
+    public Response getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
         File dataset = null;
 
         String combinedId = typeId + "/" + datasetId + "/converted/";
@@ -114,11 +119,15 @@ public class RepoService {
         try{
             dataset = loadDataFromRepository(combinedId);
             String outJson = formatDatasetAsGeoJson(dataset);
-            return new JsonResultDataset(outJson);
+//            return new JsonResultDataset(outJson).jsonStr;
+            return Response.ok(outJson).status(Response.Status.OK).build();
+//            return outJson;
         }catch (IOException e) {
             e.printStackTrace();
             String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-            return new JsonResultDataset(err);
+//            return new JsonResultDataset(err);
+            return Response.status(Response.Status.NOT_FOUND).build();
+//            return err;
         }
     }
 
@@ -138,18 +147,20 @@ public class RepoService {
     @Path("/datasets/{typeId}/{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
 //    http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
-    public JsonResultDataset getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
+    public Response getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File metadata = null;
         String combinedId = typeId + "/" + datasetId;
 
         try {
             metadata = loadMetadataFromRepository(combinedId);
             String outJson = formatMetadataAsJson(metadata, combinedId);
-            return new JsonResultDataset(outJson);
+//            return new JsonResultDataset(outJson);
+            return Response.ok(outJson).status(Response.Status.OK).build();
         } catch (IOException e) {
             e.printStackTrace();;
             String err =  "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-            return new JsonResultDataset(err);
+//            return new JsonResultDataset(err);
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 
