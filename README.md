@@ -29,7 +29,10 @@ To retrieve fragility mapping for an inventory item:
   //note: retrofit key is required for buildings to pick the right retrofit key, normally in V1 that's done by the analysis.
   http://localhost:8080/fragilitymapping/api/mapping/byJson?json={"no_stories":5, "year_built": 1990, "Soil": "Upland", "occ_type": "COM4", "struct_typ": "C1", "retrofit": "Non-Retrofit Fragility ID Code"}
 
-  This returns a fragility Id.  
+  This returns a fragility Id:  
+  {
+      fragilityId: "STR_C1_5"
+  }
   This fragility Id can be used in the fragility service:
 
 
