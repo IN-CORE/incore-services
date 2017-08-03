@@ -38,7 +38,7 @@ To retrieve fragility mapping for an inventory item:
 
 To use the fragility service:
 
-  TODO: Omar
+  refer to API Documentation: http://141.142.208.203/api/doc/index.html 
 
 
 
