@@ -28,6 +28,8 @@ public class FragilityMappingController {
     @Context
     ServletContext context;
 
+    public static MatchFilterMap matchFilterMap;
+
     @GET
     @Produces("application/json")
     @Path("/{mappingsetId}/{datasetId}")
@@ -53,10 +55,12 @@ public class FragilityMappingController {
 
         try {
 
-            URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
-            MatchFilterMap matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
             if (matchFilterMap == null) {
-                return null;
+                URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
+                matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
+                if (matchFilterMap == null) {
+                    return null;
+                }
             }
             final FragilityMapper mapper = new FragilityMapper();
             mapper.addMappingSet(matchFilterMap);
@@ -167,3 +171,4 @@ public class FragilityMappingController {
 
 
 }
+
