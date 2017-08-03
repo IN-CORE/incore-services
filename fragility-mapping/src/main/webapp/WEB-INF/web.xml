@@ -8,20 +8,22 @@
 
     <servlet>
         <servlet-name>fragilitymapping</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 
         <init-param>
-            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
-            <param-value>true</param-value>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>
+                edu.illinois.ncsa.incore.services,
+                io.swagger.jaxrs.listing,
+                org.codehaus.jackson.jaxrs
+            </param-value>
         </init-param>
-
         <init-param>
-            <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>edu.illinois.ncsa.incore.services</param-value>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>org.glassfish.jersey.jackson.JacksonFeature</param-value>
         </init-param>
-
-
         <load-on-startup>1</load-on-startup>
+
     </servlet>
     <servlet-mapping>
         <servlet-name>fragilitymapping</servlet-name>

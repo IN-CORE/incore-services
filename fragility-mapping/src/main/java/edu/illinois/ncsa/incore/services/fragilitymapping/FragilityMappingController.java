@@ -59,7 +59,13 @@ public class FragilityMappingController {
                 URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
                 matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
                 if (matchFilterMap == null) {
-                    return null;
+                    //this shouldn't be necessary, but I can't figure out how to get
+                    //grizzly to chagne the base path.
+                    mappingUrl = context.getResource("/src/main/webapp/WEB-INF/mappings/buildings.xml");
+                    matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
+                    if (matchFilterMap == null) {
+                        return null;
+                    }
                 }
             }
             final FragilityMapper mapper = new FragilityMapper();

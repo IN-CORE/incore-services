@@ -13,9 +13,8 @@ hs_err_pid*
 
 # local idea config file
 *.iml
-/.idea/workspace.xml
-/.idea/libraries
-/.idea/artifacts
+/.idea/*
+/.idea
 build/
 
 # apple metadata nonsense
