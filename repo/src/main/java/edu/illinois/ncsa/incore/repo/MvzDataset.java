@@ -1,11 +1,14 @@
 package edu.illinois.ncsa.incore.repo;
 
-import javax.ws.rs.Produces;
+import edu.illinois.ncsa.incore.repo.json.objects.DatasetId;
+import edu.illinois.ncsa.incore.repo.json.objects.MaevizMapping;
+import edu.illinois.ncsa.incore.repo.json.objects.Metadata;
+import edu.illinois.ncsa.incore.repo.json.objects.Property;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.repo;
+package edu.illinois.ncsa.incore.repo.json.objects;
 
 /**
  * Created by ywkim on 8/2/2017.

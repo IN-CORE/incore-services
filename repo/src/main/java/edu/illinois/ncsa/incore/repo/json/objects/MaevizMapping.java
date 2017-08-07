@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.repo;
+package edu.illinois.ncsa.incore.repo.json.objects;
 
 import java.util.LinkedList;
 import java.util.List;
