@@ -1,10 +1,9 @@
 package edu.illinois.ncsa.incore.repo;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
+import io.swagger.util.Json;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.jmx.Agent;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -12,6 +11,7 @@ import org.geotools.geojson.feature.FeatureJSON;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +22,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
@@ -46,8 +47,33 @@ public class RepoService {
     public static final String TAG_PROPERTIES_FILE = "file-dataset-properties";
     public static final String TAG_PROPERTIES_RASTER = "raster-dataset-properties";
     public static final String TAG_PROPERTIES_SCENARIO = "dataset-properties";
+    public static final String TAG_NAME = "name";
+    public static final String TAG_VERSION = "version";
+    public static final String TAG_DATA_FORMAT = "data-format";
+    public static final String TAG_TYPE_ID = "type-id";
+    public static final String TAG_FEATURE_TYPE_NAME = "feature-type-name";
+    public static final String TAG_CONVERTED_FEATURE_TYPE_NAME = "converted-feature-type-name";
+    public static final String TAG_GEOMETRY_TYPE = "geometry-type";
     public static final String TAG_LOCATION ="location";
+    public static final String TAG_DESCRIPTION = "desription";
     public static final String TAG_DATASET_ID = "dataset-id";
+    public static final String TAG_MAEVIZ_MAPPING = "maeviz-mapping";
+    public static final String TAG_SCHEMA = "schema";
+    public static final String TAG_MAPPING = "mapping";
+    public static final String TAG_FROM = "from";
+    public static final String TAG_TO = "to";
+    public static final String TAG_METADATA = "metadata";
+    public static final String TAG_TABLE_METADATA = "table-metadata";
+    public static final String TAG_COLUMN_METADATA = "column-metadata";
+    public static final String TAG_FRIENDLY_NAME = "friendly-name";
+    public static final String TAG_FIELD_LENGTH = "field-length";
+    public static final String TAG_UNIT = "unit";
+    public static final String TAG_COLUMN_ID = "column-id";
+    public static final String TAG_SIGFIGS = "sig-figs";
+    public static final String TAG_UNIT_TYPE = "unit-type";
+    public static final String TAG_IS_NUMERIC = "is-numeric";
+    public static final String TAG_IS_RESULT = "is-result";
+    public static final String TAG_PROPERTIES = "";
 
     @GET
     @Path("/datasets")
@@ -56,8 +82,38 @@ public class RepoService {
     public Response getDirectoryListJson(){
         String dirStr = loadDirectoryListJsonString();
 //        return(dirStr);
-//        return new JsonResultDataset(dirStr);
+//        return new MvzDataset(dirStr);
         return Response.ok(dirStr).status(Response.Status.OK).build();
+    }
+
+    @GET
+    @Path("datasets/test")
+    @Produces(MediaType.APPLICATION_JSON)
+    // test with
+    // http://localhost:8080/repo/api/datasets/test?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
+    public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId) {
+        String propUrl = REPO_PROP_URL + inTypeId;
+        File metadata = null;
+
+        List<String> resourceUrls = getDirectoryContent(propUrl, inTypeId);
+        List<MvzDataset> mvzDatasets = new ArrayList<MvzDataset>();
+
+        for (String rUrl: resourceUrls) {
+            MvzDataset mvzDataset = new MvzDataset();
+            try {
+                metadata = loadMetadataFromRepository(rUrl);
+//                outJsonStr = outJsonStr + formatMetadataAsJson(metadata, rUrl) +",\n";
+                mvzDataset = setMvzDataset(metadata, rUrl);
+                // convert from UTF-16 to UTF-8
+
+            } catch (IOException e) {
+                e.printStackTrace();;
+                String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            }
+            mvzDatasets.add(mvzDataset);
+        }
+
+        return mvzDatasets;
     }
 
     @GET
@@ -82,14 +138,14 @@ public class RepoService {
             } catch (IOException e) {
                 e.printStackTrace();;
                 String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-//                return (new JsonResultDataset(err));
+//                return (new MvzDataset(err));
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
         }
         outJsonStr = outJsonStr.substring(0, outJsonStr.length() - 2);
         outJsonStr = outJsonStr + "\n]";
 
-//        return new JsonResultDataset(outJsonStr);
+//        return new MvzDataset(outJsonStr);
         return Response.ok(outJsonStr).status(Response.Status.OK).build();
     }
 
@@ -119,13 +175,13 @@ public class RepoService {
         try{
             dataset = loadDataFromRepository(combinedId);
             String outJson = formatDatasetAsGeoJson(dataset);
-//            return new JsonResultDataset(outJson).jsonStr;
+//            return new MvzDataset(outJson).jsonStr;
             return Response.ok(outJson).status(Response.Status.OK).build();
 //            return outJson;
         }catch (IOException e) {
             e.printStackTrace();
             String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-//            return new JsonResultDataset(err);
+//            return new MvzDataset(err);
             return Response.status(Response.Status.NOT_FOUND).build();
 //            return err;
         }
@@ -154,12 +210,12 @@ public class RepoService {
         try {
             metadata = loadMetadataFromRepository(combinedId);
             String outJson = formatMetadataAsJson(metadata, combinedId);
-//            return new JsonResultDataset(outJson);
+//            return new MvzDataset(outJson);
             return Response.ok(outJson).status(Response.Status.OK).build();
         } catch (IOException e) {
             e.printStackTrace();;
             String err =  "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-//            return new JsonResultDataset(err);
+//            return new MvzDataset(err);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
@@ -180,6 +236,186 @@ public class RepoService {
 //            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
             return null;
         }
+    }
+
+    private MvzDataset setMvzDataset(File metadataFile, String rUrl) throws IOException {
+        MvzDataset mvzDataset = new MvzDataset();
+
+        String xmlString = "";
+        metadataFile.setReadOnly();
+        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
+        char metaCharBuffer[] = new char[2048];
+        int len;
+        while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
+            xmlString = xmlString + new String(metaCharBuffer, 0, len);
+        }
+        metadataReader.close();
+        RepoUtils.deleteTmpDir(metadataFile, EXTENSION_META);
+
+        // remove metadata file extestion from inId if there is any
+        String tmpEndStr = rUrl.substring(rUrl.lastIndexOf('.') + 1);
+        if (tmpEndStr.equals(EXTENSION_META)) {
+            rUrl = rUrl.substring(0, rUrl.length() - 4);
+        }
+
+        String datasetPropertyName = "";
+        String name = "";
+        String version = "";
+        String dataFormat = "";
+        String typeId = "";
+        String featureTypeName = "";
+        String convertedFeatureTypeName = "";
+        String geometryType = "";
+        String location = "";
+        String description = "";
+//        String schema = "";
+//        String from = "";
+//        String to = "";
+//        boolean isMaevizMapping = false;
+//        boolean isMetadata = false;
+
+        try {
+            JSONObject metaJsonObj = XML.toJSONObject(xmlString);
+            JSONObject metaInfoObj = null;
+            JSONObject locObj = null;
+            if (metaJsonObj.has(TAG_PROPERTIES_GIS)) {
+                metaInfoObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_GIS);
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_GIS).getJSONObject(TAG_DATASET_ID);
+                featureTypeName = metaInfoObj.get(TAG_FEATURE_TYPE_NAME).toString();
+                convertedFeatureTypeName = metaInfoObj.get(TAG_CONVERTED_FEATURE_TYPE_NAME).toString();
+                geometryType = metaInfoObj.get(TAG_GEOMETRY_TYPE).toString();
+                datasetPropertyName = TAG_PROPERTIES_GIS;
+                mvzDataset.setFeaturetypeName(featureTypeName);
+                mvzDataset.setConvertedFeatureTypeName(convertedFeatureTypeName);
+                mvzDataset.setGeometryType(geometryType);
+            }
+            if (metaJsonObj.has(TAG_PROPERTIES_MAP)) {
+                metaInfoObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_MAP);
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_MAP).getJSONObject(TAG_DATASET_ID);
+                datasetPropertyName = TAG_PROPERTIES_MAP;
+            }
+            if (metaJsonObj.has(TAG_PROPERTIES_FILE)) {
+                metaInfoObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_FILE);
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_FILE).getJSONObject(TAG_DATASET_ID);
+                datasetPropertyName = TAG_PROPERTIES_FILE;
+            }
+            if (metaJsonObj.has(TAG_PROPERTIES_RASTER)) {
+                metaInfoObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_RASTER);
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_RASTER).getJSONObject(TAG_DATASET_ID);
+                datasetPropertyName = TAG_PROPERTIES_RASTER;
+            }
+            if (metaJsonObj.has(TAG_PROPERTIES_SCENARIO)) {
+                metaInfoObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_SCENARIO);
+                locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_SCENARIO).getJSONObject(TAG_DATASET_ID);
+                datasetPropertyName = TAG_PROPERTIES_SCENARIO;
+            }
+
+            name = metaInfoObj.get(TAG_NAME).toString();
+            version = metaInfoObj.get(TAG_VERSION).toString();
+            dataFormat = metaInfoObj.get(TAG_DATA_FORMAT).toString();
+            typeId = metaInfoObj.get(TAG_TYPE_ID).toString();
+            location = locObj.get(TAG_LOCATION).toString();
+            description = locObj.get(TAG_DESCRIPTION).toString();
+
+            mvzDataset.setDatasetPropertyName(datasetPropertyName);
+            mvzDataset.setName(name);
+            mvzDataset.setVersion(version);
+            mvzDataset.setDataFormat(dataFormat);
+            mvzDataset.setTypeId(typeId);
+            mvzDataset.datasetId.setDescription(description);
+            mvzDataset.datasetId.setLocation(location);
+
+            // check maeviz-mapping object and set
+            if (metaInfoObj.has(TAG_MAEVIZ_MAPPING)) {
+                List<Mapping> mappings = new LinkedList<Mapping>();
+                mvzDataset.maevizMapping.setSchema(metaInfoObj.getJSONObject(TAG_MAEVIZ_MAPPING).get(TAG_SCHEMA).toString());
+                if (metaInfoObj.getJSONObject(TAG_MAEVIZ_MAPPING).get(TAG_MAPPING) instanceof JSONObject) {
+                    JSONObject mappingJsonObj = (JSONObject) metaInfoObj.getJSONObject(TAG_MAEVIZ_MAPPING).get(TAG_MAPPING);
+                    Mapping m = new Mapping();
+                    m.setFrom(mappingJsonObj.get(TAG_FROM).toString());
+                    m.setTo(mappingJsonObj.get(TAG_FROM).toString());
+                    mappings.add(m);
+                    mvzDataset.maevizMapping.setMapping(mappings);
+                } else if (metaInfoObj.getJSONObject(TAG_MAEVIZ_MAPPING).get(TAG_MAPPING) instanceof JSONArray){
+                    JSONArray mappingJsonArray = (JSONArray) metaInfoObj.getJSONObject(TAG_MAEVIZ_MAPPING).get(TAG_MAPPING);
+                    for (int i = 0; i < mappingJsonArray.length(); i++) {
+                        JSONObject mappingJsonObj = (JSONObject) mappingJsonArray.get(i);
+                        Mapping m = new Mapping();
+                        m.setFrom(mappingJsonObj.get(TAG_FROM).toString());
+                        m.setTo(mappingJsonObj.get(TAG_FROM).toString());
+                        mappings.add(m);
+                    }
+                    mvzDataset.maevizMapping.setMapping(mappings);
+                }
+            }
+
+            // check metadata object and set
+            if (metaInfoObj.has(TAG_METADATA)) {
+                List<ColumnMetadata> columnMetadatas = new LinkedList<ColumnMetadata>();
+                if (((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA) instanceof JSONObject) {
+                    JSONObject columnMetadataObj = (JSONObject)((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).getJSONObject(TAG_TABLE_METADATA);
+                    Metadata metadata = new Metadata();
+                    ColumnMetadata columnMetadata = new ColumnMetadata();
+                    columnMetadata.setFriendlyName(columnMetadataObj.getJSONObject(TAG_FRIENDLY_NAME).toString());
+                    columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.getJSONObject(TAG_FIELD_LENGTH).toString()));
+                    columnMetadatas.add(columnMetadata);
+                    metadata.tableMetadata.setColumnMetadata(columnMetadatas);
+                    mvzDataset.setMetadata(metadata);
+                } else if (((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA) instanceof JSONArray) {
+                    JSONArray columnMetadataArray = (JSONArray)((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA);
+                    Metadata metadata = new Metadata();
+                    TableMetadata tableMetadata = new TableMetadata();
+                    for (int i = 0; i < columnMetadataArray.length(); i++) {
+                        ColumnMetadata columnMetadata = new ColumnMetadata();
+                        JSONObject columnMetadataObj = (JSONObject) columnMetadataArray.get(i);
+                        if (columnMetadataObj.has(TAG_FRIENDLY_NAME)) {
+                            columnMetadata.setFriendlyName(columnMetadataObj.get(TAG_FRIENDLY_NAME).toString());
+                        }
+                        if (columnMetadataObj.has(TAG_FIELD_LENGTH)) {
+                            columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.get(TAG_FIELD_LENGTH).toString()));
+                        }
+                        if (columnMetadataObj.has(TAG_UNIT)) {
+                            columnMetadata.setUnit(columnMetadataObj.get(TAG_UNIT).toString());
+                        }
+                        if (columnMetadataObj.has(TAG_COLUMN_ID)) {
+                            columnMetadata.setColumnId(columnMetadataObj.get(TAG_COLUMN_ID).toString());
+                        }
+                        if (columnMetadataObj.has(TAG_FIELD_LENGTH)) {
+                            columnMetadata.setSigFigs(Integer.parseInt(columnMetadataObj.get(TAG_FIELD_LENGTH).toString()));
+                        }
+                        if (columnMetadataObj.has(TAG_UNIT_TYPE)) {
+                            columnMetadata.setUnitType(columnMetadataObj.get(TAG_UNIT_TYPE).toString());
+                        }
+                        if (columnMetadataObj.has(TAG_IS_NUMERIC)) {
+                            columnMetadata.setIsNumeric((boolean)columnMetadataObj.get(TAG_IS_NUMERIC));
+                        }
+                        if (columnMetadataObj.has(TAG_IS_RESULT)) {
+                            columnMetadata.setIsResult((boolean)columnMetadataObj.get(TAG_IS_RESULT));
+                        }
+                        columnMetadatas.add(columnMetadata);
+                    }
+                    metadata.tableMetadata.setColumnMetadata(columnMetadatas);
+                    mvzDataset.setMetadata(metadata);
+
+                }
+            }
+
+            String newUrl = SERVER_URL_PREFIX + rUrl + "/files";
+            locObj.put(TAG_LOCATION, newUrl);
+            String jsonString = metaJsonObj.toString(INDENT_SPACE);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return mvzDataset;
+    }
+
+    private Mapping setMapping(JSONObject mappingJsonObj) {
+        Mapping m = new Mapping();
+        m.setFrom(mappingJsonObj.get(TAG_FROM).toString());
+        m.setTo(mappingJsonObj.get(TAG_FROM).toString());
+
+        return m;
     }
 
     private String formatDatasetAsGeoJson(File shapefile) throws IOException {
