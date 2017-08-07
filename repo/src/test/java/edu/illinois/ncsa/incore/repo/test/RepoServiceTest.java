@@ -98,9 +98,8 @@ public class RepoServiceTest extends JerseyTest {
 //                "{\"no_stories\":5,\"year_built\":1990,\"Soil\":\"Upland\",\"occ_type\":\"COM4\",\"struct_typ\":\"C1\",\"retrofit\":\"Non-Retrofit Fragility ID Code\"}",
 //                "UTF-8").replace("+", "%20");
         // test
-        String url = URLEncoder.encode("{http://localhost:8080/repo/api/datasets/query?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0}", "UTF-8");
-        String output = target("/mapping/byJson").
-                queryParam("json", url).
+        String output = target("/datasets/query").
+                queryParam("type", "edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0").
                 request().accept(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE).get(String.class);
         System.out.println("----------output is:" + output);
         JSONObject parsed = new JSONObject(output);
