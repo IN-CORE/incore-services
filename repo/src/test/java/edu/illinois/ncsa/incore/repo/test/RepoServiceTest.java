@@ -15,6 +15,7 @@ import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.spi.TestContainer;
 import org.glassfish.jersey.test.spi.TestContainerException;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
@@ -98,12 +99,14 @@ public class RepoServiceTest extends JerseyTest {
 //                "{\"no_stories\":5,\"year_built\":1990,\"Soil\":\"Upland\",\"occ_type\":\"COM4\",\"struct_typ\":\"C1\",\"retrofit\":\"Non-Retrofit Fragility ID Code\"}",
 //                "UTF-8").replace("+", "%20");
         // test
-        String output = target("/datasets/query").
+        String output = target("/datasets/test").
                 queryParam("type", "edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0").
                 request().accept(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE).get(String.class);
         System.out.println("----------output is:" + output);
-        JSONObject parsed = new JSONObject(output);
-        Object fragId = parsed.get("fragilityId");
-        assertEquals("STR_C1_5", fragId);
+        JSONArray parsedArray = new JSONArray(output);
+        System.out.println("hold");
+//        JSONObject parsed = new JSONObject(output);
+//        Object name = parsed.get("name");
+//        assertEquals("Hospitals", name);
     }
 }
