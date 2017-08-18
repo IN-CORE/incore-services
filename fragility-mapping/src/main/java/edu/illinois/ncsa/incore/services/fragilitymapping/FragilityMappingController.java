@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ncsa.tools.common.exceptions.DeserializationException;
 import ncsa.tools.common.util.XmlUtils;
+import org.apache.log4j.Logger;
 import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfRow;
@@ -25,6 +26,8 @@ import java.util.Map;
 @Path("mapping")
 public class FragilityMappingController {
 
+    private static final Logger log = Logger.getLogger(FragilityMappingController.class);
+
     @Context
     ServletContext context;
 
@@ -34,6 +37,9 @@ public class FragilityMappingController {
     @Produces("application/json")
     @Path("/{mappingsetId}/{datasetId}")
     public Map<String, String> getMappings(@PathParam("mappingsetId") String mappingsetId, @PathParam("datasetId") String datasetId) {
+
+        log.error("foo!");
+
 
         FragilityMapper fragilityMapper = new FragilityMapper();
         fragilityMapper.addMappingSet(mappingsetId);
