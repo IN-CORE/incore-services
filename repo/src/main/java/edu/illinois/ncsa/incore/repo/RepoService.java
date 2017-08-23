@@ -92,7 +92,7 @@ public class RepoService {
     @GET
     @Path("datasets/test")
     @Produces(MediaType.APPLICATION_JSON)
-    // test with
+    // test with the following line
     // http://localhost:8080/repo/api/datasets/test?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
     public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId) {
         String propUrl = REPO_PROP_URL + inTypeId;
