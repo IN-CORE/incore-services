@@ -57,15 +57,13 @@ subprojects {
 
     dependencies {
         compile "log4j:log4j:1.2.16"
-
-
     }
 }
 
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server", "fragility-mapping", "repo"].each { name ->
+["fragility-server", "repo"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'
@@ -80,6 +78,17 @@ subprojects {
 
 
         dependencies {
+
+            compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
+            compile 'org.glassfish.jersey.core:jersey-server:2.25.1'
+            compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.25.1'
+            compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1'
+            compile 'org.json:json:20160810'
+
+            testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:2.25.1"
+            testCompile "org.glassfish.jersey.containers:jersey-container-grizzly2-servlet:2.25.1"
+            testCompile "junit:junit:+"
+
 
         }
     }
