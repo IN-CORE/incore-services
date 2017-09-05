@@ -1,13 +1,31 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
+import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
+import ncsa.tools.common.exceptions.DeserializationException;
+import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.ResourceConfig;
 
-public class Application extends ResourceConfig {
-    public Application() {
-        DataAccess.initializeDataStore();
+import java.net.URL;
 
-        if (DataAccess.useCache) {
-            DataAccess.loadFragilities();
+public class Application extends ResourceConfig {
+    private static final Logger log = Logger.getLogger(FragilityMappingController.class);
+
+    public Application() {
+        // DataAccess.initializeDataStore();
+        //
+        // if (DataAccess.useCache) {
+        //     DataAccess.loadFragilities();
+        // }
+
+        try {
+            URL mappingUrl = this.getClass().getClassLoader().getResource("mappings/buildings.xml");
+            FragilityMappingController.matchFilterMap = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
+
+            if (FragilityMappingController.matchFilterMap == null) {
+                log.error("Could not load match filter map");
+            }
+        } catch (DeserializationException ex) {
+            log.error("Could not load match filter map", ex);
         }
     }
 }

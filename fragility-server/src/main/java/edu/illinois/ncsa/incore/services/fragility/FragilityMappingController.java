@@ -2,10 +2,8 @@ package edu.illinois.ncsa.incore.services.fragility;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;
-import edu.illinois.ncsa.incore.services.fragility.mapping.MappingDatasetStub;
 import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
 import ncsa.tools.common.exceptions.DeserializationException;
-import ncsa.tools.common.util.XmlUtils;
 import org.apache.log4j.Logger;
 import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
@@ -14,10 +12,10 @@ import org.jamel.dbf.structure.DbfRow;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -28,9 +26,7 @@ import java.util.Map;
 public class FragilityMappingController {
     private static final Logger log = Logger.getLogger(FragilityMappingController.class);
 
-    @Context
-    ServletContext context;
-
+    // TODO replace static with dependency injection
     public static MatchFilterMap matchFilterMap;
 
     @GET
@@ -52,26 +48,15 @@ public class FragilityMappingController {
     @GET
     @Produces("application/json")
     @Path("byJson")
-    public Map<String, String> getMappings(@QueryParam("json") String inventoryJson) {
+    public Response getMappings(@QueryParam("json") String inventoryJson) {
         Map<String, String> result = new HashMap<>();
 
         try {
             if (matchFilterMap == null) {
-                URL mappingUrl = this.context.getResource("/WEB-INF/mappings/buildings.xml");
-                matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
-                if (matchFilterMap == null) {
-                    //this shouldn't be necessary, but I can't figure out how to get
-                    //grizzly to change the base path.
-                    String path = this.context.getRealPath("/src/main/webapp/WEB-INF/mappings/buildings.xml");
-                    mappingUrl = new File(path).toURI().toURL();
-                    matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
-
-                    matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
-                    if (matchFilterMap == null) {
-                        return null;
-                    }
-                }
+                return Response.status(500)
+                               .build();
             }
+
             final FragilityMapper mapper = new FragilityMapper();
             mapper.addMappingSet(matchFilterMap);
 
@@ -80,30 +65,39 @@ public class FragilityMappingController {
             String fragilityFor = mapper.getFragilityFor("", inventoryRow, new HashMap<String, Object>());
             result.put("fragilityId", fragilityFor);
         } catch (IOException e) {
-            e.printStackTrace();
+            return Response.status(500)
+                           .build();
         }
 
-        return result;
+        return Response.ok(result)
+                       .build();
     }
 
     @GET
     @Produces("application/json")
     @Path("/byurl")
-    public Map<String, String> getMappings(@QueryParam("mappingUrl") String mappingUrl,
-                                           @QueryParam("datasetUrl") String datasetUrl,
-                                           @QueryParam("options") String optionsJson) {
+    public Response getMappings(@QueryParam("mappingUrl") String mappingUrl,
+                                @QueryParam("datasetUrl") String datasetUrl,
+                                @QueryParam("options") String optionsJson) {
         //prep the mapping dataset and the mapper class
-        MatchFilterMap matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
-        if (matchFilterMap == null) {
-            return null;
+        MatchFilterMap matchFilterMap = null;
+        try {
+            matchFilterMap = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
+        } catch (DeserializationException e) {
+            return Response.status(500)
+                           .build();
         }
+
         final FragilityMapper mapper = new FragilityMapper();
         mapper.addMappingSet(matchFilterMap);
 
         //get the dbf for the inventory
-        File localCopy = downloadFromUrl(datasetUrl);
-        if (localCopy == null) {
-            return null;
+        File localCopy = null;
+        try {
+            localCopy = downloadFromUrl(datasetUrl);
+        } catch (IOException e) {
+            return Response.status(500)
+                           .build();
         }
 
         //prepare the params
@@ -136,45 +130,18 @@ public class FragilityMappingController {
             String fragilityFor = mapper.getFragilityFor("", inventoryRow, params);
             result.put(String.valueOf(row.getDouble("id")), fragilityFor);
         }
-        //        mapper.getFragilityFor("",  )
+
+        return Response.ok(result)
+                       .build();
+    }
+
+    private File downloadFromUrl(String datasetUrl) throws IOException {
+        URL website = new URL(datasetUrl);
+        ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+        File result = File.createTempFile("tmp", ".dbf");
+        FileOutputStream fos = new FileOutputStream(result);
+        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 
         return result;
-    }
-
-    private File downloadFromUrl(String datasetUrl) {
-        URL website = null;
-        try {
-            website = new URL(datasetUrl);
-            ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-            File result = File.createTempFile("tmp", ".dbf");
-            FileOutputStream fos = new FileOutputStream(result);
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-            return result;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private MatchFilterMap loadMatchFilterMapFromUrl(String mappingUrl) {
-        try {
-            return loadMatchFilterMapFromUrl(new URL(mappingUrl));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    private MatchFilterMap loadMatchFilterMapFromUrl(URL mappingUrl) {
-        try {
-            MappingDatasetStub stub = new MappingDatasetStub();
-            XmlUtils.deserializeUserFacingBeanFromFile(mappingUrl, stub);
-            return stub.getMatchFilterMap();
-        } catch (DeserializationException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 }

@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragilitymapping.test;
 
+import edu.illinois.ncsa.incore.services.fragility.Application;
 import edu.illinois.ncsa.incore.services.fragility.FragilityMappingController;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.client.ClientConfig;
@@ -16,7 +17,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Application;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -26,7 +26,6 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 
 public class FragilityMappingTest extends JerseyTest {
-
     /**
      * Boilerplate to configure the resource controller to test
      */
@@ -35,9 +34,10 @@ public class FragilityMappingTest extends JerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        return new ResourceConfig(FragilityMappingController.class);
-    }
+        Application application = new Application();
 
+        return application;
+    }
 
     /**
      * Boilerplate to give it a servlet container.

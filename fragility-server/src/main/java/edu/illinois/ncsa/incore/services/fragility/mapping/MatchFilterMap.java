@@ -9,10 +9,14 @@
 package edu.illinois.ncsa.incore.services.fragility.mapping;
 
 import ncsa.tools.common.UserFacing;
+import ncsa.tools.common.exceptions.DeserializationException;
 import ncsa.tools.common.types.filters.MatchFilter;
+import ncsa.tools.common.util.XmlUtils;
 import org.dom4j.Element;
 import org.dom4j.tree.DefaultElement;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,4 +77,26 @@ public class MatchFilterMap implements UserFacing
 			matches.add(new PropertyMatch((Element) iterator.next()));
 		}
 	}
+
+    public static MatchFilterMap loadMatchFilterMapFromUrl(String mappingUrl) throws DeserializationException {
+        try {
+            return loadMatchFilterMapFromUrl(new URL(mappingUrl));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        throw new DeserializationException("Could not deserialize " + mappingUrl);
+    }
+
+    public static MatchFilterMap loadMatchFilterMapFromUrl(URL mappingUrl) throws DeserializationException {
+        try {
+            MappingDatasetStub stub = new MappingDatasetStub();
+            XmlUtils.deserializeUserFacingBeanFromFile(mappingUrl, stub);
+            return stub.getMatchFilterMap();
+        } catch (DeserializationException e) {
+            e.printStackTrace();
+        }
+
+        throw new DeserializationException("Could not deserialize " + mappingUrl.toString());
+    }
 }
