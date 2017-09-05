@@ -12,7 +12,7 @@ import org.glassfish.jersey.test.spi.TestContainer;
 import org.glassfish.jersey.test.spi.TestContainerException;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.json.JSONObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Application;
@@ -28,7 +28,6 @@ public class FragilityMappingTest extends JerseyTest {
 
     /**
      * Boilerplate to configure the resource controller to test
-     * @return
      */
     @Override
     public Application configure() {
@@ -43,8 +42,6 @@ public class FragilityMappingTest extends JerseyTest {
      * Boilerplate to give it a servlet container.
      * This may not be necessary unless the controller uses the @Context
      * annotation to get the ServletContext
-     * @return
-     * @throws TestContainerException
      */
     @Override
     protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
@@ -68,7 +65,8 @@ public class FragilityMappingTest extends JerseyTest {
                     public void start() {
                         try {
                             this.server = GrizzlyWebContainerFactory.create(
-                                    baseUri, Collections.singletonMap("jersey.config.server.provider.packages", "edu.illinois.ncsa.incore.services.fragility.mapping")
+                                baseUri, Collections.singletonMap("jersey.config.server.provider.packages",
+                                                                  FragilityMappingController.class.getPackage().getName())
                             );
                         } catch (ProcessingException e) {
                             throw new TestContainerException(e);
@@ -86,18 +84,28 @@ public class FragilityMappingTest extends JerseyTest {
         };
     }
 
-
     @Test
     public void testSimpleMapping() throws UnsupportedEncodingException {
-            String url = URLEncoder.encode(
-                    "{\"no_stories\":5,\"year_built\":1990,\"Soil\":\"Upland\",\"occ_type\":\"COM4\",\"struct_typ\":\"C1\",\"retrofit\":\"Non-Retrofit Fragility ID Code\"}",
-                    "UTF-8").replace("+", "%20");
-            String output = target("/mapping/byJson").
-                    queryParam("json", url).
-                    request().accept(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE).get(String.class);
-            System.out.println("----------output is:" + output);
-            JSONObject parsed = new JSONObject(output);
-            Object fragId = parsed.get("fragilityId");
-            assertEquals("STR_C1_5", fragId);
+        String url = URLEncoder.encode(
+            // language=json
+            "{\n" +
+                "    \"no_stories\": 5,\n" +
+                "    \"year_built\": 1990,\n" +
+                "    \"Soil\": \"Upland\",\n" +
+                "    \"occ_type\": \"COM4\",\n" +
+                "    \"struct_typ\": \"C1\",\n" +
+                "    \"retrofit\": \"Non-Retrofit Fragility ID Code\"\n" +
+                "}",
+            "UTF-8").replace("+", "%20");
+        String output = target("/mapping/byJson").queryParam("json", url)
+                                                      .request()
+                                                      .accept(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                                                      .get(String.class);
+
+        System.out.println("----------output is:" + output);
+        JSONObject parsed = new JSONObject(output);
+        Object fragId = parsed.get("fragilityId");
+
+        assertEquals("STR_C1_5", fragId);
     }
 }
