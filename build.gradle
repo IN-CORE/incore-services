@@ -82,7 +82,7 @@ subprojects {
 
             testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:2.25.1"
             testCompile "org.glassfish.jersey.containers:jersey-container-grizzly2-servlet:2.25.1"
-            testCompile "junit:junit:+"
+            testCompile(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-M5')
         }
     }
 }
