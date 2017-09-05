@@ -12,7 +12,8 @@ import org.glassfish.jersey.test.spi.TestContainer;
 import org.glassfish.jersey.test.spi.TestContainerException;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Application;
@@ -107,5 +108,10 @@ public class FragilityMappingTest extends JerseyTest {
         Object fragId = parsed.get("fragilityId");
 
         assertEquals("STR_C1_5", fragId);
+    }
+
+    @After
+    public void tearDown() {
+        // TODO stop server
     }
 }

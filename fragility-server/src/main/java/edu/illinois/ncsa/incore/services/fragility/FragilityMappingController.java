@@ -26,7 +26,6 @@ import java.util.Map;
 
 @Path("mapping")
 public class FragilityMappingController {
-
     private static final Logger log = Logger.getLogger(FragilityMappingController.class);
 
     @Context
@@ -58,12 +57,15 @@ public class FragilityMappingController {
 
         try {
             if (matchFilterMap == null) {
-                URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
+                URL mappingUrl = this.context.getResource("/WEB-INF/mappings/buildings.xml");
                 matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
                 if (matchFilterMap == null) {
                     //this shouldn't be necessary, but I can't figure out how to get
-                    //grizzly to chagne the base path.
-                    mappingUrl = context.getResource("/src/main/webapp/WEB-INF/mappings/buildings.xml");
+                    //grizzly to change the base path.
+                    String path = this.context.getRealPath("/src/main/webapp/WEB-INF/mappings/buildings.xml");
+                    mappingUrl = new File(path).toURI().toURL();
+                    matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
+
                     matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
                     if (matchFilterMap == null) {
                         return null;

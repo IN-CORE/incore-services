@@ -18,22 +18,29 @@ public class DataAccess {
     private static Datastore store;
     private static List<FragilitySet> fragilities;
 
+    public static final boolean useCache = true;
+
+    public static void initializeDataStore() {
+        MongoClient client = new MongoClient(hostUri, port);
+
+        Set<Class> classesToMap = new HashSet<>();
+        classesToMap.add(FragilitySet.class);
+        Morphia morphia = new Morphia(classesToMap);
+        morphia.getMapper().getConverters().addConverter(BigDecimalConverter.class);
+
+        Datastore datastore = morphia.createDatastore(client, databaseName);
+        datastore.ensureIndexes();
+        store = datastore;
+    }
+
+    public static void loadFragilities() {
+        List<FragilitySet> sets = getDataStore().createQuery(FragilitySet.class).asList();
+        fragilities = sets;
+    }
+
     public static Datastore getDataStore() {
         if (store == null) {
-            try {
-                MongoClient client = new MongoClient(hostUri, port);
-
-                Set<Class> classesToMap = new HashSet<>();
-                classesToMap.add(FragilitySet.class);
-                Morphia morphia = new Morphia(classesToMap);
-                morphia.getMapper().getConverters().addConverter(BigDecimalConverter.class);
-
-                Datastore datastore = morphia.createDatastore(client, databaseName);
-                datastore.ensureIndexes();
-                store = datastore;
-            } catch (Exception ex) {
-                throw ex;
-            }
+            initializeDataStore();
         }
 
         return store;
@@ -41,11 +48,9 @@ public class DataAccess {
 
     public static List<FragilitySet> getFragilities() {
         if (fragilities == null) {
-            List<FragilitySet> sets = store.createQuery(FragilitySet.class).asList();
-            fragilities = sets;
-            return fragilities;
-        } else {
-            return fragilities;
+            loadFragilities();
         }
+
+        return fragilities;
     }
 }
