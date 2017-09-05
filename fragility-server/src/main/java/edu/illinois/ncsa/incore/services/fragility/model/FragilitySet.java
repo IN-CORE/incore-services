@@ -12,26 +12,75 @@ import java.util.List;
 public class FragilitySet {
     @Id
     @Property("_id")
-    public String id;
+    private String id;
 
     @XmlTransient
-    public String legacyId;
+    private String legacyId;
 
-    public String description;
+    private String description;
 
-    public List<String> authors = new ArrayList<>();
-    public PaperReference paperReference;
+    private List<String> authors = new ArrayList<>();
+    private PaperReference paperReference;
 
-    public String resultUnit;
-    public String resultType;
-    public String demandType;
-    public String demandUnits;
+    private String resultUnit;
+    private String resultType;
+    private String demandType;
+    private String demandUnits;
 
-    public String hazardType;
-    public String inventoryType;
+    private String hazardType;
+    private String inventoryType;
 
-    public List<FragilityCurve> fragilityCurves;
-
+    private List<FragilityCurve> fragilityCurves;
 
     public FragilitySet() { }
+
+    // region Getters
+    public String getId() {
+        return id;
+    }
+
+    public String getLegacyId() {
+        return legacyId;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public List<String> getAuthors() {
+        return authors;
+    }
+
+    public PaperReference getPaperReference() {
+        return paperReference;
+    }
+
+    public String getResultUnit() {
+        return resultUnit;
+    }
+
+    public String getResultType() {
+        return resultType;
+    }
+
+    public String getDemandType() {
+        return demandType;
+    }
+
+    public String getDemandUnits() {
+        return demandUnits;
+    }
+
+    public String getHazardType() {
+        return hazardType;
+    }
+
+    public String getInventoryType() {
+        return inventoryType;
+    }
+
+    public List<FragilityCurve> getFragilityCurves() {
+        return fragilityCurves;
+    }
+    // endregion
 }

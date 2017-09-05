@@ -1,5 +1,9 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
+import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
+import org.apache.log4j.Logger;
+import org.mongodb.morphia.Datastore;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -7,16 +11,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
-import org.apache.log4j.Logger;
-import org.mongodb.morphia.Datastore;
-
 import java.util.List;
 
 @Path("fragility")
-public class FragilityResource {
-    private static final Logger logger = Logger.getLogger(FragilityResource.class);
+public class FragilityController {
+    private static final Logger logger = Logger.getLogger(FragilityController.class);
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -27,8 +26,7 @@ public class FragilityResource {
                                            .limit(100)
                                            .asList();
 
-        GenericEntity<List<FragilitySet>> genericSets = new GenericEntity<List<FragilitySet>>(sets) {
-        };
+        GenericEntity<List<FragilitySet>> genericSets = new GenericEntity<List<FragilitySet>>(sets) {};
 
         return Response.ok(genericSets)
                        .header("Access-Control-Allow-Origin", "*")
@@ -96,8 +94,7 @@ public class FragilityResource {
 
         if (sets.size() > 0) {
 
-            GenericEntity<List<FragilitySet>> genericSets = new GenericEntity<List<FragilitySet>>(sets) {
-            };
+            GenericEntity<List<FragilitySet>> genericSets = new GenericEntity<List<FragilitySet>>(sets) {};
 
             return Response.ok(genericSets)
                            .status(200)

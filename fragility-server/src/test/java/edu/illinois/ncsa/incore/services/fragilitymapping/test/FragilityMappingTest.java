@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragilitymapping.test;
 
-import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMappingController;
+import edu.illinois.ncsa.incore.services.fragility.FragilityMappingController;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.grizzly2.servlet.GrizzlyWebContainerFactory;

@@ -3,5 +3,5 @@ rootProject.name = "incore-v2"
 include "repo"
 include "tools-common"
 include "fragility-server"
-include "semantic-core"
+// include "semantic-core" // Still under construction
 include "repo"

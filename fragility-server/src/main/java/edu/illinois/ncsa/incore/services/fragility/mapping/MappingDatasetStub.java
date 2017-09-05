@@ -7,7 +7,7 @@ import org.dom4j.Element;
  * Not interested in pulling in the whole MappingDataset from Ergo v1 right now, but adding this
  * so that it can deserialize the fragility mapping datasets from v1 repos
  */
-public class MappingDatasetStub implements UserFacing{
+public class MappingDatasetStub implements UserFacing {
 
     public MatchFilterMap getMatchFilterMap() {
         return mfm;
@@ -19,8 +19,6 @@ public class MappingDatasetStub implements UserFacing{
     public void initializeFromElement(Element element) {
         mfm.initializeFromElement(element.element("match-filter-map"));
     }
-
-
 
     @Override
     public Element asElement() {

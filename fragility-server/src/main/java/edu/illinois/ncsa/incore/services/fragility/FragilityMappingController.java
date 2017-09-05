@@ -1,6 +1,9 @@
-package edu.illinois.ncsa.incore.services.fragility.mapping;
+package edu.illinois.ncsa.incore.services.fragility;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;
+import edu.illinois.ncsa.incore.services.fragility.mapping.MappingDatasetStub;
+import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
 import ncsa.tools.common.exceptions.DeserializationException;
 import ncsa.tools.common.util.XmlUtils;
 import org.apache.log4j.Logger;
@@ -35,14 +38,11 @@ public class FragilityMappingController {
     @Produces("application/json")
     @Path("/{mappingsetId}/{datasetId}")
     public Map<String, String> getMappings(@PathParam("mappingsetId") String mappingsetId, @PathParam("datasetId") String datasetId) {
-
         log.error("foo!");
-
 
         FragilityMapper fragilityMapper = new FragilityMapper();
         fragilityMapper.addMappingSet(mappingsetId);
         //first load the dataset based on the url
-
 
         HashMap<String, String> result = new HashMap<>();
         result.put("1", "2");
@@ -54,11 +54,9 @@ public class FragilityMappingController {
     @Produces("application/json")
     @Path("byJson")
     public Map<String, String> getMappings(@QueryParam("json") String inventoryJson) {
-
-        Map<String,String> result = new HashMap<>();
+        Map<String, String> result = new HashMap<>();
 
         try {
-
             if (matchFilterMap == null) {
                 URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
                 matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
@@ -75,24 +73,23 @@ public class FragilityMappingController {
             final FragilityMapper mapper = new FragilityMapper();
             mapper.addMappingSet(matchFilterMap);
 
-            HashMap<String,Object> inventoryRow = new ObjectMapper().readValue(inventoryJson, HashMap.class);
+            HashMap<String, Object> inventoryRow = new ObjectMapper().readValue(inventoryJson, HashMap.class);
 
-            String fragilityFor = mapper.getFragilityFor("", inventoryRow, new HashMap<String,Object>());
+            String fragilityFor = mapper.getFragilityFor("", inventoryRow, new HashMap<String, Object>());
             result.put("fragilityId", fragilityFor);
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return result;
 
+        return result;
     }
 
     @GET
     @Produces("application/json")
     @Path("/byurl")
-    public Map<String, String> getMappings(@QueryParam("mappingUrl") String mappingUrl, @QueryParam("datasetUrl") String datasetUrl, @QueryParam("options") String optionsJson) {
-
+    public Map<String, String> getMappings(@QueryParam("mappingUrl") String mappingUrl,
+                                           @QueryParam("datasetUrl") String datasetUrl,
+                                           @QueryParam("options") String optionsJson) {
         //prep the mapping dataset and the mapper class
         MatchFilterMap matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
         if (matchFilterMap == null) {
@@ -109,12 +106,12 @@ public class FragilityMappingController {
 
         //prepare the params
         HashMap<String, Object> params = null;
-//        try {
-//            params = new ObjectMapper().readValue(optionsJson, HashMap.class);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return null;
-//        }
+        //        try {
+        //            params = new ObjectMapper().readValue(optionsJson, HashMap.class);
+        //        } catch (IOException e) {
+        //            e.printStackTrace();
+        //            return null;
+        //        }
 
         Map<String, String> result = new HashMap<>();
         //iterate through the silly thing and map each row
@@ -137,10 +134,9 @@ public class FragilityMappingController {
             String fragilityFor = mapper.getFragilityFor("", inventoryRow, params);
             result.put(String.valueOf(row.getDouble("id")), fragilityFor);
         }
-//        mapper.getFragilityFor("",  )
+        //        mapper.getFragilityFor("",  )
 
         return result;
-
     }
 
     private File downloadFromUrl(String datasetUrl) {
@@ -164,6 +160,7 @@ public class FragilityMappingController {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
@@ -175,10 +172,7 @@ public class FragilityMappingController {
         } catch (DeserializationException e) {
             e.printStackTrace();
         }
+
         return null;
-
     }
-
-
 }
-

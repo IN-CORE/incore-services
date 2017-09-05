@@ -32,71 +32,45 @@ public class MatchFilterMap implements UserFacing
 	{
 	}
 
-	/**
-	 * 
-	 * @param e
-	 */
-	public MatchFilterMap(Element e)
+	public MatchFilterMap(Element element)
 	{
-		initializeFromElement(e);
+		initializeFromElement(element);
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
 	public List<PropertyMatch> getPropertyMatches()
 	{
 		return matches;
 	}
 
-	/**
-	 * 
-	 * @param match
-	 */
 	public void addPropertyMatch(PropertyMatch match)
 	{
 		matches.add(match);
 	}
 
-	/**
-	 * 
-	 * @param key
-	 * @param matchFilter
-	 */
 	public void addPropertyMatch(String key, MatchFilter matchFilter)
 	{
 		matches.add(new PropertyMatch(key, matchFilter));
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
 	public Element asElement()
 	{
-		Element e = new DefaultElement(TAG_SELF);
+		Element element = new DefaultElement(TAG_SELF);
 
-		for (PropertyMatch m : matches) {
-			e.add(m.asElement());
+		for (PropertyMatch match : matches) {
+			element.add(match.asElement());
 		}
 
-		return e;
+		return element;
 	}
 
-	/**
-	 * 
-	 * @param element
-	 */
 	public void initializeFromElement(Element element)
 	{
 		matches.clear();
 
 		Iterator<?> iterator = element.elementIterator(PropertyMatch.TAG_SELF);
+
 		while (iterator.hasNext()) {
 			matches.add(new PropertyMatch((Element) iterator.next()));
 		}
 	}
-
-
 }

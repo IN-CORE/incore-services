@@ -12,13 +12,12 @@ public class FragilityMapper {
         mappingSets.add(mappingSet);
     }
 
-    public String getFragilityFor(String schema, Map<String,Object> row, Map<String,Object> params) {
-
+    public String getFragilityFor(String schema, Map<String, Object> row, Map<String, Object> params) {
         //get all possible mapping sets that we know about for this schema
         //for each one, look at each fragility mapping set, see which is "best"
 
         //not sure this is best, but combine row and params to text
-        Map<String,Object> combinedParams = new HashMap<>();
+        Map<String, Object> combinedParams = new HashMap<>();
         combinedParams.putAll(row);
         combinedParams.putAll(params);
 
@@ -35,21 +34,16 @@ public class FragilityMapper {
                 .findFirst();
 
         if (matched.isPresent()) {
-//            return matched.get().getKey();
+            // return matched.get().getKey();
             return matched.get().getMap().get(row.get("retrofit"));
         }
 
         return "";
-
-
-
-
     }
 
     public void addMappingSet(String mappingsetId) {
         //translate mappingsetId to an actual mappingSet
         //MatchFilterMap mappingSet = loadMappingSet(mappingsetId);
         //addMappingSet(mappingSet);
-
     }
 }
