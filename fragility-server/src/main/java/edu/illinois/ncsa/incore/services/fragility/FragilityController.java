@@ -1,21 +1,29 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
 import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
 import org.apache.log4j.Logger;
 import org.mongodb.morphia.Datastore;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.List;
 
 @Path("fragility")
 public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
+
+    @POST
+    @Path("/select")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response mapFragilities(MappingRequest mappingRequest) {
+        return Response.status(500).build();
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -93,7 +101,6 @@ public class FragilityController {
                                            .asList();
 
         if (sets.size() > 0) {
-
             GenericEntity<List<FragilitySet>> genericSets = new GenericEntity<List<FragilitySet>>(sets) {};
 
             return Response.ok(genericSets)

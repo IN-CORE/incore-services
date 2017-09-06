@@ -2,16 +2,12 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
-      <module name="fragility-mapping_main" target="1.8" />
-      <module name="fragility-mapping_test" target="1.8" />
       <module name="fragility-server_main" target="1.8" />
       <module name="fragility-server_test" target="1.8" />
       <module name="incore-v2_main" target="1.8" />
       <module name="incore-v2_test" target="1.8" />
       <module name="repo_main" target="1.8" />
       <module name="repo_test" target="1.8" />
-      <module name="semantic-core_main" target="1.8" />
-      <module name="semantic-core_test" target="1.8" />
       <module name="tools-common_main" target="1.8" />
       <module name="tools-common_test" target="1.8" />
     </bytecodeTargetLevel>

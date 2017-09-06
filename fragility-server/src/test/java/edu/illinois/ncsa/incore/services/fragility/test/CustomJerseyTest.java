@@ -1,7 +1,5 @@
-package edu.illinois.ncsa.incore.services.fragilitymapping.test;
+package edu.illinois.ncsa.incore.services.fragility.test;
 
-import edu.illinois.ncsa.incore.services.fragility.Application;
-import edu.illinois.ncsa.incore.services.fragility.FragilityMappingController;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.grizzly2.servlet.GrizzlyWebContainerFactory;
@@ -12,29 +10,34 @@ import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.spi.TestContainer;
 import org.glassfish.jersey.test.spi.TestContainerException;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
-import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import javax.ws.rs.ProcessingException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
+public abstract class CustomJerseyTest extends JerseyTest {
+    private String packageName;
 
-public class FragilityMappingTest extends JerseyTest {
+    public CustomJerseyTest(String controllerPackageName) {
+        this.packageName = controllerPackageName;
+    }
+
+    public CustomJerseyTest(Class klass) {
+        this.packageName = klass.getPackage().getName();
+    }
+
     /**
      * Boilerplate to configure the resource controller to test
      */
     @Override
-    public Application configure() {
+    public ResourceConfig configure() {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        Application application = new Application();
+        MockApplication application = new MockApplication();
 
         return application;
     }
@@ -67,7 +70,7 @@ public class FragilityMappingTest extends JerseyTest {
                         try {
                             this.server = GrizzlyWebContainerFactory.create(
                                 baseUri, Collections.singletonMap("jersey.config.server.provider.packages",
-                                                                  FragilityMappingController.class.getPackage().getName())
+                                                                  packageName)
                             );
                         } catch (ProcessingException e) {
                             throw new TestContainerException(e);
@@ -85,33 +88,13 @@ public class FragilityMappingTest extends JerseyTest {
         };
     }
 
-    @Test
-    public void testSimpleMapping() throws UnsupportedEncodingException {
-        String url = URLEncoder.encode(
-            // language=json
-            "{\n" +
-                "    \"no_stories\": 5,\n" +
-                "    \"year_built\": 1990,\n" +
-                "    \"Soil\": \"Upland\",\n" +
-                "    \"occ_type\": \"COM4\",\n" +
-                "    \"struct_typ\": \"C1\",\n" +
-                "    \"retrofit\": \"Non-Retrofit Fragility ID Code\"\n" +
-                "}",
-            "UTF-8").replace("+", "%20");
-        String output = target("/mapping/byJson").queryParam("json", url)
-                                                      .request()
-                                                      .accept(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                                                      .get(String.class);
-
-        System.out.println("----------output is:" + output);
-        JSONObject parsed = new JSONObject(output);
-        Object fragId = parsed.get("fragilityId");
-
-        assertEquals("STR_C1_5", fragId);
+    @BeforeAll
+    public void before() throws Exception {
+        super.setUp();
     }
 
-    @After
-    public void tearDown() {
-        // TODO stop server
+    @AfterAll
+    public void clean() throws Exception {
+        super.tearDown();
     }
 }

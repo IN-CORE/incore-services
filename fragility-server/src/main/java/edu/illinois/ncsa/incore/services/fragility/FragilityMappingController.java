@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;
 import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
@@ -9,9 +10,7 @@ import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfRow;
 
-import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,7 +59,7 @@ public class FragilityMappingController {
             final FragilityMapper mapper = new FragilityMapper();
             mapper.addMappingSet(matchFilterMap);
 
-            HashMap<String, Object> inventoryRow = new ObjectMapper().readValue(inventoryJson, HashMap.class);
+            HashMap<String, Object> inventoryRow = new ObjectMapper().readValue(inventoryJson, new TypeReference<HashMap<String, Object>>() {} );
 
             String fragilityFor = mapper.getFragilityFor("", inventoryRow, new HashMap<String, Object>());
             result.put("fragilityId", fragilityFor);
