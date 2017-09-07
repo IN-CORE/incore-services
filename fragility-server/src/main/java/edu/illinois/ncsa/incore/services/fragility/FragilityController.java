@@ -1,28 +1,47 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
+import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;
+import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
 import org.apache.log4j.Logger;
+import org.geojson.Feature;
 import org.mongodb.morphia.Datastore;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Path("fragility")
 public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
+
+    // TODO replace static with dependency injection
+    public static MatchFilterMap matchFilterMap;
 
     @POST
     @Path("/select")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response mapFragilities(MappingRequest mappingRequest) {
-        return Response.status(500).build();
+        Map<String, String> fragilityMap = new HashMap<>();
+
+        FragilityMapper mapper = new FragilityMapper();
+        mapper.addMappingSet(matchFilterMap);
+
+        for (Feature feature : mappingRequest.mappingSubject.inventory.getFeatures()) {
+            String fragility = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(), feature.getProperties(), mappingRequest.parameters);
+            fragilityMap.put(feature.getId(), fragility);
+        }
+
+        MappingResponse response = new MappingResponse(fragilityMap);
+
+        return Response.ok(response)
+                       .build();
     }
 
     @GET

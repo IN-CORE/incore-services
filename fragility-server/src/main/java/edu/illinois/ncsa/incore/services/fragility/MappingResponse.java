@@ -4,8 +4,8 @@ import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @XmlRootElement
 public class MappingResponse {
@@ -13,5 +13,9 @@ public class MappingResponse {
     public List<FragilitySet> fragilitySets;
 
     @XmlElement(name = "mapping")
-    public HashMap<Integer, String> fragilityToInventoryMapping;
+    public Map<String, String> fragilityToInventoryMapping;
+
+    public MappingResponse(Map<String, String> fragilityMap) {
+        this.fragilityToInventoryMapping = fragilityMap;
+    }
 }

@@ -19,7 +19,9 @@ public class Application extends ResourceConfig {
 
         try {
             URL mappingUrl = this.getClass().getClassLoader().getResource("mappings/buildings.xml");
-            FragilityMappingController.matchFilterMap = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
+            MatchFilterMap matchFilterMap = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
+            FragilityMappingController.matchFilterMap = matchFilterMap;
+            FragilityController.matchFilterMap = matchFilterMap;
 
             if (FragilityMappingController.matchFilterMap == null) {
                 log.error("Could not load match filter map");

@@ -21,24 +21,28 @@ public class FragilityMapper {
         combinedParams.putAll(row);
         combinedParams.putAll(params);
 
-        Optional<PropertyMatch> matched = mappingSets
-                .stream()
-                .flatMap(mappingSet -> mappingSet.getPropertyMatches().stream())
-                .filter(propMatch -> {
-                    try {
-                        return propMatch.getMatchFilter().matches(combinedParams, true);
-                    } catch (FailedComparisonException e) {
-                        return false;
-                    }
-                })
-                .findFirst();
+        Optional<PropertyMatch> matched = mappingSets.stream()
+                                                     .flatMap(mappingSet -> mappingSet.getPropertyMatches().stream())
+                                                     .filter(propMatch -> {
+                                                         try {
+                                                             return propMatch.getMatchFilter().matches(combinedParams, true);
+                                                         } catch (FailedComparisonException e) {
+                                                             return false;
+                                                         }
+                                                     })
+                                                     .findFirst();
 
         if (matched.isPresent()) {
-            // return matched.get().getKey();
-            return matched.get().getMap().get(row.get("retrofit"));
+            if (params.containsKey("key")) {
+                String mapKey = params.get("key").toString();
+                return matched.get().getMap().get(mapKey);
+            } else {
+                // return the first fragility key
+                return matched.get().getMap().values().iterator().next();
+            }
+        } else {
+            return "";
         }
-
-        return "";
     }
 
     public void addMappingSet(String mappingsetId) {
