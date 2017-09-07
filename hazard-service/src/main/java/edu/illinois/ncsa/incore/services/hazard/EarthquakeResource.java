@@ -8,23 +8,31 @@ import edu.illinois.ncsa.incore.services.hazard.eq.models.AtkinsonBoore1995;
 import edu.illinois.ncsa.incore.services.hazard.eq.util.HazardUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.log4j.Logger;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 
 @Path("earthquake")
 public class EarthquakeResource {
+    private static final Logger logger = Logger.getLogger(EarthquakeResource.class);
     private GeometryFactory factory = new GeometryFactory();
+
+    @Context
+    ServletContext context;
 
     @GET
     @Path("/model")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getEarthquakeModelHazard2(@QueryParam("modelId") String modelId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("eqJson") String eqJson) {
-
+    public Response getEarthquakeModelHazard(@QueryParam("modelId") String modelId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("eqJson") String eqJson) {
         System.out.println("string = "+eqJson);
         EqParameters eqParameters = null;
         try {
@@ -47,17 +55,22 @@ public class EarthquakeResource {
             // TODO How can we store and lookup these model by ID?
             // TODO handle the case of a defined earthquake using multiple attenuations for weighting
             if(modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
-                AtkinsonBoore1995 model = new AtkinsonBoore1995();
-                model.setRuptureParameters(eqParameters);
-
-                // Local site to get hazard for
-                Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
-
                 try {
+                    String fileName = modelId + ".csv";
+                    URL coefficientURL = context.getResource("/WEB-INF/hazard/earthquake/coefficients/" + fileName);
+                    AtkinsonBoore1995 model = new AtkinsonBoore1995();
+                    model.readCoeffients(coefficientURL);
+                    model.setRuptureParameters(eqParameters);
+
+                    // Local site to get hazard for
+                    Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
+
                     double value = model.getValue(period, localSite);
                     return Response.ok(value).build();
+                } catch(MalformedURLException e) {
+                    logger.error("Error locating model coefficients.", e);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Error getting model value for point.", e);
                 }
             } else {
                 return Response.status(404).entity("Unknown attenuation model").build();

@@ -8,6 +8,8 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 public abstract class BaseAttenuation {
@@ -59,48 +61,51 @@ public abstract class BaseAttenuation {
         return epistemicVariance;
     }
 
-    protected void readCoeffients() {
-
+    public void readCoeffients(URL fileURL) {
+        System.out.println("read coefficients");
         hazardOutputTypes = new LinkedList<String>();
         coefficients = new HashMap<String, List<Double>>();
 
-        String fileName = this.getClass().getSimpleName() + ".csv";
-        File coefficientFile = new File("src/main/webapp/WEB-INF/hazard/earthquake/coefficients/" + fileName);
-        CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
+        try {
+            File coefficientFile = new File(fileURL.toURI());
+            CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
 
-        try(Reader csvFileReader = new FileReader(coefficientFile)) {
-            CSVParser csvParser = new CSVParser(csvFileReader, csvFormat);
-            Iterator<CSVRecord> csvIterator = csvParser.iterator();
-            List<Double> coeff = null;
-            while(csvIterator.hasNext()) {
-                CSVRecord csvLine = csvIterator.next();
-                String period = csvLine.get(1);
-                coeff = new LinkedList<Double>();
-                for(int column = 2; column < csvLine.size(); column++) {
-                    coeff.add(Double.parseDouble(csvLine.get(column)));
+            try (Reader csvFileReader = new FileReader(coefficientFile)) {
+                CSVParser csvParser = new CSVParser(csvFileReader, csvFormat);
+                Iterator<CSVRecord> csvIterator = csvParser.iterator();
+                List<Double> coeff = null;
+                while (csvIterator.hasNext()) {
+                    CSVRecord csvLine = csvIterator.next();
+                    String period = csvLine.get(1);
+                    coeff = new LinkedList<Double>();
+                    for (int column = 2; column < csvLine.size(); column++) {
+                        coeff.add(Double.parseDouble(csvLine.get(column)));
+                    }
+
+                    coefficients.put(period, coeff);
+
+                    try {
+                        // if we get an exception, we know that the period was PGA, PGV,
+                        // or PGD and not an Sa value
+                        Double.parseDouble(period);
+                        period += " Sa"; //$NON-NLS-1$
+                    } catch (NumberFormatException nfe) {
+
+                    }
+
+                    if (!hazardOutputTypes.contains(period)) {
+                        hazardOutputTypes.add(period);
+                    }
+
                 }
 
-                coefficients.put(period, coeff);
-
-                try {
-                    // if we get an exception, we know that the period was PGA, PGV,
-                    // or PGD and not an Sa value
-                    Double.parseDouble(period);
-                    period += " Sa"; //$NON-NLS-1$
-                } catch (NumberFormatException nfe) {
-
-                }
-
-                if (!hazardOutputTypes.contains(period)) {
-                    hazardOutputTypes.add(period);
-                }
-
+            } catch (FileNotFoundException e) {
+                logger.error("Could not find coefficient file for attenuation.", e);
+            } catch (IOException e) {
+                logger.error("Could not read cofficient file for attenuation.", e);
             }
-
-        } catch(FileNotFoundException e) {
-            logger.error("Could not find coefficient file for attenuation.", e);
-        } catch(IOException e) {
-            logger.error("Could not read cofficient file for attenuation.", e);
+        } catch(URISyntaxException e) {
+            logger.error("Error parsing coefficients file for attenuation", e);
         }
 
 
@@ -231,12 +236,7 @@ public abstract class BaseAttenuation {
      */
     protected List<Double> getCoefficients(String period)
     {
-        System.out.println("period = "+period);
-       if(coefficients == null) {
-           readCoeffients();
-       }
-
-       return coefficients.get(period);
+        return coefficients.get(period);
     }
 
     /**
