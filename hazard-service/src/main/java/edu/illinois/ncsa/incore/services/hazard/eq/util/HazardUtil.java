@@ -65,6 +65,25 @@ public class HazardUtil
 
     public static double R_EARTH = 6373.0; // km
 
+    public static int getSiteClassAsInt(String siteClass) {
+        int siteClassInt = -1;
+        if (siteClass.equalsIgnoreCase("A")) {
+            siteClassInt = 0;
+        } else if (siteClass.equalsIgnoreCase("B")) {
+            siteClassInt = 1;
+        } else if (siteClass.equalsIgnoreCase("C")) {
+            siteClassInt = 2;
+        } else if (siteClass.equalsIgnoreCase("D")) {
+            siteClassInt = 3;
+        } else if (siteClass.equalsIgnoreCase("E")) {
+            siteClassInt = 4;
+        } else if (siteClass.equalsIgnoreCase("F")) {
+            siteClassInt = 5;
+        }
+
+        return siteClassInt;
+    }
+
     /**
      *
      * @param period

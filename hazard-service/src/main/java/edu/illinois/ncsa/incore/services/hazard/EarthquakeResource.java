@@ -5,6 +5,8 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.services.hazard.eq.EqParameters;
 import edu.illinois.ncsa.incore.services.hazard.eq.Site;
 import edu.illinois.ncsa.incore.services.hazard.eq.models.AtkinsonBoore1995;
+import edu.illinois.ncsa.incore.services.hazard.eq.site.NEHRPSiteAmplification;
+import edu.illinois.ncsa.incore.services.hazard.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.services.hazard.eq.util.HazardUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,21 +35,16 @@ public class EarthquakeResource {
     @Path("/model")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getEarthquakeModelHazard(@QueryParam("modelId") String modelId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("eqJson") String eqJson) {
-        System.out.println("string = "+eqJson);
         EqParameters eqParameters = null;
         try {
             eqParameters = new ObjectMapper().readValue(eqJson, EqParameters.class);
-            System.out.println("magnitude = "+eqParameters.getMagnitude());
 
             // TODO Need to handle conversions where attenuation cannot directly produce requested demand type (e.g. SA to PGV)
             String period = demandType;
             String demand = demandType;
 
-            System.out.println("demand type = "+demandType);
             if(demandType.contains(HazardUtil.SA)) {
-                System.out.println("split demand");
                 String[] demandSplit = demandType.split(" ");
-                System.out.println("split size = "+demandSplit.length);
                 period = demandSplit[0];
                 demand = demandSplit[1];
             }
@@ -87,8 +84,38 @@ public class EarthquakeResource {
     @GET
     @Path("/soil/amplification")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getEarthquakeSiteAmplification(@QueryParam("method") String method, @QueryParam("datasetId") @DefaultValue("") String datasetId, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("demandType") String demandType, @QueryParam("hazard") double hazard, @QueryParam("siteClass") String siteClass) {
-        return Response.ok("Site amplification not yet implemented").build();
+    public Response getEarthquakeSiteAmplification(@QueryParam("method") String method, @QueryParam("datasetId") @DefaultValue("") String datasetId, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("demandType") String demandType, @QueryParam("hazard") double hazard, @QueryParam("defaultSiteClass") String defaultSiteClass) {
+
+        int localSiteClass = HazardUtil.getSiteClassAsInt(defaultSiteClass);
+        if(localSiteClass == -1) {
+            return Response.status(500).entity("Unknown default site classification, expected A, B, C, D, E or F").build();
+        }
+
+        if(!datasetId.isEmpty()) {
+            // TODO implement this
+        }
+
+        String period = demandType;
+
+        if(demandType.contains(HazardUtil.SA)) {
+            String[] demandSplit = demandType.split(" ");
+            period = demandSplit[0];
+        }
+
+        SiteAmplification siteAmplification = null;
+        // Local site to get hazard for
+        Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
+
+        if(method.equalsIgnoreCase("NEHRP")) {
+            siteAmplification = new NEHRPSiteAmplification();
+            // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
+            // and the range for interpretation is in units of g
+            double amplification = siteAmplification.getSiteAmplification(localSite, hazard, localSiteClass, period);
+
+            return Response.ok(amplification).build();
+
+        }
+        return Response.ok("Site amplification requested is not yet implemented").build();
     }
 
     // Dataset API

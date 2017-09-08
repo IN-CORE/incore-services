@@ -15,12 +15,9 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
     public double getValue(String period, Site site) throws Exception {
 
         double mag = ruptureParameters.getMagnitude();
-        System.out.println("mag = "+mag);
-
         Site sourceSite = ruptureParameters.getEpicenter();
 
         double distance = HazardUtil.findDistance(site.getLocation(), sourceSite.getLocation());
-        System.out.println("dist = "+distance);
         return getValue(period, mag, distance, sourceSite.getDepth());
     }
 

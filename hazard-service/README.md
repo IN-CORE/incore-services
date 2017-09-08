@@ -12,6 +12,10 @@ http://localhost:8080/hazard/api/earthquake/model?modelId=AtkinsonBoore1995&dema
 
 PGA = 0.1765
 
+Site Amplification
+http://localhost:8080/hazard/api/earthquake/soil/amplification?method=NEHRP&demandType=0.2+SA&siteLat=35.07899&siteLong=-90.0178&hazard=0.3502&defaultSiteClass=D
+1.51984
+
 hazard/api/tornado
 
 http://localhost:8080/hazard/api/tornado/model?modelId=TornadoMeanWidth&datasetId=some-dataset-id&demandUnits=mph&siteLat=35.07899&siteLong=-90.0178
