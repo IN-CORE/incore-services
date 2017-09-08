@@ -73,6 +73,10 @@ public class RepoUtils {
     public static final String TAG_IS_NUMERIC = "is-numeric";
     public static final String TAG_IS_RESULT = "is-result";
     public static final String TAG_PROPERTIES = "";
+    public static final int TYPE_NUMBER_SHP = 1;
+    public static final int TYPE_NUMBER_CSV = 2;
+    public static final int TYPE_NUMBER_META = 3;
+    public static final int TYPE_NUMBER_MULTI = 10;
 
 
     public static void deleteTmpDir(File metadataFile, String fileExt) {
@@ -505,25 +509,25 @@ public class RepoUtils {
                 if (typeNumber > 0) {
                     isMultiType = true;
                 }
-                typeNumber = 1;
+                typeNumber = TYPE_NUMBER_SHP;
             }
             if (fileExt.equals(EXTENSION_CSV)) {
                 if (typeNumber > 0) {
                     isMultiType = true;
                 }
-                typeNumber = 2;
+                typeNumber = TYPE_NUMBER_CSV;
             }
             if (fileExt.equals(EXTENSION_META)) {
                 if (typeNumber > 0) {
                     isMultiType = true;
                 }
-                typeNumber = 3;
+                typeNumber = TYPE_NUMBER_META;
             }
         }
 
         // if there are multiple type of file extensions return high number
         if (isMultiType) {
-            typeNumber = 10;
+            typeNumber = TYPE_NUMBER_MULTI;
         }
         return typeNumber;
     }
