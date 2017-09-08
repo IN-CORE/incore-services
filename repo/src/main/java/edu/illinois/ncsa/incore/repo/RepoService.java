@@ -57,10 +57,14 @@ public class RepoService {
     public static final String MONGO_URL = "mongodb://localhost:27017";
     public static final String GEO_DB_NAME = "geoJsonDB";
 
+
+    // list all the metadatas in the repository information as json
+    // zipped dataset can be downloaded when the location get clicked
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    // test this with       http://localhost:8080/repo/api/datasets
+    // test this with
+    // http://localhost:8080/repo/api/datasets
     public Response getDirectoryListJson(){
         String dirStr = loadDirectoryListJsonString();
 //        return(dirStr);
@@ -102,6 +106,8 @@ public class RepoService {
         return mvzDatasets;
     }
 
+//    list all the metadata belonged to type id. data can be downloaded by clicking location
+//    metadata converted as POJO object
     @GET
     @Path("/datasets/query")
     @Produces(MediaType.APPLICATION_JSON)
@@ -135,10 +141,12 @@ public class RepoService {
         return Response.ok(outJsonStr).status(Response.Status.OK).build();
     }
 
+    // directory listing
     @GET
     @Path("/datasets/list")     // this should be changed later for the appropriate line
     @Produces(MediaType.TEXT_HTML)
-    // test this with       http://localhost:8080/repo/api/datasets/list
+    // test this with
+    // http://localhost:8080/repo/api/datasets/list
     public String getDirectoryList() {
         try {
             return (loadDirectoryList());
@@ -148,6 +156,7 @@ public class RepoService {
         }
     }
 
+    // create geoJson of shapefile dataset
     @GET
     @Path("/datasets/{typeid}/{datasetId}/geojson")
 //    @Produces("application/vnd.geo+json")
@@ -174,6 +183,7 @@ public class RepoService {
         }
     }
 
+//    list the dataset belonged to type
     @GET
     @Path("/datasets/{typeId}")
     @Produces(MediaType.TEXT_HTML)
@@ -187,6 +197,7 @@ public class RepoService {
         }
     }
 
+    // see the metadata json of the dataset. data can be downloaded by clicking location
     @GET
     @Path("/datasets/{typeId}/{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -208,6 +219,7 @@ public class RepoService {
         }
     }
 
+    // download zipped dataset file
     @GET
     @Path("/datasets/{typeId}/{datasetId}/files")
     @Produces(MediaType.TEXT_PLAIN)
