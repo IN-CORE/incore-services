@@ -2,9 +2,11 @@ package edu.illinois.ncsa.incore.services.fragility.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.services.fragility.FragilityController;
+import edu.illinois.ncsa.incore.services.fragility.MappingResponse;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingSubject;
 import edu.illinois.ncsa.incore.services.fragility.dto.SchemaType;
+import mocks.MockApplication;
 import org.geojson.FeatureCollection;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
@@ -18,10 +20,11 @@ import java.io.IOException;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class FragilityTest extends CustomJerseyTest {
-    public FragilityTest() {
+public class FragilityControllerTest extends CustomJerseyTest {
+    public FragilityControllerTest() {
         super();
     }
 
@@ -47,11 +50,13 @@ public class FragilityTest extends CustomJerseyTest {
         MappingRequest request = new MappingRequest(subject);
 
         // act
-        Response response = target("/fragility/select").request()
+        MappingResponse response = target("/fragility/select").request()
                                                             .accept(MediaType.APPLICATION_JSON)
-                                                            .post(Entity.json(request));
+                                                            .post(Entity.json(request), MappingResponse.class);
 
         // assert
-        assertEquals("", "");
+        assertTrue(response.getFragilitySets().containsKey("NSDS_PFM_MTB_UL_475_W1_4"));
+        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.1"), "NSDS_PFM_MTB_UL_475_W1_4");
+        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.2"), "NSDS_PFM_MTB_UL_475_W1_4");
     }
 }

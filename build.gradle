@@ -80,10 +80,14 @@ subprojects {
             compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1'
             compile 'org.json:json:20160810'
 
+            // Libraries for testing jersey controller actions
             testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version:'2.25.1')
             testCompile(group: 'org.glassfish.jersey.containers', name:'jersey-container-grizzly2-servlet', version:'2.25.1')
-
+            // JUnit 5
             testCompile(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-RC3')
+            // Mocking Framework
+            testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.9.0')
+
         }
     }
 }

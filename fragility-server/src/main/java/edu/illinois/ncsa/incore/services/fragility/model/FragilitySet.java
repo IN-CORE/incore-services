@@ -34,6 +34,23 @@ public class FragilitySet {
 
     public FragilitySet() { }
 
+    public FragilitySet(String legacyId, String description, List<String> authors,
+                        PaperReference paperReference, String resultUnit, String resultType, String demandType, String demandUnits,
+                        String hazardType, String inventoryType,
+                        List<FragilityCurve> fragilityCurves) {
+        this.legacyId = legacyId;
+        this.description = description;
+        this.authors = authors;
+        this.paperReference = paperReference;
+        this.resultUnit = resultUnit;
+        this.resultType = resultType;
+        this.demandType = demandType;
+        this.demandUnits = demandUnits;
+        this.hazardType = hazardType;
+        this.inventoryType = inventoryType;
+        this.fragilityCurves = fragilityCurves;
+    }
+
     // region Getters
     public String getId() {
         return id;

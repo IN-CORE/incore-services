@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
+import edu.illinois.ncsa.incore.services.fragility.dataaccess.IRepository;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
 import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;
 import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
@@ -8,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.geojson.Feature;
 import org.mongodb.morphia.Datastore;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
@@ -15,6 +17,7 @@ import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Path("fragility")
 public class FragilityController {
@@ -23,31 +26,43 @@ public class FragilityController {
     // TODO replace static with dependency injection
     public static MatchFilterMap matchFilterMap;
 
+    @Inject
+    private IRepository repository;
+
     @POST
     @Path("/select")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response mapFragilities(MappingRequest mappingRequest) {
+        List<FragilitySet> fragilitySets = repository.getFragilities();
+
+        Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();
 
         FragilityMapper mapper = new FragilityMapper();
         mapper.addMappingSet(matchFilterMap);
 
         for (Feature feature : mappingRequest.mappingSubject.inventory.getFeatures()) {
-            String fragility = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(), feature.getProperties(), mappingRequest.parameters);
-            fragilityMap.put(feature.getId(), fragility);
+            String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(), feature.getProperties(), mappingRequest.parameters);
+            Optional<FragilitySet> fragilityMatch = fragilitySets.stream().filter(set -> set.getLegacyId().equals(fragilityKey)).findFirst();
+
+            if(fragilityMatch.isPresent()) {
+                FragilitySet fragilitySet = fragilityMatch.get();
+                fragilitySetMap.put(fragilitySet.getLegacyId(), fragilitySet);
+                fragilityMap.put(feature.getId(), fragilitySet.getLegacyId());
+            }
         }
 
-        MappingResponse response = new MappingResponse(fragilityMap);
+        MappingResponse mappingResponse = new MappingResponse(fragilitySetMap, fragilityMap);
 
-        return Response.ok(response)
+        return Response.ok(mappingResponse)
                        .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFragilities() {
-        Datastore datastore = DataAccess.getDataStore();
+        Datastore datastore = this.repository.getDataStore();
 
         List<FragilitySet> sets = datastore.createQuery(FragilitySet.class)
                                            .limit(100)
@@ -93,10 +108,11 @@ public class FragilityController {
     @Path("/author/{author}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFragilityByAuthor(@PathParam("author") String author) throws Exception {
-        Datastore datastore = DataAccess.getDataStore();
+        Datastore datastore = this.repository.getDataStore();
 
         List<FragilitySet> sets = datastore.createQuery(FragilitySet.class)
-                                           .field("authors").contains(author)
+                                           .field("authors")
+                                           .contains(author)
                                            .asList();
 
         if (sets.size() > 0) {
@@ -113,7 +129,7 @@ public class FragilityController {
     }
 
     private Response getFragilityByAttributeType(String attributeType, String attributeValue) {
-        Datastore datastore = DataAccess.getDataStore();
+        Datastore datastore = this.repository.getDataStore();
 
         List<FragilitySet> sets = datastore.createQuery(FragilitySet.class)
                                            .filter(attributeType, attributeValue)

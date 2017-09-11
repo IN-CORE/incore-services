@@ -1,6 +1,7 @@
 package edu.illinois.ncsa.incore.services.fragility.test;
 
 import edu.illinois.ncsa.incore.services.fragility.FragilityMappingController;
+import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
 import org.json.JSONObject;
