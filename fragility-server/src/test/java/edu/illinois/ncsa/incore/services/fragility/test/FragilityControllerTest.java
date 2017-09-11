@@ -1,7 +1,7 @@
 package edu.illinois.ncsa.incore.services.fragility.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.services.fragility.FragilityController;
+import edu.illinois.ncsa.incore.services.fragility.controllers.FragilityController;
 import edu.illinois.ncsa.incore.services.fragility.MappingResponse;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingSubject;

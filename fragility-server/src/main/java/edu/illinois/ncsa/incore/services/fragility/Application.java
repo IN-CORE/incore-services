@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
+import edu.illinois.ncsa.incore.services.fragility.controllers.FragilityMappingController;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.IRepository;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.MongoDBRepository;
 import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;

@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.services.fragility;
+package edu.illinois.ncsa.incore.services.fragility.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

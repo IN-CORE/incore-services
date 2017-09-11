@@ -1,7 +1,5 @@
 package mocks;
 
-import edu.illinois.ncsa.incore.services.fragility.FragilityController;
-import edu.illinois.ncsa.incore.services.fragility.FragilityMappingController;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.IRepository;
 import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
 import ncsa.tools.common.exceptions.DeserializationException;
@@ -12,7 +10,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import java.net.URL;
 
 public class MockApplication extends ResourceConfig {
-    private static final Logger log = Logger.getLogger(FragilityMappingController.class);
+    private static final Logger log = Logger.getLogger(MockApplication.class);
 
     public MockApplication(Class klass) {
         IRepository mockRepository = new MockRepository();

@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragility.test;
 
-import edu.illinois.ncsa.incore.services.fragility.FragilityMappingController;
+import edu.illinois.ncsa.incore.services.fragility.controllers.FragilityMappingController;
 import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
@@ -32,6 +32,8 @@ public class FragilityMappingControllerTest extends CustomJerseyTest {
 
     @Test
     public void testSimpleMapping() throws UnsupportedEncodingException {
+        // arrange
+
         //language=json
         String json = "{\n" +
             "    \"no_stories\": 5,\n" +
@@ -44,6 +46,7 @@ public class FragilityMappingControllerTest extends CustomJerseyTest {
 
         String url = URLEncoder.encode(json, "UTF-8").replace("+", "%20");
 
+        // act
         String output = target("/mapping/byJson").queryParam("json", url)
                                                  .request()
                                                  .accept(MediaType.APPLICATION_JSON_TYPE)
@@ -52,6 +55,7 @@ public class FragilityMappingControllerTest extends CustomJerseyTest {
         JSONObject parsedObject = new JSONObject(output);
         Object fragilityId = parsedObject.get("fragilityId");
 
+        // assert
         assertEquals("NSDS_PFM_MTB_UL_475_C1_11", fragilityId);
     }
 }

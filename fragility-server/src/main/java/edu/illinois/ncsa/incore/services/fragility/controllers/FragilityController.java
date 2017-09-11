@@ -1,5 +1,6 @@
-package edu.illinois.ncsa.incore.services.fragility;
+package edu.illinois.ncsa.incore.services.fragility.controllers;
 
+import edu.illinois.ncsa.incore.services.fragility.MappingResponse;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.IRepository;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
 import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;

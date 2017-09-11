@@ -15,7 +15,7 @@
     "demandUnits": "g",
     "fragilityCurves": [
       {
-        "className" : "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -26,7 +26,7 @@
         "description": "Moderate"
       },
       {
-        "className" : "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -37,7 +37,7 @@
         "description": "Extensive"
       },
       {
-        "className" : "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -50,52 +50,52 @@
     ]
   },
   {
-    "id" : "5894ebee1a743941f0c4a4e0",
-    "legacyId" : "STR_PFM_MTB_UL_475_S2_9",
-    "hazardType" : "Seismic",
-    "inventoryType" : "Building",
-    "authors" : [
+    "id": "5894ebee1a743941f0c4a4e0",
+    "legacyId": "STR_PFM_MTB_UL_475_S2_9",
+    "hazardType": "Seismic",
+    "inventoryType": "Building",
+    "authors": [
       "Amr S. Elnashai",
       "Seong-Hoon Jeong",
       "Joshua S. Steelman"
     ],
-    "description" : "High-Rise Steel Braced Frame",
-    "resultType" : "Limit State",
-    "demandType" : "PGA",
-    "demandUnits" : "g",
-    "fragilityCurves" : [
+    "description": "High-Rise Steel Braced Frame",
+    "resultType": "Limit State",
+    "demandType": "PGA",
+    "demandUnits": "g",
+    "fragilityCurves": [
       {
-        "className" : "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
-        "periodParam2" : 0.0,
-        "periodParam1" : 0.0,
-        "periodParam0" : 1.77,
-        "periodEqnType" : 1,
-        "median" : -1.608,
-        "beta" : 0.725,
-        "curveType" : "LogNormal",
-        "description" : "Moderate"
+        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "periodParam2": 0.0,
+        "periodParam1": 0.0,
+        "periodParam0": 1.77,
+        "periodEqnType": 1,
+        "median": -1.608,
+        "beta": 0.725,
+        "curveType": "LogNormal",
+        "description": "Moderate"
       },
       {
-        "className" : "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
-        "periodParam2" : 0.0,
-        "periodParam1" : 0.0,
-        "periodParam0" : 1.77,
-        "periodEqnType" : 1,
-        "median" : -0.487,
-        "beta" : 0.725,
-        "curveType" : "LogNormal",
-        "description" : "Extensive"
+        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "periodParam2": 0.0,
+        "periodParam1": 0.0,
+        "periodParam0": 1.77,
+        "periodEqnType": 1,
+        "median": -0.487,
+        "beta": 0.725,
+        "curveType": "LogNormal",
+        "description": "Extensive"
       },
       {
-        "className" : "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
-        "periodParam2" : 0.0,
-        "periodParam1" : 0.0,
-        "periodParam0" : 1.77,
-        "periodEqnType" : 1,
-        "median" : 0.583,
-        "beta" : 0.725,
-        "curveType" : "LogNormal",
-        "description" : "Complete"
+        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "periodParam2": 0.0,
+        "periodParam1": 0.0,
+        "periodParam0": 1.77,
+        "periodEqnType": 1,
+        "median": 0.583,
+        "beta": 0.725,
+        "curveType": "LogNormal",
+        "description": "Complete"
       }
     ]
   }
