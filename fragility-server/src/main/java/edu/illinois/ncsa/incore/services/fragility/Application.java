@@ -17,24 +17,27 @@ public class Application extends ResourceConfig {
         IRepository mongoRepository = new MongoDBRepository("localhost", "fragilitydb", 27017);
         mongoRepository.initialize();
 
+        MatchFilterMap loadedMappings = null;
+
+        try {
+            URL mappingUrl = this.getClass().getClassLoader().getResource("mappings/buildings.xml");
+            loadedMappings = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
+        } catch (DeserializationException ex) {
+            log.error("Could not load match filter map", ex);
+        }
+
+        MatchFilterMap matchFilterMap = loadedMappings;
+
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
                 super.bind(mongoRepository).to(IRepository.class);
+                if (matchFilterMap != null) {
+                    super.bind(matchFilterMap).to(MatchFilterMap.class);
+                } else {
+                    log.error("Could not set null match filter map");
+                }
             }
         });
-
-        try {
-            URL mappingUrl = this.getClass().getClassLoader().getResource("mappings/buildings.xml");
-            MatchFilterMap matchFilterMap = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
-            FragilityMappingController.matchFilterMap = matchFilterMap;
-            FragilityController.matchFilterMap = matchFilterMap;
-
-            if (FragilityMappingController.matchFilterMap == null) {
-                log.error("Could not load match filter map");
-            }
-        } catch (DeserializationException ex) {
-            log.error("Could not load match filter map", ex);
-        }
     }
 }

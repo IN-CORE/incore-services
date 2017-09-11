@@ -10,6 +10,7 @@ import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfRow;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -25,8 +26,8 @@ import java.util.Map;
 public class FragilityMappingController {
     private static final Logger log = Logger.getLogger(FragilityMappingController.class);
 
-    // TODO replace static with dependency injection
-    public static MatchFilterMap matchFilterMap;
+    @Inject
+    public MatchFilterMap matchFilterMap;
 
     @GET
     @Produces("application/json")

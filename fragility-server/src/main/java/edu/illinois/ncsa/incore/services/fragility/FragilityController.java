@@ -23,8 +23,8 @@ import java.util.Optional;
 public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
 
-    // TODO replace static with dependency injection
-    public static MatchFilterMap matchFilterMap;
+    @Inject
+    public MatchFilterMap matchFilterMap;
 
     @Inject
     private IRepository repository;
@@ -34,12 +34,15 @@ public class FragilityController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response mapFragilities(MappingRequest mappingRequest) {
+        // load all available fragilities
+        // TODO should filter based on schema (e.g. building, bridge, etc.) and any additional criteria
         List<FragilitySet> fragilitySets = repository.getFragilities();
 
         Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();
 
         FragilityMapper mapper = new FragilityMapper();
+
         mapper.addMappingSet(matchFilterMap);
 
         for (Feature feature : mappingRequest.mappingSubject.inventory.getFeatures()) {

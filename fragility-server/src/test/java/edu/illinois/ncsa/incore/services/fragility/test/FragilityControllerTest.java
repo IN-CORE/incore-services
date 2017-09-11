@@ -15,7 +15,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URL;
 

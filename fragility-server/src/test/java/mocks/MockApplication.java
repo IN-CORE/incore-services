@@ -15,29 +15,32 @@ public class MockApplication extends ResourceConfig {
     private static final Logger log = Logger.getLogger(FragilityMappingController.class);
 
     public MockApplication(Class klass) {
-        IRepository repository = new MockRepository();
-        repository.initialize();
+        IRepository mockRepository = new MockRepository();
+        mockRepository.initialize();
 
         super.register(klass);
-        super.register(new AbstractBinder() {
-            @Override
-            protected void configure() {
-                super.bind(repository).to(IRepository.class);
-            }
-        });
+
+        MatchFilterMap loadedMappings = null;
 
         try {
             URL mappingUrl = this.getClass().getClassLoader().getResource("mappings/buildings.xml");
-
-            MatchFilterMap matchFilterMap = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
-            FragilityMappingController.matchFilterMap = matchFilterMap;
-            FragilityController.matchFilterMap = matchFilterMap;
-
-            if (FragilityMappingController.matchFilterMap == null) {
-                log.error("Could not load match filter map");
-            }
+            loadedMappings = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
         } catch (DeserializationException ex) {
             log.error("Could not load match filter map", ex);
         }
+
+        MatchFilterMap matchFilterMap = loadedMappings;
+
+        super.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                super.bind(mockRepository).to(IRepository.class);
+                if (matchFilterMap != null) {
+                    super.bind(matchFilterMap).to(MatchFilterMap.class);
+                } else {
+                    log.error("Could not set null match filter map");
+                }
+            }
+        });
     }
 }

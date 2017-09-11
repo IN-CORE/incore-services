@@ -52,6 +52,6 @@ public class FragilityMappingControllerTest extends CustomJerseyTest {
         JSONObject parsedObject = new JSONObject(output);
         Object fragilityId = parsedObject.get("fragilityId");
 
-        assertEquals("STR_C1_5", fragilityId);
+        assertEquals("NSDS_PFM_MTB_UL_475_C1_11", fragilityId);
     }
 }

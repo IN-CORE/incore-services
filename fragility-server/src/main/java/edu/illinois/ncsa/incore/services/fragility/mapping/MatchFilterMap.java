@@ -30,7 +30,7 @@ public class MatchFilterMap implements UserFacing
 {
 	public final static String TAG_SELF = "match-filter-map"; //$NON-NLS-1$
 
-	private List<PropertyMatch> matches = new LinkedList<PropertyMatch>();
+	private List<PropertyMatch> matches = new LinkedList<>();
 
 	public MatchFilterMap()
 	{
