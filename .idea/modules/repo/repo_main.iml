@@ -7,7 +7,7 @@
           <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/../../../repo/src/main/webapp/WEB-INF/web.xml" />
         </descriptors>
         <webroots>
-          <root url="file://C:\Users\omar\git\incore-fragility-branch\repo\src\main\webapp" relative="/" />
+          <root url="file://$MODULE_DIR$/../../../repo/src/main/webapp" relative="/" />
         </webroots>
       </configuration>
     </facet>

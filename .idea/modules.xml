@@ -8,6 +8,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore-v2.iml" filepath="$PROJECT_DIR$/.idea/modules/incore-v2.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore-v2_main.iml" filepath="$PROJECT_DIR$/.idea/modules/incore-v2_main.iml" group="incore-v2" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore-v2_test.iml" filepath="$PROJECT_DIR$/.idea/modules/incore-v2_test.iml" group="incore-v2" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/maestro-service.iml" filepath="$PROJECT_DIR$/.idea/modules/maestro-service.iml" group="maestro-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/maestro-service/maestro-service_main.iml" filepath="$PROJECT_DIR$/.idea/modules/maestro-service/maestro-service_main.iml" group="maestro-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/maestro-service/maestro-service_test.iml" filepath="$PROJECT_DIR$/.idea/modules/maestro-service/maestro-service_test.iml" group="maestro-service" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/repo/repo.iml" filepath="$PROJECT_DIR$/.idea/modules/repo/repo.iml" group="repo" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/repo/repo_main.iml" filepath="$PROJECT_DIR$/.idea/modules/repo/repo_main.iml" group="repo" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/repo/repo_test.iml" filepath="$PROJECT_DIR$/.idea/modules/repo/repo_test.iml" group="repo" />

@@ -5,9 +5,7 @@ import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @XmlRootElement
 public class MappingResponse {

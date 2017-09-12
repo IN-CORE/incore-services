@@ -1,23 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id=":fragility-server:main" external.linked.project.path="$MODULE_DIR$/../../../fragility-server" external.root.project.path="$MODULE_DIR$/../../.." external.system.id="GRADLE" external.system.module.group="incore-v2" external.system.module.type="sourceSet" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
+<module external.linked.project.id=":maestro-service:main" external.linked.project.path="$MODULE_DIR$/../../../maestro-service" external.root.project.path="$MODULE_DIR$/../../.." external.system.id="GRADLE" external.system.module.group="incore-v2" external.system.module.type="sourceSet" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
   <component name="FacetManager">
-    <facet type="web" name="Web Gradle : fragility-server.war">
+    <facet type="web" name="Web">
       <configuration>
         <descriptors>
-          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/../../../fragility-server/src/main/webapp/WEB-INF/web.xml" />
+          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/../../../maestro-service/src/main/webapp/WEB-INF/web.xml" />
         </descriptors>
         <webroots>
-          <root url="file://$MODULE_DIR$/../../../fragility-server/src/main/webapp" relative="/" />
+          <root url="file://$MODULE_DIR$/../../../maestro-service/src/main/webapp" relative="/" />
+        </webroots>
+      </configuration>
+    </facet>
+    <facet type="web" name="Web Gradle : maestro-service.war">
+      <configuration>
+        <descriptors>
+          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/../../../maestro-service/src/main/webapp/WEB-INF/web.xml" />
+        </descriptors>
+        <webroots>
+          <root url="file://$MODULE_DIR$/../../../maestro-service/src/main/webapp" relative="/" />
         </webroots>
       </configuration>
     </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
-    <output url="file://$MODULE_DIR$/../../../fragility-server/out/production/classes" />
+    <output url="file://$MODULE_DIR$/../../../maestro-service/out/production/classes" />
     <exclude-output />
-    <content url="file://$MODULE_DIR$/../../../fragility-server/src/main">
-      <sourceFolder url="file://$MODULE_DIR$/../../../fragility-server/src/main/java" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../fragility-server/src/main/resources" type="java-resource" />
+    <content url="file://$MODULE_DIR$/../../../maestro-service/src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../../maestro-service/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../maestro-service/src/main/resources" type="java-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

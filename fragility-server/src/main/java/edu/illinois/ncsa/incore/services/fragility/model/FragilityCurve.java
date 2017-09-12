@@ -1,6 +1,5 @@
 package edu.illinois.ncsa.incore.services.fragility.model;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
