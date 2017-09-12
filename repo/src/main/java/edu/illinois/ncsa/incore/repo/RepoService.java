@@ -65,11 +65,79 @@ public class RepoService {
     @Produces(MediaType.APPLICATION_JSON)
     // test this with
     // http://localhost:8080/repo/api/datasets
-    public Response getDirectoryListJson(){
-        String dirStr = loadDirectoryListJsonString();
-//        return(dirStr);
-//        return new MvzDataset(dirStr);
-        return Response.ok(dirStr).status(Response.Status.OK).build();
+    public List<MvzDataset> getDirectoryListJson(){
+//        // to get the whole json string
+//        String dirStr = loadDirectoryListJsonString();
+////        return(dirStr);
+////        return new MvzDataset(dirStr);
+//        return Response.ok(dirStr).status(Response.Status.OK).build();
+
+        // create the POJO object;
+        List<String> resHref = getDirectoryContent(REPO_PROP_URL, "");
+        List<MvzDataset> mvzDatasets = new ArrayList<MvzDataset>();
+
+        for (String tmpUrl: resHref) {
+            String metaDirUrl = REPO_PROP_URL + tmpUrl;
+            List<String> metaHref = getDirectoryContent(metaDirUrl, "");
+            for (String metaFileName : metaHref) {
+                String fileExtStr = FilenameUtils.getExtension(metaFileName);
+                // get only the mvz file
+                if (fileExtStr.equals(RepoUtils.EXTENSION_META)) {
+                    String combinedId = tmpUrl + "/" + metaFileName;
+                    MvzDataset mvzDataset = new MvzDataset();
+                    mvzDataset = createMvzDatasetFromMetadata(combinedId);
+                    mvzDatasets.add(mvzDataset);
+                }
+            }
+        }
+
+        return mvzDatasets;
+    }
+
+    // insert all dataset to mongodb
+    @GET
+    @Path("/datasets/ingestmongo")
+    @Produces(MediaType.APPLICATION_JSON)
+    // test this with
+    // http://localhost:8080/repo/api/datasets/ingestmongo
+    public String ingestAllToMongo(){
+        // list all the directory
+        List<String> resHref = getDirectoryContent(REPO_PROP_URL, "");
+        resHref.remove("properties");
+
+        for (String tmpUrl: resHref) {
+
+            // use follow to use metadata
+            //String dataDirUrl = REPO_PROP_URL + tmpUrl;
+            // use follow for actual dataset
+            String dataDirUrl = REPO_DS_URL + tmpUrl;
+
+            List<String> dataHref = getDirectoryContent(dataDirUrl, "");
+            for (String dataFileName: dataHref) {
+                String combinedId = dataDirUrl + "/" + dataFileName + "/converted/";
+//                String fileName = "";
+                List<String> fileNames = getDirectoryContent(combinedId, "");
+                for (String fileName: fileNames) {
+                    // skip if the file name is converted
+                    if (!fileName.equals("converted")) {
+                        String fileExtStr = FilenameUtils.getExtension(fileName);
+//                        System.out.println(tmpUrl + "/" + dataFileName + "/" + "/" + fileName + " " + fileExtStr);
+                        // check out the file extension and decide to ingest
+                        if (fileExtStr.equals(RepoUtils.EXTENSION_SHP)) {
+                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
+                            RepoUtils.ingestShpfileToMongo(tmpUrl, dataFileName, MONGO_URL, GEO_DB_NAME, REPO_DS_URL);
+                        } else if (fileExtStr.equals(RepoUtils.EXTENSION_CSV)) {
+                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
+                            RepoUtils.ingestTableToMongo(tmpUrl, dataFileName, MONGO_URL, GEO_DB_NAME, REPO_DS_URL);
+                        } else {
+                            System.out.println("other file format " + fileExtStr);
+                        }
+                    }
+                }
+            }
+        }
+
+        return "done";
     }
 
     @GET
@@ -343,86 +411,125 @@ public class RepoService {
             mvzDataset.setDataFormat(dataFormat);
             mvzDataset.setTypeId(typeId);
             mvzDataset.datasetId.setDescription(description);
-            mvzDataset.datasetId.setLocation(location);
+
+            String newUrl = SERVER_URL_PREFIX + rUrl + "/files";
+//            locObj.put(RepoUtils.TAG_LOCATION, newUrl);
+            mvzDataset.datasetId.setLocation(newUrl);
 
             // check maeviz-mapping object and set
             if (metaInfoObj.has(RepoUtils.TAG_MAEVIZ_MAPPING)) {
+//                System.out.println(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
                 List<Mapping> mappings = new LinkedList<Mapping>();
                 mvzDataset.maevizMapping.setSchema(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
-                if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONObject) {
-                    JSONObject mappingJsonObj = (JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
-                    Mapping m = new Mapping();
-                    m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
-                    m.setTo(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
-                    mappings.add(m);
-                    mvzDataset.maevizMapping.setMapping(mappings);
-                } else if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONArray){
-                    JSONArray mappingJsonArray = (JSONArray) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
-                    for (int i = 0; i < mappingJsonArray.length(); i++) {
-                        JSONObject mappingJsonObj = (JSONObject) mappingJsonArray.get(i);
+                if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).has(RepoUtils.TAG_MAPPING)) {
+                    if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONObject) {
+                        JSONObject mappingJsonObj = (JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
                         Mapping m = new Mapping();
-                        m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
-                        m.setTo(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
+//                        if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
+                            m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
+//                        }
+//                        if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
+                            m.setTo(mappingJsonObj.get(RepoUtils.TAG_TO).toString());
+//                        }
                         mappings.add(m);
+                        mvzDataset.maevizMapping.setMapping(mappings);
+                    } else if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONArray) {
+                        JSONArray mappingJsonArray = (JSONArray) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
+                        for (int i = 0; i < mappingJsonArray.length(); i++) {
+                            JSONObject mappingJsonObj = (JSONObject) mappingJsonArray.get(i);
+                            Mapping m = new Mapping();
+//                            if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
+                                m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
+//                            }
+//                            if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
+                                m.setTo(mappingJsonObj.get(RepoUtils.TAG_TO).toString());
+//                            }
+                            mappings.add(m);
+                        }
+                        mvzDataset.maevizMapping.setMapping(mappings);
                     }
-                    mvzDataset.maevizMapping.setMapping(mappings);
                 }
             }
 
             // check metadata object and set
             if (metaInfoObj.has(RepoUtils.TAG_METADATA)) {
+//                System.out.println(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
                 List<ColumnMetadata> columnMetadatas = new LinkedList<ColumnMetadata>();
-                if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONObject) {
-                    JSONObject columnMetadataObj = (JSONObject)((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).getJSONObject(RepoUtils.TAG_TABLE_METADATA);
-                    Metadata metadata = new Metadata();
-                    ColumnMetadata columnMetadata = new ColumnMetadata();
-                    columnMetadata.setFriendlyName(columnMetadataObj.getJSONObject(RepoUtils.TAG_FRIENDLY_NAME).toString());
-                    columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.getJSONObject(RepoUtils.TAG_FIELD_LENGTH).toString()));
-                    columnMetadatas.add(columnMetadata);
-                    metadata.tableMetadata.setColumnMetadata(columnMetadatas);
-                    mvzDataset.setMetadata(metadata);
-                } else if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONArray) {
-                    JSONArray columnMetadataArray = (JSONArray)((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA);
-                    Metadata metadata = new Metadata();
-                    TableMetadata tableMetadata = new TableMetadata();
-                    for (int i = 0; i < columnMetadataArray.length(); i++) {
-                        ColumnMetadata columnMetadata = new ColumnMetadata();
-                        JSONObject columnMetadataObj = (JSONObject) columnMetadataArray.get(i);
-                        if (columnMetadataObj.has(RepoUtils.TAG_FRIENDLY_NAME)) {
-                            columnMetadata.setFriendlyName(columnMetadataObj.get(RepoUtils.TAG_FRIENDLY_NAME).toString());
+                if (metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).has(RepoUtils.TAG_TABLE_METADATA)) {
+                    if (!(metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA) instanceof String)) {
+                        if (((JSONObject) (metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA))).has(RepoUtils.TAG_COLUMN_METADATA)) {
+                            if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONObject) {
+                                JSONObject columnMetadataObj = (JSONObject) ((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA);
+                                Metadata metadata = new Metadata();
+                                ColumnMetadata columnMetadata = new ColumnMetadata();
+                                if (columnMetadataObj.has(RepoUtils.TAG_FRIENDLY_NAME)) {
+                                    columnMetadata.setFriendlyName(columnMetadataObj.get(RepoUtils.TAG_FRIENDLY_NAME).toString());
+                                }
+                                if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
+                                    columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
+                                }
+                                if (columnMetadataObj.has(RepoUtils.TAG_UNIT)) {
+                                    columnMetadata.setUnit(columnMetadataObj.get(RepoUtils.TAG_UNIT).toString());
+                                }
+                                if (columnMetadataObj.has(RepoUtils.TAG_COLUMN_ID)) {
+                                    columnMetadata.setColumnId(columnMetadataObj.get(RepoUtils.TAG_COLUMN_ID).toString());
+                                }
+                                if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
+                                    columnMetadata.setSigFigs(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
+                                }
+                                if (columnMetadataObj.has(RepoUtils.TAG_UNIT_TYPE)) {
+                                    columnMetadata.setUnitType(columnMetadataObj.get(RepoUtils.TAG_UNIT_TYPE).toString());
+                                }
+                                if (columnMetadataObj.has(RepoUtils.TAG_IS_NUMERIC)) {
+                                    columnMetadata.setIsNumeric((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_NUMERIC));
+                                }
+                                if (columnMetadataObj.has(RepoUtils.TAG_IS_RESULT)) {
+                                    columnMetadata.setIsResult((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_RESULT));
+                                }
+                                columnMetadatas.add(columnMetadata);
+                                metadata.tableMetadata.setColumnMetadata(columnMetadatas);
+                                mvzDataset.setMetadata(metadata);
+                            } else if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONArray) {
+                                JSONArray columnMetadataArray = (JSONArray) ((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA);
+                                Metadata metadata = new Metadata();
+                                TableMetadata tableMetadata = new TableMetadata();
+                                for (int i = 0; i < columnMetadataArray.length(); i++) {
+                                    ColumnMetadata columnMetadata = new ColumnMetadata();
+                                    JSONObject columnMetadataObj = (JSONObject) columnMetadataArray.get(i);
+                                    if (columnMetadataObj.has(RepoUtils.TAG_FRIENDLY_NAME)) {
+                                        columnMetadata.setFriendlyName(columnMetadataObj.get(RepoUtils.TAG_FRIENDLY_NAME).toString());
+                                    }
+                                    if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
+                                        columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
+                                    }
+                                    if (columnMetadataObj.has(RepoUtils.TAG_UNIT)) {
+                                        columnMetadata.setUnit(columnMetadataObj.get(RepoUtils.TAG_UNIT).toString());
+                                    }
+                                    if (columnMetadataObj.has(RepoUtils.TAG_COLUMN_ID)) {
+                                        columnMetadata.setColumnId(columnMetadataObj.get(RepoUtils.TAG_COLUMN_ID).toString());
+                                    }
+                                    if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
+                                        columnMetadata.setSigFigs(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
+                                    }
+                                    if (columnMetadataObj.has(RepoUtils.TAG_UNIT_TYPE)) {
+                                        columnMetadata.setUnitType(columnMetadataObj.get(RepoUtils.TAG_UNIT_TYPE).toString());
+                                    }
+                                    if (columnMetadataObj.has(RepoUtils.TAG_IS_NUMERIC)) {
+                                        columnMetadata.setIsNumeric((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_NUMERIC));
+                                    }
+                                    if (columnMetadataObj.has(RepoUtils.TAG_IS_RESULT)) {
+                                        columnMetadata.setIsResult((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_RESULT));
+                                    }
+                                    columnMetadatas.add(columnMetadata);
+                                }
+                                metadata.tableMetadata.setColumnMetadata(columnMetadatas);
+                                mvzDataset.setMetadata(metadata);
+                            }
                         }
-                        if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
-                            columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
-                        }
-                        if (columnMetadataObj.has(RepoUtils.TAG_UNIT)) {
-                            columnMetadata.setUnit(columnMetadataObj.get(RepoUtils.TAG_UNIT).toString());
-                        }
-                        if (columnMetadataObj.has(RepoUtils.TAG_COLUMN_ID)) {
-                            columnMetadata.setColumnId(columnMetadataObj.get(RepoUtils.TAG_COLUMN_ID).toString());
-                        }
-                        if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
-                            columnMetadata.setSigFigs(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
-                        }
-                        if (columnMetadataObj.has(RepoUtils.TAG_UNIT_TYPE)) {
-                            columnMetadata.setUnitType(columnMetadataObj.get(RepoUtils.TAG_UNIT_TYPE).toString());
-                        }
-                        if (columnMetadataObj.has(RepoUtils.TAG_IS_NUMERIC)) {
-                            columnMetadata.setIsNumeric((boolean)columnMetadataObj.get(RepoUtils.TAG_IS_NUMERIC));
-                        }
-                        if (columnMetadataObj.has(RepoUtils.TAG_IS_RESULT)) {
-                            columnMetadata.setIsResult((boolean)columnMetadataObj.get(RepoUtils.TAG_IS_RESULT));
-                        }
-                        columnMetadatas.add(columnMetadata);
                     }
-                    metadata.tableMetadata.setColumnMetadata(columnMetadatas);
-                    mvzDataset.setMetadata(metadata);
-
                 }
             }
-
-            String newUrl = SERVER_URL_PREFIX + rUrl + "/files";
-            locObj.put(RepoUtils.TAG_LOCATION, newUrl);
-            String jsonString = metaJsonObj.toString(RepoUtils.INDENT_SPACE);
+//            String jsonString = metaJsonObj.toString(RepoUtils.INDENT_SPACE);
         } catch (JSONException e) {
             e.printStackTrace();
         }
