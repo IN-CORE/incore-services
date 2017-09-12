@@ -1,6 +1,5 @@
 package edu.illinois.ncsa.incore.services.fragility;
 
-import edu.illinois.ncsa.incore.services.fragility.controllers.FragilityMappingController;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.IRepository;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.MongoDBRepository;
 import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
@@ -12,7 +11,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import java.net.URL;
 
 public class Application extends ResourceConfig {
-    private static final Logger log = Logger.getLogger(FragilityMappingController.class);
+    private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
         IRepository mongoRepository = new MongoDBRepository("localhost", "fragilitydb", 27017);
