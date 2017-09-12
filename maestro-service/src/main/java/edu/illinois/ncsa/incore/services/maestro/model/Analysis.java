@@ -8,7 +8,7 @@ import java.util.List;
 
 
 @XmlRootElement
-public class Service {
+public class Analysis {
 
     @Id
     @Property("_id")
@@ -17,17 +17,19 @@ public class Service {
     private String description;
     private String name;
     private String url;
+    private String category;
     private List<String> inputs;
     private List<String> outputs;
 
-    public Service() {}
+    public Analysis() {}
 
-    public Service(String name, String description, String url, List<String> inputs, List <String> outputs ){
+    public Analysis(String name, String description, String category, String url, List<String> inputs, List <String> outputs ){
         this.name = name;
         this.description = description;
         this.url = url;
         this.inputs = inputs;
         this.outputs = outputs;
+        this.category = category;
     }
 
     public String getId() {
@@ -52,5 +54,9 @@ public class Service {
 
     public String getName() {
         return name;
+    }
+
+    public String getCategory() {
+        return category;
     }
 }

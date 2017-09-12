@@ -5,14 +5,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.HashMap;
 
 @XmlRootElement
-public class ServiceRequest {
+public class AnalysisRequest {
 
     @XmlElement(name="params")
     public HashMap<String, Object> parameters = new HashMap<>();
 
-    public ServiceRequest() {}
+    public AnalysisRequest() {}
 
-    public ServiceRequest(HashMap<String, Object> parameters) {
+    public AnalysisRequest(HashMap<String, Object> parameters) {
         this.parameters = parameters;
     }
 }

@@ -1,8 +1,8 @@
 package edu.illinois.ncsa.incore.services.maestro.controllers;
 
 import edu.illinois.ncsa.incore.services.maestro.dataaccess.IRepository;
-import edu.illinois.ncsa.incore.services.maestro.dto.ServiceRequest;
-import edu.illinois.ncsa.incore.services.maestro.model.Service;
+import edu.illinois.ncsa.incore.services.maestro.dto.AnalysisRequest;
+import edu.illinois.ncsa.incore.services.maestro.model.Analysis;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -13,32 +13,32 @@ import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
 
-@Path("maestro")
-public class ServicesController {
+@Path("analysis")
+public class AnalysesController {
 
-    private static final Logger logger = Logger.getLogger(ServicesController.class);
+    private static final Logger logger = Logger.getLogger(AnalysesController.class);
 
     @Inject
     private IRepository repository;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getServices() {
-        List<Service> services = repository.getAllServices();
+    public Response getAnalyses() {
+        List<Analysis> analyses = repository.getAllAnalyses();
 
-        return Response.ok(services)
+        return Response.ok(analyses)
             .header("Access-Control-Allow-Origin", "*")
             .header("Access-Control-Allow-Methods", "GET")
             .build();
     }
 
     @GET
-    @Path("{serviceId}")
+    @Path("{analysisId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getServiceById(@PathParam("serviceId") String id) {
-        Service service = repository.getServiceById(id);
-        if(service != null) {
-            return Response.ok(service)
+    public Response getAnalysisById(@PathParam("analysisId") String id) {
+        Analysis analysis = repository.getAnalysisById(id);
+        if(analysis != null) {
+            return Response.ok(analysis)
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", "GET")
                 .build();
@@ -51,15 +51,16 @@ public class ServicesController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addNewService(ServiceRequest serviceRequest) {
+    public Response registerNewAnalysis(AnalysisRequest analysisRequest) {
 
-        Service service = new Service(serviceRequest.parameters.get("name").toString(),
-            serviceRequest.parameters.get("description").toString(),
-            serviceRequest.parameters.get("url").toString(),
+        Analysis analysis = new Analysis(analysisRequest.parameters.get("name").toString(),
+            analysisRequest.parameters.get("category").toString(),
+            analysisRequest.parameters.get("description").toString(),
+            analysisRequest.parameters.get("url").toString(),
             Collections.emptyList(), Collections.emptyList());
-//            Collections.list(serviceRequest.parameters.get("inputs")),
-//            serviceRequest.parameters.get("outputs"));
-        String output = repository.addService(service);
+//            Collections.list(analysisRequest.parameters.get("inputs")),
+//            analysisRequest.parameters.get("outputs"));
+        String output = repository.addAnalysis(analysis);
 
         return Response.ok(output)
             .header("Access-Control-Allow-Origin", "*")

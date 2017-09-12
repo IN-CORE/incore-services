@@ -1,7 +1,7 @@
 package edu.illinois.ncsa.incore.services.maestro.dataaccess;
 
 import com.mongodb.MongoClient;
-import edu.illinois.ncsa.incore.services.maestro.model.Service;
+import edu.illinois.ncsa.incore.services.maestro.model.Analysis;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -15,12 +15,12 @@ public class MongoDBRepository implements IRepository {
     private int port;
 
     private Datastore dataStore;
-    private List<Service> services;
+    private List<Analysis> analyses;
 
     public MongoDBRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
-        this.databaseName = "fragilitydb";
+        this.databaseName = "maestrodb";
     }
 
     public MongoDBRepository(String hostUri, String databaseName, int port) {
@@ -35,21 +35,21 @@ public class MongoDBRepository implements IRepository {
     }
 
     @Override
-    public List<Service> getAllServices(){
-        if(this.services == null) {
+    public List<Analysis> getAllAnalyses(){
+        if(this.analyses == null) {
             this.loadServices();
         }
-        return this.services;
+        return this.analyses;
     }
 
     @Override
-    public Service getServiceById(String id) {
-        return this.dataStore.get(Service.class, id);
+    public Analysis getAnalysisById(String id) {
+        return this.dataStore.get(Analysis.class, id);
     }
 
     @Override
-    public String addService(Service service) {
-         return this.dataStore.save(service).toString();
+    public String addAnalysis(Analysis analysis) {
+         return this.dataStore.save(analysis).toString();
     }
 
     @Override
@@ -62,7 +62,7 @@ public class MongoDBRepository implements IRepository {
 
         Set<Class> classesToMap = new HashSet<>();
         Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(Service.class);
+        classesToMap.add(Analysis.class);
         Datastore morphiaStore = morphia.createDatastore(client, databaseName);
         morphiaStore.ensureIndexes();
 
@@ -70,10 +70,8 @@ public class MongoDBRepository implements IRepository {
     }
 
     private void loadServices() {
-        List<Service> services = this.dataStore.createQuery(Service.class).asList();
-        this.services = services;
+        List<Analysis> analyses = this.dataStore.createQuery(Analysis.class).asList();
+        this.analyses = analyses;
     }
-
-
 
 }
