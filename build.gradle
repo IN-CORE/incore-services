@@ -26,6 +26,7 @@ repositories {
     mavenCentral()
     jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "http://repo.boundlessgeo.com/main/" }
 }
 
 
@@ -40,6 +41,7 @@ farm {
     webapp ':fragility-server'
     webapp ':fragility-mapping'
     webapp ':repo'
+    webapp ':hazard-service'
 }
 
 //For now, all subprojects are java projects. Later this might change.
@@ -53,18 +55,21 @@ subprojects {
         mavenLocal()
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "http://repo.boundlessgeo.com/main/" }
     }
 
     dependencies {
         compile "log4j:log4j:1.2.16"
+
+
     }
 }
 
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server", "fragility-mapping", "repo"].each { name ->
-    project(":$name") {
+["fragility-server","fragility-mapping", "repo", "hazard-service"].each { name ->
+  project(":$name") {
 
         apply plugin: 'war'
         if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))

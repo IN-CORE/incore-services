@@ -1,0 +1,29 @@
+
+apply plugin: 'war'
+
+war {
+    baseName = 'hazard-service'
+    version = '0.0.1'
+}
+
+gretty {
+    contextPath '/hazard'
+}
+
+dependencies {
+    compile "javax.ws.rs:jsr311-api:1.1.1"
+    compile "org.apache.commons:commons-csv:1.4"
+
+    compile "com.vividsolutions:jts:1.13"
+    compile "org.geotools:gt-api:17.0"
+    compile "org.geotools:gt-opengis:17.0"
+    compile "org.geotools:gt-coverage:17.0"
+    compile "jgridshift:jgridshift:1.0"
+    compile "javax.media:jai_core:1.1.3"
+    
+    compile 'com.sun.jersey:jersey-bundle:1.19'
+    compile 'com.sun.jersey:jersey-json:1.19'
+
+    compile group: 'org.json', name: 'json', version: '20160810'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.5.4'
+}

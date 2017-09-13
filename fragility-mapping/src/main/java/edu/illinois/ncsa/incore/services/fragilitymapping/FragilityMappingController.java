@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ncsa.tools.common.exceptions.DeserializationException;
 import ncsa.tools.common.util.XmlUtils;
+import org.apache.log4j.Logger;
 import org.jamel.dbf.DbfReader;
 import org.jamel.dbf.structure.DbfField;
 import org.jamel.dbf.structure.DbfRow;
@@ -25,13 +26,20 @@ import java.util.Map;
 @Path("mapping")
 public class FragilityMappingController {
 
+    private static final Logger log = Logger.getLogger(FragilityMappingController.class);
+
     @Context
     ServletContext context;
+
+    public static MatchFilterMap matchFilterMap;
 
     @GET
     @Produces("application/json")
     @Path("/{mappingsetId}/{datasetId}")
     public Map<String, String> getMappings(@PathParam("mappingsetId") String mappingsetId, @PathParam("datasetId") String datasetId) {
+
+        log.error("foo!");
+
 
         FragilityMapper fragilityMapper = new FragilityMapper();
         fragilityMapper.addMappingSet(mappingsetId);
@@ -53,10 +61,18 @@ public class FragilityMappingController {
 
         try {
 
-            URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
-            MatchFilterMap matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
             if (matchFilterMap == null) {
-                return null;
+                URL mappingUrl = context.getResource("/WEB-INF/mappings/buildings.xml");
+                matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
+                if (matchFilterMap == null) {
+                    //this shouldn't be necessary, but I can't figure out how to get
+                    //grizzly to chagne the base path.
+                    mappingUrl = context.getResource("/src/main/webapp/WEB-INF/mappings/buildings.xml");
+                    matchFilterMap = loadMatchFilterMapFromUrl(mappingUrl);
+                    if (matchFilterMap == null) {
+                        return null;
+                    }
+                }
             }
             final FragilityMapper mapper = new FragilityMapper();
             mapper.addMappingSet(matchFilterMap);
@@ -167,3 +183,4 @@ public class FragilityMappingController {
 
 
 }
+

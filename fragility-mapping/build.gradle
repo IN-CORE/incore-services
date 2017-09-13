@@ -19,14 +19,22 @@ dependencies {
     //these libs come from maven central
     compile("org.jamel.dbf:dbf-reader:0.2.0")
 
-    compile "javax.ws.rs:jsr311-api:1.1.1"
 
-    compile 'com.sun.jersey:jersey-bundle:1.19'
-    compile 'com.sun.jersey:jersey-json:1.19'
+    compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
+
+    compile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: '2.25.1'
+    compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet', version: '2.25.1'
+    //compile group: 'org.glassfish.jersey.media', name: 'jersey-media-moxy', version: '2.25.1'
+    compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1'
+    testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:2.25.1"
+    testCompile "org.glassfish.jersey.containers:jersey-container-grizzly2-servlet:2.25.1"
+    testCompile "junit:junit:+"
+
+
+
 
     compile group: 'org.json', name: 'json', version: '20160810'
 
-    compile 'org.keycloak:keycloak-servlet-filter-adapter:2.5.1.Final'
 
     //this depends on the tools-common gradle project that is a sibling of this one
     compile project(':tools-common');
