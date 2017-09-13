@@ -1,9 +1,7 @@
 rootProject.name = "incore-v2"
 
-include "repo"
+// include "semantic-core"
 include "tools-common"
-include "fragility-mapping"
 include "fragility-server"
-include "semantic-core"
-include "hazard-service"
 include "repo"
+include "hazard-service"

@@ -39,7 +39,6 @@ if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
 //in the same webapp service.
 farm {
     webapp ':fragility-server'
-    webapp ':fragility-mapping'
     webapp ':repo'
     webapp ':hazard-service'
 }
@@ -68,7 +67,7 @@ subprojects {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server","fragility-mapping", "repo", "hazard-service"].each { name ->
+["fragility-server", "repo", "hazard-service"].each { name ->
   project(":$name") {
 
         apply plugin: 'war'
@@ -83,6 +82,19 @@ subprojects {
 
 
         dependencies {
+            compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
+            compile 'org.glassfish.jersey.core:jersey-server:2.25.1'
+            compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.25.1'
+            compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1'
+            compile 'org.json:json:20160810'
+
+            // Libraries for testing jersey controller actions
+            testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version:'2.25.1')
+            testCompile(group: 'org.glassfish.jersey.containers', name:'jersey-container-grizzly2-servlet', version:'2.25.1')
+            // JUnit 5
+            testCompile(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-RC3')
+            // Mocking Framework
+            testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.9.0')
 
         }
     }

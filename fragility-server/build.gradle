@@ -1,65 +1,28 @@
 apply plugin: 'java'
 apply plugin: 'war'
-//apply plugin: 'org.akhikhl.gretty'
-//apply plugin: 'idea'
 
 repositories {
 	mavenCentral()
-//	maven { url 'http://repo.grails.org/grails/repo' }
-//	maven { url 'http://repo.grails.org/grails/plugins' }
 }
-
-//war {
-//	archiveName "incore.war"
-//}
 
 gretty {
-	contextPath '/incore'
-}
-
-buildscript {
-//	repositories {
-//		maven { url 'http://repo.grails.org/grails/repo' }
-//		maven { url 'http://repo.grails.org/grails/plugins' }
-//	}
-//	dependencies {
-//		classpath "org.akhikhl.gretty:gretty:1.4.0"
-//	}
+	contextPath '/fragility'
 }
 
 dependencies {
-	compile "javax.ws.rs:jsr311-api:1.1.1"
-
-	compile 'com.sun.jersey:jersey-server:1.16'
-	compile 'com.sun.jersey:jersey-core:1.16'
-	compile 'com.sun.jersey:jersey-client:1.16'
-	compile 'com.sun.jersey:jersey-servlet:1.16'
-	compile 'com.sun.jersey:jersey-json:1.16'
-
 	compile 'com.yammer.metrics:metrics-core:2.2.0'
 	compile 'com.yammer.metrics:metrics-servlet:2.2.0'
 	compile 'com.yammer.metrics:metrics-jersey:2.2.0'
 	compile 'com.yammer.metrics:metrics-graphite:2.2.0'
 
-	compile "javax.ws.rs:jsr311-api:1.1.1"
+	compile 'de.grundid.opendatalab:geojson-jackson:1.8'
 
-	compile 'com.sun.jersey:jersey-server:1.16'
-	compile 'com.sun.jersey:jersey-core:1.16'
-	compile 'com.sun.jersey:jersey-client:1.16'
-	compile 'com.sun.jersey:jersey-servlet:1.16'
-	compile 'com.sun.jersey:jersey-json:1.16'
+	compile 'org.mongodb:mongo-java-driver:3.3.0'
+	compile 'org.mongodb.morphia:morphia:1.2.1'
 
+	compile 'org.jamel.dbf:dbf-reader:0.2.0'
 
-
-	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
-	compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
-
-
-	testCompile "junit:junit-dep:4.10"
-
-	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
-	// https://mvnrepository.com/artifact/org.mongodb.morphia/morphia
-	compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
+	compile project(':tools-common');
 }
 
 task wrapper(type: Wrapper) {

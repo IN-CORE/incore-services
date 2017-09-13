@@ -11,18 +11,31 @@ hs_err_pid*
 # vim swap files
 *.swp
 
-# local idea config file
-*.iml
-/.idea/*
-/.idea
-build/
+# IDEA - User-specific:
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+# .idea/dictionaries
+.idea/**/dbnavigator.xml
+.idea/**/atlassian-ide-plugin.xml
 
-# apple metadata nonsense
+# IDEA - Sensitive or high-churn files:
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.xml
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/artifacts/
+.idea/libraries/
+
+# IDEA - generated artifacts
+build/
+out/
+
+# Apple metadata
 .DS_Store
 
 # local gradle files
 .gradle
 /local.properties
-
-# Windows thumbnail db
-Thumbs.db

@@ -27,11 +27,11 @@ build
 *.war
 *.ear
 
-# Scala Related Files
+# Log Files
 *.log
-*.class
 
 # sbt specific
+scopes/*
 dist/*
 target/
 lib_managed/
