@@ -14,8 +14,11 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.CreateCollectionOptions;
 import com.mongodb.util.JSON;
+import io.swagger.util.Json;
 import org.apache.commons.io.FilenameUtils;
 import org.bson.Document;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -362,9 +365,11 @@ public class RepoUtils {
         return database;
     }
 
-    public static String getTypeIdByDatasetIdFromMongo(String datasetId, String mongoUrl, String geoDbName){
+    public static String getJsonByDatasetIdFromMongo(String datasetId, String mongoUrl, String geoDbName){
         MongoDatabase database = getMongoDatabase(mongoUrl, geoDbName);
         MongoIterable<String> collNames = database.listCollectionNames();
+        org.bson.Document result = new Document();
+        String outJson = "";
 
         for (String collectionName: collNames) {
             MongoCollection<Document> tmpCollection = database.getCollection(collectionName);
@@ -373,12 +378,14 @@ public class RepoUtils {
             FindIterable existDoc = tmpCollection.find(query);
 
             if (existDoc.first() != null) {
-                System.out.println(collectionName);
-                return collectionName;
+                result = (org.bson.Document) existDoc.first();
+                JsonWriterSettings writerSettings = new JsonWriterSettings(JsonMode.SHELL, true);
+                outJson = result.toJson(writerSettings);
+                return outJson;
             }
         }
 
-        return "";
+        return outJson;
     }
 
     public void insertGeoJsonToMongoTest(String typeId, String datasetId, String inJson, String mongoUrl, String geoDbName) {

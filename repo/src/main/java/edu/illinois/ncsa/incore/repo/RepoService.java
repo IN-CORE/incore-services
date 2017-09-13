@@ -1,22 +1,12 @@
 package edu.illinois.ncsa.incore.repo;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
-import com.mongodb.*;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoIterable;
-import com.mongodb.client.model.CreateCollectionOptions;
-import com.mongodb.util.JSON;
 import edu.illinois.ncsa.incore.repo.json.objects.ColumnMetadata;
 import edu.illinois.ncsa.incore.repo.json.objects.Mapping;
 import edu.illinois.ncsa.incore.repo.json.objects.Metadata;
 import edu.illinois.ncsa.incore.repo.json.objects.TableMetadata;
 import org.apache.commons.io.FilenameUtils;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.geojson.feature.FeatureJSON;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -34,16 +24,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 
 @Path("")
@@ -96,12 +76,15 @@ public class RepoService {
 
     // get the geojson from mongodb
     @GET
-    @Path("/datatsets/getmongo/{datasetId}")
+    @Path("/datasets/{datasetId}/mongo")
     @Produces(MediaType.APPLICATION_JSON)
-    // http://localhost:8080/repo/api/datasets/Shelby_County_RES31224702005658/getmongo
-    public MvzDataset getGeoJsonFromMongo(@PathParam("datasetId") String datasetId){
-        String typeId = RepoUtils.getTypeIdByDatasetIdFromMongo(datasetId, MONGO_URL, GEO_DB_NAME);
-        return new MvzDataset();
+    //http://localhost:8080/repo/api/datasets/Shelby_County_RES31224702005658/mongo
+    //http://localhost:8080/repo/api/datasets/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/mongo
+    //http://localhost:8080/repo/api/datasets/HAZUS_Table_13.8_Collapse_Rates1209053226524/mongo
+    //http://localhost:8080/repo/api/datasets/Building_Disruption_Cost1168019087905/mongo
+    public Response getGeoJsonFromMongo(@PathParam("datasetId") String datasetId){
+        String outJson = RepoUtils.getJsonByDatasetIdFromMongo(datasetId, MONGO_URL, GEO_DB_NAME);
+        return Response.ok(outJson).status(Response.Status.OK).build();
     }
 
     // insert all dataset to mongodb
@@ -182,7 +165,7 @@ public class RepoService {
     @Produces(MediaType.APPLICATION_JSON)
     // test this with
     // http://localhost:8080/repo/api/datasets/test?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    public Response getDatasetById(@QueryParam("type") String typeId) {
+    public Response getDatasetByIdTest(@QueryParam("type") String typeId) {
         String propUrl = REPO_PROP_URL + typeId;
         File metadata = null;
 
@@ -232,7 +215,7 @@ public class RepoService {
     @Produces(MediaType.APPLICATION_JSON)
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/geojson
-    public Response getDatasetById(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
+    public Response getDatasetByTypeId(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
         File dataset = null;
         String combinedId = typeId + "/" + datasetId + "/converted/";
         String fileName = "";
@@ -250,6 +233,54 @@ public class RepoService {
             String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+    }
+
+    // create geoJson of shapefile dataset
+    @GET
+    @Path("/datasets/{datasetId}/earthquake")
+//    @Produces("application/vnd.geo+json")
+    @Produces(MediaType.APPLICATION_JSON)
+    //http://localhost:8080/repo/api/datasets/Shelby_County_RES31224702005658/earthquake
+    //http://localhost:8080/repo/api/datasets/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/earthquake
+    //http://localhost:8080/repo/api/datasets/HAZUS_Table_13.8_Collapse_Rates1209053226524/earthquake
+    //http://localhost:8080/repo/api/datasets/Building_Disruption_Cost1168019087905/earthquake
+    public Response getDatasetByDatasetId(@PathParam("datasetId") String datasetId ) {
+        String outJson = getJsonByDatasetId(datasetId);
+        return Response.ok(outJson).status(Response.Status.OK).build();
+    }
+
+    public String getJsonByDatasetId(String datasetId) {
+        List<String> resHref = getDirectoryContent(REPO_PROP_URL, "");
+
+        for (String typeUrl: resHref) {
+            String fileDirUrl = REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";
+            List<String> fileHref = getDirectoryContent(fileDirUrl, "");
+            if (fileHref.size() > 1) {
+                for (String fileNameInDir : fileHref) {
+                    String fileExtStr = FilenameUtils.getExtension(fileNameInDir);
+                    String fileName = FilenameUtils.getName(fileNameInDir);
+                    try {
+                        if (fileExtStr.equals(RepoUtils.EXTENSION_SHP)) {
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
+                            String localFileName = RepoUtils.loadFileNameFromRepository(combinedId, RepoUtils.EXTENSION_SHP, REPO_DS_URL);
+                            File dataset = new File(localFileName);
+                            String outJson = RepoUtils.formatDatasetAsGeoJson(dataset);
+                            return outJson;
+                        } else if (fileExtStr.equals(RepoUtils.EXTENSION_CSV)) {
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
+                            String localFileName = RepoUtils.loadFileNameFromRepository(combinedId, RepoUtils.EXTENSION_CSV, REPO_DS_URL);
+                            File dataset = new File(localFileName);
+                            String outJson = RepoUtils.formatCsvAsJson(dataset, datasetId);
+                            return outJson;
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        }
+        return "";
     }
 
 //    list the dataset belonged to type
