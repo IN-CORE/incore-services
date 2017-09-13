@@ -37,7 +37,6 @@ if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
 //in the same webapp service.
 farm {
     webapp ':fragility-server'
-    webapp ':fragility-mapping'
     webapp ':repo'
 }
 

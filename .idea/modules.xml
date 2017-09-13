@@ -11,6 +11,8 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/repo/repo.iml" filepath="$PROJECT_DIR$/.idea/modules/repo/repo.iml" group="repo" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/repo/repo_main.iml" filepath="$PROJECT_DIR$/.idea/modules/repo/repo_main.iml" group="repo" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/repo/repo_test.iml" filepath="$PROJECT_DIR$/.idea/modules/repo/repo_test.iml" group="repo" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/semantic-core/semantic-core_main.iml" filepath="$PROJECT_DIR$/.idea/modules/semantic-core/semantic-core_main.iml" group="semantic-core" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/semantic-core/semantic-core_test.iml" filepath="$PROJECT_DIR$/.idea/modules/semantic-core/semantic-core_test.iml" group="semantic-core" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tools-common/tools-common.iml" filepath="$PROJECT_DIR$/.idea/modules/tools-common/tools-common.iml" group="tools-common" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tools-common/tools-common_main.iml" filepath="$PROJECT_DIR$/.idea/modules/tools-common/tools-common_main.iml" group="tools-common" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tools-common/tools-common_test.iml" filepath="$PROJECT_DIR$/.idea/modules/tools-common/tools-common_test.iml" group="tools-common" />
