@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.services.fragility;
+package edu.illinois.ncsa.incore.services.fragility.dto;
 
 import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
 

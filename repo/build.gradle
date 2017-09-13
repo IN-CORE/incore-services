@@ -28,6 +28,10 @@ dependencies {
     compile group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13'
 //	 compile group: 'io.milton', name: 'milton-client', version: '2.7.2.7'
 
+	testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:2.25.1"
+	testCompile "org.glassfish.jersey.containers:jersey-container-grizzly2-servlet:2.25.1"
+	testCompile "junit:junit:+"
+
 	// https://mvnrepository.com/artifact/org.json/json
 	compile group: 'org.json', name: 'json', version: '20160810'
 
@@ -47,5 +51,6 @@ dependencies {
 
 	compile 'org.jsoup:jsoup:1.10.2'
 	compile 'com.github.lookfirst:sardine:5.1'
+	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.4.0'
 
 }

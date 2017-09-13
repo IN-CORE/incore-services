@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragility.controllers;
 
-import edu.illinois.ncsa.incore.services.fragility.MappingResponse;
+import edu.illinois.ncsa.incore.services.fragility.dto.MappingResponse;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.IRepository;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
 import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;
@@ -48,7 +48,10 @@ public class FragilityController {
 
         for (Feature feature : mappingRequest.mappingSubject.inventory.getFeatures()) {
             String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(), feature.getProperties(), mappingRequest.parameters);
-            Optional<FragilitySet> fragilityMatch = fragilitySets.stream().filter(set -> set.getLegacyId().equals(fragilityKey)).findFirst();
+
+            Optional<FragilitySet> fragilityMatch = fragilitySets.stream()
+                                                                 .filter(set -> set.getLegacyId().equals(fragilityKey))
+                                                                 .findFirst();
 
             if(fragilityMatch.isPresent()) {
                 FragilitySet fragilitySet = fragilityMatch.get();
@@ -57,6 +60,7 @@ public class FragilityController {
             }
         }
 
+        // Construct response
         MappingResponse mappingResponse = new MappingResponse(fragilitySetMap, fragilityMap);
 
         return Response.ok(mappingResponse)
@@ -123,12 +127,12 @@ public class FragilityController {
             GenericEntity<List<FragilitySet>> genericSets = new GenericEntity<List<FragilitySet>>(sets) {};
 
             return Response.ok(genericSets)
-                           .status(200)
                            .header("Access-Control-Allow-Origin", "*")
                            .header("Access-Control-Allow-Methods", "GET")
                            .build();
         } else {
-            return Response.status(404).build();
+            // 404
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 
@@ -143,12 +147,12 @@ public class FragilityController {
             GenericEntity<List<FragilitySet>> genericSets = new GenericEntity<List<FragilitySet>>(sets) {};
 
             return Response.ok(genericSets)
-                           .status(200)
                            .header("Access-Control-Allow-Origin", "*")
                            .header("Access-Control-Allow-Methods", "GET")
                            .build();
         } else {
-            return Response.status(404).build();
+            // 404
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 }
