@@ -11,23 +11,8 @@ hs_err_pid*
 # vim swap files
 *.swp
 
-# IDEA - User-specific:
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-# .idea/dictionaries
-.idea/**/dbnavigator.xml
-.idea/**/atlassian-ide-plugin.xml
-
-# IDEA - Sensitive or high-churn files:
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.xml
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/artifacts/
-.idea/libraries/
+# IDEA:
+.idea
 
 # IDEA - generated artifacts
 **/build/

@@ -4,6 +4,8 @@
     <bytecodeTargetLevel>
       <module name="fragility-server_main" target="1.8" />
       <module name="fragility-server_test" target="1.8" />
+      <module name="hazard-service_main" target="1.8" />
+      <module name="hazard-service_test" target="1.8" />
       <module name="incore-fragility-branch-semantic-core_main" target="1.8" />
       <module name="incore-fragility-branch-semantic-core_test" target="1.8" />
       <module name="incore-v2_main" target="1.8" />
