@@ -12,7 +12,7 @@ hs_err_pid*
 *.swp
 
 # IDEA:
-.idea
+.idea/
 
 # IDEA - generated artifacts
 **/build/
@@ -22,5 +22,5 @@ hs_err_pid*
 .DS_Store
 
 # local gradle files
-.gradle
+.gradle/
 /local.properties
