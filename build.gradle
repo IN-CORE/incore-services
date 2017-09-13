@@ -17,8 +17,9 @@ buildscript {
 apply plugin: 'idea'
 
 idea {
-    jdkName = '1.8'
-
+    module {
+        jdkName = '1.8'
+    }
 }
 
 //define repositories needed for all builds
@@ -51,7 +52,6 @@ farm {
 //For now, all subprojects are java projects. Later this might change.
 //Until then, give them all a basic java build
 subprojects {
-
     apply plugin: 'java'
 
     repositories {
@@ -64,8 +64,6 @@ subprojects {
 
     dependencies {
         compile "log4j:log4j:1.2.16"
-
-
     }
 }
 
@@ -76,15 +74,13 @@ subprojects {
     project(":$name") {
 
         apply plugin: 'war'
-        if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
+        if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
             project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
-
-
+        }
 
         gretty {
             httpPort 8080
         }
-
 
         dependencies {
             compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
@@ -100,7 +96,6 @@ subprojects {
             testCompile(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-RC3')
             // Mocking Framework
             testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.9.0')
-
         }
     }
 }
