@@ -362,6 +362,25 @@ public class RepoUtils {
         return database;
     }
 
+    public static String getTypeIdByDatasetIdFromMongo(String datasetId, String mongoUrl, String geoDbName){
+        MongoDatabase database = getMongoDatabase(mongoUrl, geoDbName);
+        MongoIterable<String> collNames = database.listCollectionNames();
+
+        for (String collectionName: collNames) {
+            MongoCollection<Document> tmpCollection = database.getCollection(collectionName);
+            BasicDBObject query = new BasicDBObject();
+            query.put("_id", datasetId);
+            FindIterable existDoc = tmpCollection.find(query);
+
+            if (existDoc.first() != null) {
+                System.out.println(collectionName);
+                return collectionName;
+            }
+        }
+
+        return "";
+    }
+
     public void insertGeoJsonToMongoTest(String typeId, String datasetId, String inJson, String mongoUrl, String geoDbName) {
         //crete mongodb connection
         MongoClientURI mongoUri = new MongoClientURI(mongoUrl);

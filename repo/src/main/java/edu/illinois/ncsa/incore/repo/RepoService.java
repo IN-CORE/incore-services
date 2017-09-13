@@ -55,7 +55,7 @@ public class RepoService {
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
     public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";
     public static final String MONGO_URL = "mongodb://localhost:27017";
-    public static final String GEO_DB_NAME = "geoJsonDB";
+    public static final String GEO_DB_NAME = "repoDB";
 
 
     // list all the metadatas in the repository information as json
@@ -92,6 +92,16 @@ public class RepoService {
         }
 
         return mvzDatasets;
+    }
+
+    // get the geojson from mongodb
+    @GET
+    @Path("/datatsets/getmongo/{datasetId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    // http://localhost:8080/repo/api/datasets/Shelby_County_RES31224702005658/getmongo
+    public MvzDataset getGeoJsonFromMongo(@PathParam("datasetId") String datasetId){
+        String typeId = RepoUtils.getTypeIdByDatasetIdFromMongo(datasetId, MONGO_URL, GEO_DB_NAME);
+        return new MvzDataset();
     }
 
     // insert all dataset to mongodb
@@ -413,7 +423,6 @@ public class RepoService {
             mvzDataset.datasetId.setDescription(description);
 
             String newUrl = SERVER_URL_PREFIX + rUrl + "/files";
-//            locObj.put(RepoUtils.TAG_LOCATION, newUrl);
             mvzDataset.datasetId.setLocation(newUrl);
 
             // check maeviz-mapping object and set
@@ -425,12 +434,12 @@ public class RepoService {
                     if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONObject) {
                         JSONObject mappingJsonObj = (JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
                         Mapping m = new Mapping();
-//                        if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
+                        if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
                             m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
-//                        }
-//                        if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
+                        }
+                        if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
                             m.setTo(mappingJsonObj.get(RepoUtils.TAG_TO).toString());
-//                        }
+                        }
                         mappings.add(m);
                         mvzDataset.maevizMapping.setMapping(mappings);
                     } else if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONArray) {
@@ -438,12 +447,12 @@ public class RepoService {
                         for (int i = 0; i < mappingJsonArray.length(); i++) {
                             JSONObject mappingJsonObj = (JSONObject) mappingJsonArray.get(i);
                             Mapping m = new Mapping();
-//                            if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
+                            if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
                                 m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
-//                            }
-//                            if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
+                            }
+                            if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
                                 m.setTo(mappingJsonObj.get(RepoUtils.TAG_TO).toString());
-//                            }
+                            }
                             mappings.add(m);
                         }
                         mvzDataset.maevizMapping.setMapping(mappings);
