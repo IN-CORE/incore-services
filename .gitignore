@@ -30,8 +30,8 @@ hs_err_pid*
 .idea/libraries/
 
 # IDEA - generated artifacts
-build/
-out/
+**/build/
+**/out/
 
 # Apple metadata
 .DS_Store
