@@ -6,7 +6,7 @@ import edu.illinois.ncsa.incore.services.maestro.model.Analysis;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
-import javax.websocket.server.PathParam;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -33,7 +33,7 @@ public class AnalysesController {
     }
 
     @GET
-    @Path("/{analysisId}")
+    @Path("{analysisId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAnalysisById(@PathParam("analysisId") String id) {
         Analysis analysis = repository.getAnalysisById(id);

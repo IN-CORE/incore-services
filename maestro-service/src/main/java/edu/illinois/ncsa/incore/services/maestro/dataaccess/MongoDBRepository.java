@@ -2,6 +2,7 @@ package edu.illinois.ncsa.incore.services.maestro.dataaccess;
 
 import com.mongodb.MongoClient;
 import edu.illinois.ncsa.incore.services.maestro.model.Analysis;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -44,7 +45,7 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public Analysis getAnalysisById(String id) {
-        return this.dataStore.get(Analysis.class, id);
+        return this.dataStore.get(Analysis.class, new ObjectId(id));
     }
 
     @Override
