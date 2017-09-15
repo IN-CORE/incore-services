@@ -50,13 +50,6 @@ public class AnalysesController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response registerNewAnalysis(Analysis analysis) {
 
-//        Analysis analysis = new Analysis(analysisRequest.parameters.get("name").toString(),
-//            analysisRequest.parameters.get("category").toString(),
-//            analysisRequest.parameters.get("description").toString(),
-//            analysisRequest.parameters.get("url").toString(),
-//            Collections.emptyList(), Collections.emptyList());
-//            Collections.list(analysisRequest.parameters.get("inputs")),
-//            analysisRequest.parameters.get("outputs"));
         Analysis output = repository.addAnalysis(analysis);
 
         return Response.ok(output)
