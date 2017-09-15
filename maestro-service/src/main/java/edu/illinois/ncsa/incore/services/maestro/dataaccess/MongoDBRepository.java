@@ -49,8 +49,9 @@ public class MongoDBRepository implements IRepository {
     }
 
     @Override
-    public String addAnalysis(Analysis analysis) {
-         return this.dataStore.save(analysis).toString();
+    public Analysis addAnalysis(Analysis analysis) {
+         String id = this.dataStore.save(analysis).getId().toString();
+         return getAnalysisById(id);
     }
 
     @Override

@@ -9,6 +9,6 @@ public interface IRepository {
     void initialize();
     List<Analysis> getAllAnalyses();
     Analysis getAnalysisById(String id);
-    String addAnalysis(Analysis analysis);
+    Analysis addAnalysis(Analysis analysis);
     Datastore getDataStore();
 }

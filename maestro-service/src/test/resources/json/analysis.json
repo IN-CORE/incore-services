@@ -94,5 +94,44 @@
         "type": "edu.illinois.ncsa.incore.transportation.roadwayRestorationResult"
       }
     ]
+  },
+  {
+    "id": "5894ebee1a743941f0c4a4e8",
+    "name": "Electric Power Network Damage, Tornado",
+    "description": "This analysis computes the damage of electric power network based on a tornado hazard.",
+    "url": "https://incore.ncsa.illinois.edu/epn_tornado",
+    "inputs": [
+      {
+        "name": "Result Name",
+        "description": "Specify the name of the result dataset",
+        "type": "java.lang.String",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Electric Power Network",
+        "description": "Search and/or create the electric power network to analyze.",
+        "type": "edu.illinois.ncsa.incore.epn",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Tornado Hazard",
+        "description": "Search and/or create the tornado hazard that causes the damage",
+        "type": "edu.illinois.ncsa.incore.tornado",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Electric Power Network Damage",
+        "description": "Resulting damage in the power network after a hazard",
+        "type": "edu.illinois.ncsa.incore.epn_damage"
+      }
+    ]
   }
 ]
