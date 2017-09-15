@@ -16,6 +16,12 @@ buildscript {
 //webapps in a single gretty/jetty server
 apply plugin: 'idea'
 
+idea {
+    module {
+        jdkName = '1.8'
+    }
+}
+
 //define repositories needed for all builds
 //(this is different than the buildscript block.
 //  The buildscript repositories are for RUNNING the build script,
@@ -46,7 +52,6 @@ farm {
 //For now, all subprojects are java projects. Later this might change.
 //Until then, give them all a basic java build
 subprojects {
-
     apply plugin: 'java'
 
     repositories {
@@ -59,8 +64,6 @@ subprojects {
 
     dependencies {
         compile "log4j:log4j:1.2.16"
-
-
     }
 }
 
@@ -68,18 +71,16 @@ subprojects {
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
 ["fragility-server", "repo", "hazard-service", "maestro-service"].each { name ->
-  project(":$name") {
+    project(":$name") {
 
         apply plugin: 'war'
-        if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
+        if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
             project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
-
-
+        }
 
         gretty {
             httpPort 8080
         }
-
 
         dependencies {
             compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
@@ -89,13 +90,12 @@ subprojects {
             compile 'org.json:json:20160810'
 
             // Libraries for testing jersey controller actions
-            testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version:'2.25.1')
-            testCompile(group: 'org.glassfish.jersey.containers', name:'jersey-container-grizzly2-servlet', version:'2.25.1')
+            testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version: '2.25.1')
+            testCompile(group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-servlet', version: '2.25.1')
             // JUnit 5
             testCompile(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.0-RC3')
             // Mocking Framework
             testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.9.0')
-
         }
     }
 }
