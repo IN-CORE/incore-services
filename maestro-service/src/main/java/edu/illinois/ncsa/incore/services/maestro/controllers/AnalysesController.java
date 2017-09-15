@@ -33,7 +33,7 @@ public class AnalysesController {
     }
 
     @GET
-    @Path("{analysisId}")
+    @Path("/{analysisId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAnalysisById(@PathParam("analysisId") String id) {
         Analysis analysis = repository.getAnalysisById(id);

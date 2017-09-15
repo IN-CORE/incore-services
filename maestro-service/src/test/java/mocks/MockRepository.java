@@ -22,7 +22,7 @@ public class MockRepository implements IRepository {
 
     @Override
     public void initialize() {
-        URL fragilityPath = this.getClass().getClassLoader().getResource("json/services.json");
+        URL fragilityPath = this.getClass().getClassLoader().getResource("json/analysis.json");
 
         try {
             this.analyses = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<Analysis>>(){});

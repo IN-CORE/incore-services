@@ -1,8 +1,6 @@
 Overview
 ========
-This is a starter project using jax-rs / jersey.  I've created this because I often find myself wanting to expirement with something that needs a webservice, and this gives me a starting spot.  Clone or fork and use as needed.
-
-Note: if you like this version, I highly recommend checking out the sample dropwizard implemenation [https://github.com/jasonray/jersey-starterkit/tree/dropwizard], much better for quick implemenations of java based web analyses.  I love me some dropwizard.  Until I discovered node/express. 
+This is a Maestro service to list and register analyses within incore
 
 How-to run
 ==========
@@ -44,30 +42,6 @@ http://localhost:8080/jersey-starterkit/rest/echo?m=hello
 http://localhost:8080/jersey-starterkit/rest/hello
 ```
 
-
-Opening in Eclipse
-==================
-If you use Eclipse, the gradle scripts are nice enough to create your eclipse project and classpath files.
-
-First time only
----------------
-If you have gradle installed, run:
-```
-gradle eclipse
-```
-
-Now you can import the project into eclipse.
-
-
-Updating classpath files
-------------------------
-If you update dependencies, pull the new libs into your classpath:
-```
-gradle eclipseClasspath
-```
-
-Logging
-=======
 There is a log4j configuration defined in `src/main/resources/log4j.properties`.  By default this will log to the STDOUT and to a series of log files.  Change the logging configuration as needed.
 
 If you would like to use the default logging, create the logging folders:

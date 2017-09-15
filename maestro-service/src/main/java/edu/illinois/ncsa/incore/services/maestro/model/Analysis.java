@@ -1,5 +1,7 @@
 package edu.illinois.ncsa.incore.services.maestro.model;
 
+import edu.illinois.ncsa.incore.services.maestro.dto.AnalysisInput;
+import edu.illinois.ncsa.incore.services.maestro.dto.AnalysisOutput;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
@@ -18,12 +20,13 @@ public class Analysis {
     private String name;
     private String url;
     private String category;
-    private List<String> inputs;
-    private List<String> outputs;
+    private List<AnalysisInput> inputs;
+    private List<AnalysisOutput> outputs;
 
     public Analysis() {}
 
-    public Analysis(String name, String description, String category, String url, List<String> inputs, List <String> outputs ){
+    public Analysis(String name, String description, String category, String url, List<AnalysisInput> inputs,
+                    List<AnalysisOutput> outputs ){
         this.name = name;
         this.description = description;
         this.url = url;
@@ -44,11 +47,11 @@ public class Analysis {
         return url;
     }
 
-    public List<String> getInputs() {
+    public List<AnalysisInput> getInputs() {
         return inputs;
     }
 
-    public List<String> getOutputs() {
+    public List<AnalysisOutput> getOutputs() {
         return outputs;
     }
 

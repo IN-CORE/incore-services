@@ -13,7 +13,7 @@
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>
-                edu.illinois.ncsa.incore.analyses,
+                edu.illinois.ncsa.incore.services,
                 io.swagger.jaxrs.listing,
                 org.codehaus.jackson.jaxrs
             </param-value>

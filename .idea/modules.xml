@@ -5,6 +5,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server.iml" filepath="$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server.iml" group="fragility-server" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server_main.iml" filepath="$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server_main.iml" group="fragility-server" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server_test.iml" filepath="$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server_test.iml" group="fragility-server" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service.iml" filepath="$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service.iml" group="hazard-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_main.iml" filepath="$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_main.iml" group="hazard-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_test.iml" filepath="$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_test.iml" group="hazard-service" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore-v2.iml" filepath="$PROJECT_DIR$/.idea/modules/incore-v2.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore-v2_main.iml" filepath="$PROJECT_DIR$/.idea/modules/incore-v2_main.iml" group="incore-v2" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore-v2_test.iml" filepath="$PROJECT_DIR$/.idea/modules/incore-v2_test.iml" group="incore-v2" />
