@@ -37,10 +37,10 @@ To retrieve fragility mapping for an inventory item:
       "fragilityId": "STR_C1_5"
   }
   ```
-  This fragility Id can be used in the fragility analysis:
+  This fragility Id can be used in the fragility service:
 
 
-To use the fragility analysis:
+To use the fragility service:
 
   refer to API Documentation: [http://141.142.208.203/api/doc/index.html](http://141.142.208.203/api/doc/index.html) 
 
