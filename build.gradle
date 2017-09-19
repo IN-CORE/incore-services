@@ -47,6 +47,7 @@ farm {
     webapp ':fragility-server'
     webapp ':repo'
     webapp ':hazard-service'
+    webapp ':maestro-service'
 }
 
 //For now, all subprojects are java projects. Later this might change.
