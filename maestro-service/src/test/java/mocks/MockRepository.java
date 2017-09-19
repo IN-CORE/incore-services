@@ -48,13 +48,18 @@ public class MockRepository implements IRepository {
 
     @Override
     public Analysis getAnalysisById(String id) {
-        return this.analyses.get(Integer.parseInt(id));
+        for(int i =0; i <this.analyses.size(); i++) {
+            if(this.analyses.get(i).getId().equalsIgnoreCase(id)) {
+                return this.analyses.get(i);
+            }
+        }
+        return null;
     }
 
     @Override
-    public String addAnalysis(Analysis analysis) {
+    public Analysis addAnalysis(Analysis analysis) {
         this.analyses.add(analysis);
-        return String.valueOf(this.analyses.size());
+        return this.analyses.get(this.analyses.size() - 1);
     }
 
 

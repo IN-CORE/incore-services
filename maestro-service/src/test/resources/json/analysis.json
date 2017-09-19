@@ -99,6 +99,7 @@
     "id": "5894ebee1a743941f0c4a4e8",
     "name": "Electric Power Network Damage, Tornado",
     "description": "This analysis computes the damage of electric power network based on a tornado hazard.",
+    "category": "hazard",
     "url": "https://incore.ncsa.illinois.edu/epn_tornado",
     "inputs": [
       {
