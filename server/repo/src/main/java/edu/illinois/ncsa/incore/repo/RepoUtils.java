@@ -15,11 +15,15 @@ import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.CreateCollectionOptions;
 import com.mongodb.util.JSON;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
 import org.bson.Document;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
@@ -78,6 +82,8 @@ public class RepoUtils {
     public static final int TYPE_NUMBER_META = 3;
     public static final int TYPE_NUMBER_MULTI = 10;
 
+    public static final Logger logger = Logger.getLogger(RepoUtils.class);
+
 
     public static void deleteTmpDir(File metadataFile, String fileExt) {
         String fileName = metadataFile.getAbsolutePath();
@@ -113,9 +119,9 @@ public class RepoUtils {
     public static void deleteFiles(File delFile, String delFileName){
         try {
             if (delFile.delete()) {
-//                System.out.println("file or directory deleted: " + delFileName);
+                logger.debug("file or directory deleted: " + delFileName);
             } else {
-                System.out.println("file or directory did not deleted: " + delFileName);
+                logger.error("file or directory did not deleted: " + delFileName);
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -126,7 +132,6 @@ public class RepoUtils {
     public static String loadFileNameFromRepository(String inId, String extStr, String repoUrl) throws IOException {
         String urlPart = inId.replace("$", "/");
         String datasetUrl = repoUrl + urlPart;
-//        String[] urlStrs = urlPart.split("/converted/");
         List<String> fileList = createFileListFromUrl(datasetUrl);
 
         String outfileStr = "";
@@ -193,7 +198,7 @@ public class RepoUtils {
     }
 
     // ingest csv file into mongodb
-    public static String ingestTableToMongo(String typeId, String datasetId, String mongoUrl, String geoDbName, String repoUrl){
+    public static boolean ingestMetaToMongo(String extStr, String typeId, String datasetId, String mongoUrl, String geoDbName, String repoUrl, String serverUrlPrefix){
         MongoDatabase database = getMongoDatabase(mongoUrl, geoDbName);
 
         // check if the dataset id is already in the mongodb
@@ -203,35 +208,76 @@ public class RepoUtils {
         if (!isCollExist) {
             database.createCollection(typeId, new CreateCollectionOptions().capped(false));
             // insert document into collection
-            String outJson = getCsvJson(typeId, datasetId, repoUrl);
-            boolean isInserted = insertCsvJsonToMongo(database, typeId, datasetId, outJson);
-            if (isInserted) {
-                return "GeoJson for \"" + datasetId + "\" has been inserted.";
-            } else {
-                return "GeoJson insertion for \"" + datasetId + "\" failed.";
-            }
+            String outJson = getMetaJson(typeId, datasetId, repoUrl, serverUrlPrefix);
+            return insertJsonStringToMongo(database, typeId, datasetId, outJson);
         } else {
-            System.out.println("Collection \"" + typeId + "\" already exists.");
+            logger.debug("Collection \"" + typeId + "\" already exists.");
             // check if the document is there
             boolean isDocExist = isDocumentExist(database, typeId, datasetId);
             if (!isDocExist) {
                 // insert document into collection
-                String geoJson = getCsvJson(typeId, datasetId, repoUrl);
-                boolean isInserted = insertCsvJsonToMongo(database, typeId, datasetId, geoJson);
-                if (isInserted) {
-                    return "GeoJson for \"" + datasetId + "\" has been inserted.";
-                } else {
-                    return "GeoJson insertion for \"" + datasetId + "\" failed.";
-                }
+                String outJson = getMetaJson(typeId, datasetId, repoUrl, serverUrlPrefix);
+                return insertJsonStringToMongo(database, typeId, datasetId, outJson);
             } else {
-                System.out.println("Document already exists");
-                return "Document \"" + datasetId + "\" already exists.";
+                logger.debug("Document already exists");
+                return false;
+            }
+        }
+    }
+
+    // ingest json string into mongodb
+    public static boolean ingestJsonStringToMongo(String inJson, String collId, String docId, String mongoUrl, String dbName) {
+        MongoDatabase database = getMongoDatabase(mongoUrl, dbName);
+
+        // check if the dataset id is already in the mongodb
+        boolean isCollExist = isCollectionExist(database, collId);
+
+        if (!isCollExist) { // create collection and insert input json as document
+            database.createCollection(collId, new CreateCollectionOptions().capped(false));
+            return insertJsonStringToMongo(database, collId, docId, inJson);
+        } else {
+            // check if the document already exists
+            boolean isDocExist = isDocumentExist(database, collId, docId);
+            if (!isDocExist) {
+                // insert document into collection
+                return insertJsonStringToMongo(database, collId, docId, inJson);
+            } else {
+                logger.debug("Document already exists");
+                return false;
+            }
+        }
+    }
+
+    // ingest csv file into mongodb
+    public static boolean ingestCsvToMongo(String extStr, String typeId, String datasetId, String mongoUrl, String geoDbName, String repoUrl, String serverUrlPrefix){
+        MongoDatabase database = getMongoDatabase(mongoUrl, geoDbName);
+
+        // check if the dataset id is already in the mongodb
+        boolean isCollExist = isCollectionExist(database, typeId);
+
+        // create collection if collection is not there
+        if (!isCollExist) {
+            database.createCollection(typeId, new CreateCollectionOptions().capped(false));
+            // insert document into collection
+            String outJson = getCsvJson(typeId, datasetId, repoUrl);
+            return insertCsvJsonToMongo(database, typeId, datasetId, outJson);
+        } else {
+            logger.debug("Collection \"" + typeId + "\" already exists.");
+            // check if the document is there
+            boolean isDocExist = isDocumentExist(database, typeId, datasetId);
+            if (!isDocExist) {
+                // insert document into collection
+                String outJson = getCsvJson(typeId, datasetId, repoUrl);
+                return insertCsvJsonToMongo(database, typeId, datasetId, outJson);
+            } else {
+                logger.debug("Document already exists");
+                return false;
             }
         }
     }
 
     // ingest shapefile into mongodb
-    public static String ingestShpfileToMongo(String typeId, String datasetId, String mongoUrl, String geoDbName, String repoUrl){
+    public static boolean ingestShpfileToMongo(String typeId, String datasetId, String mongoUrl, String geoDbName, String repoUrl){
         MongoDatabase database = getMongoDatabase(mongoUrl, geoDbName);
 
         // check if the dataset id is already in the mongodb
@@ -242,34 +288,23 @@ public class RepoUtils {
             database.createCollection(typeId, new CreateCollectionOptions().capped(false));
             // insert document into collection
             String geoJson = getGeoJson(typeId, datasetId, repoUrl);
-            boolean isInserted = insertGeoJsonToMongo(database, typeId, datasetId, geoJson);
-            if (isInserted) {
-                return "GeoJson for \"" + datasetId + "\" has been inserted.";
-            } else {
-                return "GeoJson insertion for \"" + datasetId + "\" failed.";
-            }
+            return insertGeoJsonToMongo(database, typeId, datasetId, geoJson);
         } else {
-            System.out.println("Collection \"" + typeId + "\" already exists.");
+            logger.debug("Collection \"" + typeId + "\" already exists.");
             // check if the document is there
             boolean isDocExist = isDocumentExist(database, typeId, datasetId);
             if (!isDocExist) {
                 // insert document into collection
                 String geoJson = getGeoJson(typeId, datasetId, repoUrl);
-                boolean isInserted = insertGeoJsonToMongo(database, typeId, datasetId, geoJson);
-                if (isInserted) {
-                    return "GeoJson for \"" + datasetId + "\" has been inserted.";
-                } else {
-                    return "GeoJson insertion for \"" + datasetId + "\" failed.";
-                }
+                return insertGeoJsonToMongo(database, typeId, datasetId, geoJson);
             } else {
-                System.out.println("Document already exists");
-                return "Document \"" + datasetId + "\" already exists.";
+                logger.debug("Document already exists");
+                return false;
             }
         }
     }
 
     // create json from the csv file
-    // create geoJson from the shapefile url
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
         String combinedId = typeId + "/" + datasetId + "/converted/";
@@ -280,6 +315,28 @@ public class RepoUtils {
             if (fileName.length() > 0) {
                 dataset = new File(fileName);
                 outJson = formatCsvAsJson(dataset, combinedId);
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        }
+        return outJson;
+    }
+
+    // create json from the csv file
+    public static String getMetaJson(String typeId, String datasetId, String repoUrl, String serverUrlPrefix) {
+        File dataset = null;
+        String combinedId = typeId + "/" + datasetId;
+        String datasetUrl = repoUrl + typeId + "/";
+        String outJson = "";
+        String fileName = "";
+        try{
+            String tempDir = Files.createTempDirectory("repo_download_").toString();
+            HttpDownloader.downloadFile(datasetUrl + datasetId + "." + EXTENSION_META, tempDir);
+            fileName = tempDir + File.separator + datasetId + "." + EXTENSION_META;
+            if (fileName.length() > 0) {
+                dataset = new File(fileName);
+                outJson = formatMetadataAsJson(dataset, combinedId, serverUrlPrefix);
             }
         }catch (IOException e) {
             e.printStackTrace();
@@ -305,6 +362,20 @@ public class RepoUtils {
 //            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
         return outJson;
+    }
+
+    // validate if json is okay
+    public static boolean isJSONValid(String inJson) {
+        try {
+            new JSONObject(inJson);
+        } catch (JSONException ex) {
+            try {
+                new JSONArray(inJson);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // check if collection exists, otherwise create one with a type id
@@ -335,21 +406,44 @@ public class RepoUtils {
     }
 
     public static boolean insertGeoJsonToMongo(MongoDatabase database, String typeId, String datasetId, String inJson) {
-        MongoCollection<org.bson.Document> geoJsonColl = database.getCollection(typeId);
-        BasicDBObject document = (BasicDBObject) JSON.parse(inJson);
-        document.put("_id", datasetId);
-        geoJsonColl.insertOne(new org.bson.Document(document));
-        geoJsonColl.createIndex(new BasicDBObject("geometry","2dsphere"));
+        try {
+            MongoCollection<org.bson.Document> geoJsonColl = database.getCollection(typeId);
+            BasicDBObject document = (BasicDBObject) JSON.parse(inJson);
+            document.put("_id", datasetId);
+            geoJsonColl.insertOne(new org.bson.Document(document));
+            geoJsonColl.createIndex(new BasicDBObject("geometry","2dsphere"));
+        } catch (JSONException ex) {
+            logger.error(ex);
+            return false;
+        }
         return true;
     }
 
-    public static boolean insertCsvJsonToMongo(MongoDatabase database, String typeId, String datasetId, String inJson) {
-        MongoCollection<org.bson.Document> csvJsonColl = database.getCollection(typeId);
-        BasicDBList docList = (BasicDBList) JSON.parse(inJson);
-        org.bson.Document document = new org.bson.Document();
-        document.put("_id", datasetId);
-        document.put("table", docList);
-        csvJsonColl.insertOne(document);
+    public static boolean insertCsvJsonToMongo(MongoDatabase database, String collId, String docId, String inJson) {
+        try {
+            MongoCollection<org.bson.Document> csvJsonColl = database.getCollection(collId);
+            BasicDBList docList = (BasicDBList) JSON.parse(inJson);
+            org.bson.Document document = new org.bson.Document();
+            document.put("_id", docId);
+            document.put("table", docList);
+            csvJsonColl.insertOne(document);
+        } catch (JSONException ex) {
+            logger.error(ex);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean insertJsonStringToMongo(MongoDatabase database, String collId, String docId, String inJson) {
+        try {
+            MongoCollection<org.bson.Document> collName = database.getCollection(collId);
+            BasicDBObject docObj = (BasicDBObject) JSON.parse(inJson);
+            docObj.put("_id", docId);
+            collName.insertOne(new Document(docObj));
+        } catch (JSONException ex) {
+            logger.error(ex);
+            return false;
+        }
         return true;
     }
 
@@ -362,9 +456,11 @@ public class RepoUtils {
         return database;
     }
 
-    public static String getTypeIdByDatasetIdFromMongo(String datasetId, String mongoUrl, String geoDbName){
+    public static String getJsonByDatasetIdFromMongo(String datasetId, String mongoUrl, String geoDbName){
         MongoDatabase database = getMongoDatabase(mongoUrl, geoDbName);
         MongoIterable<String> collNames = database.listCollectionNames();
+        org.bson.Document result = new Document();
+        String outJson = "";
 
         for (String collectionName: collNames) {
             MongoCollection<Document> tmpCollection = database.getCollection(collectionName);
@@ -373,12 +469,14 @@ public class RepoUtils {
             FindIterable existDoc = tmpCollection.find(query);
 
             if (existDoc.first() != null) {
-                System.out.println(collectionName);
-                return collectionName;
+                result = (org.bson.Document) existDoc.first();
+                JsonWriterSettings writerSettings = new JsonWriterSettings(JsonMode.SHELL, true);
+                outJson = result.toJson(writerSettings);
+                return outJson;
             }
         }
 
-        return "";
+        return outJson;
     }
 
     public void insertGeoJsonToMongoTest(String typeId, String datasetId, String inJson, String mongoUrl, String geoDbName) {
@@ -398,7 +496,7 @@ public class RepoUtils {
 
         // create collection
         if (isCollExist) {
-            System.out.println("Collection already exists");
+            logger.debug("Collection already exists");
         } else {
             database.createCollection(typeId, new CreateCollectionOptions().capped(false));
         }
@@ -409,39 +507,30 @@ public class RepoUtils {
         BasicDBObject query = new BasicDBObject();
         query.put("_id", datasetId);
         FindIterable existDoc = geoJsonColl.find(document);
-//        MongoIterable<Document> iterable = geoJsonColl.find({_id: datasetId), {_id:1}).limit(1);
+        //MongoIterable<Document> iterable = geoJsonColl.find({_id: datasetId), {_id:1}).limit(1);
         if (existDoc.first() == null) {
             geoJsonColl.insertOne(new org.bson.Document(query));
         } else {
-            System.out.println("Document already exists");
+            logger.debug("Document already exists");
         }
 
 //        org.bson.Document myDoc = geoJsonColl.find(query).first();
-
-
-
-        //        String user; // the user name
+//        String user; // the user name
 //        String database; // the name of the database in which the user is defined
 //        char[] password; // the password as a character array
-//
 //        MongoCredential credential = MongoCredential.createCredential(user, database, password);
-//
 //        MongoClientOptions options = MongoClientOptions.builder().sslEnabled(true).build();
-//
 //        MongoClient mongoClient = new MongoClient(new ServerAddress("host1", 27017), Arrays.asList(credential), options);
     }
 
-    public String convertStringToHex(String str){
-        String outStr = "";
-        char[] chars = str.toCharArray();
-
-        StringBuffer hex = new StringBuffer();
-        for(int i = 0; i < chars.length; i++){
-            hex.append(Integer.toHexString((int)chars[i]));
+    public static String extractValueFromJsonString(String inId, String inJson) {
+        JSONObject jsonObj = new JSONObject(inJson);
+        if (jsonObj.has(inId)) {
+            Object output = jsonObj.get(inId);
+            return output.toString();
+        } else {
+            return "";
         }
-
-        outStr = hex.toString();
-        return outStr;
     }
 
     public static String formatDatasetAsGeoJson(File shapefile) throws IOException {
@@ -507,9 +596,9 @@ public class RepoUtils {
             locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(INDENT_SPACE);
             return jsonString;
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        } catch (JSONException ex) {
+            logger.error(ex);
+            return "{\"error:\" + \"" + ex.getLocalizedMessage() + "\"}";
         }
     }
 
