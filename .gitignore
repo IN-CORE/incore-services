@@ -19,8 +19,8 @@ hs_err_pid*
 **/out/
 
 # Apple metadata
-.DS_Store
+**/.DS_Store
 
 # local gradle files
-.gradle/
-/local.properties
+**/.gradle/
+server/local.properties
