@@ -2,10 +2,7 @@ package edu.illinois.ncsa.incore.repo;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
-import edu.illinois.ncsa.incore.repo.json.objects.ColumnMetadata;
-import edu.illinois.ncsa.incore.repo.json.objects.Mapping;
-import edu.illinois.ncsa.incore.repo.json.objects.Metadata;
-import edu.illinois.ncsa.incore.repo.json.objects.TableMetadata;
+import edu.illinois.ncsa.incore.repo.json.objects.*;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
@@ -20,6 +17,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,22 +34,74 @@ public class RepoService {
     public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";
     public static final String MONGO_URL = "mongodb://localhost:27017";
     public static final String GEO_DB_NAME = "repoDB";
+    public static final Logger logger = Logger.getLogger(RepoService.class);
 
+    @GET
+    @Path("/metadata/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    //http://localhost:8080/repo/api/metadata/Shelby_County_RES31224702005658
+    //http://localhost:8080/repo/api/metadata/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789
+    //http://localhost:8080/repo/api/metadata/HAZUS_Table_13.8_Collapse_Rates1209053226524
+    //http://localhost:8080/repo/api/metadata/Building_Disruption_Cost1168019087905
+    public MvzDataset getMetadataFromRepo(@PathParam("id") String datasetId) {
+        String typeId = findTypeIdByDatasetId(datasetId, RepoUtils.EXTENSION_META);
+        MvzDataset mvzDataset = new MvzDataset();
+        if (typeId.equals("")) {
+            // create error mvz obj
+            mvzDataset.setName("Error: no dataset existed");
+        } else {
+            String combinedId = typeId + "/" + datasetId;
+            mvzDataset = createMvzDatasetFromMetadata(combinedId);
+        }
+        return mvzDataset;
+    }
+
+    @GET
+    @Path("/dataset/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    //http://localhost:8080/repo/api/dataset/Shelby_County_RES31224702005658
+    //http://localhost:8080/repo/api/dataset/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789
+    //http://localhost:8080/repo/api/dataset/HAZUS_Table_13.8_Collapse_Rates1209053226524
+    //http://localhost:8080/repo/api/dataset/Building_Disruption_Cost1168019087905
+    public Response getDatasetFromRepo(@PathParam("id") String datasetId) {
+        String outJson = getJsonByDatasetId(datasetId);
+        if (outJson.equals("")) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } else {
+            return Response.ok(outJson).status(Response.Status.OK).build();
+        }
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/ingest-result")
+    public Response ingestResult(String inJson) {
+        // check if the input json string is valid
+        boolean isJsonValid = RepoUtils.isJSONValid(inJson);
+
+        if (isJsonValid) {
+            String collId = RepoUtils.extractValueFromJsonString("collections", inJson);
+            String docId = RepoUtils.extractValueFromJsonString("sourceDataset", inJson);
+            if (!(collId.equals("")) && !(docId.equals(""))) {
+                RepoUtils.ingestJsonStringToMongo(inJson, collId, docId, MONGO_URL, GEO_DB_NAME);
+                String result = "Success : " + docId;
+                return Response.status(Response.Status.OK).entity(result).build();
+            } else {
+                return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+            }
+        } else {
+            return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+        }
+    }
 
     // list all the metadatas in the repository information as json
     // zipped dataset can be downloaded when the location get clicked
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    // test this with
     // http://localhost:8080/repo/api/datasets
     public List<MvzDataset> getDirectoryListJson(){
-//        // to get the whole json string
-//        String dirStr = loadDirectoryListJsonString();
-////        return(dirStr);
-////        return new MvzDataset(dirStr);
-//        return Response.ok(dirStr).status(Response.Status.OK).build();
-
         // create the POJO object;
         List<String> resHref = getDirectoryContent(REPO_PROP_URL, "");
         List<MvzDataset> mvzDatasets = new ArrayList<MvzDataset>();
@@ -91,7 +141,6 @@ public class RepoService {
     @GET
     @Path("/datasets/ingestmongo")
     @Produces(MediaType.APPLICATION_JSON)
-    // test this with
     // http://localhost:8080/repo/api/datasets/ingestmongo
     public String ingestAllToMongo(){
         // list all the directory
@@ -108,20 +157,18 @@ public class RepoService {
             List<String> dataHref = getDirectoryContent(dataDirUrl, "");
             for (String dataFileName: dataHref) {
                 String combinedId = dataDirUrl + "/" + dataFileName + "/converted/";
-//                String fileName = "";
                 List<String> fileNames = getDirectoryContent(combinedId, "");
                 for (String fileName: fileNames) {
                     // skip if the file name is converted
                     if (!fileName.equals("converted")) {
                         String fileExtStr = FilenameUtils.getExtension(fileName);
-//                        System.out.println(tmpUrl + "/" + dataFileName + "/" + "/" + fileName + " " + fileExtStr);
                         // check out the file extension and decide to ingest
                         if (fileExtStr.equals(RepoUtils.EXTENSION_SHP)) {
                             System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
                             RepoUtils.ingestShpfileToMongo(tmpUrl, dataFileName, MONGO_URL, GEO_DB_NAME, REPO_DS_URL);
                         } else if (fileExtStr.equals(RepoUtils.EXTENSION_CSV)) {
                             System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
-                            RepoUtils.ingestTableToMongo(tmpUrl, dataFileName, MONGO_URL, GEO_DB_NAME, REPO_DS_URL);
+                            RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, tmpUrl, dataFileName, MONGO_URL, GEO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX);
                         } else {
                             System.out.println("other file format " + fileExtStr);
                         }
@@ -138,8 +185,8 @@ public class RepoService {
     @Produces(MediaType.APPLICATION_JSON)
     // test with the following line
     // http://localhost:8080/repo/api/datasets/query?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-//    public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId) {
-//     public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId , @HeaderParam("X-Credential-Username") String username) {
+    //public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId) {
+    //public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId , @HeaderParam("X-Credential-Username") String username) {
     public List<MvzDataset> getJsonObjTest (@QueryParam("type") String inTypeId , @HeaderParam("HTTP_USER_AGENT") String username, @Context HttpHeaders headers) {
         String userAgent = headers.getRequestHeader("user-agent").get(0);
         System.out.println(username);
@@ -158,12 +205,11 @@ public class RepoService {
         return mvzDatasets;
     }
 
-//    list all the metadata belonged to type id. data can be downloaded by clicking location
-//    metadata converted as POJO object
+    //list all the metadata belonged to type id. data can be downloaded by clicking location
+    //metadata converted as POJO object
     @GET
     @Path("/datasets/test")
     @Produces(MediaType.APPLICATION_JSON)
-    // test this with
     // http://localhost:8080/repo/api/datasets/test?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
     public Response getDatasetByIdTest(@QueryParam("type") String typeId) {
         String propUrl = REPO_PROP_URL + typeId;
@@ -182,14 +228,12 @@ public class RepoService {
             } catch (IOException e) {
                 e.printStackTrace();;
                 String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-//                return (new MvzDataset(err));
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
         }
         outJsonStr = outJsonStr.substring(0, outJsonStr.length() - 2);
         outJsonStr = outJsonStr + "\n]";
 
-//        return new MvzDataset(outJsonStr);
         return Response.ok(outJsonStr).status(Response.Status.OK).build();
     }
 
@@ -197,7 +241,6 @@ public class RepoService {
     @GET
     @Path("/datasets/list")     // this should be changed later for the appropriate line
     @Produces(MediaType.TEXT_HTML)
-    // test this with
     // http://localhost:8080/repo/api/datasets/list
     public String getDirectoryList() {
         try {
@@ -211,7 +254,6 @@ public class RepoService {
     // create geoJson of shapefile dataset
     @GET
     @Path("/datasets/{typeid}/{datasetId}/geojson")
-//    @Produces("application/vnd.geo+json")
     @Produces(MediaType.APPLICATION_JSON)
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/geojson
@@ -238,7 +280,6 @@ public class RepoService {
     // create geoJson of shapefile dataset
     @GET
     @Path("/datasets/{datasetId}/earthquake")
-//    @Produces("application/vnd.geo+json")
     @Produces(MediaType.APPLICATION_JSON)
     //http://localhost:8080/repo/api/datasets/Shelby_County_RES31224702005658/earthquake
     //http://localhost:8080/repo/api/datasets/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/earthquake
@@ -247,6 +288,139 @@ public class RepoService {
     public Response getDatasetByDatasetId(@PathParam("datasetId") String datasetId ) {
         String outJson = getJsonByDatasetId(datasetId);
         return Response.ok(outJson).status(Response.Status.OK).build();
+    }
+
+    public String findTypeIdByDatasetId(String datasetId, String fileExt) {
+        List<String> typeHref = new LinkedList<String>();
+        // if it is a mvz file
+        if (fileExt.equals(RepoUtils.EXTENSION_META)) {
+            typeHref = getDirectoryContent(REPO_PROP_URL, "");
+            for (String tmpTypeName: typeHref) {
+                List<String> tmpMetaFileList = getDirectoryContent(REPO_PROP_URL + "/" + tmpTypeName, "");
+                for (String metaFileName: tmpMetaFileList) {
+                    if (FilenameUtils.getBaseName(metaFileName).equals(datasetId)) {
+                        return tmpTypeName;
+                    }
+                }
+            }
+        // if it is other file
+        } else {
+            typeHref = getDirectoryContent(REPO_DS_URL, "");
+            for (String tmpTypeName: typeHref) {
+                String fileDirUrl = REPO_DS_URL + tmpTypeName + "/" + datasetId + "/converted/";
+                List<String> fileHref = getDirectoryContent(fileDirUrl, "");
+                if (fileHref.size() > 1) {
+                    return tmpTypeName;
+                }
+            }
+        }
+        return "";
+    }
+
+    //list the dataset belonged to type
+    @GET
+    @Path("/datasets/{typeId}")
+    @Produces(MediaType.TEXT_HTML)
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
+    public String getDirectoryListWithId(@PathParam("typeId") String typeId) {
+        try {
+            return (loadDirectoryList(typeId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+        }
+    }
+
+    // see the metadata json of the dataset. data can be downloaded by clicking location
+    @GET
+    @Path("/datasets/{typeId}/{datasetId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
+    public MvzDataset getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
+        String combinedId = typeId + "/" + datasetId;
+        MvzDataset mvzDataset = createMvzDatasetFromMetadata(combinedId);
+
+        return mvzDataset;
+    }
+
+    // download zipped dataset file
+    @GET
+    @Path("/datasets/{typeId}/{datasetId}/files")
+    @Produces(MediaType.TEXT_PLAIN)
+    // http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/files
+    public File getShapefileById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
+        File dataset = null;
+
+        String combinedId = typeId + "/" + datasetId + "/converted/";
+        try{
+            dataset = loadZipdataFromRepository(combinedId);
+            return dataset;
+        }catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // ingest metadata into mongodb
+    @GET
+    @Path("/datasets/{typeId}/ingest")
+    @Produces(MediaType.TEXT_PLAIN)
+    //http://localhost:8080/repo/api/datasets//edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/ingest
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/ingest
+    public String ingestMetadataToMongo(@PathParam("typeId") String typeId) {
+        // get the metadata file name list from the type directory
+        String propUrl = REPO_PROP_URL + typeId;
+        File metadata = null;
+
+        List<String> resourceUrls = getDirectoryContent(propUrl, typeId);
+
+        for (String tmpUrl: resourceUrls) {
+            String metaDirUrl = REPO_PROP_URL + tmpUrl;
+            List<String> metaHref = getDirectoryContent(metaDirUrl, "");
+            for (String metaFileName: metaHref) {
+                String fileExtStr = FilenameUtils.getExtension(metaFileName);
+                String fileName = FilenameUtils.getBaseName(metaFileName);
+                // get only the mvz file
+                if (fileExtStr.equals(RepoUtils.EXTENSION_META)) {
+                    RepoUtils.ingestMetaToMongo(RepoUtils.EXTENSION_CSV, typeId, fileName, MONGO_URL, GEO_DB_NAME, REPO_PROP_URL, SERVER_URL_PREFIX);
+                }
+            }
+        }
+        return "Metadata ingested successfully";
+    }
+
+    @GET
+    @Path("/datasets/{typeId}/{datasetId}/ingest")
+    @Produces(MediaType.TEXT_PLAIN)
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/ingest
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/ingest
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/HAZUS_Table_13.8_Collapse_Rates1209053226524/ingest
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingDisruptionCost.v1.0/Building_Disruption_Cost1168019087905/ingest
+
+    public String ingestDatasetToMongo(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
+        // check if it is shapefile or csv
+        String combinedId = typeId + "/" + datasetId + "/converted/";
+        int fileType = RepoUtils.checkDataFormatFromRepository(combinedId, REPO_DS_URL);
+
+        if (fileType >= RepoUtils.TYPE_NUMBER_MULTI) {
+            logger.error("There are multiple file formats in the directory.");
+            return "There are multiple file formats in the directory.";
+        }
+
+        if (fileType == RepoUtils.TYPE_NUMBER_SHP) {    // ingest shapefile into mongodb
+            if (RepoUtils.ingestShpfileToMongo(typeId, datasetId, MONGO_URL, GEO_DB_NAME, REPO_DS_URL)){
+                return "Data ingested successfully";
+            } else {
+                return "There was a problem ingesting the data";
+            }
+        } else if (fileType == RepoUtils.TYPE_NUMBER_CSV) { // ingest table into mongodb
+            if (RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, typeId, datasetId, MONGO_URL, GEO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX)){
+                return "Data ingested successfully.";
+            } else {
+                return "There was a problem ingesting the data";
+            }
+        }
+        return "The given file type was unknow. The ingestion terminated.";
     }
 
     public String getJsonByDatasetId(String datasetId) {
@@ -275,82 +449,13 @@ public class RepoService {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
+                        return "";
                     }
                 }
             }
 
         }
         return "";
-    }
-
-//    list the dataset belonged to type
-    @GET
-    @Path("/datasets/{typeId}")
-    @Produces(MediaType.TEXT_HTML)
-//    http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    public String getDirectoryListWithId(@PathParam("typeId") String typeId) {
-        try {
-            return (loadDirectoryList(typeId));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-        }
-    }
-
-    // see the metadata json of the dataset. data can be downloaded by clicking location
-    @GET
-    @Path("/datasets/{typeId}/{datasetId}")
-    @Produces(MediaType.APPLICATION_JSON)
-//    http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
-    public MvzDataset getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
-        String combinedId = typeId + "/" + datasetId;
-        MvzDataset mvzDataset = createMvzDatasetFromMetadata(combinedId);
-
-        return mvzDataset;
-    }
-
-    // download zipped dataset file
-    @GET
-    @Path("/datasets/{typeId}/{datasetId}/files")
-    @Produces(MediaType.TEXT_PLAIN)
-    // http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/files
-    public File getShapefileById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
-        File dataset = null;
-
-        String combinedId = typeId + "/" + datasetId + "/converted/";
-        try{
-            dataset = loadZipdataFromRepository(combinedId);
-            return dataset;
-        }catch (IOException e) {
-            e.printStackTrace();
-//            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-            return null;
-        }
-    }
-
-    @GET
-    @Path("/datasets/{typeId}/{datasetId}/ingest")
-    @Produces(MediaType.TEXT_PLAIN)
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/ingest
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/ingest
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/HAZUS_Table_13.8_Collapse_Rates1209053226524/ingest
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingDisruptionCost.v1.0/Building_Disruption_Cost1168019087905/ingest
-    public String ingestDatasetToMongo(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
-        // check if it is shapefile or csv
-        String combinedId = typeId + "/" + datasetId + "/converted/";
-        int fileType = RepoUtils.checkDataFormatFromRepository(combinedId, REPO_DS_URL);
-
-        if (fileType >= RepoUtils.TYPE_NUMBER_MULTI) {
-            return "There are multiple file formats in the directory.";
-        }
-
-        if (fileType == RepoUtils.TYPE_NUMBER_SHP) {    // ingest shapefile into mongodb
-            return  RepoUtils.ingestShpfileToMongo(typeId, datasetId, MONGO_URL, GEO_DB_NAME, REPO_DS_URL);
-        } else if (fileType == RepoUtils.TYPE_NUMBER_CSV) { // ingest table into mongodb
-            return RepoUtils.ingestTableToMongo(typeId, datasetId, MONGO_URL, GEO_DB_NAME, REPO_DS_URL);
-        }
-
-        return "Dataset ingested";
     }
 
     private MvzDataset createMvzDatasetFromMetadata(String inUrl){
@@ -397,11 +502,11 @@ public class RepoService {
         String geometryType = "";
         String location = "";
         String description = "";
-//        String schema = "";
-//        String from = "";
-//        String to = "";
-//        boolean isMaevizMapping = false;
-//        boolean isMetadata = false;
+        //String schema = "";
+        //String from = "";
+        //String to = "";
+        //boolean isMaevizMapping = false;
+        //boolean isMetadata = false;
 
         try {
             JSONObject metaJsonObj = XML.toJSONObject(xmlString);
@@ -458,7 +563,6 @@ public class RepoService {
 
             // check maeviz-mapping object and set
             if (metaInfoObj.has(RepoUtils.TAG_MAEVIZ_MAPPING)) {
-//                System.out.println(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
                 List<Mapping> mappings = new LinkedList<Mapping>();
                 mvzDataset.maevizMapping.setSchema(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
                 if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).has(RepoUtils.TAG_MAPPING)) {
@@ -493,7 +597,6 @@ public class RepoService {
 
             // check metadata object and set
             if (metaInfoObj.has(RepoUtils.TAG_METADATA)) {
-//                System.out.println(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
                 List<ColumnMetadata> columnMetadatas = new LinkedList<ColumnMetadata>();
                 if (metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).has(RepoUtils.TAG_TABLE_METADATA)) {
                     if (!(metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA) instanceof String)) {
@@ -569,7 +672,7 @@ public class RepoService {
                     }
                 }
             }
-//            String jsonString = metaJsonObj.toString(RepoUtils.INDENT_SPACE);
+            //String jsonString = metaJsonObj.toString(RepoUtils.INDENT_SPACE);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -723,7 +826,7 @@ public class RepoService {
         String[] urlStrs = urlPart.split("/converted/");    // split the url using the folder name "converted"
         String metadataUrl = REPO_PROP_URL + urlStrs[0];
         // what if there is a dot in the basename? avoid use getBasename
-//        String baseName = FilenameUtils.getBaseName(metadataUrl);
+        //String baseName = FilenameUtils.getBaseName(metadataUrl);
         String baseNameStrs[] = urlStrs[0].split("/");
         String baseName = baseNameStrs[baseNameStrs.length - 1];
         String tempDir = Files.createTempDirectory("repo_download_").toString();
