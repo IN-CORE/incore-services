@@ -22,5 +22,6 @@ sudo -u postgres psql -c "CREATE DATABASE kong OWNER kong;"
 sudo -u postgres psql -c "ALTER USER kong WITH password 'k0ng';"
 kong migrations up -c /vagrant/kong.conf
 kong start -c /vagrant/kong.conf
+#now need to setup the kong server, but that will be in a different script
 
-
+#install logstash
