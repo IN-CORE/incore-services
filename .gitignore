@@ -13,14 +13,18 @@ hs_err_pid*
 
 # IDEA:
 .idea/
+server/incore-v2.ipr
+server/incore-v2.iws
+**.iml
+**.iml
 
 # IDEA - generated artifacts
 **/build/
 **/out/
 
 # Apple metadata
-.DS_Store
+**/.DS_Store
 
 # local gradle files
-.gradle/
-/local.properties
+**/.gradle/
+server/local.properties
