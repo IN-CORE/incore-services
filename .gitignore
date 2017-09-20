@@ -13,6 +13,10 @@ hs_err_pid*
 
 # IDEA:
 .idea/
+server/incore-v2.ipr
+server/incore-v2.iws
+**.iml
+**.iml
 
 # IDEA - generated artifacts
 **/build/
