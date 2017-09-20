@@ -20,8 +20,17 @@ apt-get install -y postgresql
 sudo -u postgres psql -c "CREATE USER kong; GRANT kong to postgres;"
 sudo -u postgres psql -c "CREATE DATABASE kong OWNER kong;"
 sudo -u postgres psql -c "ALTER USER kong WITH password 'k0ng';"
-kong migrations up -c /vagrant/kong.conf
-kong start -c /vagrant/kong.conf
+kong migrations up -c /vagrant/server/kong/kong.conf
+kong start -c /vagrant/server/kong/kong.conf
 #now need to setup the kong server, but that will be in a different script
+source /vagrant/server/kong/incore.kong.sh
 
 #install logstash
+cd /tmp
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+apt-get install apt-transport-https
+echo "deb https://artifacts.elastic.co/packages/5.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-5.x.list
+apt-get update
+apt-get install logstash
+ln -s /vagrant/server/logstashPipeline.conf /etc/logstash/conf.d
+systemctl start logstash.service
