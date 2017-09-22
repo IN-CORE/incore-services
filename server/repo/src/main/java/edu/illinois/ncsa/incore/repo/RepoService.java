@@ -33,7 +33,7 @@ public class RepoService {
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
     public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";
     public static final String MONGO_URL = "mongodb://localhost:27017";
-    public static final String GEO_DB_NAME = "repoDB";
+    public static final String MONGO_DB_NAME = "repoDB";
     public static final Logger logger = Logger.getLogger(RepoService.class);
 
     @GET
@@ -72,14 +72,24 @@ public class RepoService {
         }
     }
 
-//    // see the metadata json of the dataset. data can be downloaded by clicking location
-//    @GET
-//    @Path("/collection/{id}")
-//    @Produces(MediaType.TEXT_HTML)
-//    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
-//    public Response getListInCollection(@PathParam("id") String collId) {
-//        List<String> docList = getDocListByCollId(id);
-//    }
+    // see the metadata json of the dataset. data can be downloaded by clicking location
+    @GET
+    @Path("/collection/{id}")
+    @Produces(MediaType.TEXT_HTML)
+    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
+    public Response getListInCollection(@PathParam("id") String collId) {
+        List<String> docList = RepoUtils.getDocListByCollId(MONGO_URL, MONGO_DB_NAME, collId);
+        System.out.println(docList);
+        String outString = "";
+        if (docList.size() > 1) {
+            for (String docs: docList) {
+                outString = outString + docs + "</br>";
+            }
+            return Response.ok(outString).status(Response.Status.OK).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -93,7 +103,7 @@ public class RepoService {
             String collId = RepoUtils.extractValueFromJsonString("collections", inJson);
             String docId = RepoUtils.extractValueFromJsonString("sourceDataset", inJson);
             if (!(collId.equals("")) && !(docId.equals(""))) {
-                RepoUtils.ingestJsonStringToMongo(inJson, collId, docId, MONGO_URL, GEO_DB_NAME);
+                RepoUtils.ingestJsonStringToMongo(inJson, collId, docId, MONGO_URL, MONGO_DB_NAME);
                 String result = "Success : " + docId;
                 return Response.status(Response.Status.OK).entity(result).build();
             } else {
@@ -142,7 +152,7 @@ public class RepoService {
     //http://localhost:8080/repo/api/datasets/HAZUS_Table_13.8_Collapse_Rates1209053226524/mongo
     //http://localhost:8080/repo/api/datasets/Building_Disruption_Cost1168019087905/mongo
     public Response getGeoJsonFromMongo(@PathParam("datasetId") String datasetId){
-        String outJson = RepoUtils.getJsonByDatasetIdFromMongo(datasetId, MONGO_URL, GEO_DB_NAME);
+        String outJson = RepoUtils.getJsonByDatasetIdFromMongo(datasetId, MONGO_URL, MONGO_DB_NAME);
         return Response.ok(outJson).status(Response.Status.OK).build();
     }
 
@@ -171,10 +181,10 @@ public class RepoService {
                         // check out the file extension and decide to ingest
                         if (fileExtStr.equals(RepoUtils.EXTENSION_SHP)) {
                             System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
-                            RepoUtils.ingestShpfileToMongo(tmpUrl, dataFileName, MONGO_URL, GEO_DB_NAME, REPO_DS_URL);
+                            RepoUtils.ingestShpfileToMongo(tmpUrl, dataFileName, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL);
                         } else if (fileExtStr.equals(RepoUtils.EXTENSION_CSV)) {
                             System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
-                            RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, tmpUrl, dataFileName, MONGO_URL, GEO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX);
+                            RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, tmpUrl, dataFileName, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX);
                         } else {
                             System.out.println("other file format " + fileExtStr);
                         }
@@ -388,7 +398,7 @@ public class RepoService {
                 String fileName = FilenameUtils.getBaseName(metaFileName);
                 // get only the mvz file
                 if (fileExtStr.equals(RepoUtils.EXTENSION_META)) {
-                    RepoUtils.ingestMetaToMongo(RepoUtils.EXTENSION_CSV, typeId, fileName, MONGO_URL, GEO_DB_NAME, REPO_PROP_URL, SERVER_URL_PREFIX);
+                    RepoUtils.ingestMetaToMongo(RepoUtils.EXTENSION_CSV, typeId, fileName, MONGO_URL, MONGO_DB_NAME, REPO_PROP_URL, SERVER_URL_PREFIX);
                 }
             }
         }
@@ -413,13 +423,13 @@ public class RepoService {
         }
 
         if (fileType == RepoUtils.TYPE_NUMBER_SHP) {    // ingest shapefile into mongodb
-            if (RepoUtils.ingestShpfileToMongo(typeId, datasetId, MONGO_URL, GEO_DB_NAME, REPO_DS_URL)){
+            if (RepoUtils.ingestShpfileToMongo(typeId, datasetId, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL)){
                 return "Data ingested successfully";
             } else {
                 return "There was a problem ingesting the data";
             }
         } else if (fileType == RepoUtils.TYPE_NUMBER_CSV) { // ingest table into mongodb
-            if (RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, typeId, datasetId, MONGO_URL, GEO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX)){
+            if (RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, typeId, datasetId, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX)){
                 return "Data ingested successfully.";
             } else {
                 return "There was a problem ingesting the data";

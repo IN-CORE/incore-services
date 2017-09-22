@@ -378,6 +378,25 @@ public class RepoUtils {
         return true;
     }
 
+    public static MongoDatabase getMongoDatabase(String mongoUrl, String dbName){
+        //crete mongodb connection
+        MongoClientURI mongoUri = new MongoClientURI(mongoUrl);
+        MongoClient mongoClient = new MongoClient(mongoUri);
+        MongoDatabase database = mongoClient.getDatabase(dbName);
+
+        return database;
+    }
+
+    public static List<String> getDocListByCollId(String mongoUrl, String dbName, String id) {
+        MongoDatabase database = getMongoDatabase(mongoUrl, dbName);
+        MongoIterable<String> collNames = database.listCollectionNames();
+        List<String> outList = new LinkedList<String>();
+        for (String collName: collNames) {
+            outList.add(collName);
+        }
+        return  outList;
+    }
+
     // check if collection exists, otherwise create one with a type id
     public static boolean isCollectionExist(MongoDatabase database, String collectionName) {
         boolean isCollExist = false;
@@ -445,15 +464,6 @@ public class RepoUtils {
             return false;
         }
         return true;
-    }
-
-    public static MongoDatabase getMongoDatabase(String mongoUrl, String geoDbName){
-        //crete mongodb connection
-        MongoClientURI mongoUri = new MongoClientURI(mongoUrl);
-        MongoClient mongoClient = new MongoClient(mongoUri);
-        MongoDatabase database = mongoClient.getDatabase(geoDbName);
-
-        return database;
     }
 
     public static String getJsonByDatasetIdFromMongo(String datasetId, String mongoUrl, String geoDbName){
