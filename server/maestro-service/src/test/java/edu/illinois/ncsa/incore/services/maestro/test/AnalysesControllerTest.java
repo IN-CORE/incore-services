@@ -7,6 +7,7 @@ import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -34,12 +36,25 @@ class AnalysesControllerTest extends CustomJerseyTest{
     }
 
     @Test
-    public void testListAllAnalysis() {
+    public void testListAnalysis() {
 
-       String output = target("/analysis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+       String output = target("/analysis/all").request().accept(MediaType.APPLICATION_JSON).get(String.class);
        JSONArray parsedObject = new JSONArray(output);
 
        assertEquals(4, parsedObject.length());
+       JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
+
+       assertNotEquals(0, firstObject.get("inputs").toString().length());
+       assertNotEquals(0, firstObject.get("outputs").toString().length());
+    }
+
+    @Test
+    public void testListAnalysisMetadata() {
+
+        String output = target("/analysis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        JSONArray parsedObject = new JSONArray(output);
+
+        assertEquals(4, parsedObject.length());
     }
 
     @Test

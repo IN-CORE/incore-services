@@ -20,19 +20,31 @@ public class Analysis {
     private String name;
     private String url;
     private String category;
+    private String helpContext;
+    private String tag;
     private List<AnalysisInput> inputs;
     private List<AnalysisOutput> outputs;
+    private AnalysisMetadata metadata;
 
     public Analysis() {}
 
     public Analysis(String name, String description, String category, String url, List<AnalysisInput> inputs,
-                    List<AnalysisOutput> outputs ){
+                    List<AnalysisOutput> outputs, String tag, String helpContext){
         this.name = name;
         this.description = description;
         this.url = url;
         this.inputs = inputs;
         this.outputs = outputs;
         this.category = category;
+        this.tag = tag;
+        this.helpContext = helpContext;
+    }
+
+    public AnalysisMetadata getMetadata() {
+        if(metadata == null) {
+            metadata = new AnalysisMetadata(this.id, this.name, this.description, this.category, this.url, this.helpContext);
+        }
+        return metadata;
     }
 
     public String getId() {
@@ -61,5 +73,13 @@ public class Analysis {
 
     public String getCategory() {
         return category;
+    }
+
+    public String getHelpContext() {
+        return helpContext;
+    }
+
+    public String getTag() {
+        return tag;
     }
 }
