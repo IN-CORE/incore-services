@@ -72,6 +72,15 @@ public class RepoService {
         }
     }
 
+//    // see the metadata json of the dataset. data can be downloaded by clicking location
+//    @GET
+//    @Path("/collection/{id}")
+//    @Produces(MediaType.TEXT_HTML)
+//    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
+//    public Response getListInCollection(@PathParam("id") String collId) {
+//        List<String> docList = getDocListByCollId(id);
+//    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
 //    @Produces(MediaType.APPLICATION_JSON)
@@ -148,11 +157,8 @@ public class RepoService {
         resHref.remove("properties");
 
         for (String tmpUrl: resHref) {
-
-            // use follow to use metadata
-            //String dataDirUrl = REPO_PROP_URL + tmpUrl;
-            // use follow for actual dataset
-            String dataDirUrl = REPO_DS_URL + tmpUrl;
+            //String dataDirUrl = REPO_PROP_URL + tmpUrl; // use follow to use metadata
+            String dataDirUrl = REPO_DS_URL + tmpUrl; // use follow for actual dataset
 
             List<String> dataHref = getDirectoryContent(dataDirUrl, "");
             for (String dataFileName: dataHref) {
@@ -396,7 +402,6 @@ public class RepoService {
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/ingest
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/HAZUS_Table_13.8_Collapse_Rates1209053226524/ingest
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingDisruptionCost.v1.0/Building_Disruption_Cost1168019087905/ingest
-
     public String ingestDatasetToMongo(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         // check if it is shapefile or csv
         String combinedId = typeId + "/" + datasetId + "/converted/";
@@ -422,6 +427,10 @@ public class RepoService {
         }
         return "The given file type was unknow. The ingestion terminated.";
     }
+
+//    public getDocListByCollId(id){
+//
+//    }
 
     public String getJsonByDatasetId(String datasetId) {
         List<String> resHref = getDirectoryContent(REPO_PROP_URL, "");
