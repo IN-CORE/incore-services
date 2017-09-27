@@ -2,8 +2,13 @@ package edu.illinois.ncsa.incore.repo;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
-import edu.illinois.ncsa.incore.repo.json.objects.*;
+import edu.illinois.ncsa.incore.repo.mvzdataset.*;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.ColumnMetadata;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.Mapping;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.Metadata;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.TableMetadata;
 import org.apache.commons.io.FilenameUtils;
+import edu.illinois.ncsa.incore.repo.domain.Dataset;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -23,18 +28,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
 
+/**
+ * Created by ywkim on 7/26/2017.
+ */
 
 @Path("")
 public class RepoService {
-    public static final String REPO_SERVER_URL = "https://earthquake.ncsa.illinois.edu/";
-    public static final String REPO_PROP_DIR = "ergo-repo/properties/";
-    public static final String REPO_DS_DIR = "ergo-repo/datasets/";
+    public static final String REPO_SERVER_URL = "https://earthquake.ncsa.illinois.edu/";   //$NON-NLS-1$
+    public static final String REPO_PROP_DIR = "ergo-repo/properties/"; //$NON-NLS-1$
+    public static final String REPO_DS_DIR = "ergo-repo/datasets/"; //$NON-NLS-1$
     public static final String REPO_PROP_URL = REPO_SERVER_URL + REPO_PROP_DIR;
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
-    public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";
-    public static final String MONGO_URL = "mongodb://localhost:27017";
-    public static final String MONGO_DB_NAME = "repoDB";
+    public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";  //$NON-NLS-1$
+    public static final String MONGO_URL = "mongodb://localhost:27017"; //$NON-NLS-1$
+    public static final String MONGO_DB_NAME = "repoDB";    //$NON-NLS-1$
     public static final Logger logger = Logger.getLogger(RepoService.class);
+
 
     @GET
     @Path("/metadata/{id}")
@@ -48,7 +57,7 @@ public class RepoService {
         MvzDataset mvzDataset = new MvzDataset();
         if (typeId.equals("")) {
             // create error mvz obj
-            mvzDataset.setName("Error: no dataset existed");
+            mvzDataset.setName("Error: no dataset existed");    //$NON-NLS-1$
         } else {
             String combinedId = typeId + "/" + datasetId;
             mvzDataset = createMvzDatasetFromMetadata(combinedId);
@@ -76,14 +85,14 @@ public class RepoService {
     @GET
     @Path("/collection/{id}")
     @Produces(MediaType.TEXT_HTML)
-    //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
+    //http://localhost:8080/repo/api/collection/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
     public Response getListInCollection(@PathParam("id") String collId) {
         List<String> docList = RepoUtils.getDocListByCollId(MONGO_URL, MONGO_DB_NAME, collId);
         System.out.println(docList);
         String outString = "";
         if (docList.size() > 1) {
             for (String docs: docList) {
-                outString = outString + docs + "</br>";
+                outString = outString + docs + "</br>"; //$NON-NLS-1$
             }
             return Response.ok(outString).status(Response.Status.OK).build();
         } else {
@@ -93,26 +102,93 @@ public class RepoService {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-//    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/ingest-result")
-    public Response ingestResult(String inJson) {
+    // http//localhost:8080/repo/api/ingest-result
+    public Dataset ingestResult(String inJson) {
         // check if the input json string is valid
         boolean isJsonValid = RepoUtils.isJSONValid(inJson);
 
+        // create DataWolf POJO object
+        Dataset dataset = new Dataset();
         if (isJsonValid) {
-            String collId = RepoUtils.extractValueFromJsonString("collections", inJson);
-            String docId = RepoUtils.extractValueFromJsonString("sourceDataset", inJson);
-            if (!(collId.equals("")) && !(docId.equals(""))) {
-                RepoUtils.ingestJsonStringToMongo(inJson, collId, docId, MONGO_URL, MONGO_DB_NAME);
-                String result = "Success : " + docId;
-                return Response.status(Response.Status.OK).entity(result).build();
-            } else {
-                return Response.status(Response.Status.NOT_ACCEPTABLE).build();
-            }
-        } else {
-            return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+            String type = RepoUtils.extractValueFromJsonString(RepoUtils.DATASET_TYPE, inJson);
+            String sourceDataset = RepoUtils.extractValueFromJsonString(RepoUtils.DATASET_SOURCE_DATASET, inJson);
+            String format = RepoUtils.extractValueFromJsonString(RepoUtils.DATASET_FORMAT, inJson);
+            List<String> spaces = RepoUtils.extractValueListFromJsonString(RepoUtils.DATASET_SPACES, inJson);
+            dataset.setType(type);
+            dataset.setSourceDataset(sourceDataset);
+            dataset.setFormat(format);
+            dataset.setSpaces(spaces);
         }
+
+        // insert Dataset to mongodb
+        RepoUtils.insertDatasetToMongo(dataset, MONGO_URL, MONGO_DB_NAME);
+
+//      //create MVZ POJO method
+//        MvzDataset mvzDataset = setMvzDatasetFromJson("", inJson, false);
+
+//        // response method
+//        if (isJsonValid) {
+//            String collId = RepoUtils.extractValueFromJsonString("collections", inJson);
+//            String docId = RepoUtils.extractValueFromJsonString("sourceDataset", inJson);
+//            if (!(collId.equals("")) && !(docId.equals(""))) {
+//                RepoUtils.ingestJsonStringToMongo(inJson, collId, docId, MONGO_URL, MONGO_DB_NAME);
+//                String result = "Success : " + docId;
+//                return Response.status(Response.Status.OK).entity(result).build();
+//            } else {
+//                return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+//            }
+//        } else {
+//            return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+//        }
+
+
+        return dataset;
     }
+
+//    @POST
+//    @Path("/upload")
+//    @Consumes(MediaType.MULTIPART_FORM_DATA)
+//    // Path format //10.217.14.97/Installables/uploaded/
+//    public Response uploadFile(
+//            @FormDataParam("file") InputStream uploadedInputStream,
+//            @FormDataParam("file") FormDataContentDisposition fileDetail,
+//            @FormDataParam("path") String path) {
+//
+//        System.out.println("path::"+path);
+//        String uploadedFileLocation = path
+//                + fileDetail.getFileName();
+//
+//        // save it
+//        writeToFile(uploadedInputStream, uploadedFileLocation);
+//
+//        String output = "File uploaded to : " + uploadedFileLocation;
+//
+//        return Response.status(200).entity(output).build();
+//
+//    }
+//
+//    // save uploaded file to new location
+//    private void writeToFile(InputStream uploadedInputStream,
+//                             String uploadedFileLocation) {
+//
+//        try {
+//            OutputStream out = new FileOutputStream(new File(
+//                    uploadedFileLocation));
+//            int read = 0;
+//            byte[] bytes = new byte[1024];
+//
+//            out = new FileOutputStream(new File(uploadedFileLocation));
+//            while ((read = uploadedInputStream.read(bytes)) != -1) {
+//                out.write(bytes, 0, read);
+//            }
+//            out.flush();
+//            out.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     // list all the metadatas in the repository information as json
     // zipped dataset can be downloaded when the location get clicked
@@ -172,7 +248,7 @@ public class RepoService {
 
             List<String> dataHref = getDirectoryContent(dataDirUrl, "");
             for (String dataFileName: dataHref) {
-                String combinedId = dataDirUrl + "/" + dataFileName + "/converted/";
+                String combinedId = dataDirUrl + "/" + dataFileName + "/converted/";    //$NON-NLS-1$
                 List<String> fileNames = getDirectoryContent(combinedId, "");
                 for (String fileName: fileNames) {
                     // skip if the file name is converted
@@ -180,13 +256,13 @@ public class RepoService {
                         String fileExtStr = FilenameUtils.getExtension(fileName);
                         // check out the file extension and decide to ingest
                         if (fileExtStr.equals(RepoUtils.EXTENSION_SHP)) {
-                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
+                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");   //$NON-NLS-1$ //$NON-NLS-2$
                             RepoUtils.ingestShpfileToMongo(tmpUrl, dataFileName, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL);
                         } else if (fileExtStr.equals(RepoUtils.EXTENSION_CSV)) {
-                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");
+                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");   //$NON-NLS-1$ //$NON-NLS-2$
                             RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, tmpUrl, dataFileName, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX);
                         } else {
-                            System.out.println("other file format " + fileExtStr);
+                            System.out.println("other file format " + fileExtStr);  //$NON-NLS-1$
                         }
                     }
                 }
@@ -275,7 +351,7 @@ public class RepoService {
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/geojson
     public Response getDatasetByTypeId(@PathParam("typeid") String typeId , @PathParam("datasetId") String datasetId ) {
         File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";
+        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
         String fileName = "";
         try{
             fileName = RepoUtils.loadFileNameFromRepository(combinedId, RepoUtils.EXTENSION_SHP, REPO_DS_URL);
@@ -323,7 +399,7 @@ public class RepoService {
         } else {
             typeHref = getDirectoryContent(REPO_DS_URL, "");
             for (String tmpTypeName: typeHref) {
-                String fileDirUrl = REPO_DS_URL + tmpTypeName + "/" + datasetId + "/converted/";
+                String fileDirUrl = REPO_DS_URL + tmpTypeName + "/" + datasetId + "/converted/";    //$NON-NLS-1$
                 List<String> fileHref = getDirectoryContent(fileDirUrl, "");
                 if (fileHref.size() > 1) {
                     return tmpTypeName;
@@ -343,7 +419,7 @@ public class RepoService {
             return (loadDirectoryList(typeId));
         } catch (Exception e) {
             e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";    //$NON-NLS-1$
         }
     }
 
@@ -367,7 +443,7 @@ public class RepoService {
     public File getShapefileById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File dataset = null;
 
-        String combinedId = typeId + "/" + datasetId + "/converted/";
+        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
         try{
             dataset = loadZipdataFromRepository(combinedId);
             return dataset;
@@ -402,7 +478,7 @@ public class RepoService {
                 }
             }
         }
-        return "Metadata ingested successfully";
+        return "Metadata ingested successfully";    //$NON-NLS-1$
     }
 
     @GET
@@ -414,28 +490,28 @@ public class RepoService {
     //http://localhost:8080/repo/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingDisruptionCost.v1.0/Building_Disruption_Cost1168019087905/ingest
     public String ingestDatasetToMongo(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         // check if it is shapefile or csv
-        String combinedId = typeId + "/" + datasetId + "/converted/";
+        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
         int fileType = RepoUtils.checkDataFormatFromRepository(combinedId, REPO_DS_URL);
 
         if (fileType >= RepoUtils.TYPE_NUMBER_MULTI) {
-            logger.error("There are multiple file formats in the directory.");
-            return "There are multiple file formats in the directory.";
+            logger.error("There are multiple file formats in the directory.");  //$NON-NLS-1$
+            return "There are multiple file formats in the directory."; //$NON-NLS-1$
         }
 
         if (fileType == RepoUtils.TYPE_NUMBER_SHP) {    // ingest shapefile into mongodb
             if (RepoUtils.ingestShpfileToMongo(typeId, datasetId, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL)){
-                return "Data ingested successfully";
+                return "Data ingested successfully";    //$NON-NLS-1$
             } else {
-                return "There was a problem ingesting the data";
+                return "There was a problem ingesting the data";    //$NON-NLS-1$
             }
         } else if (fileType == RepoUtils.TYPE_NUMBER_CSV) { // ingest table into mongodb
             if (RepoUtils.ingestCsvToMongo(RepoUtils.EXTENSION_CSV, typeId, datasetId, MONGO_URL, MONGO_DB_NAME, REPO_DS_URL, SERVER_URL_PREFIX)){
-                return "Data ingested successfully.";
+                return "Data ingested successfully.";   //$NON-NLS-1$
             } else {
-                return "There was a problem ingesting the data";
+                return "There was a problem ingesting the data";    //$NON-NLS-1$
             }
         }
-        return "The given file type was unknow. The ingestion terminated.";
+        return "The given file type was unknow. The ingestion terminated."; //$NON-NLS-1$
     }
 
 //    public getDocListByCollId(id){
@@ -446,7 +522,7 @@ public class RepoService {
         List<String> resHref = getDirectoryContent(REPO_PROP_URL, "");
 
         for (String typeUrl: resHref) {
-            String fileDirUrl = REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";
+            String fileDirUrl = REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";    //$NON-NLS-1$
             List<String> fileHref = getDirectoryContent(fileDirUrl, "");
             if (fileHref.size() > 1) {
                 for (String fileNameInDir : fileHref) {
@@ -454,13 +530,13 @@ public class RepoService {
                     String fileName = FilenameUtils.getName(fileNameInDir);
                     try {
                         if (fileExtStr.equals(RepoUtils.EXTENSION_SHP)) {
-                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
                             String localFileName = RepoUtils.loadFileNameFromRepository(combinedId, RepoUtils.EXTENSION_SHP, REPO_DS_URL);
                             File dataset = new File(localFileName);
                             String outJson = RepoUtils.formatDatasetAsGeoJson(dataset);
                             return outJson;
                         } else if (fileExtStr.equals(RepoUtils.EXTENSION_CSV)) {
-                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
                             String localFileName = RepoUtils.loadFileNameFromRepository(combinedId, RepoUtils.EXTENSION_CSV, REPO_DS_URL);
                             File dataset = new File(localFileName);
                             String outJson = RepoUtils.formatCsvAsJson(dataset, datasetId);
@@ -481,19 +557,17 @@ public class RepoService {
         MvzDataset mvzDataset = new MvzDataset();
         try {
             File metadata = loadMetadataFromRepository(inUrl);
-            mvzDataset = setMvzDataset(metadata, inUrl);
+            mvzDataset = setMvzDatasetFromMetadata(metadata, inUrl);
 
         } catch (IOException e) {
             e.printStackTrace();;
-            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";  //$NON-NLS-1$
         }
 
         return mvzDataset;
     }
 
-    private MvzDataset setMvzDataset(File metadataFile, String rUrl) throws IOException {
-        MvzDataset mvzDataset = new MvzDataset();
-
+    private MvzDataset setMvzDatasetFromMetadata(File metadataFile, String rUrl) throws IOException {
         String xmlString = "";
         metadataFile.setReadOnly();
         Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
@@ -511,6 +585,13 @@ public class RepoService {
             rUrl = rUrl.substring(0, rUrl.length() - 4);
         }
 
+        MvzDataset mvzDataset = setMvzDatasetFromJson(rUrl, xmlString, true);
+
+        return mvzDataset;
+    }
+
+    private MvzDataset setMvzDatasetFromJson(String rUrl, String inJson, boolean isXml) {
+        MvzDataset mvzDataset = new MvzDataset();
         String datasetPropertyName = "";
         String name = "";
         String version = "";
@@ -528,12 +609,18 @@ public class RepoService {
         //boolean isMetadata = false;
 
         try {
-            JSONObject metaJsonObj = XML.toJSONObject(xmlString);
+
+            JSONObject inJsonObj = new JSONObject();
+            if (isXml) {
+                inJsonObj = XML.toJSONObject(inJson);
+            } else {
+                inJsonObj = new JSONObject(inJson);
+            }
             JSONObject metaInfoObj = null;
             JSONObject locObj = null;
-            if (metaJsonObj.has(RepoUtils.TAG_PROPERTIES_GIS)) {
-                metaInfoObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_GIS);
-                locObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_GIS).getJSONObject(RepoUtils.TAG_DATASET_ID);
+            if (inJsonObj.has(RepoUtils.TAG_PROPERTIES_GIS)) {
+                metaInfoObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_GIS);
+                locObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_GIS).getJSONObject(RepoUtils.TAG_DATASET_ID);
                 featureTypeName = metaInfoObj.get(RepoUtils.TAG_FEATURE_TYPE_NAME).toString();
                 convertedFeatureTypeName = metaInfoObj.get(RepoUtils.TAG_CONVERTED_FEATURE_TYPE_NAME).toString();
                 geometryType = metaInfoObj.get(RepoUtils.TAG_GEOMETRY_TYPE).toString();
@@ -542,33 +629,45 @@ public class RepoService {
                 mvzDataset.setConvertedFeatureTypeName(convertedFeatureTypeName);
                 mvzDataset.setGeometryType(geometryType);
             }
-            if (metaJsonObj.has(RepoUtils.TAG_PROPERTIES_MAP)) {
-                metaInfoObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_MAP);
-                locObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_MAP).getJSONObject(RepoUtils.TAG_DATASET_ID);
+            if (inJsonObj.has(RepoUtils.TAG_PROPERTIES_MAP)) {
+                metaInfoObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_MAP);
+                locObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_MAP).getJSONObject(RepoUtils.TAG_DATASET_ID);
                 datasetPropertyName = RepoUtils.TAG_PROPERTIES_MAP;
             }
-            if (metaJsonObj.has(RepoUtils.TAG_PROPERTIES_FILE)) {
-                metaInfoObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_FILE);
-                locObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_FILE).getJSONObject(RepoUtils.TAG_DATASET_ID);
+            if (inJsonObj.has(RepoUtils.TAG_PROPERTIES_FILE)) {
+                metaInfoObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_FILE);
+                locObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_FILE).getJSONObject(RepoUtils.TAG_DATASET_ID);
                 datasetPropertyName = RepoUtils.TAG_PROPERTIES_FILE;
             }
-            if (metaJsonObj.has(RepoUtils.TAG_PROPERTIES_RASTER)) {
-                metaInfoObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_RASTER);
-                locObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_RASTER).getJSONObject(RepoUtils.TAG_DATASET_ID);
+            if (inJsonObj.has(RepoUtils.TAG_PROPERTIES_RASTER)) {
+                metaInfoObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_RASTER);
+                locObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_RASTER).getJSONObject(RepoUtils.TAG_DATASET_ID);
                 datasetPropertyName = RepoUtils.TAG_PROPERTIES_RASTER;
             }
-            if (metaJsonObj.has(RepoUtils.TAG_PROPERTIES_SCENARIO)) {
-                metaInfoObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_SCENARIO);
-                locObj = metaJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_SCENARIO).getJSONObject(RepoUtils.TAG_DATASET_ID);
+            if (inJsonObj.has(RepoUtils.TAG_PROPERTIES_SCENARIO)) {
+                metaInfoObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_SCENARIO);
+                locObj = inJsonObj.getJSONObject(RepoUtils.TAG_PROPERTIES_SCENARIO).getJSONObject(RepoUtils.TAG_DATASET_ID);
                 datasetPropertyName = RepoUtils.TAG_PROPERTIES_SCENARIO;
             }
 
+            if (inJsonObj.has(RepoUtils.TAG_NAME)) {
             name = metaInfoObj.get(RepoUtils.TAG_NAME).toString();
-            version = metaInfoObj.get(RepoUtils.TAG_VERSION).toString();
-            dataFormat = metaInfoObj.get(RepoUtils.TAG_DATA_FORMAT).toString();
-            typeId = metaInfoObj.get(RepoUtils.TAG_TYPE_ID).toString();
-            location = locObj.get(RepoUtils.TAG_LOCATION).toString();
-            description = locObj.get(RepoUtils.TAG_DESCRIPTION).toString();
+            }
+            if (inJsonObj.has(RepoUtils.TAG_VERSION)) {
+                version = metaInfoObj.get(RepoUtils.TAG_VERSION).toString();
+            }
+            if (inJsonObj.has(RepoUtils.TAG_DATA_FORMAT)) {
+                dataFormat = metaInfoObj.get(RepoUtils.TAG_DATA_FORMAT).toString();
+            }
+            if (inJsonObj.has(RepoUtils.TAG_TYPE_ID)) {
+                typeId = metaInfoObj.get(RepoUtils.TAG_TYPE_ID).toString();
+            }
+            if (inJsonObj.has(RepoUtils.TAG_LOCATION)) {
+                location = locObj.get(RepoUtils.TAG_LOCATION).toString();
+            }
+            if (inJsonObj.has(RepoUtils.TAG_DESCRIPTION)) {
+                description = locObj.get(RepoUtils.TAG_DESCRIPTION).toString();
+            }
 
             mvzDataset.setDatasetPropertyName(datasetPropertyName);
             mvzDataset.setName(name);
@@ -577,29 +676,17 @@ public class RepoService {
             mvzDataset.setTypeId(typeId);
             mvzDataset.datasetId.setDescription(description);
 
-            String newUrl = SERVER_URL_PREFIX + rUrl + "/files";
+            String newUrl = SERVER_URL_PREFIX + rUrl + "/files";    //$NON-NLS-1$
             mvzDataset.datasetId.setLocation(newUrl);
 
             // check maeviz-mapping object and set
-            if (metaInfoObj.has(RepoUtils.TAG_MAEVIZ_MAPPING)) {
-                List<Mapping> mappings = new LinkedList<Mapping>();
-                mvzDataset.maevizMapping.setSchema(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
-                if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).has(RepoUtils.TAG_MAPPING)) {
-                    if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONObject) {
-                        JSONObject mappingJsonObj = (JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
-                        Mapping m = new Mapping();
-                        if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
-                            m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
-                        }
-                        if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
-                            m.setTo(mappingJsonObj.get(RepoUtils.TAG_TO).toString());
-                        }
-                        mappings.add(m);
-                        mvzDataset.maevizMapping.setMapping(mappings);
-                    } else if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONArray) {
-                        JSONArray mappingJsonArray = (JSONArray) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
-                        for (int i = 0; i < mappingJsonArray.length(); i++) {
-                            JSONObject mappingJsonObj = (JSONObject) mappingJsonArray.get(i);
+            if (metaInfoObj != null) {
+                if (metaInfoObj.has(RepoUtils.TAG_MAEVIZ_MAPPING)) {
+                    List<Mapping> mappings = new LinkedList<Mapping>();
+                    mvzDataset.maevizMapping.setSchema(metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_SCHEMA).toString());
+                    if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).has(RepoUtils.TAG_MAPPING)) {
+                        if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONObject) {
+                            JSONObject mappingJsonObj = (JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
                             Mapping m = new Mapping();
                             if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
                                 m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
@@ -608,56 +695,35 @@ public class RepoService {
                                 m.setTo(mappingJsonObj.get(RepoUtils.TAG_TO).toString());
                             }
                             mappings.add(m);
+                            mvzDataset.maevizMapping.setMapping(mappings);
+                        } else if (metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING) instanceof JSONArray) {
+                            JSONArray mappingJsonArray = (JSONArray) metaInfoObj.getJSONObject(RepoUtils.TAG_MAEVIZ_MAPPING).get(RepoUtils.TAG_MAPPING);
+                            for (int i = 0; i < mappingJsonArray.length(); i++) {
+                                JSONObject mappingJsonObj = (JSONObject) mappingJsonArray.get(i);
+                                Mapping m = new Mapping();
+                                if (mappingJsonObj.has(RepoUtils.TAG_FROM)) {
+                                    m.setFrom(mappingJsonObj.get(RepoUtils.TAG_FROM).toString());
+                                }
+                                if (mappingJsonObj.has(RepoUtils.TAG_TO)) {
+                                    m.setTo(mappingJsonObj.get(RepoUtils.TAG_TO).toString());
+                                }
+                                mappings.add(m);
+                            }
+                            mvzDataset.maevizMapping.setMapping(mappings);
                         }
-                        mvzDataset.maevizMapping.setMapping(mappings);
                     }
                 }
-            }
 
-            // check metadata object and set
-            if (metaInfoObj.has(RepoUtils.TAG_METADATA)) {
-                List<ColumnMetadata> columnMetadatas = new LinkedList<ColumnMetadata>();
-                if (metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).has(RepoUtils.TAG_TABLE_METADATA)) {
-                    if (!(metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA) instanceof String)) {
-                        if (((JSONObject) (metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA))).has(RepoUtils.TAG_COLUMN_METADATA)) {
-                            if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONObject) {
-                                JSONObject columnMetadataObj = (JSONObject) ((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA);
-                                Metadata metadata = new Metadata();
-                                ColumnMetadata columnMetadata = new ColumnMetadata();
-                                if (columnMetadataObj.has(RepoUtils.TAG_FRIENDLY_NAME)) {
-                                    columnMetadata.setFriendlyName(columnMetadataObj.get(RepoUtils.TAG_FRIENDLY_NAME).toString());
-                                }
-                                if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
-                                    columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
-                                }
-                                if (columnMetadataObj.has(RepoUtils.TAG_UNIT)) {
-                                    columnMetadata.setUnit(columnMetadataObj.get(RepoUtils.TAG_UNIT).toString());
-                                }
-                                if (columnMetadataObj.has(RepoUtils.TAG_COLUMN_ID)) {
-                                    columnMetadata.setColumnId(columnMetadataObj.get(RepoUtils.TAG_COLUMN_ID).toString());
-                                }
-                                if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
-                                    columnMetadata.setSigFigs(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
-                                }
-                                if (columnMetadataObj.has(RepoUtils.TAG_UNIT_TYPE)) {
-                                    columnMetadata.setUnitType(columnMetadataObj.get(RepoUtils.TAG_UNIT_TYPE).toString());
-                                }
-                                if (columnMetadataObj.has(RepoUtils.TAG_IS_NUMERIC)) {
-                                    columnMetadata.setIsNumeric((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_NUMERIC));
-                                }
-                                if (columnMetadataObj.has(RepoUtils.TAG_IS_RESULT)) {
-                                    columnMetadata.setIsResult((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_RESULT));
-                                }
-                                columnMetadatas.add(columnMetadata);
-                                metadata.tableMetadata.setColumnMetadata(columnMetadatas);
-                                mvzDataset.setMetadata(metadata);
-                            } else if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONArray) {
-                                JSONArray columnMetadataArray = (JSONArray) ((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA);
-                                Metadata metadata = new Metadata();
-                                TableMetadata tableMetadata = new TableMetadata();
-                                for (int i = 0; i < columnMetadataArray.length(); i++) {
+                // check metadata object and set
+                if (metaInfoObj.has(RepoUtils.TAG_METADATA)) {
+                    List<ColumnMetadata> columnMetadatas = new LinkedList<ColumnMetadata>();
+                    if (metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).has(RepoUtils.TAG_TABLE_METADATA)) {
+                        if (!(metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA) instanceof String)) {
+                            if (((JSONObject) (metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA))).has(RepoUtils.TAG_COLUMN_METADATA)) {
+                                if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONObject) {
+                                    JSONObject columnMetadataObj = (JSONObject) ((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA);
+                                    Metadata metadata = new Metadata();
                                     ColumnMetadata columnMetadata = new ColumnMetadata();
-                                    JSONObject columnMetadataObj = (JSONObject) columnMetadataArray.get(i);
                                     if (columnMetadataObj.has(RepoUtils.TAG_FRIENDLY_NAME)) {
                                         columnMetadata.setFriendlyName(columnMetadataObj.get(RepoUtils.TAG_FRIENDLY_NAME).toString());
                                     }
@@ -683,9 +749,44 @@ public class RepoService {
                                         columnMetadata.setIsResult((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_RESULT));
                                     }
                                     columnMetadatas.add(columnMetadata);
+                                    metadata.tableMetadata.setColumnMetadata(columnMetadatas);
+                                    mvzDataset.setMetadata(metadata);
+                                } else if (((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA) instanceof JSONArray) {
+                                    JSONArray columnMetadataArray = (JSONArray) ((JSONObject) metaInfoObj.getJSONObject(RepoUtils.TAG_METADATA).get(RepoUtils.TAG_TABLE_METADATA)).get(RepoUtils.TAG_COLUMN_METADATA);
+                                    Metadata metadata = new Metadata();
+                                    TableMetadata tableMetadata = new TableMetadata();
+                                    for (int i = 0; i < columnMetadataArray.length(); i++) {
+                                        ColumnMetadata columnMetadata = new ColumnMetadata();
+                                        JSONObject columnMetadataObj = (JSONObject) columnMetadataArray.get(i);
+                                        if (columnMetadataObj.has(RepoUtils.TAG_FRIENDLY_NAME)) {
+                                            columnMetadata.setFriendlyName(columnMetadataObj.get(RepoUtils.TAG_FRIENDLY_NAME).toString());
+                                        }
+                                        if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
+                                            columnMetadata.setFieldLength(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
+                                        }
+                                        if (columnMetadataObj.has(RepoUtils.TAG_UNIT)) {
+                                            columnMetadata.setUnit(columnMetadataObj.get(RepoUtils.TAG_UNIT).toString());
+                                        }
+                                        if (columnMetadataObj.has(RepoUtils.TAG_COLUMN_ID)) {
+                                            columnMetadata.setColumnId(columnMetadataObj.get(RepoUtils.TAG_COLUMN_ID).toString());
+                                        }
+                                        if (columnMetadataObj.has(RepoUtils.TAG_FIELD_LENGTH)) {
+                                            columnMetadata.setSigFigs(Integer.parseInt(columnMetadataObj.get(RepoUtils.TAG_FIELD_LENGTH).toString()));
+                                        }
+                                        if (columnMetadataObj.has(RepoUtils.TAG_UNIT_TYPE)) {
+                                            columnMetadata.setUnitType(columnMetadataObj.get(RepoUtils.TAG_UNIT_TYPE).toString());
+                                        }
+                                        if (columnMetadataObj.has(RepoUtils.TAG_IS_NUMERIC)) {
+                                            columnMetadata.setIsNumeric((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_NUMERIC));
+                                        }
+                                        if (columnMetadataObj.has(RepoUtils.TAG_IS_RESULT)) {
+                                            columnMetadata.setIsResult((boolean) columnMetadataObj.get(RepoUtils.TAG_IS_RESULT));
+                                        }
+                                        columnMetadatas.add(columnMetadata);
+                                    }
+                                    metadata.tableMetadata.setColumnMetadata(columnMetadatas);
+                                    mvzDataset.setMetadata(metadata);
                                 }
-                                metadata.tableMetadata.setColumnMetadata(columnMetadatas);
-                                mvzDataset.setMetadata(metadata);
                             }
                         }
                     }
@@ -711,7 +812,7 @@ public class RepoService {
         String urlPart = inId.replace("$", "/");
         String fileDatasetUrl = REPO_DS_URL + urlPart;
         String baseName = FilenameUtils.getBaseName(fileDatasetUrl);
-        String tempDir = Files.createTempDirectory("repo_download_").toString();
+        String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
         String realUrl = RepoUtils.getRealUrl(fileDatasetUrl);
         List<String> fileList = RepoUtils.createFileListFromUrl(fileDatasetUrl);
 
@@ -719,7 +820,7 @@ public class RepoService {
             HttpDownloader.downloadFile(realUrl + fileList.get(i), tempDir);
         }
 
-        String zipfile = tempDir + File.separator + baseName + ".zip";
+        String zipfile = tempDir + File.separator + baseName + ".zip";  //$NON-NLS-1$
 
         // create zip file
         byte[] buffer = new byte[1024];
@@ -739,7 +840,7 @@ public class RepoService {
 
         zipOS.closeEntry();
         zipOS.close();
-        System.out.println("zip file has been created");
+        System.out.println("zip file has been created");    //$NON-NLS-1$
         return new File(zipfile);
     }
 
@@ -788,7 +889,7 @@ public class RepoService {
 
     private String createListHtml(String inId){
 
-        String outHtml = "<HTML><BODY>";
+        String outHtml = "<HTML><BODY>";    //$NON-NLS-1$
         String tmpRepoUrl = "";
         if (inId.length() > 0) {
             tmpRepoUrl = REPO_DS_URL + inId;
@@ -802,14 +903,14 @@ public class RepoService {
             // get only the last elemente after back slashes
             if (inId.length() > 0) {
                 String[] linkUrls = tmpUrl.split("/");
-                outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + linkUrls[linkUrls.length - 1] + "</a>";
+                outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + linkUrls[linkUrls.length - 1] + "</a>";    //$NON-NLS-1$ //$NON-NLS-2$
             } else {
-                outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + tmpUrl + "</a>";
+                outHtml = outHtml + "<a href =\"" + tmpUrl + "\">" + tmpUrl + "</a>";   //$NON-NLS-1$ //$NON-NLS-2$
             }
-            outHtml = outHtml + "</BR>";
+            outHtml = outHtml + "</BR>";    //$NON-NLS-1$
         }
 
-        outHtml = outHtml + "</BODY></HTML>";
+        outHtml = outHtml + "</BODY></HTML>";   //$NON-NLS-1$
         return outHtml;
     }
 
@@ -848,7 +949,7 @@ public class RepoService {
         //String baseName = FilenameUtils.getBaseName(metadataUrl);
         String baseNameStrs[] = urlStrs[0].split("/");
         String baseName = baseNameStrs[baseNameStrs.length - 1];
-        String tempDir = Files.createTempDirectory("repo_download_").toString();
+        String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
 
         // check if metadataUrl ends with EXTENSION_META that is .mvz
         String tmpEndStr = metadataUrl.substring(metadataUrl.lastIndexOf('.') + 1);

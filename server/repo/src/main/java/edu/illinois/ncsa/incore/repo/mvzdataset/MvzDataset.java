@@ -1,9 +1,9 @@
-package edu.illinois.ncsa.incore.repo;
+package edu.illinois.ncsa.incore.repo.mvzdataset;
 
-import edu.illinois.ncsa.incore.repo.json.objects.DatasetId;
-import edu.illinois.ncsa.incore.repo.json.objects.MaevizMapping;
-import edu.illinois.ncsa.incore.repo.json.objects.Metadata;
-import edu.illinois.ncsa.incore.repo.json.objects.Property;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.DatasetId;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.MaevizMapping;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.Metadata;
+import edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects.Property;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;

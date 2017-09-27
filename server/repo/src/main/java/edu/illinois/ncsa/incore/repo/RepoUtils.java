@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+//import com.google.gson.Gson;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -14,6 +15,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.CreateCollectionOptions;
 import com.mongodb.util.JSON;
+import edu.illinois.ncsa.incore.repo.domain.Dataset;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.bson.Document;
@@ -41,46 +43,52 @@ import java.util.Map;
  */
 public class RepoUtils {
     public static final String[] EXTENSIONS_SHAPEFILES = new String[]{"dbf", "prj", "shp", "shx"};
-    public static final String EXTENSION_SHP = "shp";
-    public static final String EXTENSION_META = "mvz";
-    public static final String EXTENSION_CSV ="csv";
+    public static final String EXTENSION_SHP = "shp";   //$NON-NLS-1$
+    public static final String EXTENSION_META = "mvz";  //$NON-NLS-1$
+    public static final String EXTENSION_CSV ="csv";    //$NON-NLS-1$
     public static final int INDENT_SPACE = 4;
-    public static final String TAG_PROPERTIES_GIS = "gis-dataset-properties";
-    public static final String TAG_PROPERTIES_MAP = "mapped-dataset-properties";
-    public static final String TAG_PROPERTIES_FILE = "file-dataset-properties";
-    public static final String TAG_PROPERTIES_RASTER = "raster-dataset-properties";
-    public static final String TAG_PROPERTIES_SCENARIO = "dataset-properties";
-    public static final String TAG_NAME = "name";
-    public static final String TAG_VERSION = "version";
-    public static final String TAG_DATA_FORMAT = "data-format";
-    public static final String TAG_TYPE_ID = "type-id";
-    public static final String TAG_FEATURE_TYPE_NAME = "feature-type-name";
-    public static final String TAG_CONVERTED_FEATURE_TYPE_NAME = "converted-feature-type-name";
-    public static final String TAG_GEOMETRY_TYPE = "geometry-type";
-    public static final String TAG_LOCATION ="location";
-    public static final String TAG_DESCRIPTION = "desription";
-    public static final String TAG_DATASET_ID = "dataset-id";
-    public static final String TAG_MAEVIZ_MAPPING = "maeviz-mapping";
-    public static final String TAG_SCHEMA = "schema";
-    public static final String TAG_MAPPING = "mapping";
-    public static final String TAG_FROM = "from";
-    public static final String TAG_TO = "to";
-    public static final String TAG_METADATA = "metadata";
-    public static final String TAG_TABLE_METADATA = "table-metadata";
-    public static final String TAG_COLUMN_METADATA = "column-metadata";
-    public static final String TAG_FRIENDLY_NAME = "friendly-name";
-    public static final String TAG_FIELD_LENGTH = "field-length";
-    public static final String TAG_UNIT = "unit";
-    public static final String TAG_COLUMN_ID = "column-id";
-    public static final String TAG_SIGFIGS = "sig-figs";
-    public static final String TAG_UNIT_TYPE = "unit-type";
-    public static final String TAG_IS_NUMERIC = "is-numeric";
-    public static final String TAG_IS_RESULT = "is-result";
+    public static final String TAG_PROPERTIES_GIS = "gis-dataset-properties";   //$NON-NLS-1$
+    public static final String TAG_PROPERTIES_MAP = "mapped-dataset-properties";    //$NON-NLS-1$
+    public static final String TAG_PROPERTIES_FILE = "file-dataset-properties"; //$NON-NLS-1$
+    public static final String TAG_PROPERTIES_RASTER = "raster-dataset-properties"; //$NON-NLS-1$
+    public static final String TAG_PROPERTIES_SCENARIO = "dataset-properties";  //$NON-NLS-1$
+    public static final String TAG_NAME = "name";   //$NON-NLS-1$
+    public static final String TAG_VERSION = "version"; //$NON-NLS-1$
+    public static final String TAG_DATA_FORMAT = "data-format"; //$NON-NLS-1$
+    public static final String TAG_TYPE_ID = "type-id"; //$NON-NLS-1$
+    public static final String TAG_FEATURE_TYPE_NAME = "feature-type-name"; //$NON-NLS-1$
+    public static final String TAG_CONVERTED_FEATURE_TYPE_NAME = "converted-feature-type-name"; //$NON-NLS-1$
+    public static final String TAG_GEOMETRY_TYPE = "geometry-type"; //$NON-NLS-1$
+    public static final String TAG_LOCATION ="location";    //$NON-NLS-1$
+    public static final String TAG_DESCRIPTION = "desription";  //$NON-NLS-1$
+    public static final String TAG_DATASET_ID = "dataset-id";   //$NON-NLS-1$
+    public static final String TAG_MAEVIZ_MAPPING = "maeviz-mapping";   //$NON-NLS-1$
+    public static final String TAG_SCHEMA = "schema";   //$NON-NLS-1$
+    public static final String TAG_MAPPING = "mapping"; //$NON-NLS-1$
+    public static final String TAG_FROM = "from";   //$NON-NLS-1$
+    public static final String TAG_TO = "to";   //$NON-NLS-1$
+    public static final String TAG_METADATA = "metadata";   //$NON-NLS-1$
+    public static final String TAG_TABLE_METADATA = "table-metadata";   //$NON-NLS-1$
+    public static final String TAG_COLUMN_METADATA = "column-metadata"; //$NON-NLS-1$
+    public static final String TAG_FRIENDLY_NAME = "friendly-name"; //$NON-NLS-1$
+    public static final String TAG_FIELD_LENGTH = "field-length";   //$NON-NLS-1$
+    public static final String TAG_UNIT = "unit";   //$NON-NLS-1$
+    public static final String TAG_COLUMN_ID = "column-id"; //$NON-NLS-1$
+    public static final String TAG_SIGFIGS = "sig-figs";    //$NON-NLS-1$
+    public static final String TAG_UNIT_TYPE = "unit-type"; //$NON-NLS-1$
+    public static final String TAG_IS_NUMERIC = "is-numeric";   //$NON-NLS-1$
+    public static final String TAG_IS_RESULT = "is-result"; //$NON-NLS-1$
     public static final String TAG_PROPERTIES = "";
     public static final int TYPE_NUMBER_SHP = 1;
     public static final int TYPE_NUMBER_CSV = 2;
     public static final int TYPE_NUMBER_META = 3;
     public static final int TYPE_NUMBER_MULTI = 10;
+    public static final String DATASET_TYPE = "type";   //$NON-NLS-1$
+    public static final String DATASET_SOURCE_DATASET = "sourceDataset";    //$NON-NLS-1$
+    public static final String DATASET_FORMAT = "format";   //$NON-NLS-1$
+    public static final String DATASET_SPACES ="spaces";    //$NON-NLS-1$
+    public static final String DB_COLLECTION_SPACES = "spaces";    //$NON-NLS-1$
+    public static final String DB_COLLECTION_DATASETS = "datasets";    //$NON-NLS-1$
 
     public static final Logger logger = Logger.getLogger(RepoUtils.class);
 
@@ -88,11 +96,11 @@ public class RepoUtils {
     public static void deleteTmpDir(File metadataFile, String fileExt) {
         String fileName = metadataFile.getAbsolutePath();
         String filePath = fileName.substring(0, fileName.lastIndexOf(metadataFile.separator));
-        int extLoc = metadataFile.getName().indexOf(".");
+        int extLoc = metadataFile.getName().indexOf(".");   //$NON-NLS-1$
         String extName = metadataFile.getName().substring(extLoc);
         String fileNameWithNoExt = FilenameUtils.removeExtension(fileName);
 
-        String delFileName = fileNameWithNoExt + "." + fileExt;
+        String delFileName = fileNameWithNoExt + "." + fileExt; //$NON-NLS-1$
         File delFile = new File(delFileName);
         deleteFiles(delFile, delFileName);
 
@@ -119,9 +127,9 @@ public class RepoUtils {
     public static void deleteFiles(File delFile, String delFileName){
         try {
             if (delFile.delete()) {
-                logger.debug("file or directory deleted: " + delFileName);
+                logger.debug("file or directory deleted: " + delFileName);  //$NON-NLS-1$
             } else {
-                logger.error("file or directory did not deleted: " + delFileName);
+                logger.error("file or directory did not deleted: " + delFileName);  //$NON-NLS-1$
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -134,7 +142,7 @@ public class RepoUtils {
         String datasetUrl = repoUrl + urlPart;
         List<String> fileList = createFileListFromUrl(datasetUrl);
 
-        String outfileStr = "";
+        String outfileStr = ""; //$NON-NLS-1$
         for (int i=0; i < fileList.size();i++) {
             String fileExt = FilenameUtils.getExtension(fileList.get(i));
             if (fileExt.equals(extStr)) {
@@ -142,12 +150,12 @@ public class RepoUtils {
             }
         }
 
-        String outfileName = "";
+        String outfileName = "";    //$NON-NLS-1$
         if (outfileStr.length() > 0) {
             // get the base name of the shapefile
             String shapefileNames[] = outfileStr.split("." + extStr);
             String baseName = shapefileNames[0];
-            String tempDir = Files.createTempDirectory("repo_download_").toString();
+            String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
             if (extStr.equals(EXTENSION_SHP)) {
                 for (String extension : EXTENSIONS_SHAPEFILES) {
                     HttpDownloader.downloadFile(datasetUrl + baseName + "." + extension, tempDir);
@@ -176,11 +184,11 @@ public class RepoUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Elements links = doc.select("a");
+        Elements links = doc.select("a");   //$NON-NLS-1$
         String linkAtr = "";
 
         for (int i=0;i < links.size();i++){
-            linkAtr = links.get(i).attr("href");
+            linkAtr = links.get(i).attr("href");    //$NON-NLS-1$
             if (linkAtr.length() > 3) {
                 linkList.add(linkAtr);
             }
@@ -192,7 +200,7 @@ public class RepoUtils {
     public static String getRealUrl(String inUrl) {
         String strs[] = inUrl.split("/converted/");
         String urlPrefix = strs[0];
-        String realUrl = urlPrefix + "/converted/";
+        String realUrl = urlPrefix + "/converted/"; //$NON-NLS-1$
 
         return realUrl;
     }
@@ -209,17 +217,17 @@ public class RepoUtils {
             database.createCollection(typeId, new CreateCollectionOptions().capped(false));
             // insert document into collection
             String outJson = getMetaJson(typeId, datasetId, repoUrl, serverUrlPrefix);
-            return insertJsonStringToMongo(database, typeId, datasetId, outJson);
+            return insertJsonStringToMongo(database, typeId, datasetId, outJson, true);
         } else {
-            logger.debug("Collection \"" + typeId + "\" already exists.");
+            logger.debug("Collection \"" + typeId + "\" already exists."); //$NON-NLS-1$ //$NON-NLS-2$
             // check if the document is there
             boolean isDocExist = isDocumentExist(database, typeId, datasetId);
             if (!isDocExist) {
                 // insert document into collection
                 String outJson = getMetaJson(typeId, datasetId, repoUrl, serverUrlPrefix);
-                return insertJsonStringToMongo(database, typeId, datasetId, outJson);
+                return insertJsonStringToMongo(database, typeId, datasetId, outJson, true);
             } else {
-                logger.debug("Document already exists");
+                logger.debug("Document already exists");    //$NON-NLS-1$
                 return false;
             }
         }
@@ -234,15 +242,15 @@ public class RepoUtils {
 
         if (!isCollExist) { // create collection and insert input json as document
             database.createCollection(collId, new CreateCollectionOptions().capped(false));
-            return insertJsonStringToMongo(database, collId, docId, inJson);
+            return insertJsonStringToMongo(database, collId, docId, inJson, true);
         } else {
             // check if the document already exists
             boolean isDocExist = isDocumentExist(database, collId, docId);
             if (!isDocExist) {
                 // insert document into collection
-                return insertJsonStringToMongo(database, collId, docId, inJson);
+                return insertJsonStringToMongo(database, collId, docId, inJson, true);
             } else {
-                logger.debug("Document already exists");
+                logger.debug("Document already exists");    //$NON-NLS-1$
                 return false;
             }
         }
@@ -262,7 +270,7 @@ public class RepoUtils {
             String outJson = getCsvJson(typeId, datasetId, repoUrl);
             return insertCsvJsonToMongo(database, typeId, datasetId, outJson);
         } else {
-            logger.debug("Collection \"" + typeId + "\" already exists.");
+            logger.debug("Collection \"" + typeId + "\" already exists.");  //$NON-NLS-1$   //$NON-NLS-2$
             // check if the document is there
             boolean isDocExist = isDocumentExist(database, typeId, datasetId);
             if (!isDocExist) {
@@ -270,7 +278,7 @@ public class RepoUtils {
                 String outJson = getCsvJson(typeId, datasetId, repoUrl);
                 return insertCsvJsonToMongo(database, typeId, datasetId, outJson);
             } else {
-                logger.debug("Document already exists");
+                logger.debug("Document already exists");    //$NON-NLS-1$
                 return false;
             }
         }
@@ -290,7 +298,7 @@ public class RepoUtils {
             String geoJson = getGeoJson(typeId, datasetId, repoUrl);
             return insertGeoJsonToMongo(database, typeId, datasetId, geoJson);
         } else {
-            logger.debug("Collection \"" + typeId + "\" already exists.");
+            logger.debug("Collection \"" + typeId + "\" already exists.");  //$NON-NLS-1$   //$NON-NLS-2$
             // check if the document is there
             boolean isDocExist = isDocumentExist(database, typeId, datasetId);
             if (!isDocExist) {
@@ -298,7 +306,7 @@ public class RepoUtils {
                 String geoJson = getGeoJson(typeId, datasetId, repoUrl);
                 return insertGeoJsonToMongo(database, typeId, datasetId, geoJson);
             } else {
-                logger.debug("Document already exists");
+                logger.debug("Document already exists");    //$NON-NLS-1$
                 return false;
             }
         }
@@ -307,7 +315,7 @@ public class RepoUtils {
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";
+        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
         String outJson = "";
         String fileName = "";
         try{
@@ -331,7 +339,7 @@ public class RepoUtils {
         String outJson = "";
         String fileName = "";
         try{
-            String tempDir = Files.createTempDirectory("repo_download_").toString();
+            String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
             HttpDownloader.downloadFile(datasetUrl + datasetId + "." + EXTENSION_META, tempDir);
             fileName = tempDir + File.separator + datasetId + "." + EXTENSION_META;
             if (fileName.length() > 0) {
@@ -340,7 +348,7 @@ public class RepoUtils {
             }
         }catch (IOException e) {
             e.printStackTrace();
-//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
         }
         return outJson;
     }
@@ -348,7 +356,7 @@ public class RepoUtils {
     // create geoJson from the shapefile url
     public static String getGeoJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";
+        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
         String outJson = "";
         String fileName = "";
         try{
@@ -359,7 +367,7 @@ public class RepoUtils {
             }
         }catch (IOException e) {
             e.printStackTrace();
-//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
+//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
         }
         return outJson;
     }
@@ -376,6 +384,29 @@ public class RepoUtils {
             }
         }
         return true;
+    }
+
+    public static void insertDatasetToMongo(Dataset dataset, String mongoUrl, String mongoDbName){
+        MongoDatabase database = getMongoDatabase(mongoUrl, mongoDbName);
+
+//        // convert Dataset obj to Mondo document
+//        Gson gson = new Gson();
+//        String datasetJsonString = gson.toJson(dataset);
+//
+//        // check if the dataset id is already in the mongodb
+//        boolean isSpacesExist = isCollectionExist(database, DB_COLLECTION_SPACES);
+//        boolean isDatsetsExist = isCollectionExist(database, DB_COLLECTION_DATASETS);
+//
+//        // create collection if collection is not there
+//        if (!isSpacesExist) {
+//            database.createCollection(DB_COLLECTION_SPACES, new CreateCollectionOptions().capped(false));
+//        }
+//        if (!isDatsetsExist) {
+//            database.createCollection(DB_COLLECTION_SPACES, new CreateCollectionOptions().capped(false));
+//        }
+//        // insert document into collection
+//        insertJsonStringToMongo(database, DB_COLLECTION_DATASETS, "", datasetJsonString, false);
+
     }
 
     public static MongoDatabase getMongoDatabase(String mongoUrl, String dbName){
@@ -396,7 +427,7 @@ public class RepoUtils {
         }
         return  outList;
     }
-
+    // POJO method
     // check if collection exists, otherwise create one with a type id
     public static boolean isCollectionExist(MongoDatabase database, String collectionName) {
         boolean isCollExist = false;
@@ -415,7 +446,7 @@ public class RepoUtils {
         boolean isDocExist = false;
         MongoCollection<Document> tmpCollection = database.getCollection(collectionName);
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", docName);
+        query.put("_id", docName);  //$NON-NLS-1$
         FindIterable existDoc = tmpCollection.find(query);
 
         if (existDoc.first() != null) {
@@ -428,9 +459,9 @@ public class RepoUtils {
         try {
             MongoCollection<org.bson.Document> geoJsonColl = database.getCollection(typeId);
             BasicDBObject document = (BasicDBObject) JSON.parse(inJson);
-            document.put("_id", datasetId);
+            document.put("_id", datasetId); //$NON-NLS-1$
             geoJsonColl.insertOne(new org.bson.Document(document));
-            geoJsonColl.createIndex(new BasicDBObject("geometry","2dsphere"));
+            geoJsonColl.createIndex(new BasicDBObject("geometry","2dsphere"));  //$NON-NLS-1$ //$NON-NLS-2$
         } catch (JSONException ex) {
             logger.error(ex);
             return false;
@@ -443,8 +474,8 @@ public class RepoUtils {
             MongoCollection<org.bson.Document> csvJsonColl = database.getCollection(collId);
             BasicDBList docList = (BasicDBList) JSON.parse(inJson);
             org.bson.Document document = new org.bson.Document();
-            document.put("_id", docId);
-            document.put("table", docList);
+            document.put("_id", docId); //$NON-NLS-1$
+            document.put("table", docList); //$NON-NLS-1$
             csvJsonColl.insertOne(document);
         } catch (JSONException ex) {
             logger.error(ex);
@@ -453,11 +484,13 @@ public class RepoUtils {
         return true;
     }
 
-    public static boolean insertJsonStringToMongo(MongoDatabase database, String collId, String docId, String inJson) {
+    public static boolean insertJsonStringToMongo(MongoDatabase database, String collId, String docId, String inJson, boolean idIn) {
         try {
             MongoCollection<org.bson.Document> collName = database.getCollection(collId);
             BasicDBObject docObj = (BasicDBObject) JSON.parse(inJson);
-            docObj.put("_id", docId);
+            if (idIn) {
+                docObj.put("_id", docId);   //$NON-NLS-1$
+            }
             collName.insertOne(new Document(docObj));
         } catch (JSONException ex) {
             logger.error(ex);
@@ -470,12 +503,12 @@ public class RepoUtils {
         MongoDatabase database = getMongoDatabase(mongoUrl, geoDbName);
         MongoIterable<String> collNames = database.listCollectionNames();
         org.bson.Document result = new Document();
-        String outJson = "";
+        String outJson = "";    //$NON-NLS-1$
 
         for (String collectionName: collNames) {
             MongoCollection<Document> tmpCollection = database.getCollection(collectionName);
             BasicDBObject query = new BasicDBObject();
-            query.put("_id", datasetId);
+            query.put("_id", datasetId);    //$NON-NLS-1$
             FindIterable existDoc = tmpCollection.find(query);
 
             if (existDoc.first() != null) {
@@ -506,22 +539,22 @@ public class RepoUtils {
 
         // create collection
         if (isCollExist) {
-            logger.debug("Collection already exists");
+            logger.debug("Collection already exists");  //$NON-NLS-1$
         } else {
             database.createCollection(typeId, new CreateCollectionOptions().capped(false));
         }
 
         MongoCollection<org.bson.Document> geoJsonColl = database.getCollection(typeId);
         BasicDBObject document = (BasicDBObject) JSON.parse(inJson);
-        document.put("_id", datasetId);
+        document.put("_id", datasetId); //$NON-NLS-1$
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", datasetId);
+        query.put("_id", datasetId);    //$NON-NLS-1$
         FindIterable existDoc = geoJsonColl.find(document);
         //MongoIterable<Document> iterable = geoJsonColl.find({_id: datasetId), {_id:1}).limit(1);
         if (existDoc.first() == null) {
             geoJsonColl.insertOne(new org.bson.Document(query));
         } else {
-            logger.debug("Document already exists");
+            logger.debug("Document already exists");    //$NON-NLS-1$
         }
 
 //        org.bson.Document myDoc = geoJsonColl.find(query).first();
@@ -539,7 +572,25 @@ public class RepoUtils {
             Object output = jsonObj.get(inId);
             return output.toString();
         } else {
-            return "";
+            return "";  //$NON-NLS-1$
+        }
+    }
+
+    public static List<String> extractValueListFromJsonString(String inId, String inJson) {
+        JSONObject jsonObj = new JSONObject(inJson);
+        List<String> outList = new LinkedList<String>();
+        if (jsonObj.has(inId)) {
+            try {
+                JSONArray inArray = (JSONArray) jsonObj.get(inId);
+                for (Object jObj: inArray) {
+                    outList.add(jObj.toString());
+                }
+                return outList;
+            } catch (JSONException e) {
+                return outList;
+            }
+        } else {
+            return outList;
         }
     }
 
@@ -566,7 +617,7 @@ public class RepoUtils {
 
     public static String formatMetadataAsJson(File metadataFile, String inId, String serverUrlPrefix) throws IOException {
         // convert from UTF-16 to UTF-8
-        String xmlString = "";
+        String xmlString = "";  //$NON-NLS-1$
         metadataFile.setReadOnly();
         Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
         char metaCharBuffer[] = new char[2048];
@@ -602,13 +653,13 @@ public class RepoUtils {
                 locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_SCENARIO).getJSONObject(TAG_DATASET_ID);
             }
 
-            String newUrl = serverUrlPrefix + inId + "/files";
+            String newUrl = serverUrlPrefix + inId + "/files";  //$NON-NLS-1$
             locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(INDENT_SPACE);
             return jsonString;
         } catch (JSONException ex) {
             logger.error(ex);
-            return "{\"error:\" + \"" + ex.getLocalizedMessage() + "\"}";
+            return "{\"error:\" + \"" + ex.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
         }
     }
 

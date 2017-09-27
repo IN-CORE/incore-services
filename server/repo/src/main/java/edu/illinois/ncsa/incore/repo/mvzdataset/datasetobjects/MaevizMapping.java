@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.repo.json.objects;
+package edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.repo.json.objects;
+package edu.illinois.ncsa.incore.repo.mvzdataset.datasetobjects;
 
 /**
  * Created by ywkim on 8/2/2017.
