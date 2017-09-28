@@ -22,6 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.regex.Pattern;
 
 @Path("earthquake")
 public class EarthquakeResource {
@@ -43,7 +44,7 @@ public class EarthquakeResource {
             String period = demandType;
             String demand = demandType;
 
-            if(demandType.contains(HazardUtil.SA)) {
+            if(Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
                 String[] demandSplit = demandType.split(" ");
                 period = demandSplit[0];
                 demand = demandSplit[1];
