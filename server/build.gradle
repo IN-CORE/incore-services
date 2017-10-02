@@ -56,6 +56,7 @@ farm {
     webapp ':fragility-server'
     webapp ':repo'
     webapp ':hazard-service'
+    webapp ':maestro-service'
 }
 
 //For now, all subprojects are java projects. Later this might change.
@@ -79,7 +80,7 @@ subprojects {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server", "repo", "hazard-service"].each { name ->
+["fragility-server", "repo", "hazard-service", "maestro-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'

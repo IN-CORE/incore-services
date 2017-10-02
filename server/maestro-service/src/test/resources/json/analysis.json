@@ -1,0 +1,138 @@
+[
+  {
+    "id": "5894ebee1a743941f0c4bc26",
+    "name": "Building Cumulative Risk Assessment",
+    "description": "This analysis computes the combined earthquake and tsunami damage for buildings.",
+    "category": "buildings",
+    "url": "https://incore.ncsa.illinois.edu/cumulative_risk_assessment",
+    "inputs": [
+      {
+        "name": "Result Name",
+        "description": "Specify the name of the result dataset",
+        "type": "java.lang.String",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Buildings",
+        "description": "Please select from the list or use the search button to choose which Building inventory dataset you want to compute combined damage for.",
+        "type": "edu.illinois.ncsa.incore.buildings",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Earthquake Damage",
+        "description": "Please select from the list a building earthquake damage dataset or use the create button to generate building damage.",
+        "type": "edu.illinois.ncsa.incore.buildingDamage",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Tsunami Damage",
+        "description": "Please select from the list a building tsunami damage dataset or use the create button to generate building damage.",
+        "type": "edu.illinois.ncsa.incore.buildingDamage",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Expected Value",
+        "description": "Select a dataset that contains the Damage Ratios for buildings. Damage ratios provide numerical correlation between damage states and mean damage.",
+        "type": "edu.illinois.ncsa.incore.buildingDamageRatio",
+        "required": false,
+        "advanced": true,
+        "multiple": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Combined Damage",
+        "description": "Shapefile with the combined damage.",
+        "type": "edu.illinois.ncsa.incore.buildingDamage"
+      }
+    ]
+  },
+  {
+    "id": "5894ebee1a743941f0c4a4e1",
+    "name": "Roadway Restoration",
+    "description": "Computes the functionality of a roadway, based on the expected damage.",
+    "category": "transportation",
+    "url": "https://incore.ncsa.illinois.edu/roadway_restoration",
+    "inputs": [
+      {
+        "name": "Result Name",
+        "description": "Specify the name of the result dataset",
+        "type": "java.lang.String",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Roadway Damage",
+        "description": "The damaged roadway inventory dataset.",
+        "type": "edu.illinois.ncsa.incore.roadwayDamage",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Restoration Curve",
+        "description": "The damaged roadway inventory dataset.",
+        "type": "edu.illinois.ncsa.incore.restorationCurve",
+        "required": false,
+        "advanced": true,
+        "multiple": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Roadway Restoration Result",
+        "description": "Roadway Restoration Result dataset",
+        "type": "edu.illinois.ncsa.incore.transportation.roadwayRestorationResult"
+      }
+    ]
+  },
+  {
+    "id": "5894ebee1a743941f0c4a4e8",
+    "name": "Electric Power Network Damage, Tornado",
+    "description": "This analysis computes the damage of electric power network based on a tornado hazard.",
+    "category": "hazard",
+    "url": "https://incore.ncsa.illinois.edu/epn_tornado",
+    "inputs": [
+      {
+        "name": "Result Name",
+        "description": "Specify the name of the result dataset",
+        "type": "java.lang.String",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Electric Power Network",
+        "description": "Search and/or create the electric power network to analyze.",
+        "type": "edu.illinois.ncsa.incore.epn",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      },
+      {
+        "name": "Tornado Hazard",
+        "description": "Search and/or create the tornado hazard that causes the damage",
+        "type": "edu.illinois.ncsa.incore.tornado",
+        "required": true,
+        "advanced": false,
+        "multiple": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Electric Power Network Damage",
+        "description": "Resulting damage in the power network after a hazard",
+        "type": "edu.illinois.ncsa.incore.epn_damage"
+      }
+    ]
+  }
+]
