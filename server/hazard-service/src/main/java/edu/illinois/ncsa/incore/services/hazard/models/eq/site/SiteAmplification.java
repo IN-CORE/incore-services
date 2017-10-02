@@ -1,6 +1,6 @@
-package edu.illinois.ncsa.incore.services.hazard.eq.site;
+package edu.illinois.ncsa.incore.services.hazard.models.eq.site;
 
-import edu.illinois.ncsa.incore.services.hazard.eq.Site;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
 
 public abstract class SiteAmplification {
 

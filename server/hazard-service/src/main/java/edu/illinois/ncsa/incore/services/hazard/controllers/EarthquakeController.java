@@ -1,17 +1,28 @@
-package edu.illinois.ncsa.incore.services.hazard;
+/*******************************************************************************
+ * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the {license} which accompanies this distribution,
+ * and is available at {license-url}
+ *
+ * Contributors:
+ * Christopher Navarro (NCSA) - initial API and implementation and/or initial documentation
+ *******************************************************************************/
+
+package edu.illinois.ncsa.incore.services.hazard.controllers;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.services.hazard.eq.EqParameters;
-import edu.illinois.ncsa.incore.services.hazard.eq.Site;
-import edu.illinois.ncsa.incore.services.hazard.eq.models.AtkinsonBoore1995;
-import edu.illinois.ncsa.incore.services.hazard.eq.site.NEHRPSiteAmplification;
-import edu.illinois.ncsa.incore.services.hazard.eq.site.SiteAmplification;
-import edu.illinois.ncsa.incore.services.hazard.eq.util.HazardUtil;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.EqParameters;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations.AtkinsonBoore1995;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.site.NEHRPSiteAmplification;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.site.SiteAmplification;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.utils.HazardUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 
+import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -20,14 +31,15 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.regex.Pattern;
 
 @Path("earthquake")
-public class EarthquakeResource {
-    private static final Logger logger = Logger.getLogger(EarthquakeResource.class);
+public class EarthquakeController {
+    private static final Logger logger = Logger.getLogger(EarthquakeController.class);
     private GeometryFactory factory = new GeometryFactory();
+
+    @Inject
+    private AtkinsonBoore1995 model;
 
     @Context
     ServletContext context;
@@ -36,6 +48,8 @@ public class EarthquakeResource {
     @Path("/model")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getEarthquakeModelHazard(@QueryParam("modelId") String modelId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("eqJson") String eqJson) {
+
+        System.out.println(model == null);
         EqParameters eqParameters = null;
         try {
             eqParameters = new ObjectMapper().readValue(eqJson, EqParameters.class);
@@ -54,10 +68,10 @@ public class EarthquakeResource {
             // TODO handle the case of a defined earthquake using multiple attenuations for weighting
             if(modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
                 try {
-                    String fileName = modelId + ".csv";
-                    URL coefficientURL = context.getResource("/WEB-INF/hazard/earthquake/coefficients/" + fileName);
-                    AtkinsonBoore1995 model = new AtkinsonBoore1995();
-                    model.readCoeffients(coefficientURL);
+//                    String fileName = modelId + ".csv";
+//                    URL coefficientURL = context.getResource("/WEB-INF/hazard/earthquake/coefficients/" + fileName);
+//                    AtkinsonBoore1995 model = new AtkinsonBoore1995();
+//                    model.readCoeffients(coefficientURL);
                     model.setRuptureParameters(eqParameters);
 
                     // Local site to get hazard for
