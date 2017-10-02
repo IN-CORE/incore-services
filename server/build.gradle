@@ -54,7 +54,7 @@ if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
 //in the same webapp service.
 farm {
     webapp ':fragility-server'
-    webapp ':repo'
+    webapp ':data-service'
     webapp ':hazard-service'
     webapp ':maestro-service'
 }
@@ -80,7 +80,7 @@ subprojects {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server", "repo", "hazard-service", "maestro-service"].each { name ->
+["fragility-server", "data-service", "hazard-service", "maestro-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'

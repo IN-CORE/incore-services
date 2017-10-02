@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="fragility-mapping/src/main/java"/>
+	<classpathentry kind="src" path="fragility-server/src/main/java"/>
+	<classpathentry kind="src" path="repo/src/main/java"/>
+	<classpathentry excluding="Semantic/Model/Common/" kind="src" path="semantic-core/src/main/java"/>
+	<classpathentry kind="src" path="semantic-core/src/main/java/Semantic/Model/Common"/>
+	<classpathentry kind="src" path="semantic-core/src/test/java"/>
+	<classpathentry kind="src" path="tools-common/src/main/java"/>
+	<classpathentry kind="lib" path="gradle/wrapper/gradle-wrapper.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
