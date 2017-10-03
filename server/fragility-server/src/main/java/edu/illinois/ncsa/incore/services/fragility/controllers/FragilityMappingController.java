@@ -33,17 +33,15 @@ public class FragilityMappingController {
     @Produces("application/json")
     @Path("/{mappingsetId}/{datasetId}")
     public Map<String, String> getMappings(@PathParam("mappingsetId") String mappingsetId, @PathParam("datasetId") String datasetId) {
-        throw new NotFoundException("not authorized");
-//        log.error("foo!");
-//
-//        FragilityMapper fragilityMapper = new FragilityMapper();
-//        fragilityMapper.addMappingSet(mappingsetId);
-//        //first load the dataset based on the url
-//
-//        HashMap<String, String> result = new HashMap<>();
-//        result.put("1", "2");
-//        result.put("3", "4");
-//        return result;
+
+        FragilityMapper fragilityMapper = new FragilityMapper();
+        fragilityMapper.addMappingSet(mappingsetId);
+        //first load the dataset based on the url
+
+        HashMap<String, String> result = new HashMap<>();
+        result.put("1", "2");
+        result.put("3", "4");
+        return result;
     }
 
     @GET
