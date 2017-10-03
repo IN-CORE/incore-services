@@ -36,7 +36,7 @@ public class Authorizer {
 
 
     public Set<Privilege> getPrivilegesFor(String user, String privilegeSpecJson) {
-        PrivilegeSpec spec = new PrivilegeSpec(privilegeSpecJson);
+        PrivilegeSpec spec =  PrivilegeSpec.fromJson(privilegeSpecJson);
         return getPrivilegesFor(user, spec);
     }
 
