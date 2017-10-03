@@ -2,10 +2,18 @@ package edu.illinois.ncsa.incore.common.auth;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+
+/**
+ * Authorizer is used by various services to determine if,
+ * based on an entity's PrivilegeSpec and a user, whether that user
+ * has a specific privilege for the entity
+ */
 public class Authorizer {
 
     private static Authorizer instance;
+    private LdapClient ldapClient;
 
     //I don't really like the idea of doing this as a singleton,
     //this thing is going to need some configuration to know what
@@ -54,10 +62,25 @@ public class Authorizer {
 
 
     private Set<Privilege> getGroupSpecificPrivileges(String user, PrivilegeSpec spec) {
-        return new HashSet<Privilege>();
+        LdapClient ldapClient = getLdapClient();
+        Set<String> userGroups = ldapClient.getUserGroups(user);
+        return spec.groupPrivileges.keySet().stream()
+                .filter(userGroups::contains)
+                .map( key -> spec.groupPrivileges.get(key))
+                .collect(Collectors.toSet());
     }
 
     private Set<Privilege> getUserSpecificPrivileges(String user, PrivilegeSpec spec) {
-        return new HashSet<Privilege>();
+        return spec.userPrivileges.keySet().stream()
+                .filter(user::equals)
+                .map( key -> spec.userPrivileges.get(key))
+                .collect(Collectors.toSet());
+    }
+
+    private LdapClient getLdapClient() {
+        if (ldapClient == null) {
+            ldapClient = new LdapClient();
+        }
+        return ldapClient;
     }
 }
