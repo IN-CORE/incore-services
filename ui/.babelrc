@@ -1,0 +1,24 @@
+{
+  "presets": [
+	"latest",
+	"stage-0",
+	"react"
+  ],
+  "plugins": [
+	["babel-root-import"],
+	["transform-flow-strip-types"]
+  ],
+  "env": {
+	"development": {
+	  "presets": [
+		"react-hmre"
+	  ]
+	},
+	"production": {
+	  "plugins": [
+		"transform-react-constant-elements",
+		"transform-react-remove-prop-types"
+	  ]
+	}
+  }
+}
