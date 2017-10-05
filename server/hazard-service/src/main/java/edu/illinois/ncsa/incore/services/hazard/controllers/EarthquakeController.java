@@ -10,6 +10,7 @@
 
 package edu.illinois.ncsa.incore.services.hazard.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.services.hazard.models.eq.EqParameters;
@@ -18,19 +19,14 @@ import edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations.AtkinsonB
 import edu.illinois.ncsa.incore.services.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.services.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.services.hazard.models.eq.utils.HazardUtil;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
-import javax.servlet.ServletContext;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.regex.Pattern;
 
 @Path("earthquake")
@@ -41,15 +37,11 @@ public class EarthquakeController {
     @Inject
     private AtkinsonBoore1995 model;
 
-    @Context
-    ServletContext context;
-
     @GET
     @Path("/model")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getEarthquakeModelHazard(@QueryParam("modelId") String modelId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("eqJson") String eqJson) {
 
-        System.out.println(model == null);
         EqParameters eqParameters = null;
         try {
             eqParameters = new ObjectMapper().readValue(eqJson, EqParameters.class);
@@ -58,7 +50,7 @@ public class EarthquakeController {
             String period = demandType;
             String demand = demandType;
 
-            if(Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
+            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
                 String[] demandSplit = demandType.split(" ");
                 period = demandSplit[0];
                 demand = demandSplit[1];
@@ -66,12 +58,8 @@ public class EarthquakeController {
 
             // TODO How can we store and lookup these model by ID?
             // TODO handle the case of a defined earthquake using multiple attenuations for weighting
-            if(modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
+            if (modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
                 try {
-//                    String fileName = modelId + ".csv";
-//                    URL coefficientURL = context.getResource("/WEB-INF/hazard/earthquake/coefficients/" + fileName);
-//                    AtkinsonBoore1995 model = new AtkinsonBoore1995();
-//                    model.readCoeffients(coefficientURL);
                     model.setRuptureParameters(eqParameters);
 
                     // Local site to get hazard for
@@ -79,20 +67,21 @@ public class EarthquakeController {
 
                     double value = model.getValue(period, localSite);
                     return Response.ok(value).build();
-                } catch(MalformedURLException e) {
-                    logger.error("Error locating model coefficients.", e);
+                } catch (MalformedURLException e) {
+                    logger.error("Error locating coefficients for " + modelId, e);
+                    throw new InternalServerErrorException("Error locating coefficients for " + modelId, e);
                 } catch (Exception e) {
                     logger.error("Error getting model value for point.", e);
+                    throw new InternalServerErrorException("Error getting model value for point.", e);
                 }
             } else {
-                return Response.status(404).entity("Unknown attenuation model").build();
+                logger.error("Unknown attenuation model " + modelId);
+                throw new NotFoundException("Unknown attenuation model " + modelId);
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            return Response.status(500).entity("Error reading earthquake parameters").build();
+            logger.error("Error reading earthquake parameters");
+            throw new InternalServerErrorException("Error reading earthquake parameters");
         }
-
-        return Response.status(500 ).build();
     }
 
     // CMN: If we assume the Web application has access to the soil class layer then we could eliminate datasetId and lookup site classification on the client side
@@ -102,17 +91,17 @@ public class EarthquakeController {
     public Response getEarthquakeSiteAmplification(@QueryParam("method") String method, @QueryParam("datasetId") @DefaultValue("") String datasetId, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("demandType") String demandType, @QueryParam("hazard") double hazard, @QueryParam("defaultSiteClass") String defaultSiteClass) {
 
         int localSiteClass = HazardUtil.getSiteClassAsInt(defaultSiteClass);
-        if(localSiteClass == -1) {
+        if (localSiteClass == -1) {
             return Response.status(500).entity("Unknown default site classification, expected A, B, C, D, E or F").build();
         }
 
-        if(!datasetId.isEmpty()) {
+        if (!datasetId.isEmpty()) {
             // TODO implement this
         }
 
         String period = demandType;
 
-        if(demandType.contains(HazardUtil.SA)) {
+        if (demandType.contains(HazardUtil.SA)) {
             String[] demandSplit = demandType.split(" ");
             period = demandSplit[0];
         }
@@ -121,7 +110,7 @@ public class EarthquakeController {
         // Local site to get hazard for
         Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
 
-        if(method.equalsIgnoreCase("NEHRP")) {
+        if (method.equalsIgnoreCase("NEHRP")) {
             siteAmplification = new NEHRPSiteAmplification();
             // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
             // and the range for interpretation is in units of g
