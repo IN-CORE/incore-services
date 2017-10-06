@@ -111,6 +111,41 @@ public class HazardUtil
         }
         return convertedHazard;
     }
+
+    /**
+     *
+     * @param hazard
+     * @return
+     */
+    public static String stripPeriod(String hazard)
+    {
+        hazard = hazard.replaceAll("[0-9]*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        hazard = hazard.replaceAll("\\.*", "");//$NON-NLS-1$ //$NON-NLS-2$
+        hazard = hazard.replaceAll("sec", "");//$NON-NLS-1$ //$NON-NLS-2$
+        hazard = hazard.replaceAll(" ", "");//$NON-NLS-1$ //$NON-NLS-2$
+        if ("".equals(hazard)) //$NON-NLS-1$
+        {
+            hazard = "Sa"; //$NON-NLS-1$
+        }
+        return hazard;
+    }
+
+    /**
+     *
+     * @param hazard
+     * @return
+     */
+    public static double getPeriod(String hazard)
+    {
+        hazard = hazard.replaceAll("[ a-zA-Z]*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        try {
+            return Double.parseDouble(hazard);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+
+    }
+
     /**
      *
      * @param p1

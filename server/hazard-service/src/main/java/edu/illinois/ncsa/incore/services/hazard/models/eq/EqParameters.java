@@ -2,14 +2,18 @@ package edu.illinois.ncsa.incore.services.hazard.models.eq;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import org.mongodb.morphia.annotations.Transient;
 
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.HashMap;
 import java.util.Map;
 
 public class EqParameters {
     private double srcLatitude;
     private double srcLongitude;
-    private Site epicenter;
+
+    // Removed this helper variable due to serialization exception
+//    private Site epicenter;
     private double magnitude;
     private double coseismicRuptureDepth;
     private double dipAngle;
@@ -235,7 +239,7 @@ public class EqParameters {
         this.depth = depth;
     }
 
-    private double getDepth() {
+    public double getDepth() {
         return depth;
     }
 
@@ -255,13 +259,13 @@ public class EqParameters {
         this.srcLongitude = srcLongitude;
     }
 
-    public Site getEpicenter() {
-        if(epicenter == null && srcLatitude != -1 && srcLongitude != -1) {
-            epicenter = new Site(new GeometryFactory().createPoint(new Coordinate(srcLongitude, srcLatitude)), depth);
-        }
-
-        return epicenter;
-    }
+//    public Site getEpicenter() {
+//        if(epicenter == null && srcLatitude != -1 && srcLongitude != -1) {
+//            epicenter = new Site(new GeometryFactory().createPoint(new Coordinate(srcLongitude, srcLatitude)), depth);
+//        }
+//
+//        return epicenter;
+//    }
 
 }
 

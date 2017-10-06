@@ -1,5 +1,7 @@
 package edu.illinois.ncsa.incore.services.hazard;
 
+import edu.illinois.ncsa.incore.services.hazard.dataaccess.IRepository;
+import edu.illinois.ncsa.incore.services.hazard.dataaccess.MongoDBRepository;
 import edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations.AtkinsonBoore1995;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -12,6 +14,9 @@ public class Application  extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
+        IRepository mongoRepository = new MongoDBRepository("localhost", "hazarddb", 27017);
+        mongoRepository.initialize();
+
         // Bind Atkinson and Boore 1995 model
         // TODO We need some kind of provider where we can register the hazard models
 
@@ -27,6 +32,7 @@ public class Application  extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(model).to(AtkinsonBoore1995.class);
+                super.bind(mongoRepository).to(IRepository.class);
             }
         });
     }

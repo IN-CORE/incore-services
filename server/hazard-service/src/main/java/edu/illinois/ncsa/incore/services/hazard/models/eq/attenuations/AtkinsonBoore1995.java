@@ -1,5 +1,7 @@
 package edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.services.hazard.models.eq.utils.HazardUtil;
 
@@ -7,40 +9,39 @@ import java.util.List;
 
 public class AtkinsonBoore1995 extends BaseAttenuation {
 
-    private static double[] aleatoricUncertainties = { 0.620, 0.581, 0.5730878, 0.550 };
+    private static double[] aleatoricUncertainties = {0.620, 0.581, 0.5730878, 0.550};
 
     @Override
     public double getValue(String period, Site site) throws Exception {
 
         double mag = ruptureParameters.getMagnitude();
-        Site sourceSite = ruptureParameters.getEpicenter();
+        double srcLatitude = ruptureParameters.getSrcLatitude();
+        double srcLongitude = ruptureParameters.getSrcLongitude();
+        double depth = ruptureParameters.getDepth();
+        Site sourceSite = new Site(new GeometryFactory().createPoint(new Coordinate(srcLongitude, srcLatitude)), depth);
 
         double distance = HazardUtil.findDistance(site.getLocation(), sourceSite.getLocation());
         return getValue(period, mag, distance, sourceSite.getDepth());
     }
 
     /**
-     *
      * @param medianHazard
      * @param period
      * @param site
      * @return Lognormal standard deviation
      * @throws Exception
      */
-    public double getStandardDeviation(double medianHazard, String period, Site site) throws Exception
-    {
+    public double getStandardDeviation(double medianHazard, String period, Site site) throws Exception {
         double std_deviation = 0.0;
         std_deviation = Math.sqrt(Math.pow(getAleatoricStdDev(period, site), 2) + getEpistemicVariance(medianHazard, period, site));
         return std_deviation;
     }
 
     /**
-     *
      * @param period
      * @return Lognormal aleatoric uncertainty
      */
-    public double getAleatoricStdDev(String period, Site site) throws Exception
-    {
+    public double getAleatoricStdDev(String period, Site site) throws Exception {
         if (period.equalsIgnoreCase("PGA")) {
             return aleatoricUncertainties[0];
         } else if (period.equalsIgnoreCase("0.2")) {
@@ -60,21 +61,15 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
     }
 
     /**
-     *
-     * @param period
-     *            Period / Hazard to compute
-     * @param m
-     *            Moment Magnitude of the event
-     * @param distance
-     *            Distance from the epicenter to the point of interest
-     * @param focal_depth
-     *            Depth of the event
+     * @param period      Period / Hazard to compute
+     * @param m           Moment Magnitude of the event
+     * @param distance    Distance from the epicenter to the point of interest
+     * @param focal_depth Depth of the event
      * @return Hazard Value
      * @todo We assume site class D, we must get this info from the user if
-     *       available
+     * available
      */
-    private double getValue(String period, double m, double distance, double focal_depth)
-    {
+    private double getValue(String period, double m, double distance, double focal_depth) {
         List<Double> coeff = getCoefficients(period);
         double r = Math.sqrt(Math.pow(distance, 2) + Math.pow(focal_depth, 2));
         // Constraint provided by Glenn Rix

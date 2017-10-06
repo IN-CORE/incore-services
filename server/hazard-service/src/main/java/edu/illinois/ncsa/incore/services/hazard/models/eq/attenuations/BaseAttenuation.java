@@ -2,6 +2,8 @@ package edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations;
 
 import edu.illinois.ncsa.incore.services.hazard.models.eq.EqParameters;
 import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.types.SeismicHazardResult;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.utils.HazardUtil;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -211,6 +213,61 @@ public abstract class BaseAttenuation {
 
         }
         return closest;
+    }
+
+    public SeismicHazardResult getValueClosestMatch(String hazardType, Site site) throws Exception
+    {
+        // if we exact match, don't bother running through them all
+        if (canOutput(hazardType)) {
+            return new SeismicHazardResult(getValue(hazardType, site), hazardType);
+        }
+
+        // find the closest period, and use it...
+        double period = HazardUtil.getPeriod(hazardType);
+        String motionType = HazardUtil.stripPeriod(hazardType);
+
+        String closest = null;
+        double distance = 9999999;
+
+        List<String> outputs = getHazardOutputTypes();
+        for (String output : outputs) {
+            String outputMotionType = HazardUtil.stripPeriod(output);
+            if (outputMotionType.equalsIgnoreCase(motionType)) {
+
+                double outputPeriod = HazardUtil.getPeriod(output);
+                double outputDistance = Math.abs(outputPeriod - period);
+                if (outputDistance < distance) {
+                    closest = Double.toString(outputPeriod);
+                    distance = outputDistance;
+                }
+            }
+        }
+
+        // will get here if the ground motion types never match...
+        if (closest == null) {
+            throw new Exception("Unsupported hazard");
+        }
+
+        return new SeismicHazardResult(getValue(closest, site), closest);
+    }
+
+    public static String getUnits(String hazardType)
+    {
+        if (hazardType.equalsIgnoreCase(HazardUtil.PGA)) {
+            return "g"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase(HazardUtil.PGD)) {
+            return "m"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase(HazardUtil.PGV)) {
+            return "cm/s"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase("SA")) { //$NON-NLS-1$
+            return "g"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase("SD")) { //$NON-NLS-1$
+            return "cm"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase("SV")) { //$NON-NLS-1$
+            return "cm/s"; //$NON-NLS-1$
+        } else {
+            return "g"; //$NON-NLS-1$
+        }
     }
 
     /**
