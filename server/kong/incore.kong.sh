@@ -1,8 +1,42 @@
 curl -i -X POST \
-  --url http://localhost:8001/fragility/api/ \
+  --url http://localhost:8001/apis/ \
   --data 'name=fragility' \
-  --data 'hosts=example.com' \
-  --data 'upstream_url=http://httpbin.org'
+  --data 'uris=/fragility' \
+  --data 'upstream_url=http://localhost:8088/fragility/'
 
-# add ldap plugin, configure
-# add route for each service
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=maestro' \
+  --data 'uris=/maestro' \
+  --data 'upstream_url=http://localhost:8088/maestro/'
+
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=repo' \
+  --data 'uris=/repo' \
+  --data 'upstream_url=http://localhost:8088/repo/'
+
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=hazard' \
+  --data 'uris=/hazard' \
+  --data 'upstream_url=http://localhost:8088/hazard/'
+
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=hazard' \
+  --data 'uris=/hazard' \
+  --data 'upstream_url=http://localhost:8088/hazard/'
+
+
+#this requires that my ldaps patch has been applied
+curl -i -X POST \
+  --url http://localhost:8001/plugins/ \
+  --data 'name=ldap-auth' \
+  --data 'config.ldap_port=636' \
+  --data 'config.anonymous=XXX' \
+  --data 'config.base_dn=dc=ncsa,dc=illinois,dc=edu' \
+  --data 'config.ldap_host=ldap.ncsa.illinois.edu' \
+  --data 'config.attribute=uid' \
+  --data 'config.ldaps=true' 
+  

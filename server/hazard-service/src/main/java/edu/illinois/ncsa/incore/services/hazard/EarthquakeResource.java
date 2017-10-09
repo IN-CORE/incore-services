@@ -51,7 +51,7 @@ public class EarthquakeResource {
 
             // TODO How can we store and lookup these model by ID?
             // TODO handle the case of a defined earthquake using multiple attenuations for weighting
-            if(modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
+            if (modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
                 try {
                     String fileName = modelId + ".csv";
                     URL coefficientURL = context.getResource("/WEB-INF/hazard/earthquake/coefficients/" + fileName);
@@ -64,7 +64,7 @@ public class EarthquakeResource {
 
                     double value = model.getValue(period, localSite);
                     return Response.ok(value).build();
-                } catch(MalformedURLException e) {
+                } catch (MalformedURLException e) {
                     logger.error("Error locating model coefficients.", e);
                 } catch (Exception e) {
                     logger.error("Error getting model value for point.", e);
@@ -77,7 +77,7 @@ public class EarthquakeResource {
             return Response.status(500).entity("Error reading earthquake parameters").build();
         }
 
-        return Response.status(500 ).build();
+        return Response.status(500).build();
     }
 
     // CMN: If we assume the Web application has access to the soil class layer then we could eliminate datasetId and lookup site classification on the client side
@@ -87,17 +87,17 @@ public class EarthquakeResource {
     public Response getEarthquakeSiteAmplification(@QueryParam("method") String method, @QueryParam("datasetId") @DefaultValue("") String datasetId, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("demandType") String demandType, @QueryParam("hazard") double hazard, @QueryParam("defaultSiteClass") String defaultSiteClass) {
 
         int localSiteClass = HazardUtil.getSiteClassAsInt(defaultSiteClass);
-        if(localSiteClass == -1) {
+        if (localSiteClass == -1) {
             return Response.status(500).entity("Unknown default site classification, expected A, B, C, D, E or F").build();
         }
 
-        if(!datasetId.isEmpty()) {
+        if (!datasetId.isEmpty()) {
             // TODO implement this
         }
 
         String period = demandType;
 
-        if(demandType.contains(HazardUtil.SA)) {
+        if (demandType.contains(HazardUtil.SA)) {
             String[] demandSplit = demandType.split(" ");
             period = demandSplit[0];
         }
@@ -106,7 +106,7 @@ public class EarthquakeResource {
         // Local site to get hazard for
         Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
 
-        if(method.equalsIgnoreCase("NEHRP")) {
+        if (method.equalsIgnoreCase("NEHRP")) {
             siteAmplification = new NEHRPSiteAmplification();
             // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
             // and the range for interpretation is in units of g

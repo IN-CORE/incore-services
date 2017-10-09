@@ -1,0 +1,87 @@
+From 2ac6d7e40fe6f493f35d127db5d948be9dfaab20 Mon Sep 17 00:00:00 2001
+From: Nathan Tolbert <junk@tolberts.net>
+Date: Thu, 20 Jul 2017 10:15:59 -0500
+Subject: [PATCH] added ldaps support in auth-ldap plugin
+
+---
+ kong/plugins/ldap-auth/access.lua               |  8 ++++++++
+ kong/plugins/ldap-auth/schema.lua               | 12 +++++++++++-
+ spec/03-plugins/21-ldap-auth/02-schema_spec.lua | 14 ++++++++++++++
+ 3 files changed, 33 insertions(+), 1 deletion(-)
+ create mode 100644 spec/03-plugins/21-ldap-auth/02-schema_spec.lua
+
+diff --git a/kong/plugins/ldap-auth/access.lua b/kong/plugins/ldap-auth/access.lua
+index 50beb34..09502d6 100644
+--- a/kong/plugins/ldap-auth/access.lua
++++ b/kong/plugins/ldap-auth/access.lua
+@@ -45,6 +45,14 @@ local function ldap_authenticate(given_username, given_password, conf)
+     return nil, err, responses.status_codes.HTTP_INTERNAL_SERVER_ERROR
+   end
+ 
++  if conf.ldaps then
++    local _, err = sock:sslhandshake(true, conf.ldap_host, conf.verify_ldap_host)
++    if err ~= nil then
++      return false, "failed to do SSL handshake with "..conf.ldap_host..":"..tostring(conf.ldap_port)..": ".. err
++    end
++  end
++
++
+   if conf.start_tls then
+     local success, err = ldap.start_tls(sock)
+     if not success then
+diff --git a/kong/plugins/ldap-auth/schema.lua b/kong/plugins/ldap-auth/schema.lua
+index ad30be0..910e082 100644
+--- a/kong/plugins/ldap-auth/schema.lua
++++ b/kong/plugins/ldap-auth/schema.lua
+@@ -1,4 +1,5 @@
+ local utils = require "kong.tools.utils"
++local Errors = require "kong.dao.errors"
+ 
+ local function check_user(anonymous)
+   if anonymous == "" or utils.is_valid_uuid(anonymous) then
+@@ -14,6 +15,7 @@ return {
+     ldap_host = {required = true, type = "string"},
+     ldap_port = {required = true, type = "number"},
+     start_tls = {required = true, type = "boolean", default = false},
++    ldaps = {required = true, type = "boolean", default = false},
+     verify_ldap_host = {required = true, type = "boolean", default = false},
+     base_dn = {required = true, type = "string"},
+     attribute = {required = true, type = "string"},
+@@ -22,5 +24,13 @@ return {
+     timeout = {type = "number", default = 10000},
+     keepalive = {type = "number", default = 60000},
+     anonymous = {type = "string", default = "", func = check_user},
+-  }
++  },
++  self_check = function(schema, plugin_t, dao, is_update)
++    if plugin_t.ldaps and plugin_t.start_tls then
++       return false, Errors.schema "LDAPS and StartTLS cannot be enabled simultaneously. You need to enable only one of the two."
++    end
++    return true
++  end
+ }
++
++
+diff --git a/spec/03-plugins/21-ldap-auth/02-schema_spec.lua b/spec/03-plugins/21-ldap-auth/02-schema_spec.lua
+new file mode 100644
+index 0000000..d8a4c0b
+--- /dev/null
++++ b/spec/03-plugins/21-ldap-auth/02-schema_spec.lua
+@@ -0,0 +1,14 @@
++local validate_entity = require("kong.dao.schemas_validation").validate_entity
++local ldap_auth_schema = require "kong.plugins.ldap-auth.schema"
++
++describe("Plugin: ldap-auth (schema)", function()
++  describe("errors", function()
++    it("requires ldaps and start_tls to be mutually exclusive", function()
++      local ok, errors, err = validate_entity({ldap_host = "none", ldap_port = "389", ldaps = true, start_tls = true, base_dn="ou=users", attribute="cn"}, ldap_auth_schema)
++      assert.False(ok)
++      assert.equal("LDAPS and StartTLS cannot be enabled simultaneously. You need to enable only one of the two.", tostring(err))
++    end)
++  end)
++end)
++
++
+-- 
+2.7.4
+
