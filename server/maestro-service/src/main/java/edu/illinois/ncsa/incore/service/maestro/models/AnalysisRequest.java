@@ -7,11 +7,21 @@
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
  *******************************************************************************/
-import org.junit.jupiter.api.Test;
+package edu.illinois.ncsa.incore.service.maestro.models;
 
-public class SerializationTests {
-    @Test
-    public void test() {
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.HashMap;
 
+@XmlRootElement
+public class AnalysisRequest {
+
+    @XmlElement(name="params")
+    public HashMap<String, Object> parameters = new HashMap<>();
+
+    public AnalysisRequest() {}
+
+    public AnalysisRequest(HashMap<String, Object> parameters) {
+        this.parameters = parameters;
     }
 }

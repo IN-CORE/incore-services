@@ -7,11 +7,20 @@
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
  *******************************************************************************/
-import org.junit.jupiter.api.Test;
+package edu.illinois.ncsa.incore.service.maestro.test;
 
-public class SerializationTests {
-    @Test
-    public void test() {
+import org.glassfish.jersey.test.JerseyTest;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
+public abstract class CustomJerseyTest extends JerseyTest {
+    @BeforeAll
+    public void before() throws Exception {
+        super.setUp();
+    }
+
+    @AfterAll
+    public void clean() throws Exception {
+        super.tearDown();
     }
 }

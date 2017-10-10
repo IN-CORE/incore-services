@@ -1,12 +1,20 @@
-package edu.illinois.ncsa.incore.services.maestro.model;
+/*******************************************************************************
+ * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Contributors:
+ * Indira Gutierrez (NCSA) - initial API and implementation
+ *******************************************************************************/
+package edu.illinois.ncsa.incore.service.maestro.models;
 
-import edu.illinois.ncsa.incore.services.maestro.dto.AnalysisInput;
-import edu.illinois.ncsa.incore.services.maestro.dto.AnalysisOutput;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
+import java.util.Map;
 
 
 @XmlRootElement
@@ -25,11 +33,13 @@ public class Analysis {
     private List<AnalysisInput> inputs;
     private List<AnalysisOutput> outputs;
     private AnalysisMetadata metadata;
+    private Map<String, String> parameters;
+
 
     public Analysis() {}
 
     public Analysis(String name, String description, String category, String url, List<AnalysisInput> inputs,
-                    List<AnalysisOutput> outputs, String tag, String helpContext){
+                    List<AnalysisOutput> outputs, String tag, String helpContext, Map<String, String> parameters){
         this.name = name;
         this.description = description;
         this.url = url;
@@ -38,6 +48,7 @@ public class Analysis {
         this.category = category;
         this.tag = tag;
         this.helpContext = helpContext;
+        this.parameters = parameters;
     }
 
     public AnalysisMetadata getMetadata() {
@@ -46,6 +57,7 @@ public class Analysis {
         }
         return metadata;
     }
+
 
     public String getId() {
         return id;
@@ -81,5 +93,9 @@ public class Analysis {
 
     public String getTag() {
         return tag;
+    }
+
+    public Map<String, String> getParameters() {
+        return parameters;
     }
 }

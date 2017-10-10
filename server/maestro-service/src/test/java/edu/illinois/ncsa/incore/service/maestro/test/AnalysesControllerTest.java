@@ -1,8 +1,17 @@
-package edu.illinois.ncsa.incore.services.maestro.test;
+/*******************************************************************************
+ * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Contributors:
+ * Indira Gutierrez (NCSA) - initial API and implementation
+ *******************************************************************************/
+package edu.illinois.ncsa.incore.service.maestro.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.services.maestro.controllers.AnalysesController;
-import edu.illinois.ncsa.incore.services.maestro.model.Analysis;
+import edu.illinois.ncsa.incore.service.maestro.controllers.AnalysesController;
+import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
