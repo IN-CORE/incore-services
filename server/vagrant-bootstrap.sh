@@ -20,8 +20,13 @@ apt-get install -y postgresql
 sudo -u postgres psql -c "CREATE USER kong; GRANT kong to postgres;"
 sudo -u postgres psql -c "CREATE DATABASE kong OWNER kong;"
 sudo -u postgres psql -c "ALTER USER kong WITH password 'k0ng';"
-kong migrations up -c /vagrant/server/kong/kong.conf
-kong start -c /vagrant/server/kong/kong.conf
+#patch kong to support ldaps until they merge my ldaps PR
+cd /usr/local/share/lua/5.1/kong
+sudo patch -p1 < /vagrant/server/kong/ldaps.patch
+#run kong migrations
+sudo kong migrations up -c /vagrant/server/kong/kong.conf
+#start kong service
+sudo kong start -c /vagrant/server/kong/kong.conf
 #now need to setup the kong server, but that will be in a different script
 source /vagrant/server/kong/incore.kong.sh
 
