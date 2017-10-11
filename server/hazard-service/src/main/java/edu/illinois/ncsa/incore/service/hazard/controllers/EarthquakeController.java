@@ -62,7 +62,6 @@ public class EarthquakeController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public List<ScenarioEarthquake> getScenarioEarthquakes() {
-        System.out.println("################################# GET SCENARIO EQS");
         return repository.getScenarioEarthquakes();
     }
 

@@ -21,7 +21,7 @@ public class MongoDBRepository implements IRepository {
     public MongoDBRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
-        this.databaseName = "maestrodb";
+        this.databaseName = "hazarddb";
     }
 
     public MongoDBRepository(String hostUri, String databaseName, int port) {
@@ -55,7 +55,6 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public ScenarioEarthquake addScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
-        this.dataStore.save(scenarioEarthquake);
         String id = this.dataStore.save(scenarioEarthquake).getId().toString();
         return getScenarioEarthquakeById(id);
     }
@@ -65,7 +64,6 @@ public class MongoDBRepository implements IRepository {
         if(this.scenarioEarthquakes == null) {
             loadScenarioEarthquakes();
         }
-
         return this.scenarioEarthquakes;
     }
 
