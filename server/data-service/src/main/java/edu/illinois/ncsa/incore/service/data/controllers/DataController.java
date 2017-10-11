@@ -201,7 +201,7 @@ public class DataController {
         String objIdStr = "";   //$NON-NLS-1$
         String inJson = ""; //$NON-NLS-1$
         String paramName = "";  //$NON-NLS-1$
-        Dataset dataset = new Dataset();
+        Dataset dataset = null;
 
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
