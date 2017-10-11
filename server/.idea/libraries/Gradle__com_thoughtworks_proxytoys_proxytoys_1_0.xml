@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.thoughtworks.proxytoys:proxytoys:1.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.thoughtworks.proxytoys/proxytoys/1.0/d22baee6d1b98dc38a6a428f774fd9e5b2ccf4af/proxytoys-1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.thoughtworks.proxytoys/proxytoys/1.0/de95fbe8697606c339620e1301e3cea582e5776/proxytoys-1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

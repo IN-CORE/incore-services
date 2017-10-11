@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gradle: com.opencsv:opencsv:3.3">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/opencsv/opencsv/3.3/opencsv-3.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

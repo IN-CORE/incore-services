@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/data-service/data-service.iml" filepath="$PROJECT_DIR$/.idea/modules/data-service/data-service.iml" group="data-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/data-service/data-service_main.iml" filepath="$PROJECT_DIR$/.idea/modules/data-service/data-service_main.iml" group="data-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/data-service/data-service_test.iml" filepath="$PROJECT_DIR$/.idea/modules/data-service/data-service_test.iml" group="data-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server.iml" filepath="$PROJECT_DIR$/.idea/modules/fragility-server/fragility-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service.iml" filepath="$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service.iml" group="hazard-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_main.iml" filepath="$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_main.iml" group="hazard-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_test.iml" filepath="$PROJECT_DIR$/.idea/modules/hazard-service/hazard-service_test.iml" group="hazard-service" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/incore-v2.iml" filepath="$PROJECT_DIR$/.idea/modules/incore-v2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/maestro-service/maestro-service.iml" filepath="$PROJECT_DIR$/.idea/modules/maestro-service/maestro-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tools-common/tools-common.iml" filepath="$PROJECT_DIR$/.idea/modules/tools-common/tools-common.iml" group="tools-common" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tools-common/tools-common_main.iml" filepath="$PROJECT_DIR$/.idea/modules/tools-common/tools-common_main.iml" group="tools-common" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tools-common/tools-common_test.iml" filepath="$PROJECT_DIR$/.idea/modules/tools-common/tools-common_test.iml" group="tools-common" />
+    </modules>
+  </component>
+</project>

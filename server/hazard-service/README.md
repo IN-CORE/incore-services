@@ -18,7 +18,7 @@ http://localhost:8080/hazard/api/earthquake/soil/amplification?method=NEHRP&dema
 
 hazard/api/tornado
 
-http://localhost:8080/hazard/api/tornado/model?modelId=TornadoMeanWidth&spaceId=some-dataset-id&demandUnits=mph&siteLat=35.07899&siteLong=-90.0178
+http://localhost:8080/hazard/api/tornado/model?modelId=TornadoMeanWidth&datasetId=some-dataset-id&demandUnits=mph&siteLat=35.07899&siteLong=-90.0178
 
 
 

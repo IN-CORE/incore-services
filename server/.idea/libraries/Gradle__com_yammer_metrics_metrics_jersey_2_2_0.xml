@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.yammer.metrics:metrics-jersey:2.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.yammer.metrics/metrics-jersey/2.2.0/2caba46abc2c8b8948144b44987db4e53261c81b/metrics-jersey-2.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.yammer.metrics/metrics-jersey/2.2.0/58a5062f8c4c006cba9542dd93c5302ef7a83326/metrics-jersey-2.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

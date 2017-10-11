@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.yammer.metrics:metrics-servlet:2.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.yammer.metrics/metrics-servlet/2.2.0/ba3a0ef3ebfd6d225c6060f6ab7f02a3812fca21/metrics-servlet-2.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.yammer.metrics/metrics-servlet/2.2.0/3be44afe8d8f4fac4e9ce2328bd6a9cb8936928d/metrics-servlet-2.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

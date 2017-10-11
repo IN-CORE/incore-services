@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id=":tools-common:main" external.linked.project.path="$MODULE_DIR$/../../../tools-common" external.root.project.path="$MODULE_DIR$/../../.." external.system.id="GRADLE" external.system.module.group="incore-v2" external.system.module.type="sourceSet" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/../../../tools-common/build/classes/java/main" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../../tools-common/src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../../../tools-common/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../tools-common/src/main/resources" type="java-resource" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: log4j:log4j:1.2.17" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: commons-lang:commons-lang:2.6" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: org.dom4j:dom4j:2.0.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: jaxen:jaxen:1.1.6" level="project" />
+  </component>
+</module>

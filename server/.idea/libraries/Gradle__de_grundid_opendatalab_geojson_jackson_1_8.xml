@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: de.grundid.opendatalab:geojson-jackson:1.8">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.grundid.opendatalab/geojson-jackson/1.8/328ddbcade71432c60b9cb44f77b0efda91dc0e5/geojson-jackson-1.8.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.grundid.opendatalab/geojson-jackson/1.8/2b49d970602c6c884527ca0c99e44f2afe9694f9/geojson-jackson-1.8-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

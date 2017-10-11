@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.geotools:gt-metadata:17.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.geotools/gt-metadata/17.0/db3c8bfb4132b7bdb3f10f620f076cec4216ac85/gt-metadata-17.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.geotools/gt-metadata/17.0/44f789d3eb3c799e7255e8b2bd289006770ae13f/gt-metadata-17.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

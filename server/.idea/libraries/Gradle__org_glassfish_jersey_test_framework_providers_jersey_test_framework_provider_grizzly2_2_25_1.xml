@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.25.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.glassfish.jersey.test-framework.providers/jersey-test-framework-provider-grizzly2/2.25.1/9d934d36578f61322d35ee7879d72e5179f42c6b/jersey-test-framework-provider-grizzly2-2.25.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.glassfish.jersey.test-framework.providers/jersey-test-framework-provider-grizzly2/2.25.1/adb19a804dcf082884491266fd5ea30f5c18f4a1/jersey-test-framework-provider-grizzly2-2.25.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
