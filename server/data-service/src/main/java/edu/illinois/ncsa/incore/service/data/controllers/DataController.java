@@ -1,17 +1,21 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
+import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerJsonUtils;
+import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerMongoUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.model.MvzLoader;
+import edu.illinois.ncsa.incore.service.data.model.Space;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.impl.FileStorageDisk;
 import edu.illinois.ncsa.incore.service.data.model.mvz.MvzDataset;
-import edu.illinois.ncsa.incore.service.data.utils.ControllerFileUtils;
-import edu.illinois.ncsa.incore.service.data.utils.ControllerJsonUtils;
-import edu.illinois.ncsa.incore.service.data.utils.ControllerMongoUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.inject.Inject;
@@ -23,6 +27,8 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +40,11 @@ import java.util.List;
 public class DataController {
     private static final String MONGO_URL = "mongodb://localhost:27017"; //$NON-NLS-1$
     private static final String MONGO_DB_NAME = "repoDB";    //$NON-NLS-1$
-    private static final String DATA_REPO_FOLDER = "C:\\Users\\ywkim\\Downloads\\Rest";
+    private static final String DATA_REPO_FOLDER = "C:\\Users\\ywkim\\Downloads\\Rest"; //$NON-NLS-1$
+    private static final String POST_PARAMENTER_NAME = "name";  //$NON-NLS-1$
+    private static final String POST_PARAMENTER_FILE = "file";  //$NON-NLS-1$
+    private static final String POST_PARAMENTER_META = "metadata";  //$NON-NLS-1$
+    private static final String POST_PARAMETER_DATASET_ID = "datasetId";    //$NON-NLS-1$
 
     @Inject
     private IRepository repository;
@@ -83,6 +93,39 @@ public class DataController {
     @Produces(MediaType.APPLICATION_JSON)
     public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
         return repository.getDatasetById(datasetId);
+    }
+
+    //http://localhost:8080/data/api/datasets/joinshptable/59dcf1ff63f9400b4c1df973
+    @GET
+    @Path("/datasets/joinshptable/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Dataset getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
+        Dataset dataset = repository.getDatasetById(datasetId);
+        List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
+        File csvFile = null;
+        for (int i=0;i<csvFDs.size();i++) {
+            FileDescriptor csvFd = csvFDs.get(i);
+            String csvLoc = csvFd.getDataURL();
+            csvFile = new File(new URI(csvLoc));
+        }
+
+        Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
+        List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
+        String sourceType = sourceDataset.getType();
+        File shpFile = null;
+        if (!(sourceType.equalsIgnoreCase("shapefile"))) {
+            for (int i = 0; i < sourceFDs.size(); i++) {
+                FileDescriptor sfd = sourceFDs.get(i);
+                String shpLoc = sfd.getDataURL();
+                shpFile = new File(new URI(shpLoc));
+                //get file, if the file is in remote, use http downloader
+                String fileExt = FilenameUtils.getExtension(shpLoc);
+                if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)){
+                    GeotoolsUtils.JoinTableShapefile(shpFile, csvFile);
+                }
+            }
+        }
+        return dataset;
     }
 
     // test with
@@ -147,6 +190,119 @@ public class DataController {
 //        return repository.addDataset(dataset);
 //    }
 
+    //    {datasetId: "59dce5d3a748be10cc9c4ea0"}
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/datasets/ingest-multi-files")
+    public Dataset uplaodFiles(FormDataMultiPart inputs) {
+
+        int bodyPartSize = inputs.getBodyParts().size();
+        String objIdStr = "";   //$NON-NLS-1$
+        String inJson = ""; //$NON-NLS-1$
+        String paramName = "";  //$NON-NLS-1$
+        Dataset dataset = new Dataset();
+
+        for (int i = 0; i < bodyPartSize; i++) {
+            paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
+            if (paramName.equals(POST_PARAMENTER_META)) {
+                inJson = (String) inputs.getFields(POST_PARAMENTER_META).get(0).getValueAs(String.class);
+                objIdStr = ControllerJsonUtils.extractValueFromJsonString("datasetId", inJson);
+                dataset = repository.getDatasetById(objIdStr);
+            }
+        }
+
+        for (int i = 0; i < bodyPartSize; i++) {
+            paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
+            if (paramName.equals(POST_PARAMENTER_FILE)) {
+                String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
+                InputStream is = (InputStream) inputs.getFields(POST_PARAMENTER_FILE).get(0).getValueAs(InputStream.class);
+                FileDescriptor fd = new FileDescriptor();
+                FileStorageDisk fsDisk = new FileStorageDisk();
+
+                fsDisk.setFolder(DATA_REPO_FOLDER);
+                try {
+                    fd = fsDisk.storeFile(fileName, is);
+                    fd.setFilename(fileName);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+                dataset.addFileDescriptor(fd);
+            }
+        }
+        repository.addDataset(dataset);
+
+        return dataset;
+    }
+
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/ingest-dataset")
+    public Dataset ingestDataset(@FormDataParam("dataset") String inDatasetJson) {
+
+        // example input json
+        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "59dce5d3a748be10cc9c4ea0", format: "csv", spaces: ["ywkim", "ergo"] }
+        boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
+
+        // create DataWolf POJO object
+        Dataset dataset = new Dataset();
+        if (isJsonValid) {
+            String type = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TYPE, inDatasetJson);
+            String sourceDataset = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
+            String format = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FORMAT, inDatasetJson);
+            String fileName = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FILE_NAME, inDatasetJson);
+            List<String> spaces = ControllerJsonUtils.extractValueListFromJsonString(ControllerFileUtils.DATASET_SPACES, inDatasetJson);
+            dataset.setType(type);
+            dataset.setSourceDataset(sourceDataset);
+            dataset.setFormat(format);
+            dataset.setSpaces(spaces);
+
+            dataset = repository.addDataset(dataset);
+
+            ObjectId datasetId = dataset.getDatasetId();
+
+            // insert/update space
+            for (String spaceName : spaces) {
+                Space foundSpace = repository.getSpaceByName(spaceName);
+                if (foundSpace == null) {   // new space: insert the data
+                    Space space = new Space();
+                    space.setName(spaceName);
+                    space.addDatasetId(datasetId);
+                    repository.addSpace(space);
+                } else {    // the space with space name exists
+                    // get dataset ids
+                    List<ObjectId> datasetIds = foundSpace.getDatasetIds();
+                    boolean isIdExists = false;
+                    for (ObjectId existingDatasetId : datasetIds) {
+                        if (existingDatasetId.equals(datasetId)) {
+                            isIdExists = true;
+                        }
+                    }
+                    if (!isIdExists) {
+                        foundSpace.addDatasetId(datasetId);
+                        // this will update it since the objectId is identical
+                        repository.addSpace(foundSpace);
+                    }
+                }
+            }
+        }
+
+        return dataset;
+    }
+
+    // example input json
+    //{ datasetId: "59d3d8a668f4742a4024329a" }
+
+    /**
+     * @param is
+     * @param fileDetail
+     * @param inDescJson
+     * @return
+     */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -156,37 +312,24 @@ public class DataController {
             @FormDataParam("file") FormDataContentDisposition fileDetail,
             @FormDataParam("description") String inDescJson) {
 
-        String uploadedFileLocation = DATA_REPO_FOLDER;
         FileDescriptor fd = new FileDescriptor();
-        FileStorageDisk fsd = new FileStorageDisk();
+        FileStorageDisk fsDisk = new FileStorageDisk();
 
-        fsd.setFolder(uploadedFileLocation);
+        fsDisk.setFolder(DATA_REPO_FOLDER);
 
         try {
-            fd = fsd.storeFile(fileDetail.getName(), is);
+            fd = fsDisk.storeFile(fileDetail.getName(), is);
+            fd.setFilename(fileDetail.getFileName());
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        String storedUrl = fd.getDataURL();
+        String objIdStr = ControllerJsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDescJson);
+        Dataset dataset = repository.getDatasetById(objIdStr);
+        dataset.addFileDescriptor(fd);
+        repository.addDataset(dataset);
 
-        boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDescJson);
-
-        // create DataWolf POJO object
-        Dataset dataset = new Dataset();
-        if (isJsonValid) {
-            String type = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TYPE, inDescJson);
-            String sourceDataset = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_SOURCE_DATASET, inDescJson);
-            String format = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FORMAT, inDescJson);
-            List<String> spaces = ControllerJsonUtils.extractValueListFromJsonString(ControllerFileUtils.DATASET_SPACES, inDescJson);
-            dataset.setType(type);
-            dataset.setSourceDataset(sourceDataset);
-            dataset.setFormat(format);
-            dataset.setSpaces(spaces);
-            dataset.setStoredUrl(storedUrl);
-        }
-
-        return repository.addDataset(dataset);
+        return dataset;
     }
 
     // http

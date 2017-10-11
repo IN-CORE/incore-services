@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.data.utils;
+package edu.illinois.ncsa.incore.service.data.controllers.utils;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;

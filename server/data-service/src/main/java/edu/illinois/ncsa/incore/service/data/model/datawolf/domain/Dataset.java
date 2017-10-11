@@ -5,7 +5,6 @@ package edu.illinois.ncsa.incore.service.data.model.datawolf.domain;
  * This is from NCSA's DataWolf
  */
 
-import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -14,13 +13,15 @@ import java.util.List;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import edu.illinois.ncsa.incore.service.data.model.datawolf.jackson.JsonDateSerializer;
+import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 public class Dataset extends AbstractBean {
     @Id
     @Property("_id")
-    private String datasetId;
+    private ObjectId datasetId;
 
     /**
      * Used for serialization of object
@@ -291,7 +292,7 @@ public class Dataset extends AbstractBean {
      * @param datasetId sets the string that represents the type of the
      *                      artifact.
      */
-    public void setDatasetId(String datasetId) {
+    public void setDatasetId(ObjectId datasetId) {
         this.datasetId = datasetId;
     }
 
@@ -300,7 +301,7 @@ public class Dataset extends AbstractBean {
      *
      * @return datasetId that represents the source dataset of the artifact
      */
-    public String getDatasetId() {
+    public ObjectId getDatasetId() {
         return datasetId;
     }
 

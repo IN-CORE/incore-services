@@ -1,6 +1,5 @@
-package edu.illinois.ncsa.incore.service.data.utils;
+package edu.illinois.ncsa.incore.service.data.controllers.utils;
 
-import com.google.gson.Gson;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -11,7 +10,6 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.CreateCollectionOptions;
 import com.mongodb.util.JSON;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
 import org.apache.log4j.Logger;
 import org.bson.Document;
 import org.json.JSONException;
@@ -134,32 +132,32 @@ public class ControllerMongoUtils {
         }
     }
 
-    public static boolean insertDatasetToMongo(Dataset dataset, String mongoUrl, String mongoDbName){
-        MongoDatabase database = getMongoDatabase(mongoUrl, mongoDbName);
-
-        // convert Dataset obj to Mondo document
-        Gson gson = new Gson();
-        List<String> spaces = dataset.getSpaces();
-        String datasetJsonStr = gson.toJson(dataset);
-        System.out.println(datasetJsonStr);
-
-        // check if the dataset id is already in the mongodb
-        boolean isSpacesExist = isCollectionExist(database, ControllerFileUtils.DB_COLLECTION_SPACES);
-        boolean isDatasetsExist = isCollectionExist(database, ControllerFileUtils.DB_COLLECTION_DATASETS);
-
-        // create collection if collection is not there
-        if (!isSpacesExist) {
-            database.createCollection(ControllerFileUtils.DB_COLLECTION_SPACES, new CreateCollectionOptions().capped(false));
-        }
-        if (!isDatasetsExist) {
-            database.createCollection(ControllerFileUtils.DB_COLLECTION_DATASETS, new CreateCollectionOptions().capped(false));
-        }
-        // insert document into collection
-        boolean isDatasetInserted = false;
-        isDatasetInserted = insertJsonStringToMongo(database, ControllerFileUtils.DB_COLLECTION_DATASETS, "", datasetJsonStr, false);
-
-        return isDatasetInserted;
-    }
+//    public static boolean insertDatasetToMongo(Dataset dataset, String mongoUrl, String mongoDbName){
+//        MongoDatabase database = getMongoDatabase(mongoUrl, mongoDbName);
+//
+//        // convert Dataset obj to Mondo document
+//        Gson gson = new Gson();
+//        List<String> spaces = dataset.getSpaces();
+//        String datasetJsonStr = gson.toJson(dataset);
+//        System.out.println(datasetJsonStr);
+//
+//        // check if the dataset id is already in the mongodb
+//        boolean isSpacesExist = isCollectionExist(database, ControllerFileUtils.DB_COLLECTION_SPACES);
+//        boolean isDatasetsExist = isCollectionExist(database, ControllerFileUtils.DB_COLLECTION_DATASETS);
+//
+//        // create collection if collection is not there
+//        if (!isSpacesExist) {
+//            database.createCollection(ControllerFileUtils.DB_COLLECTION_SPACES, new CreateCollectionOptions().capped(false));
+//        }
+//        if (!isDatasetsExist) {
+//            database.createCollection(ControllerFileUtils.DB_COLLECTION_DATASETS, new CreateCollectionOptions().capped(false));
+//        }
+//        // insert document into collection
+//        boolean isDatasetInserted = false;
+//        isDatasetInserted = insertJsonStringToMongo(database, ControllerFileUtils.DB_COLLECTION_DATASETS, "", datasetJsonStr, false);
+//
+//        return isDatasetInserted;
+//    }
 
     public static MongoDatabase getMongoDatabase(String mongoUrl, String dbName){
         //crete mongodb connection

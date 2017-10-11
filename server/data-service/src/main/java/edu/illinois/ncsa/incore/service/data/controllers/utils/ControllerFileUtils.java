@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.data.utils;
+package edu.illinois.ncsa.incore.service.data.controllers.utils;
 
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
@@ -52,8 +52,7 @@ public class ControllerFileUtils {
     public static final String DATASET_SOURCE_DATASET = "sourceDataset";    //$NON-NLS-1$
     public static final String DATASET_FORMAT = "format";   //$NON-NLS-1$
     public static final String DATASET_SPACES ="spaces";    //$NON-NLS-1$
-    public static final String DB_COLLECTION_SPACES = "spaces";    //$NON-NLS-1$
-    public static final String DB_COLLECTION_DATASETS = "datasets";    //$NON-NLS-1$
+    public static final String DATASET_FILE_NAME = "fileName";    //$NON-NLS-1$
 
     public static final Logger logger = Logger.getLogger(ControllerFileUtils.class);
 

@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.service.data.model;
 
-import edu.illinois.ncsa.incore.service.data.utils.ControllerFileUtils;
+import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
 import edu.illinois.ncsa.incore.service.data.model.mvz.*;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
