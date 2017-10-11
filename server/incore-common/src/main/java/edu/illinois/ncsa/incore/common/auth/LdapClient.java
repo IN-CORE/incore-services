@@ -7,14 +7,17 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class LdapClient {
 
-    private static final Logger log = Logger.getLogger(Config.class);
+    private static final Logger log = Logger.getLogger(LdapClient.class);
 
 
     public static String ldapUri = Config.getConfigProperties().getProperty("auth.ldap.url");

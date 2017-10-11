@@ -1,7 +1,6 @@
 package edu.illinois.ncsa.incore.common.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.common.config.Config;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
@@ -17,7 +16,7 @@ import java.util.Map;
  */
 public class PrivilegeSpec {
 
-    private static final Logger log = Logger.getLogger(Config.class);
+    private static final Logger log = Logger.getLogger(PrivilegeSpec.class);
 
 
     public Map<String,Privilege> userPrivileges;
