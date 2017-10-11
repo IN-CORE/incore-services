@@ -50,7 +50,7 @@ public class HazardCalc {
                 } else {
                     // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
                     // and the range for interpretation is in units of g
-                    hazardValue *= siteAmplification.getSiteAmplification(site, hazardValue, siteClass, hazardType);
+                    hazardValue *= siteAmplification.getSiteAmplification(site, hazardValue, siteClass, closestHazardPeriod);
                 }
             }
 

@@ -293,7 +293,17 @@ public abstract class BaseAttenuation {
      */
     protected List<Double> getCoefficients(String period)
     {
-        return coefficients.get(period);
+        if(coefficients.containsKey(period)) {
+            return coefficients.get(period);
+        } else {
+            // Handles case differences for PGA, PGV, etc. This could be handled in the service as well
+            if(coefficients.containsKey(period.toUpperCase())) {
+                return coefficients.get(period.toUpperCase());
+            } else if(coefficients.containsKey(period.toLowerCase())) {
+                return coefficients.get(period.toLowerCase());
+            }
+        }
+        return null;
     }
 
     /**

@@ -75,7 +75,7 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    public SeismicHazardResult getScenarioEarthquakeHazard(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") boolean amplifyHazard) {
+    public SeismicHazardResult getScenarioEarthquakeHazard(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
         ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
         if (earthquake != null) {
             String period = demandType;
