@@ -14,7 +14,6 @@ import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
-import java.util.Map;
 
 
 @XmlRootElement
@@ -30,20 +29,20 @@ public class Analysis {
     private String category;
     private String helpContext;
     private String tag;
-    private List<AnalysisInput> inputs;
+    private List<AnalysisDataset> datasets;
+    private List<AnalysisParameter> parameters;
     private List<AnalysisOutput> outputs;
     private AnalysisMetadata metadata;
-    private Map<String, String> parameters;
 
 
     public Analysis() {}
 
-    public Analysis(String name, String description, String category, String url, List<AnalysisInput> inputs,
-                    List<AnalysisOutput> outputs, String tag, String helpContext, Map<String, String> parameters){
+    public Analysis(String name, String description, String category, String url, List<AnalysisDataset> datasets,
+                    List<AnalysisOutput> outputs, String tag, String helpContext, List<AnalysisParameter> parameters){
         this.name = name;
         this.description = description;
         this.url = url;
-        this.inputs = inputs;
+        this.datasets = datasets;
         this.outputs = outputs;
         this.category = category;
         this.tag = tag;
@@ -71,8 +70,8 @@ public class Analysis {
         return url;
     }
 
-    public List<AnalysisInput> getInputs() {
-        return inputs;
+    public List<AnalysisDataset> getDatasets() {
+        return datasets;
     }
 
     public List<AnalysisOutput> getOutputs() {
@@ -95,7 +94,7 @@ public class Analysis {
         return tag;
     }
 
-    public Map<String, String> getParameters() {
+    public List<AnalysisParameter> getParameters() {
         return parameters;
     }
 }

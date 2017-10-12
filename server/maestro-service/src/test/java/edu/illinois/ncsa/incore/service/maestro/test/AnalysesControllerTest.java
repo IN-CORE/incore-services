@@ -73,7 +73,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
         Analysis output = target("/analysis/"+id).request().accept(MediaType.APPLICATION_JSON).get(Analysis.class);
 
         assertEquals(id,output.getId());
-        assertEquals(3, output.getInputs().size());
+        assertEquals(3, output.getDatasets().size());
         assertEquals(1, output.getOutputs().size());
         assertEquals("hazard", output.getCategory());
         assertNotNull(output.getDescription());
@@ -91,7 +91,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
             Entity.json(analysis), Analysis.class);
 
         assertNotNull(response.getId());
-        assertEquals(3, response.getInputs().size());
+        assertEquals(3, response.getDatasets().size());
         assertEquals(1, response.getOutputs().size());
         assertNotNull(response.getCategory());
         assertNotNull(response.getDescription());
