@@ -81,7 +81,7 @@ public class Dataset extends AbstractBean {
     /**
      * List of spaces to the artifact.
      */
-    private List<String> spaces = new LinkedList<String>();
+    private List<String> spaces = null;
 
     public Dataset() {
     }

@@ -2,10 +2,15 @@ package edu.illinois.ncsa.incore.service.data.geotools;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.*;
 
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
+import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
+import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -66,6 +71,16 @@ public class GeotoolsUtils {
                 csvIdLoc = i;
             }
         }
+
+        // create temp dir
+        String tempDir = Files.createTempDirectory(ControllerFileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        String fileName = FilenameUtils.getName(shpFile.getName());
+        File destFile = new File(tempDir + "/" + fileName);
+        FileUtils.copyFile(shpFile, destFile);
+        //in here I am simply copy and paste the files to temp direcotry.
+        // However, if the source file is in different server, use httpdownloader
+        // HttpDownloader.downloadFile(inSourceFileUrlTwo.getFile(), tempDir);
+
 
         // set dataset
         URL inSourceFileUrl = new URL("file:/" + inSourceFile);

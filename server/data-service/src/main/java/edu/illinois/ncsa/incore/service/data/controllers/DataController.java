@@ -36,7 +36,7 @@ import java.util.List;
  * Created by ywkim on 7/26/2017.
  */
 
-@Path("")
+@Path("datasets")
 public class DataController {
     private static final String MONGO_URL = "mongodb://localhost:27017"; //$NON-NLS-1$
     private static final String MONGO_DB_NAME = "repoDB";    //$NON-NLS-1$
@@ -52,10 +52,10 @@ public class DataController {
     private Logger logger = Logger.getLogger(DataController.class);
 
     // test with:
-    //http://localhost:8080/data/api/metadata/Shelby_County_RES31224702005658
-    //http://localhost:8080/data/api/metadata/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789
-    //http://localhost:8080/data/api/metadata/HAZUS_Table_13.8_Collapse_Rates1209053226524
-    //http://localhost:8080/data/api/metadata/Building_Disruption_Cost1168019087905
+    //http://localhost:8080/data/api/datasets/metadata/Shelby_County_RES31224702005658
+    //http://localhost:8080/data/api/datasets/metadata/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789
+    //http://localhost:8080/data/api/datasets/metadata/HAZUS_Table_13.8_Collapse_Rates1209053226524
+    //http://localhost:8080/data/api/datasets/metadata/Building_Disruption_Cost1168019087905
 
     /**
      * get metadata json from earthquake server using dataset id
@@ -89,7 +89,7 @@ public class DataController {
      * @return dataset object
      */
     @GET
-    @Path("/datasets/{id}")
+    @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
         return repository.getDatasetById(datasetId);
@@ -97,7 +97,7 @@ public class DataController {
 
     //http://localhost:8080/data/api/datasets/joinshptable/59dcf1ff63f9400b4c1df973
     @GET
-    @Path("/datasets/joinshptable/{id}")
+    @Path("/joinshptable/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Dataset getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
         Dataset dataset = repository.getDatasetById(datasetId);
@@ -112,12 +112,14 @@ public class DataController {
         Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
         List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
         String sourceType = sourceDataset.getType();
-        File shpFile = null;
+        List<File> shpfiles = new ArrayList<File>();
+        boolean IsShpfile = false;
+
         if (!(sourceType.equalsIgnoreCase("shapefile"))) {
             for (int i = 0; i < sourceFDs.size(); i++) {
                 FileDescriptor sfd = sourceFDs.get(i);
                 String shpLoc = sfd.getDataURL();
-                shpFile = new File(new URI(shpLoc));
+                File shpFile = new File(new URI(shpLoc));
                 //get file, if the file is in remote, use http downloader
                 String fileExt = FilenameUtils.getExtension(shpLoc);
                 if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)){
@@ -129,7 +131,7 @@ public class DataController {
     }
 
     // test with
-    //http://localhost:8080/data/api/collection/Dataset
+    //http://localhost:8080/data/api/collection/datasets/list
 
     /**
      * create list of dataset in the database
@@ -137,14 +139,14 @@ public class DataController {
      * @return list of dataset
      */
     @GET
-    @Path("/datasets")
-    @Produces(MediaType.TEXT_HTML)
+    @Path("/list")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetList() {
         return repository.getAllDatasets();
     }
 
     // test with
-    //http://localhost:8080/data/api/collection/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
+    //http://localhost:8080/data/api/datasets/collection/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
 
     /**
      * see the metadata json of the dataset. data can be downloaded by clicking location
@@ -159,7 +161,7 @@ public class DataController {
         return ControllerMongoUtils.getDocListByCollId(MONGO_URL, MONGO_DB_NAME, collId);
     }
 
-//    // http//localhost:8080/data/api/ingest-result
+//    // http//localhost:8080/data/api/datasets/ingest-result
 //
 //    /**
 //     * ingest dataset into mongodb and file server
@@ -190,11 +192,12 @@ public class DataController {
 //        return repository.addDataset(dataset);
 //    }
 
+    //  http//localhost:8080/data/api/datasets/ingest-multi-files
     //    {datasetId: "59dce5d3a748be10cc9c4ea0"}
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/datasets/ingest-multi-files")
+    @Path("/ingest-multi-files")
     public Dataset uplaodFiles(FormDataMultiPart inputs) {
 
         int bodyPartSize = inputs.getBodyParts().size();
@@ -237,6 +240,7 @@ public class DataController {
         return dataset;
     }
 
+    // http//localhost:8080/data/api/datasets/ingest-dataset
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -272,6 +276,9 @@ public class DataController {
                     Space space = new Space();
                     space.setName(spaceName);
                     space.addDatasetId(datasetId);
+                    List<ObjectId> datasetIds = new ArrayList<ObjectId>();
+                    datasetIds.add(datasetId);
+                    space.setDatasetIds(datasetIds);
                     repository.addSpace(space);
                 } else {    // the space with space name exists
                     // get dataset ids
@@ -294,6 +301,7 @@ public class DataController {
         return dataset;
     }
 
+    // http//localhost:8080/data/api/datasets/ingest-result
     // example input json
     //{ datasetId: "59d3d8a668f4742a4024329a" }
 
@@ -337,7 +345,7 @@ public class DataController {
     // list all the metadatas in the repository information as json
     // zipped dataset can be downloaded when the location get clicked
     @GET
-    @Path("/datasets/earthquake")
+    @Path("/earthquake")
     @Produces(MediaType.APPLICATION_JSON)
     // http://localhost:8080/data/api/datasets
     public List<MvzDataset> getDirectoryListJson() {
@@ -369,7 +377,7 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/HAZUS_Table_13.8_Collapse_Rates1209053226524/mongo
     //http://localhost:8080/data/api/datasets/Building_Disruption_Cost1168019087905/mongo
     @GET
-    @Path("/datasets/{datasetId}/mongo")
+    @Path("/{datasetId}/mongo")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getGeoJsonFromMongo(@PathParam("datasetId") String datasetId) {
         String outJson = ControllerJsonUtils.getJsonByDatasetIdFromMongo(datasetId, MONGO_URL, MONGO_DB_NAME);
@@ -379,7 +387,7 @@ public class DataController {
     // insert all dataset to mongodb
     // http://localhost:8080/data/api/datasets/ingestmongo
     @GET
-    @Path("/datasets/ingestmongo")
+    @Path("/ingestmongo")
     @Produces(MediaType.APPLICATION_JSON)
     public String ingestAllToMongo() {
         // list all the directory
@@ -419,7 +427,7 @@ public class DataController {
     // test with the following line
     // http://localhost:8080/data/api/datasets/query?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
     @GET
-    @Path("datasets/query")
+    @Path("query")
     @Produces(MediaType.APPLICATION_JSON)
     //public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId) {
     //public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId , @HeaderParam("X-Credential-Username") String username) {
@@ -445,7 +453,7 @@ public class DataController {
     //metadata converted as POJO object
     // http://localhost:8080/data/api/datasets/test?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
     @GET
-    @Path("/datasets/test")
+    @Path("/test")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDatasetByIdTest(@QueryParam("type") String typeId) {
         String propUrl = ControllerFileUtils.REPO_PROP_URL + typeId;
@@ -476,7 +484,7 @@ public class DataController {
 
     // directory listing
     @GET
-    @Path("/datasets/list")     // this should be changed later for the appropriate line
+    @Path("/list-html")     // this should be changed later for the appropriate line
     @Produces(MediaType.TEXT_HTML)
     // http://localhost:8080/data/api/datasets/list
     public String getDirectoryList() {
@@ -492,7 +500,7 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
     //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/geojson
     @GET
-    @Path("/datasets/{typeid}/{datasetId}/geojson")
+    @Path("/{typeid}/{datasetId}/geojson")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDatasetByTypeId(@PathParam("typeid") String typeId, @PathParam("datasetId") String datasetId) {
         File dataset = null;
@@ -520,7 +528,7 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/HAZUS_Table_13.8_Collapse_Rates1209053226524/earthquake
     //http://localhost:8080/data/api/datasets/Building_Disruption_Cost1168019087905/earthquake
     @GET
-    @Path("/datasets/{datasetId}/earthquake")
+    @Path("/{datasetId}/earthquake")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDatasetByDatasetId(@PathParam("datasetId") String datasetId) {
         String outJson = ControllerJsonUtils.getJsonByDatasetId(datasetId);
@@ -531,7 +539,7 @@ public class DataController {
     //list the dataset belonged to type
     //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
     @GET
-    @Path("/datasets/type/{typeId}")
+    @Path("/type/{typeId}")
     @Produces(MediaType.TEXT_HTML)
     public String getDirectoryListWithId(@PathParam("typeId") String typeId) {
         try {
@@ -545,7 +553,7 @@ public class DataController {
     // see the metadata json of the dataset. data can be downloaded by clicking location
     //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
     @GET
-    @Path("/datasets/{typeId}/{datasetId}")
+    @Path("/{typeId}/{datasetId}")
     @Produces(MediaType.APPLICATION_JSON)
     public MvzDataset getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         String combinedId = typeId + "/" + datasetId;
@@ -557,7 +565,7 @@ public class DataController {
     // download zipped dataset file
     // http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/files
     @GET
-    @Path("/datasets/{typeId}/{datasetId}/files")
+    @Path("/{typeId}/{datasetId}/files")
     @Produces(MediaType.TEXT_PLAIN)
     public File getShapefileById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         File dataset = null;
@@ -576,7 +584,7 @@ public class DataController {
     //http://localhost:8080/data/api/datasets//edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/ingest
     //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/ingest
     @GET
-    @Path("/datasets/{typeId}/ingest")
+    @Path("/{typeId}/ingest")
     @Produces(MediaType.TEXT_PLAIN)
     public String ingestMetadataToMongo(@PathParam("typeId") String typeId) {
         // get the metadata file name list from the type directory
@@ -605,7 +613,7 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/HAZUS_Table_13.8_Collapse_Rates1209053226524/ingest
     //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingDisruptionCost.v1.0/Building_Disruption_Cost1168019087905/ingest
     @GET
-    @Path("/datasets/{typeId}/{datasetId}/ingest")
+    @Path("/{typeId}/{datasetId}/ingest")
     @Produces(MediaType.TEXT_PLAIN)
     public String ingestDatasetToMongo(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
         // check if it is shapefile or csv

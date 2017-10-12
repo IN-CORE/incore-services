@@ -39,6 +39,7 @@ public class ControllerFileUtils {
     public static final String REPO_PROP_URL = REPO_SERVER_URL + REPO_PROP_DIR;
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
     public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";  //$NON-NLS-1$
+    public static final String DATA_TEMP_DIR_PREFIX = "data_download_" ;    //$NON-NLS-1$
     public static final String[] EXTENSIONS_SHAPEFILES = new String[]{"dbf", "prj", "shp", "shx"};
     public static final String EXTENSION_SHP = "shp";   //$NON-NLS-1$
     public static final String EXTENSION_META = "mvz";  //$NON-NLS-1$
@@ -119,7 +120,7 @@ public class ControllerFileUtils {
             // get the base name of the shapefile
             String shapefileNames[] = outfileStr.split("." + extStr);
             String baseName = shapefileNames[0];
-            String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
+            String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();    //$NON-NLS-1$
             if (extStr.equals(EXTENSION_SHP)) {
                 for (String extension : EXTENSIONS_SHAPEFILES) {
                     HttpDownloader.downloadFile(datasetUrl + baseName + "." + extension, tempDir);
@@ -385,7 +386,7 @@ public class ControllerFileUtils {
         //String baseName = FilenameUtils.getBaseName(metadataUrl);
         String baseNameStrs[] = urlStrs[0].split("/");
         String baseName = baseNameStrs[baseNameStrs.length - 1];
-        String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
+        String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();    //$NON-NLS-1$
 
         // check if metadataUrl ends with EXTENSION_META that is .mvz
         String tmpEndStr = metadataUrl.substring(metadataUrl.lastIndexOf('.') + 1);
@@ -407,7 +408,7 @@ public class ControllerFileUtils {
         String urlPart = inId.replace("$", "/");
         String fileDatasetUrl = REPO_DS_URL + urlPart;
         String baseName = FilenameUtils.getBaseName(fileDatasetUrl);
-        String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
+        String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();    //$NON-NLS-1$
         String realUrl = getRealUrl(fileDatasetUrl);
         List<String> fileList = createFileListFromUrl(fileDatasetUrl);
 

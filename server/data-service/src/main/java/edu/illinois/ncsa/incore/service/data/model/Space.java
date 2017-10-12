@@ -15,10 +15,10 @@ import java.util.List;
 public class Space {
     @Id
     @Property("_id")
-    private ObjectId spaceId;
+    private ObjectId spaceId = null;
 
-    private String name;
-    private List<ObjectId> datasetIds;
+    private String name = null;
+    private List<ObjectId> datasetIds = null;
 
     public ObjectId getSpaceId() {
         return spaceId;
@@ -37,6 +37,8 @@ public class Space {
     public List<ObjectId> getDatasetIds() {
         return datasetIds;
     }
+    public void setDatasetIds(List<ObjectId> datasetIds) {this.datasetIds = datasetIds;}
+
     public void addDatasetId(ObjectId datasetId) {
         if (datasetId != null) {
             getDatasetIds().add(datasetId);
