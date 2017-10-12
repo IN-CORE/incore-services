@@ -95,7 +95,7 @@ public class DataController {
         return repository.getDatasetById(datasetId);
     }
 
-    //http://localhost:8080/data/api/datasets/joinshptable/59dcf1ff63f9400b4c1df973
+    //http://localhost:8080/data/api/datasets/joinshptable/59dfb53468f4742898a40267
     @GET
     @Path("/joinshptable/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -249,7 +249,7 @@ public class DataController {
 
         // example input json
         //{ schema: "buildingInventory", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
-        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "59dfb20a68f4742898e0e1e4", format: "csv", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingDamage.v1.0", sourceDataset: "59dfb20a68f4742898e0e1e4", format: "csv", spaces: ["ywkim", "ergo"] }
         boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
 
         // create DataWolf POJO object
@@ -267,7 +267,7 @@ public class DataController {
 
             dataset = repository.addDataset(dataset);
 
-            ObjectId datasetId = dataset.getDatasetId();
+            String datasetId = dataset.getDatasetId();
 
             // insert/update space
             for (String spaceName : spaces) {
@@ -275,15 +275,15 @@ public class DataController {
                 if (foundSpace == null) {   // new space: insert the data
                     Space space = new Space();
                     space.setName(spaceName);
-                    List<ObjectId> datasetIds = new ArrayList<ObjectId>();
+                    List<String> datasetIds = new ArrayList<String>();
                     datasetIds.add(datasetId);
                     space.setDatasetIds(datasetIds);
                     repository.addSpace(space);
                 } else {    // the space with space name exists
                     // get dataset ids
-                    List<ObjectId> datasetIds = foundSpace.getDatasetIds();
+                    List<String> datasetIds = foundSpace.getDatasetIds();
                     boolean isIdExists = false;
-                    for (ObjectId existingDatasetId : datasetIds) {
+                    for (String existingDatasetId : datasetIds) {
                         if (existingDatasetId.equals(datasetId)) {
                             isIdExists = true;
                         }

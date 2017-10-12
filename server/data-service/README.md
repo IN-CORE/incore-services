@@ -40,8 +40,22 @@ To uploade parent file (e.g. shapefile)
         ![Figure 1](images/ingest-dataset.png?raw=true)
 
     2) uploade files and tie them with the dataset object ingested above
+        ```
+        http://localhost:8080/data/api/datasets/ingest-multi-files
+        ```
+        headers:
+        Content-Type: multipart/form-data 
         
-        ![Figure 2](images/ingest-multi-files.png?raw=true)
+        body:
+        metadata Text
+        {datasetId: "59dfb53468f4742898a40267" }
+        
+        file File building_zones.shp
+        file File building_zones.shx
+        file File building_zones.prj
+        file File building_zones.dbf
+            
+       ![Figure 2](images/ingest-multi-files.png?raw=true)
 
 3) Deploy the war file to web container.  I've been using apache-tomcat [http://tomcat.apache.org], and typically copy the war to the tomcat webapps directory.  On my machine:
 ```

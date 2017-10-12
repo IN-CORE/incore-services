@@ -21,7 +21,7 @@ import org.mongodb.morphia.annotations.Property;
 public class Dataset extends AbstractBean {
     @Id
     @Property("_id")
-    private ObjectId datasetId;
+    private String datasetId;
 
     /**
      * Used for serialization of object
@@ -292,7 +292,7 @@ public class Dataset extends AbstractBean {
      * @param datasetId sets the string that represents the type of the
      *                      artifact.
      */
-    public void setDatasetId(ObjectId datasetId) {
+    public void setDatasetId(String datasetId) {
         this.datasetId = datasetId;
     }
 
@@ -301,7 +301,7 @@ public class Dataset extends AbstractBean {
      *
      * @return datasetId that represents the source dataset of the artifact
      */
-    public ObjectId getDatasetId() {
+    public String getDatasetId() {
         return datasetId;
     }
 
