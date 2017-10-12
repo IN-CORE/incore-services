@@ -36,9 +36,12 @@ To uploade parent file (e.g. shapefile)
         { schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "59dce5d3a748be10cc9c4ea0", format: "csv", spaces: ["ywkim", "ergo"] }
         
         If the dataset is parent the sourceDataset should be empty
+        
+        ![Figure 1](images/ingest-dataset.png?raw=true)
 
     2) uploade files and tie them with the dataset object ingested above
         
+        ![Figure 2](images/ingest-multi-files.png?raw=true)
 
 3) Deploy the war file to web container.  I've been using apache-tomcat [http://tomcat.apache.org], and typically copy the war to the tomcat webapps directory.  On my machine:
 ```

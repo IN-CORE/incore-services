@@ -193,7 +193,7 @@ public class DataController {
 //    }
 
     //  http//localhost:8080/data/api/datasets/ingest-multi-files
-    //    {datasetId: "59dce5d3a748be10cc9c4ea0"}
+    //    {datasetId: "59dfb20a68f4742898e0e1e4"}
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -248,8 +248,8 @@ public class DataController {
     public Dataset ingestDataset(@FormDataParam("dataset") String inDatasetJson) {
 
         // example input json
-        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
-        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "59dce5d3a748be10cc9c4ea0", format: "csv", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingInventory", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "59dfb20a68f4742898e0e1e4", format: "csv", spaces: ["ywkim", "ergo"] }
         boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
 
         // create DataWolf POJO object
@@ -275,7 +275,6 @@ public class DataController {
                 if (foundSpace == null) {   // new space: insert the data
                     Space space = new Space();
                     space.setName(spaceName);
-                    space.addDatasetId(datasetId);
                     List<ObjectId> datasetIds = new ArrayList<ObjectId>();
                     datasetIds.add(datasetId);
                     space.setDatasetIds(datasetIds);
@@ -303,7 +302,7 @@ public class DataController {
 
     // http//localhost:8080/data/api/datasets/ingest-result
     // example input json
-    //{ datasetId: "59d3d8a668f4742a4024329a" }
+    //{ datasetId: "59dfb20a68f4742898e0e1e4" }
 
     /**
      * @param is
