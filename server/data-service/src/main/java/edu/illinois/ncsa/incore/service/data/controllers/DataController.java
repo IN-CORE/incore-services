@@ -31,6 +31,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -193,7 +194,7 @@ public class DataController {
 //    }
 
     //  http//localhost:8080/data/api/datasets/ingest-multi-files
-    //    {datasetId: "59dfb20a68f4742898e0e1e4"}
+    //    {datasetId: "59dfe68663f9402518625408"}
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -205,13 +206,19 @@ public class DataController {
         String inJson = ""; //$NON-NLS-1$
         String paramName = "";  //$NON-NLS-1$
         Dataset dataset = null;
+        boolean isJsonValid = false;
 
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
             if (paramName.equals(POST_PARAMENTER_META)) {
                 inJson = (String) inputs.getFields(POST_PARAMENTER_META).get(0).getValueAs(String.class);
-                objIdStr = ControllerJsonUtils.extractValueFromJsonString("datasetId", inJson);
-                dataset = repository.getDatasetById(objIdStr);
+                isJsonValid = ControllerJsonUtils.isJSONValid(inJson);
+                if (isJsonValid) {
+                    objIdStr = ControllerJsonUtils.extractValueFromJsonString("datasetId", inJson);
+                    dataset = repository.getDatasetById(objIdStr);
+                } else {
+                    return dataset;
+                }
             }
         }
 
@@ -225,17 +232,15 @@ public class DataController {
 
                 fsDisk.setFolder(DATA_REPO_FOLDER);
                 try {
-                    fd = fsDisk.storeFile(fileName, is);
+                    fd = fsDisk.storeFile(UUID.randomUUID().toString(), fileName, is);
                     fd.setFilename(fileName);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-
                 dataset.addFileDescriptor(fd);
             }
         }
-        repository.addDataset(dataset);
+        repository.updateFileDescriptorInDataset(dataset);
 
         return dataset;
     }
@@ -249,7 +254,7 @@ public class DataController {
 
         // example input json
         //{ schema: "buildingInventory", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
-        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingDamage.v1.0", sourceDataset: "59dfb20a68f4742898e0e1e4", format: "csv", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingDamage.v1.0", sourceDataset: "59dfe88563f940251859d7a3", format: "csv", spaces: ["ywkim", "ergo"] }
         boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
 
         // create DataWolf POJO object
@@ -267,7 +272,7 @@ public class DataController {
 
             dataset = repository.addDataset(dataset);
 
-            String datasetId = dataset.getDatasetId();
+            String id = dataset.getId();
 
             // insert/update space
             for (String spaceName : spaces) {
@@ -275,21 +280,21 @@ public class DataController {
                 if (foundSpace == null) {   // new space: insert the data
                     Space space = new Space();
                     space.setName(spaceName);
-                    List<String> datasetIds = new ArrayList<String>();
-                    datasetIds.add(datasetId);
-                    space.setDatasetIds(datasetIds);
+                    List<String> ids = new ArrayList<String>();
+                    ids.add(id);
+                    space.setIds(ids);
                     repository.addSpace(space);
                 } else {    // the space with space name exists
                     // get dataset ids
-                    List<String> datasetIds = foundSpace.getDatasetIds();
+                    List<String> datasetIds = foundSpace.getIds();
                     boolean isIdExists = false;
                     for (String existingDatasetId : datasetIds) {
-                        if (existingDatasetId.equals(datasetId)) {
+                        if (existingDatasetId.equals(id)) {
                             isIdExists = true;
                         }
                     }
                     if (!isIdExists) {
-                        foundSpace.addDatasetId(datasetId);
+                        foundSpace.addId(id);
                         // this will update it since the objectId is identical
                         repository.addSpace(foundSpace);
                     }

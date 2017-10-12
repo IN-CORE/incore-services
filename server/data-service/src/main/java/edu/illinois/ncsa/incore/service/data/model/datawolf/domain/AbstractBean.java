@@ -5,6 +5,10 @@ package edu.illinois.ncsa.incore.service.data.model.datawolf.domain;
  * This is from NCSA's DataWolf
  */
 
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -12,6 +16,7 @@ import java.util.UUID;
 //@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 //@JsonIgnoreProperties("@id")
 public class AbstractBean implements Serializable {
+
     /**
      * Used for serialization of object
      */
@@ -20,18 +25,14 @@ public class AbstractBean implements Serializable {
     /**
      * Unique identifier for this bean, used by persistence layer
      */
-    // @Id
-    // @Column(length = 36)
+    @Id
+    @Property("_id")
     private String id;
 
     /**
      * Should the bean be assumed to be deleted and not be returned
      */
     private boolean deleted = false;
-
-    public AbstractBean() {
-        setId(UUID.randomUUID().toString());
-    }
 
     /**
      * Return the id of the bean.
@@ -95,6 +96,10 @@ public class AbstractBean implements Serializable {
      */
     @Override
     public int hashCode() {
-        return getId().hashCode();
+        if (getId()!= null) {
+            return getId().hashCode();
+        } else {
+            return super.hashCode();
+        }
     }
 }

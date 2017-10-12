@@ -11,6 +11,7 @@ public interface IRepository {
     Dataset getDatasetById(String id);
     List<Dataset> getAllDatasets();
     Dataset addDataset(Dataset dataset);
+    Dataset updateFileDescriptorInDataset(Dataset dataset);
     Space addSpace(Space space);
     Space getSpaceByName(String name);
     Datastore getDataStore();
