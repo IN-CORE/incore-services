@@ -18,7 +18,7 @@ const analyses = (state: AnalysesState = defaultState, action:AnalysesAction) =>
 		});
 
 	default:
-		return state
+		return state;
 	}
 
 };

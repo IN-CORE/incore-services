@@ -18,13 +18,13 @@ export function receiveAnalyses(api:string, json:AnalysesMetadata) {
 export function fetchAnalyses() {
 	//TODO: Move to a configuration file
 	const api = "http://localhost:8080";
-	const endpoint = api + "/maestro/api/analysis";
+	const endpoint = `${api  }/maestro/api/analysis`;
 
-	return (dispatch: Dispatcch) => {
+	return (dispatch: Dispatch) => {
 		return fetch(endpoint)
 			.then(response => response.json())
 			.then( json =>
 				dispatch(receiveAnalyses(api, json))
 			);
-	}
+	};
 }
