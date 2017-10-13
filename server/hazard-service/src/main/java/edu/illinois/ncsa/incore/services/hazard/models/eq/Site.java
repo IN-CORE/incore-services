@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.services.hazard.eq;
+package edu.illinois.ncsa.incore.services.hazard.models.eq;
 
 import com.vividsolutions.jts.geom.Point;
 
