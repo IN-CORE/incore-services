@@ -1,8 +1,12 @@
 package edu.illinois.ncsa.incore.service.data.dao;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import edu.illinois.ncsa.incore.service.data.model.Space;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
+import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -11,6 +15,8 @@ import org.mongodb.morphia.query.Query;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class MongoDBRepository implements IRepository {
     private String hostUri;
@@ -82,7 +88,14 @@ public class MongoDBRepository implements IRepository {
         classesToMap.add(Dataset.class);
         Datastore morphiaStore = morphia.createDatastore(client, databaseName);
         morphiaStore.ensureIndexes();
-
         this.dataStore = morphiaStore;
+    }
+
+    public Dataset updateDataset(String datasetId, String propName, String propValue) {
+        MongoClient client = new MongoClient(hostUri, port);
+        MongoDatabase mongodb = client.getDatabase(databaseName);
+        MongoCollection collection = mongodb.getCollection("Dataset");
+        collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));
+        return getDatasetById(datasetId);
     }
 }

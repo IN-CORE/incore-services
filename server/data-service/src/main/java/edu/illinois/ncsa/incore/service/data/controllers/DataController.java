@@ -46,6 +46,8 @@ public class DataController {
     private static final String POST_PARAMENTER_FILE = "file";  //$NON-NLS-1$
     private static final String POST_PARAMENTER_META = "metadata";  //$NON-NLS-1$
     private static final String POST_PARAMETER_DATASET_ID = "datasetId";    //$NON-NLS-1$
+    private static final String UPDATE_OBJECT_NAME = "property name";  //$NON-NLS-1$
+    private static final String UPDATE_OBJECT_VALUE = "property value";  //$NON-NLS-1$
 
     @Inject
     private IRepository repository;
@@ -204,14 +206,42 @@ public class DataController {
 //        return repository.addDataset(dataset);
 //    }
 
+//    {datasetId: "59e0ec0c68f4742a340411d2", property name: "sourceDataset", property value: "59e0ec0c68f4742a340411d2"}
+    /**
+     * Update dataset property using given json input
+     * @param inDatasetJson
+     * @return
+     */
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/update")
+    public Object updateObject(@FormDataParam("update") String inDatasetJson) {
+        boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
+        Dataset dataset = null;
+
+        if (isJsonValid) {
+            String datasetId = ControllerJsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDatasetJson);
+            String propName = ControllerJsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+            String propVal = ControllerJsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
+            dataset = repository.updateDataset(datasetId, propName, propVal);
+        }
+
+        return dataset;
+    }
+
     //  http//localhost:8080/data/api/datasets/ingest-multi-files
     //    {datasetId: "59e0e8ed68f4740274f39733"}
+    /**
+     * Upload multiple files and create FileDescriptors and attach those to dataset
+     * @param inputs    post paraemters including file and metadata
+     * @return
+     */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/ingest-multi-files")
     public Dataset uplaodFiles(FormDataMultiPart inputs) {
-
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = "";   //$NON-NLS-1$
         String inJson = ""; //$NON-NLS-1$
