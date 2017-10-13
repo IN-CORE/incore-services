@@ -1,17 +1,15 @@
 package edu.illinois.ncsa.incore.services.fragility.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.geojson.FeatureCollection;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.HashMap;
 
-@XmlRootElement
 public class MappingRequest {
-    @XmlElement(name = "params")
+    @JsonProperty("params")
     public HashMap<String, Object> parameters = new HashMap<>();
 
-    @XmlElement(name = "subject")
+    @JsonProperty("subject")
     public MappingSubject mappingSubject;
 
     public MappingRequest() {
