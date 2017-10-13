@@ -7,7 +7,6 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.UpdateOperations;
 
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +19,7 @@ public class MongoDBRepository implements IRepository {
 
     private Datastore dataStore;
     private List<Dataset> datasets;
+    private List<Space> spaces;
 
     public MongoDBRepository() {
         this.port = 27017;
@@ -39,10 +39,14 @@ public class MongoDBRepository implements IRepository {
     }
 
     public List<Dataset> getAllDatasets(){
-        if(this.datasets == null) {
-            this.loadServices();
-        }
+        this.loadServices();
         return this.datasets;
+    }
+
+    public List<Space> getAllSpaces() {
+        List<Space> spaces = this.dataStore.createQuery(Space.class).asList();
+        this.spaces = spaces;
+        return this.spaces;
     }
 
     public Dataset getDatasetById(String id) {
@@ -52,19 +56,6 @@ public class MongoDBRepository implements IRepository {
     public Dataset addDataset(Dataset dataset) {
          String id = this.dataStore.save(dataset).getId().toString();
          return getDatasetById(id);
-    }
-
-    public Dataset updateFileDescriptorInDataset(Dataset dataset) {
-        Query<Dataset> query = this.dataStore.createQuery(Dataset.class).field("_id").equal(new ObjectId(dataset.getId()));
-        UpdateOperations<Dataset> updateOperations = setFileDescriptorUpdate(this.dataStore.createUpdateOperations(Dataset.class), dataset);
-        this.dataStore.update(query, updateOperations);
-        return getDatasetById(dataset.getId());
-    }
-
-    public UpdateOperations setFileDescriptorUpdate(UpdateOperations<Dataset> updateOperations, Dataset dataset) {
-        updateOperations.set("_id", new ObjectId(dataset.getId()));
-        updateOperations.set("fileDescriptors", dataset.getFileDescriptors());
-        return updateOperations;
     }
 
     public Space getSpaceById(String id) {

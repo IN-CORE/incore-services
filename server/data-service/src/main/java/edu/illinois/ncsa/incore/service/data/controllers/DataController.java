@@ -131,19 +131,30 @@ public class DataController {
         return dataset;
     }
 
-    // test with
-    //http://localhost:8080/data/api/collection/datasets/list
-
+    //http://localhost:8080/data/api/datasets/list-datasets
     /**
      * create list of dataset in the database
      *
      * @return list of dataset
      */
     @GET
-    @Path("/list")
+    @Path("/list-datasets")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetList() {
         return repository.getAllDatasets();
+    }
+
+    //http://localhost:8080/data/api/datasets/list-datasets
+    /**
+     * create list of spaces in the database
+     *
+     * @return list of dataset
+     */
+    @GET
+    @Path("/list-spaces")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Space> getSpaceList() {
+        return repository.getAllSpaces();
     }
 
     // test with
@@ -194,7 +205,7 @@ public class DataController {
 //    }
 
     //  http//localhost:8080/data/api/datasets/ingest-multi-files
-    //    {datasetId: "59dfe68663f9402518625408"}
+    //    {datasetId: "59e0e8ed68f4740274f39733"}
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -232,7 +243,7 @@ public class DataController {
 
                 fsDisk.setFolder(DATA_REPO_FOLDER);
                 try {
-                    fd = fsDisk.storeFile(UUID.randomUUID().toString(), fileName, is);
+                    fd = fsDisk.storeFile(fileName, is);
                     fd.setFilename(fileName);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -240,7 +251,7 @@ public class DataController {
                 dataset.addFileDescriptor(fd);
             }
         }
-        repository.updateFileDescriptorInDataset(dataset);
+        repository.addDataset(dataset);
 
         return dataset;
     }
@@ -254,7 +265,7 @@ public class DataController {
 
         // example input json
         //{ schema: "buildingInventory", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
-        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingDamage.v1.0", sourceDataset: "59dfe88563f940251859d7a3", format: "csv", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingDamage.v1.0", sourceDataset: "59e0eb7d68f4742a342d9738", format: "csv", spaces: ["ywkim", "ergo"] }
         boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
 
         // create DataWolf POJO object
@@ -280,16 +291,16 @@ public class DataController {
                 if (foundSpace == null) {   // new space: insert the data
                     Space space = new Space();
                     space.setName(spaceName);
-                    List<String> ids = new ArrayList<String>();
-                    ids.add(id);
-                    space.setIds(ids);
+                    List<String> datasetIds = new ArrayList<String>();
+                    datasetIds.add(id);
+                    space.setDatasetIds(datasetIds);
                     repository.addSpace(space);
                 } else {    // the space with space name exists
                     // get dataset ids
-                    List<String> datasetIds = foundSpace.getIds();
+                    List<String> datasetIds = foundSpace.getDatasetIds();
                     boolean isIdExists = false;
-                    for (String existingDatasetId : datasetIds) {
-                        if (existingDatasetId.equals(id)) {
+                    for (String datasetId : datasetIds) {
+                        if (datasetId.equals(id)) {
                             isIdExists = true;
                         }
                     }

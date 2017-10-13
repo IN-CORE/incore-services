@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface IRepository {
     void initialize();
-    Dataset getDatasetById(String id);
     List<Dataset> getAllDatasets();
+    Dataset getDatasetById(String id);
     Dataset addDataset(Dataset dataset);
-    Dataset updateFileDescriptorInDataset(Dataset dataset);
+    List<Space> getAllSpaces();
     Space addSpace(Space space);
     Space getSpaceByName(String name);
     Datastore getDataStore();

@@ -15,16 +15,16 @@ import java.util.List;
 public class Space {
     @Id
     @Property("_id")
-    private String id = null;
+    private ObjectId id = new ObjectId();
 
     private String name = null;
-    private List<String> ids = null;
+    private List<String> datasetIds = null;
 
     public String getId() {
-        return id;
+        return id.toString();
     }
     public void setId(String id) {
-        this.id = id;
+        this.id = new ObjectId(id);
     }
 
     public String getName() {
@@ -34,14 +34,14 @@ public class Space {
         this.name = name;
     }
 
-    public List<String> getIds() {
-        return ids;
+    public List<String> getDatasetIds() {
+        return datasetIds;
     }
-    public void setIds(List<String> ids) {this.ids = ids;}
+    public void setDatasetIds(List<String> datasetIds) {this.datasetIds = datasetIds;}
 
     public void addId(String id) {
         if (id != null) {
-            getIds().add(id);
+            getDatasetIds().add(id);
         }
     }
 }

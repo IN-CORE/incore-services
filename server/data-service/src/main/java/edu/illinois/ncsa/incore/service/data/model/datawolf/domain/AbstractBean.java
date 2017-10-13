@@ -27,7 +27,7 @@ public class AbstractBean implements Serializable {
      */
     @Id
     @Property("_id")
-    private String id;
+    private ObjectId id = new ObjectId();
 
     /**
      * Should the bean be assumed to be deleted and not be returned
@@ -40,7 +40,7 @@ public class AbstractBean implements Serializable {
      * @return id of the bean
      */
     public final String getId() {
-        return id;
+        return id.toString();
     }
 
     /**
@@ -50,7 +50,7 @@ public class AbstractBean implements Serializable {
      * @param id the id of the object.
      */
     public void setId(String id) {
-        this.id = id;
+        this.id = new ObjectId(id);
     }
 
     /**
