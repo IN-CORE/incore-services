@@ -1,4 +1,5 @@
-import react, {Component} from "react";
+import React, {Component} from "react";
+
 import AnalysisSelect from "../containers/AnalysisSelect";
 
 class ExecuteAnalysis extends Component {
@@ -6,6 +7,10 @@ class ExecuteAnalysis extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {};
+	}
+
+	componentWillMount() {
+		this.props.loadAnalyses();
 	}
 
 	render() {

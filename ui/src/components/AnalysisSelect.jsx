@@ -24,7 +24,7 @@ class AnalysisSelect extends Component {
 					{options}
 				</Select>
 			</div>
-		)
+		);
 	}
 
 }

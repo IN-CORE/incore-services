@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-
+import {browserHistory} from "react-router";
 import styles from "../styles/styles.scss";
 import {Textfield, Button} from "react-mdc-web";
 
@@ -29,6 +29,7 @@ class HomePage extends Component {
 
 	login(event: Object) {
 		//TODO: Login using a global state action
+		browserHistory.push("/Execute");
 	}
 
 	render () {
