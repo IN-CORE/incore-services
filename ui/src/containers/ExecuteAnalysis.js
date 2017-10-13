@@ -3,6 +3,13 @@ import {fetchAnalyses} from "../actions/index";
 import ExecuteAnalysisComponent from "../components/ExecuteAnalysis";
 import type { Dispatch } from "../utils/flowtype";
 
+const mapStateToProps = (state, ownProps) => {
+	return {
+		analysis: state.analyses.selectedAnalysis
+	};
+};
+
+
 const mapDispatchToProps = (dispatch: Dispatch) => {
 	return {
 		loadAnalyses: () => {
@@ -11,6 +18,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 	};
 };
 
-const ExecuteAnalysis = connect(null, mapDispatchToProps)(ExecuteAnalysisComponent);
+const ExecuteAnalysis = connect(mapStateToProps, mapDispatchToProps)(ExecuteAnalysisComponent);
 
 export default ExecuteAnalysis;

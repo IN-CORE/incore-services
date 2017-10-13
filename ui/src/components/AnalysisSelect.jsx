@@ -8,8 +8,8 @@ class AnalysisSelect extends Component {
 		this.state = {};
 		this.onChange = this.onChange.bind(this);
 	}
-	onChange() {
-
+	onChange(event: Object) {
+		this.props.onSelectAnalysis(event.target.value);
 	}
 
 	render() {

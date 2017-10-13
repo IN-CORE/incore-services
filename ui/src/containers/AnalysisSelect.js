@@ -1,6 +1,6 @@
 import {connect} from "react-redux";
 import AnalysisSelectComponent from "../components/AnalysisSelect";
-import {} from "../actions/index";
+import {getAnalysisById} from "../actions/index";
 
 const mapStateToProps = (state, ownProps) => {
 	return {
@@ -8,14 +8,14 @@ const mapStateToProps = (state, ownProps) => {
 	};
 };
 
-// const mapDispatchToProps = (dispatch, ownProps) => {
-// 	return {
-// 		onChangex: (event, valy) => {
-// 			dispatch(actionName(valy));
-// 		}
-// 	}
-// };
+const mapDispatchToProps = (dispatch, ownProps) => {
+	return {
+		onSelectAnalysis: (id) => {
+			dispatch(getAnalysisById(id));
+		}
+	};
+};
 
-const AnalysisSelect = connect(mapStateToProps)(AnalysisSelectComponent);
+const AnalysisSelect = connect(mapStateToProps, mapDispatchToProps)(AnalysisSelectComponent);
 
 export default AnalysisSelect;

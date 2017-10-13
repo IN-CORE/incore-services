@@ -6,7 +6,7 @@ export type AnalysisInput = {
 	required: boolean;
 	advanced: boolean;
 	multiple: boolean;
-	type: boolean;
+	type: string;
 };
 
 export type AnalysisOutput = {
@@ -17,6 +17,11 @@ export type AnalysisOutput = {
 
 export type AnalysisParameter = {
 	name: string;
+	description: string;
+	required: boolean;
+	advanced: boolean;
+	multiple: boolean;
+	type: string;
 }
 
 export type Analysis = {
@@ -26,7 +31,7 @@ export type Analysis = {
 	category: string;
 	helpContext: string;
 	tag: string;
-	inputs: AnalysisInput[];
+	datasets: AnalysisInput[];
 	outputs: AnalysisOutput[];
 	parameter: AnalysisParameter[];
 };

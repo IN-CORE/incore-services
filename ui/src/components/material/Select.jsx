@@ -20,13 +20,13 @@ class Select extends PureComponent {
 
 	render() {
 
-		const classNames = "mdc-select " + this.props.className;
+		const classNames = `mdc-select ${  this.props.className}`;
 		return(
 
 			<select value={this.props.value} className={classNames} onChange={this.props.onChange.bind(this)} data-idx={this.props.dataIdx} disabled={this.props.disabled} >
 				{this.props.children}
 			</select>
-		)
+		);
 	}
 }
 
