@@ -39,7 +39,7 @@ public class Space {
     }
     public void setDatasetIds(List<String> datasetIds) {this.datasetIds = datasetIds;}
 
-    public void addId(String id) {
+    public void addDatasetId(String id) {
         if (id != null) {
             getDatasetIds().add(id);
         }

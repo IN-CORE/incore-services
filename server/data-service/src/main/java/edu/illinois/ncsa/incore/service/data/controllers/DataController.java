@@ -138,7 +138,7 @@ public class DataController {
      * @return list of dataset
      */
     @GET
-    @Path("/list-datasets")
+    @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetList() {
         return repository.getAllDatasets();
@@ -305,7 +305,7 @@ public class DataController {
                         }
                     }
                     if (!isIdExists) {
-                        foundSpace.addId(id);
+                        foundSpace.addDatasetId(id);
                         // this will update it since the objectId is identical
                         repository.addSpace(foundSpace);
                     }

@@ -18,8 +18,6 @@ public class MongoDBRepository implements IRepository {
     private int port;
 
     private Datastore dataStore;
-    private List<Dataset> datasets;
-    private List<Space> spaces;
 
     public MongoDBRepository() {
         this.port = 27017;
@@ -39,14 +37,11 @@ public class MongoDBRepository implements IRepository {
     }
 
     public List<Dataset> getAllDatasets(){
-        this.loadServices();
-        return this.datasets;
+        return this.dataStore.createQuery(Dataset.class).asList();
     }
 
     public List<Space> getAllSpaces() {
-        List<Space> spaces = this.dataStore.createQuery(Space.class).asList();
-        this.spaces = spaces;
-        return this.spaces;
+        return this.dataStore.createQuery(Space.class).asList();
     }
 
     public Dataset getDatasetById(String id) {
@@ -90,10 +85,4 @@ public class MongoDBRepository implements IRepository {
 
         this.dataStore = morphiaStore;
     }
-
-    private void loadServices() {
-        List<Dataset> datasets = this.dataStore.createQuery(Dataset.class).asList();
-        this.datasets = datasets;
-    }
-
 }
