@@ -98,11 +98,11 @@ public class DataController {
         return repository.getDatasetById(datasetId);
     }
 
-    //http://localhost:8080/data/api/datasets/joinshptable/59e0ec0c68f4742a340411d2
+    //http://localhost:8080/data/api/datasets/joinshptable/59e509ca68f4742654e59621
     @GET
     @Path("/joinshptable/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Dataset getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
+    @Produces(MediaType.TEXT_PLAIN)
+    public File getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
         Dataset dataset = repository.getDatasetById(datasetId);
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
@@ -116,6 +116,7 @@ public class DataController {
         List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
         String sourceType = sourceDataset.getType();
         List<File> shpfiles = new ArrayList<File>();
+        File zipFile = null;
         boolean isShpfile = false;
 
         if (!(sourceType.equalsIgnoreCase("shapefile"))) {
@@ -132,9 +133,9 @@ public class DataController {
             }
         }
         if (isShpfile) {
-            GeotoolsUtils.JoinTableShapefile(shpfiles, csvFile);
+            zipFile = GeotoolsUtils.JoinTableShapefile(shpfiles, csvFile);
         }
-        return dataset;
+        return zipFile;
     }
 
     //http://localhost:8080/data/api/datasets/list-datasets

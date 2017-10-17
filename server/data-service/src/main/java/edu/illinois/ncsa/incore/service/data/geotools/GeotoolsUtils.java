@@ -5,6 +5,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 
+import com.github.sardine.DavResource;
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
 import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
@@ -48,7 +51,7 @@ public class GeotoolsUtils {
 //    private static String outDir = "C:/Users/Ywkim/Downloads/Rest/"; //$NON-NLS-1$
 //    private static String outFileName = "test.shp";
 
-    public static void JoinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
+    public static File JoinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
         // set geometry factory
         geometryFactory = JTSFactoryFinder.getGeometryFactory();
         outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + ControllerFileUtils.EXTENSION_SHP;
@@ -159,11 +162,11 @@ public class GeotoolsUtils {
             inputFeatureIterator.close();
         }
 
-        createOutfile(finalList, finalResultMapList, tempDir);
+        return createOutfile(finalList, finalResultMapList, tempDir);
     }
 
     @SuppressWarnings("unchecked")
-    public static void createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
+    public static File createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
                                      String outDir) throws IOException {
         File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
 
@@ -204,10 +207,10 @@ public class GeotoolsUtils {
             SimpleFeature feature = featureBuilder.buildFeature(null);
             collection.add(feature);
         }
-        outToFile(outFile, schema, collection);
+        return outToFile(outFile, schema, collection);
     }
 
-    public static void outToFile(File pathFile, SimpleFeatureType schema, DefaultFeatureCollection collection)
+    public static File outToFile(File pathFile, SimpleFeatureType schema, DefaultFeatureCollection collection)
             throws IOException {
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
@@ -243,6 +246,26 @@ public class GeotoolsUtils {
             System.out.println(typeName + " does not support read/write access"); //$NON-NLS-1$
             System.exit(1);
         }
+
+        return prepareShpZipFile(pathFile);
+    }
+
+    public static File prepareShpZipFile(File shpFile) throws IOException {
+        String absolutePath = shpFile.getAbsolutePath();
+        String filePath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator));
+        String shpBaseName = FilenameUtils.getBaseName(shpFile.getName());
+        List<String> zipFileList = new LinkedList<String>();
+        File[] filesInDir = new File(filePath).listFiles();
+        for (File file : filesInDir) {
+            String fileBaseName = FilenameUtils.getBaseName(file.getName());
+            if (fileBaseName.equalsIgnoreCase(shpBaseName)) {
+                zipFileList.add(file.getName());
+            }
+        }
+
+        ControllerFileUtils.createZipFile(zipFileList, filePath, shpBaseName);
+
+        return new File(filePath + File.separator + shpBaseName + ".zip");
     }
 
     public static DataStore getShapefileDataStore(URL shpUrl, Boolean spatialIndex) throws IOException {
