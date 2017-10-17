@@ -32,28 +32,22 @@ public class AnalysesController {
     @GET
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAnalyses() {
+    public List<Analysis> getAnalyses() {
         List<Analysis> analyses = repository.getAllAnalyses();
 
-        return Response.ok(analyses)
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "GET")
-            .build();
+        return analyses;
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAnalysesMetadata() {
+    public List<AnalysisMetadata> getAnalysesMetadata() {
         List<Analysis> analyses = repository.getAllAnalyses();
         List<AnalysisMetadata> metadata = new ArrayList<AnalysisMetadata>();
         for(int i = 0; i < analyses.size(); i++) {
             metadata.add(analyses.get(i).getMetadata());
         }
 
-        return Response.ok(metadata)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET")
-                .build();
+        return metadata;
     }
 
     @GET
@@ -75,14 +69,11 @@ public class AnalysesController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response registerNewAnalysis(Analysis analysis) {
+    public Analysis registerNewAnalysis(Analysis analysis) {
 
         Analysis output = repository.addAnalysis(analysis);
 
-        return Response.ok(output)
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "GET")
-            .build();
+        return output;
     }
 
 }
