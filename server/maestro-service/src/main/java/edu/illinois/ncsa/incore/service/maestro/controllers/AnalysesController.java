@@ -52,16 +52,13 @@ public class AnalysesController {
 
     @GET
     @Path("{analysisId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAnalysisById(@PathParam("analysisId") String id) {
+    @Produces({MediaType.APPLICATION_JSON})
+    public Analysis getAnalysisById(@PathParam("analysisId") String id) {
         Analysis analysis = repository.getAnalysisById(id);
         if(analysis != null) {
-            return Response.ok(analysis)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET")
-                .build();
+            return analysis;
         } else {
-            return Response.status(404).build();
+            throw new NotFoundException("No analysis with id: "+ id);
         }
 
     }
