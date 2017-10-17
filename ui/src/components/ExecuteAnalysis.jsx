@@ -1,5 +1,6 @@
 import React, {Component} from "react";
 import {Textfield, Display2, Button} from "react-mdc-web";
+import {browserHistory} from "react-router";
 import AnalysisSelect from "../containers/AnalysisSelect";
 
 class ExecuteAnalysis extends Component {
@@ -18,7 +19,8 @@ class ExecuteAnalysis extends Component {
 	}
 
 	executeAnalysis(event) {
-
+		//TODO: Login using a global state action
+		browserHistory.push("/Results");
 	}
 
 	render() {

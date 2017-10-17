@@ -1,4 +1,5 @@
-import React, { PropTypes, Component } from "react";
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 import "material-components-web/dist/material-components-web.min.css";
 
 global.__base = `${__dirname  }/`;

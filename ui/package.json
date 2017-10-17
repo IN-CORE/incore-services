@@ -33,7 +33,7 @@
     "mathjs": "3.9.1",
     "object-assign": "4.1.1",
     "openlayers": "3.20.1",
-    "prop-types": "^15.5.10",
+    "prop-types": "^15.6.0",
     "react": "^15.5.0",
     "react-dom": "15.4.2",
     "react-handsontable": "^0.2.1",
