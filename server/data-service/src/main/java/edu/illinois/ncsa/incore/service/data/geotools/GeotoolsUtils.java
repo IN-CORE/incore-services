@@ -43,15 +43,15 @@ public class GeotoolsUtils {
     private static GeometryFactory geometryFactory;
     private static final String uniIdShp = "Id";
     private static final String uniIdCsv = "Id";
+    public static String outFileName = null;
 
-    private static String inSourceFile = "C:/Users/ywkim/Documents/NIST/Centerville/Building_zones.shp"; //$NON-NLS-1$
-//    private static String inResultCsv = "C:/Users/ywkim/Documents/NIST/Centerville/table1.txt";
-    private static String outDir = "C:/Users/Ywkim/Documents/shapefile/"; //$NON-NLS-1$
-    private static String outFileName = "test.shp";
+//    private static String outDir = "C:/Users/Ywkim/Downloads/Rest/"; //$NON-NLS-1$
+//    private static String outFileName = "test.shp";
 
-    public static void JoinTableShapefile(File shpFile, File csvFile) throws IOException {
+    public static void JoinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
         // set geometry factory
         geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + ControllerFileUtils.EXTENSION_SHP;
 
         // read csv file
         String[] csvHeaders = getCsvHeader(csvFile);
@@ -74,17 +74,21 @@ public class GeotoolsUtils {
 
         // create temp dir
         String tempDir = Files.createTempDirectory(ControllerFileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        String fileName = FilenameUtils.getName(shpFile.getName());
-        File destFile = new File(tempDir + "/" + fileName);
-        FileUtils.copyFile(shpFile, destFile);
-        //in here I am simply copy and paste the files to temp direcotry.
-        // However, if the source file is in different server, use httpdownloader
-        // HttpDownloader.downloadFile(inSourceFileUrlTwo.getFile(), tempDir);
+        URL inSourceFileUrl = null;
+        for (int i=0;i<shpfiles.size();i++) {
+            File shpFile = shpfiles.get(i);
+            String fileName = FilenameUtils.getName(shpFile.getName());
+            File destFile = new File(tempDir + "/" + fileName);
+            FileUtils.copyFile(shpFile, destFile);
+            String fileExt = FilenameUtils.getExtension(destFile.getName());
+            if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)){
+                inSourceFileUrl = destFile.toURI().toURL();
+            }
+            //in here I am simply copy and paste the files to temp direcotry.
+            // However, if the source file is in different server, use httpdownloader
+            // HttpDownloader.downloadFile(inSourceFileUrlTwo.getFile(), tempDir);
+        }
 
-
-        // set dataset
-        URL inSourceFileUrl = new URL("file:/" + inSourceFile);
-        URL inSourceFileUrlTwo = shpFile.toURI().toURL();
         DataStore store = getShapefileDataStore(inSourceFileUrl, false);
         FileDataStore fileStore = (FileDataStore) store;
         SimpleFeatureSource featureSource = fileStore.getFeatureSource();
@@ -155,13 +159,13 @@ public class GeotoolsUtils {
             inputFeatureIterator.close();
         }
 
-        createOutfile(finalList, finalResultMapList, outDir);
+        createOutfile(finalList, finalResultMapList, tempDir);
     }
 
     @SuppressWarnings("unchecked")
     public static void createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
                                      String outDir) throws IOException {
-        File outFile = new File(outDir + outFileName); //$NON-NLS-1$
+        File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
 
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         System.out.println(finalList.get(0).getClass());

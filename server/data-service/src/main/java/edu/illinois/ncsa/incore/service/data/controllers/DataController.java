@@ -98,7 +98,7 @@ public class DataController {
         return repository.getDatasetById(datasetId);
     }
 
-    //http://localhost:8080/data/api/datasets/joinshptable/59dfb53468f4742898a40267
+    //http://localhost:8080/data/api/datasets/joinshptable/59e0ec0c68f4742a340411d2
     @GET
     @Path("/joinshptable/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -116,19 +116,23 @@ public class DataController {
         List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
         String sourceType = sourceDataset.getType();
         List<File> shpfiles = new ArrayList<File>();
-        boolean IsShpfile = false;
+        boolean isShpfile = false;
 
         if (!(sourceType.equalsIgnoreCase("shapefile"))) {
             for (int i = 0; i < sourceFDs.size(); i++) {
                 FileDescriptor sfd = sourceFDs.get(i);
                 String shpLoc = sfd.getDataURL();
                 File shpFile = new File(new URI(shpLoc));
+                shpfiles.add(shpFile);
                 //get file, if the file is in remote, use http downloader
                 String fileExt = FilenameUtils.getExtension(shpLoc);
                 if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)){
-                    GeotoolsUtils.JoinTableShapefile(shpFile, csvFile);
+                    isShpfile = true;
                 }
             }
+        }
+        if (isShpfile) {
+            GeotoolsUtils.JoinTableShapefile(shpfiles, csvFile);
         }
         return dataset;
     }
@@ -206,7 +210,7 @@ public class DataController {
 //        return repository.addDataset(dataset);
 //    }
 
-//    {datasetId: "59e0ec0c68f4742a340411d2", property name: "sourceDataset", property value: "59e0ec0c68f4742a340411d2"}
+//    {datasetId: "59e0ec0c68f4742a340411d2", property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"}
     /**
      * Update dataset property using given json input
      * @param inDatasetJson
@@ -231,7 +235,7 @@ public class DataController {
     }
 
     //  http//localhost:8080/data/api/datasets/ingest-multi-files
-    //    {datasetId: "59e0e8ed68f4740274f39733"}
+    //    {datasetId: "59e5046668f47426549b606e"}
     /**
      * Upload multiple files and create FileDescriptors and attach those to dataset
      * @param inputs    post paraemters including file and metadata
@@ -263,11 +267,12 @@ public class DataController {
             }
         }
 
+        int j = 0;
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
             if (paramName.equals(POST_PARAMENTER_FILE)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
-                InputStream is = (InputStream) inputs.getFields(POST_PARAMENTER_FILE).get(0).getValueAs(InputStream.class);
+                InputStream is = (InputStream) inputs.getFields(POST_PARAMENTER_FILE).get(j).getValueAs(InputStream.class);
                 FileDescriptor fd = new FileDescriptor();
                 FileStorageDisk fsDisk = new FileStorageDisk();
 
@@ -279,6 +284,7 @@ public class DataController {
                     e.printStackTrace();
                 }
                 dataset.addFileDescriptor(fd);
+                j++;
             }
         }
         repository.addDataset(dataset);
@@ -294,18 +300,26 @@ public class DataController {
     public Dataset ingestDataset(@FormDataParam("dataset") String inDatasetJson) {
 
         // example input json
-        //{ schema: "buildingInventory", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
-        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingDamage.v1.0", sourceDataset: "59e0eb7d68f4742a342d9738", format: "csv", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingInventory", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] }
+        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["ywkim", "ergo"] }
         boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
+        String title = "";
+        String type = "";
+        String sourceDataset = "";
+        String format = "";
+        String fileName = "";
+        List<String> spaces = null;
 
         // create DataWolf POJO object
         Dataset dataset = new Dataset();
         if (isJsonValid) {
-            String type = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TYPE, inDatasetJson);
-            String sourceDataset = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
-            String format = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FORMAT, inDatasetJson);
-            String fileName = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FILE_NAME, inDatasetJson);
-            List<String> spaces = ControllerJsonUtils.extractValueListFromJsonString(ControllerFileUtils.DATASET_SPACES, inDatasetJson);
+            title = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TITLE, inDatasetJson);
+            type = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TYPE, inDatasetJson);
+            sourceDataset = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
+            format = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FORMAT, inDatasetJson);
+            fileName = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FILE_NAME, inDatasetJson);
+            spaces = ControllerJsonUtils.extractValueListFromJsonString(ControllerFileUtils.DATASET_SPACES, inDatasetJson);
+            dataset.setTitle(title);
             dataset.setType(type);
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);

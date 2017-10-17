@@ -49,6 +49,7 @@ public class ControllerFileUtils {
     public static final int TYPE_NUMBER_CSV = 2;
     public static final int TYPE_NUMBER_META = 3;
     public static final int TYPE_NUMBER_MULTI = 10;
+    public static final String DATASET_TITLE = "title";   //$NON-NLS-1$
     public static final String DATASET_TYPE = "type";   //$NON-NLS-1$
     public static final String DATASET_SOURCE_DATASET = "sourceDataset";    //$NON-NLS-1$
     public static final String DATASET_FORMAT = "format";   //$NON-NLS-1$
@@ -416,6 +417,12 @@ public class ControllerFileUtils {
             HttpDownloader.downloadFile(realUrl + fileList.get(i), tempDir);
         }
 
+        File zipFile = createZipFile(fileList, tempDir, baseName);
+
+        return zipFile;
+    }
+
+    public static File createZipFile(List<String> fileList, String tempDir, String baseName) throws IOException {
         String zipfile = tempDir + File.separator + baseName + ".zip";  //$NON-NLS-1$
 
         // create zip file
@@ -437,6 +444,7 @@ public class ControllerFileUtils {
         zipOS.closeEntry();
         zipOS.close();
         System.out.println("zip file has been created");    //$NON-NLS-1$
+
         return new File(zipfile);
     }
 }
