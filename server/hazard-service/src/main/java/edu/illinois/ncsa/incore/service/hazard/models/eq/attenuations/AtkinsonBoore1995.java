@@ -71,22 +71,22 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
 
     /**
      * @param period      Period / Hazard to compute
-     * @param m           Moment Magnitude of the event
+     * @param magnitude           Moment Magnitude of the event
      * @param distance    Distance from the epicenter to the point of interest
-     * @param focal_depth Depth of the event
+     * @param focalDepth Depth of the event
      * @return Hazard Value
      * @todo We assume site class D, we must get this info from the user if
      * available
      */
-    private double getValue(String period, double m, double distance, double focal_depth) {
+    private double getValue(String period, double magnitude, double distance, double focalDepth) {
         List<Double> coeff = getCoefficients(period);
-        double r = Math.sqrt(Math.pow(distance, 2) + Math.pow(focal_depth, 2));
+        double r = Math.sqrt(Math.pow(distance, 2) + Math.pow(focalDepth, 2));
         // Constraint provided by Glenn Rix
         if (r < 10.0)
             r = 10.0;
 
         // System.out.println("R_hypo = "+r);
-        double val = coeff.get(0) + coeff.get(1) * (m - 6) + coeff.get(2) * Math.pow((m - 6), 2) - Math.log10(r) - coeff.get(3) * r;
+        double val = coeff.get(0) + coeff.get(1) * (magnitude - 6) + coeff.get(2) * Math.pow((magnitude - 6), 2) - Math.log10(r) - coeff.get(3) * r;
 
         // Site A motions with units of g
         val = Math.pow(10, val) * 0.001019716;

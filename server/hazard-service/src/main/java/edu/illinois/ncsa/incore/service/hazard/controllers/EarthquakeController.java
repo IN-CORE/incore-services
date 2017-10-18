@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-@Path("earthquake")
+@Path("earthquakes")
 public class EarthquakeController {
     private static final Logger logger = Logger.getLogger(EarthquakeController.class);
     private GeometryFactory factory = new GeometryFactory();

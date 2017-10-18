@@ -8,6 +8,7 @@
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
+
 import com.mongodb.MongoClient;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import org.bson.types.ObjectId;

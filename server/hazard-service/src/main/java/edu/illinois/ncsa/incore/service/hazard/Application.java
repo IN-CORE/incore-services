@@ -22,7 +22,6 @@ public class Application  extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        System.out.println("initialize hazard");
         IRepository mongoRepository = new MongoDBRepository("localhost", "hazarddb", 27017);
         mongoRepository.initialize();
 
