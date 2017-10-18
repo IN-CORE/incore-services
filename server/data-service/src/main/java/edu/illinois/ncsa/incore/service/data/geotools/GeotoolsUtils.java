@@ -1,17 +1,12 @@
 package edu.illinois.ncsa.incore.service.data.geotools;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 
-import com.github.sardine.DavResource;
-import com.github.sardine.Sardine;
-import com.github.sardine.SardineFactory;
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
 import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
-import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.*;
@@ -21,8 +16,6 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.factory.GeoTools;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -34,10 +27,8 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.GeometryType;
-import org.opengis.filter.FilterFactory2;
 
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
 
 /**
  * Created by ywkim on 10/5/2017.
@@ -47,9 +38,6 @@ public class GeotoolsUtils {
     private static final String uniIdShp = "Id";
     private static final String uniIdCsv = "Id";
     public static String outFileName = null;
-
-//    private static String outDir = "C:/Users/Ywkim/Downloads/Rest/"; //$NON-NLS-1$
-//    private static String outFileName = "test.shp";
 
     public static File JoinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
         // set geometry factory
@@ -67,7 +55,6 @@ public class GeotoolsUtils {
         }
 
         // find column location of the unique id inCsv
-
         for (int i = 0; i < csvHeaders.length - 1; i++) {
             String header = csvHeaders[i];
             if (header.equals(uniIdCsv)) {
@@ -75,21 +62,15 @@ public class GeotoolsUtils {
             }
         }
 
-        // create temp dir
+        // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(ControllerFileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir);
         URL inSourceFileUrl = null;
-        for (int i=0;i<shpfiles.size();i++) {
-            File shpFile = shpfiles.get(i);
-            String fileName = FilenameUtils.getName(shpFile.getName());
-            File destFile = new File(tempDir + "/" + fileName);
-            FileUtils.copyFile(shpFile, destFile);
-            String fileExt = FilenameUtils.getExtension(destFile.getName());
-            if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)){
-                inSourceFileUrl = destFile.toURI().toURL();
+        for (File copiedFile: copiedFileList) {
+            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
+            if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)) {
+                inSourceFileUrl = copiedFile.toURI().toURL();
             }
-            //in here I am simply copy and paste the files to temp direcotry.
-            // However, if the source file is in different server, use httpdownloader
-            // HttpDownloader.downloadFile(inSourceFileUrlTwo.getFile(), tempDir);
         }
 
         DataStore store = getShapefileDataStore(inSourceFileUrl, false);
@@ -137,7 +118,7 @@ public class GeotoolsUtils {
                                     csvRows.remove(j);
                                 }
                             }
-//							System.out.println(Arrays.toString(matchedCsvRow));
+
                             // add matched row to resultMap
                             if (matchedCsvRow != null) {
                                 for (int j = 0; j < matchedCsvRow.length; j++) {
@@ -148,11 +129,9 @@ public class GeotoolsUtils {
                                 }
                             }
                         }
-                        // System.out.println(attributeType.getLocalName() + " "
-                        // + attribute);
+
                     }
                 }
-//				System.out.println(resultMap);
                 resultMapList.add(resultMap);
 
                 finalList.add(g);
@@ -165,13 +144,29 @@ public class GeotoolsUtils {
         return createOutfile(finalList, finalResultMapList, tempDir);
     }
 
+    public static List<File> copyFilesToTmpDir(List<File> fileList, String tempDir) throws IOException{
+        URL outUrl = null;
+        List<File> outList = new ArrayList<File>();
+        for (int i=0;i<fileList.size();i++) {
+            File sourceFile = fileList.get(i);
+            String fileName = FilenameUtils.getName(sourceFile.getName());
+            File destFile = new File(tempDir + File.separator + fileName);
+            outList.add(destFile);
+            FileUtils.copyFile(sourceFile, destFile);
+            //in here I am simply copy and paste the files to temp direcotry.
+            // However, if the source file is in different server, use httpdownloader
+            // HttpDownloader.downloadFile(inSourceFileUrlTwo.getFile(), tempDir);
+        }
+
+        return outList;
+    }
+
     @SuppressWarnings("unchecked")
     public static File createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
                                      String outDir) throws IOException {
         File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
 
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-        System.out.println(finalList.get(0).getClass());
 
         AttributeTypeBuilder attBuilder = new AttributeTypeBuilder();
         attBuilder.setName("the_geom"); //$NON-NLS-1$
@@ -241,7 +236,6 @@ public class GeotoolsUtils {
             } finally {
                 transaction.close();
             }
-            // System.exit(0); // success!
         } else {
             System.out.println(typeName + " does not support read/write access"); //$NON-NLS-1$
             System.exit(1);

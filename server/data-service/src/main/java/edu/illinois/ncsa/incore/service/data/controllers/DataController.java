@@ -29,7 +29,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +51,8 @@ public class DataController {
     private static final String POST_PARAMETER_DATASET_ID = "datasetId";    //$NON-NLS-1$
     private static final String UPDATE_OBJECT_NAME = "property name";  //$NON-NLS-1$
     private static final String UPDATE_OBJECT_VALUE = "property value";  //$NON-NLS-1$
+    private static final String FILE_ZIP_EXTENSION = "zip"; //$NON-NLS-1$
+    private static final String FILE_SHAPFILE_NAME = "shapefile";   //$NON-NLS-1$
 
     @Inject
     private IRepository repository;
@@ -98,46 +103,6 @@ public class DataController {
         return repository.getDatasetById(datasetId);
     }
 
-    //http://localhost:8080/data/api/datasets/joinshptable/59e509ca68f4742654e59621
-    @GET
-    @Path("/joinshptable/{id}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public File getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
-        Dataset dataset = repository.getDatasetById(datasetId);
-        List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
-        File csvFile = null;
-        for (int i=0;i<csvFDs.size();i++) {
-            FileDescriptor csvFd = csvFDs.get(i);
-            String csvLoc = csvFd.getDataURL();
-            csvFile = new File(new URI(csvLoc));
-        }
-
-        Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
-        List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
-        String sourceType = sourceDataset.getType();
-        List<File> shpfiles = new ArrayList<File>();
-        File zipFile = null;
-        boolean isShpfile = false;
-
-        if (!(sourceType.equalsIgnoreCase("shapefile"))) {
-            for (int i = 0; i < sourceFDs.size(); i++) {
-                FileDescriptor sfd = sourceFDs.get(i);
-                String shpLoc = sfd.getDataURL();
-                File shpFile = new File(new URI(shpLoc));
-                shpfiles.add(shpFile);
-                //get file, if the file is in remote, use http downloader
-                String fileExt = FilenameUtils.getExtension(shpLoc);
-                if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)){
-                    isShpfile = true;
-                }
-            }
-        }
-        if (isShpfile) {
-            zipFile = GeotoolsUtils.JoinTableShapefile(shpfiles, csvFile);
-        }
-        return zipFile;
-    }
-
     //http://localhost:8080/data/api/datasets/list-datasets
     /**
      * create list of dataset in the database
@@ -149,6 +114,88 @@ public class DataController {
     @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetList() {
         return repository.getAllDatasets();
+    }
+
+    //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/files
+    /**
+     * download zip file of the files belonged to the dataset based on filedescriptor
+     * @param datasetId id of the Dataset in mongodb
+     * @return
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    @GET
+    @Path("/{id}/files")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getFileByDataset(@PathParam("id") String datasetId) throws IOException, URISyntaxException{
+        Dataset dataset = repository.getDatasetById(datasetId);
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        List<File> fileList = new ArrayList<File>();
+        String absolutePath = "";   //$NON-NLS-1$
+        String filePath = "";   //$NON-NLS-1$
+        String fileBaseName = "";   //$NON-NLS-1$
+        String fileName = "";   //$NON-NLS-1$
+        File outFile = null;
+
+        if (fds.size() > 0) {
+            File tmpFile = new File(fds.get(0).getDataURL());
+            absolutePath = tmpFile.getPath();
+            filePath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator));
+            fileBaseName = FilenameUtils.getBaseName(tmpFile.getName());
+
+            List<String> fileNameList = new ArrayList<String>();
+            for (FileDescriptor fd: fds) {
+                String dataUrl = fd.getDataURL();
+                fileList.add(new File(new URI(dataUrl)));
+                fileNameList.add(FilenameUtils.getName(dataUrl));
+            }
+
+            // create temp dir and copy files to temp dir
+            String tempDir = Files.createTempDirectory(ControllerFileUtils.DATA_TEMP_DIR_PREFIX).toString();
+            // copiedFileList below is not used but the method is needed to copy files
+            List<File> copieFileList = GeotoolsUtils.copyFilesToTmpDir(fileList, tempDir);
+
+            outFile =  ControllerFileUtils.createZipFile(fileNameList, tempDir, fileBaseName);
+            fileName = fileBaseName + "." + FILE_ZIP_EXTENSION;
+        }
+        return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"" ).build();
+    }
+
+    //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/filedescriptors/59e50a2568f4742654e59629/files
+
+    /**
+     * Download a file attached to a given FileDescriptor
+     *
+     * @param datasetId Dataset id
+     * @param inFdId    FileDescriptor id in the Dataset
+     * @return
+     * @throws URISyntaxException
+     */
+    @GET
+    @Path("/{id}/filedescriptors/{fdid}/files")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getFileByFileDescriptor(@PathParam("id") String datasetId, @PathParam("fdid") String inFdId) throws URISyntaxException{
+        File outFile =  null;
+        Dataset dataset = repository.getDatasetById(datasetId);
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        String dataUrl = ""; //$NON-NLS-1$
+        String fdId = "";   //$NON-NLS-1$
+        String fileName = "";   //$NON-NLS-1$
+
+        for (FileDescriptor fd: fds) {
+            fdId = fd.getId();
+            if (fdId.equals(inFdId)) {
+                dataUrl = fd.getDataURL();
+                fileName = fd.getFilename();
+            }
+        }
+
+        if (!dataUrl.equals("")) {  //$NON-NLS-1$
+            outFile = new File(new URI(dataUrl));
+            outFile.renameTo(new File(outFile.getParentFile(), fileName));
+        }
+
+        return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"" ).build();
     }
 
     //http://localhost:8080/data/api/datasets/list-datasets
@@ -164,52 +211,48 @@ public class DataController {
         return repository.getAllSpaces();
     }
 
-    // test with
-    //http://localhost:8080/data/api/datasets/collection/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-
-    /**
-     * see the metadata json of the dataset. data can be downloaded by clicking location
-     *
-     * @param collId collection id
-     * @return list of document name
-     */
+    //http://localhost:8080/data/api/datasets/joinshptable/59e509ca68f4742654e59621
     @GET
-    @Path("/collection/{id}")
-    @Produces(MediaType.TEXT_HTML)
-    public List<String> getListInCollection(@PathParam("id") String collId) {
-        return ControllerMongoUtils.getDocListByCollId(MONGO_URL, MONGO_DB_NAME, collId);
-    }
+    @Path("/joinshptable/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
+        Dataset dataset = repository.getDatasetById(datasetId);
+        List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
+        File csvFile = null;
+        String outFileName = "";    //$NON-NLS-1$
+        for (int i=0;i<csvFDs.size();i++) {
+            FileDescriptor csvFd = csvFDs.get(i);
+            String csvLoc = csvFd.getDataURL();
+            csvFile = new File(new URI(csvLoc));
+        }
 
-//    // http//localhost:8080/data/api/datasets/ingest-result
-//
-//    /**
-//     * ingest dataset into mongodb and file server
-//     * @param inJson input json string
-//     * @return output dataset object
-//     */
-//    @POST
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    @Produces(MediaType.APPLICATION_JSON)
-//    @Path("/ingest-result")
-//    public Dataset ingestResult(String inJson) {
-//        // check if the input json string is valid
-//        boolean isJsonValid = ControllerJsonUtils.isJSONValid(inJson);
-//
-//        // create DataWolf POJO object
-//        Dataset dataset = new Dataset();
-//        if (isJsonValid) {
-//            String type = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TYPE, inJson);
-//            String sourceDataset = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_SOURCE_DATASET, inJson);
-//            String format = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FORMAT, inJson);
-//            List<String> spaces = ControllerJsonUtils.extractValueListFromJsonString(ControllerFileUtils.DATASET_SPACES, inJson);
-//            dataset.setType(type);
-//            dataset.setSourceDataset(sourceDataset);
-//            dataset.setFormat(format);
-//            dataset.setSpaces(spaces);
-//        }
-//
-//        return repository.addDataset(dataset);
-//    }
+        Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
+        List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
+        String sourceType = sourceDataset.getType();
+        List<File> shpfiles = new ArrayList<File>();
+        File zipFile = null;
+        boolean isShpfile = false;
+
+        if (!(sourceType.equalsIgnoreCase(FILE_SHAPFILE_NAME))) {
+            for (int i = 0; i < sourceFDs.size(); i++) {
+                FileDescriptor sfd = sourceFDs.get(i);
+                String shpLoc = sfd.getDataURL();
+                File shpFile = new File(new URI(shpLoc));
+                shpfiles.add(shpFile);
+                //get file, if the file is in remote, use http downloader
+                String fileExt = FilenameUtils.getExtension(shpLoc);
+                if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)){
+                    isShpfile = true;
+                }
+            }
+        }
+        if (isShpfile) {
+            zipFile = GeotoolsUtils.JoinTableShapefile(shpfiles, csvFile);
+            outFileName = FilenameUtils.getBaseName(zipFile.getName()) + "." + FILE_ZIP_EXTENSION;
+        }
+
+        return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + outFileName + "\"" ).build();
+    }
 
 //    {datasetId: "59e0ec0c68f4742a340411d2", property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"}
     /**
@@ -399,307 +442,4 @@ public class DataController {
 
         return dataset;
     }
-
-    // http
-
-    // list all the metadatas in the repository information as json
-    // zipped dataset can be downloaded when the location get clicked
-    @GET
-    @Path("/earthquake")
-    @Produces(MediaType.APPLICATION_JSON)
-    // http://localhost:8080/data/api/datasets
-    public List<MvzDataset> getDirectoryListJson() {
-        // create the POJO object;
-        List<String> resHref = ControllerFileUtils.getDirectoryContent(ControllerFileUtils.REPO_PROP_URL, "");
-        List<MvzDataset> mvzDatasets = new ArrayList<>();
-
-        for (String tmpUrl : resHref) {
-            String metaDirUrl = ControllerFileUtils.REPO_PROP_URL + tmpUrl;
-            List<String> metaHref = ControllerFileUtils.getDirectoryContent(metaDirUrl, "");
-            for (String metaFileName : metaHref) {
-                String fileExtStr = FilenameUtils.getExtension(metaFileName);
-                // get only the mvz file
-                if (fileExtStr.equals(ControllerFileUtils.EXTENSION_META)) {
-                    String combinedId = tmpUrl + "/" + metaFileName;
-                    MvzDataset mvzDataset = new MvzDataset();
-                    mvzDataset = MvzLoader.createMvzDatasetFromMetadata(combinedId);
-                    mvzDatasets.add(mvzDataset);
-                }
-            }
-        }
-
-        return mvzDatasets;
-    }
-
-    // get the geojson from mongodb
-    //http://localhost:8080/data/api/datasets/Shelby_County_RES31224702005658/mongo
-    //http://localhost:8080/data/api/datasets/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/mongo
-    //http://localhost:8080/data/api/datasets/HAZUS_Table_13.8_Collapse_Rates1209053226524/mongo
-    //http://localhost:8080/data/api/datasets/Building_Disruption_Cost1168019087905/mongo
-    @GET
-    @Path("/{datasetId}/mongo")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getGeoJsonFromMongo(@PathParam("datasetId") String datasetId) {
-        String outJson = ControllerJsonUtils.getJsonByDatasetIdFromMongo(datasetId, MONGO_URL, MONGO_DB_NAME);
-        return Response.ok(outJson).status(Response.Status.OK).build();
-    }
-
-    // insert all dataset to mongodb
-    // http://localhost:8080/data/api/datasets/ingestmongo
-    @GET
-    @Path("/ingestmongo")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String ingestAllToMongo() {
-        // list all the directory
-        List<String> resHref = ControllerFileUtils.getDirectoryContent(ControllerFileUtils.REPO_PROP_URL, "");
-        resHref.remove("properties");
-
-        for (String tmpUrl : resHref) {
-            //String dataDirUrl = REPO_PROP_URL + tmpUrl; // use follow to use metadata
-            String dataDirUrl = ControllerFileUtils.REPO_DS_URL + tmpUrl; // use follow for actual dataset
-
-            List<String> dataHref = ControllerFileUtils.getDirectoryContent(dataDirUrl, "");
-            for (String dataFileName : dataHref) {
-                String combinedId = dataDirUrl + "/" + dataFileName + "/converted/";    //$NON-NLS-1$
-                List<String> fileNames = ControllerFileUtils.getDirectoryContent(combinedId, "");
-                for (String fileName : fileNames) {
-                    // skip if the file name is converted
-                    if (!fileName.equals("converted")) {
-                        String fileExtStr = FilenameUtils.getExtension(fileName);
-                        // check out the file extension and decide to ingest
-                        if (fileExtStr.equals(ControllerFileUtils.EXTENSION_SHP)) {
-                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");   //$NON-NLS-1$ //$NON-NLS-2$
-                            ControllerMongoUtils.ingestShpfileToMongo(tmpUrl, dataFileName, MONGO_URL, MONGO_DB_NAME, ControllerFileUtils.REPO_DS_URL);
-                        } else if (fileExtStr.equals(ControllerFileUtils.EXTENSION_CSV)) {
-                            System.out.println("Ingesting " + tmpUrl + "/" + dataFileName + " to database.");   //$NON-NLS-1$ //$NON-NLS-2$
-                            ControllerMongoUtils.ingestCsvToMongo(ControllerFileUtils.EXTENSION_CSV, tmpUrl, dataFileName, MONGO_URL, MONGO_DB_NAME, ControllerFileUtils.REPO_DS_URL, ControllerFileUtils.SERVER_URL_PREFIX);
-                        } else {
-                            System.out.println("other file format " + fileExtStr);  //$NON-NLS-1$
-                        }
-                    }
-                }
-            }
-        }
-
-        return "done";
-    }
-
-    // test with the following line
-    // http://localhost:8080/data/api/datasets/query?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    @GET
-    @Path("query")
-    @Produces(MediaType.APPLICATION_JSON)
-    //public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId) {
-    //public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId , @HeaderParam("X-Credential-Username") String username) {
-    public List<MvzDataset> getJsonObjTest(@QueryParam("type") String inTypeId, @HeaderParam("HTTP_USER_AGENT") String username, @Context HttpHeaders headers) {
-        String userAgent = headers.getRequestHeader("user-agent").get(0);
-        System.out.println(username);
-        String propUrl = ControllerFileUtils.REPO_PROP_URL + inTypeId;
-        File metadata = null;
-
-        List<String> resourceUrls = ControllerFileUtils.getDirectoryContent(propUrl, inTypeId);
-        List<MvzDataset> mvzDatasets = new ArrayList<MvzDataset>();
-
-        for (String rUrl : resourceUrls) {
-            MvzDataset mvzDataset = new MvzDataset();
-            mvzDataset = MvzLoader.createMvzDatasetFromMetadata(rUrl);
-            mvzDatasets.add(mvzDataset);
-        }
-
-        return mvzDatasets;
-    }
-
-    //list all the metadata belonged to type id. data can be downloaded by clicking location
-    //metadata converted as POJO object
-    // http://localhost:8080/data/api/datasets/test?type=edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    @GET
-    @Path("/test")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getDatasetByIdTest(@QueryParam("type") String typeId) {
-        String propUrl = ControllerFileUtils.REPO_PROP_URL + typeId;
-        File metadata = null;
-
-        List<String> resourceUrls = ControllerFileUtils.getDirectoryContent(propUrl, typeId);
-        String outJsonStr = "[\n";
-        String combinedId = "";
-
-        for (String rUrl : resourceUrls) {
-            outJsonStr = outJsonStr;
-
-            try {
-                metadata = ControllerFileUtils.loadMetadataFromRepository(rUrl);
-                outJsonStr = outJsonStr + MvzLoader.formatMetadataAsJson(metadata, rUrl, ControllerFileUtils.SERVER_URL_PREFIX) + ",\n";
-            } catch (IOException e) {
-                e.printStackTrace();
-                ;
-                String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-        }
-        outJsonStr = outJsonStr.substring(0, outJsonStr.length() - 2);
-        outJsonStr = outJsonStr + "\n]";
-
-        return Response.ok(outJsonStr).status(Response.Status.OK).build();
-    }
-
-    // directory listing
-    @GET
-    @Path("/list-html")     // this should be changed later for the appropriate line
-    @Produces(MediaType.TEXT_HTML)
-    // http://localhost:8080/data/api/datasets/list
-    public String getDirectoryList() {
-        try {
-            return (ControllerFileUtils.loadDirectoryList());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-        }
-    }
-
-    // create geoJson of shapefile dataset
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/geojson
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/geojson
-    @GET
-    @Path("/{typeid}/{datasetId}/geojson")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getDatasetByTypeId(@PathParam("typeid") String typeId, @PathParam("datasetId") String datasetId) {
-        File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
-        String fileName = "";
-        try {
-            fileName = ControllerFileUtils.loadFileNameFromRepository(combinedId, ControllerFileUtils.EXTENSION_SHP, ControllerFileUtils.REPO_DS_URL);
-            if (fileName.length() > 0) {
-                dataset = new File(fileName);
-                String outJson = ControllerJsonUtils.formatDatasetAsGeoJson(dataset);
-                return Response.ok(outJson).status(Response.Status.OK).build();
-            } else {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
-
-    // create geoJson of shapefile dataset
-    //http://localhost:8080/data/api/datasets/Shelby_County_RES31224702005658/earthquake
-    //http://localhost:8080/data/api/datasets/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/earthquake
-    //http://localhost:8080/data/api/datasets/HAZUS_Table_13.8_Collapse_Rates1209053226524/earthquake
-    //http://localhost:8080/data/api/datasets/Building_Disruption_Cost1168019087905/earthquake
-    @GET
-    @Path("/{datasetId}/earthquake")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getDatasetByDatasetId(@PathParam("datasetId") String datasetId) {
-        String outJson = ControllerJsonUtils.getJsonByDatasetId(datasetId);
-        return Response.ok(outJson).status(Response.Status.OK).build();
-    }
-
-
-    //list the dataset belonged to type
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0
-    @GET
-    @Path("/type/{typeId}")
-    @Produces(MediaType.TEXT_HTML)
-    public String getDirectoryListWithId(@PathParam("typeId") String typeId) {
-        try {
-            return (ControllerFileUtils.loadDirectoryList(typeId));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";    //$NON-NLS-1$
-        }
-    }
-
-    // see the metadata json of the dataset. data can be downloaded by clicking location
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658
-    @GET
-    @Path("/{typeId}/{datasetId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public MvzDataset getMetadataById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
-        String combinedId = typeId + "/" + datasetId;
-        MvzDataset mvzDataset = MvzLoader.createMvzDatasetFromMetadata(combinedId);
-
-        return mvzDataset;
-    }
-
-    // download zipped dataset file
-    // http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/files
-    @GET
-    @Path("/{typeId}/{datasetId}/files")
-    @Produces(MediaType.TEXT_PLAIN)
-    public File getShapefileById(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
-        File dataset = null;
-
-        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
-        try {
-            dataset = ControllerFileUtils.loadZipdataFromRepository(combinedId);
-            return dataset;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    // ingest metadata into mongodb
-    //http://localhost:8080/data/api/datasets//edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/ingest
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/ingest
-    @GET
-    @Path("/{typeId}/ingest")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String ingestMetadataToMongo(@PathParam("typeId") String typeId) {
-        // get the metadata file name list from the type directory
-        String propUrl = ControllerFileUtils.REPO_PROP_URL + typeId;
-        File metadata = null;
-
-        List<String> resourceUrls = ControllerFileUtils.getDirectoryContent(propUrl, typeId);
-
-        for (String tmpUrl : resourceUrls) {
-            String metaDirUrl = ControllerFileUtils.REPO_PROP_URL + tmpUrl;
-            List<String> metaHref = ControllerFileUtils.getDirectoryContent(metaDirUrl, "");
-            for (String metaFileName : metaHref) {
-                String fileExtStr = FilenameUtils.getExtension(metaFileName);
-                String fileName = FilenameUtils.getBaseName(metaFileName);
-                // get only the mvz file
-                if (fileExtStr.equals(ControllerFileUtils.EXTENSION_META)) {
-                    ControllerMongoUtils.ingestMetaToMongo(ControllerFileUtils.EXTENSION_CSV, typeId, fileName, MONGO_URL, MONGO_DB_NAME, ControllerFileUtils.REPO_PROP_URL, ControllerFileUtils.SERVER_URL_PREFIX);
-                }
-            }
-        }
-        return "Metadata ingested successfully";    //$NON-NLS-1$
-    }
-
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.schemas.buildingInventoryVer5.v1.0/Shelby_County_RES31224702005658/ingest
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.lifeline.schemas.powerFacilityTopo.v1.0/Memphis_Electric_Power_Facility_with_Topology_for_INA1213389330789/ingest
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0/HAZUS_Table_13.8_Collapse_Rates1209053226524/ingest
-    //http://localhost:8080/data/api/datasets/edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingDisruptionCost.v1.0/Building_Disruption_Cost1168019087905/ingest
-    @GET
-    @Path("/{typeId}/{datasetId}/ingest")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String ingestDatasetToMongo(@PathParam("typeId") String typeId, @PathParam("datasetId") String datasetId) {
-        // check if it is shapefile or csv
-        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
-        int fileType = ControllerFileUtils.checkDataFormatFromRepository(combinedId, ControllerFileUtils.REPO_DS_URL);
-
-        if (fileType >= ControllerFileUtils.TYPE_NUMBER_MULTI) {
-            logger.error("There are multiple file formats in the directory.");  //$NON-NLS-1$
-            return "There are multiple file formats in the directory."; //$NON-NLS-1$
-        }
-
-        if (fileType == ControllerFileUtils.TYPE_NUMBER_SHP) {    // ingest shapefile into mongodb
-            if (ControllerMongoUtils.ingestShpfileToMongo(typeId, datasetId, MONGO_URL, MONGO_DB_NAME, ControllerFileUtils.REPO_DS_URL)) {
-                return "Data ingested successfully";    //$NON-NLS-1$
-            } else {
-                return "There was a problem ingesting the data";    //$NON-NLS-1$
-            }
-        } else if (fileType == ControllerFileUtils.TYPE_NUMBER_CSV) { // ingest table into mongodb
-            if (ControllerMongoUtils.ingestCsvToMongo(ControllerFileUtils.EXTENSION_CSV, typeId, datasetId, MONGO_URL, MONGO_DB_NAME, ControllerFileUtils.REPO_DS_URL, ControllerFileUtils.SERVER_URL_PREFIX)) {
-                return "Data ingested successfully.";   //$NON-NLS-1$
-            } else {
-                return "There was a problem ingesting the data";    //$NON-NLS-1$
-            }
-        }
-        return "The given file type was unknow. The ingestion terminated."; //$NON-NLS-1$
-    }
-
-
 }

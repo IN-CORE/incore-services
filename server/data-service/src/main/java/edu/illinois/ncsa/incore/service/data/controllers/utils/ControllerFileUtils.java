@@ -39,7 +39,7 @@ public class ControllerFileUtils {
     public static final String REPO_PROP_URL = REPO_SERVER_URL + REPO_PROP_DIR;
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
     public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";  //$NON-NLS-1$
-    public static final String DATA_TEMP_DIR_PREFIX = "data_download_" ;    //$NON-NLS-1$
+    public static final String DATA_TEMP_DIR_PREFIX = "data_repo_" ;    //$NON-NLS-1$
     public static final String[] EXTENSIONS_SHAPEFILES = new String[]{"dbf", "prj", "shp", "shx"};
     public static final String EXTENSION_SHP = "shp";   //$NON-NLS-1$
     public static final String EXTENSION_META = "mvz";  //$NON-NLS-1$
