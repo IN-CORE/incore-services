@@ -1,13 +1,14 @@
 package edu.illinois.ncsa.incore.services.fragility.controllers;
 
-import edu.illinois.ncsa.incore.services.fragility.dto.MappingResponse;
 import edu.illinois.ncsa.incore.services.fragility.dataaccess.IRepository;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingRequest;
+import edu.illinois.ncsa.incore.services.fragility.dto.MappingResponse;
 import edu.illinois.ncsa.incore.services.fragility.mapping.FragilityMapper;
 import edu.illinois.ncsa.incore.services.fragility.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.services.fragility.model.FragilitySet;
 import org.apache.log4j.Logger;
 import org.geojson.Feature;
+import org.geojson.FeatureCollection;
 import org.mongodb.morphia.Datastore;
 
 import javax.inject.Inject;
@@ -15,10 +16,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Path("fragility")
 public class FragilityController {
@@ -31,7 +29,7 @@ public class FragilityController {
     private IRepository repository;
 
     @POST
-    @Path("/select")
+    @Path("/map")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response mapFragilities(MappingRequest mappingRequest) {
@@ -46,14 +44,26 @@ public class FragilityController {
 
         mapper.addMappingSet(matchFilterMap);
 
-        for (Feature feature : mappingRequest.mappingSubject.inventory.getFeatures()) {
-            String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(), feature.getProperties(), mappingRequest.parameters);
+        List<Feature> features = new ArrayList<>();
+
+        if (mappingRequest.mappingSubject.inventory instanceof FeatureCollection) {
+            features = ((FeatureCollection) mappingRequest.mappingSubject.inventory).getFeatures();
+        }
+
+        if (mappingRequest.mappingSubject.inventory instanceof Feature) {
+            features = new ArrayList<>();
+            features.add((Feature) mappingRequest.mappingSubject.inventory);
+        }
+
+        for (Feature feature : features) {
+            String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(), feature.getProperties(),
+                                                         mappingRequest.parameters);
 
             Optional<FragilitySet> fragilityMatch = fragilitySets.stream()
                                                                  .filter(set -> set.getLegacyId().equals(fragilityKey))
                                                                  .findFirst();
 
-            if(fragilityMatch.isPresent()) {
+            if (fragilityMatch.isPresent()) {
                 FragilitySet fragilitySet = fragilityMatch.get();
                 fragilitySetMap.put(fragilitySet.getLegacyId(), fragilitySet);
                 fragilityMap.put(feature.getId(), fragilitySet.getLegacyId());

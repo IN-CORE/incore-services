@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.services.fragility.test;
 
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.services.fragility.controllers.FragilityController;
 import edu.illinois.ncsa.incore.services.fragility.dto.MappingResponse;
@@ -36,9 +37,26 @@ public class FragilityControllerTest extends CustomJerseyTest {
 
         return application;
     }
+    @Test
+    public void testMappingFunctionFeature() throws IOException {
+        // arrange
+        URL jsonURL = this.getClass().getClassLoader().getResource("json/mapping_request.json");
+
+        MappingRequest request = new ObjectMapper()
+                                    .configure(MapperFeature.USE_ANNOTATIONS, true)
+                                    .readValue(jsonURL, MappingRequest.class);
+
+        // act
+        MappingResponse response = target("/fragility/map").request()
+                                                           .accept(MediaType.APPLICATION_JSON)
+                                                           .post(Entity.json(request), MappingResponse.class);
+
+        // assert
+
+    }
 
     @Test
-    public void testMappingFunction() throws IOException {
+    public void testMappingFunctionFeatureCollection() throws IOException {
         // arrange
         URL jsonURL = this.getClass().getClassLoader().getResource("json/inventory.json");
 
@@ -49,7 +67,7 @@ public class FragilityControllerTest extends CustomJerseyTest {
         MappingRequest request = new MappingRequest(subject);
 
         // act
-        MappingResponse response = target("/fragility/select").request()
+        MappingResponse response = target("/fragility/map").request()
                                                             .accept(MediaType.APPLICATION_JSON)
                                                             .post(Entity.json(request), MappingResponse.class);
 
