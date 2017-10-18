@@ -5,6 +5,8 @@
     "description": "This analysis computes the combined earthquake and tsunami damage for buildings.",
     "category": "buildings",
     "url": "https://incore.ncsa.illinois.edu/cumulative_risk_assessment",
+    "tag": "buildingCumulativeRiskAssessment",
+    "helpContext": "edu.illinois.ncsa.incore.multihazard.buildings.ui.building_cumulative_damage",
     "inputs": [
       {
         "name": "Result Name",
@@ -61,6 +63,8 @@
     "description": "Computes the functionality of a roadway, based on the expected damage.",
     "category": "transportation",
     "url": "https://incore.ncsa.illinois.edu/roadway_restoration",
+    "tag": "roadwayRestoration",
+    "helpContext": "edu.illinois.ncsa.incore.eq.transportation.ui.roadway_restoration",
     "inputs": [
       {
         "name": "Result Name",
@@ -101,6 +105,8 @@
     "description": "This analysis computes the damage of electric power network based on a tornado hazard.",
     "category": "hazard",
     "url": "https://incore.ncsa.illinois.edu/epn_tornado",
+    "helpContext": "edu.illinois.ncsa.incore.tornado.epn.ui.tornado_epn_damage_analysis",
+    "tag": "tornadoEPNDamage",
     "inputs": [
       {
         "name": "Result Name",

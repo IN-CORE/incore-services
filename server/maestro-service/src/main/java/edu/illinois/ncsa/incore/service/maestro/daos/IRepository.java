@@ -7,11 +7,17 @@
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
  *******************************************************************************/
-import org.junit.jupiter.api.Test;
+package edu.illinois.ncsa.incore.service.maestro.daos;
 
-public class SerializationTests {
-    @Test
-    public void test() {
+import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
+import org.mongodb.morphia.Datastore;
 
-    }
+import java.util.List;
+
+public interface IRepository {
+    void initialize();
+    List<Analysis> getAllAnalyses();
+    Analysis getAnalysisById(String id);
+    Analysis addAnalysis(Analysis analysis);
+    Datastore getDataStore();
 }
