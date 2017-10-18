@@ -1,13 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the {license} which accompanies this distribution,
- * and is available at {license-url}
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
  *
  * Contributors:
- * Christopher Navarro (NCSA) - initial API and implementation and/or initial documentation
+ * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +15,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
-import edu.illinois.ncsa.incore.service.hazard.dataaccess.IRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;

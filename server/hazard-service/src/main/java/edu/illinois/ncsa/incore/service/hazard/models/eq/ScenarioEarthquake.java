@@ -1,6 +1,16 @@
+/*******************************************************************************
+ * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Contributors:
+ * Chris Navarro (NCSA) - initial API and implementation
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
 import edu.illinois.ncsa.incore.service.hazard.NEHRPSoilType;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
@@ -11,7 +21,7 @@ import java.util.Map;
 public class ScenarioEarthquake {
     @Id
     @Property("_id")
-    private String id;
+    private ObjectId id;
 
     // Map of attenuation models and weights
     private Map<String, Double> attenuations;
@@ -40,7 +50,7 @@ public class ScenarioEarthquake {
     }
 
     public String getId() {
-        return id;
+        return id.toString();
     }
 
     public String getSiteClassDataset() {

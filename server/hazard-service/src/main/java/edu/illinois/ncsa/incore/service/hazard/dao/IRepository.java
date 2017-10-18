@@ -7,14 +7,17 @@
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.models.eq.site;
+package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
+import org.mongodb.morphia.Datastore;
 
-public abstract class SiteAmplification {
+import java.util.List;
 
-    public abstract double getSiteAmplification(Site site, double hazardValue, int siteClass, String period);
-
+public interface IRepository {
+    void initialize();
+    ScenarioEarthquake getScenarioEarthquakeById(String id);
+    ScenarioEarthquake addScenarioEarthquake(ScenarioEarthquake scenarioEarthquake);
+    List<ScenarioEarthquake> getScenarioEarthquakes();
+    Datastore getDataStore();
 }
-
-
