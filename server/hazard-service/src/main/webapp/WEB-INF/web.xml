@@ -12,13 +12,13 @@
 
         <init-param>
             <param-name>javax.ws.rs.Application</param-name>
-            <param-value>edu.illinois.ncsa.incore.services.hazard.Application</param-value>
+            <param-value>edu.illinois.ncsa.incore.service.hazard.Application</param-value>
         </init-param>
 
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>
-                edu.illinois.ncsa.incore.services,
+                edu.illinois.ncsa.incore.service,
                 io.swagger.jaxrs.listing,
                 org.codehaus.jackson.jaxrs
             </param-value>

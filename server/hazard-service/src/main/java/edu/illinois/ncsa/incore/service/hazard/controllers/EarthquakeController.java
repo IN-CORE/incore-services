@@ -1,24 +1,28 @@
 /*******************************************************************************
  * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the {license} which accompanies this distribution,
- * and is available at {license-url}
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
  *
  * Contributors:
- * Christopher Navarro (NCSA) - initial API and implementation and/or initial documentation
+ * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-
-package edu.illinois.ncsa.incore.services.hazard.controllers;
+package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.EqParameters;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations.AtkinsonBoore1995;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.site.NEHRPSiteAmplification;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.site.SiteAmplification;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.utils.HazardUtil;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
+import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -27,15 +31,79 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
-@Path("earthquake")
+@Path("earthquakes")
 public class EarthquakeController {
     private static final Logger logger = Logger.getLogger(EarthquakeController.class);
     private GeometryFactory factory = new GeometryFactory();
 
     @Inject
+    private IRepository repository;
+
+    @Inject
     private AtkinsonBoore1995 model;
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
+        if (scenarioEarthquake != null) {
+            return repository.addScenarioEarthquake(scenarioEarthquake);
+        }
+
+        throw new InternalServerErrorException("Earthquake was null");
+    }
+
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<ScenarioEarthquake> getScenarioEarthquakes() {
+        return repository.getScenarioEarthquakes();
+    }
+
+    @GET
+    @Path("{earthquake-id}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public ScenarioEarthquake getScenarioEarthquake(@PathParam("earthquake-id") String earthquakeId) {
+        return repository.getScenarioEarthquakeById(earthquakeId);
+    }
+
+    @GET
+    @Path("{earthquake-id}/value")
+    @Produces({MediaType.APPLICATION_JSON})
+    public SeismicHazardResult getScenarioEarthquakeHazard(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
+        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+        if (earthquake != null) {
+            String period = demandType;
+            String demand = demandType;
+
+            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
+                String[] demandSplit = demandType.split(" ");
+                period = demandSplit[0];
+                demand = demandSplit[1];
+            }
+            Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
+
+            model.setRuptureParameters(earthquake.getEqParameters());
+
+            // TODO this should be determined from the scenario earthquake
+            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
+            attenuations.put(model, 1.0);
+
+            // TODO spectrum override should be part of the endpoint parameters
+            try {
+                return HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, 0, amplifyHazard);
+            } catch (Exception e) {
+                throw new InternalServerErrorException("Error computing hazard.", e);
+            }
+        } else {
+            throw new NotFoundException("Scenario earthquake with id " + earthquakeId + " was not found.");
+        }
+    }
+
 
     @GET
     @Path("/model")

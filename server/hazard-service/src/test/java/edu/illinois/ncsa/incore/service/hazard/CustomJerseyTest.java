@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.services.hazard;
+package edu.illinois.ncsa.incore.service.hazard;
 
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.jupiter.api.AfterAll;

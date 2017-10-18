@@ -1,13 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the {license} which accompanies this distribution,
- * and is available at {license-url}
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
  *
  * Contributors:
- * Christopher Navarro (NCSA) - initial API and implementation and/or initial documentation
+ * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.services.hazard.controllers;
+package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -16,7 +16,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("tornado")
+@Path("tornadoes")
 public class TornadoController {
 
     @GET

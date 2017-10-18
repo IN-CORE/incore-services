@@ -1,13 +1,10 @@
-package edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations;
+package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.services.hazard.CustomJerseyTest;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.EqParameters;
-import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.Before;
+import edu.illinois.ncsa.incore.service.hazard.CustomJerseyTest;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

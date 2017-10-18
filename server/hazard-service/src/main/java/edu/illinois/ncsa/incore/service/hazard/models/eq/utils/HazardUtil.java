@@ -1,4 +1,13 @@
-package edu.illinois.ncsa.incore.services.hazard.models.eq.utils;
+/*******************************************************************************
+ * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Contributors:
+ * Chris Navarro (NCSA) - initial API and implementation
+ *******************************************************************************/
+package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
@@ -111,6 +120,41 @@ public class HazardUtil
         }
         return convertedHazard;
     }
+
+    /**
+     *
+     * @param hazard
+     * @return
+     */
+    public static String stripPeriod(String hazard)
+    {
+        hazard = hazard.replaceAll("[0-9]*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        hazard = hazard.replaceAll("\\.*", "");//$NON-NLS-1$ //$NON-NLS-2$
+        hazard = hazard.replaceAll("sec", "");//$NON-NLS-1$ //$NON-NLS-2$
+        hazard = hazard.replaceAll(" ", "");//$NON-NLS-1$ //$NON-NLS-2$
+        if ("".equals(hazard)) //$NON-NLS-1$
+        {
+            hazard = "Sa"; //$NON-NLS-1$
+        }
+        return hazard;
+    }
+
+    /**
+     *
+     * @param hazard
+     * @return
+     */
+    public static double getPeriod(String hazard)
+    {
+        hazard = hazard.replaceAll("[ a-zA-Z]*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        try {
+            return Double.parseDouble(hazard);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+
+    }
+
     /**
      *
      * @param p1

@@ -1,7 +1,13 @@
-package edu.illinois.ncsa.incore.services.hazard.models.eq;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
+/*******************************************************************************
+ * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Contributors:
+ * Chris Navarro (NCSA) - initial API and implementation
+ *******************************************************************************/
+package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +15,6 @@ import java.util.Map;
 public class EqParameters {
     private double srcLatitude;
     private double srcLongitude;
-    private Site epicenter;
     private double magnitude;
     private double coseismicRuptureDepth;
     private double dipAngle;
@@ -235,7 +240,7 @@ public class EqParameters {
         this.depth = depth;
     }
 
-    private double getDepth() {
+    public double getDepth() {
         return depth;
     }
 
@@ -253,14 +258,6 @@ public class EqParameters {
 
     public void setSrcLongitude(double srcLongitude) {
         this.srcLongitude = srcLongitude;
-    }
-
-    public Site getEpicenter() {
-        if(epicenter == null && srcLatitude != -1 && srcLongitude != -1) {
-            epicenter = new Site(new GeometryFactory().createPoint(new Coordinate(srcLongitude, srcLatitude)), depth);
-        }
-
-        return epicenter;
     }
 
 }
