@@ -6,3 +6,5 @@ include "fragility-service"
 include "repo"
 include "hazard-service"
 include "maestro-service"
+include 'incore-common'
+
