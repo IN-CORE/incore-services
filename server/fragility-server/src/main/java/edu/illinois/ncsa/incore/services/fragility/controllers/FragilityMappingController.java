@@ -33,7 +33,6 @@ public class FragilityMappingController {
     @Produces("application/json")
     @Path("/{mappingsetId}/{datasetId}")
     public Map<String, String> getMappings(@PathParam("mappingsetId") String mappingsetId, @PathParam("datasetId") String datasetId) {
-        log.error("foo!");
 
         FragilityMapper fragilityMapper = new FragilityMapper();
         fragilityMapper.addMappingSet(mappingsetId);
