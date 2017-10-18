@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.models;
 
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
@@ -21,7 +22,7 @@ public class Analysis {
 
     @Id
     @Property("_id")
-    private String id;
+    private ObjectId id;
 
     private String description;
     private String name;
@@ -58,7 +59,7 @@ public class Analysis {
     }
 
 
-    public String getId() {
+    public ObjectId getId() {
         return id;
     }
 

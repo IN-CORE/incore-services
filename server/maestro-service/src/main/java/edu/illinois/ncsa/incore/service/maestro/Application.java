@@ -9,8 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro;
 
-import edu.illinois.ncsa.incore.service.maestro.dao.IRepository;
-import edu.illinois.ncsa.incore.service.maestro.dao.MongoDBRepository;
+import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
+import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;

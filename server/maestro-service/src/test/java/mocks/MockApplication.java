@@ -9,7 +9,7 @@
  *******************************************************************************/
 package mocks;
 
-import edu.illinois.ncsa.incore.service.maestro.dao.IRepository;
+import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;

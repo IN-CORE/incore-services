@@ -47,7 +47,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
     @Test
     public void testListAnalysis() {
 
-       String output = target("/analysis/all").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+       String output = target("/analysis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
        JSONArray parsedObject = new JSONArray(output);
 
        assertEquals(4, parsedObject.length());
@@ -60,7 +60,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
     @Test
     public void testListAnalysisMetadata() {
 
-        String output = target("/analysis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output = target("/analysis/metadata").request().accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(4, parsedObject.length());

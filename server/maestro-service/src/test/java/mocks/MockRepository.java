@@ -11,7 +11,7 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.maestro.dao.IRepository;
+import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import org.mockito.Mockito;
 import org.mongodb.morphia.Datastore;

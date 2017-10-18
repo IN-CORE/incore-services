@@ -7,7 +7,7 @@
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.maestro.dao;
+package edu.illinois.ncsa.incore.service.maestro.daos;
 
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import org.mongodb.morphia.Datastore;

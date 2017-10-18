@@ -44,7 +44,6 @@ public class AnalysisParameter {
     public Boolean getRequired() {
         return required;
     }
-
     public Boolean getAdvanced() {
         return advanced;
     }

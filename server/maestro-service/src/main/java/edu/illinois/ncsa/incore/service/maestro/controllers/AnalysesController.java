@@ -11,17 +11,16 @@ package edu.illinois.ncsa.incore.service.maestro.controllers;
 
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import edu.illinois.ncsa.incore.service.maestro.models.AnalysisMetadata;
-import edu.illinois.ncsa.incore.service.maestro.dao.IRepository;
+import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
-@Path("analysis")
+@Path("analyses")
 public class AnalysesController {
 
     private static final Logger logger = Logger.getLogger(AnalysesController.class);
@@ -30,7 +29,6 @@ public class AnalysesController {
     private IRepository repository;
 
     @GET
-    @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Analysis> getAnalyses() {
         List<Analysis> analyses = repository.getAllAnalyses();
@@ -39,6 +37,7 @@ public class AnalysesController {
     }
 
     @GET
+    @Path("metadata")
     @Produces(MediaType.APPLICATION_JSON)
     public List<AnalysisMetadata> getAnalysesMetadata() {
         List<Analysis> analyses = repository.getAllAnalyses();

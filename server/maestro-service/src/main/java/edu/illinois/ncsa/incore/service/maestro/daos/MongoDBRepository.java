@@ -7,7 +7,7 @@
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.maestro.dao;
+package edu.illinois.ncsa.incore.service.maestro.daos;
 
 import com.mongodb.MongoClient;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
@@ -46,9 +46,7 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public List<Analysis> getAllAnalyses(){
-        if(this.analyses == null) {
-            this.loadServices();
-        }
+        this.loadServices();
         return this.analyses;
     }
 
