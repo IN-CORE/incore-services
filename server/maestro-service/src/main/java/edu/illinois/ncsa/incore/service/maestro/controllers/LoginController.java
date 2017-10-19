@@ -5,7 +5,7 @@
  * and is available at https://opensource.org/licenses/BSD-3-Clause
  *
  * Contributors:
- * Indira Gutierrez (NCSA) - initial API and implementation
+ * Nathan Tolbert (NCSA) - initial API and implementation
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.controllers;
 
@@ -31,15 +31,16 @@ public class LoginController {
      * To authenticate, a header must be sent, of the form:
      * Authorization: LDAP xxxxxxxxxxxxxx
      * where xxxxxx is the base64 encoded "username:password"
-     * @param username
-     * @param didFail
-     * @return
+     *
+     * @param username username of the authenticated user (or anonymous if not authenticated)
+     * @param didFail message from kong indicated whether the anonymous user was used instead
+     * @return map of the results
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String,String> attemptLogin(@HeaderParam("X-Credential-Username") String username, @HeaderParam("X-Anonymous-Consumer") String didFail) {
+    public Map<String, String> attemptLogin(@HeaderParam("X-Credential-Username") String username, @HeaderParam("X-Anonymous-Consumer") String didFail) {
 
-        Map<String,String> result = new HashMap<>();
+        Map<String, String> result = new HashMap<>();
         if (didFail != null || username == null) {
             result.put("result", "failed");
             result.put("user", "anonymous");
