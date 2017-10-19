@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.services.hazard.eq.util;
+package edu.illinois.ncsa.incore.services.hazard.models.eq.utils;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;

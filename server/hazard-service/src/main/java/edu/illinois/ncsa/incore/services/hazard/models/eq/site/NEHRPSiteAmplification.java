@@ -1,7 +1,7 @@
-package edu.illinois.ncsa.incore.services.hazard.eq.site;
+package edu.illinois.ncsa.incore.services.hazard.models.eq.site;
 
-import edu.illinois.ncsa.incore.services.hazard.eq.Site;
-import edu.illinois.ncsa.incore.services.hazard.eq.util.HazardUtil;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.utils.HazardUtil;
 
 public class NEHRPSiteAmplification extends SiteAmplification {
 

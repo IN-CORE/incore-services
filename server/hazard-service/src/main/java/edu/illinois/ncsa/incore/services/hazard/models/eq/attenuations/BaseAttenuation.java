@@ -1,7 +1,7 @@
-package edu.illinois.ncsa.incore.services.hazard.eq.models;
+package edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations;
 
-import edu.illinois.ncsa.incore.services.hazard.eq.EqParameters;
-import edu.illinois.ncsa.incore.services.hazard.eq.Site;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.EqParameters;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
