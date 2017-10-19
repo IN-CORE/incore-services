@@ -12,14 +12,15 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.model.Space;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.impl.FileStorageDisk;
+import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
+import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -45,7 +46,7 @@ import java.util.List;
 
 @Path("datasets")
 public class DataController {
-    private static final String DATA_REPO_FOLDER = "C:\\Users\\ywkim\\Downloads\\Rest"; //$NON-NLS-1$
+    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.dir");; //$NON-NLS-1$
     private static final String POST_PARAMENTER_NAME = "name";  //$NON-NLS-1$
     private static final String POST_PARAMENTER_FILE = "file";  //$NON-NLS-1$
     private static final String POST_PARAMENTER_META = "parentdataset";  //$NON-NLS-1$
