@@ -6,7 +6,7 @@ repositories {
 }
 
 gretty {
-	contextPath '/maestro'
+	// contextPath '/maestro'
 }
 
 dependencies {

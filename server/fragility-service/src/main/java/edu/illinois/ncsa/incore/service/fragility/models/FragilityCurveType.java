@@ -8,11 +8,9 @@
  * Omar Elabd, Nathan Tolbert
  */
 
-import org.junit.jupiter.api.Test;
+package edu.illinois.ncsa.incore.service.fragility.models;
 
-public class SerializationTests {
-    @Test
-    public void test() {
-
-    }
+public enum FragilityCurveType {
+    LogNormal,
+    Normal
 }
