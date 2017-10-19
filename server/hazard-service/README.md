@@ -20,7 +20,21 @@ hazard/api/tornado
 
 http://localhost:8080/hazard/api/tornado/model?modelId=TornadoMeanWidth&datasetId=some-dataset-id&demandUnits=mph&siteLat=35.07899&siteLong=-90.0178
 
+POST - Create scenario earthquake
+
+{
+  "attenuations" : {
+    "AtkinsonBoore1995" : "1.0"
+  },
+  "eqParameters" : {
+    "srcLatitude" : "35.927",
+    "srcLongitude" : "-89.919",
+    "magnitude" : "7.9",
+    "depth" : "10.0"
+  }
+}
 
 
+GET value from a scenario earthquake
 
-
+http://localhost:8080/hazard/api/earthquake/{id}/value?demandType=0.2+SA&demandUnits=g&siteLat=35.07899&siteLong=-90.0178
