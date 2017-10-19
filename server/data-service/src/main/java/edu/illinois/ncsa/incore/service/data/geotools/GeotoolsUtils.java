@@ -1,3 +1,15 @@
+/*
+ * ******************************************************************************
+ *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ *   This program and the accompanying materials are made available under the
+ *   terms of the BSD-3-Clause which accompanies this distribution,
+ *   and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ *   Contributors:
+ *   Yong Wook Kim (NCSA) - initial API and implementation
+ *  ******************************************************************************
+ */
+
 package edu.illinois.ncsa.incore.service.data.geotools;
 import java.io.*;
 import java.net.URL;
@@ -6,8 +18,7 @@ import java.util.*;
 
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
-import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
-import org.apache.commons.io.FileUtils;
+import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -34,15 +45,14 @@ import com.vividsolutions.jts.geom.GeometryFactory;
  * Created by ywkim on 10/5/2017.
  */
 public class GeotoolsUtils {
-    private static GeometryFactory geometryFactory;
     private static final String uniIdShp = "Id";
     private static final String uniIdCsv = "Id";
     public static String outFileName = null;
 
     public static File JoinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
         // set geometry factory
-        geometryFactory = JTSFactoryFinder.getGeometryFactory();
-        outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + ControllerFileUtils.EXTENSION_SHP;
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
 
         // read csv file
         String[] csvHeaders = getCsvHeader(csvFile);
@@ -63,12 +73,12 @@ public class GeotoolsUtils {
         }
 
         // create temp dir and copy files to temp dir
-        String tempDir = Files.createTempDirectory(ControllerFileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
         List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir);
         URL inSourceFileUrl = null;
         for (File copiedFile: copiedFileList) {
             String fileExt = FilenameUtils.getExtension(copiedFile.getName());
-            if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)) {
+            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                 inSourceFileUrl = copiedFile.toURI().toURL();
             }
         }
@@ -152,7 +162,7 @@ public class GeotoolsUtils {
             String fileName = FilenameUtils.getName(sourceFile.getName());
             File destFile = new File(tempDir + File.separator + fileName);
             outList.add(destFile);
-            FileUtils.copyFile(sourceFile, destFile);
+            org.apache.commons.io.FileUtils.copyFile(sourceFile, destFile);
             //in here I am simply copy and paste the files to temp direcotry.
             // However, if the source file is in different server, use httpdownloader
             // HttpDownloader.downloadFile(inSourceFileUrlTwo.getFile(), tempDir);
@@ -257,7 +267,7 @@ public class GeotoolsUtils {
             }
         }
 
-        ControllerFileUtils.createZipFile(zipFileList, filePath, shpBaseName);
+        FileUtils.createZipFile(zipFileList, filePath, shpBaseName);
 
         return new File(filePath + File.separator + shpBaseName + ".zip");
     }

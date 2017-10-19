@@ -1,7 +1,19 @@
+/*
+ * ******************************************************************************
+ *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ *   This program and the accompanying materials are made available under the
+ *   terms of the BSD-3-Clause which accompanies this distribution,
+ *   and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ *   Contributors:
+ *   Yong Wook Kim (NCSA) - initial API and implementation
+ *  ******************************************************************************
+ */
+
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
-import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerJsonUtils;
+import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
+import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.model.Space;
@@ -33,8 +45,6 @@ import java.util.List;
 
 @Path("datasets")
 public class DataController {
-    private static final String MONGO_URL = "mongodb://localhost:27017"; //$NON-NLS-1$
-    private static final String MONGO_DB_NAME = "repoDB";    //$NON-NLS-1$
     private static final String DATA_REPO_FOLDER = "C:\\Users\\ywkim\\Downloads\\Rest"; //$NON-NLS-1$
     private static final String POST_PARAMENTER_NAME = "name";  //$NON-NLS-1$
     private static final String POST_PARAMENTER_FILE = "file";  //$NON-NLS-1$
@@ -51,7 +61,6 @@ public class DataController {
     private Logger logger = Logger.getLogger(DataController.class);
 
     //http://localhost:8080/data/api/datasets/59cd1d4763f94025803cee5c
-
     /**
      * Returns a list of datasets in the Dataset collection
      *
@@ -62,11 +71,15 @@ public class DataController {
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
-        return repository.getDatasetById(datasetId);
+        Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset == null) {
+            throw new NotFoundException("There is no Dataset with given id in the repository.");
+        }
+
+        return dataset;
     }
 
     //http://localhost:8080/data/api/datasets/list-datasets
-
     /**
      * Returns a list of spaces in the Space collection
      *
@@ -76,11 +89,15 @@ public class DataController {
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetList() {
-        return repository.getAllDatasets();
+        List<Dataset> datasets = repository.getAllDatasets();
+        if (datasets == null) {
+            throw new NotFoundException("There is no Dataset in the repository.");
+        }
+
+        return datasets;
     }
 
     //http://localhost:8080/data/api/datasets/list-datasets
-
     /**
      * create list of spaces in the database
      *
@@ -90,11 +107,14 @@ public class DataController {
     @Path("/list-spaces")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Space> getSpaceList() {
-        return repository.getAllSpaces();
+        List<Space> spaces = repository.getAllSpaces();
+        if (spaces == null) {
+            throw new NotFoundException("There is no Space in the repository.");
+        }
+        return spaces;
     }
 
     //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/files
-
     /**
      * Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset
      *
@@ -108,6 +128,9 @@ public class DataController {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFileByDataset(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
         Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset == null) {
+            throw new NotFoundException("There is no Dataset with given id in the repository.");
+        }
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         List<File> fileList = new ArrayList<File>();
         String absolutePath = "";   //$NON-NLS-1$
@@ -130,18 +153,22 @@ public class DataController {
             }
 
             // create temp dir and copy files to temp dir
-            String tempDir = Files.createTempDirectory(ControllerFileUtils.DATA_TEMP_DIR_PREFIX).toString();
+            String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
             // copiedFileList below is not used but the method is needed to copy files
             List<File> copieFileList = GeotoolsUtils.copyFilesToTmpDir(fileList, tempDir);
 
-            outFile = ControllerFileUtils.createZipFile(fileNameList, tempDir, fileBaseName);
+            outFile = FileUtils.createZipFile(fileNameList, tempDir, fileBaseName);
             fileName = fileBaseName + "." + FILE_ZIP_EXTENSION;
         }
-        return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
+
+        if (outFile != null) {
+            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
+        } else {
+            return Response.status(404).build();
+        }
     }
 
     //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/filedescriptors/59e50a2568f4742654e59629/files
-
     /**
      * Returns a file that is attached to a FileDescriptor specified by {fdid} in a dataset specified by {id}
      *
@@ -156,6 +183,9 @@ public class DataController {
     public Response getFileByFileDescriptor(@PathParam("id") String datasetId, @PathParam("fdid") String inFdId) throws URISyntaxException {
         File outFile = null;
         Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset == null) {
+            throw new NotFoundException("There is no Dataset with given id in the repository.");
+        }
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         String dataUrl = ""; //$NON-NLS-1$
         String fdId = "";   //$NON-NLS-1$
@@ -174,7 +204,11 @@ public class DataController {
             outFile.renameTo(new File(outFile.getParentFile(), fileName));
         }
 
-        return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
+        if (outFile != null) {
+            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
+        } else {
+            return Response.status(404).build();
+        }
     }
 
     //http://localhost:8080/data/api/datasets/joinshptable/59e509ca68f4742654e59621
@@ -192,6 +226,9 @@ public class DataController {
     @Produces(MediaType.TEXT_PLAIN)
     public Response getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
         Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset == null) {
+            throw new NotFoundException("There is no Dataset with given id in the repository.");
+        }
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
         String outFileName = "";    //$NON-NLS-1$
@@ -202,6 +239,9 @@ public class DataController {
         }
 
         Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
+        if (sourceDataset == null) {
+            throw new NotFoundException("There is no Dataset with given id in the repository.");
+        }
         List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
         String sourceType = sourceDataset.getType();
         List<File> shpfiles = new ArrayList<File>();
@@ -216,7 +256,7 @@ public class DataController {
                 shpfiles.add(shpFile);
                 //get file, if the file is in remote, use http downloader
                 String fileExt = FilenameUtils.getExtension(shpLoc);
-                if (fileExt.equalsIgnoreCase(ControllerFileUtils.EXTENSION_SHP)) {
+                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                     isShpfile = true;
                 }
             }
@@ -226,7 +266,11 @@ public class DataController {
             outFileName = FilenameUtils.getBaseName(zipFile.getName()) + "." + FILE_ZIP_EXTENSION;
         }
 
-        return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + outFileName + "\"").build();
+        if (zipFile != null) {
+            return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + outFileName + "\"").build();
+        } else {
+            return Response.status(404).build();
+        }
     }
 
     // http//localhost:8080/data/api/datasets/ingest-dataset
@@ -238,7 +282,7 @@ public class DataController {
         // example input json
         //
         //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["ywkim", "ergo"] }
-        boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
+        boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         String title = "";
         String type = "";
         String sourceDataset = "";
@@ -249,12 +293,12 @@ public class DataController {
         // create DataWolf POJO object
         Dataset dataset = new Dataset();
         if (isJsonValid) {
-            title = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TITLE, inDatasetJson);
-            type = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_TYPE, inDatasetJson);
-            sourceDataset = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
-            format = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FORMAT, inDatasetJson);
-            fileName = ControllerJsonUtils.extractValueFromJsonString(ControllerFileUtils.DATASET_FILE_NAME, inDatasetJson);
-            spaces = ControllerJsonUtils.extractValueListFromJsonString(ControllerFileUtils.DATASET_SPACES, inDatasetJson);
+            title = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TITLE, inDatasetJson);
+            type = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TYPE, inDatasetJson);
+            sourceDataset = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
+            format = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FORMAT, inDatasetJson);
+            fileName = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FILE_NAME, inDatasetJson);
+            spaces = JsonUtils.extractValueListFromJsonString(FileUtils.DATASET_SPACES, inDatasetJson);
             dataset.setTitle(title);
             dataset.setType(type);
             dataset.setSourceDataset(sourceDataset);
@@ -319,9 +363,9 @@ public class DataController {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
             if (paramName.equals(POST_PARAMENTER_META)) {
                 inJson = (String) inputs.getFields(POST_PARAMENTER_META).get(0).getValueAs(String.class);
-                isJsonValid = ControllerJsonUtils.isJSONValid(inJson);
+                isJsonValid = JsonUtils.isJSONValid(inJson);
                 if (isJsonValid) {
-                    objIdStr = ControllerJsonUtils.extractValueFromJsonString("datasetId", inJson);
+                    objIdStr = JsonUtils.extractValueFromJsonString("datasetId", inJson);
                     dataset = repository.getDatasetById(objIdStr);
                 } else {
                     return dataset;
@@ -366,13 +410,13 @@ public class DataController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/update")
     public Object updateObject(@FormDataParam("update") String inDatasetJson) {
-        boolean isJsonValid = ControllerJsonUtils.isJSONValid(inDatasetJson);
+        boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         Dataset dataset = null;
 
         if (isJsonValid) {
-            String datasetId = ControllerJsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDatasetJson);
-            String propName = ControllerJsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
-            String propVal = ControllerJsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
+            String datasetId = JsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDatasetJson);
+            String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+            String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
             dataset = repository.updateDataset(datasetId, propName, propVal);
         }
 
@@ -410,7 +454,7 @@ public class DataController {
             e.printStackTrace();
         }
 
-        String objIdStr = ControllerJsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDescJson);
+        String objIdStr = JsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDescJson);
         Dataset dataset = repository.getDatasetById(objIdStr);
         dataset.addFileDescriptor(fd);
         repository.addDataset(dataset);

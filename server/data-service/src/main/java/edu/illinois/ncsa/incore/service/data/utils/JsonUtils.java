@@ -1,4 +1,16 @@
-package edu.illinois.ncsa.incore.service.data.controllers.utils;
+/*
+ * ******************************************************************************
+ *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ *   This program and the accompanying materials are made available under the
+ *   terms of the BSD-3-Clause which accompanies this distribution,
+ *   and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ *   Contributors:
+ *   Yong Wook Kim (NCSA) - initial API and implementation
+ *  ******************************************************************************
+ */
+
+package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,8 +47,8 @@ import java.util.Map;
 /**
  * Created by ywkim on 9/27/2017.
  */
-public class ControllerJsonUtils {
-    public static final Logger logger = Logger.getLogger(ControllerJsonUtils.class);
+public class JsonUtils {
+    public static final Logger logger = Logger.getLogger(JsonUtils.class);
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
@@ -44,7 +56,7 @@ public class ControllerJsonUtils {
         String outJson = "";
         String fileName = "";
         try{
-            fileName = ControllerFileUtils.loadFileNameFromRepository(combinedId, ControllerFileUtils.EXTENSION_CSV, repoUrl);
+            fileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_CSV, repoUrl);
             if (fileName.length() > 0) {
                 dataset = new File(fileName);
                 outJson = formatCsvAsJson(dataset, combinedId);
@@ -65,8 +77,8 @@ public class ControllerJsonUtils {
         String fileName = "";
         try{
             String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
-            HttpDownloader.downloadFile(datasetUrl + datasetId + "." + ControllerFileUtils.EXTENSION_META, tempDir);
-            fileName = tempDir + File.separator + datasetId + "." + ControllerFileUtils.EXTENSION_META;
+            HttpDownloader.downloadFile(datasetUrl + datasetId + "." + FileUtils.EXTENSION_META, tempDir);
+            fileName = tempDir + File.separator + datasetId + "." + FileUtils.EXTENSION_META;
             if (fileName.length() > 0) {
                 dataset = new File(fileName);
                 outJson = MvzLoader.formatMetadataAsJson(dataset, combinedId, serverUrlPrefix);
@@ -85,7 +97,7 @@ public class ControllerJsonUtils {
         String outJson = "";
         String fileName = "";
         try{
-            fileName = ControllerFileUtils.loadFileNameFromRepository(combinedId, ControllerFileUtils.EXTENSION_SHP, repoUrl);
+            fileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_SHP, repoUrl);
             if (fileName.length() > 0) {
                 dataset = new File(fileName);
                 outJson = formatDatasetAsGeoJson(dataset);
@@ -109,29 +121,6 @@ public class ControllerJsonUtils {
             }
         }
         return true;
-    }
-
-    public static String getJsonByDatasetIdFromMongo(String datasetId, String mongoUrl, String geoDbName){
-        MongoDatabase database = ControllerMongoUtils.getMongoDatabase(mongoUrl, geoDbName);
-        MongoIterable<String> collNames = database.listCollectionNames();
-        org.bson.Document result = new Document();
-        String outJson = "";    //$NON-NLS-1$
-
-        for (String collectionName: collNames) {
-            MongoCollection<Document> tmpCollection = database.getCollection(collectionName);
-            BasicDBObject query = new BasicDBObject();
-            query.put("_id", datasetId);    //$NON-NLS-1$
-            FindIterable existDoc = tmpCollection.find(query);
-
-            if (existDoc.first() != null) {
-                result = (Document) existDoc.first();
-                JsonWriterSettings writerSettings = new JsonWriterSettings(JsonMode.SHELL, true);
-                outJson = result.toJson(writerSettings);
-                return outJson;
-            }
-        }
-
-        return outJson;
     }
 
     public static String extractValueFromJsonString(String inId, String inJson) {
@@ -176,7 +165,7 @@ public class ControllerJsonUtils {
             geoJsonStr = writer.toString();
         }
 
-        ControllerFileUtils.deleteTmpDir(shapefile, ControllerFileUtils.EXTENSIONS_SHAPEFILES);
+        FileUtils.deleteTmpDir(shapefile, FileUtils.EXTENSIONS_SHAPEFILES);
 
         return geoJsonStr;
     }
@@ -190,32 +179,32 @@ public class ControllerJsonUtils {
         ObjectMapper mapper = new ObjectMapper();
         String outStr = mapper.writeValueAsString(data);
 
-        ControllerFileUtils.deleteTmpDir(inCsv, ControllerFileUtils.EXTENSION_CSV);
+        FileUtils.deleteTmpDir(inCsv, FileUtils.EXTENSION_CSV);
 
         return outStr;
     }
 
     public static String getJsonByDatasetId(String datasetId) {
-        List<String> resHref = ControllerFileUtils.getDirectoryContent(ControllerFileUtils.REPO_PROP_URL, "");
+        List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");
 
         for (String typeUrl: resHref) {
-            String fileDirUrl = ControllerFileUtils.REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";    //$NON-NLS-1$
-            List<String> fileHref = ControllerFileUtils.getDirectoryContent(fileDirUrl, "");
+            String fileDirUrl = FileUtils.REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";    //$NON-NLS-1$
+            List<String> fileHref = FileUtils.getDirectoryContent(fileDirUrl, "");
             if (fileHref.size() > 1) {
                 for (String fileNameInDir : fileHref) {
                     String fileExtStr = FilenameUtils.getExtension(fileNameInDir);
                     String fileName = FilenameUtils.getName(fileNameInDir);
                     String outJson = "";    //$NON-NLS-1$
                     try {
-                        if (fileExtStr.equals(ControllerFileUtils.EXTENSION_SHP)) {
+                        if (fileExtStr.equals(FileUtils.EXTENSION_SHP)) {
                             String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
-                            String localFileName = ControllerFileUtils.loadFileNameFromRepository(combinedId, ControllerFileUtils.EXTENSION_SHP, ControllerFileUtils.REPO_DS_URL);
+                            String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_SHP, FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatDatasetAsGeoJson(dataset);
                             return outJson;
-                        } else if (fileExtStr.equals(ControllerFileUtils.EXTENSION_CSV)) {
+                        } else if (fileExtStr.equals(FileUtils.EXTENSION_CSV)) {
                             String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
-                            String localFileName = ControllerFileUtils.loadFileNameFromRepository(combinedId, ControllerFileUtils.EXTENSION_CSV, ControllerFileUtils.REPO_DS_URL);
+                            String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_CSV, FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatCsvAsJson(dataset, datasetId);
                             return outJson;

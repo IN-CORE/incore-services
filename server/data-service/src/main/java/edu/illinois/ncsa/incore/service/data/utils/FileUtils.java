@@ -1,4 +1,16 @@
-package edu.illinois.ncsa.incore.service.data.controllers.utils;
+/*
+ * ******************************************************************************
+ *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ *   This program and the accompanying materials are made available under the
+ *   terms of the BSD-3-Clause which accompanies this distribution,
+ *   and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ *   Contributors:
+ *   Yong Wook Kim (NCSA) - initial API and implementation
+ *  ******************************************************************************
+ */
+
+package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
@@ -32,7 +44,7 @@ import static com.mongodb.client.model.Sorts.descending;
 /**
  * Created by ywkim on 6/8/2017.
  */
-public class ControllerFileUtils {
+public class FileUtils {
     public static final String REPO_SERVER_URL = "https://earthquake.ncsa.illinois.edu/";   //$NON-NLS-1$
     public static final String REPO_PROP_DIR = "ergo-repo/properties/"; //$NON-NLS-1$
     public static final String REPO_DS_DIR = "ergo-repo/datasets/"; //$NON-NLS-1$
@@ -56,7 +68,7 @@ public class ControllerFileUtils {
     public static final String DATASET_SPACES ="spaces";    //$NON-NLS-1$
     public static final String DATASET_FILE_NAME = "fileName";    //$NON-NLS-1$
 
-    public static final Logger logger = Logger.getLogger(ControllerFileUtils.class);
+    public static final Logger logger = Logger.getLogger(FileUtils.class);
 
 
     public static void deleteTmpDir(File metadataFile, String fileExt) {
@@ -197,52 +209,6 @@ public class ControllerFileUtils {
 
         return realUrl;
     }
-
-
-    public void insertGeoJsonToMongoTest(String typeId, String datasetId, String inJson, String mongoUrl, String geoDbName) {
-        //crete mongodb connection
-        MongoClientURI mongoUri = new MongoClientURI(mongoUrl);
-        MongoClient mongoClient = new MongoClient(mongoUri);
-        MongoDatabase database = mongoClient.getDatabase(geoDbName);
-
-        // check if collection exists, otherwise create one with a type id
-        MongoIterable<String> collNames = database.listCollectionNames();
-        boolean isCollExist = false;
-        for (String collName: collNames) {
-            if (collName.equalsIgnoreCase(typeId)) {
-                isCollExist = true;
-            }
-        }
-
-        // create collection
-        if (isCollExist) {
-            logger.debug("Collection already exists");  //$NON-NLS-1$
-        } else {
-            database.createCollection(typeId, new CreateCollectionOptions().capped(false));
-        }
-
-        MongoCollection<org.bson.Document> geoJsonColl = database.getCollection(typeId);
-        BasicDBObject document = (BasicDBObject) JSON.parse(inJson);
-        document.put("_id", datasetId); //$NON-NLS-1$
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", datasetId);    //$NON-NLS-1$
-        FindIterable existDoc = geoJsonColl.find(document);
-        //MongoIterable<Document> iterable = geoJsonColl.find({_id: datasetId), {_id:1}).limit(1);
-        if (existDoc.first() == null) {
-            geoJsonColl.insertOne(new org.bson.Document(query));
-        } else {
-            logger.debug("Document already exists");    //$NON-NLS-1$
-        }
-
-//        org.bson.Document myDoc = geoJsonColl.find(query).first();
-//        String user; // the user name
-//        String database; // the name of the database in which the user is defined
-//        char[] password; // the password as a character array
-//        MongoCredential credential = MongoCredential.createCredential(user, database, password);
-//        MongoClientOptions options = MongoClientOptions.builder().sslEnabled(true).build();
-//        MongoClient mongoClient = new MongoClient(new ServerAddress("host1", 27017), Arrays.asList(credential), options);
-    }
-
 
     // check what kind of file format is in the repository web site.
     public static int checkDataFormatFromRepository(String inId, String repoUrl) {

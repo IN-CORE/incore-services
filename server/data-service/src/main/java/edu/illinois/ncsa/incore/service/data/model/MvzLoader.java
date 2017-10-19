@@ -1,6 +1,18 @@
+/*
+ * ******************************************************************************
+ *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ *   This program and the accompanying materials are made available under the
+ *   terms of the BSD-3-Clause which accompanies this distribution,
+ *   and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ *   Contributors:
+ *   Yong Wook Kim (NCSA) - initial API and implementation
+ *  ******************************************************************************
+ */
+
 package edu.illinois.ncsa.incore.service.data.model;
 
-import edu.illinois.ncsa.incore.service.data.controllers.utils.ControllerFileUtils;
+import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.model.mvz.*;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -54,7 +66,7 @@ public class MvzLoader {
     public static MvzDataset createMvzDatasetFromMetadata(String inUrl){
         MvzDataset mvzDataset = new MvzDataset();
         try {
-            File metadata = ControllerFileUtils.loadMetadataFromRepository(inUrl);
+            File metadata = FileUtils.loadMetadataFromRepository(inUrl);
             mvzDataset = setMvzDatasetFromMetadata(metadata, inUrl);
 
         } catch (IOException e) {
@@ -75,11 +87,11 @@ public class MvzLoader {
             xmlString = xmlString + new String(metaCharBuffer, 0, len);
         }
         metadataReader.close();
-        ControllerFileUtils.deleteTmpDir(metadataFile, ControllerFileUtils.EXTENSION_META);
+        FileUtils.deleteTmpDir(metadataFile, FileUtils.EXTENSION_META);
 
         // remove metadata file extestion from inId if there is any
         String tmpEndStr = rUrl.substring(rUrl.lastIndexOf('.') + 1);
-        if (tmpEndStr.equals(ControllerFileUtils.EXTENSION_META)) {
+        if (tmpEndStr.equals(FileUtils.EXTENSION_META)) {
             rUrl = rUrl.substring(0, rUrl.length() - 4);
         }
 
@@ -173,7 +185,7 @@ public class MvzLoader {
             mvzDataset.setTypeId(typeId);
             mvzDataset.datasetId.setDescription(description);
 
-            String newUrl = ControllerFileUtils.SERVER_URL_PREFIX + rUrl + "/files";    //$NON-NLS-1$
+            String newUrl = FileUtils.SERVER_URL_PREFIX + rUrl + "/files";    //$NON-NLS-1$
             mvzDataset.datasetId.setLocation(newUrl);
 
             // check maeviz-mapping object and set
@@ -289,7 +301,7 @@ public class MvzLoader {
                     }
                 }
             }
-            //String jsonString = metaJsonObj.toString(ControllerFileUtils.INDENT_SPACE);
+            //String jsonString = metaJsonObj.toString(FileUtils.INDENT_SPACE);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -308,11 +320,11 @@ public class MvzLoader {
             xmlString = xmlString + new String(metaCharBuffer, 0, len);
         }
         metadataReader.close();
-        ControllerFileUtils.deleteTmpDir(metadataFile, ControllerFileUtils.EXTENSION_META);
+        FileUtils.deleteTmpDir(metadataFile, FileUtils.EXTENSION_META);
 
         // remove metadata file extestion from inId if there is any
         String tmpEndStr = inId.substring(inId.lastIndexOf('.') + 1);
-        if (tmpEndStr.equals(ControllerFileUtils.EXTENSION_META)) {
+        if (tmpEndStr.equals(FileUtils.EXTENSION_META)) {
             inId = inId.substring(0, inId.length() - 4);
         }
 
@@ -337,7 +349,7 @@ public class MvzLoader {
 
             String newUrl = serverUrlPrefix + inId + "/files";  //$NON-NLS-1$
             locObj.put(TAG_LOCATION, newUrl);
-            String jsonString = metaJsonObj.toString(ControllerFileUtils.INDENT_SPACE);
+            String jsonString = metaJsonObj.toString(FileUtils.INDENT_SPACE);
             return jsonString;
         } catch (JSONException ex) {
             logger.error(ex);

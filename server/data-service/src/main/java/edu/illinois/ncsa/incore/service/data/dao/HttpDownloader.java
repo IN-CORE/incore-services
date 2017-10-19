@@ -1,3 +1,16 @@
+/*
+ * ******************************************************************************
+ *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ *   This program and the accompanying materials are made available under the
+ *   terms of the BSD-3-Clause which accompanies this distribution,
+ *   and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ *   Contributors:
+ *   Nathan Tolbert (NCSA) - initial API and implementation
+ *   Yong Wook Kim (NCSA) - initial API and implementation
+ *  ******************************************************************************
+ */
+
 package edu.illinois.ncsa.incore.service.data.dao;
 
 
@@ -43,11 +56,6 @@ public class HttpDownloader {
                         fileURL.length());
             }
 
-//            System.out.println("Content-Type = " + contentType);
-//            System.out.println("Content-Disposition = " + disposition);
-//            System.out.println("Content-Length = " + contentLength);
-//            System.out.println("fileName = " + fileName);
-
             // opens input stream from the HTTP connection
             InputStream inputStream = httpConn.getInputStream();
             String saveFilePath = saveDir + File.separator + fileName;
@@ -64,7 +72,6 @@ public class HttpDownloader {
             outputStream.close();
             inputStream.close();
 
-//            System.out.println("File downloaded");
         } else {
             System.out.println("No file to download. Server replied HTTP code: " + responseCode);
         }
