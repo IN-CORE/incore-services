@@ -39,7 +39,7 @@ public class FragilityController {
     @POST
     @Path("/map")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public MappingResponse mapFragilities(MappingRequest mappingRequest) {
         // load all available fragilities
         // TODO should filter based on schema (e.g. building, bridge, etc.) and any additional criteria
@@ -85,7 +85,7 @@ public class FragilityController {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> getFragilities() {
         List<FragilitySet> fragilitySets = dataAccess.getFragilities();
 
@@ -97,7 +97,7 @@ public class FragilityController {
     // TODO Should replace the controller action path params with query params
     @GET
     @Path("{fragilityId}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> getFragilityById(@PathParam("fragilityId") String id) throws Exception {
         return this.getFragilityByAttributeType("_id", id);
     }
@@ -111,21 +111,21 @@ public class FragilityController {
 
     @GET
     @Path("/hazard/{type}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> getFragilityByHazardType(@PathParam("type") String type) throws Exception {
         return this.getFragilityByAttributeType("hazardType", type);
     }
 
     @GET
     @Path("/inventory/{type}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> getFragilityByInventoryType(@PathParam("type") String type) throws Exception {
         return this.getFragilityByAttributeType("inventoryType", type);
     }
 
     @GET
     @Path("/author/{author}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> getFragilityByAuthor(@PathParam("author") String author) throws Exception {
         List<FragilitySet> sets = this.dataAccess.queryFragilityAuthor(author);
 
