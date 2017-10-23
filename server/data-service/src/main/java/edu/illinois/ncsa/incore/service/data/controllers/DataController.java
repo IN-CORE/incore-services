@@ -462,4 +462,12 @@ public class DataController {
 
         return dataset;
     }
+
+    @GET
+    @Path("/dump")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getJoinedShapefile() throws IOException, URISyntaxException {
+
+        return "done";
+    }
 }
