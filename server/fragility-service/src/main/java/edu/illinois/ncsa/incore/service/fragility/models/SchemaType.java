@@ -8,11 +8,17 @@
  * Omar Elabd, Nathan Tolbert
  */
 
-import org.junit.jupiter.api.Test;
+package edu.illinois.ncsa.incore.service.fragility.models;
 
-public class SerializationTests {
-    @Test
-    public void test() {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    }
+public enum SchemaType {
+    @JsonProperty("building")
+    Building,
+    @JsonProperty("bridge")
+    Bridge,
+    @JsonProperty("roadway")
+    Roadway,
+    @JsonProperty("railway")
+    Railway
 }

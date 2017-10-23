@@ -8,10 +8,11 @@
  * Omar Elabd, Nathan Tolbert
  */
 
-package mocks;
+package edu.illinois.ncsa.incore.service.fragility;
 
-import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
+import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
+import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBFragilityDAO;
 import ncsa.tools.common.exceptions.DeserializationException;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -19,14 +20,12 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import java.net.URL;
 
-public class MockApplication extends ResourceConfig {
-    private static final Logger log = Logger.getLogger(MockApplication.class);
+public class Application extends ResourceConfig {
+    private static final Logger log = Logger.getLogger(Application.class);
 
-    public MockApplication(Class klass) {
-        IFragilityDAO mockRepository = new MockFragilityDAO();
-        mockRepository.initialize();
-
-        super.register(klass);
+    public Application() {
+        IFragilityDAO mongoRepository = new MongoDBFragilityDAO("localhost", "fragilitydb", 27017);
+        mongoRepository.initialize();
 
         MatchFilterMap loadedMappings = null;
 
@@ -42,7 +41,7 @@ public class MockApplication extends ResourceConfig {
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                super.bind(mockRepository).to(IFragilityDAO.class);
+                super.bind(mongoRepository).to(IFragilityDAO.class);
                 if (matchFilterMap != null) {
                     super.bind(matchFilterMap).to(MatchFilterMap.class);
                 } else {
@@ -50,5 +49,7 @@ public class MockApplication extends ResourceConfig {
                 }
             }
         });
+
+        super.register(new CorsFilter());
     }
 }
