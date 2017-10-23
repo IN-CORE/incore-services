@@ -104,7 +104,7 @@ public class FragilityController {
 
     @GET
     @Path("/demand/{type}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> getFragilityByDemandType(@PathParam("type") String type) throws Exception {
         return this.getFragilityByAttributeType("demandType", type);
     }
