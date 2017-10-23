@@ -30,7 +30,7 @@ export function receiveAnalysis(api: string, json:Analysis) {
 export function fetchAnalyses() {
 	//TODO: Move to a configuration file
 	const api = "http://localhost:8080";
-	const endpoint = `${api  }/maestro/api/analysis`;
+	const endpoint = `${api  }/maestro/api/analyses`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint)
@@ -44,7 +44,7 @@ export function fetchAnalyses() {
 export function getAnalysisById(id: String) {
 	//TODO: Move to a configuration file
 	const api = "http://localhost:8080";
-	const endpoint = `${api  }/maestro/api/analysis/${  id}`;
+	const endpoint = `${api  }/maestro/api/analyses/${  id}`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint)
