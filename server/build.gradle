@@ -81,7 +81,7 @@ subprojects {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-server", "data-service", "hazard-service", "maestro-service"].each { name ->
+["fragility-service", "data-service", "hazard-service", "maestro-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'
