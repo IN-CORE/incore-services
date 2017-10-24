@@ -30,7 +30,7 @@ export function receiveAnalysis(api: string, json:Analysis) {
 export function fetchAnalyses() {
 	//TODO: Move to a configuration file
 	const api = "http://localhost:8080";
-	const endpoint = `${api  }/maestro/api/analyses`;
+	const endpoint = `${api  }/maestro/api/analyses/metadata`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint)

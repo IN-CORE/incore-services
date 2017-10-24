@@ -7,7 +7,18 @@ class Map extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			map: new ol.Map()
+			map: new ol.Map({
+				view: new ol.View({
+					center: [0, 0],
+					zoom: 1
+				}),
+				layers: [
+					new ol.layer.Tile({
+						source: new ol.source.OSM()
+					})
+				],
+				target: "map"
+			})
 		};
 	}
 
@@ -21,10 +32,11 @@ class Map extends Component {
 
 	componentDidMount() {
 
-		let layers = [
+		let layers;
+		layers = [
 			new ol.layer.Tile({
 				source: new ol.source.XYZ({
-					attributions: [new ol.Attribution({
+					attribution: [new ol.Attribution({
 						html: "Tiles © <a href=\"https://services.arcgisonline.com/ArcGIS/" +
 						"rest/services/NatGeo_World_Map/MapServer\">ArcGIS</a> &mdash; National Geographic, Esri, DeLorme, NAVTEQ, " +
 						"UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
@@ -36,11 +48,10 @@ class Map extends Component {
 
 		let view = new ol.View({
 			projection: "EPSG:4326",
-			center: this.state.center,
-			view: view,
-			zoom: this.state.currentZoom,
+			center:  [-84.44799549, 38.9203417],
+			zoom: 5.5,
 			minZoom: 5.5,
-			maxZoom: this.state.maxZoom
+			maxZoom: 12
 		});
 
 		let theMap;
