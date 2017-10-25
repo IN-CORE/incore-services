@@ -1,15 +1,15 @@
 const devConfig = {
 	basePath: "/",
-	fragilityServer: "",
-	fragilityMappingServer: "",
-	semanticServer: ""
+	fragilityService: "http://localhost:8080/api/fragilities",
+	semanticService: "",
+	maestroService: ""
 };
 
 const prodConfig = {
 	basePath: "/incore/",
-	fragilityServer: "",
-	fragilityMappingServer: "",
-	semanticServer: ""
+	fragilityService: "",
+	semanticService: "",
+	maestroService: ""
 };
 
 const config = getConfig();

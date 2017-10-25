@@ -1,11 +1,9 @@
-package edu.illinois.ncsa.incore.services.hazard.eq.models;
+package edu.illinois.ncsa.incore.services.hazard.models.eq.attenuations;
 
-import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.services.hazard.eq.Site;
-import edu.illinois.ncsa.incore.services.hazard.eq.util.HazardUtil;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.services.hazard.models.eq.utils.HazardUtil;
 
 import java.util.List;
-import java.util.Random;
 
 public class AtkinsonBoore1995 extends BaseAttenuation {
 

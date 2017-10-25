@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import Select from "./material/Select";
+import {SelectField, MenuItem} from "material-ui";
 
 class AnalysisSelect extends Component {
 
@@ -8,21 +8,20 @@ class AnalysisSelect extends Component {
 		this.state = {};
 		this.onChange = this.onChange.bind(this);
 	}
-	onChange(event: Object) {
-		this.props.onSelectAnalysis(event.target.value);
+	onChange(event: Object, index, value) {
+		this.props.onSelectAnalysis(value);
 	}
 
 	render() {
 		const options = this.props.analyses.map( d =>
-			<option value={d.id} key={d.id} > {d.name}</option>
+			<MenuItem value={d.id} key={d.id} primaryText={d.name}/>
 		);
 
 		return (
 			<div>
-
-				<Select onChange={this.onChange}>
+				<SelectField onChange={this.onChange}>
 					{options}
-				</Select>
+				</SelectField >
 			</div>
 		);
 	}
