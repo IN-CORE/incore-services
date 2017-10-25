@@ -11,11 +11,10 @@ class ResultsPage extends Component {
 
 	render() {
 		let contents;
-		//{this.props.analysis.name}
 		contents = <Map/>;
 		return (
 			<div className="main">
-				<Display2 className="center"> Results </Display2>
+				<Display2 className="center"> {this.props.analysis.name} Results </Display2>
 				{contents}
 			</div>
 		);
