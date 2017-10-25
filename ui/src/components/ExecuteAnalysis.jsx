@@ -51,6 +51,9 @@ class ExecuteAnalysis extends Component {
 		this.setState({inputs: {id_key: event.target.value}});
 	}
 
+	changeDescription(event){
+		this.setState({description: event.target.value});
+	}
 	render() {
 		let contents;
 		if(this.props.analysis !== null) {
@@ -64,8 +67,9 @@ class ExecuteAnalysis extends Component {
 			contents = <div>
 				<h1>{this.props.analysis.name}</h1>
 
-				<h3> Parameter Details </h3>
-				<Textfield floatngLabelText="Analysis Title" value={this.state.title} onChange={this.changeTitle}/>
+				<h3> Submission Details </h3>
+				<TextField floatingLabelText="Analysis Title" value={this.state.title} onChange={this.changeTitle}/> <br/>
+				<TextField floatingLabelText="Description" value={this.state.description} onChange={this.changeDescription}/>
 				<h3>Inputs</h3>
 				{inputs}
 				<br/>
@@ -77,8 +81,8 @@ class ExecuteAnalysis extends Component {
 
 		return (
 			<div className="main">
-				<h2 className="center"> Execute Analysis</h2>
-				Select an Analysis to execute <br/>
+				<h1 className="center"> Execute Analysis</h1>
+				<h2>Select an Analysis to execute </h2>
 				<AnalysisSelect/>
 				{contents}
 			</div>
