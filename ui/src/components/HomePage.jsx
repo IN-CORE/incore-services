@@ -1,6 +1,6 @@
-import React, {Component} from "react";
-import {browserHistory} from "react-router";
-import {Textfield, Button, Grid, Cell, Display2} from "react-mdc-web";
+import React, { Component } from "react";
+import { browserHistory } from "react-router";
+import { TextField, GridTile, GridList, RaisedButton, Card, CardText, CardTitle, CardHeader, Paper } from "material-ui";
 
 type Props = {
 	name: string
@@ -10,8 +10,8 @@ class HomePage extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			username:"",
-			password:""
+			username: "",
+			password: ""
 		};
 		this.changeUsername = this.changeUsername.bind(this);
 		this.changePassword = this.changePassword.bind(this);
@@ -31,35 +31,39 @@ class HomePage extends Component {
 		browserHistory.push("/Execute");
 	}
 
-	render () {
+	render() {
 
 		return (
-			<div className="center">
-				<Grid>
-					<Cell col={4} tablet={2} phone={1}/>
-					<Cell col={4} tablet={4} phone={3} >
-						<Display2>InCore V2 Login</Display2>
+			<div className="center" style={{display: "block", margin: "auto", width: "500px", paddingTop: "10%"}}>
+				<Paper zDepth={3} style={{padding: 20}}>
+					<h2>IN-CORE v2 Login</h2>
 
-						<Textfield
-							floatingLabel = "Username"
-							value={this.state.username}
-							onChange={this.changeUsername}
+					<GridList cellHeight="auto" cols={1}>
+						<GridTile>
+							<TextField
+								floatingLabelText="Username"
+								value={this.state.username}
+								onChange={this.changeUsername}
+							/>
+						</GridTile>
 
-						/>
-						<Textfield
-							floatingLabel="Password"
-							type="password"
-							minLength={8}
-							helptext = "Your password must be at least 8 characters"
-							helptextValidation
-							value={this.state.password}
-							onChange={this.changePassword}
-						/>
+						<GridTile>
+							<TextField
+								floatingLabelText="Password"
+								type="password"
+								minLength={8}
+								hintText="Your password must be at least 8 characters"
+								helptextValidation
+								value={this.state.password}
+								onChange={this.changePassword}
+							/>
+						</GridTile>
 
-						<Button primary raised onClick={this.login}> Login </Button>
-					</Cell>
-					<Cell col={4} tablet={2} phone={1}/>
-				</Grid>
+						<GridTile style={{paddingTop: "20px"}}>
+							<RaisedButton primary={true} onClick={this.login}> Login </RaisedButton>
+						</GridTile>
+					</GridList>
+				</Paper>
 			</div>
 		);
 

@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import Select from "./material/Select";
+import SelectField from "material-ui";
 
 class AnalysisSelect extends Component {
 
@@ -19,10 +19,9 @@ class AnalysisSelect extends Component {
 
 		return (
 			<div>
-
-				<Select onChange={this.onChange}>
+				<SelectField onChange={this.onChange}>
 					{options}
-				</Select>
+				</SelectField >
 			</div>
 		);
 	}

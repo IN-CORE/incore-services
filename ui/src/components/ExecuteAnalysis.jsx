@@ -1,7 +1,7 @@
 import React, {Component} from "react";
-import {Textfield, Display2, Button} from "react-mdc-web";
 import {browserHistory} from "react-router";
 import AnalysisSelect from "../containers/AnalysisSelect";
+import {TextField, RaisedButton} from "material-ui";
 
 class ExecuteAnalysis extends Component {
 
@@ -27,10 +27,10 @@ class ExecuteAnalysis extends Component {
 		let contents;
 		if(this.props.analysis !== null) {
 			const inputs = this.props.analysis.datasets.map( input =>
-				<span key={input.name}> <Textfield floatingLabel={input.name} id={input.id} value={this.state.inputs.id} width="100%"/> <br/></span>
+				<span key={input.name}> <TextField floatingLabel={input.name} id={input.id} value={this.state.inputs.id} width="100%"/> <br/></span>
 			);
 			const parameters = this.props.analysis.parameters.map(param =>
-				<span key={param.name} > <Textfield floatingLabel={param.name} id={param.id} value={this.state.parameters.id} /><br/></span>
+				<span key={param.name} > <TextField floatingLabel={param.name} id={param.id} value={this.state.parameters.id} /><br/></span>
 			);
 
 			contents = <div>
@@ -41,14 +41,14 @@ class ExecuteAnalysis extends Component {
 				{parameters}
 				<br/>
 				<br/>
-				<Button raised primary onClick={this.executeAnalysis}> Execute Analysis </Button>
+				<RaisedButton raised primary onClick={this.executeAnalysis}> Execute Analysis </RaisedButton>
 			</div>;
 		}
 
 
 		return (
 			<div className="main">
-				<Display2 className="center"> Execute Analysis</Display2>
+				<h2 className="center"> Execute Analysis</h2>
 				Select an Analysis to execute <br/>
 				<AnalysisSelect/>
 				{contents}

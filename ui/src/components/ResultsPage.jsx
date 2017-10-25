@@ -1,5 +1,4 @@
 import React, {Component} from "react";
-import {Display2} from "react-mdc-web";
 import Map from "./Map";
 
 class ResultsPage extends Component {
@@ -14,7 +13,7 @@ class ResultsPage extends Component {
 		contents = <Map/>
 		return (
 			<div className="main">
-				<Display2 className="center">{this.props.analysis.name} Results </Display2>
+				<h2 className="center">{this.props.analysis.name} Results </h2>
 			</div>
 		);
 	}

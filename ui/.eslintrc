@@ -23,6 +23,7 @@
     "mocha": true
   },
   "rules": {
+	"no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
 	"eqeqeq": ["error", "smart"],
 	"no-eval": "warn",
     "quotes": ["error", "double"],
