@@ -55,3 +55,31 @@ export function getAnalysisById(id: String) {
 	};
 
 }
+
+export function receiveDatawolfResponse(json) {
+	// Get the id of the layers in geoserver to display in the map
+	// Get the info from a table to display
+
+}
+export function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
+	const datawolfUrl = "http://141.142.209.63/datawolf/" + "executions";
+	const dataToSubmit = {
+		"title": title,
+		"parameters": parameters,
+		"datasets": datasets,
+		"workflowId": workflowid,
+		"creatorId": creatorid,
+		"description": description
+	};
+
+	fetch(datawolfUrl, {
+		method: "POST",
+		data: dataToSubmit,
+	}).then(function(response) {
+		return response.json;
+	}).then(json =>
+		dispatch(receiveDatawolfResponse(json))
+	);
+
+
+}
