@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard;
 
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
@@ -22,7 +23,24 @@ public class Application  extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        IRepository mongoRepository = new MongoDBRepository("localhost", "hazarddb", 27017);
+        String mongoHost = "localhost";
+        int mongoPort = 27017;
+
+        String mongoHostProp = Config.getConfigProperties().getProperty("hazard.mongodb.host");
+        if(mongoHostProp != null && !mongoHostProp.isEmpty()) {
+            mongoHost = mongoHostProp;
+        }
+
+        String mongoPortProp = Config.getConfigProperties().getProperty("hazard.mongodb.port");
+        if(mongoPortProp != null && !mongoPortProp.isEmpty()) {
+            try {
+                mongoPort = Integer.parseInt(mongoPortProp);
+            } catch(NumberFormatException nfe) {
+                log.warn("Error parsing hazard.mongodb.port value.", nfe);
+            }
+        }
+
+        IRepository mongoRepository = new MongoDBRepository(mongoHost, "hazarddb", mongoPort);
         mongoRepository.initialize();
 
         // Bind Atkinson and Boore 1995 model

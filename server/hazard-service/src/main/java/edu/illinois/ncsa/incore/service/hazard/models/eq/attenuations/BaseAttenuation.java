@@ -73,7 +73,6 @@ public abstract class BaseAttenuation {
     }
 
     public void readCoeffients(URL fileURL) {
-        System.out.println("read coefficients");
         hazardOutputTypes = new LinkedList<String>();
         coefficients = new HashMap<String, List<Double>>();
 

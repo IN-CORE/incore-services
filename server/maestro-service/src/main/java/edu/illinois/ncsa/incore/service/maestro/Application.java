@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro;
 
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
 import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBRepository;
 import org.apache.log4j.Logger;
@@ -19,7 +20,24 @@ public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        IRepository mongoRepository = new MongoDBRepository("localhost", "maestrodb", 27017);
+        String mongoHost = "localhost";
+        int mongoPort = 27017;
+
+        String mongoHostProp = Config.getConfigProperties().getProperty("maestro.mongodb.host");
+        if(mongoHostProp != null && !mongoHostProp.isEmpty()) {
+            mongoHost = mongoHostProp;
+        }
+
+        String mongoPortProp = Config.getConfigProperties().getProperty("maestro.mongodb.port");
+        if(mongoPortProp != null && !mongoPortProp.isEmpty()) {
+            try {
+                mongoPort = Integer.parseInt(mongoPortProp);
+            } catch(NumberFormatException nfe) {
+                log.warn("Error parsing maestro.mongodb.port value.", nfe);
+            }
+        }
+
+        IRepository mongoRepository = new MongoDBRepository(mongoHost, "maestrodb", mongoPort);
         mongoRepository.initialize();
 
         super.register(new AbstractBinder () {

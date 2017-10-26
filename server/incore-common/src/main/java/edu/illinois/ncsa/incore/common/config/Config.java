@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
  * I'm not sure this is the "best" solution going forward, but until we spend some time
  * further on it, this allows for different sets of configuration of incore.
  * <p>
- * By defining an environment variable, INCORE_CONFIG_FILE, the system can specify a
+ * By passing a java property -Dincore.properties, the system can specify a
  * specific java.properties file with incore configuration.
  * <p>
  * Otherwise, the default incore-develop.properties will be used
@@ -26,7 +26,7 @@ public class Config {
 
     public static Properties getConfigProperties() {
         Properties prop = new Properties();
-        String configFile = System.getenv("INCORE_CONFIG_FILE");
+        String configFile = System.getProperty("incore.properties");
 
         if (configFile == null) {
             return getDefaultConfigProperties();

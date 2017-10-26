@@ -13,6 +13,7 @@
 
 package edu.illinois.ncsa.incore.service.data;
 
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.dao.MongoDBRepository;
 import org.apache.log4j.Logger;
@@ -28,7 +29,24 @@ public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        IRepository mongoRepository = new MongoDBRepository("localhost", "datadb", 27017);
+        String mongoHost = "localhost";
+        int mongoPort = 27017;
+
+        String mongoHostProp = Config.getConfigProperties().getProperty("data.mongodb.host");
+        if(mongoHostProp != null && !mongoHostProp.isEmpty()) {
+            mongoHost = mongoHostProp;
+        }
+
+        String mongoPortProp = Config.getConfigProperties().getProperty("data.mongodb.port");
+        if(mongoPortProp != null && !mongoPortProp.isEmpty()) {
+            try {
+                mongoPort = Integer.parseInt(mongoPortProp);
+            } catch(NumberFormatException nfe) {
+                log.warn("Error parsing data.mongodb.port value.", nfe);
+            }
+        }
+
+        IRepository mongoRepository = new MongoDBRepository(mongoHost, "datadb", mongoPort);
         mongoRepository.initialize();
 
         super.register(new AbstractBinder () {
