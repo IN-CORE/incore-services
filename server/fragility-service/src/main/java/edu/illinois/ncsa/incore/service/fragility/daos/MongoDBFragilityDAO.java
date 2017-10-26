@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.fragility.daos;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.fragility.typeconverters.BigDecimalConverter;
 import org.mongodb.morphia.Datastore;
@@ -24,6 +25,7 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
     private String hostUri;
     private String databaseName;
     private int port;
+    private MongoClientURI mongoClientURI;
 
     private Datastore dataStore;
     private List<FragilitySet> fragilities;
@@ -38,6 +40,11 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
+    }
+
+    public MongoDBFragilityDAO(MongoClientURI mongoClientURI) {
+        this.mongoClientURI = mongoClientURI;
+        this.databaseName = mongoClientURI.getDatabase();
     }
 
     @Override
@@ -80,7 +87,7 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(hostUri, port);
+        MongoClient client = new MongoClient(mongoClientURI);
 
         Set<Class> classesToMap = new HashSet<>();
         classesToMap.add(FragilitySet.class);

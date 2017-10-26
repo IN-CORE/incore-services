@@ -13,6 +13,7 @@
 
 package edu.illinois.ncsa.incore.service.data;
 
+import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.dao.MongoDBRepository;
@@ -29,24 +30,14 @@ public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        String mongoHost = "localhost";
-        int mongoPort = 27017;
+        String mongodbUri = "mongodb://localhost:27017/datadb";
 
-        String mongoHostProp = Config.getConfigProperties().getProperty("data.mongodb.host");
-        if(mongoHostProp != null && !mongoHostProp.isEmpty()) {
-            mongoHost = mongoHostProp;
+        String mongodbUriProp = Config.getConfigProperties().getProperty("data.mongodbURI");
+        if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
+            mongodbUri = mongodbUriProp;
         }
 
-        String mongoPortProp = Config.getConfigProperties().getProperty("data.mongodb.port");
-        if(mongoPortProp != null && !mongoPortProp.isEmpty()) {
-            try {
-                mongoPort = Integer.parseInt(mongoPortProp);
-            } catch(NumberFormatException nfe) {
-                log.warn("Error parsing data.mongodb.port value.", nfe);
-            }
-        }
-
-        IRepository mongoRepository = new MongoDBRepository(mongoHost, "datadb", mongoPort);
+        IRepository mongoRepository = new MongoDBRepository(new MongoClientURI(mongodbUri));
         mongoRepository.initialize();
 
         super.register(new AbstractBinder () {
