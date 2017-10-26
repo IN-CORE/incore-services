@@ -51,7 +51,6 @@ import java.util.List;
 @Path("datasets")
 public class DataController {
     private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");  //$NON-NLS-1$
-    //    private static final String DATA_REPO_FOLDER = "C:/Users/ywkim/Downloads/Rest"; //$NON-NLS-1$
     private static final String POST_PARAMENTER_NAME = "name";  //$NON-NLS-1$
     private static final String POST_PARAMENTER_FILE = "file";  //$NON-NLS-1$
     private static final String POST_PARAMENTER_META = "parentdataset";  //$NON-NLS-1$
