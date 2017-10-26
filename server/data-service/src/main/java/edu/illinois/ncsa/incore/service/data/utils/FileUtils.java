@@ -15,15 +15,7 @@ package edu.illinois.ncsa.incore.service.data.utils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
-import com.mongodb.client.model.CreateCollectionOptions;
-import com.mongodb.util.JSON;
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.model.MvzLoader;
 import org.apache.commons.io.FilenameUtils;
@@ -31,7 +23,10 @@ import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -39,23 +34,23 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.mongodb.client.model.Sorts.descending;
-
 /**
  * Created by ywkim on 6/8/2017.
  */
 public class FileUtils {
-    public static final String REPO_SERVER_URL = "https://earthquake.ncsa.illinois.edu/";   //$NON-NLS-1$
-    public static final String REPO_PROP_DIR = "ergo-repo/properties/"; //$NON-NLS-1$
-    public static final String REPO_DS_DIR = "ergo-repo/datasets/"; //$NON-NLS-1$
+    public static final String REPO_SERVER_URL = Config.getConfigProperties().getProperty("data.repo.webdav.server.url");   //$NON-NLS-1$
+    public static final String REPO_PROP_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.prop.dir");   //$NON-NLS-1$
+    public static final String REPO_DS_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.ds.dir");   //$NON-NLS-1$
+    public static final String SERVER_URL_PREFIX = Config.getConfigProperties().getProperty("data.repo.server.url.prefix"); //$NON-NLS-1$
     public static final String REPO_PROP_URL = REPO_SERVER_URL + REPO_PROP_DIR;
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
-    public static final String SERVER_URL_PREFIX = "http://localhost:8080/repo/api/datasets/";  //$NON-NLS-1$
-    public static final String DATA_TEMP_DIR_PREFIX = "data_repo_" ;    //$NON-NLS-1$
-    public static final String[] EXTENSIONS_SHAPEFILES = new String[]{"dbf", "prj", "shp", "shx"};
+    public static final String DATA_TEMP_DIR_PREFIX = "data_repo_";    //$NON-NLS-1$
+    public static final String[] EXTENSIONS_SHAPEFILES = new String[]{"dbf", "prj", "shp", "shx"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
     public static final String EXTENSION_SHP = "shp";   //$NON-NLS-1$
     public static final String EXTENSION_META = "mvz";  //$NON-NLS-1$
-    public static final String EXTENSION_CSV ="csv";    //$NON-NLS-1$
+    public static final String EXTENSION_CSV = "csv";    //$NON-NLS-1$
+    public static final String EXTENSION_XML = "xml";    //$NON-NLS-1$
+    public static final String EXTENSION_ASC = "asc";    //$NON-NLS-1$
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;
     public static final int TYPE_NUMBER_CSV = 2;
@@ -65,7 +60,7 @@ public class FileUtils {
     public static final String DATASET_TYPE = "type";   //$NON-NLS-1$
     public static final String DATASET_SOURCE_DATASET = "sourceDataset";    //$NON-NLS-1$
     public static final String DATASET_FORMAT = "format";   //$NON-NLS-1$
-    public static final String DATASET_SPACES ="spaces";    //$NON-NLS-1$
+    public static final String DATASET_SPACES = "spaces";    //$NON-NLS-1$
     public static final String DATASET_FILE_NAME = "fileName";    //$NON-NLS-1$
 
     public static final Logger logger = Logger.getLogger(FileUtils.class);
@@ -86,6 +81,17 @@ public class FileUtils {
         deleteFiles(delDir, filePath);
     }
 
+    public static void deleteTmpDir(List<File> delFiles) {
+        File delDir = null;
+        String filePath = null;
+        for (File delFile : delFiles) {
+            deleteFiles(delFile);
+            delDir = new File(delFile.getParent());
+            filePath = delFile.getParent();
+        }
+        deleteFiles(delDir, filePath);
+    }
+
     public static void deleteTmpDir(File shapefile, String[] fileExts) {
         String fileName = shapefile.getAbsolutePath();
         String filePath = fileName.substring(0, fileName.lastIndexOf(shapefile.separator));
@@ -102,26 +108,35 @@ public class FileUtils {
         deleteFiles(delDir, filePath);
     }
 
-    public static void deleteFiles(File delFile, String delFileName){
+    public static void deleteFiles(File delFile) {
+        String delFileName = delFile.getName();
+        deleteFiles(delFile, delFileName);
+    }
+
+    public static void deleteFiles(File delFile, String delFileName) {
         try {
             if (delFile.delete()) {
                 logger.debug("file or directory deleted: " + delFileName);  //$NON-NLS-1$
             } else {
                 logger.error("file or directory did not deleted: " + delFileName);  //$NON-NLS-1$
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // load shapefile data from repository web site
     public static String loadFileNameFromRepository(String inId, String extStr, String repoUrl) throws IOException {
         String urlPart = inId.replace("$", "/");
         String datasetUrl = repoUrl + urlPart;
+        return loadFileNameFromRepository(datasetUrl, extStr);
+    }
+
+    // load shapefile data from repository web site
+    public static String loadFileNameFromRepository(String datasetUrl, String extStr) throws IOException {
         List<String> fileList = createFileListFromUrl(datasetUrl);
 
         String outfileStr = ""; //$NON-NLS-1$
-        for (int i=0; i < fileList.size();i++) {
+        for (int i = 0; i < fileList.size(); i++) {
             String fileExt = FilenameUtils.getExtension(fileList.get(i));
             if (fileExt.equals(extStr)) {
                 outfileStr = fileList.get(i);
@@ -133,7 +148,7 @@ public class FileUtils {
             // get the base name of the shapefile
             String shapefileNames[] = outfileStr.split("." + extStr);
             String baseName = shapefileNames[0];
-            String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();    //$NON-NLS-1$
+            String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
             if (extStr.equals(EXTENSION_SHP)) {
                 for (String extension : EXTENSIONS_SHAPEFILES) {
                     HttpDownloader.downloadFile(datasetUrl + baseName + "." + extension, tempDir);
@@ -152,9 +167,9 @@ public class FileUtils {
         // if it is a mvz file
         if (fileExt.equals(EXTENSION_META)) {
             typeHref = getDirectoryContent(REPO_PROP_URL, "");
-            for (String tmpTypeName: typeHref) {
+            for (String tmpTypeName : typeHref) {
                 List<String> tmpMetaFileList = getDirectoryContent(REPO_PROP_URL + "/" + tmpTypeName, "");
-                for (String metaFileName: tmpMetaFileList) {
+                for (String metaFileName : tmpMetaFileList) {
                     if (FilenameUtils.getBaseName(metaFileName).equals(datasetId)) {
                         return tmpTypeName;
                     }
@@ -163,8 +178,8 @@ public class FileUtils {
             // if it is other file
         } else {
             typeHref = getDirectoryContent(REPO_DS_URL, "");
-            for (String tmpTypeName: typeHref) {
-                String fileDirUrl = REPO_DS_URL + tmpTypeName + "/" + datasetId + "/converted/";    //$NON-NLS-1$
+            for (String tmpTypeName : typeHref) {
+                String fileDirUrl = REPO_DS_URL + tmpTypeName + "/" + datasetId + "/converted/";    //$NON-NLS-1$ //$NON-NLS-2$
                 List<String> fileHref = getDirectoryContent(fileDirUrl, "");
                 if (fileHref.size() > 1) {
                     return tmpTypeName;
@@ -181,7 +196,7 @@ public class FileUtils {
         return linkList;
     }
 
-    public static List<String> getDirList(String inUrl){
+    public static List<String> getDirList(String inUrl) {
         List<String> linkList = new LinkedList<String>();
         org.jsoup.nodes.Document doc = null;
         try {
@@ -192,7 +207,7 @@ public class FileUtils {
         Elements links = doc.select("a");   //$NON-NLS-1$
         String linkAtr = "";
 
-        for (int i=0;i < links.size();i++){
+        for (int i = 0; i < links.size(); i++) {
             linkAtr = links.get(i).attr("href");    //$NON-NLS-1$
             if (linkAtr.length() > 3) {
                 linkList.add(linkAtr);
@@ -212,14 +227,14 @@ public class FileUtils {
 
     // check what kind of file format is in the repository web site.
     public static int checkDataFormatFromRepository(String inId, String repoUrl) {
-        int typeNumber  = 0;    // 1: shp, 2: csv, 3: mvz
+        int typeNumber = 0;    // 1: shp, 2: csv, 3: mvz
         boolean isMultiType = false;
 
-        String urlPart = inId.replace("$", "/");
+        String urlPart = inId.replace("$", "/");    //$NON-NLS-1$ //$NON-NLS-2$
         String datasetUrl = repoUrl + urlPart;
         List<String> fileList = createFileListFromUrl(datasetUrl);
 
-        for (int i=0; i < fileList.size();i++) {
+        for (int i = 0; i < fileList.size(); i++) {
             String fileExt = FilenameUtils.getExtension(fileList.get(i));
             if (fileExt.equals(EXTENSION_SHP)) {
                 if (typeNumber > 0) {
@@ -249,16 +264,16 @@ public class FileUtils {
     }
 
     // get directory list in the root directory and crate one big json file using mvz files located under each directory
-    private String loadDirectoryListJsonString(){
-        String outStr = "[\n";
+    private String loadDirectoryListJsonString() {
+        String outStr = "[\n";  //$NON-NLS-1$
         String tmpRepoUrl = REPO_PROP_URL;
 
         List<String> resHref = getDirectoryContent(tmpRepoUrl, "");
 
-        for (String tmpUrl: resHref) {
+        for (String tmpUrl : resHref) {
             String metaDirUrl = REPO_PROP_URL + tmpUrl;
             List<String> metaHref = getDirectoryContent(metaDirUrl, "");
-            for (String metaFileName: metaHref) {
+            for (String metaFileName : metaHref) {
                 String fileExtStr = FilenameUtils.getExtension(metaFileName);
                 // get only the mvz file
                 if (fileExtStr.equals(EXTENSION_META)) {
@@ -276,7 +291,7 @@ public class FileUtils {
         }
 
         outStr = outStr.substring(0, outStr.length() - 2);
-        outStr = outStr + "\n]";
+        outStr = outStr + "\n]";    //$NON-NLS-1$
 
         return outStr;
     }
@@ -291,8 +306,7 @@ public class FileUtils {
         return outHtml;
     }
 
-    private static String createListHtml(String inId){
-
+    private static String createListHtml(String inId) {
         String outHtml = "<HTML><BODY>";    //$NON-NLS-1$
         String tmpRepoUrl = "";
         if (inId.length() > 0) {
@@ -303,7 +317,7 @@ public class FileUtils {
 
         List<String> resHref = getDirectoryContent(tmpRepoUrl, inId);
 
-        for (String tmpUrl: resHref) {
+        for (String tmpUrl : resHref) {
             // get only the last elemente after back slashes
             if (inId.length() > 0) {
                 String[] linkUrls = tmpUrl.split("/");
@@ -318,22 +332,22 @@ public class FileUtils {
         return outHtml;
     }
 
-    public static List<String> getDirectoryContent(String inUrl, String inId){
+    public static List<String> getDirectoryContent(String inUrl, String inId) {
         List<String> outList = new LinkedList<String>();
         Sardine sardine = SardineFactory.begin();
         try {
             List<DavResource> resources = sardine.list(inUrl);
 
             for (DavResource res : resources) {
-                String[] tmpUrls = res.getHref().toString().split("/");
+                String[] tmpUrls = res.getHref().toString().split("/"); //$NON-NLS-1$
                 String tmpUrl = "";
                 if (inId.length() > 0) {
-                    tmpUrl = tmpUrls[tmpUrls.length - 2] + "/" + tmpUrls[tmpUrls.length - 1];
+                    tmpUrl = tmpUrls[tmpUrls.length - 2] + "/" + tmpUrls[tmpUrls.length - 1];   //$NON-NLS-1$
                 } else {
                     tmpUrl = tmpUrls[tmpUrls.length - 1];
                 }
 
-                if (!tmpUrls[tmpUrls.length -1].equals(inId)) {
+                if (!tmpUrls[tmpUrls.length - 1].equals(inId)) {
                     outList.add(tmpUrl);
                 }
             }
@@ -346,12 +360,12 @@ public class FileUtils {
     }
 
     public static File loadMetadataFromRepository(String inId) throws IOException {
-        String urlPart = inId.replace("$", "/");
-        String[] urlStrs = urlPart.split("/converted/");    // split the url using the folder name "converted"
+        String urlPart = inId.replace("$", "/");    //$NON-NLS-1$ //$NON-NLS-2$
+        String[] urlStrs = urlPart.split("/converted/");    //$NON-NLS-1$ // split the url using the folder name "converted"
         String metadataUrl = REPO_PROP_URL + urlStrs[0];
         // what if there is a dot in the basename? avoid use getBasename
         //String baseName = FilenameUtils.getBaseName(metadataUrl);
-        String baseNameStrs[] = urlStrs[0].split("/");
+        String baseNameStrs[] = urlStrs[0].split("/");  //$NON-NLS-1$
         String baseName = baseNameStrs[baseNameStrs.length - 1];
         String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();    //$NON-NLS-1$
 
@@ -372,14 +386,14 @@ public class FileUtils {
     }
 
     public static File loadZipdataFromRepository(String inId) throws IOException {
-        String urlPart = inId.replace("$", "/");
+        String urlPart = inId.replace("$", "/");    //$NON-NLS-1$ //$NON-NLS-2$
         String fileDatasetUrl = REPO_DS_URL + urlPart;
         String baseName = FilenameUtils.getBaseName(fileDatasetUrl);
         String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();    //$NON-NLS-1$
         String realUrl = getRealUrl(fileDatasetUrl);
         List<String> fileList = createFileListFromUrl(fileDatasetUrl);
 
-        for (int i=0; i < fileList.size();i++) {
+        for (int i = 0; i < fileList.size(); i++) {
             HttpDownloader.downloadFile(realUrl + fileList.get(i), tempDir);
         }
 
@@ -395,7 +409,7 @@ public class FileUtils {
         byte[] buffer = new byte[1024];
         FileOutputStream fileOS = new FileOutputStream(zipfile);
         ZipOutputStream zipOS = new ZipOutputStream(fileOS);
-        for (int i=0; i < fileList.size();i++) {
+        for (int i = 0; i < fileList.size(); i++) {
             ZipEntry zEntry = new ZipEntry(fileList.get(i));
             zipOS.putNextEntry(zEntry);
 

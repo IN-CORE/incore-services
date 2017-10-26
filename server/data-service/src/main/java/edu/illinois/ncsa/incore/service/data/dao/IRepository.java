@@ -15,6 +15,7 @@ package edu.illinois.ncsa.incore.service.data.dao;
 
 import edu.illinois.ncsa.incore.service.data.model.Space;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
+import edu.illinois.ncsa.incore.service.data.model.mvz.MvzDataset;
 import org.mongodb.morphia.Datastore;
 
 import java.util.List;
@@ -28,5 +29,6 @@ public interface IRepository {
     List<Space> getAllSpaces();
     Space addSpace(Space space);
     Space getSpaceByName(String name);
+    MvzDataset addMvzDataset(MvzDataset dataset);
     Datastore getDataStore();
 }

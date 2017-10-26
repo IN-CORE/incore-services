@@ -77,7 +77,7 @@ public class MvzLoader {
         return mvzDataset;
     }
 
-    private static MvzDataset setMvzDatasetFromMetadata(File metadataFile, String rUrl) throws IOException {
+    public static MvzDataset setMvzDatasetFromMetadata(File metadataFile, String rUrl) throws IOException {
         String xmlString = "";
         metadataFile.setReadOnly();
         Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
@@ -159,22 +159,22 @@ public class MvzLoader {
                 datasetPropertyName = TAG_PROPERTIES_SCENARIO;
             }
 
-            if (inJsonObj.has(TAG_NAME)) {
+            if (metaInfoObj.has(TAG_NAME)) {
                 name = metaInfoObj.get(TAG_NAME).toString();
             }
-            if (inJsonObj.has(TAG_VERSION)) {
+            if (metaInfoObj.has(TAG_VERSION)) {
                 version = metaInfoObj.get(TAG_VERSION).toString();
             }
-            if (inJsonObj.has(TAG_DATA_FORMAT)) {
+            if (metaInfoObj.has(TAG_DATA_FORMAT)) {
                 dataFormat = metaInfoObj.get(TAG_DATA_FORMAT).toString();
             }
-            if (inJsonObj.has(TAG_TYPE_ID)) {
+            if (metaInfoObj.has(TAG_TYPE_ID)) {
                 typeId = metaInfoObj.get(TAG_TYPE_ID).toString();
             }
-            if (inJsonObj.has(TAG_LOCATION)) {
+            if (metaInfoObj.has(TAG_LOCATION)) {
                 location = locObj.get(TAG_LOCATION).toString();
             }
-            if (inJsonObj.has(TAG_DESCRIPTION)) {
+            if (metaInfoObj.has(TAG_DESCRIPTION)) {
                 description = locObj.get(TAG_DESCRIPTION).toString();
             }
 
