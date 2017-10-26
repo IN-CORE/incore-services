@@ -12,13 +12,14 @@
 
 package edu.illinois.ncsa.incore.service.data.model.mvz;
 
+import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ import java.util.List;
 public class MvzDataset {
     @Id
     @Property("_id")
-    private String id;
+    private ObjectId id = new ObjectId();
 
     private String datasetPropertyName;
     private String name;
@@ -44,12 +45,14 @@ public class MvzDataset {
     private List<URI> replicaLocations = new LinkedList<URI>();
     private List<Property> properties = new LinkedList<Property>();
     private Metadata metadata;
+    private List<FileDescriptor> fileDescriptors = null;
 
-    @XmlAttribute
+    public String getId() {return id.toString();}
+    public void setId(String id) { this.id = new ObjectId(id); }
+
     public String getDatasetPropertyName() { return datasetPropertyName; }
     public void setDatasetPropertyName(String datasetPropertyName) { this.datasetPropertyName = datasetPropertyName; }
 
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -57,7 +60,6 @@ public class MvzDataset {
         this.name = name;
     }
 
-    @XmlAttribute
     public String getVersion() {
         return version;
     }
@@ -65,7 +67,6 @@ public class MvzDataset {
         this.version = version;
     }
 
-    @XmlAttribute
     public String getDataFormat(){
         return dataFormat;
     }
@@ -73,7 +74,6 @@ public class MvzDataset {
         this.dataFormat = dataFormat;
     }
 
-    @XmlAttribute
     public String getTypeId(){
         return typeId;
     }
@@ -81,7 +81,6 @@ public class MvzDataset {
         this.typeId = typeId;
     }
 
-    @XmlAttribute
     public String getFeaturetypeName(){
         return featuretypeName;
     }
@@ -89,7 +88,6 @@ public class MvzDataset {
         this.featuretypeName = featuretypeName;
     }
 
-    @XmlAttribute
     public String getConvertedFeatureTypeName(){
         return convertedFeatureTypeName;
     }
@@ -97,7 +95,6 @@ public class MvzDataset {
         this.convertedFeatureTypeName = convertedFeatureTypeName;
     }
 
-    @XmlAttribute
     public String getGeometryType(){
         return geometryType;
     }
@@ -105,7 +102,6 @@ public class MvzDataset {
         this.geometryType = geometryType;
     }
 
-    @XmlElement
     public DatasetId getDatasetId() {
         return datasetId;
     }
@@ -113,7 +109,6 @@ public class MvzDataset {
         this.datasetId = datasetId;
     }
 
-    @XmlElement
     public List<URI> getReplicaLocations() {
         return replicaLocations;
     }
@@ -121,7 +116,6 @@ public class MvzDataset {
         this.replicaLocations = replicaLocations;
     }
 
-    @XmlElement
     public List<Property> getProperties(){
         return properties;
     }
@@ -129,9 +123,29 @@ public class MvzDataset {
         this.properties = properties;
     }
 
-    @XmlElement
     public Metadata getMetadata(){
         return metadata;
     }
     public void setMetadata(Metadata metadata) { this.metadata = metadata; }
+
+    public List<FileDescriptor> getFileDescriptors() {
+        if (fileDescriptors == null) {
+            fileDescriptors = new ArrayList<FileDescriptor>();
+        }
+        return fileDescriptors;
+    }
+
+    public void setFileDescriptors(List<FileDescriptor> fileDescriptors) {
+        this.fileDescriptors = fileDescriptors;
+    }
+
+    public void addFileDescriptor(FileDescriptor fileDescriptor) {
+        if (fileDescriptor != null) {
+            getFileDescriptors().add(fileDescriptor);
+        }
+    }
+
+    public void removeFileDescriptor(FileDescriptor fileDescriptor) {
+        getFileDescriptors().remove(fileDescriptor);
+    }
 }

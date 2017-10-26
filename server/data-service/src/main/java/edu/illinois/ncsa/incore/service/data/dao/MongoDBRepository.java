@@ -19,6 +19,7 @@ import com.mongodb.client.MongoDatabase;
 import edu.illinois.ncsa.incore.service.data.model.Space;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.model.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -87,6 +88,15 @@ public class MongoDBRepository implements IRepository {
     public Space addSpace(Space space) {
         String id = this.dataStore.save(space).getId().toString();
         return getSpaceById(id);
+    }
+
+    public MvzDataset addMvzDataset(MvzDataset mvzDataset) {
+        String id = this.dataStore.save(mvzDataset).getId().toString();
+        return getMvzDatasetById(id);
+    }
+
+    public MvzDataset getMvzDatasetById(String id) {
+        return this.dataStore.get(MvzDataset.class, new ObjectId(id));
     }
 
     @Override
