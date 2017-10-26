@@ -99,7 +99,6 @@ subprojects {
             compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.25.1'
             compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1'
 
-
             // Libraries for testing jersey controller actions
             testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version: '2.25.1')
             testCompile(group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-servlet', version: '2.25.1')

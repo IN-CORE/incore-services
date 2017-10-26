@@ -14,11 +14,15 @@ import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import org.mongodb.morphia.Datastore;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IFragilityDAO {
     void initialize();
     List<FragilitySet> getFragilities();
+    FragilitySet getById(String id);
+    List<FragilitySet> searchFragilities(String text);
     Datastore getDataStore();
     List<FragilitySet> queryFragilities(String attributeType, String attributeValue);
+    List<FragilitySet> queryFragilities(Map<String, String> typeValueMap);
     List<FragilitySet> queryFragilityAuthor(String author);
 }
