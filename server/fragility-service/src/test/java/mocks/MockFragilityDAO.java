@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MockFragilityDAO implements IFragilityDAO {
     private Datastore mockDataStore;
@@ -52,6 +53,16 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
+    public FragilitySet getById(String id) {
+        return null;
+    }
+
+    @Override
+    public List<FragilitySet> searchFragilities(String text) {
+        return null;
+    }
+
+    @Override
     public Datastore getDataStore() {
         return this.mockDataStore;
     }
@@ -59,6 +70,11 @@ public class MockFragilityDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         return fragilitySets;
+    }
+
+    @Override
+    public List<FragilitySet> queryFragilities(Map<String, String> typeValueMap) {
+        return null;
     }
 
     @Override
