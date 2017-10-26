@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { Link, IndexLink } from "react-router";
-import { AppBar, FlatButton, MuiThemeProvider, Toolbar, ToolbarGroup, ToolbarTitle } from "material-ui";
+import { AppBar, FlatButton, MuiThemeProvider } from "material-ui";
 
 global.__base = `${__dirname  }/`;
 
@@ -12,16 +12,16 @@ class App extends Component {
 			<div>
 				<MuiThemeProvider>
 					<div>
-						<AppBar title="IN-CORE v2" iconElementRight={
+						<AppBar title="IN-CORE v2" showMenuIconButton={false} iconStyleRight={{margin: "auto"}}
+								iconElementRight= {
 							<div>
-								<FlatButton label="Home"  containerElement={<Link to="/" />} />
-								<FlatButton label="Fragility Explorer" containerElement={<Link to="/FragilityViewer" />} />
-								<FlatButton label="Data Explorer" containerElement={<Link to="/DataViewer" />} />
-								<FlatButton label="Analysis" containerElement={<Link to="/Analysis" />} />
-								<FlatButton label="Help" containerElement={<Link to="/Help" />} />
+								<FlatButton style={{color: "white"}} label="Home"  containerElement={<IndexLink to="/" />} />
+								<FlatButton style={{color: "white"}} label="Fragility Explorer" containerElement={<Link to="/FragilityViewer" />} />
+								<FlatButton style={{color: "white"}} label="Data Explorer" containerElement={<Link to="/DataViewer" />} />
+								<FlatButton style={{color: "white"}} label="Analysis" containerElement={<Link to="/Analysis" />} />
+								<FlatButton style={{color: "white"}} label="Help" containerElement={<Link to="/Help" />} />
 							</div>
 						} />
-
 						{this.props.children}
 					</div>
 				</MuiThemeProvider>

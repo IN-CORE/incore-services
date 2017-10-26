@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import { browserHistory } from "react-router";
-import { TextField, GridTile, GridList, RaisedButton, Card, CardText, CardTitle, CardHeader, Paper } from "material-ui";
+import {
+	TextField, GridTile, GridList, RaisedButton, Card, CardText, CardTitle, CardHeader, Paper,
+	Divider
+} from "material-ui";
 
 type Props = {
 	name: string
@@ -9,10 +12,13 @@ type Props = {
 class HomePage extends Component {
 	constructor(props) {
 		super(props);
+
 		this.state = {
 			username: "",
-			password: ""
+			password: "",
+			passwordErrorText: ""
 		};
+
 		this.changeUsername = this.changeUsername.bind(this);
 		this.changePassword = this.changePassword.bind(this);
 		this.login = this.login.bind(this);
@@ -23,7 +29,19 @@ class HomePage extends Component {
 	}
 
 	changePassword(event: Object) {
-		this.setState({password: event.target.value});
+		let password = event.target.value;
+
+		if (password.length <= 8) {
+			this.setState({
+				passwordErrorText: "Your password must be at least 8 characters long"
+			});
+		} else {
+			this.setState({
+				passwordErrorText: ""
+			});
+		}
+
+		this.setState({password: password});
 	}
 
 	login(event: Object) {
@@ -37,7 +55,7 @@ class HomePage extends Component {
 			<div className="center" style={{display: "block", margin: "auto", width: "500px", paddingTop: "10%"}}>
 				<Paper zDepth={3} style={{padding: 20}}>
 					<h2>IN-CORE v2 Login</h2>
-
+					<Divider />
 					<GridList cellHeight="auto" cols={1}>
 						<GridTile>
 							<TextField
@@ -52,8 +70,7 @@ class HomePage extends Component {
 								floatingLabelText="Password"
 								type="password"
 								minLength={8}
-								hintText="Your password must be at least 8 characters"
-								helptextValidation
+								errorText={this.state.passwordErrorText}
 								value={this.state.password}
 								onChange={this.changePassword}
 							/>
