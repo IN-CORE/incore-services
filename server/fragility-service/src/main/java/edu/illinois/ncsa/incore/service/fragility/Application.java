@@ -10,6 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.fragility;
 
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBFragilityDAO;
@@ -24,7 +25,24 @@ public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        IFragilityDAO mongoRepository = new MongoDBFragilityDAO("localhost", "fragilitydb", 27017);
+        String mongoHost = "localhost";
+        int mongoPort = 27017;
+
+        String mongoHostProp = Config.getConfigProperties().getProperty("fragility.mongodb.host");
+        if(mongoHostProp != null && !mongoHostProp.isEmpty()) {
+            mongoHost = mongoHostProp;
+        }
+
+        String mongoPortProp = Config.getConfigProperties().getProperty("fragility.mongodb.port");
+        if(mongoPortProp != null && !mongoPortProp.isEmpty()) {
+            try {
+                mongoPort = Integer.parseInt(mongoPortProp);
+            } catch(NumberFormatException nfe) {
+                log.warn("Error parsing fragility.mongodb.port value.", nfe);
+            }
+        }
+
+        IFragilityDAO mongoRepository = new MongoDBFragilityDAO(mongoHost, "fragilitydb", mongoPort);
         mongoRepository.initialize();
 
         MatchFilterMap loadedMappings = null;

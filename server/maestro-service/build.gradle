@@ -23,6 +23,7 @@ dependencies {
 	compile 'org.jamel.dbf:dbf-reader:0.2.0'
 
 	compile project(':tools-common');
+        compile project(':incore-common');
 }
 
 task wrapper(type: Wrapper) {
