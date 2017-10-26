@@ -18,7 +18,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import edu.illinois.ncsa.incore.service.data.model.Space;
 import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.model.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -56,7 +55,7 @@ public class MongoDBRepository implements IRepository {
         this.initializeDataStore();
     }
 
-    public List<Dataset> getAllDatasets(){
+    public List<Dataset> getAllDatasets() {
         return this.dataStore.createQuery(Dataset.class).asList();
     }
 
@@ -69,8 +68,8 @@ public class MongoDBRepository implements IRepository {
     }
 
     public Dataset addDataset(Dataset dataset) {
-         String id = this.dataStore.save(dataset).getId().toString();
-         return getDatasetById(id);
+        String id = this.dataStore.save(dataset).getId().toString();
+        return getDatasetById(id);
     }
 
     public Space getSpaceById(String id) {
@@ -79,7 +78,7 @@ public class MongoDBRepository implements IRepository {
 
     public Space getSpaceByName(String name) {
         Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field("name").equal(name);
+        spaceQuery.field("name").equal(name);   //$NON-NLS-1$
         Space foundSpace = spaceQuery.get();
 
         return foundSpace;
@@ -117,8 +116,8 @@ public class MongoDBRepository implements IRepository {
     public Dataset updateDataset(String datasetId, String propName, String propValue) {
         MongoClient client = new MongoClient(hostUri, port);
         MongoDatabase mongodb = client.getDatabase(databaseName);
-        MongoCollection collection = mongodb.getCollection("Dataset");
-        collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));
+        MongoCollection collection = mongodb.getCollection("Dataset");  //$NON-NLS-1$
+        collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));  //$NON-NLS-1$ //$NON-NLS-2$
         return getDatasetById(datasetId);
     }
 }
