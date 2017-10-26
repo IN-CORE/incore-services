@@ -648,7 +648,6 @@ public class DataController {
 
                     } catch (IOException e) {
                         e.printStackTrace();
-                        ;
                         String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";  //$NON-NLS-1$
                     }
 //                    mvzDataset = MvzLoader.createMvzDatasetFromMetadata(combinedId);
