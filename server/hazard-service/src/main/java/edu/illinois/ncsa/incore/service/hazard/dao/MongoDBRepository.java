@@ -10,6 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -23,10 +24,12 @@ public class MongoDBRepository implements IRepository {
     private String hostUri;
     private String databaseName;
     private int port;
+    private MongoClientURI mongoClientURI;
 
     private Datastore dataStore;
     private List<ScenarioEarthquake> scenarioEarthquakes;
 
+    // TODO I believe we can just use the URI and remove this later
     public MongoDBRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
@@ -39,21 +42,24 @@ public class MongoDBRepository implements IRepository {
         this.port = port;
     }
 
+    public MongoDBRepository(MongoClientURI mongoClientURI) {
+        this.mongoClientURI = mongoClientURI;
+        this.databaseName = mongoClientURI.getDatabase();
+    }
+
     @Override
-    public void initialize()
-    {
+    public void initialize() {
         this.initializeDataStore();
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(hostUri, port);
+        MongoClient client = new MongoClient(mongoClientURI);
 
         Set<Class> classesToMap = new HashSet<>();
         Morphia morphia = new Morphia(classesToMap);
         classesToMap.add(ScenarioEarthquake.class);
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
+        Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
         morphiaStore.ensureIndexes();
-
         this.dataStore = morphiaStore;
     }
 
@@ -70,7 +76,7 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public List<ScenarioEarthquake> getScenarioEarthquakes() {
-        if(this.scenarioEarthquakes == null) {
+        if (this.scenarioEarthquakes == null) {
             loadScenarioEarthquakes();
         }
         return this.scenarioEarthquakes;

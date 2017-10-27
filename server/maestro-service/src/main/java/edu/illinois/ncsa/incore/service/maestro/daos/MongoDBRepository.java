@@ -10,6 +10,7 @@
 package edu.illinois.ncsa.incore.service.maestro.daos;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -23,6 +24,7 @@ public class MongoDBRepository implements IRepository {
     private String hostUri;
     private String databaseName;
     private int port;
+    private MongoClientURI mongoClientURI;
 
     private Datastore dataStore;
     private List<Analysis> analyses;
@@ -37,6 +39,11 @@ public class MongoDBRepository implements IRepository {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
+    }
+
+    public MongoDBRepository(MongoClientURI mongoClientURI) {
+        this.mongoClientURI = mongoClientURI;
+        this.databaseName = mongoClientURI.getDatabase();
     }
 
     @Override
@@ -67,7 +74,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(hostUri, port);
+        MongoClient client = new MongoClient(mongoClientURI);
 
         Set<Class> classesToMap = new HashSet<>();
         Morphia morphia = new Morphia(classesToMap);

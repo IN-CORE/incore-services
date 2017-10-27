@@ -14,6 +14,7 @@
 package edu.illinois.ncsa.incore.service.data.dao;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import edu.illinois.ncsa.incore.service.data.model.Space;
@@ -35,6 +36,7 @@ public class MongoDBRepository implements IRepository {
     private String hostUri;
     private String databaseName;
     private int port;
+    private MongoClientURI mongoClientURI;
 
     private Datastore dataStore;
 
@@ -48,6 +50,11 @@ public class MongoDBRepository implements IRepository {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
+    }
+
+    public MongoDBRepository(MongoClientURI mongoClientURI) {
+        this.mongoClientURI = mongoClientURI;
+        this.databaseName = mongoClientURI.getDatabase();
     }
 
     @Override
@@ -104,7 +111,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(hostUri, port);
+        MongoClient client = new MongoClient(mongoClientURI);
         Set<Class> classesToMap = new HashSet<>();
         Morphia morphia = new Morphia(classesToMap);
         classesToMap.add(Dataset.class);
@@ -114,7 +121,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     public Dataset updateDataset(String datasetId, String propName, String propValue) {
-        MongoClient client = new MongoClient(hostUri, port);
+        MongoClient client = new MongoClient(mongoClientURI);
         MongoDatabase mongodb = client.getDatabase(databaseName);
         MongoCollection collection = mongodb.getCollection("Dataset");  //$NON-NLS-1$
         collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));  //$NON-NLS-1$ //$NON-NLS-2$
