@@ -1,0 +1,52 @@
+{
+  "params": {
+    "key": "Non-Retrofit Fragility ID Code"
+  },
+  "subject": {
+    "inventory": {
+      "geometry": {
+        "coordinates": [
+          -90.02584943848801,
+          35.140197417765144
+        ],
+        "type": "Point"
+      },
+      "id": "0",
+      "properties": {
+        "IMPUTED": "F",
+        "Soil": "Upland",
+        "a_stories": 1,
+        "appr_bldg": 163315,
+        "b_stories": 0,
+        "bldg_id": "018060  00010_2_1",
+        "broad_occ": "Health Care",
+        "bsmt_type": "NONE",
+        "cont_val": 2042598,
+        "dgn_lvl": "Moderate - Code",
+        "dwell_unit": 0,
+        "efacility": "EFHS",
+        "gsq_foot": 6062,
+        "guid": "a41e7dcc-3b82-42f2-9dbd-a2ebdf39d453",
+        "major_occ": "HOSPITAL",
+        "no_stories": 1,
+        "nstra_cst": 665887,
+        "nstrd_cst": 509288,
+        "occ_detail": "HOSPITALS",
+        "occ_typ2": "COM6",
+        "occ_type": "COM6",
+        "parid": "018060  00010",
+        "parid_card": "018060  00010_2",
+        "repl_cst": 1361732,
+        "sq_foot": 6062,
+        "str_cst": 186557,
+        "str_prob": 1.0,
+        "str_typ2": "C1L",
+        "struct_typ": "C1",
+        "tract_id": "47157003800",
+        "year_built": 1978
+      },
+      "type": "Feature"
+    },
+    "schema": "building"
+  }
+}

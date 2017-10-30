@@ -19,4 +19,7 @@ dependencies {
     compile "org.geotools:gt-coverage:17.0"
     compile "jgridshift:jgridshift:1.0"
     compile "javax.media:jai_core:1.1.3"
+    compile 'org.mongodb:mongo-java-driver:3.3.0'
+    compile 'org.mongodb.morphia:morphia:1.2.1'
+    compile project(':incore-common');
 }
