@@ -259,8 +259,13 @@ class FragilityExplorerPage extends React.Component {
 	generate2dPlotData(fragility) {
 		let updatedChartConfig = Object.assign({}, chartConfig.FragilityConfig);
 
-		updatedChartConfig.xAxis.title.text = `${fragility.demandType} (${fragility.demandUnits})`;
-		updatedChartConfig.title.text = `${fragility.description} (${fragility.authors.join(", ")})`;
+		let demandType = fragility.demandType !== null ? fragility.demandType : "";
+		let demandUnit = fragility.demandUnits !== null ? fragility.demandUnits : "";
+		let description = fragility.description !== null ? fragility.description : "";
+		let authors = fragility.authors.join(", ");
+
+		updatedChartConfig.xAxis.title.text = `${demandType} (${demandUnit})`;
+		updatedChartConfig.title.text = `${description} [${authors}]`;
 
 		updatedChartConfig.series = [];
 
