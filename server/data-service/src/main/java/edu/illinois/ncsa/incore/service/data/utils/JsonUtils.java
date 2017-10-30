@@ -81,7 +81,7 @@ public class JsonUtils {
             fileName = tempDir + File.separator + datasetId + "." + FileUtils.EXTENSION_META;
             if (fileName.length() > 0) {
                 dataset = new File(fileName);
-                outJson = MvzLoader.formatMetadataAsJson(dataset, combinedId, serverUrlPrefix);
+                outJson = MvzLoader.formatMetadataAsJson(dataset, combinedId);
             }
         }catch (IOException e) {
             e.printStackTrace();

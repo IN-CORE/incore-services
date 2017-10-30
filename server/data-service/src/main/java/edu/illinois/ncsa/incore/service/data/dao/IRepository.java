@@ -24,6 +24,8 @@ public interface IRepository {
     void initialize();
     List<Dataset> getAllDatasets();
     Dataset getDatasetById(String id);
+    List<Dataset> getDatasetByType(String type);
+    List<Dataset> getDatasetByTitle(String title);
     Dataset addDataset(Dataset dataset);
     Dataset updateDataset(String datasetId, String propName, String propValue);
     List<Space> getAllSpaces();

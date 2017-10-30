@@ -84,10 +84,45 @@ public class DataController {
         return dataset;
     }
 
+    //http://localhost:8080/data/api/datasets/type/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0
+    /**
+     * query dataset by type id
+     * @param typeId
+     * @return
+     */
+    @GET
+    @Path("/type/{typeId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Dataset> getDatasetTypeFromRepo(@PathParam("typeId") String typeId) {
+        List<Dataset> datasets = repository.getDatasetByType(typeId);
+        if (datasets == null) {
+            throw new NotFoundException("There is no Dataset with given type in the repository.");
+        }
+
+        return datasets;
+    }
+
+    //http://localhost:8080/data/api/datasets/type/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0
+    /**
+     * query dataset by title. case incensitive and wildcard applied
+     * @param title
+     * @return
+     */
+    @GET
+    @Path("/title/{title}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Dataset> getDatasetTitleFromRepo(@PathParam("title") String title) {
+        List<Dataset> datasets = repository.getDatasetByTitle(title);
+        if (datasets == null) {
+            throw new NotFoundException("There is no Dataset with given title in the repository.");
+        }
+
+        return datasets;
+    }
+
     //http://localhost:8080/data/api/datasets/list-datasets
     /**
      * Returns a list of spaces in the Space collection
-     *
      * @return list of dataset
      */
     @GET
@@ -105,7 +140,6 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/list-datasets
     /**
      * create list of spaces in the database
-     *
      * @return list of dataset
      */
     @GET
@@ -122,7 +156,6 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/files
     /**
      * Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset
-     *
      * @param datasetId id of the Dataset in mongodb
      * @return
      * @throws IOException
@@ -176,7 +209,6 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/filedescriptors/59e50a2568f4742654e59629/files
     /**
      * Returns a file that is attached to a FileDescriptor specified by {fdid} in a dataset specified by {id}
-     *
      * @param datasetId Dataset id
      * @param inFdId    FileDescriptor id in the Dataset
      * @return
@@ -219,7 +251,6 @@ public class DataController {
     //http://localhost:8080/data/api/datasets/joinshptable/59e509ca68f4742654e59621
     /**
      * Returns a zip file of shapefile after joinig analysis result table dataset specified by {id} using result dataset's source dataset shapefile
-     *
      * @param datasetId input result dataset id
      * @return
      * @throws IOException
@@ -279,7 +310,6 @@ public class DataController {
 
     // http//localhost:8080/data/api/datasets/ingest-dataset
     /** ingest dataset object using json
-     *
      * @param inDatasetJson
      * @return
      */
@@ -409,7 +439,6 @@ public class DataController {
     // {datasetId: "59e0ec0c68f4742a340411d2", property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"}
     /**
      * file(s) to upload to attach to a dataset by FileDescriptor
-     *
      * @param inDatasetJson
      * @return
      */

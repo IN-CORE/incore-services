@@ -29,6 +29,7 @@ import org.mongodb.morphia.query.Query;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -37,6 +38,10 @@ public class MongoDBRepository implements IRepository {
     private String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
+    private final String DATASET_COLLECTION_NAME = "Dataset";  //$NON-NLS-1$
+    private final String DATASET_FIELD_NAME = "name";   //$NON-NLS-1$
+    private final String DATASET_FIELD_TYPE = "type";   //$NON-NLS-1$
+    private final String DATASET_FIELD_TITLE = "title"; //$NON-NLS-1$
 
     private Datastore dataStore;
 
@@ -74,6 +79,20 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore.get(Dataset.class, new ObjectId(id));
     }
 
+    public List<Dataset> getDatasetByType(String type){
+        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        datasetQuery.field(DATASET_FIELD_TYPE).equal(type);
+        return datasetQuery.asList();
+    }
+
+    public List<Dataset> getDatasetByTitle(String title){
+        Pattern regEx = Pattern.compile(title, Pattern.CASE_INSENSITIVE);
+        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        datasetQuery.filter(DATASET_FIELD_TITLE, regEx);
+        datasetQuery.getSortObject();
+        return datasetQuery.asList();
+    }
+
     public Dataset addDataset(Dataset dataset) {
         String id = this.dataStore.save(dataset).getId().toString();
         return getDatasetById(id);
@@ -85,7 +104,7 @@ public class MongoDBRepository implements IRepository {
 
     public Space getSpaceByName(String name) {
         Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field("name").equal(name);   //$NON-NLS-1$
+        spaceQuery.field(DATASET_FIELD_NAME).equal(name);   //$NON-NLS-1$
         Space foundSpace = spaceQuery.get();
 
         return foundSpace;
@@ -123,7 +142,7 @@ public class MongoDBRepository implements IRepository {
     public Dataset updateDataset(String datasetId, String propName, String propValue) {
         MongoClient client = new MongoClient(mongoClientURI);
         MongoDatabase mongodb = client.getDatabase(databaseName);
-        MongoCollection collection = mongodb.getCollection("Dataset");  //$NON-NLS-1$
+        MongoCollection collection = mongodb.getCollection(DATASET_COLLECTION_NAME);
         collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));  //$NON-NLS-1$ //$NON-NLS-2$
         return getDatasetById(datasetId);
     }
