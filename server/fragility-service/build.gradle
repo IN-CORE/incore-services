@@ -6,15 +6,10 @@ repositories {
 }
 
 gretty {
-	contextPath '/'
+	contextPath '/fragility/'
 }
 
 dependencies {
-	compile 'com.yammer.metrics:metrics-core:2.2.0'
-	compile 'com.yammer.metrics:metrics-servlet:2.2.0'
-	compile 'com.yammer.metrics:metrics-jersey:2.2.0'
-	compile 'com.yammer.metrics:metrics-graphite:2.2.0'
-
 	compile 'de.grundid.opendatalab:geojson-jackson:1.8'
 
 	compile 'org.mongodb:mongo-java-driver:3.3.0'

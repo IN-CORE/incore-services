@@ -11,11 +11,11 @@
 package edu.illinois.ncsa.incore.service.fragility.controllers;
 
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
+import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingRequest;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.FragilityMapper;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
-import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import org.apache.log4j.Logger;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
@@ -94,55 +94,62 @@ public class FragilityController {
                             .collect(Collectors.toList());
     }
 
-    // TODO Should replace the controller action path params with query params
     @GET
     @Path("{fragilityId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<FragilitySet> getFragilityById(@PathParam("fragilityId") String id) throws Exception {
-        return this.getFragilityByAttributeType("_id", id);
-    }
+    public FragilitySet getFragilityById(@PathParam("fragilityId") String id) throws Exception {
+        FragilitySet fragilitySet = this.dataAccess.getById(id);
 
-    @GET
-    @Path("/demand/{type}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<FragilitySet> getFragilityByDemandType(@PathParam("type") String type) throws Exception {
-        return this.getFragilityByAttributeType("demandType", type);
-    }
-
-    @GET
-    @Path("/hazard/{type}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<FragilitySet> getFragilityByHazardType(@PathParam("type") String type) throws Exception {
-        return this.getFragilityByAttributeType("hazardType", type);
-    }
-
-    @GET
-    @Path("/inventory/{type}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<FragilitySet> getFragilityByInventoryType(@PathParam("type") String type) throws Exception {
-        return this.getFragilityByAttributeType("inventoryType", type);
-    }
-
-    @GET
-    @Path("/author/{author}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<FragilitySet> getFragilityByAuthor(@PathParam("author") String author) throws Exception {
-        List<FragilitySet> sets = this.dataAccess.queryFragilityAuthor(author);
-
-        if(sets.size() > 0) {
-            return sets;
+        if (fragilitySet == null) {
+            throw new NotFoundException();
         } else {
-            throw new NotFoundException("Could not find fragilities with author of " + author);
+            return fragilitySet;
         }
     }
 
-    private List<FragilitySet> getFragilityByAttributeType(String attributeType, String attributeValue) {
-        List<FragilitySet> sets = this.dataAccess.queryFragilities(attributeType, attributeValue);
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<FragilitySet> findFragilities(@QueryParam("text") String text) {
+        List<FragilitySet> sets = this.dataAccess.searchFragilities(text);
 
-        if (sets.size() > 0) {
-            return sets;
+        if(sets == null || sets.size() == 0) {
+            throw new NotFoundException();
         } else {
-            throw new NotFoundException("Could not find fragilities with " + attributeType + " = " + attributeValue);
+            return sets;
         }
+    }
+
+    @GET
+    @Path("/query")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<FragilitySet> queryFragilities(@QueryParam("demand") String demandType, @QueryParam("hazard") String hazardType,
+                                               @QueryParam("inventory") String inventoryType, @QueryParam("author") String author,
+                                               @QueryParam("legacy_id") String legacyId) {
+        Map<String, String> queryMap = new HashMap<>();
+
+        if (legacyId != null) {
+            queryMap.put("legacyId", legacyId);
+        }
+
+        if (demandType != null) {
+            queryMap.put("demandType", demandType);
+        }
+
+        if (hazardType != null) {
+            queryMap.put("hazardType", hazardType);
+        }
+
+        if (inventoryType != null) {
+            queryMap.put("inventoryType", inventoryType);
+        }
+
+        if (author != null) {
+
+        }
+
+        List<FragilitySet> filteredSets = this.dataAccess.queryFragilities(queryMap);
+
+        return filteredSets;
     }
 }
