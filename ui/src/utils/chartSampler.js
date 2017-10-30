@@ -113,12 +113,12 @@ export default class chartSampler {
 		let samples = [];
 
 		let mean = Math.log(Math.pow(location,2) / Math.sqrt(scale + Math.pow(location,2)));
-		let variance = Math.sqrt(Math.log((scale / Math.pow(location, 2)) + 1 ));
+		let std = Math.sqrt(Math.log((scale / Math.pow(location, 2)) + 1 ));
 
 		for (let i = 1; i <= numberOfSamples; i++) {
 			let x = steps * i;
 
-			let y = jStat.lognormal.inv(x, mean, variance);
+			let y = jStat.lognormal.inv(x, mean, std);
 
 			samples.push([y, x]);
 		}

@@ -4,7 +4,17 @@ import LineChart from "../components/LineChart";
 import ThreeDimensionalPlot from "../components/ThreeDimensionalPlot";
 import "whatwg-fetch";
 
-import { SelectField, GridList, GridTile, Card, MenuItem, TextField, Divider, IconButton, RaisedButton } from "material-ui";
+import {
+	SelectField,
+	GridList,
+	GridTile,
+	Card,
+	MenuItem,
+	TextField,
+	Divider,
+	IconButton,
+	RaisedButton
+} from "material-ui";
 import ActionSearch from "material-ui/svg-icons/action/search";
 
 // utils
@@ -42,6 +52,8 @@ class FragilityExplorerPage extends React.Component {
 
 		this.handleKeyPressed = this.handleKeyPressed.bind(this);
 		this.searchFragilities = this.searchFragilities.bind(this);
+
+		this.exportJson = this.exportJson.bind(this);
 	}
 
 	async componentDidMount() {
@@ -151,11 +163,12 @@ class FragilityExplorerPage extends React.Component {
 	render() {
 		return (
 			<div style={{padding: "20px"}}>
-				<div style={{display: "inline-block"}}>
+				<div style={{display: "flex"}}>
 					<h2>Fragility Function Viewer</h2>
-					<div style={{float: "right"}}>
-						<RaisedButton primary={true} style={{display: "inline-block"}} label="Export to JSON" />
-						<RaisedButton primary={true} style={{display: "inline-block"}} label="Export to NHML" />
+					<div style={{marginLeft: "auto"}}>
+						<RaisedButton primary={true} style={{display: "inline-block"}} label="Export to JSON"
+									  onClick={this.exportJson} />
+						{/*<RaisedButton primary={true} style={{display: "inline-block"}} label="Export to NHML" />*/}
 					</div>
 				</div>
 				<GridList cols={12} cellHeight="auto">
@@ -185,7 +198,7 @@ class FragilityExplorerPage extends React.Component {
 					</GridTile>
 
 					<GridTile cols={8} style={{float: "right"}}>
-						<TextField ref="searchBox" hintText="Search by Name" onKeyPress={this.handleKeyPressed} />
+						<TextField ref="searchBox" hintText="Search Fragilities" onKeyPress={this.handleKeyPressed} />
 						<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
 									onClick={this.searchFragilities}>
 							<ActionSearch />
@@ -309,6 +322,24 @@ class FragilityExplorerPage extends React.Component {
 		}
 
 		return false;
+	}
+
+	exportJson() {
+		let fragilityJSON = JSON.stringify(this.state.fragility, null, 4);
+		let blob = new Blob([fragilityJSON], {type: "application/json"});
+
+		const filename = `${this.state.fragility.id}.json`;
+
+		if (window.navigator.msSaveOrOpenBlob) {
+			window.navigator.msSaveBlob(blob, filename);
+		} else {
+			let anchor = window.document.createElement("a");
+			anchor.href = window.URL.createObjectURL(blob);
+			anchor.download = filename;
+			document.body.appendChild(anchor);
+			anchor.click();
+			document.body.removeChild(anchor);
+		}
 	}
 }
 

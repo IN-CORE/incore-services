@@ -46,7 +46,7 @@ class HomePage extends Component {
 
 	login(event: Object) {
 		//TODO: Login using a global state action
-		browserHistory.push("/Execute");
+		browserHistory.push("/FragilityViewer");
 	}
 
 	render() {
