@@ -29,7 +29,6 @@ import org.mongodb.morphia.query.Query;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -42,6 +41,7 @@ public class MongoDBRepository implements IRepository {
     private final String DATASET_FIELD_NAME = "name";   //$NON-NLS-1$
     private final String DATASET_FIELD_TYPE = "type";   //$NON-NLS-1$
     private final String DATASET_FIELD_TITLE = "title"; //$NON-NLS-1$
+    private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";   //$NON-NLS-1$
 
     private Datastore dataStore;
 
@@ -100,6 +100,13 @@ public class MongoDBRepository implements IRepository {
         );
         return datasetQuery.asList();
     }
+
+    public Dataset getDatasetByFileDescriptorId(String id) {
+        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        datasetQuery.filter(DATASET_FIELD_FILEDESCRIPTOR_ID, new ObjectId(id));
+        return  datasetQuery.get();
+    }
+
 
     public Dataset addDataset(Dataset dataset) {
         String id = this.dataStore.save(dataset).getId().toString();

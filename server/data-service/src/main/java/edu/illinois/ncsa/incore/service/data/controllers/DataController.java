@@ -177,23 +177,20 @@ public class DataController {
         }
     }
 
-    //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/filedescriptors/59e50a2568f4742654e59629/files
+    //http://localhost:8080/data/api/datasets/files/59f775fce1b2b8080c37aa60/file
     /**
-     * Returns a file that is attached to a FileDescriptor specified by {fdid} in a dataset specified by {id}
-     * @param datasetId Dataset id
-     * @param inFdId    FileDescriptor id in the Dataset
+     * Returns a file that is attached to a FileDescriptor specified by {fdid} in a dataset
+     * @param id    FileDescriptor id in the Dataset
      * @return
      * @throws URISyntaxException
      */
     @GET
-    @Path("/{id}/filedescriptors/{fdid}/files")
+    @Path("/files/{file-id}/file")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByFileDescriptor(@PathParam("id") String datasetId, @PathParam("fdid") String inFdId) throws URISyntaxException {
+    public Response getFileByFileDescriptor(@PathParam("file-id") String id) throws URISyntaxException {
         File outFile = null;
-        Dataset dataset = repository.getDatasetById(datasetId);
-        if (dataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");
-        }
+        Dataset dataset = repository.getDatasetByFileDescriptorId(id);
+
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         String dataUrl = ""; //$NON-NLS-1$
         String fdId = "";   //$NON-NLS-1$
@@ -201,7 +198,7 @@ public class DataController {
 
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
-            if (fdId.equals(inFdId)) {
+            if (fdId.equals(id)) {
                 dataUrl = fd.getDataURL();
                 fileName = fd.getFilename();
             }
