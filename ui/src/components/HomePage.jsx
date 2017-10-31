@@ -28,6 +28,7 @@ class HomePage extends Component {
 
 	login(event: Object) {
 		//TODO: Login using a global state action
+		//this.props.login(this.state.username, this.state.password);
 		browserHistory.push("/Execute");
 	}
 
@@ -53,14 +54,13 @@ class HomePage extends Component {
 								type="password"
 								minLength={8}
 								hintText="Your password must be at least 8 characters"
-								helptextValidation
 								value={this.state.password}
 								onChange={this.changePassword}
 							/>
 						</GridTile>
 
 						<GridTile style={{paddingTop: "20px"}}>
-							<RaisedButton primary={true} onClick={this.login}> Login </RaisedButton>
+							<RaisedButton primary={true} onClick={this.login} label="Login"/>
 						</GridTile>
 					</GridList>
 				</Paper>

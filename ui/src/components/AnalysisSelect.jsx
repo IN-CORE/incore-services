@@ -10,6 +10,7 @@ class AnalysisSelect extends Component {
 	}
 	onChange(event: Object, index, value) {
 		this.props.onSelectAnalysis(value);
+		this.setState({selectedAnalysis: value});
 	}
 
 	render() {
@@ -19,7 +20,7 @@ class AnalysisSelect extends Component {
 
 		return (
 			<div>
-				<SelectField onChange={this.onChange}>
+				<SelectField onChange={this.onChange} value={this.state.selectedAnalysis}>
 					{options}
 				</SelectField >
 			</div>

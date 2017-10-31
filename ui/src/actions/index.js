@@ -1,6 +1,6 @@
 // @flow
 
-import type {Dispatch, AnalysesMetadata, Analysis} from "../utils.flowtype";
+import type {Dispatch, AnalysesMetadata, Analysis, Dataset} from "../utils.flowtype";
 
 export const GET_ANALYSES = "GET_ANALYSES";
 
@@ -22,6 +22,18 @@ export function receiveAnalysis(api: string, json:Analysis) {
 		dispatch({
 			type: RECEIVE_ANALYSIS,
 			analysis: json,
+			receivedAt: Date.now()
+		});
+	};
+}
+
+export const RECEIVE_DATASETS = "RECEIVE_DATASETS";
+
+export function receiveDatasets(json: Dataset) {
+	return(dispatch: Dispatch) => {
+		dispatch({
+			type: RECEIVE_DATASETS,
+			datasets: json,
 			receivedAt: Date.now()
 		});
 	};
@@ -54,6 +66,36 @@ export function getAnalysisById(id: String) {
 			);
 	};
 
+}
+
+export function fetchDatasets() {
+	//TODO: Move to a configuration file
+	const api = "http://localhost:8080";
+	const endpoint = `${api  }/data/api/datasets/list/`;
+
+	return (dispatch: Dispatch) => {
+		return fetch(endpoint)
+			.then(response => response.json())
+			.then(json =>
+				dispatch(receiveDatasets(json))
+			);
+	};
+}
+
+export function login(username, password) {
+
+	const api = "http://localhost:8080";
+	const endpoint = `${api  }/maestro/api/login`;
+	// Currently CORS error due to the header
+	// fetch(endpoint, {
+	// 	method: "GET",
+	// 	headers: {
+	// 		"Authorization": `Basic ${window.btoa(`${username }:${ password}`)}`
+	// 	}
+	// })
+	// 	.then(response => response.json())
+	// 	.then(json=> console.log(json));
+	return;
 }
 
 export function receiveDatawolfResponse(json) {

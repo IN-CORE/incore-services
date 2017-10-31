@@ -1,7 +1,8 @@
 import React, {Component} from "react";
 import {browserHistory} from "react-router";
 import AnalysisSelect from "../containers/AnalysisSelect";
-import {TextField, RaisedButton} from "material-ui";
+import InputDropdown from "./InputDropdown";
+import {TextField, RaisedButton, MenuOption, SelectField} from "material-ui";
 
 class ExecuteAnalysis extends Component {
 
@@ -20,6 +21,7 @@ class ExecuteAnalysis extends Component {
 
 	componentWillMount() {
 		this.props.loadAnalyses();
+		this.props.loadDatasets();
 	}
 
 	executeAnalysis(event) {
@@ -46,9 +48,10 @@ class ExecuteAnalysis extends Component {
 		this.setState({title: event.target.value});
 	}
 
-	changeDataset(event) {
-		const id_key = event.target.id;
-		this.setState({inputs: {id_key: event.target.value}});
+	changeDataset(name, value) {
+		let new_inputs = Object.assign({}, this.state.inputs);
+		new_inputs[name] = value;
+		this.setState({inputs: new_inputs});
 	}
 
 	changeDescription(event){
@@ -57,16 +60,19 @@ class ExecuteAnalysis extends Component {
 	render() {
 		let contents;
 		if(this.props.analysis !== null) {
-			const inputs = this.props.analysis.datasets.map( input =>
-				<span key={input.name}> <TextField floatingLabelText={input.name} id={input.id} value={this.state.inputs.id} width="100%" onChange={this.changeDataset}/> <br/></span>
+			let inputs = this.props.analysis.datasets.map( input =>
+
+			<InputDropdown input={input} key={input.name} options={this.props.datasets}
+			               onChange={this.changeDataset} value={this.state.inputs[input.name]}/>
 			);
+
 			const parameters = this.props.analysis.parameters.map(param =>
+
 				<span key={param.name} > <TextField floatingLabelText={param.name} id={param.id} value={this.state.parameters.id} /><br/></span>
 			);
 
 			contents = <div>
 				<h1>{this.props.analysis.name}</h1>
-
 				<h3> Submission Details </h3>
 				<TextField floatingLabelText="Analysis Title" value={this.state.title} onChange={this.changeTitle}/> <br/>
 				<TextField floatingLabelText="Description" value={this.state.description} onChange={this.changeDescription}/>
