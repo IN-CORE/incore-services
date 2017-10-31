@@ -84,35 +84,25 @@ public class DataController {
         return dataset;
     }
 
-    //http://localhost:8080/data/api/datasets/type/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0
+    //http://localhost:8080/data/api/datasets?type=edu.illinois.ncsa.ergo.eq.buildings.schemas&title=shelby
     /**
-     * query dataset by type id
-     * @param typeId
+     * query dataset by using either title or type or both
+     * @param typeStr
+     * @param titleStr
      * @return
      */
     @GET
-    @Path("/type/{typeId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getDatasetTypeFromRepo(@PathParam("typeId") String typeId) {
-        List<Dataset> datasets = repository.getDatasetByType(typeId);
-        if (datasets == null) {
-            throw new NotFoundException("There is no Dataset with given type in the repository.");
+    public List<Dataset> getQueryObject(@QueryParam("type") String typeStr, @QueryParam("title") String titleStr) {
+        List<Dataset> datasets = null;
+        if (typeStr != null && titleStr == null) {  // query only for the type
+            datasets = repository.getDatasetByType(typeStr);
+        } else if (typeStr == null && titleStr != null) {   // query only for the title
+            datasets = repository.getDatasetByTitle(titleStr);
+        } else if (typeStr != null && titleStr != null) {   // query for both type and title
+            datasets = repository.getDatasetByTypeAndTitle(typeStr, titleStr);
         }
 
-        return datasets;
-    }
-
-    //http://localhost:8080/data/api/datasets/type/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0
-    /**
-     * query dataset by title. case incensitive and wildcard applied
-     * @param title
-     * @return
-     */
-    @GET
-    @Path("/title/{title}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getDatasetTitleFromRepo(@PathParam("title") String title) {
-        List<Dataset> datasets = repository.getDatasetByTitle(title);
         if (datasets == null) {
             throw new NotFoundException("There is no Dataset with given title in the repository.");
         }
@@ -120,13 +110,13 @@ public class DataController {
         return datasets;
     }
 
-    //http://localhost:8080/data/api/datasets/list-datasets
+    //http://localhost:8080/data/api/datasets/list
     /**
      * Returns a list of spaces in the Space collection
      * @return list of dataset
      */
     @GET
-    @Path("/list")
+    @Path("/all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetList() {
         List<Dataset> datasets = repository.getAllDatasets();

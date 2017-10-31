@@ -81,15 +81,32 @@ public class MongoDBRepository implements IRepository {
 
     public List<Dataset> getDatasetByType(String type){
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
-        datasetQuery.field(DATASET_FIELD_TYPE).equal(type);
+        // the straight query method
+        // datasetQuery.field(DATASET_FIELD_TYPE).equal(type);
+        datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type);
         return datasetQuery.asList();
     }
 
     public List<Dataset> getDatasetByTitle(String title){
-        Pattern regEx = Pattern.compile(title, Pattern.CASE_INSENSITIVE);
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
-        datasetQuery.filter(DATASET_FIELD_TITLE, regEx);
+        // there are two types of query the first query also works
+        // first, using regex method.
+        // this will be commneted out but preserve for the future reference
+        //Pattern regEx = Pattern.compile(title, Pattern.CASE_INSENSITIVE);
+        //datasetQuery.filter(DATASET_FIELD_TITLE, regEx);
+        // second one is criteria method
+        datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title);
         datasetQuery.getSortObject();
+        return datasetQuery.asList();
+    }
+
+    public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
+        Pattern titleRegEx = Pattern.compile(title, Pattern.CASE_INSENSITIVE);
+        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        datasetQuery.and(
+                datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type),
+                datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title)
+        );
         return datasetQuery.asList();
     }
 
