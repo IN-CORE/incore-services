@@ -185,10 +185,6 @@ public class MvzLoader {
             mvzDataset.setTypeId(typeId);
             mvzDataset.datasetId.setDescription(description);
 
-            // activate following lines to change file location to downloadable url
-//            String newUrl = FileUtils.SERVER_URL_PREFIX + rUrl + "/files";    //$NON-NLS-1$
-//            mvzDataset.datasetId.setLocation(newUrl);
-
             // check maeviz-mapping object and set
             if (metaInfoObj != null) {
                 if (metaInfoObj.has(TAG_MAEVIZ_MAPPING)) {
@@ -302,7 +298,6 @@ public class MvzLoader {
                     }
                 }
             }
-            //String jsonString = metaJsonObj.toString(FileUtils.INDENT_SPACE);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -348,9 +343,6 @@ public class MvzLoader {
                 locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_SCENARIO).getJSONObject(TAG_DATASET_ID);
             }
 
-            // activate this if the location should be downloadable click.
-//            String newUrl = serverUrlPrefix + inId + "/files";  //$NON-NLS-1$
-//            locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(FileUtils.INDENT_SPACE);
             return jsonString;
         } catch (JSONException ex) {

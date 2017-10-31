@@ -81,27 +81,18 @@ public class MongoDBRepository implements IRepository {
 
     public List<Dataset> getDatasetByType(String type){
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
-        // the straight query method
-        // datasetQuery.field(DATASET_FIELD_TYPE).equal(type);
         datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type);
         return datasetQuery.asList();
     }
 
     public List<Dataset> getDatasetByTitle(String title){
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
-        // there are two types of query the first query also works
-        // first, using regex method.
-        // this will be commneted out but preserve for the future reference
-        //Pattern regEx = Pattern.compile(title, Pattern.CASE_INSENSITIVE);
-        //datasetQuery.filter(DATASET_FIELD_TITLE, regEx);
-        // second one is criteria method
         datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title);
         datasetQuery.getSortObject();
         return datasetQuery.asList();
     }
 
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
-        Pattern titleRegEx = Pattern.compile(title, Pattern.CASE_INSENSITIVE);
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
         datasetQuery.and(
                 datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type),
@@ -121,7 +112,7 @@ public class MongoDBRepository implements IRepository {
 
     public Space getSpaceByName(String name) {
         Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field(DATASET_FIELD_NAME).equal(name);   //$NON-NLS-1$
+        spaceQuery.field(DATASET_FIELD_NAME).equal(name);
         Space foundSpace = spaceQuery.get();
 
         return foundSpace;

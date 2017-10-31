@@ -93,7 +93,7 @@ public class DataController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getQueryObject(@QueryParam("type") String typeStr, @QueryParam("title") String titleStr) {
+    public List<Dataset> getDatasets(@QueryParam("type") String typeStr, @QueryParam("title") String titleStr) {
         List<Dataset> datasets = null;
         if (typeStr != null && titleStr == null) {  // query only for the type
             datasets = repository.getDatasetByType(typeStr);
@@ -101,27 +101,12 @@ public class DataController {
             datasets = repository.getDatasetByTitle(titleStr);
         } else if (typeStr != null && titleStr != null) {   // query for both type and title
             datasets = repository.getDatasetByTypeAndTitle(typeStr, titleStr);
+        } else if (typeStr == null && titleStr == null) {
+            datasets = repository.getAllDatasets();
         }
 
         if (datasets == null) {
-            throw new NotFoundException("There is no Dataset with given title in the repository.");
-        }
-
-        return datasets;
-    }
-
-    //http://localhost:8080/data/api/datasets/list
-    /**
-     * Returns a list of spaces in the Space collection
-     * @return list of dataset
-     */
-    @GET
-    @Path("/all")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getDatasetList() {
-        List<Dataset> datasets = repository.getAllDatasets();
-        if (datasets == null) {
-            throw new NotFoundException("There is no Dataset in the repository.");
+            throw new NotFoundException("There is no Dataset with given criteria in the repository.");
         }
 
         return datasets;
