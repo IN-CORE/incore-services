@@ -101,12 +101,8 @@ public class DataController {
             datasets = repository.getDatasetByTitle(titleStr);
         } else if (typeStr != null && titleStr != null) {   // query for both type and title
             datasets = repository.getDatasetByTypeAndTitle(typeStr, titleStr);
-        } else if (typeStr == null && titleStr == null) {
+        } else {
             datasets = repository.getAllDatasets();
-        }
-
-        if (datasets == null) {
-            throw new NotFoundException("There is no Dataset with given criteria in the repository.");
         }
 
         return datasets;
