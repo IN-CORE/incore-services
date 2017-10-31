@@ -3,3 +3,6 @@ curl -i -X POST \
   --data 'name=fragility' \
   --data 'hosts=example.com' \
   --data 'upstream_url=http://httpbin.org'
+
+# add ldap plugin, configure
+# add route for each service

@@ -3,7 +3,9 @@
     "name": "Electric Power Network Damage, Tornado",
     "description": "This analysis computes the damage of electric power network based on a tornado hazard.",
     "url": "https://incore.ncsa.illinois.edu/epn_tornado",
-    "category": "hazard",
+    "category": "Lifeline",
+    "helpContext": "edu.illinois.ncsa.incore.tornado.epn.ui.tornado_epn_damage_analysis",
+    "tag": "tornadoEPNDamage",
     "inputs": [
     {
         "name": "Result Name",
