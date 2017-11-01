@@ -21,7 +21,7 @@ class DataViewer extends Component {
 	}
 
 	changeDatasetType(event, index, value) {
-		this.setState({type: value, selectedDataset: ""});
+		this.setState({type: value, selectedDataset: "", fileData: "", fileExtension: ""});
 	}
 
 	onClickDataset(datasetId) {
@@ -39,7 +39,7 @@ class DataViewer extends Component {
 	async searchDatasets() {
 		let searchText = this.refs.searchBox.getValue();
 
-		this.setState({searchText: searchText});
+		this.setState({searchText: searchText, selectedDataset: "", fileData: "", fileExtension: ""});
 	}
 
 	async onClickFileDescriptor(selected_dataset_id, file_descriptor_id, file_name) {
@@ -113,12 +113,15 @@ class DataViewer extends Component {
 			file_contents = <Table container = "data_container" data={data.slice(2)} colHeaders={data[0]} rowHeaders={false}/>;
 		}
 
-		const right_column = (<div>
-			<h2> File Descriptors</h2>
-			<List style={{"overflowY": "auto", height: "200px"}}>
-				{file_descriptors}
-			</List>
-		</div>);
+		let right_column =  "";
+		if (file_descriptors.length > 0) {
+			right_column = (<div>
+				<h2> File Descriptors</h2>
+				<List style={{"overflowY": "auto", height: "200px"}}>
+					{file_descriptors}
+				</List>
+			</div>);
+		}
 
 		return (
 			<div style={{padding: "20px"}}>
