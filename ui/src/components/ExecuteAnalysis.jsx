@@ -17,6 +17,7 @@ class ExecuteAnalysis extends Component {
 		this.executeAnalysis = this.executeAnalysis.bind(this);
 		this.changeTitle = this.changeTitle.bind(this);
 		this.changeDataset = this.changeDataset.bind(this);
+		this.changeDescription = this.changeDescription.bind(this);
 	}
 
 	componentWillMount() {
@@ -26,21 +27,21 @@ class ExecuteAnalysis extends Component {
 
 	executeAnalysis(event) {
 		//Post to Datawolf
-		const workflowId = "b599dc4e-401f-4f7c-962b-8d7da93f930b";
-		const creatorId = "849177e3-968d-45c7-841f-e6ac054c05c7"; // Chris Navarro
+		const workflowId = "ed303240-42f5-4d21-9af0-236de19e83da";
+		const creatorId = "18aad9aa-6b33-4a8f-9452-2bbcf3fca110"; // Incore-dev@lists.ncsa.illinois.edu
 		const parameters = {
-			"216be7b2-a382-4860-9e38-2513ec03a0fd": ":8080/hazard/api/earthquakes/123",
-			"7ef36e91-d589-447f-96c9-9c05993460be": ":8080/api/fragilities/456",
-			"363e1d34-2186-4b42-aa6f-48431a1a7dc3": ":8080/data/api/datasets/789"
+			"ac82f88d-c8e2-4c24-cc1d-d5433b0690e6": "http://141.142.210.193:8888/hazard/api/earthquakes/59f3315ec7d30d4d6741b0bb",
+			"75a0e1bb-0b08-44ad-eb85-edc00d22fcee": "http://localhost:8080",
+			"2d8f56b7-d111-4a43-ace5-01c775548b4b": "http://localhost:8080/data/api/datasets/"
 		};
 		let datasets = {};
-		if(this.state.inputs.buildings){
-			datasets.push("a3ac0688-1fa3-45e6-9586-a37425a550ce", this.state.inputs.buildings);
+		if(this.state.inputs["Buildings"]){
+			datasets["fd9d6267-a035-4d11-f191-d33fbc5cb8bd"]= this.state.inputs["Buildings"];
 		}
-		if(this.state.inputs.mean_damage){
-			datasets.push("8366c798-7c14-4087-f59c-a83a39241ed4", this.state.inputs.mean_damage);
+		if(this.state.inputs["Mean Damage"]){
+			datasets["d5c8b213-70aa-4316-d5af-89769dabd48f"]= this.state.inputs["Mean Damage"];
 		}
-		this.props.ExecuteAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
+		this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
 		browserHistory.push("/Results");
 	}
 

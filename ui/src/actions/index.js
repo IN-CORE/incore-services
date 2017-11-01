@@ -70,7 +70,7 @@ export function getAnalysisById(id: String) {
 
 export function fetchDatasets() {
 	//TODO: Move to a configuration file
-	const api = "http://localhost:8080";
+	const api = "http://141.142.210.193:8888";
 	const endpoint = `${api  }/data/api/datasets/list/`;
 
 	return (dispatch: Dispatch) => {
@@ -113,15 +113,25 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 		"creatorId": creatorid,
 		"description": description
 	};
+	const headers = new Headers({
+		"Content-Type": "application/json",
+		"Accept": "application/json",
+	});
 
-	fetch(datawolfUrl, {
-		method: "POST",
-		data: dataToSubmit,
-	}).then(function(response) {
-		return response.json;
-	}).then(json =>
-		dispatch(receiveDatawolfResponse(json))
-	);
+	console.log(JSON.stringify(dataToSubmit, undefined, 2));
+	return (dispatch: Dispatch) => {
+		return fetch(datawolfUrl, {
+			method: "POST",
+			data: JSON.stringify(dataToSubmit),
+			dataType: "text",
+			headers: headers
+		}).then(function (response) {
+			console.log(response);
+			return response.json;
+		}).then(json =>
+			dispatch(receiveDatawolfResponse(json))
+		);
+	};
 
 
 }
