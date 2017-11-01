@@ -45,8 +45,9 @@ import com.vividsolutions.jts.geom.GeometryFactory;
  * Created by ywkim on 10/5/2017.
  */
 public class GeotoolsUtils {
-    private static final String uniIdShp = "Id";
-    private static final String uniIdCsv = "Id";
+    private static final String UNI_ID_SHP = "guid";    //$NON-NLS-1$
+    private static final String UNI_ID_CSV = "guid";    //$NON-NLS-1$
+    private static final String DATA_FIELD_GEOM = "the_geom";   //$NON-NLS-1$
     public static String outFileName = null;
 
     public static File JoinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
@@ -67,7 +68,7 @@ public class GeotoolsUtils {
         // find column location of the unique id inCsv
         for (int i = 0; i < csvHeaders.length - 1; i++) {
             String header = csvHeaders[i];
-            if (header.equals(uniIdCsv)) {
+            if (header.equals(UNI_ID_CSV)) {
                 csvIdLoc = i;
             }
         }
@@ -109,10 +110,10 @@ public class GeotoolsUtils {
                     String csvConnector = null;
 
                     // resultMap is an actual table.
-                    if (attributeType.getLocalName() != "the_geom") {
+                    if (attributeType.getLocalName() != DATA_FIELD_GEOM) {
                         resultMap.put(attributeType.getLocalName(), attribute);
                         // check if this is unique id
-                        if (attributeType.getLocalName().equalsIgnoreCase(uniIdShp)) {
+                        if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
                             if (attribute instanceof Integer || attribute instanceof Float
                                     || attribute instanceof Double) {
                                 csvConnector = String.valueOf(attribute);

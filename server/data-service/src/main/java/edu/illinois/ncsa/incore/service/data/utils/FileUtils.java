@@ -40,8 +40,7 @@ import java.util.zip.ZipOutputStream;
 public class FileUtils {
     public static final String REPO_SERVER_URL = Config.getConfigProperties().getProperty("data.repo.webdav.server.url");   //$NON-NLS-1$
     public static final String REPO_PROP_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.prop.dir");   //$NON-NLS-1$
-    public static final String REPO_DS_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.ds.dir");   //$NON-NLS-1$
-    public static final String SERVER_URL_PREFIX = Config.getConfigProperties().getProperty("data.repo.server.url.prefix"); //$NON-NLS-1$
+    public static final String REPO_DS_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.ds.dir");   //$NON-NLS-1$//$NON-NLS-1$
     public static final String REPO_PROP_URL = REPO_SERVER_URL + REPO_PROP_DIR;
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
     public static final String DATA_TEMP_DIR_PREFIX = "data_repo_";    //$NON-NLS-1$
@@ -281,7 +280,7 @@ public class FileUtils {
                     File metadataFile = null;
                     try {
                         metadataFile = loadMetadataFromRepository(combinedId);
-                        String jsonStr = MvzLoader.formatMetadataAsJson(metadataFile, combinedId, SERVER_URL_PREFIX);
+                        String jsonStr = MvzLoader.formatMetadataAsJson(metadataFile, combinedId);
                         outStr = outStr + jsonStr + ",\n";
                     } catch (IOException e) {
                         e.printStackTrace();
