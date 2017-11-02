@@ -48,5 +48,6 @@ public class Application extends ResourceConfig {
             }
 
         });
+        super.register(new CorsFilter());
     }
 }
