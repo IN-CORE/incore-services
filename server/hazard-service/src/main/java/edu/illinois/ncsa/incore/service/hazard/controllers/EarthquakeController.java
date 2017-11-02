@@ -12,17 +12,19 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
+import main.java.edu.illinois.ncsa.incore.service.hazard.models.eq.types.HazardResult;
+import main.java.edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResults;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -32,9 +34,11 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
 
 @Path("earthquakes")
 public class EarthquakeController {
@@ -69,6 +73,83 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     public ScenarioEarthquake getScenarioEarthquake(@PathParam("earthquake-id") String earthquakeId) {
         return repository.getScenarioEarthquakeById(earthquakeId);
+    }
+
+    @GET
+    @Path("{earthquake-id}/raster")
+    @Produces({MediaType.APPLICATION_JSON})
+    public SeismicHazardResults getScenarioEarthquakeHazardForBox(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("minX") double minX, @QueryParam("minY") double minY, @QueryParam("maxX") double maxX, @QueryParam("maxY") double maxY, @QueryParam("gridSpacing") double gridSpacing, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
+        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+        SeismicHazardResults results = null;
+        if (earthquake != null) {
+            String period = demandType;
+            String demand = demandType;
+
+            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
+                String[] demandSplit = demandType.split(" ");
+                period = demandSplit[0];
+                demand = demandSplit[1];
+            }
+
+            model.setRuptureParameters(earthquake.getEqParameters());
+
+            // TODO this should be determined from the scenario earthquake
+            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
+            attenuations.put(model, 1.0);
+
+            int width = 0;
+            int height = 0;
+
+            double dx = (maxX - minX);
+            double dy = (maxY - minY);
+
+            dx = Math.ceil(dx / gridSpacing) * gridSpacing;
+            dy = Math.ceil(dy / gridSpacing) * gridSpacing;
+
+            maxX = minX + dx;
+            maxY = minY + dy;
+
+            if (gridSpacing != 0) {
+                long widthLong = Math.round(Math.abs((maxX - minX) / gridSpacing)); // + 1;
+                long heightLong = Math.round(Math.abs((maxY - minY) / gridSpacing)); // + 1;
+                if ((widthLong > Integer.MAX_VALUE) || (heightLong > Integer.MAX_VALUE)) {
+                    System.out.println("Overflow....too many points to fit in an int"); //$NON-NLS-1$
+                }
+                // adjustMaxMin();
+                width = (int) widthLong;
+                height = (int) heightLong;
+
+            }
+
+            float cellsize = (float) gridSpacing;
+            float startX = (float) minX + ((float) gridSpacing / 2.0f);
+            float startY = (float) maxY - ((float) gridSpacing / 2.0f);
+            Site localSite = null;
+            SeismicHazardResult hazardValue = null;
+            List<HazardResult> hazardResults = new LinkedList<HazardResult>();
+            for (int y = 0; y < height; y++) {
+
+                startX = (float) minX + (cellsize / 2.0f);
+                for (int x = 0; x < width; x++) {
+                    try {
+                        List<Double> val = null;
+                        localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
+                        hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, 0, amplifyHazard);
+                        hazardResults.add(new HazardResult(startY, startX, hazardValue.getHazardValue()));
+                    } catch (Exception e) {
+                        logger.error("Error computing hazard value.", e);
+                    }
+
+                    startX += (float) gridSpacing;
+                }
+                startY -= gridSpacing;
+            }
+
+            results = new SeismicHazardResults(hazardValue.getPeriod(), hazardValue.getDemand(), hazardResults);
+            return results;
+        }
+
+        return null;
     }
 
     @GET

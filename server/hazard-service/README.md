@@ -38,3 +38,7 @@ POST - Create scenario earthquake
 GET value from a scenario earthquake
 
 http://localhost:8080/hazard/api/earthquake/{id}/value?demandType=0.2+SA&demandUnits=g&siteLat=35.07899&siteLong=-90.0178
+
+# Generate Raster
+
+http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&demandUnits=g&minX=-90.3099&minY=34.9942&maxX=-89.6231&maxY=35.4129&gridSpacing=0.01696
