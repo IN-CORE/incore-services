@@ -1,16 +1,16 @@
 import * as React from "react";
-import { List, ListItem, Divider, RaisedButton } from "material-ui";
+import { List, ListItem, Divider } from "material-ui";
 
 const GroupList = (props) => {
 	return (
 		<List id={props.id} style={{"overflowY": "auto", height: props.height}}>
-			{props.data.map(function (dataItem) {
-				return (<div key={dataItem.id}>
-							<ListItem onClick={() => props.onClick(dataItem)}>
-								{getTitle(dataItem)}
-							</ListItem>
-							<Divider />
-						</div>);
+			{props.data.map(function (fragility) {
+				return (<div key={fragility.id}>
+					<ListItem onClick={() => props.onClick(fragility)}>
+						{getTitle(fragility)}
+					</ListItem>
+					<Divider />
+				</div>);
 			})}
 		</List>
 	);
