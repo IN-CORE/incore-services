@@ -3,6 +3,7 @@ import {GridList, GridTile, SelectField, MenuItem, List, ListItem, Divider, Text
 import ActionSearch from "material-ui/svg-icons/action/search";
 import csv from "csv";
 import Table from "./Table";
+import config from "../app.config";
 
 class DataViewer extends Component {
 
@@ -43,7 +44,7 @@ class DataViewer extends Component {
 	}
 
 	async onClickFileDescriptor(selected_dataset_id, file_descriptor_id, file_name) {
-		const url = `http://141.142.210.193:8888/data/api/datasets/${ selected_dataset_id  }/filedescriptors/${  file_descriptor_id  }/files`;
+		const url = `${config.dataService}/files/${  file_descriptor_id  }/file`;
 		await fetch(url, {method: "GET", mode: "CORS"}).then((response) => {
 			return response.text();
 		}).then((text) => {

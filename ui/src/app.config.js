@@ -2,7 +2,9 @@ const devConfig = {
 	basePath: "/",
 	fragilityService: "http://localhost:8080/fragility/api/fragilities",
 	semanticService: "",
-	maestroService: ""
+	maestroService: "http://localhost:8080",
+	dataService: "http://141.142.210.193:8888/data/api/datasets",
+	dataWolf: "http://141.142.209.63/datawolf/"
 };
 
 const prodConfig = {

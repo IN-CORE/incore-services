@@ -1,6 +1,7 @@
 // @flow
 
 import type {Dispatch, AnalysesMetadata, Analysis, Dataset} from "../utils.flowtype";
+import config from "../app.config";
 
 export const GET_ANALYSES = "GET_ANALYSES";
 
@@ -40,38 +41,34 @@ export function receiveDatasets(json: Dataset) {
 }
 
 export function fetchAnalyses() {
-	//TODO: Move to a configuration file
-	const api = "http://localhost:8080";
-	const endpoint = `${api  }/maestro/api/analyses/metadata`;
+
+	const endpoint = `${config.maestroService  }/maestro/api/analyses/metadata`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint)
 			.then(response => response.json())
 			.then( json =>
-				dispatch(receiveAnalyses(api, json))
+				dispatch(receiveAnalyses(config.maestroService, json))
 			);
 	};
 }
 
 export function getAnalysisById(id: String) {
 	//TODO: Move to a configuration file
-	const api = "http://localhost:8080";
-	const endpoint = `${api  }/maestro/api/analyses/${  id}`;
+	const endpoint = `${config.maestroService  }/maestro/api/analyses/${  id}`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint)
 			.then(response => response.json())
 			.then(json =>
-				dispatch(receiveAnalysis(api, json))
+				dispatch(receiveAnalysis(config.maestroService, json))
 			);
 	};
 
 }
 
 export function fetchDatasets() {
-	//TODO: Move to a configuration file
-	const api = "http://141.142.210.193:8888";
-	const endpoint = `${api  }/data/api/datasets/list/`;
+	const endpoint = config.dataService;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint)
@@ -84,8 +81,7 @@ export function fetchDatasets() {
 
 export function login(username, password) {
 
-	const api = "http://localhost:8080";
-	const endpoint = `${api  }/maestro/api/login`;
+	const endpoint = `${config.maestroService  }/maestro/api/login`;
 	// Currently CORS error due to the header
 	// fetch(endpoint, {
 	// 	method: "GET",
@@ -104,7 +100,7 @@ export function receiveDatawolfResponse(json) {
 
 }
 export function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
-	const datawolfUrl = "http://141.142.209.63/datawolf/" + "executions";
+	const datawolfUrl = `${config.dataWolf  }executions`;
 	const dataToSubmit = {
 		"title": title,
 		"parameters": parameters,
