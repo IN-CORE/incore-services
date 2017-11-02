@@ -234,7 +234,7 @@ class FragilityExplorerPage extends React.Component {
 					</GridTile>
 				</GridList>
 
-				<GridList cols={12} style={{paddingTop: "10px"}} cellHeight="auto">
+				<GridList cols={12}  >
 					<GridTile cols={6}>
 						<GroupList id="fragility-list" onClick={this.clickFragility} height="800px"
 								   data={this.state.data} displayField="author" />

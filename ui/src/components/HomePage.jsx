@@ -46,6 +46,7 @@ class HomePage extends Component {
 
 	login(event: Object) {
 		//TODO: Login using a global state action
+		//this.props.login(this.state.username, this.state.password);
 		browserHistory.push("/FragilityViewer");
 	}
 
@@ -77,7 +78,7 @@ class HomePage extends Component {
 						</GridTile>
 
 						<GridTile style={{paddingTop: "20px"}}>
-							<RaisedButton primary={true} onClick={this.login}> Login </RaisedButton>
+							<RaisedButton primary={true} onClick={this.login} label="Login"/>
 						</GridTile>
 					</GridList>
 				</Paper>

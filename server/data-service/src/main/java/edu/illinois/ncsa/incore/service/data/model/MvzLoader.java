@@ -80,7 +80,7 @@ public class MvzLoader {
     public static MvzDataset setMvzDatasetFromMetadata(File metadataFile, String rUrl) throws IOException {
         String xmlString = "";
         metadataFile.setReadOnly();
-        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
+        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16"); //$NON-NLS-1$
         char metaCharBuffer[] = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
@@ -184,9 +184,6 @@ public class MvzLoader {
             mvzDataset.setDataFormat(dataFormat);
             mvzDataset.setTypeId(typeId);
             mvzDataset.datasetId.setDescription(description);
-
-            String newUrl = FileUtils.SERVER_URL_PREFIX + rUrl + "/files";    //$NON-NLS-1$
-            mvzDataset.datasetId.setLocation(newUrl);
 
             // check maeviz-mapping object and set
             if (metaInfoObj != null) {
@@ -301,7 +298,6 @@ public class MvzLoader {
                     }
                 }
             }
-            //String jsonString = metaJsonObj.toString(FileUtils.INDENT_SPACE);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -309,11 +305,11 @@ public class MvzLoader {
         return mvzDataset;
     }
 
-    public static String formatMetadataAsJson(File metadataFile, String inId, String serverUrlPrefix) throws IOException {
+    public static String formatMetadataAsJson(File metadataFile, String inId) throws IOException {
         // convert from UTF-16 to UTF-8
         String xmlString = "";  //$NON-NLS-1$
         metadataFile.setReadOnly();
-        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
+        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16"); //$NON-NLS-1$
         char metaCharBuffer[] = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
@@ -347,8 +343,6 @@ public class MvzLoader {
                 locObj = metaJsonObj.getJSONObject(TAG_PROPERTIES_SCENARIO).getJSONObject(TAG_DATASET_ID);
             }
 
-            String newUrl = serverUrlPrefix + inId + "/files";  //$NON-NLS-1$
-            locObj.put(TAG_LOCATION, newUrl);
             String jsonString = metaJsonObj.toString(FileUtils.INDENT_SPACE);
             return jsonString;
         } catch (JSONException ex) {
