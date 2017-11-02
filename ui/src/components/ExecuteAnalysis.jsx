@@ -1,7 +1,8 @@
 import React, {Component} from "react";
 import {browserHistory} from "react-router";
 import AnalysisSelect from "../containers/AnalysisSelect";
-import {TextField, RaisedButton} from "material-ui";
+import InputDropdown from "./InputDropdown";
+import {TextField, RaisedButton, MenuOption, SelectField} from "material-ui";
 
 class ExecuteAnalysis extends Component {
 
@@ -9,47 +10,86 @@ class ExecuteAnalysis extends Component {
 		super(props);
 		this.state = {
 			inputs: [],
-			parameters: []
+			parameters: [],
+			title: "",
+			description: ""
 		};
 		this.executeAnalysis = this.executeAnalysis.bind(this);
+		this.changeTitle = this.changeTitle.bind(this);
+		this.changeDataset = this.changeDataset.bind(this);
+		this.changeDescription = this.changeDescription.bind(this);
 	}
 
 	componentWillMount() {
 		this.props.loadAnalyses();
+		this.props.loadDatasets();
 	}
 
 	executeAnalysis(event) {
-		//TODO: Login using a global state action
+		//Post to Datawolf
+		const workflowId = "ed303240-42f5-4d21-9af0-236de19e83da";
+		const creatorId = "18aad9aa-6b33-4a8f-9452-2bbcf3fca110"; // Incore-dev@lists.ncsa.illinois.edu
+		const parameters = {
+			"ac82f88d-c8e2-4c24-cc1d-d5433b0690e6": "http://141.142.210.193:8888/hazard/api/earthquakes/59f3315ec7d30d4d6741b0bb",
+			"75a0e1bb-0b08-44ad-eb85-edc00d22fcee": "http://localhost:8080",
+			"2d8f56b7-d111-4a43-ace5-01c775548b4b": "http://localhost:8080/data/api/datasets/"
+		};
+		let datasets = {};
+		if(this.state.inputs["Buildings"]){
+			datasets["fd9d6267-a035-4d11-f191-d33fbc5cb8bd"]= this.state.inputs["Buildings"];
+		}
+		if(this.state.inputs["Mean Damage"]){
+			datasets["d5c8b213-70aa-4316-d5af-89769dabd48f"]= this.state.inputs["Mean Damage"];
+		}
+		this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
 		browserHistory.push("/Results");
 	}
 
+	changeTitle(event){
+		this.setState({title: event.target.value});
+	}
+
+	changeDataset(name, value) {
+		let new_inputs = Object.assign({}, this.state.inputs);
+		new_inputs[name] = value;
+		this.setState({inputs: new_inputs});
+	}
+
+	changeDescription(event){
+		this.setState({description: event.target.value});
+	}
 	render() {
 		let contents;
 		if(this.props.analysis !== null) {
-			const inputs = this.props.analysis.datasets.map( input =>
-				<span key={input.name}> <TextField floatingLabel={input.name} id={input.id} value={this.state.inputs.id} width="100%"/> <br/></span>
+			let inputs = this.props.analysis.datasets.map( input =>
+
+			<InputDropdown input={input} key={input.name} options={this.props.datasets}
+			               onChange={this.changeDataset} value={this.state.inputs[input.name]}/>
 			);
+
 			const parameters = this.props.analysis.parameters.map(param =>
-				<span key={param.name} > <TextField floatingLabel={param.name} id={param.id} value={this.state.parameters.id} /><br/></span>
+
+				<span key={param.name} > <TextField floatingLabelText={param.name} id={param.id} value={this.state.parameters.id} /><br/></span>
 			);
 
 			contents = <div>
 				<h1>{this.props.analysis.name}</h1>
+				<h3> Submission Details </h3>
+				<TextField floatingLabelText="Analysis Title" value={this.state.title} onChange={this.changeTitle}/> <br/>
+				<TextField floatingLabelText="Description" value={this.state.description} onChange={this.changeDescription}/>
 				<h3>Inputs</h3>
 				{inputs}
-				<h3> Parameters</h3>
-				{parameters}
 				<br/>
 				<br/>
-				<RaisedButton raised primary onClick={this.executeAnalysis}> Execute Analysis </RaisedButton>
+				<RaisedButton primary onClick={this.executeAnalysis} label="Execute Analysis"/>
 			</div>;
 		}
 
 
 		return (
 			<div className="main">
-				<h2 className="center"> Execute Analysis</h2>
-				Select an Analysis to execute <br/>
+				<h1 className="center"> Execute Analysis</h1>
+				<h2>Select an Analysis to execute </h2>
 				<AnalysisSelect/>
 				{contents}
 			</div>

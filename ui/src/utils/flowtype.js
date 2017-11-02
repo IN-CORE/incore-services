@@ -1,6 +1,7 @@
 export type Dispatch = (action:any) => null;
 
 export type AnalysisInput = {
+	id: string,
 	name: string;
 	description: string;
 	required: boolean;
@@ -16,6 +17,7 @@ export type AnalysisOutput = {
 };
 
 export type AnalysisParameter = {
+	id: string,
 	name: string;
 	description: string;
 	required: boolean;
@@ -52,4 +54,34 @@ export type AnalysesState = {
 	analysisMetadata: AnalysesMetadata
 }
 
+export type FileDescriptor = {
+	id: string,
+	deleted: boolean,
+	filename: string,
+	mimeType: string,
+	size: number,
+	dataURL: string,
+	md5sum: string
+}
 
+export type Dataset = {
+	id: string,
+	deleted: boolean,
+	title: string,
+	description: string,
+	date: Date,
+	fileDescriptors: FileDescriptor[],
+	contributors: string[],
+	creator: string,
+	type: string,
+	storedUrl: string,
+	format: string,
+	sourceDataset: string,
+	spaces: string[]
+}
+
+export type Datasets = Dataset[];
+
+export type DatasetState = {
+	datasets: Dataset[]
+}
