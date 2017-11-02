@@ -110,7 +110,7 @@ class DataViewer extends Component {
 		let file_contents = this.state.fileData;
 		if(this.state.fileExtension && this.state.fileData  && this.state.fileExtension === "csv") {
 			let data = this.state.fileData.map((data) => data.split(","));
-			file_contents = <Table container = "data_container" data={data.slice(2)} colHeaders={data[0]} rowHeaders={false}/>;
+			file_contents = <Table height={600} container = "data_container" data={data.slice(2)} colHeaders={data[0]} rowHeaders={false}/>;
 		}
 
 		let right_column =  "";
