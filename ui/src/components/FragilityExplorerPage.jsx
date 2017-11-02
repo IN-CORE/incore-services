@@ -80,6 +80,11 @@ class FragilityExplorerPage extends React.Component {
 			this.setState({
 				data: fragilities
 			});
+		} else {
+			this.setState({
+				fragility: null,
+				data: []
+			});
 		}
 	}
 
@@ -122,11 +127,22 @@ class FragilityExplorerPage extends React.Component {
 		if (response.ok) {
 			let fragilities = await response.json();
 
-			// By default select the first returned in the list of fragilities
-			await this.clickFragility(fragilities[0]);
-
+			if (fragilities.length > 0) {
+				// By default select the first returned in the list of fragilities
+				await this.clickFragility(fragilities[0]);
+				this.setState({
+					data: fragilities
+				});
+			} else {
+				this.setState({
+					data: [],
+					fragility: null
+				});
+			}
+		} else {
 			this.setState({
-				data: fragilities
+				data: [],
+				fragility: null
 			});
 		}
 	}
@@ -151,11 +167,23 @@ class FragilityExplorerPage extends React.Component {
 		if (response.ok) {
 			let fragilities = await response.json();
 
-			// By default select the first returned in the list of fragilities
-			await this.clickFragility(fragilities[0]);
+			if (fragilities.length > 0) {
+				// By default select the first returned in the list of fragilities
+				await this.clickFragility(fragilities[0]);
 
+				this.setState({
+					data: fragilities
+				});
+			} else {
+				this.setState({
+					data: [],
+					fragility: null
+				});
+			}
+		} else {
 			this.setState({
-				data: fragilities
+				data: [],
+				fragility: null
 			});
 		}
 	}
@@ -211,21 +239,25 @@ class FragilityExplorerPage extends React.Component {
 						<GroupList id="fragility-list" onClick={this.clickFragility} height="800px"
 								   data={this.state.data} displayField="author" />
 					</GridTile>
+
+					{/* TODO replace with new panel component, should take in fragility parameter, replace click with state */}
 					<GridTile cols={6} rows={2}>
-						<Card>
-							{this.state.is3dPlot ?
-								<ThreeDimensionalPlot plotId="3dplot" data={this.state.plotData3d}
-													  xLabel={this.state.fragility.demandType} yLabel="Y"
-													  zLabel={this.state.fragility.fragilityCurves[0].description}
-													  width="100%" height="400px" style="surface" />
-								:
-								<LineChart chartId="chart" configuration={this.state.chartConfig} />}
-						</Card>
 						{this.state.fragility !== null ?
-							this.state.fragility.fragilityCurves[0].className.includes("CustomExpressionFragilityCurve") ?
-								<CustomExpressionTable fragility={this.state.fragility} />
-								:
-								<DistributionTable fragility={this.state.fragility} />
+							<div>
+								<Card>
+									{this.state.is3dPlot ?
+										<ThreeDimensionalPlot plotId="3dplot" data={this.state.plotData3d}
+															  xLabel={this.state.fragility.demandType} yLabel="Y"
+															  zLabel={this.state.fragility.fragilityCurves[0].description}
+															  width="100%" height="400px" style="surface" />
+										:
+										<LineChart chartId="chart" configuration={this.state.chartConfig} />}
+								</Card>
+								{this.state.fragility.fragilityCurves[0].className.includes("CustomExpressionFragilityCurve") ?
+									<CustomExpressionTable fragility={this.state.fragility} />
+									:
+									<DistributionTable fragility={this.state.fragility} />}
+							</div>
 							:
 							<div></div>
 						}
@@ -247,13 +279,12 @@ class FragilityExplorerPage extends React.Component {
 			plotConfig2d = this.generate2dPlotData(fragility);
 		}
 
-		this.setState(
-			{
-				chartConfig: plotConfig2d,
-				plotData3d: plotData3d,
-				is3dPlot: is3dPlot,
-				fragility: fragility
-			});
+		this.setState({
+			chartConfig: plotConfig2d,
+			plotData3d: plotData3d,
+			is3dPlot: is3dPlot,
+			fragility: fragility
+		});
 	}
 
 	generate2dPlotData(fragility) {
