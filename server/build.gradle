@@ -89,7 +89,7 @@ subprojects {
         }
 
         gretty {
-            httpPort 8088
+            httpPort 8080
         }
 
         dependencies {

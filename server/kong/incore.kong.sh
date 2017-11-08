@@ -3,25 +3,25 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=fragility' \
   --data 'uris=/fragility' \
-  --data 'upstream_url=http://localhost:8088/fragility/'
+  --data 'upstream_url=http://localhost:8080/fragility/'
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=maestro' \
   --data 'uris=/maestro' \
-  --data 'upstream_url=http://localhost:8088/maestro/'
+  --data 'upstream_url=http://localhost:8080/maestro/'
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=repo' \
   --data 'uris=/repo' \
-  --data 'upstream_url=http://localhost:8088/repo/'
+  --data 'upstream_url=http://localhost:8080/repo/'
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=hazard' \
   --data 'uris=/hazard' \
-  --data 'upstream_url=http://localhost:8088/hazard/'
+  --data 'upstream_url=http://localhost:8080/hazard/'
 
 
 #create an anonyous user
