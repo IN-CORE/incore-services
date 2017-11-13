@@ -94,10 +94,17 @@ export function login(username, password) {
 	return;
 }
 
+export const RECEIVE_EXECUTION_ID = "RECEIVE_WORKFLOW_ID"
 export function receiveDatawolfResponse(json) {
 	// Get the id of the layers in geoserver to display in the map
 	// Get the info from a table to display
-
+	return(dispatch: Dispatch) => {
+		dispatch({
+			type: RECEIVE_EXECUTION_ID,
+			executionId: json,
+			receivedAt: Date.now()
+		});
+	};
 }
 export function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
 	const datawolfUrl = `${config.dataWolf  }executions`;
@@ -114,17 +121,14 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
 	});
 
-	console.log(JSON.stringify(dataToSubmit, undefined, 2));
 	return (dispatch: Dispatch) => {
 		return fetch(datawolfUrl, {
 			method: "POST",
 			headers: headers,
-			// mode: "no-cors",
 			body: JSON.stringify(dataToSubmit),
 			credentials: "include",
 		}).then(function (response) {
-			console.log(response);
-			return response.json;
+			return response.text();
 		}).then(json =>
 			dispatch(receiveDatawolfResponse(json))
 		);

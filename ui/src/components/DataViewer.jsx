@@ -27,7 +27,6 @@ class DataViewer extends Component {
 
 	onClickDataset(datasetId) {
 		this.setState({selectedDataset: datasetId});
-		// console.log(datasetId);
 	}
 
 	async handleKeyPressed(event) {

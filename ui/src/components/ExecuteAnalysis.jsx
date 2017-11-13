@@ -31,8 +31,8 @@ class ExecuteAnalysis extends Component {
 		const creatorId = "18aad9aa-6b33-4a8f-9452-2bbcf3fca110"; // Incore-dev@lists.ncsa.illinois.edu
 		const parameters = {
 			"ac82f88d-c8e2-4c24-cc1d-d5433b0690e6": "http://141.142.210.193:8888/hazard/api/earthquakes/59f3315ec7d30d4d6741b0bb",
-			"75a0e1bb-0b08-44ad-eb85-edc00d22fcee": "http://localhost:8080",
-			"2d8f56b7-d111-4a43-ace5-01c775548b4b": "http://localhost:8080/data/api/datasets/"
+			"75a0e1bb-0b08-44ad-eb85-edc00d22fcee": "http://141.142.210.193:8888/",
+			"2d8f56b7-d111-4a43-ace5-01c775548b4b": "59f8d08dc7d30d278f25095d"
 		};
 		let datasets = {};
 		if(this.state.inputs["Buildings"]){

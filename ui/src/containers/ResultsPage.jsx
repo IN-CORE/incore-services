@@ -4,7 +4,8 @@ import {} from "../actions";
 
 const mapStateToProps = (state, ownProps) => {
 	return {
-		analysis: state.analyses.selectedAnalysis
+		analysis: state.analyses.selectedAnalysis,
+		executionId: state.execution.executionId,
 	};
 };
 

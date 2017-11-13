@@ -12,6 +12,7 @@ class ResultsPage extends Component {
 		return (
 			<div className="main">
 				<h2 className="center">{this.props.analysis.name} Results </h2>
+				Execution Id: {this.props.executionId}
 				<Map/>
 			</div>
 		);
