@@ -111,16 +111,17 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 	};
 	const headers = new Headers({
 		"Content-Type": "application/json",
-		"Accept": "application/json",
+		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
 	});
 
 	console.log(JSON.stringify(dataToSubmit, undefined, 2));
 	return (dispatch: Dispatch) => {
 		return fetch(datawolfUrl, {
 			method: "POST",
-			data: JSON.stringify(dataToSubmit),
-			dataType: "text",
-			headers: headers
+			headers: headers,
+			// mode: "no-cors",
+			body: JSON.stringify(dataToSubmit),
+			credentials: "include",
 		}).then(function (response) {
 			console.log(response);
 			return response.json;
