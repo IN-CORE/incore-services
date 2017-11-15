@@ -87,6 +87,10 @@ local function load_credential(given_username, given_password, conf)
   return {username = given_username, password = given_password}
 end
 
+local function return_token(token) 
+  return token
+end
+
 -- NLT adding token
 local function authenticate(conf, given_credentials, auth_user, auth_token)
 
@@ -97,7 +101,7 @@ local function authenticate(conf, given_credentials, auth_user, auth_token)
     ngx_log(ngx_debug, "[ldap-auth] auth_user is:"..auth_user)
     ngx_log(ngx_debug, "[ldap-auth] auth_token is:'"..auth_token.."'")
     local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. given_username
-    local cached_token = singletons.cache.get(cache_key)
+    local cached_token = singletons.cache:get(cache_key)
 
     if cached_token ~= nil then
       ngx_log(ngx_debug, "[ldap-auth] cached token is:'"..cached_token.."'")
@@ -145,10 +149,12 @@ local function authenticate(conf, given_credentials, auth_user, auth_token)
   local new_token = tostring(math.random(1, 99999999999) + gettime() * 1000) .. tostring(math.random(1,99999999))
   ngx_log(ngx_debug, "[ldap-auth] success, new token is:"..new_token)
   local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. given_username
-  singletons.cache.set(cache_key, new_token, 10000)
+  singletons.cache:get(cache_key, {ttl=10000, neg_ttl = conf.cache_ttl}, return_token, new_token)
 
   return true, {username = given_username, password = auth_token}, new_token
 end
+
+
 
 local function load_consumer(consumer_id, anonymous)
   local result, err = singletons.dao.consumers:find { id = consumer_id }
@@ -238,7 +244,7 @@ function _M.execute(conf)
     if conf.anonymous ~= "" and conf.anonymous ~= nil then
       -- get anonymous user
       local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. conf.anonymous
-      local consumer, err = singletons.cache.get_or_set(cache_key,
+      local consumer, err = singletons.cache:get_or_set(cache_key,
                        nil, load_consumer, conf.anonymous, true)
       if err then
         responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
