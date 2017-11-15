@@ -1,6 +1,6 @@
 // @flow
 
-import type {Dispatch, AnalysesMetadata, Analysis, Dataset} from "../utils.flowtype";
+import type {Dispatch, AnalysesMetadata, Analysis, Dataset, GetState} from "../utils.flowtype";
 import config from "../app.config";
 
 export const GET_ANALYSES = "GET_ANALYSES";
@@ -94,18 +94,70 @@ export function login(username, password) {
 	return;
 }
 
-export const RECEIVE_EXECUTION_ID = "RECEIVE_WORKFLOW_ID"
+export const RECEIVE_EXECUTION_ID = "RECEIVE_WORKFLOW_ID";
 export function receiveDatawolfResponse(json) {
 	// Get the id of the layers in geoserver to display in the map
 	// Get the info from a table to display
-	return(dispatch: Dispatch) => {
+
+
+	return (dispatch: Dispatch) => {
 		dispatch({
 			type: RECEIVE_EXECUTION_ID,
 			executionId: json,
 			receivedAt: Date.now()
 		});
+
+
+	};
+
+}
+
+export const RECEIVE_OUTPUT_FILE = "RECEIVE_OUTPUT_FILE";
+export function getOutputDataset() {
+
+	return (dispatch:Dispatch, getState:GetState) => {
+		const state = getState();
+		const executionId = "ffe2e458-b3ba-4d91-a171-9f5176abd872";// state.execution.executionId;
+		const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
+		const headers = new Headers({
+			"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
+		});
+		return fetch(datawolfUrl, {
+			method: "GET",
+			headers: headers,
+			// credentials: "include",
+		}).then(function (response) {
+			const json = response.json();
+			console.log(json);
+			return json;
+		}).then(json => {
+			const output_dataset_id =json.datasets["fb2ff2f0-5708-4b29-c701-f3a6288021eb"];
+
+			console.log(output_dataset_id);
+			const outputDatasetEndpoint = `${config.dataService   }/${   output_dataset_id}` ;
+			fetch(outputDatasetEndpoint)
+			.then(response => {
+				return response.json();
+			}).then(json => {
+				const fileId = json.fileDescriptors[0].id;
+				const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
+
+				fetch(fileDownloadUrl, {method: "GET", mode: "CORS"}).then((response) => {
+					return response.text();
+				}).then((text) => {
+					dispatch({
+						type: RECEIVE_OUTPUT_FILE,
+						file: text.split("\n")
+					});
+				});
+
+			});
+		}
+
+		);
 	};
 }
+
 export function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
 	const datawolfUrl = `${config.dataWolf  }executions`;
 	const dataToSubmit = {

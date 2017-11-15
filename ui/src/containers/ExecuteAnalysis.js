@@ -6,7 +6,8 @@ import type { Dispatch } from "../utils/flowtype";
 const mapStateToProps = (state, ownProps) => {
 	return {
 		analysis: state.analyses.selectedAnalysis,
-		datasets: state.data.datasets
+		datasets: state.data.datasets,
+		executionId:  state.execution.executionId,
 	};
 };
 

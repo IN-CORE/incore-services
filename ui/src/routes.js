@@ -14,7 +14,7 @@ export default (
 	<Route path={config.basePath} component={App}>
 		<IndexRoute component={HomePage} />
 		<Route path="Execute" component={ExecuteAnalysis} />
-		<Route path="Results" component={ResultsPage} />
+		<Route path="Results/:id" component={ResultsPage} />
 		<Route path="DataViewer" component={DataViewer} />
 		<Route path="FragilityViewer" component={FragilityExplorerPage} />
 		<Route path="FragilityViewer/:id" component={FragilityExplorerPage} />

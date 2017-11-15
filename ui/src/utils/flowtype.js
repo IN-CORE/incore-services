@@ -89,3 +89,5 @@ export type DatasetState = {
 export type ExecutionState = {
 	executionId: string;
 }
+
+export type GetState = () => Object;

@@ -50,8 +50,6 @@ class DataViewer extends Component {
 			this.setState({fileData: text.split("\n"), fileExtension: file_name.split(".").slice(-1).pop()});
 		});
 
-
-
 	}
 
 	render() {

@@ -42,7 +42,7 @@ class ExecuteAnalysis extends Component {
 			datasets["d5c8b213-70aa-4316-d5af-89769dabd48f"]= this.state.inputs["Mean Damage"];
 		}
 		this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
-		browserHistory.push("/Results");
+		browserHistory.push(`/Results/${this.props.executionId}`);
 	}
 
 	changeTitle(event){
@@ -72,7 +72,7 @@ class ExecuteAnalysis extends Component {
 				<span key={param.name} > <TextField floatingLabelText={param.name} id={param.id} value={this.state.parameters.id} /><br/></span>
 			);
 
-			contents = <div>
+			contents = (<div>
 				<h1>{this.props.analysis.name}</h1>
 				<h3> Submission Details </h3>
 				<TextField floatingLabelText="Analysis Title" value={this.state.title} onChange={this.changeTitle}/> <br/>
@@ -82,7 +82,7 @@ class ExecuteAnalysis extends Component {
 				<br/>
 				<br/>
 				<RaisedButton primary onClick={this.executeAnalysis} label="Execute Analysis"/>
-			</div>;
+			</div>);
 		}
 
 
