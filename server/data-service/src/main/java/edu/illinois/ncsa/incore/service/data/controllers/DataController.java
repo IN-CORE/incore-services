@@ -15,6 +15,7 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
 import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.model.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.model.Space;
@@ -34,14 +35,12 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -75,7 +74,8 @@ public class DataController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
+    public Dataset getDatasetFromRepo(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
+        System.out.println(username);
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             throw new NotFoundException("There is no Dataset with given id in the repository.");
@@ -136,39 +136,8 @@ public class DataController {
     @Path("/{id}/files")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFileByDataset(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
-        Dataset dataset = repository.getDatasetById(datasetId);
-        if (dataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");
-        }
-        List<FileDescriptor> fds = dataset.getFileDescriptors();
-        List<File> fileList = new ArrayList<File>();
-        String absolutePath = "";   //$NON-NLS-1$
-        String filePath = "";   //$NON-NLS-1$
-        String fileBaseName = "";   //$NON-NLS-1$
-        String fileName = "";   //$NON-NLS-1$
-        File outFile = null;
-
-        if (fds.size() > 0) {
-            File tmpFile = new File(fds.get(0).getDataURL());
-            absolutePath = tmpFile.getPath();
-            filePath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator));
-            fileBaseName = FilenameUtils.getBaseName(tmpFile.getName());
-
-            List<String> fileNameList = new ArrayList<String>();
-            for (FileDescriptor fd : fds) {
-                String dataUrl = fd.getDataURL();
-                fileList.add(new File(new URI(dataUrl)));
-                fileNameList.add(FilenameUtils.getName(dataUrl));
-            }
-
-            // create temp dir and copy files to temp dir
-            String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-            // copiedFileList below is not used but the method is needed to copy files
-            List<File> copieFileList = GeotoolsUtils.copyFilesToTmpDir(fileList, tempDir);
-
-            outFile = FileUtils.createZipFile(fileNameList, tempDir, fileBaseName);
-            fileName = fileBaseName + "." + FILE_ZIP_EXTENSION;
-        }
+        File outFile = FileUtils.loadFileFromService(datasetId, repository, false, "");
+        String fileName = outFile.getName();
 
         if (outFile != null) {
             return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build(); //$NON-NLS-1$ //$NON-NLS-2$
@@ -265,7 +234,7 @@ public class DataController {
             }
         }
         if (isShpfile) {
-            zipFile = GeotoolsUtils.JoinTableShapefile(shpfiles, csvFile);
+            zipFile = GeotoolsUtils.joinTableShapefile(shpfiles, csvFile);
             outFileName = FilenameUtils.getBaseName(zipFile.getName()) + "." + FILE_ZIP_EXTENSION;
         }
 
@@ -346,7 +315,7 @@ public class DataController {
         return dataset;
     }
 
-    //  http//localhost:8080/data/api/datasets/ingest-multi-files
+    //  http//localhost:8080/data/api/datasets/upload-files
     //    {datasetId: "59e5046668f47426549b606e"}
     /**
      * upload file(s) to attach to a dataset by FileDescriptor
@@ -357,13 +326,17 @@ public class DataController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/upload-files")
-    public Dataset uplaodFiles(FormDataMultiPart inputs) {
+    public Dataset uplaodFiles(FormDataMultiPart inputs) throws IOException, URISyntaxException {
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = "";   //$NON-NLS-1$
         String inJson = ""; //$NON-NLS-1$
         String paramName = "";  //$NON-NLS-1$
         Dataset dataset = null;
         boolean isJsonValid = false;
+        boolean isGeoserver = false;
+        boolean isAsc = false;
+        boolean isShp = false;
+        boolean isTif = false;
 
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
@@ -384,6 +357,18 @@ public class DataController {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
             if (paramName.equals(POST_PARAMENTER_FILE)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
+                String fileExt = FilenameUtils.getExtension(fileName);
+                if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||   //$NON-NLS-1$ //$NON-NLS-2$
+                        fileExt.equalsIgnoreCase("tif")) {  //$NON-NLS-1
+                    isGeoserver = true;
+                    if (fileExt.equalsIgnoreCase("asc")) {  //$NON-NLS-1$
+                        isAsc = true;
+                    } else if (fileExt.equalsIgnoreCase("tif")) {   //$NON-NLS-1$
+                        isTif = true;
+                    } else if (fileExt.equalsIgnoreCase("shp")) {   //$NON-NLS-1$
+                        isShp = true;
+                    }
+                }
                 InputStream is = (InputStream) inputs.getFields(POST_PARAMENTER_FILE).get(j).getValueAs(InputStream.class);
                 FileDescriptor fd = new FileDescriptor();
                 FileStorageDisk fsDisk = new FileStorageDisk();
@@ -401,25 +386,53 @@ public class DataController {
         }
         repository.addDataset(dataset);
 
+        if (isGeoserver) {
+            String datasetId = dataset.getId();
+            boolean published = false;
+            File outFile = null;
+            String inExt = null;
+            if (datasetId != null && datasetId.length() > 0) {
+                if (isShp) {
+                    // get zip file
+                    inExt = "shp";  //$NON-NLS-1$
+                    outFile = FileUtils.loadFileFromService(datasetId, repository, isGeoserver, inExt);
+                    String fileName = outFile.getName();
+                    published = GeoserverUtils.uploadToGeoserver(datasetId, outFile, inExt);
+                } else if (isTif) {
+                    inExt = "tif";  //$NON-NLS-1$
+                    outFile = FileUtils.loadFileFromService(datasetId, repository, isGeoserver, inExt);
+                    published = GeoserverUtils.uploadToGeoserver(datasetId, outFile, inExt);
+                } else if (isAsc) {
+                    inExt = "asc";  //$NON-NLS-1$
+                    outFile = FileUtils.loadFileFromService(datasetId, repository, isGeoserver, inExt);
+                    published = GeoserverUtils.uploadToGeoserver(datasetId, outFile, inExt);
+                }
+            }
+
+            //remove temp dir
+            String tempDir = outFile.getParent();
+            File dirFile = new File(tempDir);
+            ArrayList<File> files = new ArrayList<File>(Arrays.asList(dirFile.listFiles()));
+            FileUtils.deleteTmpDir(files);
+        }
         return dataset;
     }
 
-    // {datasetId: "59e0ec0c68f4742a340411d2", property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"}
+    // {property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"}
     /**
      * file(s) to upload to attach to a dataset by FileDescriptor
      * @param inDatasetJson
      * @return
      */
-    @POST
+    @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/update")
-    public Object updateObject(@FormDataParam("update") String inDatasetJson) {
+    @Path("/{id}/update")
+    public Object updateObject(@PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         Dataset dataset = null;
 
         if (isJsonValid) {
-            String datasetId = JsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDatasetJson);
             String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
             String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
             dataset = repository.updateDataset(datasetId, propName, propVal);
