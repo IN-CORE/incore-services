@@ -112,7 +112,7 @@ export function receiveDatawolfResponse(json) {
 
 }
 
-export const RECEIVE_OUTPUT_FILE = "RECEIVE_OUTPUT_FILE";
+export const RECEIVE_OUTPUT = "RECEIVE_OUTPUT";
 export function getOutputDataset() {
 
 	return (dispatch:Dispatch, getState:GetState) => {
@@ -146,8 +146,9 @@ export function getOutputDataset() {
 					return response.text();
 				}).then((text) => {
 					dispatch({
-						type: RECEIVE_OUTPUT_FILE,
-						file: text.split("\n")
+						type: RECEIVE_OUTPUT,
+						outputDatasetId: json.id,
+						file: text.replace(/"/g,"").split("\n")
 					});
 				});
 
