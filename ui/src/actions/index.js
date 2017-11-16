@@ -112,54 +112,54 @@ export function receiveDatawolfResponse(json) {
 
 }
 
+async function getOutputDatasetHelper() {
+	const executionId = "ffe2e458-b3ba-4d91-a171-9f5176abd872";// state.execution.executionId;
+	const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
+	const headers = new Headers({
+		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
+	});
+	const datawolf_execution_fetch = await fetch(datawolfUrl, {
+		method: "GET",
+		headers: headers
+	});
+
+	const datawolfExecution  = await datawolf_execution_fetch.json();
+
+	const output_dataset_id =datawolfExecution.datasets["fb2ff2f0-5708-4b29-c701-f3a6288021eb"];
+
+	console.log(output_dataset_id);
+	const endpoint = `${config.dataService   }/${   output_dataset_id}` ;
+	const output_dataset = await fetch(endpoint);
+
+	const outputDataset = await output_dataset.json();
+	console.log(outputDataset);
+	const fileId = outputDataset.fileDescriptors[0].id;
+
+	const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
+	const fileBlob = await fetch(fileDownloadUrl, {method: "GET", mode: "CORS"});
+
+	const fileText = await fileBlob.text();
+	console.log(fileText);
+
+	return [outputDataset.id, fileText];
+}
+
 export const RECEIVE_OUTPUT = "RECEIVE_OUTPUT";
 export function getOutputDataset() {
+	 // const state = getState();
 
-	return (dispatch:Dispatch, getState:GetState) => {
-		const state = getState();
-		const executionId = "ffe2e458-b3ba-4d91-a171-9f5176abd872";// state.execution.executionId;
-		const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
-		const headers = new Headers({
-			"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
+	return async (dispatch: Dispatch) => {
+		const data = await getOutputDatasetHelper();
+		 dispatch({
+			type: RECEIVE_OUTPUT,
+			outputDatasetId: data[0],
+			file: data[1].replace(/"/g,"").split("\n")
 		});
-		return fetch(datawolfUrl, {
-			method: "GET",
-			headers: headers,
-			// credentials: "include",
-		}).then(function (response) {
-			const json = response.json();
-			console.log(json);
-			return json;
-		}).then(json => {
-			const output_dataset_id =json.datasets["fb2ff2f0-5708-4b29-c701-f3a6288021eb"];
 
-			console.log(output_dataset_id);
-			const outputDatasetEndpoint = `${config.dataService   }/${   output_dataset_id}` ;
-			fetch(outputDatasetEndpoint)
-			.then(response => {
-				return response.json();
-			}).then(json => {
-				const fileId = json.fileDescriptors[0].id;
-				const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
-
-				fetch(fileDownloadUrl, {method: "GET", mode: "CORS"}).then((response) => {
-					return response.text();
-				}).then((text) => {
-					dispatch({
-						type: RECEIVE_OUTPUT,
-						outputDatasetId: json.id,
-						file: text.replace(/"/g,"").split("\n")
-					});
-				});
-
-			});
-		}
-
-		);
 	};
 }
 
-export function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
+export async function executeDatawolfWorkflowHelper(workflowid, creatorid, title, description, parameters, datasets) {
 	const datawolfUrl = `${config.dataWolf  }executions`;
 	const dataToSubmit = {
 		"title": title,
@@ -174,17 +174,28 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
 	});
 
-	return (dispatch: Dispatch) => {
-		return fetch(datawolfUrl, {
-			method: "POST",
-			headers: headers,
-			body: JSON.stringify(dataToSubmit),
-			credentials: "include",
-		}).then(function (response) {
-			return response.text();
-		}).then(json =>
-			dispatch(receiveDatawolfResponse(json))
-		);
+	const datawolfExecution = await fetch(datawolfUrl, {
+		method: "POST",
+		headers: headers,
+		body: JSON.stringify(dataToSubmit),
+		credentials: "include",
+	});
+
+	const executionId = await datawolfExecution.text();
+
+	return executionId;
+}
+
+export  function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
+
+	return async (dispatch: Dispatch) =>
+	{
+		 const json = await  executeDatawolfWorkflowHelper(workflowid, creatorid, title, description, parameters, datasets);
+		return dispatch({
+			type: RECEIVE_EXECUTION_ID,
+			executionId: json,
+			receivedAt: Date.now()
+		});
 	};
 
 

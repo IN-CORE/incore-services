@@ -21,7 +21,7 @@ class ResultsPage extends Component {
 			const data = this.props.fileData.map((data) => data.split(","));
 			file_contents = <Table height={600} container = "data_container" data={data.slice(2)} colHeaders={data[0]} rowHeaders={false}/>;
 		}
-		
+
 		return (
 			<div className="main">
 				{/*<h2 className="center">{this.props.analysis.name} Results </h2>*/}

@@ -25,7 +25,7 @@ class ExecuteAnalysis extends Component {
 		this.props.loadDatasets();
 	}
 
-	executeAnalysis(event) {
+	async executeAnalysis(event) {
 		//Post to Datawolf
 		const workflowId = "ed303240-42f5-4d21-9af0-236de19e83da";
 		const creatorId = "18aad9aa-6b33-4a8f-9452-2bbcf3fca110"; // Incore-dev@lists.ncsa.illinois.edu
@@ -41,7 +41,8 @@ class ExecuteAnalysis extends Component {
 		if(this.state.inputs["Mean Damage"]){
 			datasets["d5c8b213-70aa-4316-d5af-89769dabd48f"]= this.state.inputs["Mean Damage"];
 		}
-		this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
+		await this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
+
 		browserHistory.push(`/Results/${this.props.executionId}`);
 	}
 
