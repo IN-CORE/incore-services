@@ -55,7 +55,6 @@ dependencies {
 	compile group: 'org.geotools', name: 'gt-arcgrid', version: '17.0'
 	compile group: 'org.geotools', name: 'gt-geotiff', version: '17.0'
 	compile group: 'com.opencsv', name: 'opencsv', version: '3.3'
-    compile group: 'org.gdal', name: 'gdal', version: '2.1.0'
 
 	compile 'javax.media.jai:com.springsource.javax.media.jai.core:1.1.3'
 
