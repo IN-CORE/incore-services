@@ -15,6 +15,7 @@ package edu.illinois.ncsa.incore.service.data.geotools;
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -56,7 +57,7 @@ public class GeotoolsUtils {
     private static final String UNI_ID_SHP = "guid";    //$NON-NLS-1$
     private static final String UNI_ID_CSV = "guid";    //$NON-NLS-1$
     private static final String DATA_FIELD_GEOM = "the_geom";   //$NON-NLS-1$
-    public static String outFileName = null;
+//    public static String outFileName = null;
 
     /**
      * convert ascii grid to geotiff
@@ -94,10 +95,10 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static File joinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
+    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException {
         // set geometry factory
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
-        outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
+        String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
 
         // read csv file
         String[] csvHeaders = getCsvHeader(csvFile);
@@ -119,7 +120,13 @@ public class GeotoolsUtils {
 
         // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "");
+        List<File> copiedFileList = null;
+        if (isRename) { // this will only get the files for geoserver
+            outFileName = dataset.getId() + "." + FileUtils.EXTENSION_SHP;
+            copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, dataset.getId(), true, "shp");
+        } else {
+            copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "");
+        }
         URL inSourceFileUrl = null;
         for (File copiedFile : copiedFileList) {
             String fileExt = FilenameUtils.getExtension(copiedFile.getName());
@@ -196,7 +203,7 @@ public class GeotoolsUtils {
             inputFeatureIterator.close();
         }
 
-        return createOutShapefile(finalList, finalResultMapList, tempDir);
+        return createOutShapefile(finalList, finalResultMapList, tempDir, outFileName);
     }
 
     /**
@@ -259,7 +266,7 @@ public class GeotoolsUtils {
      */
     @SuppressWarnings("unchecked")
     public static File createOutShapefile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
-                                          String outDir) throws IOException {
+                                          String outDir, String outFileName) throws IOException {
         File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
 
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();

@@ -35,10 +35,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -69,9 +66,23 @@ public class FileUtils {
     public static final String DATASET_FORMAT = "format";   //$NON-NLS-1$
     public static final String DATASET_SPACES = "spaces";    //$NON-NLS-1$
     public static final String DATASET_FILE_NAME = "fileName";    //$NON-NLS-1$
+    public static final String FILE_ZIP_EXTENSION = "zip"; //$NON-NLS-1$
+    public static final String FORMAT_SHAPEFILE = "shapefile";   //$NON-NLS-1$
 
     public static final Logger logger = Logger.getLogger(FileUtils.class);
 
+
+    /**
+     * delete temporary directory
+     * @param inFile
+     */
+    public static void deleteTmpDir(File inFile) {
+        //remove temp dir
+        String tempDir = inFile.getParent();
+        File dirFile = new File(tempDir);
+        ArrayList<File> files = new ArrayList<File>(Arrays.asList(dirFile.listFiles()));
+        deleteTmpDir(files);
+    }
 
     /**
      * delete temporary directory created for temporary file processing
@@ -556,6 +567,54 @@ public class FileUtils {
         }
 
         File zipFile = createZipFile(fileList, tempDir, baseName);
+
+        return zipFile;
+    }
+
+    /**
+     * join csv table and shapefile and create a zip file
+     * @param dataset
+     * @param repository
+     * @return
+     * @throws URISyntaxException
+     * @throws IOException
+     */
+    public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws URISyntaxException, IOException {
+        List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
+        File csvFile = null;
+
+        for (int i = 0; i < csvFDs.size(); i++) {
+            FileDescriptor csvFd = csvFDs.get(i);
+            String csvLoc = csvFd.getDataURL();
+            csvFile = new File(new URI(csvLoc));
+        }
+
+        Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
+        if (sourceDataset == null) {
+            throw new NotFoundException("There is no Dataset with given id in the repository.");
+        }
+        List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
+        String sourceType = sourceDataset.getType();
+        List<File> shpfiles = new ArrayList<File>();
+        File zipFile = null;
+        boolean isShpfile = false;
+
+        if (!(sourceType.equalsIgnoreCase(FORMAT_SHAPEFILE))) {
+            for (int i = 0; i < sourceFDs.size(); i++) {
+                FileDescriptor sfd = sourceFDs.get(i);
+                String shpLoc = sfd.getDataURL();
+                File shpFile = new File(new URI(shpLoc));
+                shpfiles.add(shpFile);
+                //get file, if the file is in remote, use http downloader
+                String fileExt = FilenameUtils.getExtension(shpLoc);
+                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                    isShpfile = true;
+                }
+            }
+        }
+        if (isShpfile) {
+            zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
+        }
 
         return zipFile;
     }

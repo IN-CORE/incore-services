@@ -13,14 +13,19 @@
 package edu.illinois.ncsa.incore.service.data.geoserver;
 
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
+import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
-import it.geosolutions.geoserver.rest.encoder.GSLayerEncoder;
-import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by ywkim on 11/9/2017.
@@ -36,6 +41,7 @@ public class GeoserverUtils {
 
     /**
      * upload file to geoserver
+     *
      * @param store
      * @param inFile
      * @param inExt
@@ -49,7 +55,7 @@ public class GeoserverUtils {
         boolean created = publisher.createWorkspace(GEOSERVER_WORKSPACE);
         boolean published = false;
         if (inExt.equalsIgnoreCase("shp")) {    //$NON-NLS-1$
-            published = publisher.publishShp(GEOSERVER_WORKSPACE, store, fileName, inFile);    //$NON-NLS-1$
+            published = publisher.publishShp(GEOSERVER_WORKSPACE, store, fileName, inFile);
         } else if (inExt.equalsIgnoreCase("asc")) { //$NON-NLS-1$
             published = publisher.publishArcGrid(GEOSERVER_WORKSPACE, store, inFile);
         } else if (inExt.equalsIgnoreCase("tif")) { //$NON-NLS-1$
@@ -58,7 +64,54 @@ public class GeoserverUtils {
         return published;
     }
 
+    public static boolean uploadShpZipToGeoserver(String store, File zipFile) throws FileNotFoundException {
+        GeoServerRESTPublisher publisher = new GeoServerRESTPublisher(GEOSERVER_REST_URL, GEOSERVER_USER, GEOSERVER_PW);
+        String fileName = FilenameUtils.getBaseName(zipFile.getName());
+        boolean created = publisher.createWorkspace(GEOSERVER_WORKSPACE);
+        boolean published = publisher.publishShp(GEOSERVER_WORKSPACE, store, fileName, zipFile);
+        FileUtils.deleteTmpDir(zipFile);
 
-    public GeoserverUtils() throws MalformedURLException {
+        return published;
+    }
+
+    /**
+     * upload dataset to geoserver. This is a preparation process before actual uploading process
+     * @param dataset
+     * @param repository
+     * @param isShp
+     * @param isTif
+     * @param isAsc
+     * @return
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public static boolean datasetUploadToGeoserver(Dataset dataset, IRepository repository,
+               boolean isShp, boolean isTif, boolean isAsc) throws IOException, URISyntaxException {
+        String datasetId = dataset.getId();
+        boolean published = false;
+        File outFile = null;
+        String inExt = "";  //$NON-NLS-1$
+
+        if (datasetId != null && datasetId.length() > 0) {
+            if (isShp) {
+                // get zip file
+                inExt = "shp";  //$NON-NLS-1$
+                outFile = FileUtils.loadFileFromService(datasetId, repository, true, inExt);
+                String fileName = outFile.getName();
+                published = uploadToGeoserver(datasetId, outFile, inExt);
+            } else if (isTif) {
+                inExt = "tif";  //$NON-NLS-1$
+                outFile = FileUtils.loadFileFromService(datasetId, repository, true, inExt);
+                published = uploadToGeoserver(datasetId, outFile, inExt);
+            } else if (isAsc) {
+                inExt = "asc";  //$NON-NLS-1$
+                outFile = FileUtils.loadFileFromService(datasetId, repository, true, inExt);
+                published = uploadToGeoserver(datasetId, outFile, inExt);
+            }
+        }
+
+        FileUtils.deleteTmpDir(outFile);
+
+        return published;
     }
 }

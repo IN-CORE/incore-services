@@ -56,8 +56,6 @@ public class DataController {
     private static final String POST_PARAMETER_DATASET_ID = "datasetId";    //$NON-NLS-1$
     private static final String UPDATE_OBJECT_NAME = "property name";  //$NON-NLS-1$
     private static final String UPDATE_OBJECT_VALUE = "property value";  //$NON-NLS-1$
-    private static final String FILE_ZIP_EXTENSION = "zip"; //$NON-NLS-1$
-    private static final String FILE_SHAPFILE_NAME = "shapefile";   //$NON-NLS-1$
     private static final String WEBDAV_SPACE_NAME = "earthquake";   //$NON-NLS-1$
     private Logger logger = Logger.getLogger(DataController.class);
 
@@ -200,42 +198,9 @@ public class DataController {
         if (dataset == null) {
             throw new NotFoundException("There is no Dataset with given id in the repository.");    //$NON-NLS-1$
         }
-        List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
-        File csvFile = null;
-        String outFileName = "";    //$NON-NLS-1$
-        for (int i = 0; i < csvFDs.size(); i++) {
-            FileDescriptor csvFd = csvFDs.get(i);
-            String csvLoc = csvFd.getDataURL();
-            csvFile = new File(new URI(csvLoc));
-        }
 
-        Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
-        if (sourceDataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");
-        }
-        List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
-        String sourceType = sourceDataset.getType();
-        List<File> shpfiles = new ArrayList<File>();
-        File zipFile = null;
-        boolean isShpfile = false;
-
-        if (!(sourceType.equalsIgnoreCase(FILE_SHAPFILE_NAME))) {
-            for (int i = 0; i < sourceFDs.size(); i++) {
-                FileDescriptor sfd = sourceFDs.get(i);
-                String shpLoc = sfd.getDataURL();
-                File shpFile = new File(new URI(shpLoc));
-                shpfiles.add(shpFile);
-                //get file, if the file is in remote, use http downloader
-                String fileExt = FilenameUtils.getExtension(shpLoc);
-                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                    isShpfile = true;
-                }
-            }
-        }
-        if (isShpfile) {
-            zipFile = GeotoolsUtils.joinTableShapefile(shpfiles, csvFile);
-            outFileName = FilenameUtils.getBaseName(zipFile.getName()) + "." + FILE_ZIP_EXTENSION;
-        }
+        File zipFile = FileUtils.joinShpTable(dataset, repository, false);
+        String outFileName = FilenameUtils.getBaseName(zipFile.getName()) + "." + FileUtils.FILE_ZIP_EXTENSION;
 
         if (zipFile != null) {
             return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + outFileName + "\"").build();  //$NON-NLS-1$ //$NON-NLS-2$
@@ -336,6 +301,7 @@ public class DataController {
         boolean isAsc = false;
         boolean isShp = false;
         boolean isTif = false;
+        boolean isJoin = false;
 
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
@@ -385,34 +351,22 @@ public class DataController {
         }
         repository.addDataset(dataset);
 
-        if (isGeoserver) {
-            String datasetId = dataset.getId();
-            boolean published = false;
-            File outFile = null;
-            String inExt = null;
-            if (datasetId != null && datasetId.length() > 0) {
-                if (isShp) {
-                    // get zip file
-                    inExt = "shp";  //$NON-NLS-1$
-                    outFile = FileUtils.loadFileFromService(datasetId, repository, isGeoserver, inExt);
-                    String fileName = outFile.getName();
-                    published = GeoserverUtils.uploadToGeoserver(datasetId, outFile, inExt);
-                } else if (isTif) {
-                    inExt = "tif";  //$NON-NLS-1$
-                    outFile = FileUtils.loadFileFromService(datasetId, repository, isGeoserver, inExt);
-                    published = GeoserverUtils.uploadToGeoserver(datasetId, outFile, inExt);
-                } else if (isAsc) {
-                    inExt = "asc";  //$NON-NLS-1$
-                    outFile = FileUtils.loadFileFromService(datasetId, repository, isGeoserver, inExt);
-                    published = GeoserverUtils.uploadToGeoserver(datasetId, outFile, inExt);
-                }
-            }
+        // check if there is a source dataset, if so it will be joined to source dataset
+        String type = dataset.getFormat();
+        String sourceDataset = dataset.getSourceDataset();
+        // join it if it is a table dataset with source dataset existed
+        if (sourceDataset.length() > 0 && type.equalsIgnoreCase("table")) {
+            isJoin = true;
+            isGeoserver = true;
+        }
 
-            //remove temp dir
-            String tempDir = outFile.getParent();
-            File dirFile = new File(tempDir);
-            ArrayList<File> files = new ArrayList<File>(Arrays.asList(dirFile.listFiles()));
-            FileUtils.deleteTmpDir(files);
+        if (isGeoserver) {
+            if (isJoin) {
+                File zipFile = FileUtils.joinShpTable(dataset, repository, true);
+                boolean published = GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+            } else {
+                boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+            }
         }
         return dataset;
     }
