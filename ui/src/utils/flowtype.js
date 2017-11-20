@@ -85,3 +85,9 @@ export type Datasets = Dataset[];
 export type DatasetState = {
 	datasets: Dataset[]
 }
+
+export type ExecutionState = {
+	executionId: string;
+}
+
+export type GetState = () => Object;

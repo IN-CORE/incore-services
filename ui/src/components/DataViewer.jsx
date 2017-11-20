@@ -34,8 +34,7 @@ class DataViewer extends Component {
 	}
 
 	onClickDataset(datasetId) {
-		const dataset = this.props.datasets.find(dataset => dataset.id === datasetId);
-		this.setState({selectedDataset: datasetId, selectedDatasetFormat: dataset.format});
+		const dataset = this.props.datasets.find(dataset => dataset.id === datasetId);this.setState({selectedDataset: datasetId, selectedDatasetFormat: dataset.format});
 
 	}
 
@@ -59,8 +58,6 @@ class DataViewer extends Component {
 		}).then((text) => {
 			this.setState({fileData: text.split("\n"), fileExtension: file_name.split(".").slice(-1).pop()});
 		});
-
-
 
 	}
 

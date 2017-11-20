@@ -31,6 +31,30 @@ class Map extends Component {
 	}
 
 	componentDidMount() {
+		const outputLayerUntiled= new ol.layer.Image({
+			source: new ol.source.ImageWMS({
+				ratio: 1,
+				url: "http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms",
+				params: {"FORMAT": "image/png",
+					"VERSION": "1.1.1",
+					STYLES: "",
+					LAYERS: "incore:59f8d08dc7d30d278f25095d",
+				}
+			})
+		});
+		let outputLayerTiled = new ol.layer.Tile({
+			source: new ol.source.TileWMS({
+				visible: false,
+				url: "http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms",
+				params: {"FORMAT": "image/png",
+					"VERSION": "1.1.1",
+					tiled: true,
+					STYLES: "",
+					LAYERS: "incore:59f8d08dc7d30d278f25095d", // TODO: Use this.props.outputDatasetId
+					tilesOrigin: `${-90.07376669874641  },${  35.03298062856903}` //TODO: How are we going to get this center
+				}
+			})
+		});
 
 		let layers;
 		layers = [
@@ -43,13 +67,23 @@ class Map extends Component {
 					})],
 					url: "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
 				})
-			})
+			}),
+			outputLayerUntiled,
+			outputLayerTiled
 		];
 
-		let view = new ol.View({
-			projection: "EPSG:4326",
-			center:  [-84.44799549, 38.9203417],
-			zoom: 5.5,
+
+		const projection = new ol.proj.Projection({
+			code: "EPSG:4326",
+			units: "degrees",
+			axisOrientation: "neu",
+			global: true
+		});
+
+		const view = new ol.View({
+			projection: projection,
+			center:  [-90.07376669874641, 35.03298062856903],
+			zoom: 10,
 			minZoom: 5.5,
 			maxZoom: 12
 		});
