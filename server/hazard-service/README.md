@@ -16,7 +16,6 @@ Site Amplification
 http://localhost:8080/hazard/api/earthquake/soil/amplification?method=NEHRP&demandType=0.2+SA&siteLat=35.07899&siteLong=-90.0178&hazard=0.3502&defaultSiteClass=D
 1.51984
 
-hazard/api/tornado
 
 http://localhost:8080/hazard/api/tornado/model?modelId=TornadoMeanWidth&datasetId=some-dataset-id&demandUnits=mph&siteLat=35.07899&siteLong=-90.0178
 
@@ -42,3 +41,32 @@ http://localhost:8080/hazard/api/earthquake/{id}/value?demandType=0.2+SA&demandU
 # Generate Raster
 
 http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&demandUnits=g&minX=-90.3099&minY=34.9942&maxX=-89.6231&maxY=35.4129&gridSpacing=0.01696
+
+# Create Scenario Tornado
+
+hazard/api/tornadoes
+
+http://localhost:8080/hazard/api/tornadoes
+
+POST - Create scenario earthquake
+
+{
+  "tornadoModel" : "MeanWidthTornado",
+  "tornadoParameters" : {
+    "efRating" : "EF5",
+    "startLatitude" : "35.218",
+    "startLongitude" : "-97.510",
+    "randomSeed" : "1234",
+    "endLatitude" : [35.246],
+    "endLongitude" : [-97.438],
+    "windSpeedMethod" : "1"
+  }
+}
+
+# Get tornado value at point:
+
+http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35.2265&siteLong=-97.4788
+value should be between 65 and 85 mph
+
+http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35.2286&siteLong=-97.4770
+value should be between 136 and 165 mph
