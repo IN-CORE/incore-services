@@ -6,7 +6,8 @@ const mapStateToProps = (state, ownProps) => {
 	return {
 		analysis: state.analyses.selectedAnalysis,
 		executionId: state.execution.executionId,
-		fileData: state.execution.outputFile
+		fileData: state.execution.outputFile,
+		datasetId: state.execution.outputDatasetId
 	};
 };
 

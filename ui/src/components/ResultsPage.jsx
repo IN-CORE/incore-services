@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import Map from "../containers/Map";
+import Map from "./Map";
 import Table from "./Table";
 import {GridList, GridTile} from "material-ui";
 
@@ -31,7 +31,8 @@ class ResultsPage extends Component {
 						{file_contents}
 					</GridTile>
 					<GridTile cols={6}>
-						<Map/>
+						<Map datasetId={"59f8d08dc7d30d278f25095d"}/>
+						{/*Should be: this.props.outputDatasetId*/}
 					</GridTile>
 				</GridList>
 

@@ -124,7 +124,7 @@ class DataViewer extends Component {
 		if(this.state.selectedDatasetFormat === "shapefile") {
 			right_column =
 				<div>
-					<Map id={this.state.selectedDataset}/>
+					<Map datasetId={this.state.selectedDataset}/>
 				</div>;
 		} else if (file_descriptors.length > 0) {
 			right_column = (<div>
