@@ -72,7 +72,7 @@ public class DataController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Dataset getDatasetFromRepo(String username, @PathParam("id") String datasetId) {
+    public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             throw new NotFoundException("There is no Dataset with given id in the repository.");
