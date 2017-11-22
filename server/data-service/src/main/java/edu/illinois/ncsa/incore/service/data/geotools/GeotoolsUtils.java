@@ -15,7 +15,7 @@ package edu.illinois.ncsa.incore.service.data.geotools;
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.coverage.grid.GridCoverage2D;

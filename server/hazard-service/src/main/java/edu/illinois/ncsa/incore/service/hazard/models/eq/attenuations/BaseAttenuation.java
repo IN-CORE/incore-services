@@ -31,7 +31,7 @@ public abstract class BaseAttenuation {
     protected Map<String, List<Double>> coefficients;
 
     /**
-     * Subclasses should implement this method and put required model parameters
+     * Subclasses should implement this method and put required models parameters
      * in a map
      *
      * @return hazard value

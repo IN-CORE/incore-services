@@ -34,7 +34,7 @@ public class Application  extends ResourceConfig {
         IRepository mongoRepository = new MongoDBRepository(new MongoClientURI(mongodbUri));
         mongoRepository.initialize();
 
-        // Bind Atkinson and Boore 1995 model
+        // Bind Atkinson and Boore 1995 models
         // TODO We need some kind of provider where we can register the hazard models
 
         String modelId = "AtkinsonBoore1995";

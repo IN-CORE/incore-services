@@ -16,13 +16,12 @@ import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
-import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
-import edu.illinois.ncsa.incore.service.data.model.MvzLoader;
-import edu.illinois.ncsa.incore.service.data.model.Space;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.impl.FileStorageDisk;
-import edu.illinois.ncsa.incore.service.data.model.mvz.MvzDataset;
+import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
+import edu.illinois.ncsa.incore.service.data.models.Space;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
+import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -40,7 +39,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**

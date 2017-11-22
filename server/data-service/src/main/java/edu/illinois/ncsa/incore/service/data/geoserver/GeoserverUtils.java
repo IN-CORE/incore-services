@@ -14,7 +14,7 @@ package edu.illinois.ncsa.incore.service.data.geoserver;
 
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Dataset;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import org.apache.commons.io.FilenameUtils;
@@ -24,8 +24,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Created by ywkim on 11/9/2017.

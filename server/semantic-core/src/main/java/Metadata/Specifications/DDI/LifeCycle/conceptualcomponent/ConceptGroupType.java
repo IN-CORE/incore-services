@@ -29,7 +29,7 @@ import Metadata.Specifications.DDI.LifeCycle.reusable.VersionableType;
 
 
 /**
- * Allows for grouping of concepts; groups may have a hierarchical structure. This structure should not be used to model semantic concept hierarchies - for this purpose, use the SubclassOfReference element within Concept.
+ * Allows for grouping of concepts; groups may have a hierarchical structure. This structure should not be used to models semantic concept hierarchies - for this purpose, use the SubclassOfReference element within Concept.
  * <p>
  * <p>Java class for ConceptGroupType complex type.
  * <p>

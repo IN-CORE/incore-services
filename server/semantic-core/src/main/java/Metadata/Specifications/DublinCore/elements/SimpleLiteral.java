@@ -56,7 +56,7 @@ import Metadata.Specifications.DublinCore.terms.W3CDTF;
  * Such a restriction from the xs:anyType is unnecessary, as this is
  * implicit in all types. Further, the xs:any element with a minOccurs="0"
  * causes issues with Apache Xml Beans. This declaration allows for an
- * equivalent content model while still allowing extensions from this type
+ * equivalent content models while still allowing extensions from this type
  * to declare elements to allow for true mixed content.
  * <p>
  * <p>Java class for SimpleLiteral complex type.
@@ -124,7 +124,7 @@ public class SimpleLiteral {
      * Such a restriction from the xs:anyType is unnecessary, as this is
      * implicit in all types. Further, the xs:any element with a minOccurs="0"
      * causes issues with Apache Xml Beans. This declaration allows for an
-     * equivalent content model while still allowing extensions from this type
+     * equivalent content models while still allowing extensions from this type
      * to declare elements to allow for true mixed content.
      *
      * @return possible object is

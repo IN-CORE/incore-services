@@ -386,7 +386,7 @@ public class FragmentType {
     protected List<JAXBElement<?>> content;
 
     /**
-     * Gets the rest of the content model.
+     * Gets the rest of the content models.
      * <p>
      * <p>
      * You are getting this "catch-all" property because of the following reason:

@@ -350,7 +350,7 @@ public class ComparisonUtils
 			return applyComparator(s1, s2, comparator);
 		case NCSAConstants.CONTENTS:
 			/*
-			 * not absolutely scalable, but follows the model of other Ant
+			 * not absolutely scalable, but follows the models of other Ant
 			 * tasks, where files are compared in memory
 			 */
 			if (arg1 instanceof Long || arg2 instanceof Long)

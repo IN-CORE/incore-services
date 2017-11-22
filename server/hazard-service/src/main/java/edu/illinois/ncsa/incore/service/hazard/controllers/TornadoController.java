@@ -20,12 +20,12 @@ import javax.ws.rs.core.Response;
 public class TornadoController {
 
     @GET
-    @Path("/model")
+    @Path("/models")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getTornadoModelHazard(@QueryParam("modelId") String modelId, @QueryParam("datasetId") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong ) {
 
         // calculate wind speed
-        return Response.ok("Return tornado model hazard for "+modelId).build();
+        return Response.ok("Return tornado models hazard for "+modelId).build();
     }
 
 }
