@@ -106,7 +106,7 @@ public class EarthquakeController {
 
 
     @GET
-    @Path("/models")
+    @Path("/model")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getEarthquakeModelHazard(@QueryParam("modelId") String modelId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("eqJson") String eqJson) {
 
@@ -124,7 +124,7 @@ public class EarthquakeController {
                 demand = demandSplit[1];
             }
 
-            // TODO How can we store and lookup these models by ID?
+            // TODO How can we store and lookup these model by ID?
             // TODO handle the case of a defined earthquake using multiple attenuations for weighting
             if (modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
                 try {
@@ -139,12 +139,12 @@ public class EarthquakeController {
                     logger.error("Error locating coefficients for " + modelId, e);
                     throw new InternalServerErrorException("Error locating coefficients for " + modelId, e);
                 } catch (Exception e) {
-                    logger.error("Error getting models value for point.", e);
-                    throw new InternalServerErrorException("Error getting models value for point.", e);
+                    logger.error("Error getting model value for point.", e);
+                    throw new InternalServerErrorException("Error getting model value for point.", e);
                 }
             } else {
-                logger.error("Unknown attenuation models " + modelId);
-                throw new NotFoundException("Unknown attenuation models " + modelId);
+                logger.error("Unknown attenuation model " + modelId);
+                throw new NotFoundException("Unknown attenuation model " + modelId);
             }
         } catch (IOException e) {
             logger.error("Error reading earthquake parameters");
