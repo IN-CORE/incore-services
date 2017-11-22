@@ -84,7 +84,7 @@ public class DateType {
     protected List<JAXBElement<?>> content;
 
     /**
-     * Gets the rest of the content models.
+     * Gets the rest of the content model.
      * <p>
      * <p>
      * You are getting this "catch-all" property because of the following reason:

@@ -289,7 +289,7 @@ with DDI 3.1 XML Schema. If not, see <http://www.gnu.org/licenses/>.
 
   <!--
     InlinePre.mix
-    Used as a component in pre models
+    Used as a component in pre model
   -->
   <xs:group name="InlinePre.mix">
     <xs:choice>
