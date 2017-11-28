@@ -7,4 +7,5 @@ include "data-service"
 include "hazard-service"
 include "maestro-service"
 include 'incore-common'
+include 'auth-service'
 

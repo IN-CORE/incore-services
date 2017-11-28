@@ -7,7 +7,7 @@
  * Contributors:
  * Nathan Tolbert (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.maestro.controllers;
+package edu.illinois.ncsa.incore.service.auth.controllers;
 
 import org.apache.log4j.Logger;
 
