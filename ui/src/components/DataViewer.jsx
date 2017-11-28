@@ -1,15 +1,23 @@
 import React, {Component} from "react";
-import {GridList, GridTile, SelectField, MenuItem, List, ListItem, Divider, TextField, IconButton} from "material-ui";
+import Table from "./Table";
+import Map from "./Map";
+import {GridList, GridTile, SelectField, MenuItem, List,
+	ListItem, Divider, TextField, IconButton} from "material-ui";
 import ActionSearch from "material-ui/svg-icons/action/search";
 import csv from "csv";
-import Table from "./Table";
 import config from "../app.config";
 
 class DataViewer extends Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {};
+		this.state = {
+			type: "",
+			selectedDataset: "",
+			selectedDatasetFormat: "",
+			fileData: "",
+			fileExtension: ""
+		};
 		this.changeDatasetType = this.changeDatasetType.bind(this);
 		this.onClickDataset = this.onClickDataset.bind(this);
 		this.handleKeyPressed = this.handleKeyPressed.bind(this);
@@ -22,12 +30,12 @@ class DataViewer extends Component {
 	}
 
 	changeDatasetType(event, index, value) {
-		this.setState({type: value, selectedDataset: "", fileData: "", fileExtension: ""});
+		this.setState({type: value, selectedDataset: "", fileData: "", fileExtension: "", selectedDatasetFormat: ""});
 	}
 
 	onClickDataset(datasetId) {
-		this.setState({selectedDataset: datasetId});
-		// console.log(datasetId);
+		const dataset = this.props.datasets.find(dataset => dataset.id === datasetId);this.setState({selectedDataset: datasetId, selectedDatasetFormat: dataset.format});
+
 	}
 
 	async handleKeyPressed(event) {
@@ -50,8 +58,6 @@ class DataViewer extends Component {
 		}).then((text) => {
 			this.setState({fileData: text.split("\n"), fileExtension: file_name.split(".").slice(-1).pop()});
 		});
-
-
 
 	}
 
@@ -115,7 +121,12 @@ class DataViewer extends Component {
 		}
 
 		let right_column =  "";
-		if (file_descriptors.length > 0) {
+		if(this.state.selectedDatasetFormat === "shapefile") {
+			right_column =
+				<div>
+					<Map datasetId={this.state.selectedDataset}/>
+				</div>;
+		} else if (file_descriptors.length > 0) {
 			right_column = (<div>
 				<h2> File Descriptors</h2>
 				<List style={{"overflowY": "auto", height: "200px"}}>
