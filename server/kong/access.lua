@@ -3,7 +3,6 @@
 local responses = require "kong.tools.responses"
 local constants = require "kong.constants"
 local singletons = require "kong.singletons"
-local cache = require "kong.tools.database_cache"
 local ldap = require "kong.plugins.ldap-auth.ldap"
 
 local match = string.match
@@ -28,8 +27,10 @@ local function retrieve_credentials(authorization_header_value)
     local cred = match(authorization_header_value, "%s*[ldap|LDAP]%s+(.*)")
 
     if cred ~= nil then
-      local decoded_cred = decode_base64(cred)
-      username, password = match(decoded_cred, "(.+):(.+)")
+	if cred ~= "token" then
+	      local decoded_cred = decode_base64(cred)
+	      username, password = match(decoded_cred, "(.+):(.+)")
+	end
     end
   end
   return username, password
@@ -88,6 +89,10 @@ local function load_credential(given_username, given_password, conf)
   return {username = given_username, password = given_password}
 end
 
+local function return_token(token) 
+  return token
+end
+
 -- NLT adding token
 local function authenticate(conf, given_credentials, auth_user, auth_token)
 
@@ -97,7 +102,8 @@ local function authenticate(conf, given_credentials, auth_user, auth_token)
   if auth_user ~= nil then
     ngx_log(ngx_debug, "[ldap-auth] auth_user is:"..auth_user)
     ngx_log(ngx_debug, "[ldap-auth] auth_token is:'"..auth_token.."'")
-    local cached_token = cache.get(cache.ldap_credential_key(ngx.ctx.api.id, auth_user))
+    local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. given_username
+    local cached_token = singletons.cache:get(cache_key)
 
     if cached_token ~= nil then
       ngx_log(ngx_debug, "[ldap-auth] cached token is:'"..cached_token.."'")
@@ -144,10 +150,13 @@ local function authenticate(conf, given_credentials, auth_user, auth_token)
   -- if succeeded, generate and cache a token
   local new_token = tostring(math.random(1, 99999999999) + gettime() * 1000) .. tostring(math.random(1,99999999))
   ngx_log(ngx_debug, "[ldap-auth] success, new token is:"..new_token)
-  cache.set(cache.ldap_credential_key(ngx.ctx.api.id, given_username), new_token, 10000)
+  local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. given_username
+  singletons.cache:get(cache_key, {ttl=10000, neg_ttl = conf.cache_ttl}, return_token, new_token)
 
   return true, {username = given_username, password = auth_token}, new_token
 end
+
+
 
 local function load_consumer(consumer_id, anonymous)
   local result, err = singletons.dao.consumers:find { id = consumer_id }
@@ -236,7 +245,8 @@ function _M.execute(conf)
   if not ok then
     if conf.anonymous ~= "" and conf.anonymous ~= nil then
       -- get anonymous user
-      local consumer, err = cache.get_or_set(cache.consumer_key(conf.anonymous),
+      local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. conf.anonymous
+      local consumer, err = singletons.cache:get(cache_key,
                        nil, load_consumer, conf.anonymous, true)
       if err then
         responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
