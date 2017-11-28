@@ -27,8 +27,10 @@ local function retrieve_credentials(authorization_header_value)
     local cred = match(authorization_header_value, "%s*[ldap|LDAP]%s+(.*)")
 
     if cred ~= nil then
-      local decoded_cred = decode_base64(cred)
-      username, password = match(decoded_cred, "(.+):(.+)")
+	if cred ~= "token" then
+	      local decoded_cred = decode_base64(cred)
+	      username, password = match(decoded_cred, "(.+):(.+)")
+	end
     end
   end
   return username, password
@@ -244,7 +246,7 @@ function _M.execute(conf)
     if conf.anonymous ~= "" and conf.anonymous ~= nil then
       -- get anonymous user
       local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. conf.anonymous
-      local consumer, err = singletons.cache:get_or_set(cache_key,
+      local consumer, err = singletons.cache:get(cache_key,
                        nil, load_consumer, conf.anonymous, true)
       if err then
         responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
