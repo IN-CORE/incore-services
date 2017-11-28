@@ -1,27 +1,42 @@
 #add the apis that are forwarded by kong
+curl -i -X DELETE --url http://localhost:8001/apis/fragility
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=fragility' \
   --data 'uris=/fragility' \
-  --data 'upstream_url=http://localhost:8080/fragility/'
+  --data 'upstream_url=http://localhost:8888/fragility/'
 
+
+
+curl -i -X DELETE --url http://localhost:8001/apis/maestro
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=maestro' \
   --data 'uris=/maestro' \
-  --data 'upstream_url=http://localhost:8080/maestro/'
+  --data 'upstream_url=http://localhost:8888/maestro/'
+
+
+
+
+curl -i -X DELETE --url http://localhost:8001/apis/repo
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=repo' \
   --data 'uris=/repo' \
-  --data 'upstream_url=http://localhost:8080/repo/'
+  --data 'upstream_url=http://localhost:8888/repo/'
+
+
+
+
+
+curl -i -X DELETE --url http://localhost:8001/apis/hazard
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=hazard' \
   --data 'uris=/hazard' \
-  --data 'upstream_url=http://localhost:8080/hazard/'
+  --data 'upstream_url=http://localhost:8888/hazard/'
 
 
 #create an anonyous user
