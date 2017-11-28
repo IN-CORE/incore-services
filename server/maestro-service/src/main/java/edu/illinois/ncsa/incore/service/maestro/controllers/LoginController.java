@@ -35,7 +35,7 @@ public class LoginController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> attemptLogin(@HeaderParam("X-Credential-Username") String username, @HeaderParam("X-Anonymous-Consumer") String didFail) {
+    public Map<String, String> attemptLogin(@HeaderParam("X-Credential-Username") String username, @HeaderParam("X-Anonymous-Consumer") String didFail, @HeaderParam("auth_token") String authToken) {
 
         Map<String, String> result = new HashMap<>();
         if (didFail != null || username == null) {
@@ -45,6 +45,7 @@ public class LoginController {
         }
         result.put("result", "success");
         result.put("user", username);
+        result.put("auth-token", authToken);
         return result;
     }
 
