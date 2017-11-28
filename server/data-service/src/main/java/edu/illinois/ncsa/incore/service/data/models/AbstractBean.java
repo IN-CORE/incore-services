@@ -10,7 +10,7 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.datawolf.domain;
+package edu.illinois.ncsa.incore.service.data.models;
 
 /**
  * Created by ywkim on 9/26/2017.
@@ -22,7 +22,6 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 //@Entity
 //@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)

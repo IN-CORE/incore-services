@@ -10,9 +10,9 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.mvz;
+package edu.illinois.ncsa.incore.service.data.models.mvz;
 
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;

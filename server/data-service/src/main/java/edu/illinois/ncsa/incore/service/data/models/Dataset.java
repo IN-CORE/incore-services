@@ -11,7 +11,7 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.datawolf.domain;
+package edu.illinois.ncsa.incore.service.data.models;
 
 /**
  * Created by ywkim on 9/26/2017.
@@ -20,16 +20,11 @@ package edu.illinois.ncsa.incore.service.data.model.datawolf.domain;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import edu.illinois.ncsa.incore.service.data.model.datawolf.jackson.JsonDateSerializer;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
+import edu.illinois.ncsa.incore.service.data.models.jackson.JsonDateSerializer;
 
 public class Dataset extends AbstractBean {
     /**

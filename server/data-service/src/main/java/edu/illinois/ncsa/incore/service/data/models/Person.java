@@ -10,7 +10,7 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.datawolf.domain;
+package edu.illinois.ncsa.incore.service.data.models;
 
 /**
  * Created by ywkim on 9/26/2017.

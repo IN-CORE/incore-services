@@ -4,16 +4,12 @@ package edu.illinois.ncsa.incore.service.data.test;
  * Created by ywkim on 8/7/2017.
  */
 //import edu.illinois.ncsa.incore.services.fragilitymapping.FragilityMappingController;
-import edu.illinois.ncsa.incore.service.data.controllers.DataController;
+import edu.illinois.ncsa.incore.service.data.controllers.DatasetController;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
-import org.json.JSONArray;
-import org.junit.Test;
 
 import javax.ws.rs.core.Application;
-import java.io.*;
-import java.net.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,7 +24,7 @@ public class DataControllerTest extends JerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        return new ResourceConfig(DataController.class);
+        return new ResourceConfig(DatasetController.class);
     }
 
 //    @Test

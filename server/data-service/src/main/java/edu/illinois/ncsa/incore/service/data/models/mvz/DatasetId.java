@@ -10,28 +10,22 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.mvz;
-
-import java.util.LinkedList;
-import java.util.List;
+package edu.illinois.ncsa.incore.service.data.models.mvz;
 
 /**
- * Created by ywkim on 8/2/2017.
+ * Created by ywkim on 7/31/2017.
  */
-public class MaevizMapping {
-    private String schema;
-    private List<Mapping> mapping = new LinkedList<Mapping>();
+public class DatasetId {
+    private String location;
+    private String description;
 
-    public String getSchema() {
-        return schema;
+    public String getLocation() {
+        return location;
     }
-    public void setSchema(String schema){
-        this.schema = schema;
-    }
-
-    public List<Mapping> getMapping() { return mapping; }
-    public void setMapping(List<Mapping> mapping) {
-        this.mapping = mapping;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
+    public String getDescription() {return description;}
+    public void setDescription(String description) {this.description =description;}
 }

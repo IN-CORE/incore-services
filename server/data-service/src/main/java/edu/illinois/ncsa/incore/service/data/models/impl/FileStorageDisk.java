@@ -10,7 +10,7 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.datawolf.domain.impl;
+package edu.illinois.ncsa.incore.service.data.models.impl;
 
 /**
  * Created by ywkim on 9/29/2017.
@@ -35,9 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.name.Named;
 
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.FileStorage;
-import edu.illinois.ncsa.incore.service.data.model.datawolf.domain.Person;
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.FileStorage;
+import edu.illinois.ncsa.incore.service.data.models.Person;
 import edu.illinois.ncsa.incore.service.data.dao.FileDescriptorDao;
 
 /**

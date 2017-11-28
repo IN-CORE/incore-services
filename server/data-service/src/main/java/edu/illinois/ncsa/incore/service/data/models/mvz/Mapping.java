@@ -10,7 +10,7 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.mvz;
+package edu.illinois.ncsa.incore.service.data.models.mvz;
 
 /**
  * Created by ywkim on 8/2/2017.

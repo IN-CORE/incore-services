@@ -10,7 +10,7 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.mvz;
+package edu.illinois.ncsa.incore.service.data.models.mvz;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -10,22 +10,19 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.mvz;
+package edu.illinois.ncsa.incore.service.data.models.mvz;
 
 /**
  * Created by ywkim on 7/31/2017.
  */
-public class DatasetId {
-    private String location;
-    private String description;
+public class Metadata {
+    public TableMetadata tableMetadata = new TableMetadata();
 
-    public String getLocation() {
-        return location;
-    }
-    public void setLocation(String location) {
-        this.location = location;
+    public TableMetadata getTableMetadata() {
+        return tableMetadata;
     }
 
-    public String getDescription() {return description;}
-    public void setDescription(String description) {this.description =description;}
+    public void setTableMetadata(TableMetadata tableMetadata) {
+        this.tableMetadata = this.tableMetadata;
+    }
 }

@@ -10,7 +10,7 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model;
+package edu.illinois.ncsa.incore.service.data.models;
 
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;

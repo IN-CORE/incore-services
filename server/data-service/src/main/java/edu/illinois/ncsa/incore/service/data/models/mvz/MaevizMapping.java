@@ -10,19 +10,28 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.model.mvz;
+package edu.illinois.ncsa.incore.service.data.models.mvz;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * Created by ywkim on 7/31/2017.
+ * Created by ywkim on 8/2/2017.
  */
-public class Metadata {
-    public TableMetadata tableMetadata = new TableMetadata();
+public class MaevizMapping {
+    private String schema;
+    private List<Mapping> mapping = new LinkedList<Mapping>();
 
-    public TableMetadata getTableMetadata() {
-        return tableMetadata;
+    public String getSchema() {
+        return schema;
+    }
+    public void setSchema(String schema){
+        this.schema = schema;
     }
 
-    public void setTableMetadata(TableMetadata tableMetadata) {
-        this.tableMetadata = this.tableMetadata;
+    public List<Mapping> getMapping() { return mapping; }
+    public void setMapping(List<Mapping> mapping) {
+        this.mapping = mapping;
     }
+
 }
