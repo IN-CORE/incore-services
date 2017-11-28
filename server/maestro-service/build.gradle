@@ -10,11 +10,6 @@ gretty {
 }
 
 dependencies {
-	compile 'com.yammer.metrics:metrics-core:2.2.0'
-	compile 'com.yammer.metrics:metrics-servlet:2.2.0'
-	compile 'com.yammer.metrics:metrics-jersey:2.2.0'
-	compile 'com.yammer.metrics:metrics-graphite:2.2.0'
-
 	compile 'de.grundid.opendatalab:geojson-jackson:1.8'
 
 	compile 'org.mongodb:mongo-java-driver:3.3.0'
@@ -23,6 +18,7 @@ dependencies {
 	compile 'org.jamel.dbf:dbf-reader:0.2.0'
 
 	compile project(':tools-common');
+        compile project(':incore-common');
 }
 
 task wrapper(type: Wrapper) {
