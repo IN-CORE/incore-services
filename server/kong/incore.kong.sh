@@ -23,6 +23,12 @@ curl -i -X POST \
   --data 'uris=/hazard' \
   --data 'upstream_url=http://localhost:8080/hazard/'
 
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=auth' \
+  --data 'uris=/auth' \
+  --data 'upstream_url=http://localhost:8080/auth/'
+
 
 #create an anonyous user
 curl -i -X POST \
