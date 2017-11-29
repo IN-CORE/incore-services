@@ -335,10 +335,10 @@ public class DatasetController {
         repository.addDataset(dataset);
 
         // check if there is a source dataset, if so it will be joined to source dataset
-        String type = dataset.getFormat();
+        String format = dataset.getFormat();
         String sourceDataset = dataset.getSourceDataset();
         // join it if it is a table dataset with source dataset existed
-        if (sourceDataset.length() > 0 && type.equalsIgnoreCase("table")) {
+        if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
             isJoin = true;
             isGeoserver = true;
         }
@@ -354,27 +354,26 @@ public class DatasetController {
 
         // create GUID if there is no GUID in the table
         List<FileDescriptor> shpFDs = dataset.getFileDescriptors();
-        String sourceType = dataset.getType();
-        List<File> shpfiles = new ArrayList<File>();
+        List<File> files = new ArrayList<File>();
         File zipFile = null;
         boolean isShpfile = false;
 
-        if (!(sourceType.equalsIgnoreCase(FILE_SHAPFILE_NAME))) {
+        if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE)) {
             for (int i = 0; i < shpFDs.size(); i++) {
                 FileDescriptor sfd = shpFDs.get(i);
                 String shpLoc = sfd.getDataURL();
                 File shpFile = new File(new URI(shpLoc));
-                shpfiles.add(shpFile);
+                files.add(shpFile);
                 //get file, if the file is in remote, use http downloader
                 String fileExt = FilenameUtils.getExtension(shpLoc);
                 if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                     isShpfile = true;
                 }
             }
-        }
-        boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, shpfiles);
-        if (isGuid) {
-            logger.debug("The shapefile already has guid field");   //$NON-NLS-1$
+            boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
+            if (isGuid) {
+                logger.debug("The shapefile already has guid field");   //$NON-NLS-1$
+            }
         }
 
         return dataset;
@@ -449,7 +448,7 @@ public class DatasetController {
      * @throws URISyntaxException
      */
     @GET
-    @Path("/dump")
+    @Path("/import")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetFromWebdav() throws IOException, URISyntaxException {
         List<Dataset> datasets = new ArrayList<Dataset>();

@@ -453,9 +453,13 @@ public class FileUtils {
 
             List<String> fileNameList = new LinkedList<String>();
             for (FileDescriptor fd : fds) {
+                // do not put the mvz file
                 String dataUrl = fd.getDataURL();
-                fileList.add(new File(new URI(dataUrl)));
-                fileNameList.add(FilenameUtils.getName(dataUrl));
+                String ext = FilenameUtils.getExtension(dataUrl);
+                if (!ext.equalsIgnoreCase(EXTENSION_META)) {
+                    fileList.add(new File(new URI(dataUrl)));
+                    fileNameList.add(FilenameUtils.getName(dataUrl));
+                }
             }
 
             // create temp dir and copy files to temp dir

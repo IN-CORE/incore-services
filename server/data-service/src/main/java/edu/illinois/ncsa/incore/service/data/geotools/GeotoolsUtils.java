@@ -203,7 +203,7 @@ public class GeotoolsUtils {
             inputFeatureIterator.close();
         }
 
-        return createOutShapefile(finalList, finalResultMapList, tempDir, outFileName);
+        return createOutfile(finalList, finalResultMapList, tempDir, outFileName);
     }
 
     /**
@@ -265,7 +265,7 @@ public class GeotoolsUtils {
      * @throws IOException
      */
     @SuppressWarnings("unchecked")
-    public static File createOutShapefile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
+    public static File createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
                                           String outDir, String outFileName) throws IOException {
         File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
 
@@ -441,8 +441,10 @@ public class GeotoolsUtils {
 
         // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir);
+        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp");
         URL inSourceFileUrl = null;
+        boolean isGuid = false;
+
         for (File copiedFile: copiedFileList) {
             String fileExt = FilenameUtils.getExtension(copiedFile.getName());
             if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
@@ -470,14 +472,11 @@ public class GeotoolsUtils {
                 tmpList.clear();
                 resultMapList.clear();
 
-                boolean isGuid = false;
-
                 // check if guid is there
                 for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
                     AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
                     if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
                         isGuid = true;
-                        return false;
                     }
                 }
 
@@ -506,8 +505,13 @@ public class GeotoolsUtils {
 
         File outFile = createOutfile(finalList, finalResultMapList, tempDir, outFileName);
         FileUtils.switchDbfFile(outFile, shpfiles);
+        FileUtils.deleteTmpDir(copiedFileList.get(0));
 
-        return true;
+        if (isGuid) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
 
