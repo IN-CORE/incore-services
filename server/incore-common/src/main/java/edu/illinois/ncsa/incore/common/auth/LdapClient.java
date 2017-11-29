@@ -1,6 +1,16 @@
+/*******************************************************************************
+ * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the BSD-3-Clause which accompanies this distribution,
+ * and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Contributors:
+ * Nathan Tolbert (NCSA) - initial API and implementation
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.common.auth;
 
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.users.UserInfo;
 import org.apache.log4j.Logger;
 
 import javax.naming.Context;
@@ -54,8 +64,8 @@ public class LdapClient {
 
 
                 Set<String> groups = Arrays.stream(groupsDns)
-                        .map(this::extractCnFromDn)
-                        .collect(Collectors.toSet());
+                    .map(this::extractCnFromDn)
+                    .collect(Collectors.toSet());
 
                 result.addAll(groups);
 
@@ -66,6 +76,48 @@ public class LdapClient {
         }
         return result;
     }
+
+    public UserInfo getUserInfoFor(String user) {
+        UserInfo userInfo = null;
+        try {
+            DirContext ctx = getContext();
+            SearchControls ctls = new SearchControls();
+            String[] attrIDs = {"givenname", "sn", "mail", "cn"};
+            ctls.setReturningAttributes(attrIDs);
+            ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+
+            if (userDn == null) {
+                log.error("No auth.ldap.userDn specified in config file");
+            }
+
+            NamingEnumeration answer = ctx.search(userDn, "(uid=" + user + ")", ctls);
+            while (answer.hasMore()) {
+                SearchResult rslt = (SearchResult) answer.next();
+                Attributes attrs = rslt.getAttributes();
+
+
+
+                userInfo = new UserInfo();
+                userInfo.firstName = attrs.get("givenname").get().toString();
+                userInfo.lastName = attrs.get("sn").get().toString();
+                userInfo.fullName = attrs.get("cn").get().toString();
+                userInfo.email = attrs.get("mail").get().toString();
+                userInfo.login = user;
+                userInfo.groups = getUserGroups(user);
+
+
+            }
+            ctx.close();
+        } catch (NamingException e) {
+            log.error("Could not find groups for user " + user, e);
+        }
+        if (userInfo == null) {
+            log.error("Could not find user " + user);
+        }
+        return userInfo;
+
+    }
+
 
     private String extractCnFromDn(String dn) {
         /* match any non-comma group of characters [^,]

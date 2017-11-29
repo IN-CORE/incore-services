@@ -11,7 +11,7 @@ gretty {
 
 dependencies {
 	compile project(':tools-common');
-        compile project(':incore-common');
+    compile project(':incore-common');
 }
 
 task wrapper(type: Wrapper) {
