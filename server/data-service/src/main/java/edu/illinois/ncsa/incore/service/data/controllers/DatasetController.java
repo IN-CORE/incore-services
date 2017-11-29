@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
+import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -350,6 +351,32 @@ public class DatasetController {
                 boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
             }
         }
+
+        // create GUID if there is no GUID in the table
+        List<FileDescriptor> shpFDs = dataset.getFileDescriptors();
+        String sourceType = dataset.getType();
+        List<File> shpfiles = new ArrayList<File>();
+        File zipFile = null;
+        boolean isShpfile = false;
+
+        if (!(sourceType.equalsIgnoreCase(FILE_SHAPFILE_NAME))) {
+            for (int i = 0; i < shpFDs.size(); i++) {
+                FileDescriptor sfd = shpFDs.get(i);
+                String shpLoc = sfd.getDataURL();
+                File shpFile = new File(new URI(shpLoc));
+                shpfiles.add(shpFile);
+                //get file, if the file is in remote, use http downloader
+                String fileExt = FilenameUtils.getExtension(shpLoc);
+                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                    isShpfile = true;
+                }
+            }
+        }
+        boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, shpfiles);
+        if (isGuid) {
+            logger.debug("The shapefile already has guid field");   //$NON-NLS-1$
+        }
+
         return dataset;
     }
 
