@@ -6,7 +6,8 @@ import type { Dispatch } from "../utils/flowtype";
 const mapStateToProps = (state, ownProps) => {
 	return {
 		analysis: state.analyses.selectedAnalysis,
-		datasets: state.data.datasets
+		datasets: state.data.datasets,
+		executionId:  state.execution.executionId,
 	};
 };
 
@@ -16,8 +17,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 		loadAnalyses: () => {
 			dispatch(fetchAnalyses());
 		},
-		executeAnalysis: (workflowid, creatorid, title, description, parameters, datasets) => {
-			dispatch(executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets));
+		executeAnalysis: async (workflowid, creatorid, title, description, parameters, datasets) => {
+			await dispatch(executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets));
 		},
 		loadDatasets: () => {
 			dispatch(fetchDatasets());

@@ -3,6 +3,7 @@ import {browserHistory} from "react-router";
 import AnalysisSelect from "../containers/AnalysisSelect";
 import InputDropdown from "./InputDropdown";
 import {TextField, RaisedButton, MenuOption, SelectField} from "material-ui";
+import config from "../app.config";
 
 class ExecuteAnalysis extends Component {
 
@@ -25,14 +26,14 @@ class ExecuteAnalysis extends Component {
 		this.props.loadDatasets();
 	}
 
-	executeAnalysis(event) {
+	async executeAnalysis(event) {
 		//Post to Datawolf
 		const workflowId = "ed303240-42f5-4d21-9af0-236de19e83da";
 		const creatorId = "18aad9aa-6b33-4a8f-9452-2bbcf3fca110"; // Incore-dev@lists.ncsa.illinois.edu
 		const parameters = {
-			"ac82f88d-c8e2-4c24-cc1d-d5433b0690e6": "http://141.142.210.193:8888/hazard/api/earthquakes/59f3315ec7d30d4d6741b0bb",
-			"75a0e1bb-0b08-44ad-eb85-edc00d22fcee": "http://localhost:8080",
-			"2d8f56b7-d111-4a43-ace5-01c775548b4b": "http://localhost:8080/data/api/datasets/"
+			"ac82f88d-c8e2-4c24-cc1d-d5433b0690e6": `${config.hazardService  }59f3315ec7d30d4d6741b0bb`,
+			"75a0e1bb-0b08-44ad-eb85-edc00d22fcee": config.dataServiceBase,
+			"2d8f56b7-d111-4a43-ace5-01c775548b4b": "59f8d08dc7d30d278f25095d"
 		};
 		let datasets = {};
 		if(this.state.inputs["Buildings"]){
@@ -41,8 +42,9 @@ class ExecuteAnalysis extends Component {
 		if(this.state.inputs["Mean Damage"]){
 			datasets["d5c8b213-70aa-4316-d5af-89769dabd48f"]= this.state.inputs["Mean Damage"];
 		}
-		this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
-		browserHistory.push("/Results");
+		await this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
+
+		browserHistory.push(`/Results/${this.props.executionId}`);
 	}
 
 	changeTitle(event){
@@ -72,7 +74,7 @@ class ExecuteAnalysis extends Component {
 				<span key={param.name} > <TextField floatingLabelText={param.name} id={param.id} value={this.state.parameters.id} /><br/></span>
 			);
 
-			contents = <div>
+			contents = (<div>
 				<h1>{this.props.analysis.name}</h1>
 				<h3> Submission Details </h3>
 				<TextField floatingLabelText="Analysis Title" value={this.state.title} onChange={this.changeTitle}/> <br/>
@@ -82,7 +84,7 @@ class ExecuteAnalysis extends Component {
 				<br/>
 				<br/>
 				<RaisedButton primary onClick={this.executeAnalysis} label="Execute Analysis"/>
-			</div>;
+			</div>);
 		}
 
 

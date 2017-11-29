@@ -1,21 +1,24 @@
 import {connect} from "react-redux";
 import ResultsPageComponent from "../components/ResultsPage";
-import {} from "../actions";
+import {getOutputDataset} from "../actions";
 
 const mapStateToProps = (state, ownProps) => {
 	return {
-		analysis: state.analyses.selectedAnalysis
+		analysis: state.analyses.selectedAnalysis,
+		executionId: state.execution.executionId,
+		fileData: state.execution.outputFile,
+		datasetId: state.execution.outputDatasetId
 	};
 };
 
-// const mapDispatchToProps = (dispatch, ownProps) => {
-// 	return {
-// 		onChangex: (event, valy) => {
-// 			dispatch(actionName(valy));
-// 		}
-// 	}
-// };
+const mapDispatchToProps = (dispatch, ownProps) => {
+	return {
+		getOutputFile: (event) => {
+			dispatch(getOutputDataset());
+		}
+	};
+};
 
-const ResultsPage = connect(mapStateToProps)(ResultsPageComponent);
+const ResultsPage = connect(mapStateToProps, mapDispatchToProps)(ResultsPageComponent);
 
 export default ResultsPage;
