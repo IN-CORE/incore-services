@@ -45,7 +45,9 @@ export function fetchAnalyses() {
 	const endpoint = `${config.maestroService  }/maestro/api/analyses/metadata`;
 
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint)
+		return fetch(endpoint, {
+			headers: getHeader()
+		})
 			.then(response => response.json())
 			.then( json =>
 				dispatch(receiveAnalyses(config.maestroService, json))
@@ -58,7 +60,9 @@ export function getAnalysisById(id: String) {
 	const endpoint = `${config.maestroService  }/maestro/api/analyses/${  id}`;
 
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint)
+		return fetch(endpoint, {
+			headers: getHeader()
+		})
 			.then(response => response.json())
 			.then(json =>
 				dispatch(receiveAnalysis(config.maestroService, json))
@@ -71,7 +75,9 @@ export function fetchDatasets() {
 	const endpoint = config.dataService;
 
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint)
+		return fetch(endpoint, {
+			headers: getHeader()
+		})
 			.then(response => response.json())
 			.then(json =>
 				dispatch(receiveDatasets(json))
@@ -79,19 +85,33 @@ export function fetchDatasets() {
 	};
 }
 
+export async function loginHelper(username, password) {
+	const endpoint = config.authService;
+	// Currently CORS error due to the header
+	const userRequest =  await fetch(endpoint, {
+		method: "GET",
+		headers: {
+			"Authorization": `LDAP ${window.btoa(`${username }:${ password}`)}`
+		}
+	});
+
+	const user = await userRequest.json()   ;
+
+	return user;
+}
+
+export const SET_USER = "SET_USER";
 export function login(username, password) {
 
-	const endpoint = `${config.maestroService  }/maestro/api/login`;
-	// Currently CORS error due to the header
-	// fetch(endpoint, {
-	// 	method: "GET",
-	// 	headers: {
-	// 		"Authorization": `Basic ${window.btoa(`${username }:${ password}`)}`
-	// 	}
-	// })
-	// 	.then(response => response.json())
-	// 	.then(json=> console.log(json));
-	return;
+	return async(dispatch: Dispatch) => {
+
+		const json = await loginHelper(username, password);
+		return dispatch({
+			type: SET_USER,
+			username: json["user"],
+			auth_token: json["auth-token"]
+		});
+	};
 }
 
 export const RECEIVE_EXECUTION_ID = "RECEIVE_WORKFLOW_ID";
@@ -127,19 +147,18 @@ async function getOutputDatasetHelper() {
 
 	const output_dataset_id =datawolfExecution.datasets["fb2ff2f0-5708-4b29-c701-f3a6288021eb"];
 
-	console.log(output_dataset_id);
 	const endpoint = `${config.dataService   }/${   output_dataset_id}` ;
-	const output_dataset = await fetch(endpoint);
+	const output_dataset = await fetch(endpoint, {
+		headers: getHeader()
+	});
 
 	const outputDataset = await output_dataset.json();
-	console.log(outputDataset);
 	const fileId = outputDataset.fileDescriptors[0].id;
 
 	const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
-	const fileBlob = await fetch(fileDownloadUrl, {method: "GET", mode: "CORS"});
+	const fileBlob = await fetch(fileDownloadUrl, {method: "GET", mode: "CORS", headers: getHeader()});
 
 	const fileText = await fileBlob.text();
-	console.log(fileText);
 
 	return [outputDataset.id, fileText];
 }
@@ -186,7 +205,7 @@ export async function executeDatawolfWorkflowHelper(workflowid, creatorid, title
 	return executionId;
 }
 
-export  function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
+export function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
 
 	return async (dispatch: Dispatch) =>
 	{
@@ -198,5 +217,17 @@ export  function executeDatawolfWorkflow(workflowid, creatorid, title, descripti
 		});
 	};
 
+}
+
+function getHeader() {
+	return(dispatch, getState) => {
+		const state = getState();
+		const headers = new Headers({
+			"Authorization": "LDAP token",
+			"auth_user": state.user.username,
+			"auth_token": state.user.token
+		});
+		return headers;
+	};
 
 }
