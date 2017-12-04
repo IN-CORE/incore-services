@@ -339,7 +339,7 @@ public class DatasetController {
         String format = dataset.getFormat();
         String sourceDataset = dataset.getSourceDataset();
         // join it if it is a table dataset with source dataset existed
-        if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
+        if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {   //$NON-NLS-1$
             isJoin = true;
             isGeoserver = true;
         }
