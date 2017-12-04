@@ -441,7 +441,7 @@ public class GeotoolsUtils {
 
         // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp");
+        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp"); //$NON-NLS-1$ //$NON-NLS-2$
         URL inSourceFileUrl = null;
         boolean isGuid = false;
 
