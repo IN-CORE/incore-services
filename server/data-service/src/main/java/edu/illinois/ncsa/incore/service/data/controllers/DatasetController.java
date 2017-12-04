@@ -55,7 +55,7 @@ public class DatasetController {
     private static final String POST_PARAMETER_DATASET_ID = "datasetId";    //$NON-NLS-1$
     private static final String UPDATE_OBJECT_NAME = "property name";  //$NON-NLS-1$
     private static final String UPDATE_OBJECT_VALUE = "property value";  //$NON-NLS-1$
-    private static final String WEBDAV_SPACE_NAME = "earthquake";   //$NON-NLS-1$
+    private static final String WEBDAV_SPACE_NAME = "ergo";   //$NON-NLS-1$
     private Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
@@ -201,7 +201,7 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/ingest-dataset")
-    public Dataset ingestDataset(@FormDataParam("dataset") String inDatasetJson) {
+    public Dataset ingestDataset(@HeaderParam("X-Credential-Username") String username, @FormDataParam("dataset") String inDatasetJson) {
         // example input json
         //
         //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["ywkim", "ergo"] }
@@ -223,6 +223,7 @@ public class DatasetController {
             fileName = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FILE_NAME, inDatasetJson);
             spaces = JsonUtils.extractValueListFromJsonString(FileUtils.DATASET_SPACES, inDatasetJson);
             dataset.setTitle(title);
+            dataset.setCreator(username);
             dataset.setType(type);
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
@@ -402,44 +403,6 @@ public class DatasetController {
         return dataset;
     }
 
-    // http//localhost:8080/data/api/datasets/ingest-result
-    // example input json
-    //{ datasetId: "59dfb20a68f4742898e0e1e4" }
-    /**
-     * @param is
-     * @param fileDetail
-     * @param inDescJson
-     * @return
-     */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/ingest-result")
-    public Dataset uploadFile(
-            @FormDataParam("file") InputStream is,
-            @FormDataParam("file") FormDataContentDisposition fileDetail,
-            @FormDataParam("description") String inDescJson) {
-
-        FileDescriptor fd = new FileDescriptor();
-        FileStorageDisk fsDisk = new FileStorageDisk();
-
-        fsDisk.setFolder(DATA_REPO_FOLDER);
-
-        try {
-            fd = fsDisk.storeFile(fileDetail.getName(), is);
-            fd.setFilename(fileDetail.getFileName());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String objIdStr = JsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDescJson);
-        Dataset dataset = repository.getDatasetById(objIdStr);
-        dataset.addFileDescriptor(fd);
-        repository.addDataset(dataset);
-
-        return dataset;
-    }
-
     // http://localhost:8080/data/api/datasets/dump
     /**
      * Dump all datasets in earthquake server to database as Datasets
@@ -465,6 +428,7 @@ public class DatasetController {
         String datasetTitle = null;
         String datasetFormat = null;
         String datasetType = null;
+        String datasetCreator = WEBDAV_SPACE_NAME;
         List<String> datasetIds = null;
 
         // this tmpUrl should be the file type
@@ -514,6 +478,7 @@ public class DatasetController {
                     dataset.setTitle(datasetTitle);
                     dataset.setType(datasetType);
                     dataset.setFormat(datasetFormat);
+                    dataset.setCreator(datasetCreator);
                     List<String> spaces = new ArrayList<String>();
                     spaces.add(spaceName);
                     dataset.setSpaces(spaces);
@@ -535,13 +500,16 @@ public class DatasetController {
                             FileStorageDisk fsDisk = new FileStorageDisk();
 
                             fsDisk.setFolder(DATA_REPO_FOLDER);
+                            String extStr = FilenameUtils.getExtension(downFileName);
                             try {
-                                fd = fsDisk.storeFile(downFileName, fis);
-                                fd.setFilename(downFileName);
+                                if (!extStr.equalsIgnoreCase(FileUtils.EXTENSION_META)) {
+                                    fd = fsDisk.storeFile(downFileName, fis);
+                                    fd.setFilename(downFileName);
+                                    dataset.addFileDescriptor(fd);
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            dataset.addFileDescriptor(fd);
                         }
                         FileUtils.deleteTmpDir(delFiles);
                     }
@@ -585,7 +553,7 @@ public class DatasetController {
      * @throws URISyntaxException
      */
     @GET
-    @Path("/dump/metadata")
+    @Path("/import/metadata")
     @Produces(MediaType.APPLICATION_JSON)
     public List<MvzDataset> dumpMetadataFromWebdab() throws IOException, URISyntaxException {
         List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");
