@@ -698,12 +698,12 @@ public class FileUtils {
      * @throws IOException
      */
     public static void switchDbfFile(File inFile, List<File> shpfiles) throws IOException {
-        String inDbfName = FilenameUtils.removeExtension(inFile.getAbsolutePath()) + ".dbf";
+        String inDbfName = FilenameUtils.removeExtension(inFile.getAbsolutePath()) + ".dbf";    //$NON-NLS-1$
         File inDbfFile = new File(inDbfName);
         File outDbfFile = null;
         for (File tmpFile: shpfiles) {
             String extStr = FilenameUtils.getExtension(tmpFile.getName());
-            if (extStr.equalsIgnoreCase("dbf")) {
+            if (extStr.equalsIgnoreCase("dbf")) {   //$NON-NLS-1$
                 outDbfFile = tmpFile;
                 System.out.println(outDbfFile);
             }
