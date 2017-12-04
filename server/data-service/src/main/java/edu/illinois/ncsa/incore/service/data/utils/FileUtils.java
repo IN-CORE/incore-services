@@ -53,8 +53,6 @@ public class FileUtils {
     public static final String EXTENSION_SHP = "shp";   //$NON-NLS-1$
     public static final String EXTENSION_META = "mvz";  //$NON-NLS-1$
     public static final String EXTENSION_CSV = "csv";    //$NON-NLS-1$
-//    public static final String EXTENSION_XML = "xml";    //$NON-NLS-1$
-//    public static final String EXTENSION_ASC = "asc";    //$NON-NLS-1$
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;
     public static final int TYPE_NUMBER_CSV = 2;
