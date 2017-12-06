@@ -50,12 +50,12 @@ public class Dataset extends AbstractBean {
     /**
      * creator of the artifact
      */
-    private Person creator = null;
+    private String creator = null;
 
     /**
      * List of contributors to the artifact.
      */
-    private List<Person> contributors = null;
+    private List<String> contributors = null;
 
     /**
      * all blobs associated with this dataset
@@ -150,7 +150,7 @@ public class Dataset extends AbstractBean {
      *
      * @return PersonBean that represents the creator
      */
-    public Person getCreator() {
+    public String getCreator() {
         return creator;
     }
 
@@ -160,7 +160,7 @@ public class Dataset extends AbstractBean {
      * @param creator sets the PersonBeans that represents the creator of the
      *                artifact.
      */
-    public void setCreator(Person creator) {
+    public void setCreator(String creator) {
         this.creator = creator;
     }
 
@@ -171,9 +171,9 @@ public class Dataset extends AbstractBean {
      * @return set of PersonBeans that represents all the users that have
      * contributes to the artifact.
      */
-    public List<Person> getContributors() {
+    public List<String> getContributors() {
         if (contributors == null) {
-            contributors = new ArrayList<Person>();
+            contributors = new ArrayList<String>();
         }
         return contributors;
     }
@@ -184,7 +184,7 @@ public class Dataset extends AbstractBean {
      *
      * @param contributors the set of contributors to the artifact.
      */
-    public void setContributors(List<Person> contributors) {
+    public void setContributors(List<String> contributors) {
         this.contributors = contributors;
     }
 
@@ -193,7 +193,7 @@ public class Dataset extends AbstractBean {
      *
      * @param contributor the PersonBean of the contributor to be added.
      */
-    public void addContributor(Person contributor) {
+    public void addContributor(String contributor) {
         if (contributor != null) {
             getContributors().add(contributor);
         }

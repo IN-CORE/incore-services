@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
+import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -54,7 +55,7 @@ public class DatasetController {
     private static final String POST_PARAMETER_DATASET_ID = "datasetId";    //$NON-NLS-1$
     private static final String UPDATE_OBJECT_NAME = "property name";  //$NON-NLS-1$
     private static final String UPDATE_OBJECT_VALUE = "property value";  //$NON-NLS-1$
-    private static final String WEBDAV_SPACE_NAME = "earthquake";   //$NON-NLS-1$
+    private static final String WEBDAV_SPACE_NAME = "ergo";   //$NON-NLS-1$
     private Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
@@ -200,7 +201,7 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/ingest-dataset")
-    public Dataset ingestDataset(@FormDataParam("dataset") String inDatasetJson) {
+    public Dataset ingestDataset(@HeaderParam("X-Credential-Username") String username, @FormDataParam("dataset") String inDatasetJson) {
         // example input json
         //
         //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["ywkim", "ergo"] }
@@ -222,6 +223,7 @@ public class DatasetController {
             fileName = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FILE_NAME, inDatasetJson);
             spaces = JsonUtils.extractValueListFromJsonString(FileUtils.DATASET_SPACES, inDatasetJson);
             dataset.setTitle(title);
+            dataset.setCreator(username);
             dataset.setType(type);
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
@@ -334,10 +336,10 @@ public class DatasetController {
         repository.addDataset(dataset);
 
         // check if there is a source dataset, if so it will be joined to source dataset
-        String type = dataset.getFormat();
+        String format = dataset.getFormat();
         String sourceDataset = dataset.getSourceDataset();
         // join it if it is a table dataset with source dataset existed
-        if (sourceDataset.length() > 0 && type.equalsIgnoreCase("table")) {
+        if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {   //$NON-NLS-1$
             isJoin = true;
             isGeoserver = true;
         }
@@ -350,6 +352,31 @@ public class DatasetController {
                 boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
             }
         }
+
+        // create GUID if there is no GUID in the table
+        List<FileDescriptor> shpFDs = dataset.getFileDescriptors();
+        List<File> files = new ArrayList<File>();
+        File zipFile = null;
+        boolean isShpfile = false;
+
+        if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE)) {
+            for (int i = 0; i < shpFDs.size(); i++) {
+                FileDescriptor sfd = shpFDs.get(i);
+                String shpLoc = sfd.getDataURL();
+                File shpFile = new File(new URI(shpLoc));
+                files.add(shpFile);
+                //get file, if the file is in remote, use http downloader
+                String fileExt = FilenameUtils.getExtension(shpLoc);
+                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                    isShpfile = true;
+                }
+            }
+            boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
+            if (isGuid) {
+                logger.debug("The shapefile already has guid field");   //$NON-NLS-1$
+            }
+        }
+
         return dataset;
     }
 
@@ -376,44 +403,6 @@ public class DatasetController {
         return dataset;
     }
 
-    // http//localhost:8080/data/api/datasets/ingest-result
-    // example input json
-    //{ datasetId: "59dfb20a68f4742898e0e1e4" }
-    /**
-     * @param is
-     * @param fileDetail
-     * @param inDescJson
-     * @return
-     */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/ingest-result")
-    public Dataset uploadFile(
-            @FormDataParam("file") InputStream is,
-            @FormDataParam("file") FormDataContentDisposition fileDetail,
-            @FormDataParam("description") String inDescJson) {
-
-        FileDescriptor fd = new FileDescriptor();
-        FileStorageDisk fsDisk = new FileStorageDisk();
-
-        fsDisk.setFolder(DATA_REPO_FOLDER);
-
-        try {
-            fd = fsDisk.storeFile(fileDetail.getName(), is);
-            fd.setFilename(fileDetail.getFileName());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String objIdStr = JsonUtils.extractValueFromJsonString(POST_PARAMETER_DATASET_ID, inDescJson);
-        Dataset dataset = repository.getDatasetById(objIdStr);
-        dataset.addFileDescriptor(fd);
-        repository.addDataset(dataset);
-
-        return dataset;
-    }
-
     // http://localhost:8080/data/api/datasets/dump
     /**
      * Dump all datasets in earthquake server to database as Datasets
@@ -422,7 +411,7 @@ public class DatasetController {
      * @throws URISyntaxException
      */
     @GET
-    @Path("/dump")
+    @Path("/import")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Dataset> getDatasetFromWebdav() throws IOException, URISyntaxException {
         List<Dataset> datasets = new ArrayList<Dataset>();
@@ -439,6 +428,7 @@ public class DatasetController {
         String datasetTitle = null;
         String datasetFormat = null;
         String datasetType = null;
+        String datasetCreator = WEBDAV_SPACE_NAME;
         List<String> datasetIds = null;
 
         // this tmpUrl should be the file type
@@ -488,6 +478,7 @@ public class DatasetController {
                     dataset.setTitle(datasetTitle);
                     dataset.setType(datasetType);
                     dataset.setFormat(datasetFormat);
+                    dataset.setCreator(datasetCreator);
                     List<String> spaces = new ArrayList<String>();
                     spaces.add(spaceName);
                     dataset.setSpaces(spaces);
@@ -509,13 +500,16 @@ public class DatasetController {
                             FileStorageDisk fsDisk = new FileStorageDisk();
 
                             fsDisk.setFolder(DATA_REPO_FOLDER);
+                            String extStr = FilenameUtils.getExtension(downFileName);
                             try {
-                                fd = fsDisk.storeFile(downFileName, fis);
-                                fd.setFilename(downFileName);
+                                if (!extStr.equalsIgnoreCase(FileUtils.EXTENSION_META)) {
+                                    fd = fsDisk.storeFile(downFileName, fis);
+                                    fd.setFilename(downFileName);
+                                    dataset.addFileDescriptor(fd);
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            dataset.addFileDescriptor(fd);
                         }
                         FileUtils.deleteTmpDir(delFiles);
                     }
@@ -559,7 +553,7 @@ public class DatasetController {
      * @throws URISyntaxException
      */
     @GET
-    @Path("/dump/metadata")
+    @Path("/import/metadata")
     @Produces(MediaType.APPLICATION_JSON)
     public List<MvzDataset> dumpMetadataFromWebdab() throws IOException, URISyntaxException {
         List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");

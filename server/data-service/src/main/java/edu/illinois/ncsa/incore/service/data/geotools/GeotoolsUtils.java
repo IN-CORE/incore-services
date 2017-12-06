@@ -203,7 +203,7 @@ public class GeotoolsUtils {
             inputFeatureIterator.close();
         }
 
-        return createOutShapefile(finalList, finalResultMapList, tempDir, outFileName);
+        return createOutfile(finalList, finalResultMapList, tempDir, outFileName);
     }
 
     /**
@@ -265,7 +265,7 @@ public class GeotoolsUtils {
      * @throws IOException
      */
     @SuppressWarnings("unchecked")
-    public static File createOutShapefile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
+    public static File createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
                                           String outDir, String outFileName) throws IOException {
         File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
 
@@ -427,5 +427,91 @@ public class GeotoolsUtils {
         return header;
     }
 
+    /**
+     * create GUID field if there is none
+     * @param dataset
+     * @param shpfiles
+     * @return
+     * @throws IOException
+     */
+    public static boolean createGUIDinShpfile(Dataset dataset, List<File> shpfiles) throws IOException {
+        // set geometry factory
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        String outFileName = FilenameUtils.getBaseName(shpfiles.get(0).getName()) + "." + FileUtils.EXTENSION_SHP;
+
+        // create temp dir and copy files to temp dir
+        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp"); //$NON-NLS-1$ //$NON-NLS-2$
+        URL inSourceFileUrl = null;
+        boolean isGuid = false;
+
+        for (File copiedFile: copiedFileList) {
+            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
+            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                inSourceFileUrl = copiedFile.toURI().toURL();
+            }
+        }
+
+        DataStore store = getShapefileDataStore(inSourceFileUrl, false);
+        FileDataStore fileStore = (FileDataStore) store;
+        SimpleFeatureSource featureSource = fileStore.getFeatureSource();
+        SimpleFeatureCollection inputFeatures = featureSource.getFeatures();
+
+        SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
+        List<Geometry> tmpList = new LinkedList<Geometry>();
+        List<Geometry> finalList = new LinkedList<Geometry>();
+        List<Map> resultMapList = new LinkedList<Map>();
+        List<Map> finalResultMapList = new LinkedList<Map>();
+
+        try {
+            while (inputFeatureIterator.hasNext()) {
+                SimpleFeature inputFeature = inputFeatureIterator.next();
+                Geometry g = (Geometry) inputFeature.getAttribute(0);
+                Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
+
+                tmpList.clear();
+                resultMapList.clear();
+
+                // check if guid is there
+                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
+                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
+                    if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
+                        isGuid = true;
+                    }
+                }
+
+                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
+                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
+                    Object attribute = inputFeature.getAttribute(i);
+
+                    // resultMap is an actual table.
+                    if (attributeType.getLocalName() != DATA_FIELD_GEOM) {
+                        resultMap.put(attributeType.getLocalName(), attribute);
+                    }
+                    // create GUID
+                    if (!isGuid) {
+                        UUID uuid = UUID.randomUUID();
+                        resultMap.put(UNI_ID_SHP, uuid.toString());
+                    }
+                }
+                resultMapList.add(resultMap);
+
+                finalList.add(g);
+                finalResultMapList.addAll(resultMapList);
+            }
+        } finally {
+            inputFeatureIterator.close();
+        }
+
+        File outFile = createOutfile(finalList, finalResultMapList, tempDir, outFileName);
+        FileUtils.switchDbfFile(outFile, shpfiles);
+        FileUtils.deleteTmpDir(copiedFileList.get(0));
+
+        if (isGuid) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 }
 
