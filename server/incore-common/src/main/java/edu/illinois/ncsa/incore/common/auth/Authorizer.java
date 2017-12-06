@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
  */
 public class Authorizer {
 
+    public static final String ANONYMOUS_USER = "anonymous";
     private static Authorizer instance;
     private LdapClient ldapClient;
 
@@ -83,4 +84,6 @@ public class Authorizer {
         }
         return ldapClient;
     }
+
+
 }

@@ -53,8 +53,6 @@ public class FileUtils {
     public static final String EXTENSION_SHP = "shp";   //$NON-NLS-1$
     public static final String EXTENSION_META = "mvz";  //$NON-NLS-1$
     public static final String EXTENSION_CSV = "csv";    //$NON-NLS-1$
-    public static final String EXTENSION_XML = "xml";    //$NON-NLS-1$
-    public static final String EXTENSION_ASC = "asc";    //$NON-NLS-1$
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;
     public static final int TYPE_NUMBER_CSV = 2;
@@ -453,9 +451,13 @@ public class FileUtils {
 
             List<String> fileNameList = new LinkedList<String>();
             for (FileDescriptor fd : fds) {
+                // do not put the mvz file
                 String dataUrl = fd.getDataURL();
-                fileList.add(new File(new URI(dataUrl)));
-                fileNameList.add(FilenameUtils.getName(dataUrl));
+                String ext = FilenameUtils.getExtension(dataUrl);
+                if (!ext.equalsIgnoreCase(EXTENSION_META)) {
+                    fileList.add(new File(new URI(dataUrl)));
+                    fileNameList.add(FilenameUtils.getName(dataUrl));
+                }
             }
 
             // create temp dir and copy files to temp dir
@@ -687,5 +689,25 @@ public class FileUtils {
         outStr = outStr + "\n]";    //$NON-NLS-1$
 
         return outStr;
+    }
+
+    /**
+     * switch dbf files in the repository
+     * @param inFile
+     * @param shpfiles
+     * @throws IOException
+     */
+    public static void switchDbfFile(File inFile, List<File> shpfiles) throws IOException {
+        String inDbfName = FilenameUtils.removeExtension(inFile.getAbsolutePath()) + ".dbf";    //$NON-NLS-1$
+        File inDbfFile = new File(inDbfName);
+        File outDbfFile = null;
+        for (File tmpFile: shpfiles) {
+            String extStr = FilenameUtils.getExtension(tmpFile.getName());
+            if (extStr.equalsIgnoreCase("dbf")) {   //$NON-NLS-1$
+                outDbfFile = tmpFile;
+                System.out.println(outDbfFile);
+            }
+        }
+        org.apache.commons.io.FileUtils.copyFile(inDbfFile, outDbfFile);
     }
 }
