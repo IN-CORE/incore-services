@@ -12,14 +12,14 @@ const devConfig = {
 
 const prodConfig = {
 	basePath: "/",
-	fragilityService: "http://incore2-services.ncsa.illinois.edu/fragility/api/fragilities",
+	fragilityService: "https://incore2-services.ncsa.illinois.edu/fragility/api/fragilities",
 	semanticService: "",
-	hazardService: "http:/incore2-services.ncsa.illinois.edu//hazard/api/earthquakes/",
-	maestroService: "http:/incore2-services.ncsa.illinois.edu/maestro/",
+	hazardService: "https:/incore2-services.ncsa.illinois.edu//hazard/api/earthquakes/",
+	maestroService: "https:/incore2-services.ncsa.illinois.edu/maestro/",
 	authService: "https://incore2-services.ncsa.illinois.edu/auth/api/login",
-	dataServiceBase: "http:/incore2-services.ncsa.illinois.edu:8888/",
-	dataService: "http:/incore2-services.ncsa.illinois.edu:8888/data/api/datasets",
-	dataWolf: "http:/incore2-datawolf.ncsa.illinois.edu:8888/"
+	dataServiceBase: "https:/incore2-services.ncsa.illinois.edu:8888/",
+	dataService: "https:/incore2-services.ncsa.illinois.edu:8888/data/api/datasets",
+	dataWolf: "https:/incore2-datawolf.ncsa.illinois.edu:8888/"
 };
 
 const config = getConfig();
