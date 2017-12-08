@@ -16,13 +16,15 @@ class DataViewer extends Component {
 			selectedDataset: "",
 			selectedDatasetFormat: "",
 			fileData: "",
-			fileExtension: ""
+			fileExtension: "",
+			space: ""
 		};
 		this.changeDatasetType = this.changeDatasetType.bind(this);
 		this.onClickDataset = this.onClickDataset.bind(this);
 		this.handleKeyPressed = this.handleKeyPressed.bind(this);
 		this.searchDatasets = this.searchDatasets.bind(this);
 		this.onClickFileDescriptor = this.onClickFileDescriptor.bind(this);
+		this.changeSpace = this.changeSpace.bind(this);
 	}
 
 	componentWillMount() {
@@ -30,7 +32,11 @@ class DataViewer extends Component {
 	}
 
 	changeDatasetType(event, index, value) {
-		this.setState({type: value, selectedDataset: "", fileData: "", fileExtension: "", selectedDatasetFormat: ""});
+		this.setState({type: value, space: "", selectedDataset: "", fileData: "", fileExtension: "", selectedDatasetFormat: ""});
+	}
+
+	changeSpace(event, index, value) {
+		this.setState({space: value, type:"", selectedDataset: "", fileData: "", fileExtension: "", selectedDatasetFormat: ""});
 	}
 
 	onClickDataset(datasetId) {
@@ -80,13 +86,36 @@ class DataViewer extends Component {
 				</SelectField>);
 		}
 
+		let space_filter = "";
+		const spaces = this.props.datasets.map(dataset => dataset.spaces);
+		const unique_spaces = Array.from(new Set( [].concat.apply([], spaces)));
+
+		if(unique_spaces.length > 0){
+			const space_menu_items = unique_spaces.map((space, index) =>
+				<MenuItem value={index} primaryText={space} key={space}/>
+			);
+
+			space_filter = (<SelectField fullWidth={true}
+			                               floatingLabelText="Space"
+			                               value={this.state.space}
+			                               onChange={this.changeSpace}
+			>
+				{space_menu_items}
+				</SelectField>
+				);
+		}
+
 		let datasets_to_display = this.props.datasets;
 		if(this.state.type) {
 			datasets_to_display = this.props.datasets.filter(dataset => dataset.type === unique_types[this.state.type]);
 		}
+		if(this.state.space){
+			datasets_to_display = datasets_to_display.filter(dataset => dataset.spaces.indexOf(unique_spaces[this.state.space]) > -1);
+		}
 		if(this.state.searchText){
 			datasets_to_display = datasets_to_display.filter(dataset => dataset.title.indexOf(this.state.searchText) > -1);
 		}
+
 
 
 		const list_items = datasets_to_display.map(dataset =>
@@ -123,9 +152,9 @@ class DataViewer extends Component {
 		let right_column =  "";
 		if(this.state.selectedDatasetFormat === "shapefile") {
 			right_column =
-				<div>
+				(<div>
 					<Map datasetId={this.state.selectedDataset}/>
-				</div>;
+				</div>);
 		} else if (file_descriptors.length > 0) {
 			right_column = (<div>
 				<h2> File Descriptors</h2>
@@ -144,8 +173,10 @@ class DataViewer extends Component {
 					<GridTile cols={4}>
 						{dataset_types}
 					</GridTile>
-
-					<GridTile cols={8} style={{float: "right"}}>
+					<GridTile cols={4}>
+						{space_filter}
+					</GridTile>
+					<GridTile cols={4} style={{float: "right"}}>
 						<TextField ref="searchBox" hintText="Search Datasets" onKeyPress={this.handleKeyPressed} />
 						<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
 						            onClick={this.searchDatasets}>

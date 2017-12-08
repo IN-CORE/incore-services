@@ -3,14 +3,12 @@ import {fetchAnalyses} from "../actions/index";
 import AppComponent from "../components/App";
 import type { Dispatch } from "../utils/flowtype";
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
-	return {
-		loadAnalyses: () => {
-			dispatch(fetchAnalyses());
-		}
+const mapStateToProps = (state,ownProps) => {
+	return{
+		user: state.user.username
 	};
 };
 
-const App = connect(null, mapDispatchToProps)(AppComponent);
+const App = connect(mapStateToProps)(AppComponent);
 
 export default App;

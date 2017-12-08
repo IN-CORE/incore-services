@@ -44,9 +44,8 @@ class HomePage extends Component {
 		this.setState({password: password});
 	}
 
-	login(event: Object) {
-		//TODO: Login using a global state action
-		//this.props.login(this.state.username, this.state.password);
+	async login(event: Object) {
+		await this.props.login(this.state.username, this.state.password);
 		browserHistory.push("/FragilityViewer");
 	}
 
