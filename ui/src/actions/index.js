@@ -94,7 +94,7 @@ export async function loginHelper(username, password) {
 		}
 	});
 
-	const user = await userRequest.json()   ;
+	const user = await userRequest.json();
 
 	return user;
 }
@@ -135,12 +135,10 @@ export function receiveDatawolfResponse(json) {
 
 }
 
-async function getOutputDatasetHelper() {
-	const executionId = "ffe2e458-b3ba-4d91-a171-9f5176abd872";// state.execution.executionId;
+async function getOutputDatasetHelper(executionIdd: String) {
+	const executionId = "91f2e550-392d-4957-8425-2fc52e1410ac";// state.execution.executionId;
 	const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
-	const headers = new Headers({
-		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
-	});
+	const headers = getDatawolfHeader();
 	const datawolf_execution_fetch = await fetch(datawolfUrl, {
 		method: "GET",
 		headers: headers
@@ -148,8 +146,9 @@ async function getOutputDatasetHelper() {
 
 	const datawolfExecution  = await datawolf_execution_fetch.json();
 
-	const output_dataset_id =datawolfExecution.datasets["fb2ff2f0-5708-4b29-c701-f3a6288021eb"];
-
+	const output_dataset_id =datawolfExecution.datasets["7774de32-481f-48dd-8223-d9cdf16eaec1"];
+	console.log(output_dataset_id);
+	console.log(datawolfExecution)
 	const endpoint = `${config.dataService   }/${   output_dataset_id}` ;
 	const output_dataset = await fetch(endpoint, {
 		headers: getHeader()
@@ -168,10 +167,10 @@ async function getOutputDatasetHelper() {
 
 export const RECEIVE_OUTPUT = "RECEIVE_OUTPUT";
 export function getOutputDataset() {
-	 // const state = getState();
 
-	return async (dispatch: Dispatch) => {
-		const data = await getOutputDatasetHelper();
+	return async (dispatch: Dispatch, getState: GetState) => {
+		const state = getState();
+		const data = await getOutputDatasetHelper(state.execution.executionId);
 		 dispatch({
 			type: RECEIVE_OUTPUT,
 			outputDatasetId: data[0],
@@ -191,10 +190,8 @@ export async function executeDatawolfWorkflowHelper(workflowid, creatorid, title
 		"creatorId": creatorid,
 		"description": description
 	};
-	const headers = new Headers({
-		"Content-Type": "application/json",
-		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
-	});
+	const headers = getDatawolfHeader();
+	headers.append("Content-Type", "application/json");
 
 	const datawolfExecution = await fetch(datawolfUrl, {
 		method: "POST",
@@ -227,6 +224,13 @@ export function getHeader() {
 		"Authorization": `LDAP ${  sessionStorage.auth}`,
 		"auth-user": sessionStorage.user,
 		"auth-token": sessionStorage.auth
+	});
+	return headers;
+}
+
+function getDatawolfHeader() {
+	const headers = new Headers({
+		"X-Credential-Username": sessionStorage.user
 	});
 	return headers;
 }
