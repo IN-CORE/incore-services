@@ -6,6 +6,7 @@ import {GridList, GridTile, SelectField, MenuItem, List,
 import ActionSearch from "material-ui/svg-icons/action/search";
 import csv from "csv";
 import config from "../app.config";
+import {getHeader} from "../actions";
 
 class DataViewer extends Component {
 
@@ -40,7 +41,8 @@ class DataViewer extends Component {
 	}
 
 	onClickDataset(datasetId) {
-		const dataset = this.props.datasets.find(dataset => dataset.id === datasetId);this.setState({selectedDataset: datasetId, selectedDatasetFormat: dataset.format});
+		const dataset = this.props.datasets.find(dataset => dataset.id === datasetId);
+		this.setState({selectedDataset: datasetId, selectedDatasetFormat: dataset.format, fileData: "", fileExtension: ""});
 
 	}
 
@@ -59,7 +61,7 @@ class DataViewer extends Component {
 
 	async onClickFileDescriptor(selected_dataset_id, file_descriptor_id, file_name) {
 		const url = `${config.dataService}/files/${  file_descriptor_id  }/file`;
-		await fetch(url, {method: "GET", mode: "CORS"}).then((response) => {
+		await fetch(url, {method: "GET", mode: "CORS", headers: getHeader()}).then((response) => {
 			return response.text();
 		}).then((text) => {
 			this.setState({fileData: text.split("\n"), fileExtension: file_name.split(".").slice(-1).pop()});
@@ -146,7 +148,7 @@ class DataViewer extends Component {
 		let file_contents = this.state.fileData;
 		if(this.state.fileExtension && this.state.fileData  && this.state.fileExtension === "csv") {
 			let data = this.state.fileData.map((data) => data.split(","));
-			file_contents = <Table height={600} container = "data_container" data={data.slice(2)} colHeaders={data[0]} rowHeaders={false}/>;
+			file_contents = <Table height={750} container = "data_container" data={data.slice(2)} colHeaders={data[0]} rowHeaders={false}/>;
 		}
 
 		let right_column =  "";
@@ -158,7 +160,7 @@ class DataViewer extends Component {
 		} else if (file_descriptors.length > 0) {
 			right_column = (<div>
 				<h2> File Descriptors</h2>
-				<List style={{"overflowY": "auto", height: "200px"}}>
+				<List style={{"overflowY": "auto", height: "50px"}}>
 					{file_descriptors}
 				</List>
 			</div>);

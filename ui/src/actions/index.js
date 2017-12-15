@@ -42,12 +42,11 @@ export function receiveDatasets(json: Dataset) {
 
 export function fetchAnalyses() {
 
-	const endpoint = `${config.maestroService  }/maestro/api/analyses/metadata`;
+	const endpoint = `${config.maestroService  }/api/analyses/metadata`;
 
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint, {
-			headers: getHeader()
-		})
+		return fetch(endpoint,
+			{ headers: getHeader()})
 			.then(response => response.json())
 			.then( json =>
 				dispatch(receiveAnalyses(config.maestroService, json))
@@ -57,7 +56,7 @@ export function fetchAnalyses() {
 
 export function getAnalysisById(id: String) {
 	//TODO: Move to a configuration file
-	const endpoint = `${config.maestroService  }/maestro/api/analyses/${  id}`;
+	const endpoint = `${config.maestroService  }/api/analyses/${  id}`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, {
@@ -106,6 +105,10 @@ export function login(username, password) {
 	return async(dispatch: Dispatch) => {
 
 		const json = await loginHelper(username, password);
+		if(typeof(Storage) !== "undefined") {
+			sessionStorage.setItem("auth", json["auth-token"]);
+			sessionStorage.setItem("user", json["user"]);
+		}
 		return dispatch({
 			type: SET_USER,
 			username: json["user"],
@@ -156,7 +159,7 @@ async function getOutputDatasetHelper() {
 	const fileId = outputDataset.fileDescriptors[0].id;
 
 	const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
-	const fileBlob = await fetch(fileDownloadUrl, {method: "GET", mode: "CORS", headers: getHeader()});
+	const fileBlob = await fetch(fileDownloadUrl, {headers: getHeader()});
 
 	const fileText = await fileBlob.text();
 
@@ -219,15 +222,11 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 
 }
 
-function getHeader() {
-	return(dispatch, getState) => {
-		const state = getState();
-		const headers = new Headers({
-			"Authorization": "LDAP token",
-			"auth_user": state.user.username,
-			"auth_token": state.user.token
-		});
-		return headers;
-	};
-
+export function getHeader() {
+	const headers = new Headers({
+		"Authorization": `LDAP ${  sessionStorage.auth}`,
+		"auth-user": sessionStorage.user,
+		"auth-token": sessionStorage.auth
+	});
+	return headers;
 }

@@ -31,9 +31,9 @@ class HomePage extends Component {
 	changePassword(event: Object) {
 		let password = event.target.value;
 
-		if (password.length <= 8) {
+		if (password.length <= 6) {
 			this.setState({
-				passwordErrorText: "Your password must be at least 8 characters long"
+				passwordErrorText: "Your password must be at least 6 characters long"
 			});
 		} else {
 			this.setState({
@@ -69,7 +69,7 @@ class HomePage extends Component {
 							<TextField
 								floatingLabelText="Password"
 								type="password"
-								minLength={8}
+								minLength={6}
 								errorText={this.state.passwordErrorText}
 								value={this.state.password}
 								onChange={this.changePassword}
