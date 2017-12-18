@@ -135,8 +135,7 @@ export function receiveDatawolfResponse(json) {
 
 }
 
-async function getOutputDatasetHelper(executionIdd: String) {
-	const executionId = "91f2e550-392d-4957-8425-2fc52e1410ac";// state.execution.executionId;
+async function getOutputDatasetHelper(executionId: String) {
 	const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
 	const headers = getDatawolfHeader();
 	const datawolf_execution_fetch = await fetch(datawolfUrl, {
@@ -147,9 +146,7 @@ async function getOutputDatasetHelper(executionIdd: String) {
 	const datawolfExecution  = await datawolf_execution_fetch.json();
 
 	const output_dataset_id =datawolfExecution.datasets["7774de32-481f-48dd-8223-d9cdf16eaec1"];
-	console.log(output_dataset_id);
-	console.log(datawolfExecution)
-	const endpoint = `${config.dataService   }/${   output_dataset_id}` ;
+	const endpoint = `${config.dataService   }/${output_dataset_id}` ;
 	const output_dataset = await fetch(endpoint, {
 		headers: getHeader()
 	});
@@ -158,7 +155,7 @@ async function getOutputDatasetHelper(executionIdd: String) {
 	const fileId = outputDataset.fileDescriptors[0].id;
 
 	const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
-	const fileBlob = await fetch(fileDownloadUrl, {headers: getHeader()});
+	const fileBlob = await fetch(fileDownloadUrl, {method: "GET", mode: "CORS", headers: getHeader()});
 
 	const fileText = await fileBlob.text();
 
@@ -166,11 +163,10 @@ async function getOutputDatasetHelper(executionIdd: String) {
 }
 
 export const RECEIVE_OUTPUT = "RECEIVE_OUTPUT";
-export function getOutputDataset() {
+export function getOutputDataset(executionId: String) {
 
-	return async (dispatch: Dispatch, getState: GetState) => {
-		const state = getState();
-		const data = await getOutputDatasetHelper(state.execution.executionId);
+	return async (dispatch: Dispatch) => {
+		const data = await getOutputDatasetHelper(executionId);
 		 dispatch({
 			type: RECEIVE_OUTPUT,
 			outputDatasetId: data[0],

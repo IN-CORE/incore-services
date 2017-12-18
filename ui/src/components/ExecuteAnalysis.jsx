@@ -31,8 +31,8 @@ class ExecuteAnalysis extends Component {
 		const workflowId = "c310f2c4-19d6-447d-8134-377ed48934ee";
 		const creatorId = sessionStorage.user; //"18aad9aa-6b33-4a8f-9452-2bbcf3fca110"; // Incore-dev@lists.ncsa.illinois.edu
 		const parameters = {
-			"8c7b0e37-c1e7-4bcd-8ad3-d4dd5a0e0f22": `${config.hazardService  }59f3315ec7d30d4d6741b0bb`,
-			"ab5370d9-5e61-4934-d081-705ec0ef6563": config.dataServiceBase,
+			"8c7b0e37-c1e7-4bcd-8ad3-d4dd5a0e0f22": "http://141.142.210.193:8888/hazard/api/earthquakes/59f3315ec7d30d4d6741b0bb",//`${config.hazardService  }59f3315ec7d30d4d6741b0bb`,
+			"ab5370d9-5e61-4934-d081-705ec0ef6563": "http://141.142.210.193:8888/", //config.dataServiceBase,
 			"e1296856-a9ae-4536-c05c-6b5aeba44e2a": "5a284f0bc7d30d13bc081a28"
 		};
 		let datasets = {};
