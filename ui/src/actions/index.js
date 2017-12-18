@@ -41,15 +41,15 @@ export function receiveDatasets(json: Dataset) {
 }
 
 export function fetchAnalyses() {
-
 	const endpoint = `${config.maestroService  }/api/analyses/metadata`;
 
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint,
-			{ headers: getHeader()})
+		return fetch(endpoint, {
+			headers: getHeader()
+		})
 			.then(response => response.json())
-			.then( json =>
-				dispatch(receiveAnalyses(config.maestroService, json))
+			.then(json =>
+				dispatch(receiveAnalyses(endpoint, json))
 			);
 	};
 }
