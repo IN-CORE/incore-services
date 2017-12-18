@@ -19,7 +19,7 @@ const prodConfig = {
 	authService: "https://incore2-services.ncsa.illinois.edu/auth/api/login",
 	dataServiceBase: "https://incore2-services.ncsa.illinois.edu/",
 	dataService: "https://incore2-services.ncsa.illinois.edu/data/api/datasets",
-	dataWolf: "http://incore2-datawolf.ncsa.illinois.edu/datawolf/"
+	dataWolf: "https://incore2-datawolf.ncsa.illinois.edu/datawolf/"
 };
 
 const config = getConfig();

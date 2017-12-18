@@ -4,6 +4,7 @@ import AnalysisSelect from "../containers/AnalysisSelect";
 import InputDropdown from "./InputDropdown";
 import {TextField, RaisedButton, MenuOption, SelectField} from "material-ui";
 import config from "../app.config";
+let wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class ExecuteAnalysis extends Component {
 
@@ -44,6 +45,7 @@ class ExecuteAnalysis extends Component {
 		}
 		await this.props.executeAnalysis(workflowId, creatorId, this.state.title, this.state.description, parameters, datasets);
 
+		await wait(5000);
 		browserHistory.push(`/Results/${this.props.executionId}`);
 	}
 
