@@ -19,7 +19,33 @@ local tostring =  tostring
 local AUTHORIZATION = "authorization"
 local PROXY_AUTHORIZATION = "proxy-authorization"
 
+
 local _M = {}
+
+
+local charset = {}
+
+-- qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890
+for i = 48,  57 do table.insert(charset, string.char(i)) end
+for i = 65,  90 do table.insert(charset, string.char(i)) end
+for i = 97, 122 do table.insert(charset, string.char(i)) end
+
+local function random_string(length)
+  if length > 0 then
+    return random_string(length - 1) .. charset[math.random(1, #charset)]
+  else
+    return ""
+  end
+end
+
+
+local function return_token(token) 
+  return token
+end
+
+local function return_nil()
+  return nil
+end
 
 local function retrieve_credentials(authorization_header_value)
   local username, password
@@ -34,6 +60,70 @@ local function retrieve_credentials(authorization_header_value)
     end
   end
   return username, password
+end
+
+local function cache_token_for_user(login, token)
+  local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. login
+  ngx_log(ngx_debug, "[ldap-auth] setting cache :"..cache_key .. " to " .. return_token(token))
+  singletons.cache:get(cache_key, {ttl=10000}, return_token, token)
+end
+
+local function store_new_token(login, token_seed)
+	--invalidate old cached tokens
+    	local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. login
+  	singletons.cache:invalidate(cache_key)
+
+	--remove old database token, and create new one
+    local credentials, err = singletons.dao.basicauth_credentials:find_all({username = login})
+	ngx_log(ngx_debug, "[ldap-auth] checking database to delete old...")
+	if (credentials and credentials[1] and credentials[1]["id"]) then
+		ngx_log(ngx_debug, "[ldap-auth] deleting id " ..credentials[1]["id"])
+		-- singletons.dao.basicauth_credentials.delete({id=credentials[1]["id"]})
+		-- kong is a broken piece of garbage, and the delete function doesn't work as documented.
+		-- so hack and delete directly
+		singletons.dao.basicauth_credentials:delete({id=credentials[1]["id"]})
+	end
+	ngx_log(ngx_debug, "[ldap-auth] inserting new token seed into db:" ..login .. ":" .. token_seed)
+	local insert_result,err = singletons.dao.basicauth_credentials:insert({username=login,password=token, consumer_id="373aae78-545e-4418-a06c-aefbe69bfc67"})
+	if err ~= nil then
+		ngx_log(ngx_debug, "[ldap-auth] error inserting" ..dump(err))
+		return nil
+	end
+    	local new_credential, err = singletons.dao.basicauth_credentials:find_all({username = login})
+	token = new_credential[1]["password"]
+
+	ngx_log(ngx_debug, "[ldap-auth] actual generated token:" ..token)
+	cache_token_for_user(login, token)
+	return token
+end
+
+
+local function retrieve_token(login)
+    --first see if it exists in cache
+    local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. login
+    local cached_token = singletons.cache:get(cache_key, {}, return_nil)
+    ngx_log(ngx_debug, "[ldap-auth] checking cache for token for: ".. login)
+
+	--if so, return it
+    if cached_token ~= nil then
+		ngx_log(ngx_debug, "[ldap-auth] found cached token ".. cached_token)
+        return cached_token
+    end
+
+	--otherwise see if it's in the database
+    local credentials, err = singletons.dao.basicauth_credentials:find_all({username = login})
+	ngx_log(ngx_debug, "[ldap-auth] checking database...")
+	if (credentials and credentials[1] and credentials[1]["password"]) then
+		local token = credentials[1]["password"]
+		ngx_log(ngx_debug, "[ldap-auth] found in database: " .. token)
+
+		--if so, cache it and return it
+		cache_token_for_user(login, token)
+
+		return token
+	end
+	return nil
+
 end
 
 local function ldap_authenticate(given_username, given_password, conf)
@@ -89,9 +179,6 @@ local function load_credential(given_username, given_password, conf)
   return {username = given_username, password = given_password}
 end
 
-local function return_token(token) 
-  return token
-end
 
 -- NLT adding token
 local function authenticate(conf, given_credentials, auth_user, auth_token)
@@ -102,19 +189,18 @@ local function authenticate(conf, given_credentials, auth_user, auth_token)
   if auth_user ~= nil then
     ngx_log(ngx_debug, "[ldap-auth] auth_user is:"..auth_user)
     ngx_log(ngx_debug, "[ldap-auth] auth_token is:'"..auth_token.."'")
-    local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. given_username
-    local cached_token = singletons.cache:get(cache_key)
 
+
+    local cached_token = retrieve_token(auth_user)
     if cached_token ~= nil then
       ngx_log(ngx_debug, "[ldap-auth] cached token is:'"..cached_token.."'")
       if tostring(cached_token) == tostring(auth_token) then
         ngx_log(ngx_debug, "[ldap-auth] CACHE MATCH!")
         return true, {username = auth_user, password = auth_token}, auth_token
       else
+        ngx_log(ngx_debug, "[ldap-auth] CACH MISMATCH!")
       ngx_log(ngx_debug, "[ldap-auth] c'"..cached_token.."'")
       ngx_log(ngx_debug, "[ldap-auth] t'"..auth_token.."'")
-      ngx_log(ngx_debug, "[ldap-auth] c'"..type(cached_token).."'")
-      ngx_log(ngx_debug, "[ldap-auth] t'"..type(auth_token).."'")
       end
     else
       ngx_log(ngx_debug, "[ldap-auth] cached token is nil")
@@ -148,12 +234,11 @@ local function authenticate(conf, given_credentials, auth_user, auth_token)
   end
 
   -- if succeeded, generate and cache a token
-  local new_token = tostring(math.random(1, 99999999999) + gettime() * 1000) .. tostring(math.random(1,99999999))
-  ngx_log(ngx_debug, "[ldap-auth] success, new token is:"..new_token)
-  local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. given_username
-  singletons.cache:get(cache_key, {ttl=10000, neg_ttl = conf.cache_ttl}, return_token, new_token)
+  local new_token_seed = random_string(16) .. tostring(math.random(1, 99999999999) + gettime() * 1000) .. tostring(math.random(1,99999999) .. random_string(32)  )
+	local actual_token = store_new_token(given_username, new_token_seed)
+  ngx_log(ngx_debug, "[ldap-auth] success, new token is:"..actual_token)
 
-  return true, {username = given_username, password = auth_token}, new_token
+  return true, {username = given_username, password = actual_token}, actual_token
 end
 
 
@@ -198,12 +283,33 @@ local function set_consumer(consumer, credential, token)
 
 end
 
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 local function do_authentication(conf)
+
+
   local headers = request.get_headers()
   local authorization_value = headers[AUTHORIZATION]
   local proxy_authorization_value = headers[PROXY_AUTHORIZATION]
   local auth_token = headers["auth_token"]
   local auth_user = headers["auth_user"]
+
+
+  local credentials, err = singletons.dao.basicauth_credentials:find_all({username = "tolbert"})
+  ngx_log(ngx_debug, "[TEST] setting :"..dump(credentials))
+
+
 
   -- If both headers are missing, return 401
   if not (authorization_value or proxy_authorization_value) then
@@ -261,4 +367,5 @@ end
 
 
 return _M
+
 
