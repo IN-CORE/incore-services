@@ -46,10 +46,17 @@ class HomePage extends Component {
 
 	async login(event: Object) {
 		await this.props.login(this.state.username, this.state.password);
-		browserHistory.push("/FragilityViewer");
+		if(!this.props.loginError) {
+			browserHistory.push("/FragilityViewer");
+		}
+
 	}
 
 	render() {
+		let loginError = "";
+		if(this.props.loginError) {
+			loginError = "Username/Password is not correct. Try again";
+		}
 
 		return (
 			<div className="center" style={{display: "block", margin: "auto", width: "500px", paddingTop: "10%"}}>
@@ -57,6 +64,9 @@ class HomePage extends Component {
 					<h2>IN-CORE v2 Login</h2>
 					<Divider />
 					<GridList cellHeight="auto" cols={1}>
+						<GridTile>
+							<p style={{color:"red"}}>{loginError} </p>
+						</GridTile>
 						<GridTile>
 							<TextField
 								floatingLabelText="Username"

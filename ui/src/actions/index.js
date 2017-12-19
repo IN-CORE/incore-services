@@ -99,21 +99,27 @@ export async function loginHelper(username, password) {
 	return user;
 }
 
+export const LOGIN_ERROR = "LOGIN_ERROR";
 export const SET_USER = "SET_USER";
 export function login(username, password) {
 
 	return async(dispatch: Dispatch) => {
 
 		const json = await loginHelper(username, password);
-		if(typeof(Storage) !== "undefined") {
+		if(typeof(Storage) !== "undefined" && json["auth-token"] !== undefined ) {
 			sessionStorage.setItem("auth", json["auth-token"]);
 			sessionStorage.setItem("user", json["user"]);
+			return dispatch({
+				type: SET_USER,
+				username: json["user"],
+				auth_token: json["auth-token"]
+			});
+		} else {
+			return dispatch({
+				type: LOGIN_ERROR
+			});
 		}
-		return dispatch({
-			type: SET_USER,
-			username: json["user"],
-			auth_token: json["auth-token"]
-		});
+
 	};
 }
 
