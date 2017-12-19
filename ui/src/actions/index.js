@@ -123,6 +123,19 @@ export function login(username, password) {
 	};
 }
 
+export const LOGOUT = "LOGOUT";
+export function logout() {
+	return (dispatch: Dispatch) => {
+		if(typeof(Storage) !== "undefined") {
+			sessionStorage.removeItem("auth");
+			sessionStorage.removeItem("user");
+		}
+		return dispatch({
+			type: LOGOUT
+		});
+	};
+}
+
 export const RECEIVE_EXECUTION_ID = "RECEIVE_WORKFLOW_ID";
 export function receiveDatawolfResponse(json) {
 	// Get the id of the layers in geoserver to display in the map

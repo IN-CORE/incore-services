@@ -22,6 +22,13 @@ class HomePage extends Component {
 		this.changeUsername = this.changeUsername.bind(this);
 		this.changePassword = this.changePassword.bind(this);
 		this.login = this.login.bind(this);
+		this.handleKeyPressed = this.handleKeyPressed.bind(this);
+	}
+
+	handleKeyPressed(event: Object) {
+		if (event.charCode === 13) {
+			this.login();
+		}
 	}
 
 	changeUsername(event: Object) {
@@ -41,7 +48,11 @@ class HomePage extends Component {
 			});
 		}
 
+
 		this.setState({password: password});
+		if(event.charCode === 13) {
+			this.login(event);
+		}
 	}
 
 	async login(event: Object) {
@@ -83,6 +94,7 @@ class HomePage extends Component {
 								errorText={this.state.passwordErrorText}
 								value={this.state.password}
 								onChange={this.changePassword}
+								onKeyPress={this.handleKeyPressed}
 							/>
 						</GridTile>
 

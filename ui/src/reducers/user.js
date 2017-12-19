@@ -1,4 +1,4 @@
-import {SET_USER, LOGIN_ERROR} from "../actions";
+import {SET_USER, LOGIN_ERROR, LOGOUT} from "../actions";
 import type {UserState} from "../utils/flowtype";
 
 type UserAction = {
@@ -15,6 +15,8 @@ const user = (state: UserState = defaultState, action: UserAction) => {
 		return Object.assign({}, state, {username: action.username, auth_token: action.auth_token, loginError: false});
 	case LOGIN_ERROR:
 		return Object.assign({}, state, {username: "", auth_token: "", loginError: true});
+	case LOGOUT:
+		return Object.assign({}, state, {username: "", auth_token: "", loginError: false});
 	default:
 		return state;
 	}
