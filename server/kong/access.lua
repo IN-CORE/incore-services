@@ -306,11 +306,6 @@ local function do_authentication(conf)
   local auth_user = headers["auth_user"]
 
 
-  local credentials, err = singletons.dao.basicauth_credentials:find_all({username = "tolbert"})
-  ngx_log(ngx_debug, "[TEST] setting :"..dump(credentials))
-
-
-
   -- If both headers are missing, return 401
   if not (authorization_value or proxy_authorization_value) then
     ngx.header["WWW-Authenticate"] = 'LDAP realm="kong"'
