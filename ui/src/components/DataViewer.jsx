@@ -8,6 +8,10 @@ import csv from "csv";
 import config from "../app.config";
 import {getHeader} from "../actions";
 
+String.prototype.capitalize = function() {
+	return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
 class DataViewer extends Component {
 
 	constructor(props) {
@@ -69,6 +73,7 @@ class DataViewer extends Component {
 
 	}
 
+
 	render() {
 		let dataset_types = "";
 		const dataset_all_types = this.props.datasets.map(dataset =>
@@ -122,7 +127,7 @@ class DataViewer extends Component {
 
 		const list_items = datasets_to_display.map(dataset =>
 			<div key={dataset.id}>
-				<ListItem onClick={() => this.onClickDataset(dataset.id)} key={dataset.id} primaryText={dataset.title}/>
+				<ListItem onClick={() => this.onClickDataset(dataset.id)} key={dataset.id} primaryText={`${dataset.title  } - ${  dataset.creator.capitalize()}`}/>
 				<Divider/>
 			</div>
 		);
