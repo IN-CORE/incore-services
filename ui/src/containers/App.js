@@ -1,14 +1,22 @@
 import {connect} from "react-redux";
-import {fetchAnalyses} from "../actions/index";
 import AppComponent from "../components/App";
-import type { Dispatch } from "../utils/flowtype";
+import {logout} from "../actions";
 
 const mapStateToProps = (state,ownProps) => {
 	return{
-		user: state.user.username
+		user: sessionStorage.user
 	};
 };
 
-const App = connect(mapStateToProps)(AppComponent);
+const mapDispatchToProps = (dispatch, ownProps) => {
+	return {
+		logout: () => {
+			dispatch(logout());
+		}
+	};
+};
+
+
+const App = connect(mapStateToProps, mapDispatchToProps)(AppComponent);
 
 export default App;

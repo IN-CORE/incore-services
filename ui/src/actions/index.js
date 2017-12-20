@@ -41,23 +41,22 @@ export function receiveDatasets(json: Dataset) {
 }
 
 export function fetchAnalyses() {
-
-	const endpoint = `${config.maestroService  }/maestro/api/analyses/metadata`;
+	const endpoint = `${config.maestroService  }/api/analyses/metadata`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, {
 			headers: getHeader()
 		})
 			.then(response => response.json())
-			.then( json =>
-				dispatch(receiveAnalyses(config.maestroService, json))
+			.then(json =>
+				dispatch(receiveAnalyses(endpoint, json))
 			);
 	};
 }
 
 export function getAnalysisById(id: String) {
 	//TODO: Move to a configuration file
-	const endpoint = `${config.maestroService  }/maestro/api/analyses/${  id}`;
+	const endpoint = `${config.maestroService  }/api/analyses/${  id}`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, {
@@ -95,21 +94,44 @@ export async function loginHelper(username, password) {
 		}
 	});
 
-	const user = await userRequest.json()   ;
+	const user = await userRequest.json();
 
 	return user;
 }
 
+export const LOGIN_ERROR = "LOGIN_ERROR";
 export const SET_USER = "SET_USER";
 export function login(username, password) {
 
 	return async(dispatch: Dispatch) => {
 
 		const json = await loginHelper(username, password);
+		if(typeof(Storage) !== "undefined" && json["auth-token"] !== undefined ) {
+			sessionStorage.setItem("auth", json["auth-token"]);
+			sessionStorage.setItem("user", json["user"]);
+			return dispatch({
+				type: SET_USER,
+				username: json["user"],
+				auth_token: json["auth-token"]
+			});
+		} else {
+			return dispatch({
+				type: LOGIN_ERROR
+			});
+		}
+
+	};
+}
+
+export const LOGOUT = "LOGOUT";
+export function logout() {
+	return (dispatch: Dispatch) => {
+		if(typeof(Storage) !== "undefined") {
+			sessionStorage.removeItem("auth");
+			sessionStorage.removeItem("user");
+		}
 		return dispatch({
-			type: SET_USER,
-			username: json["user"],
-			auth_token: json["auth-token"]
+			type: LOGOUT
 		});
 	};
 }
@@ -132,12 +154,9 @@ export function receiveDatawolfResponse(json) {
 
 }
 
-async function getOutputDatasetHelper() {
-	const executionId = "ffe2e458-b3ba-4d91-a171-9f5176abd872";// state.execution.executionId;
+async function getOutputDatasetHelper(executionId: String) {
 	const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
-	const headers = new Headers({
-		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
-	});
+	const headers = getDatawolfHeader();
 	const datawolf_execution_fetch = await fetch(datawolfUrl, {
 		method: "GET",
 		headers: headers
@@ -145,9 +164,8 @@ async function getOutputDatasetHelper() {
 
 	const datawolfExecution  = await datawolf_execution_fetch.json();
 
-	const output_dataset_id =datawolfExecution.datasets["fb2ff2f0-5708-4b29-c701-f3a6288021eb"];
-
-	const endpoint = `${config.dataService   }/${   output_dataset_id}` ;
+	const output_dataset_id =datawolfExecution.datasets["7774de32-481f-48dd-8223-d9cdf16eaec1"];
+	const endpoint = `${config.dataService   }/${output_dataset_id}` ;
 	const output_dataset = await fetch(endpoint, {
 		headers: getHeader()
 	});
@@ -164,11 +182,10 @@ async function getOutputDatasetHelper() {
 }
 
 export const RECEIVE_OUTPUT = "RECEIVE_OUTPUT";
-export function getOutputDataset() {
-	 // const state = getState();
+export function getOutputDataset(executionId: String) {
 
 	return async (dispatch: Dispatch) => {
-		const data = await getOutputDatasetHelper();
+		const data = await getOutputDatasetHelper(executionId);
 		 dispatch({
 			type: RECEIVE_OUTPUT,
 			outputDatasetId: data[0],
@@ -188,10 +205,8 @@ export async function executeDatawolfWorkflowHelper(workflowid, creatorid, title
 		"creatorId": creatorid,
 		"description": description
 	};
-	const headers = new Headers({
-		"Content-Type": "application/json",
-		"Authorization": `Basic ${  btoa("incore-dev@lists.illinois.edu:resilience2017")}`
-	});
+	const headers = getDatawolfHeader();
+	headers.append("Content-Type", "application/json");
 
 	const datawolfExecution = await fetch(datawolfUrl, {
 		method: "POST",
@@ -219,15 +234,18 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 
 }
 
-function getHeader() {
-	return(dispatch, getState) => {
-		const state = getState();
-		const headers = new Headers({
-			"Authorization": "LDAP token",
-			"auth_user": state.user.username,
-			"auth_token": state.user.token
-		});
-		return headers;
-	};
+export function getHeader() {
+	const headers = new Headers({
+		"Authorization": `LDAP ${  sessionStorage.auth}`,
+		"auth-user": sessionStorage.user,
+		"auth-token": sessionStorage.auth
+	});
+	return headers;
+}
 
+function getDatawolfHeader() {
+	const headers = new Headers({
+		"X-Credential-Username": sessionStorage.user
+	});
+	return headers;
 }

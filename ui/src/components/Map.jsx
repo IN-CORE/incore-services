@@ -39,7 +39,7 @@ class Map extends Component {
 		let layerTiled = new ol.layer.Tile({
 			source: new ol.source.TileWMS({
 				visible: false,
-				url: "http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms",
+				url: "https://incore2-geoserver.ncsa.illinois.edu/geoserver/incore/wms",
 				params: {"FORMAT": "image/png",
 					"VERSION": "1.1.1",
 					tiled: true,

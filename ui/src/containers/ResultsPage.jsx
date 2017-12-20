@@ -13,8 +13,8 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
 	return {
-		getOutputFile: (event) => {
-			dispatch(getOutputDataset());
+		getOutputFile: (executionId) => {
+			dispatch(getOutputDataset(executionId));
 		}
 	};
 };
