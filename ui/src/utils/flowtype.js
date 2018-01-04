@@ -91,3 +91,8 @@ export type ExecutionState = {
 }
 
 export type GetState = () => Object;
+
+export type UserState = {
+	username: string,
+	auth_token: string
+}

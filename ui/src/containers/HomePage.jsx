@@ -4,8 +4,8 @@ import {login} from "../actions";
 
 const mapDispatchToProps = (dispatch, ownProps) => {
 	return {
-		login: (username, password) => {
-			dispatch(login(username,password));
+		login: async (username, password) => {
+			await dispatch(login(username,password));
 		}
 	};
 };
