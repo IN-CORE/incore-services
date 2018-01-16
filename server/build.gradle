@@ -60,6 +60,13 @@ farm {
     webapp ':auth-service'
 }
 
+task farmWars (dependsOn:war, type: Copy) {
+  from('.') {
+    include '**/*.war'
+  }
+  into ('build')
+}
+
 //For now, all subprojects are java projects. Later this might change.
 //Until then, give them all a basic java build
 subprojects {
@@ -108,5 +115,7 @@ subprojects {
             // Mocking Framework
             testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.9.0')
         }
+        
+     
     }
 }

@@ -4,10 +4,14 @@ apt-get install -y software-properties-common python-software-properties
 echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true |  /usr/bin/debconf-set-selections
 add-apt-repository ppa:webupd8team/java -y
 apt-get update
-apt-get install oracle-java8-installer
+apt-get install -y oracle-java8-installer
 echo "Setting environment variables for Java 8.."
 apt-get install -y oracle-java8-set-default
+apt-get install -y mongodb mongodb-clients
+apt-get install -y unzip
 
+#setup incore user
+sudo useradd -r incore
 
 
 #install kong
@@ -25,17 +29,43 @@ cd /usr/local/share/lua/5.1/kong/plugins/ldap-auth
 sudo cp -f /vagrant/server/kong/access.lua .
 #run kong migrations
 sudo kong migrations up -c /vagrant/server/kong/kong.conf
+sudo ln -s /vagrant/server/kong/kong.service /lib/systemd/system/kong.service
+sudo systemctl enable kong
 #start kong service
-sudo kong start -c /vagrant/server/kong/kong.conf
+sudo service kong start
 #now need to setup the kong server, but that will be in a different script
 source /vagrant/server/kong/incore.kong.sh
 
 #install logstash
 cd /tmp
 wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-apt-get install apt-transport-https
+apt-get update
+apt-get install -y apt-transport-https
 echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-6.x.list
 apt-get update
-apt-get install logstash
+apt-get install -y logstash
 ln -s /vagrant/server/logstashPipeline.conf /etc/logstash/conf.d
+sudo systemctl enable logstash
 systemctl start logstash.service
+
+#make mongo available to host
+sed -i 's/bind_ip/#bind_ip/g' /etc/mongodb.conf
+
+
+#install datawolf
+wget -O datawolf.zip https://opensource.ncsa.illinois.edu/bamboo/browse/WOLF-MAIN-45/artifact/CORE/datawolf-webapp-all.zip/datawolf-webapp-all-4.1.0-bin.zip
+cd /opt
+sudo mkdir datawolf
+cd datawolf
+sudo unzip /tmp/datawolf.zip
+sudo mv /opt/datawolf/datawolf-webapp*/* /opt/datawolf
+sudo rmdir  /opt/datawolf/datawolf-webapp*
+sudo chown -R incore /opt/datawolf
+#create the systemd service
+sudo ln -s /vagrant/vagrant/datawolf-service.sh /lib/systemd/system/datawolf.service
+sudo systemctl enable datawolf
+sudo service datawolf start
+
+#setup mongo and install data?
+#mongo < /vagrant/vagrant/mongo-seed.js
+

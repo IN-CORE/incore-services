@@ -4,7 +4,7 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=fragility' \
   --data 'uris=/fragility' \
-  --data 'upstream_url=http://localhost:8080/fragility/'
+  --data 'upstream_url=http://10.0.2.2:8080/fragility/'
 
 
 
@@ -13,7 +13,7 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=maestro' \
   --data 'uris=/maestro' \
-  --data 'upstream_url=http://localhost:8080/maestro/'
+  --data 'upstream_url=http://10.0.2.2:8080/maestro/'
 
 
 
@@ -24,7 +24,7 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=repo' \
   --data 'uris=/repo' \
-  --data 'upstream_url=http://localhost:8080/repo/'
+  --data 'upstream_url=http://10.0.2.2:8080/repo/'
 
 
 
@@ -36,14 +36,21 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=hazard' \
   --data 'uris=/hazard' \
-  --data 'upstream_url=http://localhost:8080/hazard/'
+  --data 'upstream_url=http://10.0.2.2:8080/hazard/'
 
+
+curl -i -X DELETE --url http://localhost:8001/apis/data
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=data' \
+  --data 'uris=/data' \
+  --data 'upstream_url=http://10.0.2.2:8080/data/'
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
-  --data 'name=hazard' \
-  --data 'uris=/hazard' \
-  --data 'upstream_url=http://localhost:8080/hazard/'
+  --data 'name=datawolf' \
+  --data 'uris=/datawolf' \
+  --data 'upstream_url=http://localhost:3456/datwolf/'
 
 
 
@@ -68,5 +75,6 @@ curl -i -X POST \
   --data 'config.attribute=uid' \
   --data 'config.ldaps=true' \
   --data "config.anonymous=$ANON_ID" 
+
 
 
