@@ -11,7 +11,7 @@ class ResultsPage extends Component {
 	}
 
 	componentWillMount() {
-		this.props.getOutputFile();
+		this.props.getOutputFile(this.props.executionId);
 	}
 
 	render() {
@@ -31,8 +31,7 @@ class ResultsPage extends Component {
 						{file_contents}
 					</GridTile>
 					<GridTile cols={6}>
-						<Map datasetId={"59f8d08dc7d30d278f25095d"}/>
-						{/*Should be: this.props.outputDatasetId*/}
+						<Map datasetId={this.props.datasetId}/>
 					</GridTile>
 				</GridList>
 
