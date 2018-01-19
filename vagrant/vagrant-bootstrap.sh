@@ -79,4 +79,5 @@ pip3 install matplotlib wikidata docopt
 
 sudo service datawolf start
 
+cd /home/ubuntu/analyses/eq_bldg_str_dmg
 curl -X POST -F "workflow=@bldg_dmg_workflow.zip" http://localhost:8888/datawolf/workflows
