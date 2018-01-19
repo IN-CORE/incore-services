@@ -58,9 +58,25 @@ sudo rmdir  /opt/datawolf/datawolf-webapp*
 sudo chown -R incore /opt/datawolf
 #create the systemd service
 sudo ln -s /vagrant/vagrant/datawolf-service.sh /lib/systemd/system/datawolf.service
-sudo systemctl enable datawolf
 sudo service datawolf start
 
 #setup mongo and install data?
 #mongo < /vagrant/vagrant/mongo-seed.js
 
+
+#setup pyincore and datawolf workflows
+cd /home/ubuntu/pyincore
+sudo python3 setup.py install
+sudo ln -s /home/ubuntu/analyses/eq_bldg_str_dmg/building_damage.py /usr/local/bin
+sudo apt-get -y install python3-pip libgdal-dev python3-tk
+pip3 install numpy
+pip3 install scipy
+pip3 install rasterio
+pip3 install fiona
+pip3 install jsonpickle
+pip3 install shapely
+pip3 install matplotlib wikidata docopt
+
+sudo service datawolf start
+
+curl -X POST -F "workflow=@bldg_dmg_workflow.zip" http://localhost:8888/datawolf/workflows
