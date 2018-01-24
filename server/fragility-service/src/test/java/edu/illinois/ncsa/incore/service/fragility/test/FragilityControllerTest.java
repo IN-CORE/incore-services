@@ -57,12 +57,12 @@ public class FragilityControllerTest extends CustomJerseyTest {
                                     .readValue(jsonURL, MappingRequest.class);
 
         // act
-        MappingResponse response = target("/fragility/map").request()
+        MappingResponse response = target("/fragilities/map").request()
                                                            .accept(MediaType.APPLICATION_JSON)
                                                            .post(Entity.json(request), MappingResponse.class);
 
         // assert
-
+        assertTrue(response.getFragilitySets().containsKey("NSDS_PFM_MTB_UL_475_W1_4"));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class FragilityControllerTest extends CustomJerseyTest {
         MappingRequest request = new MappingRequest(subject);
 
         // act
-        MappingResponse response = target("/fragility/map").request()
+        MappingResponse response = target("/fragilities/map").request()
                                                             .accept(MediaType.APPLICATION_JSON)
                                                             .post(Entity.json(request), MappingResponse.class);
 
