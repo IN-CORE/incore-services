@@ -1,4 +1,4 @@
-#install oracle jdk 8
+#install oracle jdk 8 and other base requirements
 apt-get update
 apt-get install -y software-properties-common python-software-properties
 apt-get install -y openjdk-8-jdk
@@ -14,22 +14,39 @@ cd /tmp
 wget -O kong-community-edition-0.11.0.precise.all.deb https://bintray.com/kong/kong-community-edition-deb/download_file?file_path=dists/kong-community-edition-0.11.0.precise.all.deb
 apt-get install -y openssl libpcre3 procps perl
 dpkg -i kong-community-edition-0.11.0.*.deb
+
 #kong requires posgresql
 apt-get install -y postgresql
 sudo -u postgres psql -c "CREATE USER kong; GRANT kong to postgres;"
 sudo -u postgres psql -c "CREATE DATABASE kong OWNER kong;"
 sudo -u postgres psql -c "ALTER USER kong WITH password 'k0ng';"
+
 #patch kong to support ldaps until they merge my ldaps PR
 cd /usr/local/share/lua/5.1/kong/plugins/ldap-auth
+sudo cp -f /vagrant/server/kong/schema.lua .
+
+#hack kong so that instead of caching ldap password in db,
+#it stores and caches a token and uses that instead
 sudo cp -f /vagrant/server/kong/access.lua .
+
 #run kong migrations
 sudo kong migrations up -c /vagrant/server/kong/kong.conf
 sudo ln -s /vagrant/server/kong/kong.service /lib/systemd/system/kong.service
 sudo systemctl enable kong
+
 #start kong service
 sudo service kong start
-#now need to setup the kong server, but that will be in a different script
-source /vagrant/server/kong/incore.kong.sh
+
+#now need to setup the kong server config, but that will be in a different script
+source /vagrant/vagrant/kong-setup.sh
+
+#need to replace the consumer_id in the hacked access.lua so our hack works
+ANON_JSON=`curl -X GET  --url http://localhost:8001/consumers/anonymous`
+ANON_ID=`echo "$ANON_JSON" | sed -e 's/.*"id":"\(.*\)"}/\1/g'`
+sed -i "s/%%%CONSUMER_ID%%%/$ANON_ID/g" /usr/local/share/lua/5.1/kong/plugins/ldap-auth/access.lua
+sudo service kong restart
+
+
 
 #install logstash
 cd /tmp

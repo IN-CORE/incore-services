@@ -50,9 +50,7 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=datawolf' \
   --data 'uris=/datawolf' \
-  --data 'upstream_url=http://localhost:3456/datwolf/'
-
-
+  --data 'upstream_url=http://localhost:8088/datwolf/'
 
 
 #create an anonyous user
