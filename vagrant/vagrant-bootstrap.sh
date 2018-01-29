@@ -62,6 +62,7 @@ systemctl start logstash.service
 
 #make mongo available to host
 sed -i 's/bind_ip/#bind_ip/g' /etc/mongodb.conf
+sudo service mongodb restart
 
 
 #install datawolf

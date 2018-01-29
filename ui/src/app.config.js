@@ -1,13 +1,13 @@
 const devConfig = {
 	basePath: "/",
-	fragilityService: "http://localhost:8080/fragility/api/fragilities",
+	fragilityService: "http://localhost:8088/fragility/api/fragilities",
 	semanticService: "",
-	hazardService: "https://incore2-services.ncsa.illinois.edu/hazard/api/earthquakes/",
-	maestroService: "http://localhost:8080/maestro",
-	authService: "https://incore2-services.ncsa.illinois.edu/auth/api/login",
-	dataServiceBase: "https://incore2-services.ncsa.illinois.edu/",
-	dataService: "https://incore2-services.ncsa.illinois.edu/data/api/datasets",
-	dataWolf: "https://141.142.209.63/datawolf/"
+	hazardService: "http://localhost:8088/hazard/api/earthquakes/",
+	maestroService: "http://localhost:8088/maestro",
+	authService: "http://localhost:8088/auth/api/login",
+	dataServiceBase: "http://localhost:8088/",
+	dataService: "http://localhost:8088/data/api/datasets",
+	dataWolf: "https://localhost:8088/datawolf/"
 };
 
 const prodConfig = {

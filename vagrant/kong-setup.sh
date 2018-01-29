@@ -46,11 +46,20 @@ curl -i -X POST \
   --data 'uris=/data' \
   --data 'upstream_url=http://10.0.2.2:8080/data/'
 
+curl -i -X DELETE --url http://localhost:8001/apis/auth
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=auth' \
+  --data 'uris=/auth' \
+  --data 'upstream_url=http://10.0.2.2:8080/auth/'
+
+
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=datawolf' \
   --data 'uris=/datawolf' \
-  --data 'upstream_url=http://localhost:8088/datwolf/'
+  --data 'upstream_url=http://localhost:8088/datawolf/'
+
 
 
 #create an anonyous user
@@ -60,14 +69,13 @@ curl -i -X POST \
 
 #get the anonymous user id
 ANON_JSON=`curl -X GET  --url http://localhost:8001/consumers/anonymous`
-fANON_ID=`echo "$ANON_JSON" | sed -e 's/.*"id":"\(.*\)"}/\1/g'`
+ANON_ID=`echo "$ANON_JSON" | sed -e 's/.*"id":"\(.*\)"}/\1/g'`
 
 #this requires that my ldaps patch has been applied to /usr/local/share/lua/xx/kong/
 curl -i -X POST \
   --url http://localhost:8001/plugins/ \
   --data 'name=ldap-auth' \
   --data 'config.ldap_port=636' \
-  --data 'config.anonymous=XXX' \
   --data 'config.base_dn=dc=ncsa,dc=illinois,dc=edu' \
   --data 'config.ldap_host=ldap.ncsa.illinois.edu' \
   --data 'config.attribute=uid' \

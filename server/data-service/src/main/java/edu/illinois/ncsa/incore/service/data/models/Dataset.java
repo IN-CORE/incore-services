@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import edu.illinois.ncsa.incore.common.auth.PrivilegeSpec;
 import edu.illinois.ncsa.incore.service.data.models.jackson.JsonDateSerializer;
 
 public class Dataset extends AbstractBean {
@@ -86,6 +87,8 @@ public class Dataset extends AbstractBean {
      * List of spaces to the artifact.
      */
     private List<String> spaces = null;
+
+    private PrivilegeSpec privilegeSpec;
 
     public Dataset() {
     }
@@ -220,6 +223,7 @@ public class Dataset extends AbstractBean {
         return fileDescriptors;
     }
 
+
     /**
      * Set the set of file descriptors associated with the dataset.
      *
@@ -231,6 +235,20 @@ public class Dataset extends AbstractBean {
         // if (fileDescriptors != null) {
         // getFileDescriptors().addAll(fileDescriptors);
         // }
+    }
+
+
+
+    public PrivilegeSpec getPrivilegeSpec(){
+        if (privilegeSpec == null) {
+            privilegeSpec = new PrivilegeSpec();
+        }
+        return privilegeSpec;
+    }
+
+
+    public void setPrivilegeSpec(PrivilegeSpec privilegeSpec) {
+        this.privilegeSpec = privilegeSpec;
     }
 
     /**
@@ -351,4 +369,5 @@ public class Dataset extends AbstractBean {
     public String toString() {
         return title;
     }
+
 }
