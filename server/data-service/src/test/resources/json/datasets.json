@@ -1,0 +1,56 @@
+[
+  {
+    "id": "5a207b29beefa40740e87c93",
+    "deleted": false,
+    "title": "HAZUS Table 13.8 Collapse Rates",
+    "description": "",
+    "date": "2017-11-30T15:42:01-0600",
+    "creator": "ergo",
+    "contributors": [],
+    "fileDescriptors": [
+      {
+        "id": "5a207b29beefa40740e87c96",
+        "deleted": false,
+        "filename": "HAZUS_Table_13.8_Collapse_Rates.csv",
+        "mimeType": "application/octet-stream",
+        "size": 380,
+        "dataURL": "file:/C:/rest/5a/20/5a207b29beefa40740e87c96/HAZUS_Table_13.8_Collapse_Rates.csv",
+        "md5sum": "ecbadb113a4c7407c05ce543b0bbcfef"
+      }
+    ],
+    "type": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingCollapseRateTable.v1.0",
+    "storedUrl": "",
+    "format": "table",
+    "sourceDataset": "",
+    "spaces": [
+      "ergo"
+    ]
+  },
+  {
+    "id": "5a207b29beefa40740e87c9d",
+    "deleted": false,
+    "title": "Building Disruption Cost",
+    "description": "",
+    "date": "2017-11-30T15:42:01-0600",
+    "creator": "ergo",
+    "contributors": [],
+    "fileDescriptors": [
+      {
+        "id": "5a207b29beefa40740e87ca0",
+        "deleted": false,
+        "filename": "Building_Disruption_Cost.csv",
+        "mimeType": "application/octet-stream",
+        "size": 714,
+        "dataURL": "file:/C:/rest/5a/20/5a207b29beefa40740e87ca0/Building_Disruption_Cost.csv",
+        "md5sum": "f7792d23f6f56f26feb123aeeabbfcf9"
+      }
+    ],
+    "type": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingDisruptionCost.v1.0",
+    "storedUrl": "",
+    "format": "table",
+    "sourceDataset": "",
+    "spaces": [
+      "ergo"
+    ]
+  }
+]

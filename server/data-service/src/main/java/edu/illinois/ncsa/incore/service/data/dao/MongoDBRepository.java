@@ -75,6 +75,10 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore.createQuery(Space.class).asList();
     }
 
+    public List<MvzDataset> getAllMvzDatasets() {
+        return this.dataStore.createQuery(MvzDataset.class).asList();
+    }
+
     public Dataset getDatasetById(String id) {
         return this.dataStore.get(Dataset.class, new ObjectId(id));
     }
