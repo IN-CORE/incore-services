@@ -48,7 +48,7 @@ hazard/api/tornadoes
 
 http://localhost:8080/hazard/api/tornadoes
 
-POST - Create scenario earthquake
+POST - Create scenario tornado
 
 {
   "tornadoModel" : "MeanWidthTornado",

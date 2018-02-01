@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 @Path("tornadoes")
 public class TornadoController {
@@ -33,10 +34,16 @@ public class TornadoController {
 
     private GeometryFactory factory = new GeometryFactory();
 
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<ScenarioTornado> getScenarioTornadoes() {
+        return repository.getScenarioTornadoes();
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioTornado createScenarioEarthquake(ScenarioTornado scenarioTornado) throws Exception {
+    public ScenarioTornado createScenarioTornado(ScenarioTornado scenarioTornado) throws Exception {
         if (scenarioTornado != null) {
             if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
                 Tornado tornado = new MeanWidthTornado();
@@ -63,14 +70,14 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public ScenarioTornado getScenarioEarthquake(@PathParam("tornado-id") String tornadoId) {
+    public ScenarioTornado getScenarioTornado(@PathParam("tornado-id") String tornadoId) {
         return repository.getScenarioTornadoById(tornadoId);
     }
 
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getScenarioEarthquakeHazard(@PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+    public Response getScenarioTornadoHazard(@PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
         ScenarioTornado tornado = repository.getScenarioTornadoById(tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
