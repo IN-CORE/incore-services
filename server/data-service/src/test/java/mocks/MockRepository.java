@@ -64,14 +64,6 @@ public class MockRepository implements IRepository {
             ex.printStackTrace();
         }
 
-        // not being tested in this test
-//        try {
-//            this.mvzDatasets = new ObjectMapper().readValue(mvzDatasetsPath, new TypeReference<List<MvzDataset>>(){});
-//        } catch (IOException ex) {
-//            ex.printStackTrace();
-//        }
-
-
         Mockito.when(mockDataStore.createQuery(Dataset.class)
                 .limit(Mockito.any(Integer.class))
                 .asList())

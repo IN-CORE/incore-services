@@ -24,10 +24,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
-/**
- * Created by ywkim on 7/26/2017.
- */
-
 @Path("mvzdatasets")
 public class MvzDatasetController {
     private Logger logger = Logger.getLogger(MvzDatasetController.class);

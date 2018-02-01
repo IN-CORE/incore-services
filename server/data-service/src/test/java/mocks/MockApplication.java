@@ -28,8 +28,6 @@ public class MockApplication extends ResourceConfig {
 
         super.register(MultiPart.class);
         super.register(MultiPartFeature.class);
-//        super.register(MultiPartWriter.class);
-//        super.register(MultiPartResource.class);
 
         super.register(new AbstractBinder() {
             @Override
