@@ -50,10 +50,25 @@ public class MeanWidthTornadoTest extends CustomJerseyTest {
         Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
         String demandUnits = "mph";
         int simulation = 0;
-        Tornado model = new MeanWidthTornado();
 
-        WindHazardResult result = TornadoCalc.getWindHazardAtSite(tornado, model, localSite, demandUnits, simulation);
+        WindHazardResult result = TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation);
         assertTrue(result.getHazardValue() >= 65.0);
         assertTrue(result.getHazardValue() < 86.0);
+    }
+
+    @Test
+    public void testMeanWidthTornadoValuesMetersPerSecond() throws Exception {
+        String id = "5a7385645a52284c6a7d273a";
+        ScenarioTornado tornado = target("tornadoes/" + id).request().accept(MediaType.APPLICATION_JSON).get(ScenarioTornado.class);
+
+        double siteLong = -97.4788;
+        double siteLat = 35.2265;
+        Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
+        String demandUnits = "mps";
+        int simulation = 0;
+
+        WindHazardResult result = TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation);
+        assertTrue(result.getHazardValue() >= 29.0576);
+        assertTrue(result.getHazardValue() < 38.44544);
     }
 }

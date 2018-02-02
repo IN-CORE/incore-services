@@ -44,10 +44,10 @@ public abstract class Tornado {
         double[] efWidthRate = getWidthMultiplier(efRating);
         EFBox boxWidth = new EFBox();
         try {
-            Coordinate[] coords = new Coordinate[] { startPtCoordinate, endPtCoordinate };
+            Coordinate[] coords = new Coordinate[]{startPtCoordinate, endPtCoordinate};
 
             // convert given width, which is meter, to degree
-            double tornadoWidth = width *  0.0089982311916 / 1000;
+            double tornadoWidth = width * 0.0089982311916 / 1000;
 
             double tmpWidth = 0.0;
             double efWidth = 0.0;
@@ -74,21 +74,17 @@ public abstract class Tornado {
     /**
      * Get the Wind speed for a given location using the specified method.
      *
-     * @param location
-     *            X/Y location to get the wind speed.
-     * @param tornadoPath
-     *            Path of the tornado
-     * @param efBoxPolygons
-     *            EF box polygons
-     * @param efBoxWidths
-     *            ef Box widths
+     * @param location      X/Y location to get the wind speed.
+     * @param tornadoPath   Path of the tornado
+     * @param efBoxPolygons EF box polygons
+     * @param efBoxWidths   ef Box widths
      * @return Wind speed in miles per hour
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    public double calculateWindSpeed(Point location, LineString tornadoPath, List<Geometry> efBoxPolygons, List<Double> efBoxWidths, TornadoParameters parameters
-                                     ) throws MismatchedDimensionException, TransformException
-    {
+    public static double calculateWindSpeed(Point location, LineString tornadoPath, List<Geometry> efBoxPolygons, List<Double> efBoxWidths, TornadoParameters parameters
+    ) throws MismatchedDimensionException, TransformException {
+        // TODO consider exposing the computational method so it can be overridden
         if (parameters.getWindSpeedMethod() == 0) {
             return calculateWindSpeedLinearInterpolation(location, tornadoPath, efBoxPolygons, efBoxWidths, parameters);
         } else {
@@ -99,21 +95,16 @@ public abstract class Tornado {
     /**
      * Get the Wind speed for a given location using linear interpolation.
      *
-     * @param location
-     *            X/Y location to get the wind speed.
-     * @param tornadoPath
-     *            Path of the tornado
-     * @param efBoxes
-     *            EF box polygons
-     * @param efBoxWidths
-     *            ef Box widths
+     * @param location    X/Y location to get the wind speed.
+     * @param tornadoPath Path of the tornado
+     * @param efBoxes     EF box polygons
+     * @param efBoxWidths ef Box widths
      * @return Wind speed in miles per hour
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    public double calculateWindSpeedLinearInterpolation(Point location, LineString tornadoPath, List<Geometry> efBoxes,
-                                                        List<Double> efBoxWidths, TornadoParameters parameters) throws MismatchedDimensionException, TransformException
-    {
+    public static double calculateWindSpeedLinearInterpolation(Point location, LineString tornadoPath, List<Geometry> efBoxes,
+                                                               List<Double> efBoxWidths, TornadoParameters parameters) throws MismatchedDimensionException, TransformException {
         // check which EF box the point is in
         int containerBox = -1;
         for (int i = 0; i < efBoxes.size(); i++) {
@@ -162,21 +153,16 @@ public abstract class Tornado {
     /**
      * Get the Wind speed for a given location using uniform random distribution.
      *
-     * @param location
-     *            X/Y location to get the wind speed.
-     * @param tornadoPath
-     *            Path of the tornado
-     * @param efBoxes
-     *            EF box polygons
-     * @param efBoxWidths
-     *            ef Box widths
+     * @param location    X/Y location to get the wind speed.
+     * @param tornadoPath Path of the tornado
+     * @param efBoxes     EF box polygons
+     * @param efBoxWidths ef Box widths
      * @return Wind speed in miles per hour
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    public double calculateWindSpeedUniformRandomDist(Point location, LineString tornadoPath, List<Geometry> efBoxes,
-                                                      List<Double> efBoxWidths, TornadoParameters parameters) throws MismatchedDimensionException, TransformException
-    {
+    public static double calculateWindSpeedUniformRandomDist(Point location, LineString tornadoPath, List<Geometry> efBoxes,
+                                                             List<Double> efBoxWidths, TornadoParameters parameters) throws MismatchedDimensionException, TransformException {
         // check which EF box the point is in
         int containerBox = -1;
         for (int i = 0; i < efBoxes.size(); i++) {
@@ -231,8 +217,7 @@ public abstract class Tornado {
         return this.efBoxes;
     }
 
-    private double[] getLengthMultiplier(String efRating)
-    {
+    private double[] getLengthMultiplier(String efRating) {
         int efRatingValue = TornadoUtils.getEFRating(efRating);
 
         // Find Length Multiplier
@@ -254,8 +239,7 @@ public abstract class Tornado {
         }
     }
 
-    private double[] getWidthMultiplier(String efRating)
-    {
+    private double[] getWidthMultiplier(String efRating) {
         int efRatingValue = TornadoUtils.getEFRating(efRating);
 
         // Find Width Multiplier

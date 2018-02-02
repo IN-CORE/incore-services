@@ -82,9 +82,8 @@ public class TornadoController {
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
-            Tornado model = new MeanWidthTornado();
             try {
-                return Response.ok(TornadoCalc.getWindHazardAtSite(tornado, model, localSite, demandUnits, simulation)).build();
+                return Response.ok(TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation)).build();
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }

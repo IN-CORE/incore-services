@@ -56,12 +56,10 @@ public class TornadoUtils {
     /**
      * Calculates tornado path distance
      *
-     * @param tornadoPath
-     *            LineString representing the tornado path
+     * @param tornadoPath LineString representing the tornado path
      * @return Distance
      */
-    public static double calcDistanceCoords(LineString tornadoPath)
-    {
+    public static double calcDistanceCoords(LineString tornadoPath) {
         // convert LineString to LineSegem ent for the necessary process
         Coordinate[] coords = tornadoPath.getCoordinates();
 
@@ -114,8 +112,7 @@ public class TornadoUtils {
      * @param tornadoPath
      * @return
      */
-    public static LineString createPathWithLength(Double length, LineString tornadoPath)
-    {
+    public static LineString createPathWithLength(Double length, LineString tornadoPath) {
         // TODO consider moving this to a utility method
         // convert LineString to LineSegement for the necessary process
         Coordinate[] coords = tornadoPath.getCoordinates();
@@ -145,13 +142,12 @@ public class TornadoUtils {
 
         Coordinate startPt = seg.pointAlong(startFrac);
         Coordinate endPt = seg.pointAlong(endFrac);
-        LineString outPath = geometryFactory.createLineString(new Coordinate[] { startPt, endPt });
+        LineString outPath = geometryFactory.createLineString(new Coordinate[]{startPt, endPt});
 
         return outPath;
     }
 
-    public static double[] getLengthMultiplier(String efRating)
-    {
+    public static double[] getLengthMultiplier(String efRating) {
         int efRatingValue = TornadoUtils.getEFRating(efRating);
 
         // Find Length Multiplier
@@ -180,8 +176,7 @@ public class TornadoUtils {
      * @param coordIn
      * @return
      */
-    public static Polygon createPolygon(Coordinate[] coordOut, Coordinate[] coordIn)
-    {
+    public static Polygon createPolygon(Coordinate[] coordOut, Coordinate[] coordIn) {
         LinearRing ring = geometryFactory.createLinearRing(coordOut);
         LinearRing[] holes;
         if (coordIn == null) {
@@ -198,7 +193,7 @@ public class TornadoUtils {
         Coordinate startPtCoordinate = new Coordinate(tornadoParameters.getStartLongitude(), tornadoParameters.getStartLatitude());
         Coordinate endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
 
-        Coordinate[] coords = new Coordinate[] { startPtCoordinate, endPtCoordinate };
+        Coordinate[] coords = new Coordinate[]{startPtCoordinate, endPtCoordinate};
         return geometryFactory.createLineString(coords);
     }
 
@@ -227,7 +222,7 @@ public class TornadoUtils {
         List<Geometry> efBoxPolys = new ArrayList<Geometry>();
         Geometry tmpPoly = null;
 
-        for(int index = 0; index < efBoxWidths.size(); index++) {
+        for (int index = 0; index < efBoxWidths.size(); index++) {
             double efWidth = efBoxWidths.get(index);
 
             efBoxes.add(tmpPaths.get(index).buffer(efWidth, 10, BufferOp.CAP_BUTT));
