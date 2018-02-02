@@ -27,6 +27,7 @@ import chartConfig from "../components/config/ChartConfig";
 import config from "../app.config";
 import DistributionTable from "./DistributionTable";
 import CustomExpressionTable from "./CustomExpressionTable";
+import {getHeader} from "../actions";
 
 class FragilityExplorerPage extends React.Component {
 	constructor(props) {
@@ -65,7 +66,7 @@ class FragilityExplorerPage extends React.Component {
 			url = `${host}/${fragilityId}`;
 		}
 
-		let response = await fetch(url, {method: "GET", mode: "cors"});
+		let response = await fetch(url, {method: "GET", mode: "cors", headers: getHeader()});
 
 		if (response.ok) {
 			let fragilities = await response.json();
@@ -122,7 +123,7 @@ class FragilityExplorerPage extends React.Component {
 
 		let url = `${host}/search?text=${searchText}`;
 
-		let response = await fetch(url, {method: "GET", mode: "cors"});
+		let response = await fetch(url, {method: "GET", mode: "cors", headers: getHeader()});
 
 		if (response.ok) {
 			let fragilities = await response.json();
@@ -162,7 +163,7 @@ class FragilityExplorerPage extends React.Component {
 			url = `${host}`;
 		}
 
-		let response = await fetch(url, {method: "GET", mode: "cors"});
+		let response = await fetch(url, {method: "GET", mode: "cors", headers: getHeader()});
 
 		if (response.ok) {
 			let fragilities = await response.json();

@@ -5,21 +5,25 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.CustomJerseyTest;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.TestProperties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
+import java.io.File;
+import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AtkinsonBoore1995Test extends CustomJerseyTest {
+public class AtkinsonBoore1995Test {
 
     private AtkinsonBoore1995 attenuation;
 
     @BeforeAll
     public void before() throws Exception {
-        super.setUp();
         double latitude = 35.927;
         double longitude = -89.919;
         double focaldepth = 10.0;
@@ -30,12 +34,17 @@ public class AtkinsonBoore1995Test extends CustomJerseyTest {
         ruptureParameters.setSrcLatitude(latitude);
         ruptureParameters.setSrcLongitude(longitude);
 
+        String modelId = "AtkinsonBoore1995";
+        String fileName = modelId + ".csv";
+        URL coefficientURL = this.getClass().getResource("/hazard/earthquake/coefficients/" + fileName);
+        attenuation = new AtkinsonBoore1995();
+        attenuation.readCoeffients(coefficientURL);
         attenuation.setRuptureParameters(ruptureParameters);
     }
 
     @Test
     public void testGetValue() throws Exception {
-        String period = "0.2 SA";
+        String period = "0.2";
         double latitude = 35.07899;// 35.927;
         double longitude = -90.017;// -90.05;
 

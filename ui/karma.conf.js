@@ -1,17 +1,22 @@
-var path = require("path");
+let path = require("path");
+
+process.env.NODE_ENV = "test";
 
 module.exports = function (config) {
 	config.set({
-		browsers: ["Chrome", "Firefox"], //run in Chrome
+		browsers: ["Chrome", "Firefox", "ChromeHeadless"],
 		singleRun: true,
 		colors: true,
 		basePath: "",
 		frameworks: ["jasmine", "sinon"],
 		preprocessors: {
 			"test/**/*.test.js": ["webpack", "sourcemap"],
+			"test/**/*.test.jsx": ["webpack", "sourcemap"]
 		},
 		files: [
-			{pattern: "test/**/*.test.js"}
+			"node_modules/babel-polyfill/dist/polyfill.js",
+			{pattern: "test/**/*.test.js"},
+			{pattern: "test/**/*.test.jsx"},
 		],
 		reporters: ["mocha", "coverage"], //report results in this format
 		coverageReporter: {

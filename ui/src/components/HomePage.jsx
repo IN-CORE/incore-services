@@ -22,6 +22,13 @@ class HomePage extends Component {
 		this.changeUsername = this.changeUsername.bind(this);
 		this.changePassword = this.changePassword.bind(this);
 		this.login = this.login.bind(this);
+		this.handleKeyPressed = this.handleKeyPressed.bind(this);
+	}
+
+	handleKeyPressed(event: Object) {
+		if (event.charCode === 13) {
+			this.login();
+		}
 	}
 
 	changeUsername(event: Object) {
@@ -31,9 +38,9 @@ class HomePage extends Component {
 	changePassword(event: Object) {
 		let password = event.target.value;
 
-		if (password.length <= 8) {
+		if (password.length <= 6) {
 			this.setState({
-				passwordErrorText: "Your password must be at least 8 characters long"
+				passwordErrorText: "Your password must be at least 6 characters long"
 			});
 		} else {
 			this.setState({
@@ -41,16 +48,26 @@ class HomePage extends Component {
 			});
 		}
 
+
 		this.setState({password: password});
+		if(event.charCode === 13) {
+			this.login(event);
+		}
 	}
 
-	login(event: Object) {
-		//TODO: Login using a global state action
-		//this.props.login(this.state.username, this.state.password);
-		browserHistory.push("/FragilityViewer");
+	async login(event: Object) {
+		await this.props.login(this.state.username, this.state.password);
+		if(!this.props.loginError) {
+			browserHistory.push("/FragilityViewer");
+		}
+
 	}
 
 	render() {
+		let loginError = "";
+		if(this.props.loginError) {
+			loginError = "Username/Password is not correct. Try again";
+		}
 
 		return (
 			<div className="center" style={{display: "block", margin: "auto", width: "500px", paddingTop: "10%"}}>
@@ -58,6 +75,9 @@ class HomePage extends Component {
 					<h2>IN-CORE v2 Login</h2>
 					<Divider />
 					<GridList cellHeight="auto" cols={1}>
+						<GridTile>
+							<p style={{color:"red"}}>{loginError} </p>
+						</GridTile>
 						<GridTile>
 							<TextField
 								floatingLabelText="Username"
@@ -70,10 +90,11 @@ class HomePage extends Component {
 							<TextField
 								floatingLabelText="Password"
 								type="password"
-								minLength={8}
+								minLength={6}
 								errorText={this.state.passwordErrorText}
 								value={this.state.password}
 								onChange={this.changePassword}
+								onKeyPress={this.handleKeyPressed}
 							/>
 						</GridTile>
 

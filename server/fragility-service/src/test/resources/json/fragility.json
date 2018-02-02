@@ -15,7 +15,7 @@
     "demandUnits": "g",
     "fragilityCurves": [
       {
-        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -26,7 +26,7 @@
         "description": "Moderate"
       },
       {
-        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -37,7 +37,7 @@
         "description": "Extensive"
       },
       {
-        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -65,7 +65,7 @@
     "demandUnits": "g",
     "fragilityCurves": [
       {
-        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 1.77,
@@ -76,7 +76,7 @@
         "description": "Moderate"
       },
       {
-        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 1.77,
@@ -87,7 +87,7 @@
         "description": "Extensive"
       },
       {
-        "className": "edu.illinois.ncsa.incore.services.fragility.model.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 1.77,

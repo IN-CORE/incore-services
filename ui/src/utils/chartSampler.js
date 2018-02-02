@@ -1,6 +1,6 @@
 import alegbra from "algebra.js";
 import math from "mathjs";
-import { jStat } from "jStat";
+import { jStat } from "jstat";
 
 export default class chartSampler {
 

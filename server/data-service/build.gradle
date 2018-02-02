@@ -45,12 +45,15 @@ dependencies {
 	compile project(':incore-common');
 
 	compile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
+	compile group: 'it.geosolutions', name: 'geoserver-manager', version: '1.7.0'
 
 	testCompile "junit:junit-dep:4.10"
 
 	compile group: 'org.geotools', name: 'gt-main', version: '17.0'
 	compile group: 'org.geotools', name: 'gt-geojson', version: '17.0'
 	compile group: 'org.geotools', name: 'gt-shapefile', version: '17.0'
+	compile group: 'org.geotools', name: 'gt-arcgrid', version: '17.0'
+	compile group: 'org.geotools', name: 'gt-geotiff', version: '17.0'
 	compile group: 'com.opencsv', name: 'opencsv', version: '3.3'
 
 	compile 'javax.media.jai:com.springsource.javax.media.jai.core:1.1.3'

@@ -11,15 +11,15 @@
  */
 
 package edu.illinois.ncsa.incore.service.data.geotools;
-import java.io.*;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.*;
 
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -31,6 +31,10 @@ import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.gce.arcgrid.ArcGridReader;
+import org.geotools.gce.geotiff.GeoTiffFormat;
+import org.geotools.gce.geotiff.GeoTiffWriteParams;
+import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeature;
@@ -38,8 +42,13 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.GeometryType;
+import org.opengis.parameter.GeneralParameterValue;
+import org.opengis.parameter.ParameterValueGroup;
 
-import com.vividsolutions.jts.geom.GeometryFactory;
+import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.*;
 
 /**
  * Created by ywkim on 10/5/2017.
@@ -48,12 +57,48 @@ public class GeotoolsUtils {
     private static final String UNI_ID_SHP = "guid";    //$NON-NLS-1$
     private static final String UNI_ID_CSV = "guid";    //$NON-NLS-1$
     private static final String DATA_FIELD_GEOM = "the_geom";   //$NON-NLS-1$
-    public static String outFileName = null;
+//    public static String outFileName = null;
 
-    public static File JoinTableShapefile(List<File> shpfiles, File csvFile) throws IOException {
+    /**
+     * convert ascii grid to geotiff
+     * @param inAsc
+     * @return
+     * @throws IOException
+     */
+    public static File convertAscToGeotiff(File inAsc) throws IOException {
+        String tmpName = inAsc.getName();
+        String outTifName = FileUtils.changeFileNameExtension(tmpName, "tif");
+        File outTif = new File(outTifName);
+        ArcGridReader ascGrid = new ArcGridReader(inAsc);
+        GridCoverage2D gc = (GridCoverage2D) ascGrid.read(null);
+
+        try {
+            GeoTiffWriteParams wp = new GeoTiffWriteParams();
+            wp.setCompressionMode(GeoTiffWriteParams.MODE_EXPLICIT);
+            wp.setCompressionType("LZW");   //$NON-NLS-1$
+            ParameterValueGroup params = new GeoTiffFormat().getWriteParameters();
+            params.parameter(AbstractGridFormat.GEOTOOLS_WRITE_PARAMS.getName().toString()).setValue(wp);
+            GeoTiffWriter writer = new GeoTiffWriter(outTif);
+            writer.write(gc, (GeneralParameterValue[]) params.values().toArray(new GeneralParameterValue[1]));
+        } catch (Exception e) {
+            System.out.println("failed to conver ascii file to geotiff."); //$NON-NLS-1$
+            e.printStackTrace();
+        }
+
+        return outTif;
+    }
+
+    /**
+     * join csv file to shapefile and create a new shapefile
+     * @param shpfiles
+     * @param csvFile
+     * @return
+     * @throws IOException
+     */
+    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException {
         // set geometry factory
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
-        outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
+        String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
 
         // read csv file
         String[] csvHeaders = getCsvHeader(csvFile);
@@ -75,9 +120,15 @@ public class GeotoolsUtils {
 
         // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir);
+        List<File> copiedFileList = null;
+        if (isRename) { // this will only get the files for geoserver
+            outFileName = dataset.getId() + "." + FileUtils.EXTENSION_SHP;
+            copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, dataset.getId(), true, "shp");
+        } else {
+            copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "");
+        }
         URL inSourceFileUrl = null;
-        for (File copiedFile: copiedFileList) {
+        for (File copiedFile : copiedFileList) {
             String fileExt = FilenameUtils.getExtension(copiedFile.getName());
             if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                 inSourceFileUrl = copiedFile.toURI().toURL();
@@ -152,17 +203,50 @@ public class GeotoolsUtils {
             inputFeatureIterator.close();
         }
 
-        return createOutfile(finalList, finalResultMapList, tempDir);
+        return createOutfile(finalList, finalResultMapList, tempDir, outFileName);
     }
 
-    public static List<File> copyFilesToTmpDir(List<File> fileList, String tempDir) throws IOException{
-        URL outUrl = null;
+    /**
+     * copy files in the list to the temporary directory
+     * @param fileList
+     * @param tempDir
+     * @param datasetId
+     * @param isGeoserver
+     * @param inExt
+     * @return
+     * @throws IOException
+     */
+    public static List<File> copyFilesToTmpDir(List<File> fileList, String tempDir, String datasetId, boolean isGeoserver, String inExt) throws IOException {
         List<File> outList = new ArrayList<File>();
-        for (int i=0;i<fileList.size();i++) {
+        for (int i = 0; i < fileList.size(); i++) {
             File sourceFile = fileList.get(i);
             String fileName = FilenameUtils.getName(sourceFile.getName());
+            String fileExt = "";    //$NON-NLS-1$
+            if (isGeoserver) {
+                fileExt = FilenameUtils.getExtension(sourceFile.getName());
+                File newFile = new File(sourceFile.getParent() + File.separator + datasetId + "." + fileExt);
+                fileName = FilenameUtils.getName(newFile.getName());
+            }
             File destFile = new File(tempDir + File.separator + fileName);
-            outList.add(destFile);
+            if (isGeoserver) {
+                if (inExt.equalsIgnoreCase("shp")) {    //$NON-NLS-1$
+                    if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("dbf") ||   //$NON-NLS-1$ //$NON-NLS-2$
+                            fileExt.equalsIgnoreCase("shx") || fileExt.equalsIgnoreCase("prj")) {   //$NON-NLS-1$ //$NON-NLS-2$
+                        outList.add(destFile);
+                    }
+                } else if (inExt.equalsIgnoreCase("tif")) { //$NON-NLS-1$
+                    if (fileExt.equalsIgnoreCase(inExt)) {
+                        outList.add(destFile);
+                    }
+                } else if (inExt.equalsIgnoreCase("asc")) { //$NON-NLS-1$
+                    if (fileExt.equalsIgnoreCase(inExt)) {
+                        outList.add(destFile);
+                    }
+                }
+            } else {
+                outList.add(destFile);
+            }
+
             org.apache.commons.io.FileUtils.copyFile(sourceFile, destFile);
             //in here I am simply copy and paste the files to temp direcotry.
             // However, if the source file is in different server, use httpdownloader
@@ -172,9 +256,17 @@ public class GeotoolsUtils {
         return outList;
     }
 
+    /**
+     * create an output shapefile
+     * @param finalList
+     * @param resultMapList
+     * @param outDir
+     * @return
+     * @throws IOException
+     */
     @SuppressWarnings("unchecked")
     public static File createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
-                                     String outDir) throws IOException {
+                                          String outDir, String outFileName) throws IOException {
         File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
 
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
@@ -216,6 +308,14 @@ public class GeotoolsUtils {
         return outToFile(outFile, schema, collection);
     }
 
+    /**
+     * create actual output shapefile in the directory
+     * @param pathFile
+     * @param schema
+     * @param collection
+     * @return
+     * @throws IOException
+     */
     public static File outToFile(File pathFile, SimpleFeatureType schema, DefaultFeatureCollection collection)
             throws IOException {
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
@@ -255,6 +355,12 @@ public class GeotoolsUtils {
         return prepareShpZipFile(pathFile);
     }
 
+    /**
+     * create a zip file of the shapefile related ones
+     * @param shpFile
+     * @return
+     * @throws IOException
+     */
     public static File prepareShpZipFile(File shpFile) throws IOException {
         String absolutePath = shpFile.getAbsolutePath();
         String filePath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator));
@@ -273,6 +379,13 @@ public class GeotoolsUtils {
         return new File(filePath + File.separator + shpBaseName + ".zip");
     }
 
+    /**
+     * get shapefile data store for creating new shapefile
+     * @param shpUrl
+     * @param spatialIndex
+     * @return
+     * @throws IOException
+     */
     public static DataStore getShapefileDataStore(URL shpUrl, Boolean spatialIndex) throws IOException {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("url", shpUrl); //$NON-NLS-1$
@@ -282,6 +395,12 @@ public class GeotoolsUtils {
         return DataStoreFinder.getDataStore(map);
     }
 
+    /**
+     * read csv file
+     * @param inCsv
+     * @return
+     * @throws IOException
+     */
     @SuppressWarnings("resource")
     public static List<String[]> readCsvFile(File inCsv) throws IOException {
         CSVReader reader = new CSVReader(new FileReader(inCsv), ',', '"', 1);
@@ -289,6 +408,12 @@ public class GeotoolsUtils {
         return rows;
     }
 
+    /**
+     * obtain csv header information
+     * @param inCsv
+     * @return
+     * @throws IOException
+     */
     @SuppressWarnings("resource")
     public static String[] getCsvHeader(File inCsv) throws IOException {
         String splitter = ",";
@@ -302,5 +427,91 @@ public class GeotoolsUtils {
         return header;
     }
 
+    /**
+     * create GUID field if there is none
+     * @param dataset
+     * @param shpfiles
+     * @return
+     * @throws IOException
+     */
+    public static boolean createGUIDinShpfile(Dataset dataset, List<File> shpfiles) throws IOException {
+        // set geometry factory
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        String outFileName = FilenameUtils.getBaseName(shpfiles.get(0).getName()) + "." + FileUtils.EXTENSION_SHP;
+
+        // create temp dir and copy files to temp dir
+        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp"); //$NON-NLS-1$ //$NON-NLS-2$
+        URL inSourceFileUrl = null;
+        boolean isGuid = false;
+
+        for (File copiedFile: copiedFileList) {
+            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
+            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                inSourceFileUrl = copiedFile.toURI().toURL();
+            }
+        }
+
+        DataStore store = getShapefileDataStore(inSourceFileUrl, false);
+        FileDataStore fileStore = (FileDataStore) store;
+        SimpleFeatureSource featureSource = fileStore.getFeatureSource();
+        SimpleFeatureCollection inputFeatures = featureSource.getFeatures();
+
+        SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
+        List<Geometry> tmpList = new LinkedList<Geometry>();
+        List<Geometry> finalList = new LinkedList<Geometry>();
+        List<Map> resultMapList = new LinkedList<Map>();
+        List<Map> finalResultMapList = new LinkedList<Map>();
+
+        try {
+            while (inputFeatureIterator.hasNext()) {
+                SimpleFeature inputFeature = inputFeatureIterator.next();
+                Geometry g = (Geometry) inputFeature.getAttribute(0);
+                Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
+
+                tmpList.clear();
+                resultMapList.clear();
+
+                // check if guid is there
+                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
+                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
+                    if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
+                        isGuid = true;
+                    }
+                }
+
+                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
+                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
+                    Object attribute = inputFeature.getAttribute(i);
+
+                    // resultMap is an actual table.
+                    if (attributeType.getLocalName() != DATA_FIELD_GEOM) {
+                        resultMap.put(attributeType.getLocalName(), attribute);
+                    }
+                    // create GUID
+                    if (!isGuid) {
+                        UUID uuid = UUID.randomUUID();
+                        resultMap.put(UNI_ID_SHP, uuid.toString());
+                    }
+                }
+                resultMapList.add(resultMap);
+
+                finalList.add(g);
+                finalResultMapList.addAll(resultMapList);
+            }
+        } finally {
+            inputFeatureIterator.close();
+        }
+
+        File outFile = createOutfile(finalList, finalResultMapList, tempDir, outFileName);
+        FileUtils.switchDbfFile(outFile, shpfiles);
+        FileUtils.deleteTmpDir(copiedFileList.get(0));
+
+        if (isGuid) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 }
 

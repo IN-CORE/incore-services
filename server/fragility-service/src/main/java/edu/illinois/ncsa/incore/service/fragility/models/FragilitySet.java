@@ -44,9 +44,8 @@ public class FragilitySet {
 
     public FragilitySet() { }
 
-    public FragilitySet(String legacyId, String description, List<String> authors,
-                        PaperReference paperReference, String resultUnit, String resultType, String demandType, String demandUnits,
-                        String hazardType, String inventoryType,
+    public FragilitySet(String legacyId, String description, List<String> authors, PaperReference paperReference, String resultUnit,
+                        String resultType, String demandType, String demandUnits, String hazardType, String inventoryType,
                         List<FragilityCurve> fragilityCurves) {
         this.legacyId = legacyId;
         this.description = description;

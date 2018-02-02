@@ -148,6 +148,7 @@ public class FragilityController {
 
         }
 
+        
         List<FragilitySet> filteredSets = this.dataAccess.queryFragilities(queryMap);
 
         return filteredSets;
