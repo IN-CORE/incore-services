@@ -27,6 +27,9 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class FileDescriptor {
     /**
      * Used for serialization of object
