@@ -18,16 +18,14 @@ package edu.illinois.ncsa.incore.service.data.models;
  * This is from NCSA's DataWolf
  */
 
-import java.math.BigInteger;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.illinois.ncsa.incore.service.data.models.AbstractBean;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 
 @XmlRootElement
 public class FileDescriptor {
