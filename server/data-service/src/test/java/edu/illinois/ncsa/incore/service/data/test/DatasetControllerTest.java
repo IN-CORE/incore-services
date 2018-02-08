@@ -55,7 +55,7 @@ class DatasetControllerTest extends CustomJerseyTest{
         JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
 
         assertNotNull(firstObject.get("id").toString());
-        assertNotNull(firstObject.get("type").toString());
+        assertNotNull(firstObject.get("dataType").toString());
         assertNotEquals(0, firstObject.get("fileDescriptors").toString().length());
     }
 
@@ -67,7 +67,7 @@ class DatasetControllerTest extends CustomJerseyTest{
         assertEquals(13, parsedObject.length());
 
         assertNotNull(parsedObject.get("id").toString());
-        assertNotNull(parsedObject.get("type").toString());
+        assertNotNull(parsedObject.get("dataType").toString());
         assertNotEquals(0, parsedObject.get("fileDescriptors").toString().length());
     }
 

@@ -18,7 +18,7 @@
         "md5sum": "ecbadb113a4c7407c05ce543b0bbcfef"
       }
     ],
-    "type": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingCollapseRateTable.v1.0",
+    "dataType": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingCollapseRateTable.v1.0",
     "storedUrl": "",
     "format": "table",
     "sourceDataset": "",
@@ -45,7 +45,7 @@
         "md5sum": "f7792d23f6f56f26feb123aeeabbfcf9"
       }
     ],
-    "type": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingDisruptionCost.v1.0",
+    "dataType": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingDisruptionCost.v1.0",
     "storedUrl": "",
     "format": "table",
     "sourceDataset": "",
