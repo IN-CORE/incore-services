@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import edu.illinois.ncsa.incore.service.data.models.jackson.JsonDateSerializer;
@@ -85,7 +83,7 @@ public class Dataset {
     /**
      * type of the artifact
      */
-    private String type = "";
+    private String dataType = "";
 
     /**
      * stored url of the artifact
@@ -258,18 +256,18 @@ public class Dataset {
      *
      * @return type that represents the type of the artifact
      */
-    public String getType() {
-        return type;
+    public String getDataType() {
+        return dataType;
     }
 
     /**
      * Sets the string that represents the type of the artifact.
      *
-     * @param type sets the string that represents the type of the
+     * @param dataType sets the string that represents the type of the
      *             artifact.
      */
-    public void setType(String type) {
-        this.type = type;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     /**

@@ -115,7 +115,7 @@ public class MockRepository implements IRepository {
     public List<Dataset> getDatasetByType(String type){
         List<Dataset> outlist = new ArrayList<>();
         for(int i = 0; i <this.datasets.size(); i++) {
-            if(this.datasets.get(i).getType().equalsIgnoreCase(type)) {
+            if(this.datasets.get(i).getDataType().equalsIgnoreCase(type)) {
                 outlist.add(datasets.get(i));
             }
         }

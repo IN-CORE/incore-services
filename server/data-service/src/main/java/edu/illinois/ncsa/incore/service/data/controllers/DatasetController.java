@@ -226,7 +226,7 @@ public class DatasetController {
             spaces = JsonUtils.extractValueListFromJsonString(FileUtils.DATASET_SPACES, inDatasetJson);
             dataset.setTitle(title);
             dataset.setCreator(username);
-            dataset.setType(type);
+            dataset.setDataType(type);
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
@@ -478,7 +478,7 @@ public class DatasetController {
                     // create dataset
                     Dataset dataset = new Dataset();
                     dataset.setTitle(datasetTitle);
-                    dataset.setType(datasetType);
+                    dataset.setDataType(datasetType);
                     dataset.setFormat(datasetFormat);
                     dataset.setCreator(datasetCreator);
                     List<String> spaces = new ArrayList<String>();
