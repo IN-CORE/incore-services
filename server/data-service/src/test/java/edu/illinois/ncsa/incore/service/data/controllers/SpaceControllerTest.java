@@ -10,9 +10,8 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.test;
+package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.service.data.controllers.SpaceController;
 import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
@@ -41,7 +40,7 @@ class SpaceControllerTest extends CustomJerseyTest{
     }
 
     @Test
-    public void testListSpace() {
+    public void testGetSpaceList() {
         String output = target("/spaces").request().accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 

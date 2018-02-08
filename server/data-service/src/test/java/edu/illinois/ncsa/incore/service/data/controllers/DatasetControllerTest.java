@@ -7,9 +7,8 @@
  * Contributors:
  * Yong Wook Kim (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.data.test;
+package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.service.data.controllers.DatasetController;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import mocks.MockApplication;
 import org.apache.commons.io.IOUtils;
@@ -61,14 +60,10 @@ class DatasetControllerTest extends CustomJerseyTest{
 
     @Test
     public void testDatasetById() {
-        String output = target("/datasets/5a207b29beefa40740e87c93").request().accept(MediaType.APPLICATION_JSON).get(String.class);
-        JSONObject parsedObject = new JSONObject(output);
+        String id = "5a207b29beefa40740e87c93";
+        Dataset dataset = target("/datasets/" + id).request().accept(MediaType.APPLICATION_JSON).get(Dataset.class);
 
-        assertEquals(13, parsedObject.length());
-
-        assertNotNull(parsedObject.get("id").toString());
-        assertNotNull(parsedObject.get("dataType").toString());
-        assertNotEquals(0, parsedObject.get("fileDescriptors").toString().length());
+        assertNotNull(dataset.getId());
     }
 
     @Test
