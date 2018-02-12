@@ -13,8 +13,9 @@ package edu.illinois.ncsa.incore.service.fragility.test;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.fragility.controllers.FragilityController;
-import edu.illinois.ncsa.incore.service.fragility.models.MappingResponse;
+import edu.illinois.ncsa.incore.service.fragility.controllers.MappingController;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingRequest;
+import edu.illinois.ncsa.incore.service.fragility.models.MappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingSubject;
 import edu.illinois.ncsa.incore.service.fragility.models.SchemaType;
 import mocks.MockApplication;
@@ -33,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class FragilityControllerTest extends CustomJerseyTest {
-    public FragilityControllerTest() {
+public class MappingControllerTest extends CustomJerseyTest {
+    public MappingControllerTest() {
         super();
     }
 
@@ -43,21 +44,22 @@ public class FragilityControllerTest extends CustomJerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(FragilityController.class);
+        MockApplication application = new MockApplication(FragilityController.class, MappingController.class);
 
         return application;
     }
+
     @Test
     public void testMappingFunctionFeature() throws IOException {
         // arrange
         URL jsonURL = this.getClass().getClassLoader().getResource("json/mapping_request.json");
 
         MappingRequest request = new ObjectMapper()
-                                    .configure(MapperFeature.USE_ANNOTATIONS, true)
-                                    .readValue(jsonURL, MappingRequest.class);
+            .configure(MapperFeature.USE_ANNOTATIONS, true)
+            .readValue(jsonURL, MappingRequest.class);
 
         // act
-        MappingResponse response = target("/fragilities/map").request()
+        MappingResponse response = target("/mapping/match").request()
                                                            .accept(MediaType.APPLICATION_JSON)
                                                            .post(Entity.json(request), MappingResponse.class);
 
@@ -77,9 +79,9 @@ public class FragilityControllerTest extends CustomJerseyTest {
         MappingRequest request = new MappingRequest(subject);
 
         // act
-        MappingResponse response = target("/fragilities/map").request()
-                                                            .accept(MediaType.APPLICATION_JSON)
-                                                            .post(Entity.json(request), MappingResponse.class);
+        MappingResponse response = target("/mapping/match").request()
+                                                           .accept(MediaType.APPLICATION_JSON)
+                                                           .post(Entity.json(request), MappingResponse.class);
 
         // assert
         assertTrue(response.getFragilitySets().containsKey("NSDS_PFM_MTB_UL_475_W1_4"));
