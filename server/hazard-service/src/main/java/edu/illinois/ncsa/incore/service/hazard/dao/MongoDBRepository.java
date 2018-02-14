@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -27,7 +28,6 @@ public class MongoDBRepository implements IRepository {
     private MongoClientURI mongoClientURI;
 
     private Datastore dataStore;
-    private List<ScenarioEarthquake> scenarioEarthquakes;
 
     // TODO I believe we can just use the URI and remove this later
     public MongoDBRepository() {
@@ -64,30 +64,41 @@ public class MongoDBRepository implements IRepository {
     }
 
     @Override
-    public ScenarioEarthquake getScenarioEarthquakeById(String id) {
-        return this.dataStore.get(ScenarioEarthquake.class, new ObjectId(id));
-    }
-
-    @Override
     public ScenarioEarthquake addScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
         String id = this.dataStore.save(scenarioEarthquake).getId().toString();
         return getScenarioEarthquakeById(id);
     }
 
     @Override
+    public ScenarioEarthquake getScenarioEarthquakeById(String id) {
+        return this.dataStore.get(ScenarioEarthquake.class, new ObjectId(id));
+    }
+
+    @Override
     public List<ScenarioEarthquake> getScenarioEarthquakes() {
-        if (this.scenarioEarthquakes == null) {
-            loadScenarioEarthquakes();
-        }
-        return this.scenarioEarthquakes;
+        List<ScenarioEarthquake> scenarioEarthquakes = this.dataStore.createQuery(ScenarioEarthquake.class).asList();
+        return scenarioEarthquakes;
+    }
+
+    @Override
+    public List<ScenarioTornado> getScenarioTornadoes() {
+        List<ScenarioTornado> scenarioTornadoes = this.dataStore.createQuery(ScenarioTornado.class).asList();
+        return scenarioTornadoes;
+    }
+
+    @Override
+    public ScenarioTornado addScenarioTornado(ScenarioTornado scenarioTornado) {
+        String id = this.dataStore.save(scenarioTornado).getId().toString();
+        return getScenarioTornadoById(id);
+    }
+
+    @Override
+    public ScenarioTornado getScenarioTornadoById(String id) {
+        return this.dataStore.get(ScenarioTornado.class, new ObjectId(id));
     }
 
     @Override
     public Datastore getDataStore() {
         return this.dataStore;
-    }
-
-    private void loadScenarioEarthquakes() {
-        this.scenarioEarthquakes = this.dataStore.createQuery(ScenarioEarthquake.class).asList();
     }
 }
