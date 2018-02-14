@@ -61,6 +61,13 @@ farm {
     webapp ':auth-service'
 }
 
+task farmWars (dependsOn:war, type: Copy) {
+  from('.') {
+    include '**/*.war'
+  }
+  into ('build')
+}
+
 //For now, all subprojects are java projects. Later this might change.
 //Until then, give them all a basic java build
 subprojects {
@@ -119,5 +126,7 @@ test {
 	    // Temporary requirement for optional junit dependency that should not be optional
 	    testCompile group: 'org.apiguardian', name: 'apiguardian-api', version: '1.0.0'
         }
+        
+     
     }
 }

@@ -37,4 +37,10 @@ public class PrivilegeSpec {
         }
     }
 
+    public static PrivilegeSpec newWithSingleOwner(String owner) {
+        PrivilegeSpec privilegeSpec = new PrivilegeSpec();
+        privilegeSpec.userPrivileges.put(owner, Privilege.ADMIN);
+        return privilegeSpec;
+    }
+
 }
