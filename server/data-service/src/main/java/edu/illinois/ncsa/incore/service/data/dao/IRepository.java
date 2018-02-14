@@ -32,7 +32,10 @@ public interface IRepository {
     Dataset getDatasetByFileDescriptorId(String id);
     List<Space> getAllSpaces();
     Space addSpace(Space space);
+    Space getSpaceById(String id);
     Space getSpaceByName(String name);
+    List<MvzDataset> getAllMvzDatasets();
+    MvzDataset getMvzDatasetById(String id);
     MvzDataset addMvzDataset(MvzDataset dataset);
     Datastore getDataStore();
 }

@@ -596,7 +596,7 @@ public class FileUtils {
             throw new NotFoundException("There is no Dataset with given id in the repository.");
         }
         List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
-        String sourceType = sourceDataset.getType();
+        String sourceType = sourceDataset.getDataType();
         List<File> shpfiles = new ArrayList<File>();
         File zipFile = null;
         boolean isShpfile = false;
