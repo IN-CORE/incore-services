@@ -12,7 +12,6 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.PrivilegeSpec;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
@@ -231,7 +230,6 @@ public class DatasetController {
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
-            dataset.setPrivilegeSpec(PrivilegeSpec.newWithSingleOwner(username));
 
 
             dataset = repository.addDataset(dataset);
