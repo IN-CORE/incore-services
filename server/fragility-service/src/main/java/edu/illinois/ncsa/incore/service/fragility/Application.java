@@ -12,9 +12,9 @@ package edu.illinois.ncsa.incore.service.fragility;
 
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBFragilityDAO;
+import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
 import ncsa.tools.common.exceptions.DeserializationException;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -29,11 +29,11 @@ public class Application extends ResourceConfig {
         String mongodbUri = "mongodb://localhost:27017/fragilitydb";
 
         String mongodbUriProp = Config.getConfigProperties().getProperty("fragility.mongodbURI");
-        if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
+        if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
 
-        IFragilityDAO mongoRepository =new MongoDBFragilityDAO(new MongoClientURI(mongodbUri));
+        IFragilityDAO mongoRepository = new MongoDBFragilityDAO(new MongoClientURI(mongodbUri));
         mongoRepository.initialize();
 
         MatchFilterMap loadedMappings = null;

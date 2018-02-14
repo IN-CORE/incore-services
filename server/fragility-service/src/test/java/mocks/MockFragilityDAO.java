@@ -73,7 +73,7 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public List<FragilitySet> queryFragilities(Map<String, String> typeValueMap) {
+    public List<FragilitySet> queryFragilities(Map<String, String> typeValueMap, int offset, int limit) {
         return null;
     }
 

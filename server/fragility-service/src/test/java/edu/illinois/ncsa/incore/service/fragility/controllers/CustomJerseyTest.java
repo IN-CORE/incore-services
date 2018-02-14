@@ -8,7 +8,7 @@
  * Omar Elabd, Nathan Tolbert
  */
 
-package edu.illinois.ncsa.incore.service.fragility.test;
+package edu.illinois.ncsa.incore.service.fragility.controllers;
 
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.jupiter.api.AfterAll;
