@@ -37,7 +37,6 @@ public class FragilityController {
                                              @QueryParam("legacy_id") String legacyId, @QueryParam("skip") int offset,
                                              @DefaultValue("100") @QueryParam("limit") int limit) {
 
-
         Map<String, String> queryMap = new HashMap<>();
 
         if (legacyId != null) {
@@ -66,16 +65,12 @@ public class FragilityController {
             // return top 100
             fragilitySets = this.dataAccess.getFragilities()
                                            .stream()
-                                           .limit(limit)
                                            .skip(offset)
+                                           .limit(limit)
                                            .collect(Collectors.toList());
         } else {
             // return query
-            fragilitySets = this.dataAccess.queryFragilities(queryMap)
-                                           .stream()
-                                           .limit(limit)
-                                           .skip(offset)
-                                           .collect(Collectors.toList());
+            fragilitySets = this.dataAccess.queryFragilities(queryMap, offset, limit);
         }
 
         return fragilitySets;

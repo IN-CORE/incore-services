@@ -102,14 +102,14 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public List<FragilitySet> queryFragilities(Map<String, String> queryMap) {
+    public List<FragilitySet> queryFragilities(Map<String, String> queryMap, int offset, int limit) {
         Query<FragilitySet> query = this.dataStore.createQuery(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<FragilitySet> sets = query.limit(100).asList();
+        List<FragilitySet> sets = query.offset(offset).limit(limit).asList();
 
         return sets;
     }
