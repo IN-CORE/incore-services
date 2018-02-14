@@ -9,30 +9,26 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.HazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResults;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.HazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResults;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,6 +69,14 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     public ScenarioEarthquake getScenarioEarthquake(@PathParam("earthquake-id") String earthquakeId) {
         return repository.getScenarioEarthquakeById(earthquakeId);
+    }
+
+    @GET
+    @Path("{earthquake-id}/dataset")
+    @Produces({MediaType.TEXT_PLAIN})
+    public Response getFile() {
+        // TODO implement this and change MediaType to Octet Stream
+        return Response.ok("Geotiff representing scenario earthquake not yet implemented.").build();
     }
 
     @GET
@@ -132,7 +136,6 @@ public class EarthquakeController {
                 startX = (float) minX + (cellsize / 2.0f);
                 for (int x = 0; x < width; x++) {
                     try {
-                        List<Double> val = null;
                         localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
                         hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, 0, amplifyHazard);
                         hazardResults.add(new HazardResult(startY, startX, hazardValue.getHazardValue()));
@@ -185,55 +188,6 @@ public class EarthquakeController {
         }
     }
 
-
-    @GET
-    @Path("/model")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getEarthquakeModelHazard(@QueryParam("modelId") String modelId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("eqJson") String eqJson) {
-
-        EqParameters eqParameters = null;
-        try {
-            eqParameters = new ObjectMapper().readValue(eqJson, EqParameters.class);
-
-            // TODO Need to handle conversions where attenuation cannot directly produce requested demand type (e.g. SA to PGV)
-            String period = demandType;
-            String demand = demandType;
-
-            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
-                String[] demandSplit = demandType.split(" ");
-                period = demandSplit[0];
-                demand = demandSplit[1];
-            }
-
-            // TODO How can we store and lookup these model by ID?
-            // TODO handle the case of a defined earthquake using multiple attenuations for weighting
-            if (modelId.equalsIgnoreCase("AtkinsonBoore1995")) {
-                try {
-                    model.setRuptureParameters(eqParameters);
-
-                    // Local site to get hazard for
-                    Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
-
-                    double value = model.getValue(period, localSite);
-                    return Response.ok(value).build();
-                } catch (MalformedURLException e) {
-                    logger.error("Error locating coefficients for " + modelId, e);
-                    throw new InternalServerErrorException("Error locating coefficients for " + modelId, e);
-                } catch (Exception e) {
-                    logger.error("Error getting model value for point.", e);
-                    throw new InternalServerErrorException("Error getting model value for point.", e);
-                }
-            } else {
-                logger.error("Unknown attenuation model " + modelId);
-                throw new NotFoundException("Unknown attenuation model " + modelId);
-            }
-        } catch (IOException e) {
-            logger.error("Error reading earthquake parameters");
-            throw new InternalServerErrorException("Error reading earthquake parameters");
-        }
-    }
-
-    // CMN: If we assume the Web application has access to the soil class layer then we could eliminate datasetId and lookup site classification on the client side
     @GET
     @Path("/soil/amplification")
     @Produces({MediaType.APPLICATION_JSON})
@@ -271,26 +225,10 @@ public class EarthquakeController {
         return Response.ok("Site amplification requested is not yet implemented").build();
     }
 
-    // Dataset API
-
-    @GET
-    @Path("/dataset")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getEarthquakeDatasetHazard(@QueryParam("datasetId") String datasetId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong) {
-        // TODO Take the dataset id, retrieve the dataset and return the value at the raster point
-        // Local site to get hazard for
-        Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
-
-        //HazardUtil.findRasterPoint(localSite, hazardRaster);
-        return Response.ok("Return earthquake hazard from a dataset not yet implemented").build();
-    }
-
     @GET
     @Path("/slope/amplification")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getEarthquakeSlopeAmplification(@QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong) {
         return Response.ok("Topographic amplification not yet implemented").build();
     }
-
-
 }
