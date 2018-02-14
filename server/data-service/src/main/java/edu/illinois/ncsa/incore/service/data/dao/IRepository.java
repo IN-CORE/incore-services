@@ -30,10 +30,12 @@ public interface IRepository {
     Dataset addDataset(Dataset dataset);
     Dataset updateDataset(String datasetId, String propName, String propValue);
     Dataset getDatasetByFileDescriptorId(String id);
+    Dataset deleteDataset(String id);
     List<Space> getAllSpaces();
     Space addSpace(Space space);
     Space getSpaceById(String id);
     Space getSpaceByName(String name);
+    Space removeIdFromSpace(Space space, String id);
     List<MvzDataset> getAllMvzDatasets();
     MvzDataset getMvzDatasetById(String id);
     MvzDataset addMvzDataset(MvzDataset dataset);

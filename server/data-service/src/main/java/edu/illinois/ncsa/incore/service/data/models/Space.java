@@ -35,6 +35,7 @@ public class Space {
     public String getId() {
         return id.toString();
     }
+
     public void setId(String id) {
         this.id = new ObjectId(id);
     }
@@ -42,6 +43,7 @@ public class Space {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -49,11 +51,20 @@ public class Space {
     public List<String> getDatasetIds() {
         return datasetIds;
     }
-    public void setDatasetIds(List<String> datasetIds) {this.datasetIds = datasetIds;}
+
+    public void setDatasetIds(List<String> datasetIds) {
+        this.datasetIds = datasetIds;
+    }
 
     public void addDatasetId(String id) {
         if (id != null) {
             getDatasetIds().add(id);
+        }
+    }
+
+    public void removeDatasetId(String id) {
+        if (id != null) {
+            getDatasetIds().remove(id);
         }
     }
 }

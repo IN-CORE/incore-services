@@ -48,7 +48,7 @@ public class GeoserverUtils {
      * @throws FileNotFoundException
      */
     public static boolean uploadToGeoserver(String store, File inFile, String inExt) throws MalformedURLException, FileNotFoundException {
-        GeoServerRESTPublisher publisher = new GeoServerRESTPublisher(GEOSERVER_REST_URL, GEOSERVER_USER, GEOSERVER_PW);
+        GeoServerRESTPublisher publisher = setPublisher();
         String fileName = FilenameUtils.getBaseName(inFile.getName());
         boolean created = publisher.createWorkspace(GEOSERVER_WORKSPACE);
         boolean published = false;
@@ -63,7 +63,7 @@ public class GeoserverUtils {
     }
 
     public static boolean uploadShpZipToGeoserver(String store, File zipFile) throws FileNotFoundException {
-        GeoServerRESTPublisher publisher = new GeoServerRESTPublisher(GEOSERVER_REST_URL, GEOSERVER_USER, GEOSERVER_PW);
+        GeoServerRESTPublisher publisher = setPublisher();
         String fileName = FilenameUtils.getBaseName(zipFile.getName());
         boolean created = publisher.createWorkspace(GEOSERVER_WORKSPACE);
         boolean published = publisher.publishShp(GEOSERVER_WORKSPACE, store, fileName, zipFile);
@@ -74,6 +74,7 @@ public class GeoserverUtils {
 
     /**
      * upload dataset to geoserver. This is a preparation process before actual uploading process
+     *
      * @param dataset
      * @param repository
      * @param isShp
@@ -84,7 +85,7 @@ public class GeoserverUtils {
      * @throws URISyntaxException
      */
     public static boolean datasetUploadToGeoserver(Dataset dataset, IRepository repository,
-               boolean isShp, boolean isTif, boolean isAsc) throws IOException, URISyntaxException {
+                                                   boolean isShp, boolean isTif, boolean isAsc) throws IOException, URISyntaxException {
         String datasetId = dataset.getId();
         boolean published = false;
         File outFile = null;
@@ -111,5 +112,19 @@ public class GeoserverUtils {
         FileUtils.deleteTmpDir(outFile);
 
         return published;
+    }
+
+    public static boolean removeLayerFromGeoserver(String id) {
+        GeoServerRESTPublisher publisher = setPublisher();
+        return publisher.removeLayer(GEOSERVER_WORKSPACE, id);
+    }
+
+    public static boolean removeStoreFromGeoserver(String id) {
+        GeoServerRESTPublisher publisher = setPublisher();
+        return publisher.removeCoverageStore(GEOSERVER_WORKSPACE, id, false);
+    }
+
+    public static GeoServerRESTPublisher setPublisher() {
+        return new GeoServerRESTPublisher(GEOSERVER_REST_URL, GEOSERVER_USER, GEOSERVER_PW);
     }
 }

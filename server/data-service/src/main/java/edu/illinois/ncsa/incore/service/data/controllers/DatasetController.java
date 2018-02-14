@@ -38,8 +38,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,7 +117,7 @@ public class DatasetController {
      * @throws URISyntaxException
      */
     @GET
-    @Path("/{id}/files")
+    @Path("/{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFileByDataset(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
         File outFile = FileUtils.loadFileFromService(datasetId, repository, false, "");
@@ -126,6 +128,20 @@ public class DatasetController {
         } else {
             return Response.status(404).build();
         }
+    }
+
+    /**
+     * provide list of FileDescriptor by dataset id
+     * @param datasetId
+     * @return
+     */
+    @GET
+    @Path("/{id}/files")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<FileDescriptor> getDatasets(@PathParam("id") String datasetId) {
+        Dataset dataset = repository.getDatasetById(datasetId);
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        return fds;
     }
 
     //http://localhost:8080/data/api/datasets/files/59f775fce1b2b8080c37aa60/file
@@ -202,7 +218,6 @@ public class DatasetController {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/ingest-dataset")
     public Dataset ingestDataset(@HeaderParam("X-Credential-Username") String username, @FormDataParam("dataset") String inDatasetJson) {
         // example input json
         //
@@ -265,6 +280,56 @@ public class DatasetController {
         return dataset;
     }
 
+    /**
+     * delete dataset from database and attached information like files and geoserver layer
+     * @param username
+     * @param datasetId
+     * @return
+     * @throws MalformedURLException
+     * @throws URISyntaxException
+     */
+    @DELETE
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    public Dataset deleteDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) throws MalformedURLException, URISyntaxException {
+        Dataset dataset = null;
+        dataset = repository.getDatasetById(datasetId);
+        String creator = dataset.getCreator();
+        List<String> spaces = dataset.getSpaces();
+
+        if (creator != null) {
+            if (creator.equals(username)) {
+                // remove dataset
+                dataset = repository.deleteDataset(datasetId);
+                if (dataset != null) {
+
+                    // remove files
+                    List<FileDescriptor> fds = dataset.getFileDescriptors();
+                    for (FileDescriptor fd : fds) {
+                        File file = new File((new URL(fd.getDataURL())).toURI());
+                        FileUtils.deleteTmpDir(file);
+                    }
+
+                    // remove geoserver layer
+                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+
+                    // remove id from space
+                    for (String spaceStr : spaces) {
+                        Space space = repository.getSpaceByName(spaceStr);
+                        repository.removeIdFromSpace(space, datasetId);
+                        repository.addSpace(space);
+                    }
+                }
+            } else {
+                dataset = null;
+            }
+        }
+
+        return dataset;
+    }
+
+
     //  http//localhost:8080/data/api/datasets/upload-files
     //    {datasetId: "59e5046668f47426549b606e"}
     /**
@@ -275,33 +340,19 @@ public class DatasetController {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/upload-files")
-    public Dataset uplaodFiles(FormDataMultiPart inputs) throws IOException, URISyntaxException {
+    @Path("/{id}/files")
+    public Dataset uplaodFiles(@PathParam("id") String datasetId, FormDataMultiPart inputs) throws IOException, URISyntaxException {
         int bodyPartSize = inputs.getBodyParts().size();
-        String objIdStr = "";   //$NON-NLS-1$
+        String objIdStr = datasetId;
         String inJson = ""; //$NON-NLS-1$
         String paramName = "";  //$NON-NLS-1$
-        Dataset dataset = null;
+        Dataset dataset = repository.getDatasetById(objIdStr);
         boolean isJsonValid = false;
         boolean isGeoserver = false;
         boolean isAsc = false;
         boolean isShp = false;
         boolean isTif = false;
         boolean isJoin = false;
-
-        for (int i = 0; i < bodyPartSize; i++) {
-            paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
-            if (paramName.equals(POST_PARAMENTER_META)) {
-                inJson = (String) inputs.getFields(POST_PARAMENTER_META).get(0).getValueAs(String.class);
-                isJsonValid = JsonUtils.isJSONValid(inJson);
-                if (isJsonValid) {
-                    objIdStr = JsonUtils.extractValueFromJsonString("datasetId", inJson);
-                    dataset = repository.getDatasetById(objIdStr);
-                } else {
-                    return dataset;
-                }
-            }
-        }
 
         int j = 0;
         for (int i = 0; i < bodyPartSize; i++) {
@@ -391,7 +442,7 @@ public class DatasetController {
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}/update")
+    @Path("/{id}")
     public Object updateObject(@PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         Dataset dataset = null;
