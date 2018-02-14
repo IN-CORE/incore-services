@@ -8,7 +8,7 @@
  * Omar Elabd, Nathan Tolbert
  */
 
-package edu.illinois.ncsa.incore.service.fragility.test;
+package edu.illinois.ncsa.incore.service.fragility.controllers;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,7 +59,7 @@ public class MappingControllerTest extends CustomJerseyTest {
             .readValue(jsonURL, MappingRequest.class);
 
         // act
-        MappingResponse response = target("/mapping/match").request()
+        MappingResponse response = target("/mappings/match").request()
                                                            .accept(MediaType.APPLICATION_JSON)
                                                            .post(Entity.json(request), MappingResponse.class);
 
@@ -79,7 +79,7 @@ public class MappingControllerTest extends CustomJerseyTest {
         MappingRequest request = new MappingRequest(subject);
 
         // act
-        MappingResponse response = target("/mapping/match").request()
+        MappingResponse response = target("/mappings/match").request()
                                                            .accept(MediaType.APPLICATION_JSON)
                                                            .post(Entity.json(request), MappingResponse.class);
 

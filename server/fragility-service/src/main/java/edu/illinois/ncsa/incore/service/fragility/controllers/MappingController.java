@@ -28,7 +28,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 
-@Path("mapping")
+@Path("mappings")
 public class MappingController {
     private static final Logger logger = Logger.getLogger(MappingController.class);
 
