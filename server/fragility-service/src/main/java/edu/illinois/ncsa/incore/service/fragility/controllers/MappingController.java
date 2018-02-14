@@ -16,16 +16,15 @@ import edu.illinois.ncsa.incore.service.fragility.models.MappingRequest;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.FragilityMapper;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 @Path("mappings")
@@ -37,6 +36,28 @@ public class MappingController {
 
     @Inject
     private IFragilityDAO dataAccess;
+
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<MatchFilterMap> getMappings() {
+        // TODO
+        throw new NotImplementedException();
+    }
+
+    @GET
+    @Path("{mappingId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public MatchFilterMap getMappingById(@PathParam("mappingId") String id) {
+        // TODO
+        throw new NotImplementedException();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response uploadMapping(MatchFilterMap mapping) {
+        // TODO
+        throw new NotImplementedException();
+    }
 
     @POST
     @Path("/match")
@@ -66,8 +87,8 @@ public class MappingController {
         }
 
         for (Feature feature : features) {
-            String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(), feature.getProperties(),
-                                                         mappingRequest.parameters);
+            String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(),
+                                                         feature.getProperties(), mappingRequest.parameters);
 
             Optional<FragilitySet> fragilityMatch = fragilitySets.stream()
                                                                  .filter(set -> set.getLegacyId().equals(fragilityKey))
