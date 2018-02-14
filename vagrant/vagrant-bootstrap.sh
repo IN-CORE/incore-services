@@ -66,7 +66,7 @@ sudo service mongodb restart
 
 
 #install datawolf
-wget -O datawolf.zip https://opensource.ncsa.illinois.edu/bamboo/browse/WOLF-MAIN-45/artifact/CORE/datawolf-webapp-all.zip/datawolf-webapp-all-4.1.0-bin.zip
+wget -O datawolf.zip https://opensource.ncsa.illinois.edu/bamboo/browse/WOLF-MAIN40/latestSuccessful/artifact/CORE/datawolf-webapp-all.zip/datawolf-webapp-all-4.2.0-SNAPSHOT-bin.zip
 cd /opt
 sudo mkdir datawolf
 cd datawolf
@@ -76,6 +76,7 @@ sudo rmdir  /opt/datawolf/datawolf-webapp*
 sudo chown -R incore /opt/datawolf
 #create the systemd service
 sudo ln -s /vagrant/vagrant/datawolf-service.sh /lib/systemd/system/datawolf.service
+sudo systemctl enable datawolf
 sudo service datawolf start
 
 #setup mongo and install data?
@@ -95,7 +96,5 @@ pip3 install jsonpickle
 pip3 install shapely
 pip3 install matplotlib wikidata docopt
 
-sudo service datawolf start
 
-cd /home/ubuntu/analyses/eq_bldg_str_dmg
-curl -X POST -F "workflow=@bldg_dmg_workflow.zip" http://localhost:8888/datawolf/workflows
+curl -X POST -F "workflow=@/home/ubuntu/analyses/eq_bldg_str_dmg/bldg_dmg_workflow.zip" http://localhost:8888/datawolf/workflows
