@@ -12,36 +12,16 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
-import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.Space;
-import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
-import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

@@ -47,20 +47,21 @@ class AnalysesControllerTest extends CustomJerseyTest{
     @Test
     public void testListAnalysis() {
 
-       String output = target("/analysis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+       String output = target("/analyses").request().accept(MediaType.APPLICATION_JSON).get(String.class);
        JSONArray parsedObject = new JSONArray(output);
 
        assertEquals(4, parsedObject.length());
        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
 
-       assertNotEquals(0, firstObject.get("inputs").toString().length());
+       assertNotEquals(0, firstObject.get("datasets").toString().length());
+        assertNotEquals(0, firstObject.get("parameters").toString().length());
        assertNotEquals(0, firstObject.get("outputs").toString().length());
     }
 
     @Test
     public void testListAnalysisMetadata() {
 
-        String output = target("/analysis/metadata").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output = target("/analyses/metadata").request().accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(4, parsedObject.length());
@@ -70,11 +71,12 @@ class AnalysesControllerTest extends CustomJerseyTest{
     public void testGetAnalysisById() {
 
         String id = "5894ebee1a743941f0c4a4e8";
-        Analysis output = target("/analysis/"+id).request().accept(MediaType.APPLICATION_JSON).get(Analysis.class);
+        Analysis output = target("/analyses/"+id).request().accept(MediaType.APPLICATION_JSON).get(Analysis.class);
 
         assertEquals(id,output.getId());
-        assertEquals(3, output.getDatasets().size());
+        assertEquals(2, output.getDatasets().size());
         assertEquals(1, output.getOutputs().size());
+        assertEquals(1, output.getParameters().size());
         assertEquals("hazard", output.getCategory());
         assertNotNull(output.getDescription());
         assertNotNull(output.getUrl());
@@ -84,15 +86,16 @@ class AnalysesControllerTest extends CustomJerseyTest{
     @Test
     public void testCreateNewAnalysis() throws IOException {
 
-        URL jsonURL = this.getClass().getClassLoader().getResource("json/analysisPost.json");
+        URL jsonURL = this.getClass().getClassLoader().getResource("json/analysesPost.json");
         Analysis analysis = new ObjectMapper().readValue(jsonURL, Analysis.class);
 
-        Analysis response = target("/analysis").request().accept(MediaType.APPLICATION_JSON).post(
+        Analysis response = target("/analyses").request().accept(MediaType.APPLICATION_JSON).post(
             Entity.json(analysis), Analysis.class);
 
         assertNotNull(response.getId());
-        assertEquals(3, response.getDatasets().size());
+        assertEquals(2, response.getDatasets().size());
         assertEquals(1, response.getOutputs().size());
+        assertEquals(3, response.getParameters().size());
         assertNotNull(response.getCategory());
         assertNotNull(response.getDescription());
         assertNotNull(response.getName());

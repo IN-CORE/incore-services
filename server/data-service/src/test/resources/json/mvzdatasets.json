@@ -1,0 +1,98 @@
+[
+  {
+    "id": "5a207ccebeefa40740e88af0",
+    "datasetPropertyName": "mapped-dataset-properties",
+    "name": "HAZUS Table 13.8 Collapse Rates",
+    "version": "1.0",
+    "dataFormat": "table",
+    "typeId": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingCollapseRateTable.v1.0",
+    "featuretypeName": null,
+    "convertedFeatureTypeName": null,
+    "geometryType": null,
+    "datasetId": {
+      "location": null,
+      "description": ""
+    },
+    "maevizMapping": {
+      "schema": "edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingCollapseRateTable.v1.0",
+      "mapping": [
+        {
+          "from": "Structure Type",
+          "to": "str_type"
+        },
+        {
+          "from": "Collapse Rate",
+          "to": "collapserate"
+        }
+      ]
+    },
+    "replicaLocations": [],
+    "properties": [],
+    "metadata": null,
+    "fileDescriptors": [
+      {
+        "id": "5a207ccebeefa40740e88aee",
+        "deleted": false,
+        "filename": "HAZUS_Table_13.8_Collapse_Rates1209053226524.mvz",
+        "mimeType": "application/octet-stream",
+        "size": 1808,
+        "dataURL": "file:/C:/rest/5a/20/5a207ccebeefa40740e88aee/HAZUS_Table_13.8_Collapse_Rates1209053226524.mvz",
+        "md5sum": "42effb054105f8025876434e8d020cdf"
+      }
+    ]
+  },
+  {
+    "id": "5a207ccebeefa40740e88af7",
+    "datasetPropertyName": "mapped-dataset-properties",
+    "name": "Building Disruption Cost",
+    "version": "1.0",
+    "dataFormat": "table",
+    "typeId": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingDisruptionCost.v1.0",
+    "featuretypeName": null,
+    "convertedFeatureTypeName": null,
+    "geometryType": null,
+    "datasetId": {
+      "location": null,
+      "description": ""
+    },
+    "maevizMapping": {
+      "schema": "edu.illinois.ncsa.ergo.eq.buildings.decisionsupport.schemas.buildingDisruptionCost.v1.0",
+      "mapping": [
+        {
+          "from": "Occupancy",
+          "to": "Occupancy"
+        },
+        {
+          "from": "Insignificant",
+          "to": "Insignificant"
+        },
+        {
+          "from": "Moderate",
+          "to": "Moderate"
+        },
+        {
+          "from": "Heavy",
+          "to": "Heavy"
+        },
+        {
+          "from": "Complete",
+          "to": "Complete"
+        }
+      ]
+    },
+    "replicaLocations": [],
+    "properties": [],
+    "metadata": null,
+    "fileDescriptors": [
+      {
+        "id": "5a207ccebeefa40740e88af5",
+        "deleted": false,
+        "filename": "Building_Disruption_Cost1168019087905.mvz",
+        "mimeType": "application/octet-stream",
+        "size": 1986,
+        "dataURL": "file:/C:/rest/5a/20/5a207ccebeefa40740e88af5/Building_Disruption_Cost1168019087905.mvz",
+        "md5sum": "4cb9cf0313b3decacc371c75c7a07a9b"
+      }
+    ]
+  }
+]

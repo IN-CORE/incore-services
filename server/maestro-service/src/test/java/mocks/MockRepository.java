@@ -31,10 +31,10 @@ public class MockRepository implements IRepository {
 
     @Override
     public void initialize() {
-        URL fragilityPath = this.getClass().getClassLoader().getResource("json/analysis.json");
+        URL analysesPath = this.getClass().getClassLoader().getResource("json/analyses.json");
 
         try {
-            this.analyses = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<Analysis>>(){});
+            this.analyses = new ObjectMapper().readValue(analysesPath, new TypeReference<List<Analysis>>(){});
         } catch (IOException ex) {
             ex.printStackTrace();
         }

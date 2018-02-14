@@ -24,14 +24,31 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import edu.illinois.ncsa.incore.common.auth.PrivilegeSpec;
 import edu.illinois.ncsa.incore.service.data.models.jackson.JsonDateSerializer;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
 
-public class Dataset extends AbstractBean {
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
+public class Dataset {
     /**
      * Used for serialization of object
      */
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Unique identifier for this bean, used by persistence layer
+     */
+    @Id
+    @Property("_id")
+    private ObjectId id = new ObjectId();
+
+    /**
+     * Should the bean be assumed to be deleted and not be returned
+     */
+    private boolean deleted = false;
 
     /**
      * Title of the artifact
@@ -66,7 +83,7 @@ public class Dataset extends AbstractBean {
     /**
      * type of the artifact
      */
-    private String type = "";
+    private String dataType = "";
 
     /**
      * stored url of the artifact
@@ -87,8 +104,6 @@ public class Dataset extends AbstractBean {
      * List of spaces to the artifact.
      */
     private List<String> spaces = null;
-
-    private PrivilegeSpec privilegeSpec;
 
     public Dataset() {
     }
@@ -237,37 +252,23 @@ public class Dataset extends AbstractBean {
         // }
     }
 
-
-
-    public PrivilegeSpec getPrivilegeSpec(){
-        if (privilegeSpec == null) {
-            privilegeSpec = new PrivilegeSpec();
-        }
-        return privilegeSpec;
-    }
-
-
-    public void setPrivilegeSpec(PrivilegeSpec privilegeSpec) {
-        this.privilegeSpec = privilegeSpec;
-    }
-
     /**
      * Return the string that is the type of the artifact
      *
      * @return type that represents the type of the artifact
      */
-    public String getType() {
-        return type;
+    public String getDataType() {
+        return dataType;
     }
 
     /**
      * Sets the string that represents the type of the artifact.
      *
-     * @param type sets the string that represents the type of the
+     * @param dataType sets the string that represents the type of the
      *             artifact.
      */
-    public void setType(String type) {
-        this.type = type;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     /**
@@ -370,4 +371,72 @@ public class Dataset extends AbstractBean {
         return title;
     }
 
+    /**
+     * Return the id of the bean.
+     *
+     * @return id of the bean
+     */
+    public final String getId() {
+        return id.toString();
+    }
+
+    /**
+     * Sets the id of the bean. This has to be a unique id since it is used as
+     * the key in the database.
+     *
+     * @param id the id of the object.
+     */
+    public void setId(String id) {
+        this.id = new ObjectId(id);
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     *
+     * @return true if the bean is deleted, false otherwise.
+     */
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     *
+     * @param deleted true if the bean is deleted, false otherwise.
+     */
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    /**
+     * Compares two objects with each other. If the object is an AbstractBean it
+     * will compare id's, otherwise it will return false.
+     *
+     * @param obj the object that should be compared to this AbstractBean
+     * @return true if the two beans are the same (i.e. the id's are the same),
+     * false otherwise.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AbstractBean) {
+            return ((AbstractBean) obj).getId().equals(getId());
+        }
+        return false;
+    }
+
+    /**
+     * Returns the hashcode of this object, which is the hashcode of the id.
+     *
+     * @return hashcode based on the id of the bean.
+     */
+    @Override
+    public int hashCode() {
+        if (getId()!= null) {
+            return getId().hashCode();
+        } else {
+            return super.hashCode();
+        }
+    }
 }

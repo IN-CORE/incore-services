@@ -23,8 +23,8 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import main.java.edu.illinois.ncsa.incore.service.hazard.models.eq.types.HazardResult;
-import main.java.edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResults;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.HazardResult;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResults;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
