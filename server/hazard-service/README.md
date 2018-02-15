@@ -60,6 +60,15 @@ POST - Create scenario tornado
   }
 }
 
+* tornadoModel (required) - specify tornado model (Mean width will create a tornado using the mean width from historical
+data for the EF rating)
+* efRating (required) - specify the Enhanced Fujita (EF) scale intensity of the tornado (EF0 - EF5)
+* startLatitude/startLongitude (required) - specify the starting location of the tornado
+* endLatitude/endLongitude (optional)- depending on the model, specify an end latitude/longitude value. Some tornado
+models (e.g. random angle) will generate multiple endpoints programmatically so the input must be passed as an array
+* windSpeedMethod(optional) - for computing wind speed within an EF boundary, 0 indicates using linear interpolation, 1
+indicates uniform random distribution. Default is Uniform random distribution.
+
 ### Get Values from Scenario Tornado
 
 http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35.2265&siteLong=-97.4788

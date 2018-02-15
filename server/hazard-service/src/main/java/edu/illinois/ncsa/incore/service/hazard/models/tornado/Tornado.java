@@ -32,7 +32,9 @@ public abstract class Tornado {
     protected List<Double> tornadoWidths = new ArrayList<Double>();
 
     /**
-     * Returns whether the model requires an endpoint defined.
+     * Returns whether the model requires an endpoint to be defined
+     *
+     * @return true if endpoint required, false otherwise.
      */
     public abstract boolean requiresEndPoint();
 
@@ -47,7 +49,7 @@ public abstract class Tornado {
             Coordinate[] coords = new Coordinate[]{startPtCoordinate, endPtCoordinate};
 
             // convert given width, which is meter, to degree
-            double tornadoWidth = width * 0.0089982311916 / 1000;
+            double tornadoWidth = width * TornadoHazard.METERS_TO_DEGREES;
 
             double tmpWidth = 0.0;
             double efWidth = 0.0;
