@@ -65,7 +65,6 @@ public class DatasetController {
     @Inject
     private IRepository repository;
 
-    //http://localhost:8080/data/api/datasets/59cd1d4763f94025803cee5c
     /**
      * Returns a list of datasets in the Dataset collection
      *
@@ -84,7 +83,6 @@ public class DatasetController {
         return dataset;
     }
 
-    //http://localhost:8080/data/api/datasets?type=edu.illinois.ncsa.ergo.eq.buildings.schemas&title=shelby
     /**
      * query dataset by using either title or type or both
      * @param typeStr
@@ -108,7 +106,6 @@ public class DatasetController {
         return datasets;
     }
 
-    //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/files
     /**
      * Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset
      * @param datasetId id of the Dataset in mongodb
@@ -144,19 +141,19 @@ public class DatasetController {
         return fds;
     }
 
-    //http://localhost:8080/data/api/datasets/files/59f775fce1b2b8080c37aa60/file
     /**
-     * Returns a file that is attached to a FileDescriptor specified by {fdid} in a dataset
-     * @param id    FileDescriptor id in the Dataset
+     * Returns a file that is attached to a FileDescriptor specified by dataset and fileDescriptor id
+     * @param id
+     * @param fileId
      * @return
      * @throws URISyntaxException
      */
     @GET
-    @Path("/files/{file-id}/file")
+    @Path("/{id}/files/{file_id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByFileDescriptor(@PathParam("file-id") String id) throws URISyntaxException {
+    public Response getFileByFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) throws URISyntaxException {
         File outFile = null;
-        Dataset dataset = repository.getDatasetByFileDescriptorId(id);
+        Dataset dataset = repository.getDatasetById(id);
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         String dataUrl = ""; //$NON-NLS-1$
@@ -165,7 +162,7 @@ public class DatasetController {
 
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
-            if (fdId.equals(id)) {
+            if (fdId.equals(fileId)) {
                 dataUrl = fd.getDataURL();
                 fileName = fd.getFilename();
             }
@@ -183,35 +180,28 @@ public class DatasetController {
         }
     }
 
-    //http://localhost:8080/data/api/datasets/joinshptable/59e509ca68f4742654e59621
-    /**
-     * Returns a zip file of shapefile after joinig analysis result table dataset specified by {id} using result dataset's source dataset shapefile
-     * @param datasetId input result dataset id
-     * @return
-     * @throws IOException
-     * @throws URISyntaxException
-     */
     @GET
-    @Path("/joinshptable/{id}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
-        Dataset dataset = repository.getDatasetById(datasetId);
-        if (dataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");    //$NON-NLS-1$
+    @Path("/{id}/files/{file_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public FileDescriptor getFileByDatasetIdFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) throws URISyntaxException {
+        Dataset dataset = repository.getDatasetById(id);
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        String fdId = "";   //$NON-NLS-1$
+        FileDescriptor fileDescriptor = null;
+
+        for (FileDescriptor fd : fds) {
+            fdId = fd.getId();
+            if (fdId.equals(fileId)) {
+                fileDescriptor = fd;
+            }
         }
 
-        File zipFile = FileUtils.joinShpTable(dataset, repository, false);
-        String outFileName = FilenameUtils.getBaseName(zipFile.getName()) + "." + FileUtils.FILE_ZIP_EXTENSION;
-
-        if (zipFile != null) {
-            return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + outFileName + "\"").build();  //$NON-NLS-1$ //$NON-NLS-2$
-        } else {
-            return Response.status(404).build();
-        }
+        return fileDescriptor;
     }
 
-    // http//localhost:8080/data/api/datasets/ingest-dataset
-    /** ingest dataset object using json
+    /**
+     * ingest dataset object using json
+     * @param username
      * @param inDatasetJson
      * @return
      */
@@ -329,13 +319,13 @@ public class DatasetController {
         return dataset;
     }
 
-
-    //  http//localhost:8080/data/api/datasets/upload-files
-    //    {datasetId: "59e5046668f47426549b606e"}
     /**
      * upload file(s) to attach to a dataset by FileDescriptor
-     * @param inputs post paraemters including file and metadata
+     * @param datasetId
+     * @param inputs
      * @return
+     * @throws IOException
+     * @throws URISyntaxException
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -433,9 +423,9 @@ public class DatasetController {
         return dataset;
     }
 
-    // {property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"}
     /**
      * file(s) to upload to attach to a dataset by FileDescriptor
+     * @param datasetId
      * @param inDatasetJson
      * @return
      */
@@ -454,204 +444,5 @@ public class DatasetController {
         }
 
         return dataset;
-    }
-
-    // http://localhost:8080/data/api/datasets/dump
-    /**
-     * Dump all datasets in earthquake server to database as Datasets
-     * @return
-     * @throws IOException
-     * @throws URISyntaxException
-     */
-    @GET
-    @Path("/import")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getDatasetFromWebdav() throws IOException, URISyntaxException {
-        List<Dataset> datasets = new ArrayList<Dataset>();
-        List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_DS_URL, "");
-        String spaceName = WEBDAV_SPACE_NAME;
-        String typeId = null;
-        String datasetId = null;
-        String mvzFileNameLoc = null;
-        String dsIdFileDir = null;
-        String mvzUrl = null;
-        String dsFileUrl = null;
-        List<String> downloadFileUrls = null;
-        List<File> delFiles = new ArrayList<File>();
-        String datasetTitle = null;
-        String datasetFormat = null;
-        String datasetType = null;
-        String datasetCreator = WEBDAV_SPACE_NAME;
-        List<String> datasetIds = null;
-
-        // this tmpUrl should be the file type
-        for (String tmpUrl : resHref) {
-            // get mvz file
-            String mvzDirUrl = FileUtils.REPO_PROP_URL + tmpUrl;
-            List<String> mvzHref = FileUtils.getDirectoryContent(mvzDirUrl, "");
-            for (String mvzFileName : mvzHref) {
-                String mvzFileExtStr = FilenameUtils.getExtension(mvzFileName);
-                if (mvzFileExtStr.equals(FileUtils.EXTENSION_META)) {
-                    typeId = tmpUrl;
-                    datasetId = FilenameUtils.getBaseName(mvzFileName);
-                    if (datasetId.equalsIgnoreCase("Shelby_County%2C_TN_Boundary1212593366993")) {  //$NON-NLS-1$
-                        System.out.println("check");
-                        datasetId = "Shelby_County,_TN_Boundary1212593366993";  //$NON-NLS-1$
-                        mvzFileName = "Shelby_County,_TN_Boundary1212593366993.mvz";    //$NON-NLS-1$
-                    }
-                    // ceate MvzDataset
-                    mvzFileNameLoc = tmpUrl + "/" + mvzFileName;
-                    mvzUrl = FileUtils.REPO_PROP_URL + mvzFileNameLoc;
-                    String tempMetaDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-                    HttpDownloader.downloadFile(mvzUrl, tempMetaDir);
-                    File metadata = new File(tempMetaDir + File.separator + mvzFileName);
-                    MvzDataset mvzDataset = MvzLoader.setMvzDatasetFromMetadata(metadata, mvzFileNameLoc);
-
-                    datasetTitle = mvzDataset.getName();
-                    datasetFormat = mvzDataset.getDataFormat();
-                    datasetType = mvzDataset.getTypeId();
-
-                    downloadFileUrls = new ArrayList<String>();
-                    downloadFileUrls.add(mvzUrl);
-
-                    dsIdFileDir = FileUtils.REPO_DS_URL + typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$ //$NON-NLS-2$
-                    List<String> idDirFileContent = FileUtils.getDirectoryContent(dsIdFileDir, "");
-
-                    // construct the list of files to download
-                    for (String tmpFileName : idDirFileContent) {
-                        String tmpFileExt = FilenameUtils.getExtension(tmpFileName);
-                        if (tmpFileExt.length() > 0) {
-                            dsFileUrl = dsIdFileDir + tmpFileName;
-                            downloadFileUrls.add(dsFileUrl);
-                        }
-                    }
-
-                    // create dataset
-                    Dataset dataset = new Dataset();
-                    dataset.setTitle(datasetTitle);
-                    dataset.setDataType(datasetType);
-                    dataset.setFormat(datasetFormat);
-                    dataset.setCreator(datasetCreator);
-                    List<String> spaces = new ArrayList<String>();
-                    spaces.add(spaceName);
-                    dataset.setSpaces(spaces);
-
-                    if (downloadFileUrls != null && downloadFileUrls.size() > 0) {
-                        delFiles = new ArrayList<File>();
-                        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-                        // download files
-                        for (String downUrl : downloadFileUrls) {
-                            HttpDownloader.downloadFile(downUrl, tempDir);
-                            URI uri = new URI(downUrl);
-                            String[] segments = uri.getPath().split("/");   //$NON-NLS-1$
-                            String downFileName = segments[segments.length - 1];
-                            File downFile = new File(tempDir + File.separator + downFileName);
-                            delFiles.add(downFile);
-
-                            FileInputStream fis = new FileInputStream(downFile);
-                            FileDescriptor fd = new FileDescriptor();
-                            FileStorageDisk fsDisk = new FileStorageDisk();
-
-                            fsDisk.setFolder(DATA_REPO_FOLDER);
-                            String extStr = FilenameUtils.getExtension(downFileName);
-                            try {
-                                if (!extStr.equalsIgnoreCase(FileUtils.EXTENSION_META)) {
-                                    fd = fsDisk.storeFile(downFileName, fis);
-                                    fd.setFilename(downFileName);
-                                    dataset.addFileDescriptor(fd);
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        FileUtils.deleteTmpDir(delFiles);
-                    }
-                    dataset = repository.addDataset(dataset);
-                    datasets.add(dataset);
-                    datasetIds = new ArrayList<String>();
-                    datasetIds.add(dataset.getId());
-                    Space foundSpace = repository.getSpaceByName(spaceName);
-                    if (foundSpace == null) {   // new space: insert the data
-                        Space space = new Space();
-                        space.setName(spaceName);
-                        space.setDatasetIds(datasetIds);
-                        repository.addSpace(space);
-                    } else {    // the space with space name exists
-                        // get dataset ids
-                        List<String> dsIdsinSpace = foundSpace.getDatasetIds();
-                        for (String dsIdInSpace : dsIdsinSpace) {
-                            datasetIds.add(dsIdInSpace);
-                        }
-                        foundSpace.setDatasetIds(datasetIds);
-                        repository.addSpace(foundSpace);
-                    }
-                    System.out.println(dataset);
-                    System.out.println(dataset.getFileDescriptors());
-                }
-            }
-        }
-
-        if (datasets == null) {
-            throw new NotFoundException("There is no Space in the repository.");    //$NON-NLS-1$
-        }
-
-        return datasets;
-    }
-
-    // http://localhost:8080/data/api/datasets/dump
-    /**
-     * Dump metadata files in earthquake server to database creating MvzDataset
-     * @return
-     * @throws IOException
-     * @throws URISyntaxException
-     */
-    @GET
-    @Path("/import/metadata")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<MvzDataset> dumpMetadataFromWebdab() throws IOException, URISyntaxException {
-        List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");
-        List<MvzDataset> mvzDatasets = new ArrayList<>();
-
-        for (String tmpUrl : resHref) {
-            String metaDirUrl = FileUtils.REPO_PROP_URL + tmpUrl;
-            List<String> metaHref = FileUtils.getDirectoryContent(metaDirUrl, "");
-            for (String metaFileName : metaHref) {
-                String fileExtStr = FilenameUtils.getExtension(metaFileName);
-                // get only the mvz file
-                if (fileExtStr.equals(FileUtils.EXTENSION_META)) {
-                    String combinedId = tmpUrl + "/" + metaFileName;    //$NON-NLS-1$
-                    MvzDataset mvzDataset = new MvzDataset();
-                    try {
-                        File metadata = FileUtils.loadMetadataFromRepository(combinedId);
-                        String fileName = metadata.getName();
-                        FileInputStream fis = new FileInputStream(metadata);
-                        FileDescriptor fd = new FileDescriptor();
-                        FileStorageDisk fsDisk = new FileStorageDisk();
-
-                        fsDisk.setFolder(DATA_REPO_FOLDER);
-                        try {
-                            fd = fsDisk.storeFile(fileName, fis);
-                            fd.setFilename(fileName);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        mvzDataset = MvzLoader.setMvzDatasetFromMetadata(metadata, combinedId);
-                        mvzDataset.addFileDescriptor(fd);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";  //$NON-NLS-1$
-                    }
-//                    mvzDataset = MvzLoader.createMvzDatasetFromMetadata(combinedId);
-                    mvzDataset = repository.addMvzDataset(mvzDataset);
-                    mvzDatasets.add(mvzDataset);
-                }
-            }
-        }
-
-        if (mvzDatasets == null) {
-            throw new NotFoundException("There is no Space in the repository.");    //$NON-NLS-1$
-        }
-        return mvzDatasets;
     }
 }
