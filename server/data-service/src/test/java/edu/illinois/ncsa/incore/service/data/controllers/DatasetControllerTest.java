@@ -73,7 +73,7 @@ class DatasetControllerTest extends CustomJerseyTest{
         String jsontext = IOUtils.toString(inputStream);
         final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("dataset", jsontext);
 
-        Response response = target("/datasets/ingest-dataset").register(MultiPartWriter.class).request().post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+        Response response = target("/datasets").register(MultiPartWriter.class).request().post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
         Dataset output = response.readEntity(Dataset.class);
 
         assertNotNull(output.getId());

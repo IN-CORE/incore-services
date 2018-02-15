@@ -28,8 +28,10 @@ import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
+import org.bson.types.ObjectId;
 import org.mockito.Mockito;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 
 import java.io.IOException;
 import java.net.URL;
@@ -157,6 +159,11 @@ public class MockRepository implements IRepository {
     }
 
     @Override
+    public Dataset deleteDataset(String id) {
+        return null;
+    }
+
+    @Override
     public Space getSpaceById(String id) {
         for(int i = 0; i <this.spaces.size(); i++) {
             if(this.spaces.get(i).getId().equalsIgnoreCase(id)) {
@@ -182,6 +189,10 @@ public class MockRepository implements IRepository {
         return this.spaces.get(this.spaces.size() - 1);
     }
 
+    @Override
+    public Space removeIdFromSpace(Space space, String id) {
+        return null;
+    }
     @Override
     public MvzDataset getMvzDatasetById(String id) {
         // I am not testing this method in here
