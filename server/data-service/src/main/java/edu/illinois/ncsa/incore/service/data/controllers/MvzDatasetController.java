@@ -13,7 +13,7 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.models.Space;
+import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -24,13 +24,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
-/**
- * Created by ywkim on 7/26/2017.
- */
-
-@Path("spaces")
-public class SpaceController {
-    private Logger logger = Logger.getLogger(SpaceController.class);
+@Path("mvzdatasets")
+public class MvzDatasetController {
+    private Logger logger = Logger.getLogger(MvzDatasetController.class);
 
     @Inject
     private IRepository repository;
@@ -42,12 +38,12 @@ public class SpaceController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Space> getSpaceList() {
-        List<Space> spaces = repository.getAllSpaces();
-        if (spaces == null) {
+    public List<MvzDataset> getMvzDatasetList() {
+        List<MvzDataset> mvzDatasets = repository.getAllMvzDatasets();
+        if (mvzDatasets == null) {
             throw new NotFoundException("There is no Space in the repository.");
         }
-        return spaces;
+        return mvzDatasets;
     }
 
 }

@@ -23,6 +23,6 @@ public interface IFragilityDAO {
     List<FragilitySet> searchFragilities(String text);
     Datastore getDataStore();
     List<FragilitySet> queryFragilities(String attributeType, String attributeValue);
-    List<FragilitySet> queryFragilities(Map<String, String> typeValueMap);
+    List<FragilitySet> queryFragilities(Map<String, String> typeValueMap, int offset, int limit);
     List<FragilitySet> queryFragilityAuthor(String author);
 }

@@ -88,7 +88,7 @@ public class TornadoController {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }
         } else {
-            throw new NotFoundException("Scenario tornado with id " + tornadoId + " was not found.");
+            throw new NotFoundException("Scenario earthquake with id " + tornadoId + " was not found.");
         }
     }
 

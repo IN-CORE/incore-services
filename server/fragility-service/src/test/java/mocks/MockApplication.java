@@ -22,11 +22,13 @@ import java.net.URL;
 public class MockApplication extends ResourceConfig {
     private static final Logger log = Logger.getLogger(MockApplication.class);
 
-    public MockApplication(Class klass) {
+    public MockApplication(Class... classes) {
         IFragilityDAO mockRepository = new MockFragilityDAO();
         mockRepository.initialize();
 
-        super.register(klass);
+        for (Class klass : classes) {
+            super.register(klass);
+        }
 
         MatchFilterMap loadedMappings = null;
 

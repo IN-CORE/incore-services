@@ -13,6 +13,9 @@
 package edu.illinois.ncsa.incore.service.data.models.mvz;
 
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.mvz.DatasetId;
+import edu.illinois.ncsa.incore.service.data.models.mvz.MaevizMapping;
+import edu.illinois.ncsa.incore.service.data.models.mvz.Metadata;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;

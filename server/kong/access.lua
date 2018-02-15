@@ -78,13 +78,10 @@ local function store_new_token(login, token_seed)
 	ngx_log(ngx_debug, "[ldap-auth] checking database to delete old...")
 	if (credentials and credentials[1] and credentials[1]["id"]) then
 		ngx_log(ngx_debug, "[ldap-auth] deleting id " ..credentials[1]["id"])
-		-- singletons.dao.basicauth_credentials.delete({id=credentials[1]["id"]})
-		-- kong is a broken piece of garbage, and the delete function doesn't work as documented.
-		-- so hack and delete directly
 		singletons.dao.basicauth_credentials:delete({id=credentials[1]["id"]})
 	end
 	ngx_log(ngx_debug, "[ldap-auth] inserting new token seed into db:" ..login .. ":" .. token_seed)
-	local insert_result,err = singletons.dao.basicauth_credentials:insert({username=login,password=token, consumer_id="373aae78-545e-4418-a06c-aefbe69bfc67"})
+	local insert_result,err = singletons.dao.basicauth_credentials:insert({username=login,password=token, consumer_id="%%%CONSUMER_ID%%%"})
 	if err ~= nil then
 		ngx_log(ngx_debug, "[ldap-auth] error inserting" ..dump(err))
 		return nil
