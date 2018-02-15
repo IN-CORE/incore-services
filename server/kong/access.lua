@@ -68,6 +68,25 @@ local function cache_token_for_user(login, token)
   singletons.cache:get(cache_key, {ttl=10000}, return_token, token)
 end
 
+local function generate_uuid()
+    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return string.gsub(template, '[xy]', function (c)
+        local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
+        return string.format('%x', v)
+    end)
+end
+
+local function lookup_consumer_id()
+    local credentials, err = singletons.dao.consumers:find_all({username = "ldap-token"})
+    if (credentials and credentials[1] and credentials[1]["id"]) then
+        return credentials[1]["id"]
+    end
+
+    local uuid = generate_uuid()
+    local insert_result,err = singletons.dao.consumers:insert({id=uuid,custom_id="ldap-token",username="ldap-token"})
+    return uuid
+end
+
 local function store_new_token(login, token_seed)
 	--invalidate old cached tokens
     	local cache_key = "ldap_auth_cache:" .. ngx.ctx.api.id .. ":" .. login
@@ -81,7 +100,8 @@ local function store_new_token(login, token_seed)
 		singletons.dao.basicauth_credentials:delete({id=credentials[1]["id"]})
 	end
 	ngx_log(ngx_debug, "[ldap-auth] inserting new token seed into db:" ..login .. ":" .. token_seed)
-	local insert_result,err = singletons.dao.basicauth_credentials:insert({username=login,password=token, consumer_id="%%%CONSUMER_ID%%%"})
+	consumer_id = lookup_consumer_id()
+	local insert_result,err = singletons.dao.basicauth_credentials:insert({username=login,password=token, consumer_id="a81a3205-3eb2-44ff-b3bd-1e9c2ac55d18"})
 	if err ~= nil then
 		ngx_log(ngx_debug, "[ldap-auth] error inserting" ..dump(err))
 		return nil
