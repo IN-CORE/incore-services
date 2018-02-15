@@ -35,9 +35,9 @@ public class MeanWidthTornadoTest extends CustomJerseyTest {
     public ResourceConfig configure() {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
-        MockApplication application = new MockApplication(TornadoController.class);
+        forceSet(TestProperties.CONTAINER_PORT, "0");
 
-        return application;
+        return new MockApplication(TornadoController.class);
     }
 
     @Test
