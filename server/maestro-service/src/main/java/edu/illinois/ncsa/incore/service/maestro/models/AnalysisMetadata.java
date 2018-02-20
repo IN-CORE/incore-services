@@ -19,6 +19,26 @@ public class AnalysisMetadata {
     @Property("_id")
     private ObjectId id;
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setHelpContext(String helpContext) {
+        this.helpContext = helpContext;
+    }
+
     private String description;
     private String name;
     private String url;
@@ -59,4 +79,5 @@ public class AnalysisMetadata {
     public String getHelpContext() {
         return helpContext;
     }
+
 }

@@ -21,7 +21,7 @@ public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        String mongodbUri = "mongodb://localhost:27017/maestrodb";
+        String mongodbUri = "mongodb://localhost:27017/maestrodb2";
 
         String mongodbUriProp = Config.getConfigProperties().getProperty("maestro.mongodbURI");
         if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {

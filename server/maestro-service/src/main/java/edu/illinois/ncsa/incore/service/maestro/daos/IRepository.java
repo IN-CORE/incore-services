@@ -10,13 +10,16 @@
 package edu.illinois.ncsa.incore.service.maestro.daos;
 
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
+import edu.illinois.ncsa.incore.service.maestro.models.AnalysisMetadata;
 import org.mongodb.morphia.Datastore;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IRepository {
     void initialize();
     List<Analysis> getAllAnalyses();
+    List<Analysis> getAnalysis(Map<String, String> queryParams, int offset, int limit);
     Analysis getAnalysisById(String id);
     Analysis addAnalysis(Analysis analysis);
     Datastore getDataStore();

@@ -68,15 +68,7 @@
         "type": "buildingDamagev4",
         "description": null
       }
-    ],
-    "metadata": {
-      "id": "59dfd0c12b156c0bebe9d6ef",
-      "description": "Computes the structural damage for a building.",
-      "name": "Building Structural Damage",
-      "url": "edu.illinois.ncsa.ergo.eq.buildings.BuildingDamageAnalysis",
-      "category": "Building",
-      "helpContext": "edu.illinois.ncsa.ergo.eq.ui.building_damage"
-    }
+    ]
   },
   {
     "id": "5894ebee1a743941f0c4a4e1",
@@ -121,15 +113,7 @@
         "description": "Roadway Restoration Result dataset",
         "type": "edu.illinois.ncsa.incore.transportation.roadwayRestorationResult"
       }
-    ],
-    "metadata": {
-      "id": "5894ebee1a743941f0c4a4e1",
-      "name": "Roadway Restoration",
-      "description": "Computes the functionality of a roadway, based on the expected damage.",
-      "category": "transportation",
-      "url": "https://incore.ncsa.illinois.edu/roadway_restoration",
-      "helpContext": "edu.illinois.ncsa.incore.eq.transportation.ui.roadway_restoration"
-    }
+    ]
   },
   {
     "id": "5894ebee1a743941f0c4a4e8",
@@ -174,14 +158,6 @@
         "description": "Resulting damage in the power network after a hazard",
         "type": "edu.illinois.ncsa.incore.epn_damage"
       }
-    ],
-    "metadata": {
-      "id": "5894ebee1a743941f0c4a4e8",
-      "name": "Electric Power Network Damage, Tornado",
-      "description": "This analysis computes the damage of electric power network based on a tornado hazard.",
-      "category": "hazard",
-      "url": "https://incore.ncsa.illinois.edu/epn_tornado",
-      "helpContext": "edu.illinois.ncsa.incore.tornado.epn.ui.tornado_epn_damage_analysis"
-    }
+    ]
   }
 ]

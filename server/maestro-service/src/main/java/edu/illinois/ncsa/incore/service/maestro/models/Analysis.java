@@ -18,57 +18,27 @@ import java.util.List;
 
 
 @XmlRootElement
-public class Analysis {
+public class Analysis extends AnalysisMetadata{
 
-    @Id
-    @Property("_id")
-    private ObjectId id;
-
-    private String description;
-    private String name;
-    private String url;
-    private String category;
-    private String helpContext;
     private String tag;
     private List<AnalysisDataset> datasets;
     private List<AnalysisParameter> parameters;
     private List<AnalysisOutput> outputs;
-    private AnalysisMetadata metadata;
 
 
     public Analysis() {}
 
     public Analysis(String name, String description, String category, String url, List<AnalysisDataset> datasets,
                     List<AnalysisOutput> outputs, String tag, String helpContext, List<AnalysisParameter> parameters){
-        this.name = name;
-        this.description = description;
-        this.url = url;
+        super.setName(name);
+        super.setDescription(description);
+        super.setUrl(url);
+        super.setCategory(category);
+        super.setHelpContext(helpContext);
         this.datasets = datasets;
         this.outputs = outputs;
-        this.category = category;
         this.tag = tag;
-        this.helpContext = helpContext;
         this.parameters = parameters;
-    }
-
-    public AnalysisMetadata getMetadata() {
-        if(metadata == null) {
-            metadata = new AnalysisMetadata(this.id, this.name, this.description, this.category, this.url, this.helpContext);
-        }
-        return metadata;
-    }
-
-
-    public String getId() {
-        return id.toString();
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getUrl() {
-        return url;
     }
 
     public List<AnalysisDataset> getDatasets() {
@@ -79,18 +49,6 @@ public class Analysis {
         return outputs;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public String getHelpContext() {
-        return helpContext;
-    }
-
     public String getTag() {
         return tag;
     }
@@ -98,4 +56,5 @@ public class Analysis {
     public List<AnalysisParameter> getParameters() {
         return parameters;
     }
+
 }
