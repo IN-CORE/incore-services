@@ -56,12 +56,12 @@ public class AnalysesController {
             analyses = repository.getAnalysis(queryMap, offset, limit);
             if(!full) {
                 List<AnalysisMetadata> metadata = new ArrayList<>();
-                for( int i=0; i < analyses.size(); i ++) {
 
-                    AnalysisMetadata metadata2 = new AnalysisMetadata(new ObjectId(analyses.get(i).getId()),
-                        analyses.get(i).getName(), analyses.get(i).getDescription(),
-                        analyses.get(i).getCategory(), analyses.get(i).getUrl(), analyses.get(i).getHelpContext());
-                    metadata.add(metadata2);
+                for( AnalysisMetadata analysis: analyses) {
+                    AnalysisMetadata metadataItem =  new AnalysisMetadata(new ObjectId(analysis.getId()),
+                        analysis.getName(), analysis.getDescription(),
+                        analysis.getCategory(), analysis.getUrl(), analysis.getHelpContext());
+                    metadata.add(metadataItem);
                 }
                 analyses = metadata;
             }
