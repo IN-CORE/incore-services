@@ -93,12 +93,10 @@ public class TornadoController {
     }
 
     @GET
-    @Path("/model")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getTornadoModelHazard(@QueryParam("modelId") String modelId, @QueryParam("datasetId") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong) {
-
-        // calculate wind speed
-        return Response.ok("Return tornado model hazard for " + modelId).build();
+    @Path("{tornado-id}/dataset")
+    @Produces({MediaType.TEXT_PLAIN})
+    public Response getFile() {
+        // TODO implement this and change MediaType to Octet Stream
+        return Response.ok("Shapefile representing scenario tornado not yet implemented.").build();
     }
-
 }

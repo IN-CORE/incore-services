@@ -29,6 +29,7 @@ public interface TornadoHazard {
     public static final double YARD_TO_METERS = 0.9144;
     public static final double MILES_TO_KILOMETERS = 1.60934;
     public static final double MILES_TO_METERS = 1609.34;
+    public static final double METERS_TO_DEGREES = 0.0000089982311916;
 
     // Units
     // Miles per hour

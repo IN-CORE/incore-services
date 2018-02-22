@@ -29,25 +29,15 @@ POST - Create scenario earthquake
 GET value from a scenario earthquake
 
 http://localhost:8080/hazard/api/earthquakes/{id}/value?demandType=0.2+SA&demandUnits=g&siteLat=35.07899&siteLong=-90.0178
-
-### Generate Raster
-
-http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&demandUnits=g&minX=-90.3099&minY=34.9942&maxX=-89.6231&maxY=35.4129&gridSpacing=0.01696
-
-### Get Values from Attenuation 
-
-0.2 SA
-http://localhost:8080/hazard/api/earthquakes/model?modelId=AtkinsonBoore1995&demandType=0.2+SA&demandUnits=g&siteLat=35.07899&siteLong=-90.0178&eqJson={"magnitude":"7.9","depth" :"10.0", "srcLatitude" : "35.927", "srcLongitude":"-89.919"}
-0.3502
-
-PGA
-http://localhost:8080/hazard/api/earthquakes/model?modelId=AtkinsonBoore1995&demandType=PGA&demandUnits=g&siteLat=35.07899&siteLong=-90.0178&eqJson={"magnitude":"7.9","depth" :"10.0", "srcLatitude" : "35.927", "srcLongitude":"-89.919"}
-
-PGA = 0.1765
+Value: 0.3502
 
 Site Amplification
 http://localhost:8080/hazard/api/earthquakes/soil/amplification?method=NEHRP&demandType=0.2+SA&siteLat=35.07899&siteLong=-90.0178&hazard=0.3502&defaultSiteClass=D
 1.51984
+
+### Generate Raster
+
+http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&demandUnits=g&minX=-90.3099&minY=34.9942&maxX=-89.6231&maxY=35.4129&gridSpacing=0.01696
 
 ## Tornadoes
 
@@ -69,6 +59,15 @@ POST - Create scenario tornado
     "windSpeedMethod" : "1"
   }
 }
+
+* tornadoModel (required) - specify tornado model (Mean width will create a tornado using the mean width from historical
+data for the EF rating)
+* efRating (required) - specify the Enhanced Fujita (EF) scale intensity of the tornado (EF0 - EF5)
+* startLatitude/startLongitude (required) - specify the starting location of the tornado
+* endLatitude/endLongitude (optional)- depending on the model, specify an end latitude/longitude value. Some tornado
+models (e.g. random angle) will generate multiple endpoints programmatically so the input must be passed as an array
+* windSpeedMethod(optional) - for computing wind speed within an EF boundary, 0 indicates using linear interpolation, 1
+indicates uniform random distribution. Default is Uniform random distribution.
 
 ### Get Values from Scenario Tornado
 
