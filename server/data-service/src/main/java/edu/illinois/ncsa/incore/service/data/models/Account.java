@@ -25,13 +25,13 @@ public class Account extends AbstractBean {
     /**
      * userid of the person, often email address.
      */
-    private String userid = "";   //$NON-NLS-1$
+    private String userid = "";
 
     /**
      * password associated with the userid.
      */
     // TODO RK : password should really be encrypted
-    private String password = "";   //$NON-NLS-1$
+    private String password = "";
 
     private String token = "";
 

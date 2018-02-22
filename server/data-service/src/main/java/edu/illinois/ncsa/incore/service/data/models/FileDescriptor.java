@@ -122,7 +122,7 @@ public class FileDescriptor {
     /**
      * Mime type of the dataset data
      */
-    private String mimeType = "";  //$NON-NLS-1$
+    private String mimeType = "";
 
     /**
      * size of the blob associated

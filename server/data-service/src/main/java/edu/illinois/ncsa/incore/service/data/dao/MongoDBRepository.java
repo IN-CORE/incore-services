@@ -33,11 +33,11 @@ import java.util.Set;
 import static com.mongodb.client.model.Filters.eq;
 
 public class MongoDBRepository implements IRepository {
-    private final String DATASET_COLLECTION_NAME = "Dataset";  //$NON-NLS-1$
-    private final String DATASET_FIELD_NAME = "name";   //$NON-NLS-1$
-    private final String DATASET_FIELD_TYPE = "type";   //$NON-NLS-1$
-    private final String DATASET_FIELD_TITLE = "title"; //$NON-NLS-1$
-    private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";   //$NON-NLS-1$
+    private final String DATASET_COLLECTION_NAME = "Dataset";
+    private final String DATASET_FIELD_NAME = "name";
+    private final String DATASET_FIELD_TYPE = "type";
+    private final String DATASET_FIELD_TITLE = "title";
+    private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";
     private String hostUri;
     private String databaseName;
     private int port;
@@ -46,8 +46,8 @@ public class MongoDBRepository implements IRepository {
 
     public MongoDBRepository() {
         this.port = 27017;
-        this.hostUri = "localhost"; //$NON-NLS-1$
-        this.databaseName = "datadb";   //$NON-NLS-1$
+        this.hostUri = "localhost";
+        this.databaseName = "datadb";
     }
 
     public MongoDBRepository(String hostUri, String databaseName, int port) {
@@ -118,7 +118,7 @@ public class MongoDBRepository implements IRepository {
 
     public Dataset deleteDataset(String id) {
         Query<Dataset> query = this.dataStore.createQuery(Dataset.class);
-        query.field("_id").equal(new ObjectId(id)); //$NON-NLS-1$
+        query.field("_id").equal(new ObjectId(id));
         return this.dataStore.findAndDelete(query);
     }
 
@@ -173,7 +173,7 @@ public class MongoDBRepository implements IRepository {
         MongoClient client = new MongoClient(mongoClientURI);
         MongoDatabase mongodb = client.getDatabase(databaseName);
         MongoCollection collection = mongodb.getCollection(DATASET_COLLECTION_NAME);
-        collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));  //$NON-NLS-1$ //$NON-NLS-2$
+        collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));
         return getDatasetById(datasetId);
     }
 }

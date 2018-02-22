@@ -44,7 +44,7 @@ public class JsonUtils {
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
+        String combinedId = typeId + "/" + datasetId + "/converted/";
         String outJson = "";
         String fileName = "";
         try{
@@ -68,7 +68,7 @@ public class JsonUtils {
         String outJson = "";
         String fileName = "";
         try{
-            String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
+            String tempDir = Files.createTempDirectory("repo_download_").toString();
             HttpDownloader.downloadFile(datasetUrl + datasetId + "." + FileUtils.EXTENSION_META, tempDir);
             fileName = tempDir + File.separator + datasetId + "." + FileUtils.EXTENSION_META;
             if (fileName.length() > 0) {
@@ -77,7 +77,7 @@ public class JsonUtils {
             }
         }catch (IOException e) {
             e.printStackTrace();
-//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
+//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
         return outJson;
     }
@@ -85,7 +85,7 @@ public class JsonUtils {
     // create geoJson from the shapefile url
     public static String getGeoJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
+        String combinedId = typeId + "/" + datasetId + "/converted/";
         String outJson = "";
         String fileName = "";
         try{
@@ -96,7 +96,7 @@ public class JsonUtils {
             }
         }catch (IOException e) {
             e.printStackTrace();
-//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
+//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
         return outJson;
     }
@@ -121,7 +121,7 @@ public class JsonUtils {
             Object output = jsonObj.get(inId);
             return output.toString();
         } else {
-            return "";  //$NON-NLS-1$
+            return "";
         }
     }
 
@@ -180,22 +180,22 @@ public class JsonUtils {
         List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");
 
         for (String typeUrl: resHref) {
-            String fileDirUrl = FileUtils.REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";    //$NON-NLS-1$
+            String fileDirUrl = FileUtils.REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";
             List<String> fileHref = FileUtils.getDirectoryContent(fileDirUrl, "");
             if (fileHref.size() > 1) {
                 for (String fileNameInDir : fileHref) {
                     String fileExtStr = FilenameUtils.getExtension(fileNameInDir);
                     String fileName = FilenameUtils.getName(fileNameInDir);
-                    String outJson = "";    //$NON-NLS-1$
+                    String outJson = "";
                     try {
                         if (fileExtStr.equals(FileUtils.EXTENSION_SHP)) {
-                            String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
                             String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_SHP, FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatDatasetAsGeoJson(dataset);
                             return outJson;
                         } else if (fileExtStr.equals(FileUtils.EXTENSION_CSV)) {
-                            String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
                             String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_CSV, FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatCsvAsJson(dataset, datasetId);
@@ -203,12 +203,12 @@ public class JsonUtils {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                        return "";  //$NON-NLS-1$
+                        return "";
                     }
                 }
             }
 
         }
-        return "";  //$NON-NLS-1$
+        return "";
     }
 }

@@ -28,17 +28,17 @@ public class Person extends AbstractBean {
     /**
      * First Name of the person.
      */
-    private String firstName = ""; //$NON-NLS-1$
+    private String firstName = "";
 
     /**
      * First Name of the person.
      */
-    private String lastName = ""; //$NON-NLS-1$
+    private String lastName = "";
 
     /**
      * email of the person.
      */
-    private String email = ""; //$NON-NLS-1$
+    private String email = "";
 
     /**
      * Creates a person given first name, last name and email. This will result
