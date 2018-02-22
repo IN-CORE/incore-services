@@ -13,16 +13,13 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
 import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
-import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -35,14 +32,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +55,7 @@ public class DatasetController {
     private static final String UPDATE_OBJECT_NAME = "property name";
     private static final String UPDATE_OBJECT_VALUE = "property value";
     private static final String WEBDAV_SPACE_NAME = "ergo";
-    private Logger logger = Logger.getLogger(DatasetController.class);
+    private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
     private IRepository repository;
@@ -77,7 +72,8 @@ public class DatasetController {
     public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
         return dataset;
@@ -104,7 +100,8 @@ public class DatasetController {
         }
 
         if (datasets == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding dataset");
+            throw new NotFoundException("Error finding dataset");
         }
         return datasets;
     }
@@ -113,20 +110,33 @@ public class DatasetController {
      * Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset
      * @param datasetId id of the Dataset in mongodb
      * @return
-     * @throws IOException
-     * @throws URISyntaxException
      */
     @GET
     @Path("/{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByDataset(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
-        File outFile = FileUtils.loadFileFromService(datasetId, repository, false, "");
+    public Response getFileByDataset(@PathParam("id") String datasetId) {
+        File outFile = null;
+        Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset ==  null) {
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+        try {
+            outFile = FileUtils.loadFileFromService(dataset, repository, false, "");
+        } catch (IOException e){
+            logger.error("Error creating temp directory for " + datasetId, e);
+            throw new InternalServerErrorException("Error creating temp directory for " + datasetId, e);
+        } catch (URISyntaxException e) {
+            logger.error("Error creating file with given url for " + datasetId, e);
+            throw new InternalServerErrorException("Error creating file with given url for " + datasetId, e);
+        }
         String fileName = outFile.getName();
 
         if (outFile != null) {
             return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
         } else {
-            return Response.status(404).build();
+            logger.error("Error finding output zip file for " + datasetId);
+            throw new NotFoundException("Error finding output zip file for " + datasetId);
         }
     }
 
@@ -141,12 +151,14 @@ public class DatasetController {
     public List<FileDescriptor> getDatasets(@PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         if (fds == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding FileDescriptor from the dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding FileDescriptor from the dataset with the id of " + datasetId);
         }
         return fds;
     }
@@ -164,7 +176,8 @@ public class DatasetController {
         File outFile = null;
         Dataset dataset = repository.getDatasetById(id);
         if (dataset == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding dataset with the id of " + id);
+            throw new NotFoundException("Error finding dataset with the id of " + id);
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
@@ -186,13 +199,15 @@ public class DatasetController {
                 outFile.renameTo(new File(outFile.getParentFile(), fileName));
             }
         } catch (URISyntaxException e) {
-            throw new ClientErrorException(400);
+            logger.error("Error creating file with dataset's location url ", e);
+            throw new InternalServerErrorException("Error creating file with dataset's location url ", e);
         }
 
         if (outFile != null) {
             return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
         } else {
-            return Response.status(404).build();
+            logger.error("Error finding output file.");
+            throw new NotFoundException("Error finding output file.");
         }
     }
 
@@ -208,7 +223,8 @@ public class DatasetController {
     public FileDescriptor getFileByDatasetIdFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) {
         Dataset dataset = repository.getDatasetById(id);
         if (dataset == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding dataset with the id of " + id);
+            throw new NotFoundException("Error finding dataset with the id of " + id);
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
@@ -224,7 +240,8 @@ public class DatasetController {
         }
 
         if (fileDescriptor == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding FileDescriptor with the id of " + fileId);
+            throw new NotFoundException("Error finding FileDescriptor with the id of " + fileId);
         }
         return fileDescriptor;
     }
@@ -240,10 +257,16 @@ public class DatasetController {
     @Produces(MediaType.APPLICATION_JSON)
     public Dataset ingestDataset(@HeaderParam("X-Credential-Username") String username, @FormDataParam("dataset") String inDatasetJson) {
         if (username == null) {
-            throw new ClientErrorException(401);
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
         }
 
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
+        if (isJsonValid != true) {
+            logger.error("Posted json is not a valid json.");
+            throw new BadRequestException("Posted json is not a valid json.");
+        }
+
         String title = "";
         String type = "";
         String sourceDataset = "";
@@ -268,9 +291,9 @@ public class DatasetController {
             dataset.setSpaces(spaces);
 
             dataset = repository.addDataset(dataset);
-
             if (dataset == null) {
-                throw new ClientErrorException(404);
+                logger.error("Error finding dataset with the id of " + dataset.getId());
+                throw new NotFoundException("Error finding dataset with the id of " + dataset.getId());
             }
 
             String id = dataset.getId();
@@ -301,8 +324,6 @@ public class DatasetController {
                     }
                 }
             }
-        } else {
-            throw new ClientErrorException(406);
         }
 
         return dataset;
@@ -320,49 +341,55 @@ public class DatasetController {
     @Path("/{id}")
     public Dataset deleteDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
         if (username == null) {
-            throw new ClientErrorException(401);
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
         }
 
         Dataset dataset = null;
         dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
         String creator = dataset.getCreator();
         List<String> spaces = dataset.getSpaces();
 
-        try {
-            if (creator != null) {
-                if (creator.equals(username)) {
-                    // remove dataset
-                    dataset = repository.deleteDataset(datasetId);
-                    if (dataset != null) {
-                        // remove files
-                        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        if (creator != null) {
+            if (creator.equals(username)) {
+                // remove dataset
+                dataset = repository.deleteDataset(datasetId);
+                if (dataset != null) {
+                    // remove files
+                    List<FileDescriptor> fds = dataset.getFileDescriptors();
+                    if (fds.size() > 0) {
                         for (FileDescriptor fd : fds) {
-                            File file = new File((new URL(fd.getDataURL())).toURI());
-                            FileUtils.deleteTmpDir(file);
-                        }
-
-                        // remove geoserver layer
-                        boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
-
-                        // remove id from space
-                        for (String spaceStr : spaces) {
-                            Space space = repository.getSpaceByName(spaceStr);
-                            repository.removeIdFromSpace(space, datasetId);
-                            repository.addSpace(space);
+                            try {
+                                File file = new File((new URL(fd.getDataURL())).toURI());
+                                FileUtils.deleteTmpDir(file);
+                            } catch (MalformedURLException e) {
+                                logger.error("Error creating URL using dataset location ", e);
+                                throw new InternalServerErrorException("Error creating URL using dataset location ", e);
+                            } catch (URISyntaxException e) {
+                                logger.error("Error converting data url to uri ", e);
+                                throw new InternalServerErrorException("Error converting data url to uri ", e);
+                            }
                         }
                     }
-                } else {
-                    dataset = null;
+
+                    // remove geoserver layer
+                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+
+                    // remove id from space
+                    for (String spaceStr : spaces) {
+                        Space space = repository.getSpaceByName(spaceStr);
+                        repository.removeIdFromSpace(space, datasetId);
+                        repository.addSpace(space);
+                    }
                 }
+            } else {
+                dataset = null;
             }
-        } catch (MalformedURLException e) {
-            throw new ClientErrorException(400);
-        } catch (URISyntaxException e) {
-            throw new ClientErrorException(400);
         }
 
         return dataset;
@@ -385,7 +412,8 @@ public class DatasetController {
         String paramName = "";
         Dataset dataset = repository.getDatasetById(objIdStr);
         if (dataset == null) {
-            throw new ClientErrorException(404);
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
         boolean isJsonValid = false;
@@ -421,7 +449,8 @@ public class DatasetController {
                     fd = fsDisk.storeFile(fileName, is);
                     fd.setFilename(fileName);
                 } catch (IOException e) {
-                    throw new ClientErrorException(400);
+                    logger.error("Error storing files of the dataset with the id of " + datasetId);
+                    throw new NotFoundException("Error string files of the dataset with the id of " + datasetId);
                 }
                 dataset.addFileDescriptor(fd);
                 j++;
@@ -444,17 +473,21 @@ public class DatasetController {
                     File zipFile = FileUtils.joinShpTable(dataset, repository, true);
                     boolean published = GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
                 } catch (IOException e) {
-                    throw new ClientErrorException(400);
+                    logger.error("Error making temp directory in joining process ", e);
+                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
                 } catch (URISyntaxException e) {
-                    throw new ClientErrorException(400);
+                    logger.error("Error making file using dataset's location url in table join process", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
                 }
             } else {
                 try {
                     boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
                 } catch (IOException e) {
-                    throw new ClientErrorException(400);
+                    logger.error("Error making temp directory in joining process ", e);
+                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
                 } catch (URISyntaxException e) {
-                    throw new ClientErrorException(400);
+                    logger.error("Error making file using dataset's location url in table join process", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
                 }
             }
         }
@@ -479,7 +512,8 @@ public class DatasetController {
                     }
                 }
             } catch (URISyntaxException e){
-                throw new ClientErrorException(400);
+                logger.error("Error creating file from dataset locatoin ", e);
+                throw new InternalServerErrorException("Error creating file from dataset location ", e);
             }
             try {
                 boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
@@ -487,7 +521,8 @@ public class DatasetController {
                     logger.debug("The shapefile already has guid field");
                 }
             } catch (IOException e){
-                throw new ClientErrorException(400);
+                logger.error("Error creating temp directory in guid creation process ", e);
+                throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
             }
         }
 
@@ -506,6 +541,11 @@ public class DatasetController {
     @Path("/{id}")
     public Object updateObject(@PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
+        if (isJsonValid != true) {
+            logger.error("Posted json is not a valid json.");
+            throw new BadRequestException("Posted json is not a valid json.");
+        }
+
         Dataset dataset = null;
 
         if (isJsonValid) {

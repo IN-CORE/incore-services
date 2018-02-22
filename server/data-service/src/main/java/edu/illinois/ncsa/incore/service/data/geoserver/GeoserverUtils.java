@@ -95,16 +95,16 @@ public class GeoserverUtils {
             if (isShp) {
                 // get zip file
                 inExt = "shp";
-                outFile = FileUtils.loadFileFromService(datasetId, repository, true, inExt);
+                outFile = FileUtils.loadFileFromService(dataset, repository, true, inExt);
                 String fileName = outFile.getName();
                 published = uploadToGeoserver(datasetId, outFile, inExt);
             } else if (isTif) {
                 inExt = "tif";
-                outFile = FileUtils.loadFileFromService(datasetId, repository, true, inExt);
+                outFile = FileUtils.loadFileFromService(dataset, repository, true, inExt);
                 published = uploadToGeoserver(datasetId, outFile, inExt);
             } else if (isAsc) {
                 inExt = "asc";
-                outFile = FileUtils.loadFileFromService(datasetId, repository, true, inExt);
+                outFile = FileUtils.loadFileFromService(dataset, repository, true, inExt);
                 published = uploadToGeoserver(datasetId, outFile, inExt);
             }
         }

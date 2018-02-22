@@ -427,7 +427,7 @@ public class FileUtils {
 
     /**
      * load file from the data repository service using dataset id
-     * @param datasetId
+     * @param dataset
      * @param repository
      * @param isGeoserver
      * @param inExt
@@ -435,11 +435,8 @@ public class FileUtils {
      * @throws IOException
      * @throws URISyntaxException
      */
-    public static File loadFileFromService(String datasetId, IRepository repository, boolean isGeoserver, String inExt) throws IOException, URISyntaxException {
-        Dataset dataset = repository.getDatasetById(datasetId);
-        if (dataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");
-        }
+    public static File loadFileFromService(Dataset dataset, IRepository repository, boolean isGeoserver, String inExt) throws IOException, URISyntaxException {
+        String datasetId = dataset.getId();
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         List<File> fileList = new ArrayList<File>();
         String fileBaseName = "";
@@ -584,6 +581,7 @@ public class FileUtils {
     public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws URISyntaxException, IOException {
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
+        File zipFile = null;
 
         for (int i = 0; i < csvFDs.size(); i++) {
             FileDescriptor csvFd = csvFDs.get(i);
@@ -594,28 +592,28 @@ public class FileUtils {
         Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
         if (sourceDataset == null) {
             throw new NotFoundException("There is no Dataset with given id in the repository.");
-        }
-        List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
-        String sourceType = sourceDataset.getDataType();
-        List<File> shpfiles = new ArrayList<File>();
-        File zipFile = null;
-        boolean isShpfile = false;
+        } else {
+            List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
+            String sourceType = sourceDataset.getDataType();
+            List<File> shpfiles = new ArrayList<File>();
+            boolean isShpfile = false;
 
-        if (!(sourceType.equalsIgnoreCase(FORMAT_SHAPEFILE))) {
-            for (int i = 0; i < sourceFDs.size(); i++) {
-                FileDescriptor sfd = sourceFDs.get(i);
-                String shpLoc = sfd.getDataURL();
-                File shpFile = new File(new URI(shpLoc));
-                shpfiles.add(shpFile);
-                //get file, if the file is in remote, use http downloader
-                String fileExt = FilenameUtils.getExtension(shpLoc);
-                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                    isShpfile = true;
+            if (!(sourceType.equalsIgnoreCase(FORMAT_SHAPEFILE))) {
+                for (int i = 0; i < sourceFDs.size(); i++) {
+                    FileDescriptor sfd = sourceFDs.get(i);
+                    String shpLoc = sfd.getDataURL();
+                    File shpFile = new File(new URI(shpLoc));
+                    shpfiles.add(shpFile);
+                    //get file, if the file is in remote, use http downloader
+                    String fileExt = FilenameUtils.getExtension(shpLoc);
+                    if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                        isShpfile = true;
+                    }
                 }
             }
-        }
-        if (isShpfile) {
-            zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
+            if (isShpfile) {
+                zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
+            }
         }
 
         return zipFile;
