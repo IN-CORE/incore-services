@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
+import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
@@ -72,7 +73,7 @@ public abstract class BaseAttenuation {
         return epistemicVariance;
     }
 
-    public void readCoeffients(URL fileURL) {
+    public void readCoefficients(URL fileURL) {
         hazardOutputTypes = new LinkedList<String>();
         coefficients = new HashMap<String, List<Double>>();
 
@@ -253,7 +254,7 @@ public abstract class BaseAttenuation {
 
         // will get here if the ground motion types never match...
         if (closest == null) {
-            throw new Exception("Unsupported hazard");
+            throw new UnsupportedHazardException("Unsupported hazard "+hazardType);
         }
 
         return new SeismicHazardResult(getValue(closest, site), closest);

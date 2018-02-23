@@ -38,7 +38,7 @@ public class AtkinsonBoore1995Test {
         String fileName = modelId + ".csv";
         URL coefficientURL = this.getClass().getResource("/hazard/earthquake/coefficients/" + fileName);
         attenuation = new AtkinsonBoore1995();
-        attenuation.readCoeffients(coefficientURL);
+        attenuation.readCoefficients(coefficientURL);
         attenuation.setRuptureParameters(ruptureParameters);
     }
 

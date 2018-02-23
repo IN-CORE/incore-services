@@ -162,7 +162,7 @@ public class EarthquakeController {
         ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
         if (points.size() % 2 != 0) {
             logger.error("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
-            throw new InternalServerErrorException("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
+            throw new BadRequestException("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
         }
         if (earthquake != null) {
             String period = demandType;
@@ -199,7 +199,7 @@ public class EarthquakeController {
             return new SeismicHazardResults(period, demand, hazardResults);
         } else {
             logger.error("Could not find scenario earthquake with id " + earthquakeId);
-            throw new InternalServerErrorException("Could not find scenario earthquake with id " + earthquakeId);
+            throw new NotFoundException("Could not find scenario earthquake with id " + earthquakeId);
         }
     }
 
