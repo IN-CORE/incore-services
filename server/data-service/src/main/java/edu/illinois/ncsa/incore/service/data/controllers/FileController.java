@@ -57,7 +57,7 @@ public class FileController {
      * @return
      */
     @GET
-    @Path("/{id}/blob")
+    @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFileByFileDescriptorId(@PathParam("id") String id) {
         File outFile = null;

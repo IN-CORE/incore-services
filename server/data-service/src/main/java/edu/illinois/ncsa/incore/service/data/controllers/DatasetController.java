@@ -67,7 +67,7 @@ public class DatasetController {
      * @return dataset object
      */
     @GET
-    @Path("/{id}")
+    @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
@@ -112,7 +112,7 @@ public class DatasetController {
      * @return
      */
     @GET
-    @Path("/{id}/blob")
+    @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFileByDataset(@PathParam("id") String datasetId) {
         File outFile = null;
@@ -146,7 +146,7 @@ public class DatasetController {
      * @return
      */
     @GET
-    @Path("/{id}/files")
+    @Path("{id}/files")
     @Produces(MediaType.APPLICATION_JSON)
     public List<FileDescriptor> getDatasets(@PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
@@ -170,7 +170,7 @@ public class DatasetController {
      * @return
      */
     @GET
-    @Path("/{id}/files/{file_id}/blob")
+    @Path("{id}/files/{file_id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFileByFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) {
         File outFile = null;
@@ -218,7 +218,7 @@ public class DatasetController {
      * @return
      */
     @GET
-    @Path("/{id}/files/{file_id}")
+    @Path("{id}/files/{file_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public FileDescriptor getFileByDatasetIdFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) {
         Dataset dataset = repository.getDatasetById(id);
@@ -338,7 +338,7 @@ public class DatasetController {
     @DELETE
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}")
+    @Path("{id}")
     public Dataset deleteDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
         if (username == null) {
             logger.error("Credential user name should be provided.");
@@ -404,7 +404,7 @@ public class DatasetController {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}/files")
+    @Path("{id}/files")
     public Dataset uploadFiles(@PathParam("id") String datasetId, FormDataMultiPart inputs) {
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
@@ -538,7 +538,7 @@ public class DatasetController {
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}")
+    @Path("{id}")
     public Object updateObject(@PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
