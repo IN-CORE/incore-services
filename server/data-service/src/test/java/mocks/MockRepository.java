@@ -193,6 +193,18 @@ public class MockRepository implements IRepository {
     public Space removeIdFromSpace(Space space, String id) {
         return null;
     }
+
+    @Override
+    public List<FileDescriptor> getAllFileDescriptors(){
+        List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
+        for (Dataset dataset: this.datasets) {
+            List<FileDescriptor> fds = dataset.getFileDescriptors();
+            fileDescriptors.addAll(fds);
+        }
+
+        return fileDescriptors;
+    }
+
     @Override
     public MvzDataset getMvzDatasetById(String id) {
         // I am not testing this method in here

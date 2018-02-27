@@ -405,7 +405,7 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/files")
-    public Dataset uplaodFiles(@PathParam("id") String datasetId, FormDataMultiPart inputs) {
+    public Dataset uploadFiles(@PathParam("id") String datasetId, FormDataMultiPart inputs) {
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
         String inJson = "";

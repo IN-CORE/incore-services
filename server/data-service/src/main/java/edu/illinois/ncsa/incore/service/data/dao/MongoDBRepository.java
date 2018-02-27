@@ -18,6 +18,7 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.bson.Document;
@@ -26,6 +27,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -148,6 +150,17 @@ public class MongoDBRepository implements IRepository {
     public MvzDataset addMvzDataset(MvzDataset mvzDataset) {
         String id = this.dataStore.save(mvzDataset).getId().toString();
         return getMvzDatasetById(id);
+    }
+
+    public List<FileDescriptor> getAllFileDescriptors(){
+        List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
+        List<Dataset> datasets = getAllDatasets();
+        for (Dataset dataset: datasets) {
+            List<FileDescriptor> fds = dataset.getFileDescriptors();
+            fileDescriptors.addAll(fds);
+        }
+
+        return fileDescriptors;
     }
 
     public MvzDataset getMvzDatasetById(String id) {
