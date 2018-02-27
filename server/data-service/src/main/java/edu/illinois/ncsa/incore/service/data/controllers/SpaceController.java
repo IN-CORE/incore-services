@@ -35,7 +35,6 @@ public class SpaceController {
     @Inject
     private IRepository repository;
 
-    //http://localhost:8080/data/api/spaces
     /**
      * return list of spaces in the database
      * @return list of spaces

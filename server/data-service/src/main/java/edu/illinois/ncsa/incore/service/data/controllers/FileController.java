@@ -51,6 +51,42 @@ public class FileController {
     }
 
     /**
+     * get file descriptor by file descriptor id
+     *
+     * @param id
+     * @return
+     */
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public FileDescriptor getFileDescriptorById(@PathParam("id") String id) {
+        Dataset dataset = repository.getDatasetByFileDescriptorId(id);
+        if (dataset == null) {
+            logger.error("Error finding dataset.");
+            throw new NotFoundException("Error finding dataset.");
+        }
+
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        String fdId = "";
+        FileDescriptor fileDescriptor = null;
+
+        for (FileDescriptor fd : fds) {
+            fdId = fd.getId();
+            if (fdId.equals(id)) {
+                fileDescriptor = fd;
+                break;
+            }
+        }
+
+        if (fileDescriptor == null) {
+            logger.error("Error finding FileDesriptor with given id.");
+            throw new NotFoundException("Error finding FileDesriptor with given id.");
+        }
+
+        return fileDescriptor;
+    }
+
+    /**
      * get file by using FileDescriptor ID
      *
      * @param id
