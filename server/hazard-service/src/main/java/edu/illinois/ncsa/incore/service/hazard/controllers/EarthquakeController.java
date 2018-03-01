@@ -156,6 +156,54 @@ public class EarthquakeController {
     }
 
     @GET
+    @Path("{earthquake-id}/values")
+    @Produces({MediaType.APPLICATION_JSON})
+    public SeismicHazardResults getScenarioEarthquakeHazardValues(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard, @QueryParam("point") List<Double> points) {
+        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+        if (points.size() % 2 != 0) {
+            logger.error("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
+            throw new BadRequestException("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
+        }
+        if (earthquake != null) {
+            String period = demandType;
+            String demand = demandType;
+
+            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
+                String[] demandSplit = demandType.split(" ");
+                period = demandSplit[0];
+                demand = demandSplit[1];
+            }
+
+            model.setRuptureParameters(earthquake.getEqParameters());
+
+            // TODO this should be determined from the scenario earthquake
+            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
+            attenuations.put(model, 1.0);
+
+            List<HazardResult> hazardResults = new LinkedList<HazardResult>();
+            for (int index = 0; index < points.size(); index += 2) {
+                double siteLat = points.get(index);
+                double siteLong = points.get(index + 1);
+
+                Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
+
+                // TODO spectrum override should be part of the endpoint parameters
+                try {
+                    double hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, 0, amplifyHazard).getHazardValue();
+                    hazardResults.add(new HazardResult(siteLat, siteLong, hazardValue));
+                } catch (Exception e) {
+                    throw new InternalServerErrorException("Error computing hazard.", e);
+                }
+            }
+
+            return new SeismicHazardResults(period, demand, hazardResults);
+        } else {
+            logger.error("Could not find scenario earthquake with id " + earthquakeId);
+            throw new NotFoundException("Could not find scenario earthquake with id " + earthquakeId);
+        }
+    }
+
+    @GET
     @Path("{earthquake-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
     public SeismicHazardResult getScenarioEarthquakeHazard(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {

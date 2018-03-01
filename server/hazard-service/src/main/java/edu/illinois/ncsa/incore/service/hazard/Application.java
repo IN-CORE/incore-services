@@ -42,7 +42,7 @@ public class Application  extends ResourceConfig {
         URL coefficientURL = this.getClass().getClassLoader().getResource("/hazard/earthquake/coefficients/" + fileName);
 
         AtkinsonBoore1995 model = new AtkinsonBoore1995();
-        model.readCoeffients(coefficientURL);
+        model.readCoefficients(coefficientURL);
 
         super.register(new AbstractBinder() {
 
