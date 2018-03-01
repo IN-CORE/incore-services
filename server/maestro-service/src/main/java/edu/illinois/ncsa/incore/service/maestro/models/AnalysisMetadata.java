@@ -14,6 +14,11 @@ import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+/*
+In some cases, we want to be able to return relevant information for an analysis but not including the
+datasets, parameters and outputs. Using this class and extends in the Analysis class allows for returning
+from the same method either AnalysisMetadata or Analysis depending on the full query parameter. 
+ */
 @XmlRootElement
 public class AnalysisMetadata {
     @Property("_id")
