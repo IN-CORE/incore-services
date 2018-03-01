@@ -28,38 +28,38 @@ import java.util.List;
  * Created by ywkim on 9/27/2017.
  */
 public class MvzLoader {
-    public static final String TAG_PROPERTIES_GIS = "gis-dataset-properties";   //$NON-NLS-1$
-    public static final String TAG_PROPERTIES_MAP = "mapped-dataset-properties";    //$NON-NLS-1$
-    public static final String TAG_PROPERTIES_FILE = "file-dataset-properties"; //$NON-NLS-1$
-    public static final String TAG_PROPERTIES_RASTER = "raster-dataset-properties"; //$NON-NLS-1$
-    public static final String TAG_PROPERTIES_SCENARIO = "dataset-properties";  //$NON-NLS-1$
-    public static final String TAG_NAME = "name";   //$NON-NLS-1$
-    public static final String TAG_VERSION = "version"; //$NON-NLS-1$
-    public static final String TAG_DATA_FORMAT = "data-format"; //$NON-NLS-1$
-    public static final String TAG_TYPE_ID = "type-id"; //$NON-NLS-1$
-    public static final String TAG_FEATURE_TYPE_NAME = "feature-type-name"; //$NON-NLS-1$
-    public static final String TAG_CONVERTED_FEATURE_TYPE_NAME = "converted-feature-type-name"; //$NON-NLS-1$
-    public static final String TAG_GEOMETRY_TYPE = "geometry-type"; //$NON-NLS-1$
-    public static final String TAG_LOCATION ="location";    //$NON-NLS-1$
-    public static final String TAG_DESCRIPTION = "desription";  //$NON-NLS-1$
-    public static final String TAG_DATASET_ID = "dataset-id";   //$NON-NLS-1$
-    public static final String TAG_MAEVIZ_MAPPING = "maeviz-mapping";   //$NON-NLS-1$
-    public static final String TAG_SCHEMA = "schema";   //$NON-NLS-1$
-    public static final String TAG_MAPPING = "mapping"; //$NON-NLS-1$
-    public static final String TAG_FROM = "from";   //$NON-NLS-1$
-    public static final String TAG_TO = "to";   //$NON-NLS-1$
-    public static final String TAG_METADATA = "metadata";   //$NON-NLS-1$
-    public static final String TAG_TABLE_METADATA = "table-metadata";   //$NON-NLS-1$
-    public static final String TAG_COLUMN_METADATA = "column-metadata"; //$NON-NLS-1$
-    public static final String TAG_FRIENDLY_NAME = "friendly-name"; //$NON-NLS-1$
-    public static final String TAG_FIELD_LENGTH = "field-length";   //$NON-NLS-1$
-    public static final String TAG_UNIT = "unit";   //$NON-NLS-1$
-    public static final String TAG_COLUMN_ID = "column-id"; //$NON-NLS-1$
-    public static final String TAG_SIGFIGS = "sig-figs";    //$NON-NLS-1$
-    public static final String TAG_UNIT_TYPE = "unit-type"; //$NON-NLS-1$
-    public static final String TAG_IS_NUMERIC = "is-numeric";   //$NON-NLS-1$
-    public static final String TAG_IS_RESULT = "is-result"; //$NON-NLS-1$
-    public static final String TAG_PROPERTIES = ""; //$NON-NLS-1$
+    public static final String TAG_PROPERTIES_GIS = "gis-dataset-properties";
+    public static final String TAG_PROPERTIES_MAP = "mapped-dataset-properties";
+    public static final String TAG_PROPERTIES_FILE = "file-dataset-properties";
+    public static final String TAG_PROPERTIES_RASTER = "raster-dataset-properties";
+    public static final String TAG_PROPERTIES_SCENARIO = "dataset-properties";
+    public static final String TAG_NAME = "name";
+    public static final String TAG_VERSION = "version";
+    public static final String TAG_DATA_FORMAT = "data-format";
+    public static final String TAG_TYPE_ID = "type-id";
+    public static final String TAG_FEATURE_TYPE_NAME = "feature-type-name";
+    public static final String TAG_CONVERTED_FEATURE_TYPE_NAME = "converted-feature-type-name";
+    public static final String TAG_GEOMETRY_TYPE = "geometry-type";
+    public static final String TAG_LOCATION ="location";
+    public static final String TAG_DESCRIPTION = "desription";
+    public static final String TAG_DATASET_ID = "dataset-id";
+    public static final String TAG_MAEVIZ_MAPPING = "maeviz-mapping";
+    public static final String TAG_SCHEMA = "schema";
+    public static final String TAG_MAPPING = "mapping";
+    public static final String TAG_FROM = "from";
+    public static final String TAG_TO = "to";
+    public static final String TAG_METADATA = "metadata";
+    public static final String TAG_TABLE_METADATA = "table-metadata";
+    public static final String TAG_COLUMN_METADATA = "column-metadata";
+    public static final String TAG_FRIENDLY_NAME = "friendly-name";
+    public static final String TAG_FIELD_LENGTH = "field-length";
+    public static final String TAG_UNIT = "unit";
+    public static final String TAG_COLUMN_ID = "column-id";
+    public static final String TAG_SIGFIGS = "sig-figs";
+    public static final String TAG_UNIT_TYPE = "unit-type";
+    public static final String TAG_IS_NUMERIC = "is-numeric";
+    public static final String TAG_IS_RESULT = "is-result";
+    public static final String TAG_PROPERTIES = "";
 
     public static final Logger logger = Logger.getLogger(MvzLoader.class);
 
@@ -71,7 +71,7 @@ public class MvzLoader {
 
         } catch (IOException e) {
             e.printStackTrace();;
-            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";  //$NON-NLS-1$
+            String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
 
         return mvzDataset;
@@ -80,7 +80,7 @@ public class MvzLoader {
     public static MvzDataset setMvzDatasetFromMetadata(File metadataFile, String rUrl) throws IOException {
         String xmlString = "";
         metadataFile.setReadOnly();
-        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16"); //$NON-NLS-1$
+        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
         char metaCharBuffer[] = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
@@ -102,16 +102,16 @@ public class MvzLoader {
 
     private static MvzDataset setMvzDatasetFromJson(String rUrl, String inJson, boolean isXml) {
         MvzDataset mvzDataset = new MvzDataset();
-        String datasetPropertyName = "";    //$NON-NLS-1$
-        String name = "";   //$NON-NLS-1$
-        String version = "";    //$NON-NLS-1$
-        String dataFormat = ""; //$NON-NLS-1$
-        String typeId = ""; //$NON-NLS-1$
-        String featureTypeName = "";    //$NON-NLS-1$
-        String convertedFeatureTypeName = "";   //$NON-NLS-1$
-        String geometryType = "";   //$NON-NLS-1$
-        String location = "";   //$NON-NLS-1$
-        String description = "";    //$NON-NLS-1$
+        String datasetPropertyName = "";
+        String name = "";
+        String version = "";
+        String dataFormat = "";
+        String typeId = "";
+        String featureTypeName = "";
+        String convertedFeatureTypeName = "";
+        String geometryType = "";
+        String location = "";
+        String description = "";
         //String schema = "";
         //String from = "";
         //String to = "";
@@ -307,9 +307,9 @@ public class MvzLoader {
 
     public static String formatMetadataAsJson(File metadataFile, String inId) throws IOException {
         // convert from UTF-16 to UTF-8
-        String xmlString = "";  //$NON-NLS-1$
+        String xmlString = "";
         metadataFile.setReadOnly();
-        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16"); //$NON-NLS-1$
+        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
         char metaCharBuffer[] = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
@@ -347,7 +347,7 @@ public class MvzLoader {
             return jsonString;
         } catch (JSONException ex) {
             logger.error(ex);
-            return "{\"error:\" + \"" + ex.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
+            return "{\"error:\" + \"" + ex.getLocalizedMessage() + "\"}";
         }
     }
 

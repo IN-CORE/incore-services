@@ -13,6 +13,7 @@
 
 package edu.illinois.ncsa.incore.service.data.dao;
 
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
@@ -30,10 +31,13 @@ public interface IRepository {
     Dataset addDataset(Dataset dataset);
     Dataset updateDataset(String datasetId, String propName, String propValue);
     Dataset getDatasetByFileDescriptorId(String id);
+    Dataset deleteDataset(String id);
     List<Space> getAllSpaces();
     Space addSpace(Space space);
     Space getSpaceById(String id);
     Space getSpaceByName(String name);
+    Space removeIdFromSpace(Space space, String id);
+    List<FileDescriptor> getAllFileDescriptors();
     List<MvzDataset> getAllMvzDatasets();
     MvzDataset getMvzDatasetById(String id);
     MvzDataset addMvzDataset(MvzDataset dataset);

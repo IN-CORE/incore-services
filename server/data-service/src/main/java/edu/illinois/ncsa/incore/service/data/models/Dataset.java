@@ -53,12 +53,12 @@ public class Dataset {
     /**
      * Title of the artifact
      */
-    private String title = ""; //$NON-NLS-1$
+    private String title = "";
 
     /**
      * Description of the artifact
      */
-    private String description = ""; //$NON-NLS-1$
+    private String description = "";
 
     /**
      * Date the artifact is created
@@ -93,12 +93,12 @@ public class Dataset {
     /**
      * format of the artifact
      */
-    private String format = "";  //$NON-NLS-1$
+    private String format = "";
 
     /**
      * source dataset of the artifact
      */
-    private String sourceDataset = "";  //$NON-NLS-1$
+    private String sourceDataset = "";
 
     /**
      * List of spaces to the artifact.

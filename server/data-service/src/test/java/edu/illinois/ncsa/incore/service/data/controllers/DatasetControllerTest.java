@@ -12,6 +12,8 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import mocks.MockApplication;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.HttpPost;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.internal.MultiPartWriter;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -37,6 +39,7 @@ class DatasetControllerTest extends CustomJerseyTest{
 
     @Override
     public ResourceConfig configure() {
+        forceSet(TestProperties.CONTAINER_PORT, "0");
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
@@ -72,8 +75,7 @@ class DatasetControllerTest extends CustomJerseyTest{
         InputStream inputStream = jsonURL.openStream();
         String jsontext = IOUtils.toString(inputStream);
         final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("dataset", jsontext);
-
-        Response response = target("/datasets/ingest-dataset").register(MultiPartWriter.class).request().post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+        Response response = target("/datasets").register(MultiPartWriter.class).request().header("X-Credential-Username", "tester").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
         Dataset output = response.readEntity(Dataset.class);
 
         assertNotNull(output.getId());

@@ -22,6 +22,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,7 +36,6 @@ public class SpaceController {
     @Inject
     private IRepository repository;
 
-    //http://localhost:8080/data/api/spaces
     /**
      * return list of spaces in the database
      * @return list of spaces
@@ -44,9 +44,7 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     public List<Space> getSpaceList() {
         List<Space> spaces = repository.getAllSpaces();
-        if (spaces == null) {
-            throw new NotFoundException("There is no Space in the repository.");
-        }
+
         return spaces;
     }
 

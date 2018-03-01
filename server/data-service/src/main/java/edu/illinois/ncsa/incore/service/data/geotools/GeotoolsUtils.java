@@ -15,9 +15,11 @@ package edu.illinois.ncsa.incore.service.data.geotools;
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import edu.illinois.ncsa.incore.service.data.controllers.DatasetController;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.data.*;
@@ -29,6 +31,8 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.gce.arcgrid.ArcGridReader;
@@ -54,13 +58,15 @@ import java.util.*;
  * Created by ywkim on 10/5/2017.
  */
 public class GeotoolsUtils {
-    private static final String UNI_ID_SHP = "guid";    //$NON-NLS-1$
-    private static final String UNI_ID_CSV = "guid";    //$NON-NLS-1$
-    private static final String DATA_FIELD_GEOM = "the_geom";   //$NON-NLS-1$
+    private static final String UNI_ID_SHP = "guid";
+    private static final String UNI_ID_CSV = "guid";
+    private static final String DATA_FIELD_GEOM = "the_geom";
+    private static final Logger logger = Logger.getLogger(GeotoolsUtils.class);
 //    public static String outFileName = null;
 
     /**
      * convert ascii grid to geotiff
+     *
      * @param inAsc
      * @return
      * @throws IOException
@@ -75,14 +81,14 @@ public class GeotoolsUtils {
         try {
             GeoTiffWriteParams wp = new GeoTiffWriteParams();
             wp.setCompressionMode(GeoTiffWriteParams.MODE_EXPLICIT);
-            wp.setCompressionType("LZW");   //$NON-NLS-1$
+            wp.setCompressionType("LZW");
             ParameterValueGroup params = new GeoTiffFormat().getWriteParameters();
             params.parameter(AbstractGridFormat.GEOTOOLS_WRITE_PARAMS.getName().toString()).setValue(wp);
             GeoTiffWriter writer = new GeoTiffWriter(outTif);
             writer.write(gc, (GeneralParameterValue[]) params.values().toArray(new GeneralParameterValue[1]));
         } catch (Exception e) {
-            System.out.println("failed to conver ascii file to geotiff."); //$NON-NLS-1$
-            e.printStackTrace();
+            logger.error("failed to conver ascii file to geotiff.");
+            throw new IOException("failed to convert ascii file to geotiff ", e);
         }
 
         return outTif;
@@ -90,6 +96,7 @@ public class GeotoolsUtils {
 
     /**
      * join csv file to shapefile and create a new shapefile
+     *
      * @param shpfiles
      * @param csvFile
      * @return
@@ -208,6 +215,7 @@ public class GeotoolsUtils {
 
     /**
      * copy files in the list to the temporary directory
+     *
      * @param fileList
      * @param tempDir
      * @param datasetId
@@ -221,7 +229,7 @@ public class GeotoolsUtils {
         for (int i = 0; i < fileList.size(); i++) {
             File sourceFile = fileList.get(i);
             String fileName = FilenameUtils.getName(sourceFile.getName());
-            String fileExt = "";    //$NON-NLS-1$
+            String fileExt = "";
             if (isGeoserver) {
                 fileExt = FilenameUtils.getExtension(sourceFile.getName());
                 File newFile = new File(sourceFile.getParent() + File.separator + datasetId + "." + fileExt);
@@ -229,16 +237,16 @@ public class GeotoolsUtils {
             }
             File destFile = new File(tempDir + File.separator + fileName);
             if (isGeoserver) {
-                if (inExt.equalsIgnoreCase("shp")) {    //$NON-NLS-1$
-                    if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("dbf") ||   //$NON-NLS-1$ //$NON-NLS-2$
-                            fileExt.equalsIgnoreCase("shx") || fileExt.equalsIgnoreCase("prj")) {   //$NON-NLS-1$ //$NON-NLS-2$
+                if (inExt.equalsIgnoreCase("shp")) {
+                    if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("dbf") ||
+                            fileExt.equalsIgnoreCase("shx") || fileExt.equalsIgnoreCase("prj")) {
                         outList.add(destFile);
                     }
-                } else if (inExt.equalsIgnoreCase("tif")) { //$NON-NLS-1$
+                } else if (inExt.equalsIgnoreCase("tif")) {
                     if (fileExt.equalsIgnoreCase(inExt)) {
                         outList.add(destFile);
                     }
-                } else if (inExt.equalsIgnoreCase("asc")) { //$NON-NLS-1$
+                } else if (inExt.equalsIgnoreCase("asc")) {
                     if (fileExt.equalsIgnoreCase(inExt)) {
                         outList.add(destFile);
                     }
@@ -258,6 +266,7 @@ public class GeotoolsUtils {
 
     /**
      * create an output shapefile
+     *
      * @param finalList
      * @param resultMapList
      * @param outDir
@@ -266,22 +275,22 @@ public class GeotoolsUtils {
      */
     @SuppressWarnings("unchecked")
     public static File createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
-                                          String outDir, String outFileName) throws IOException {
-        File outFile = new File(outDir + File.separator + outFileName); //$NON-NLS-1$
+                                     String outDir, String outFileName) throws IOException {
+        File outFile = new File(outDir + File.separator + outFileName);
 
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
 
         AttributeTypeBuilder attBuilder = new AttributeTypeBuilder();
-        attBuilder.setName("the_geom"); //$NON-NLS-1$
+        attBuilder.setName("the_geom");
         attBuilder.setBinding(finalList.get(0).getClass());
         attBuilder.crs(DefaultGeographicCRS.WGS84);
 
         GeometryType geomType = attBuilder.buildGeometryType();
-        GeometryDescriptor geomDesc = attBuilder.buildDescriptor("the_geom", geomType); //$NON-NLS-1$
+        GeometryDescriptor geomDesc = attBuilder.buildDescriptor("the_geom", geomType);
 
-        builder.setName("output"); //$NON-NLS-1$
+        builder.setName("output");
         builder.add(geomDesc);
-//		builder.add("NEW_UNI_ID", Integer.class); //$NON-NLS-1$	// to add new unique id column
+//		builder.add("NEW_UNI_ID", Integer.class);   	// to add new unique id column
 
         // create the columns
         Map<String, Object> columnMap = resultMapList.get(0);
@@ -310,6 +319,7 @@ public class GeotoolsUtils {
 
     /**
      * create actual output shapefile in the directory
+     *
      * @param pathFile
      * @param schema
      * @param collection
@@ -321,13 +331,13 @@ public class GeotoolsUtils {
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
         Map<String, Serializable> params = new HashMap<String, Serializable>();
-        params.put("url", pathFile.toURI().toURL()); //$NON-NLS-1$
-        params.put("create spatial index", Boolean.TRUE); //$NON-NLS-1$
-        params.put("enable spatial index", Boolean.TRUE); //$NON-NLS-1$
+        params.put("url", pathFile.toURI().toURL());
+        params.put("create spatial index", Boolean.TRUE);
+        params.put("enable spatial index", Boolean.TRUE);
         ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
         newDataStore.createSchema(schema);
 
-        Transaction transaction = new DefaultTransaction("create"); //$NON-NLS-1$
+        Transaction transaction = new DefaultTransaction("create");
 
         String typeName = newDataStore.getTypeNames()[0];
         SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
@@ -348,7 +358,7 @@ public class GeotoolsUtils {
                 transaction.close();
             }
         } else {
-            System.out.println(typeName + " does not support read/write access"); //$NON-NLS-1$
+            System.out.println(typeName + " does not support read/write access");
             System.exit(1);
         }
 
@@ -357,6 +367,7 @@ public class GeotoolsUtils {
 
     /**
      * create a zip file of the shapefile related ones
+     *
      * @param shpFile
      * @return
      * @throws IOException
@@ -381,6 +392,7 @@ public class GeotoolsUtils {
 
     /**
      * get shapefile data store for creating new shapefile
+     *
      * @param shpUrl
      * @param spatialIndex
      * @return
@@ -388,15 +400,16 @@ public class GeotoolsUtils {
      */
     public static DataStore getShapefileDataStore(URL shpUrl, Boolean spatialIndex) throws IOException {
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("url", shpUrl); //$NON-NLS-1$
-        map.put("create spatial index", spatialIndex); //$NON-NLS-1$
-        map.put("enable spatial index", spatialIndex); //$NON-NLS-1$
+        map.put("url", shpUrl);
+        map.put("create spatial index", spatialIndex);
+        map.put("enable spatial index", spatialIndex);
 
         return DataStoreFinder.getDataStore(map);
     }
 
     /**
      * read csv file
+     *
      * @param inCsv
      * @return
      * @throws IOException
@@ -410,6 +423,7 @@ public class GeotoolsUtils {
 
     /**
      * obtain csv header information
+     *
      * @param inCsv
      * @return
      * @throws IOException
@@ -429,6 +443,7 @@ public class GeotoolsUtils {
 
     /**
      * create GUID field if there is none
+     *
      * @param dataset
      * @param shpfiles
      * @return
@@ -441,11 +456,11 @@ public class GeotoolsUtils {
 
         // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp"); //$NON-NLS-1$ //$NON-NLS-2$
+        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp");
         URL inSourceFileUrl = null;
         boolean isGuid = false;
 
-        for (File copiedFile: copiedFileList) {
+        for (File copiedFile : copiedFileList) {
             String fileExt = FilenameUtils.getExtension(copiedFile.getName());
             if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                 inSourceFileUrl = copiedFile.toURI().toURL();
@@ -457,54 +472,52 @@ public class GeotoolsUtils {
         SimpleFeatureSource featureSource = fileStore.getFeatureSource();
         SimpleFeatureCollection inputFeatures = featureSource.getFeatures();
 
-        SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
         List<Geometry> tmpList = new LinkedList<Geometry>();
         List<Geometry> finalList = new LinkedList<Geometry>();
         List<Map> resultMapList = new LinkedList<Map>();
         List<Map> finalResultMapList = new LinkedList<Map>();
 
-        try {
-            while (inputFeatureIterator.hasNext()) {
-                SimpleFeature inputFeature = inputFeatureIterator.next();
-                Geometry g = (Geometry) inputFeature.getAttribute(0);
-                Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
+        // check if there is guid exists
+        isGuid = isGuidExist(inputFeatures);
 
-                tmpList.clear();
-                resultMapList.clear();
+        // creaste new dbf in the temp dir and move it to data repo directory
+        if (isGuid != true) {
+            SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
+            try {
+                while (inputFeatureIterator.hasNext()) {
+                    SimpleFeature inputFeature = inputFeatureIterator.next();
+                    Geometry g = (Geometry) inputFeature.getAttribute(0);
+                    Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
 
-                // check if guid is there
-                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
-                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
-                    if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
-                        isGuid = true;
+                    tmpList.clear();
+                    resultMapList.clear();
+
+                    for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
+                        AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
+                        Object attribute = inputFeature.getAttribute(i);
+
+                        // resultMap is an actual table.
+                        if (attributeType.getLocalName() != DATA_FIELD_GEOM) {
+                            resultMap.put(attributeType.getLocalName(), attribute);
+                        }
+
+                        // create GUID
+                        if (!isGuid) {
+                            UUID uuid = UUID.randomUUID();
+                            resultMap.put(UNI_ID_SHP, uuid.toString());
+                        }
                     }
+                    resultMapList.add(resultMap);
+                    finalList.add(g);
+                    finalResultMapList.addAll(resultMapList);
                 }
-
-                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
-                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
-                    Object attribute = inputFeature.getAttribute(i);
-
-                    // resultMap is an actual table.
-                    if (attributeType.getLocalName() != DATA_FIELD_GEOM) {
-                        resultMap.put(attributeType.getLocalName(), attribute);
-                    }
-                    // create GUID
-                    if (!isGuid) {
-                        UUID uuid = UUID.randomUUID();
-                        resultMap.put(UNI_ID_SHP, uuid.toString());
-                    }
-                }
-                resultMapList.add(resultMap);
-
-                finalList.add(g);
-                finalResultMapList.addAll(resultMapList);
+                File outFile = createOutfile(finalList, finalResultMapList, tempDir, outFileName);
+                FileUtils.switchDbfFile(outFile, shpfiles);
+            } finally {
+                inputFeatureIterator.close();
             }
-        } finally {
-            inputFeatureIterator.close();
         }
 
-        File outFile = createOutfile(finalList, finalResultMapList, tempDir, outFileName);
-        FileUtils.switchDbfFile(outFile, shpfiles);
         FileUtils.deleteTmpDir(copiedFileList.get(0));
 
         if (isGuid) {
@@ -512,6 +525,31 @@ public class GeotoolsUtils {
         } else {
             return true;
         }
+    }
+
+    /**
+     * check if the guid exists
+     * @param inputFeatures
+     * @return
+     */
+    public static boolean isGuidExist(SimpleFeatureCollection inputFeatures) {
+        boolean isGuid = false;
+        SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
+        try {
+            while (inputFeatureIterator.hasNext()) {
+                SimpleFeature inputFeature = inputFeatureIterator.next();
+                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
+                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
+                    if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
+                        isGuid = true;
+                    }
+                }
+            }
+        } finally {
+            inputFeatureIterator.close();
+        }
+
+        return isGuid;
     }
 }
 

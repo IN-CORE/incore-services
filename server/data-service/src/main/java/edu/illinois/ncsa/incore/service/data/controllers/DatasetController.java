@@ -13,16 +13,13 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
 import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
-import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -35,12 +32,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,20 +47,19 @@ import java.util.List;
 
 @Path("datasets")
 public class DatasetController {
-    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");  //$NON-NLS-1$
-    private static final String POST_PARAMENTER_NAME = "name";  //$NON-NLS-1$
-    private static final String POST_PARAMENTER_FILE = "file";  //$NON-NLS-1$
-    private static final String POST_PARAMENTER_META = "parentdataset";  //$NON-NLS-1$
-    private static final String POST_PARAMETER_DATASET_ID = "datasetId";    //$NON-NLS-1$
-    private static final String UPDATE_OBJECT_NAME = "property name";  //$NON-NLS-1$
-    private static final String UPDATE_OBJECT_VALUE = "property value";  //$NON-NLS-1$
-    private static final String WEBDAV_SPACE_NAME = "ergo";   //$NON-NLS-1$
-    private Logger logger = Logger.getLogger(DatasetController.class);
+    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
+    private static final String POST_PARAMENTER_NAME = "name";
+    private static final String POST_PARAMENTER_FILE = "file";
+    private static final String POST_PARAMENTER_META = "parentdataset";
+    private static final String POST_PARAMETER_DATASET_ID = "datasetId";
+    private static final String UPDATE_OBJECT_NAME = "property name";
+    private static final String UPDATE_OBJECT_VALUE = "property value";
+    private static final String WEBDAV_SPACE_NAME = "ergo";
+    private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
     private IRepository repository;
 
-    //http://localhost:8080/data/api/datasets/59cd1d4763f94025803cee5c
     /**
      * Returns a list of datasets in the Dataset collection
      *
@@ -71,18 +67,18 @@ public class DatasetController {
      * @return dataset object
      */
     @GET
-    @Path("/{id}")
+    @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
         return dataset;
     }
 
-    //http://localhost:8080/data/api/datasets?type=edu.illinois.ncsa.ergo.eq.buildings.schemas&title=shelby
     /**
      * query dataset by using either title or type or both
      * @param typeStr
@@ -103,111 +99,174 @@ public class DatasetController {
             datasets = repository.getAllDatasets();
         }
 
+        if (datasets == null) {
+            logger.error("Error finding dataset");
+            throw new NotFoundException("Error finding dataset");
+        }
         return datasets;
     }
 
-    //http://localhost:8080/data/api/datasets/59e5098168f47426547409f3/files
     /**
      * Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset
      * @param datasetId id of the Dataset in mongodb
      * @return
-     * @throws IOException
-     * @throws URISyntaxException
      */
     @GET
-    @Path("/{id}/files")
+    @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByDataset(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
-        File outFile = FileUtils.loadFileFromService(datasetId, repository, false, "");
+    public Response getFileByDataset(@PathParam("id") String datasetId) {
+        File outFile = null;
+        Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset ==  null) {
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+        try {
+            outFile = FileUtils.loadFileFromService(dataset, repository, false, "");
+        } catch (IOException e){
+            logger.error("Error creating temp directory for " + datasetId, e);
+            throw new InternalServerErrorException("Error creating temp directory for " + datasetId, e);
+        } catch (URISyntaxException e) {
+            logger.error("Error creating file with given url for " + datasetId, e);
+            throw new InternalServerErrorException("Error creating file with given url for " + datasetId, e);
+        }
         String fileName = outFile.getName();
 
         if (outFile != null) {
-            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build(); //$NON-NLS-1$ //$NON-NLS-2$
+            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
         } else {
-            return Response.status(404).build();
+            logger.error("Error finding output zip file for " + datasetId);
+            throw new NotFoundException("Error finding output zip file for " + datasetId);
         }
     }
 
-    //http://localhost:8080/data/api/datasets/files/59f775fce1b2b8080c37aa60/file
     /**
-     * Returns a file that is attached to a FileDescriptor specified by {fdid} in a dataset
-     * @param id    FileDescriptor id in the Dataset
+     * provide list of FileDescriptor by dataset id
+     * @param datasetId
      * @return
-     * @throws URISyntaxException
      */
     @GET
-    @Path("/files/{file-id}/file")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByFileDescriptor(@PathParam("file-id") String id) throws URISyntaxException {
-        File outFile = null;
-        Dataset dataset = repository.getDatasetByFileDescriptorId(id);
+    @Path("{id}/files")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<FileDescriptor> getDatasets(@PathParam("id") String datasetId) {
+        Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset == null) {
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
-        String dataUrl = ""; //$NON-NLS-1$
-        String fdId = "";   //$NON-NLS-1$
-        String fileName = "";   //$NON-NLS-1$
+        if (fds == null) {
+            logger.error("Error finding FileDescriptor from the dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding FileDescriptor from the dataset with the id of " + datasetId);
+        }
+        return fds;
+    }
+
+    /**
+     * Returns a file that is attached to a FileDescriptor specified by dataset and fileDescriptor id
+     * @param id
+     * @param fileId
+     * @return
+     */
+    @GET
+    @Path("{id}/files/{file_id}/blob")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getFileByFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) {
+        File outFile = null;
+        Dataset dataset = repository.getDatasetById(id);
+        if (dataset == null) {
+            logger.error("Error finding dataset with the id of " + id);
+            throw new NotFoundException("Error finding dataset with the id of " + id);
+        }
+
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        String dataUrl = "";
+        String fdId = "";
+        String fileName = "";
 
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
-            if (fdId.equals(id)) {
+            if (fdId.equals(fileId)) {
                 dataUrl = fd.getDataURL();
                 fileName = fd.getFilename();
             }
         }
 
-        if (!dataUrl.equals("")) {  //$NON-NLS-1$
-            outFile = new File(new URI(dataUrl));
-            outFile.renameTo(new File(outFile.getParentFile(), fileName));
+        try {
+            if (!dataUrl.equals("")) {
+                outFile = new File(new URI(dataUrl));
+                outFile.renameTo(new File(outFile.getParentFile(), fileName));
+            }
+        } catch (URISyntaxException e) {
+            logger.error("Error creating file with dataset's location url ", e);
+            throw new InternalServerErrorException("Error creating file with dataset's location url ", e);
         }
 
         if (outFile != null) {
-            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build(); //$NON-NLS-1$ //$NON-NLS-2$
+            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
         } else {
-            return Response.status(404).build();
+            logger.error("Error finding output file.");
+            throw new NotFoundException("Error finding output file.");
         }
     }
 
-    //http://localhost:8080/data/api/datasets/joinshptable/59e509ca68f4742654e59621
     /**
-     * Returns a zip file of shapefile after joinig analysis result table dataset specified by {id} using result dataset's source dataset shapefile
-     * @param datasetId input result dataset id
+     * get file descriptor by datasetid and file descriptor id
+     * @param id
+     * @param fileId
      * @return
-     * @throws IOException
-     * @throws URISyntaxException
      */
     @GET
-    @Path("/joinshptable/{id}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response getJoinedShapefile(@PathParam("id") String datasetId) throws IOException, URISyntaxException {
-        Dataset dataset = repository.getDatasetById(datasetId);
+    @Path("{id}/files/{file_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public FileDescriptor getFileByDatasetIdFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) {
+        Dataset dataset = repository.getDatasetById(id);
         if (dataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");    //$NON-NLS-1$
+            logger.error("Error finding dataset with the id of " + id);
+            throw new NotFoundException("Error finding dataset with the id of " + id);
         }
 
-        File zipFile = FileUtils.joinShpTable(dataset, repository, false);
-        String outFileName = FilenameUtils.getBaseName(zipFile.getName()) + "." + FileUtils.FILE_ZIP_EXTENSION;
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        String fdId = "";
+        FileDescriptor fileDescriptor = null;
 
-        if (zipFile != null) {
-            return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + outFileName + "\"").build();  //$NON-NLS-1$ //$NON-NLS-2$
-        } else {
-            return Response.status(404).build();
+        for (FileDescriptor fd : fds) {
+            fdId = fd.getId();
+            if (fdId.equals(fileId)) {
+                fileDescriptor = fd;
+                break;
+            }
         }
+
+        if (fileDescriptor == null) {
+            logger.error("Error finding FileDescriptor with the id of " + fileId);
+            throw new NotFoundException("Error finding FileDescriptor with the id of " + fileId);
+        }
+        return fileDescriptor;
     }
 
-    // http//localhost:8080/data/api/datasets/ingest-dataset
-    /** ingest dataset object using json
+    /**
+     * ingest dataset object using json
+     * @param username
      * @param inDatasetJson
      * @return
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/ingest-dataset")
     public Dataset ingestDataset(@HeaderParam("X-Credential-Username") String username, @FormDataParam("dataset") String inDatasetJson) {
-        // example input json
-        //
-        //{ schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["ywkim", "ergo"] }
+        if (username == null) {
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
+        }
+
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
+        if (isJsonValid != true) {
+            logger.error("Posted json is not a valid json.");
+            throw new BadRequestException("Posted json is not a valid json.");
+        }
+
         String title = "";
         String type = "";
         String sourceDataset = "";
@@ -233,6 +292,10 @@ public class DatasetController {
 
 
             dataset = repository.addDataset(dataset);
+            if (dataset == null) {
+                logger.error("Error finding dataset with the id of " + dataset.getId());
+                throw new NotFoundException("Error finding dataset with the id of " + dataset.getId());
+            }
 
             String id = dataset.getId();
 
@@ -263,26 +326,97 @@ public class DatasetController {
                 }
             }
         }
+
         return dataset;
     }
 
-    //  http//localhost:8080/data/api/datasets/upload-files
-    //    {datasetId: "59e5046668f47426549b606e"}
+    /**
+     * delete dataset from database and attached information like files and geoserver layer
+     * @param username
+     * @param datasetId
+     * @return
+     */
+    @DELETE
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    public Dataset deleteDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
+        if (username == null) {
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
+        }
+
+        Dataset dataset = null;
+        dataset = repository.getDatasetById(datasetId);
+        if (dataset == null) {
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
+        String creator = dataset.getCreator();
+        List<String> spaces = dataset.getSpaces();
+
+        if (creator != null) {
+            if (creator.equals(username)) {
+                // remove dataset
+                dataset = repository.deleteDataset(datasetId);
+                if (dataset != null) {
+                    // remove files
+                    List<FileDescriptor> fds = dataset.getFileDescriptors();
+                    if (fds.size() > 0) {
+                        for (FileDescriptor fd : fds) {
+                            try {
+                                File file = new File((new URL(fd.getDataURL())).toURI());
+                                FileUtils.deleteTmpDir(file);
+                            } catch (MalformedURLException e) {
+                                logger.error("Error creating URL using dataset location ", e);
+                                throw new InternalServerErrorException("Error creating URL using dataset location ", e);
+                            } catch (URISyntaxException e) {
+                                logger.error("Error converting data url to uri ", e);
+                                throw new InternalServerErrorException("Error converting data url to uri ", e);
+                            }
+                        }
+                    }
+
+                    // remove geoserver layer
+                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+
+                    // remove id from space
+                    for (String spaceStr : spaces) {
+                        Space space = repository.getSpaceByName(spaceStr);
+                        repository.removeIdFromSpace(space, datasetId);
+                        repository.addSpace(space);
+                    }
+                }
+            } else {
+                dataset = null;
+            }
+        }
+
+        return dataset;
+    }
+
     /**
      * upload file(s) to attach to a dataset by FileDescriptor
-     * @param inputs post paraemters including file and metadata
+     * @param datasetId
+     * @param inputs
      * @return
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/upload-files")
-    public Dataset uplaodFiles(FormDataMultiPart inputs) throws IOException, URISyntaxException {
+    @Path("{id}/files")
+    public Dataset uploadFiles(@PathParam("id") String datasetId, FormDataMultiPart inputs) {
         int bodyPartSize = inputs.getBodyParts().size();
-        String objIdStr = "";   //$NON-NLS-1$
-        String inJson = ""; //$NON-NLS-1$
-        String paramName = "";  //$NON-NLS-1$
-        Dataset dataset = null;
+        String objIdStr = datasetId;
+        String inJson = "";
+        String paramName = "";
+        Dataset dataset = repository.getDatasetById(objIdStr);
+        if (dataset == null) {
+            logger.error("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
         boolean isJsonValid = false;
         boolean isGeoserver = false;
         boolean isAsc = false;
@@ -290,34 +424,20 @@ public class DatasetController {
         boolean isTif = false;
         boolean isJoin = false;
 
-        for (int i = 0; i < bodyPartSize; i++) {
-            paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
-            if (paramName.equals(POST_PARAMENTER_META)) {
-                inJson = (String) inputs.getFields(POST_PARAMENTER_META).get(0).getValueAs(String.class);
-                isJsonValid = JsonUtils.isJSONValid(inJson);
-                if (isJsonValid) {
-                    objIdStr = JsonUtils.extractValueFromJsonString("datasetId", inJson);
-                    dataset = repository.getDatasetById(objIdStr);
-                } else {
-                    return dataset;
-                }
-            }
-        }
-
         int j = 0;
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
             if (paramName.equals(POST_PARAMENTER_FILE)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                 String fileExt = FilenameUtils.getExtension(fileName);
-                if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||   //$NON-NLS-1$ //$NON-NLS-2$
-                        fileExt.equalsIgnoreCase("tif")) {  //$NON-NLS-1
+                if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||
+                        fileExt.equalsIgnoreCase("tif")) {
                     isGeoserver = true;
-                    if (fileExt.equalsIgnoreCase("asc")) {  //$NON-NLS-1$
+                    if (fileExt.equalsIgnoreCase("asc")) {
                         isAsc = true;
-                    } else if (fileExt.equalsIgnoreCase("tif")) {   //$NON-NLS-1$
+                    } else if (fileExt.equalsIgnoreCase("tif")) {
                         isTif = true;
-                    } else if (fileExt.equalsIgnoreCase("shp")) {   //$NON-NLS-1$
+                    } else if (fileExt.equalsIgnoreCase("shp")) {
                         isShp = true;
                     }
                 }
@@ -330,7 +450,8 @@ public class DatasetController {
                     fd = fsDisk.storeFile(fileName, is);
                     fd.setFilename(fileName);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Error storing files of the dataset with the id of " + datasetId);
+                    throw new NotFoundException("Error string files of the dataset with the id of " + datasetId);
                 }
                 dataset.addFileDescriptor(fd);
                 j++;
@@ -342,17 +463,33 @@ public class DatasetController {
         String format = dataset.getFormat();
         String sourceDataset = dataset.getSourceDataset();
         // join it if it is a table dataset with source dataset existed
-        if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {   //$NON-NLS-1$
+        if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
             isJoin = true;
             isGeoserver = true;
         }
 
         if (isGeoserver) {
             if (isJoin) {
-                File zipFile = FileUtils.joinShpTable(dataset, repository, true);
-                boolean published = GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+                try {
+                    File zipFile = FileUtils.joinShpTable(dataset, repository, true);
+                    boolean published = GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+                } catch (IOException e) {
+                    logger.error("Error making temp directory in joining process ", e);
+                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
+                } catch (URISyntaxException e) {
+                    logger.error("Error making file using dataset's location url in table join process", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
+                }
             } else {
-                boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                try {
+                    boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                } catch (IOException e) {
+                    logger.error("Error making temp directory in joining process ", e);
+                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
+                } catch (URISyntaxException e) {
+                    logger.error("Error making file using dataset's location url in table join process", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
+                }
             }
         }
 
@@ -363,38 +500,53 @@ public class DatasetController {
         boolean isShpfile = false;
 
         if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE)) {
-            for (int i = 0; i < shpFDs.size(); i++) {
-                FileDescriptor sfd = shpFDs.get(i);
-                String shpLoc = sfd.getDataURL();
-                File shpFile = new File(new URI(shpLoc));
-                files.add(shpFile);
-                //get file, if the file is in remote, use http downloader
-                String fileExt = FilenameUtils.getExtension(shpLoc);
-                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                    isShpfile = true;
+            try {
+                for (int i = 0; i < shpFDs.size(); i++) {
+                    FileDescriptor sfd = shpFDs.get(i);
+                    String shpLoc = sfd.getDataURL();
+                    File shpFile = new File(new URI(shpLoc));
+                    files.add(shpFile);
+                    //get file, if the file is in remote, use http downloader
+                    String fileExt = FilenameUtils.getExtension(shpLoc);
+                    if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                        isShpfile = true;
+                    }
                 }
+            } catch (URISyntaxException e){
+                logger.error("Error creating file from dataset locatoin ", e);
+                throw new InternalServerErrorException("Error creating file from dataset location ", e);
             }
-            boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
-            if (isGuid) {
-                logger.debug("The shapefile already has guid field");   //$NON-NLS-1$
+            try {
+                boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
+                if (isGuid) {
+                    logger.debug("The shapefile already has guid field");
+                }
+            } catch (IOException e){
+                logger.error("Error creating temp directory in guid creation process ", e);
+                throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
             }
         }
 
         return dataset;
     }
 
-    // {property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"}
     /**
      * file(s) to upload to attach to a dataset by FileDescriptor
+     * @param datasetId
      * @param inDatasetJson
      * @return
      */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}/update")
+    @Path("{id}")
     public Object updateObject(@PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
+        if (isJsonValid != true) {
+            logger.error("Posted json is not a valid json.");
+            throw new BadRequestException("Posted json is not a valid json.");
+        }
+
         Dataset dataset = null;
 
         if (isJsonValid) {
@@ -404,204 +556,5 @@ public class DatasetController {
         }
 
         return dataset;
-    }
-
-    // http://localhost:8080/data/api/datasets/dump
-    /**
-     * Dump all datasets in earthquake server to database as Datasets
-     * @return
-     * @throws IOException
-     * @throws URISyntaxException
-     */
-    @GET
-    @Path("/import")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getDatasetFromWebdav() throws IOException, URISyntaxException {
-        List<Dataset> datasets = new ArrayList<Dataset>();
-        List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_DS_URL, "");
-        String spaceName = WEBDAV_SPACE_NAME;
-        String typeId = null;
-        String datasetId = null;
-        String mvzFileNameLoc = null;
-        String dsIdFileDir = null;
-        String mvzUrl = null;
-        String dsFileUrl = null;
-        List<String> downloadFileUrls = null;
-        List<File> delFiles = new ArrayList<File>();
-        String datasetTitle = null;
-        String datasetFormat = null;
-        String datasetType = null;
-        String datasetCreator = WEBDAV_SPACE_NAME;
-        List<String> datasetIds = null;
-
-        // this tmpUrl should be the file type
-        for (String tmpUrl : resHref) {
-            // get mvz file
-            String mvzDirUrl = FileUtils.REPO_PROP_URL + tmpUrl;
-            List<String> mvzHref = FileUtils.getDirectoryContent(mvzDirUrl, "");
-            for (String mvzFileName : mvzHref) {
-                String mvzFileExtStr = FilenameUtils.getExtension(mvzFileName);
-                if (mvzFileExtStr.equals(FileUtils.EXTENSION_META)) {
-                    typeId = tmpUrl;
-                    datasetId = FilenameUtils.getBaseName(mvzFileName);
-                    if (datasetId.equalsIgnoreCase("Shelby_County%2C_TN_Boundary1212593366993")) {  //$NON-NLS-1$
-                        System.out.println("check");
-                        datasetId = "Shelby_County,_TN_Boundary1212593366993";  //$NON-NLS-1$
-                        mvzFileName = "Shelby_County,_TN_Boundary1212593366993.mvz";    //$NON-NLS-1$
-                    }
-                    // ceate MvzDataset
-                    mvzFileNameLoc = tmpUrl + "/" + mvzFileName;
-                    mvzUrl = FileUtils.REPO_PROP_URL + mvzFileNameLoc;
-                    String tempMetaDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-                    HttpDownloader.downloadFile(mvzUrl, tempMetaDir);
-                    File metadata = new File(tempMetaDir + File.separator + mvzFileName);
-                    MvzDataset mvzDataset = MvzLoader.setMvzDatasetFromMetadata(metadata, mvzFileNameLoc);
-
-                    datasetTitle = mvzDataset.getName();
-                    datasetFormat = mvzDataset.getDataFormat();
-                    datasetType = mvzDataset.getTypeId();
-
-                    downloadFileUrls = new ArrayList<String>();
-                    downloadFileUrls.add(mvzUrl);
-
-                    dsIdFileDir = FileUtils.REPO_DS_URL + typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$ //$NON-NLS-2$
-                    List<String> idDirFileContent = FileUtils.getDirectoryContent(dsIdFileDir, "");
-
-                    // construct the list of files to download
-                    for (String tmpFileName : idDirFileContent) {
-                        String tmpFileExt = FilenameUtils.getExtension(tmpFileName);
-                        if (tmpFileExt.length() > 0) {
-                            dsFileUrl = dsIdFileDir + tmpFileName;
-                            downloadFileUrls.add(dsFileUrl);
-                        }
-                    }
-
-                    // create dataset
-                    Dataset dataset = new Dataset();
-                    dataset.setTitle(datasetTitle);
-                    dataset.setDataType(datasetType);
-                    dataset.setFormat(datasetFormat);
-                    dataset.setCreator(datasetCreator);
-                    List<String> spaces = new ArrayList<String>();
-                    spaces.add(spaceName);
-                    dataset.setSpaces(spaces);
-
-                    if (downloadFileUrls != null && downloadFileUrls.size() > 0) {
-                        delFiles = new ArrayList<File>();
-                        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-                        // download files
-                        for (String downUrl : downloadFileUrls) {
-                            HttpDownloader.downloadFile(downUrl, tempDir);
-                            URI uri = new URI(downUrl);
-                            String[] segments = uri.getPath().split("/");   //$NON-NLS-1$
-                            String downFileName = segments[segments.length - 1];
-                            File downFile = new File(tempDir + File.separator + downFileName);
-                            delFiles.add(downFile);
-
-                            FileInputStream fis = new FileInputStream(downFile);
-                            FileDescriptor fd = new FileDescriptor();
-                            FileStorageDisk fsDisk = new FileStorageDisk();
-
-                            fsDisk.setFolder(DATA_REPO_FOLDER);
-                            String extStr = FilenameUtils.getExtension(downFileName);
-                            try {
-                                if (!extStr.equalsIgnoreCase(FileUtils.EXTENSION_META)) {
-                                    fd = fsDisk.storeFile(downFileName, fis);
-                                    fd.setFilename(downFileName);
-                                    dataset.addFileDescriptor(fd);
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        FileUtils.deleteTmpDir(delFiles);
-                    }
-                    dataset = repository.addDataset(dataset);
-                    datasets.add(dataset);
-                    datasetIds = new ArrayList<String>();
-                    datasetIds.add(dataset.getId());
-                    Space foundSpace = repository.getSpaceByName(spaceName);
-                    if (foundSpace == null) {   // new space: insert the data
-                        Space space = new Space();
-                        space.setName(spaceName);
-                        space.setDatasetIds(datasetIds);
-                        repository.addSpace(space);
-                    } else {    // the space with space name exists
-                        // get dataset ids
-                        List<String> dsIdsinSpace = foundSpace.getDatasetIds();
-                        for (String dsIdInSpace : dsIdsinSpace) {
-                            datasetIds.add(dsIdInSpace);
-                        }
-                        foundSpace.setDatasetIds(datasetIds);
-                        repository.addSpace(foundSpace);
-                    }
-                    System.out.println(dataset);
-                    System.out.println(dataset.getFileDescriptors());
-                }
-            }
-        }
-
-        if (datasets == null) {
-            throw new NotFoundException("There is no Space in the repository.");    //$NON-NLS-1$
-        }
-
-        return datasets;
-    }
-
-    // http://localhost:8080/data/api/datasets/dump
-    /**
-     * Dump metadata files in earthquake server to database creating MvzDataset
-     * @return
-     * @throws IOException
-     * @throws URISyntaxException
-     */
-    @GET
-    @Path("/import/metadata")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<MvzDataset> dumpMetadataFromWebdab() throws IOException, URISyntaxException {
-        List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");
-        List<MvzDataset> mvzDatasets = new ArrayList<>();
-
-        for (String tmpUrl : resHref) {
-            String metaDirUrl = FileUtils.REPO_PROP_URL + tmpUrl;
-            List<String> metaHref = FileUtils.getDirectoryContent(metaDirUrl, "");
-            for (String metaFileName : metaHref) {
-                String fileExtStr = FilenameUtils.getExtension(metaFileName);
-                // get only the mvz file
-                if (fileExtStr.equals(FileUtils.EXTENSION_META)) {
-                    String combinedId = tmpUrl + "/" + metaFileName;    //$NON-NLS-1$
-                    MvzDataset mvzDataset = new MvzDataset();
-                    try {
-                        File metadata = FileUtils.loadMetadataFromRepository(combinedId);
-                        String fileName = metadata.getName();
-                        FileInputStream fis = new FileInputStream(metadata);
-                        FileDescriptor fd = new FileDescriptor();
-                        FileStorageDisk fsDisk = new FileStorageDisk();
-
-                        fsDisk.setFolder(DATA_REPO_FOLDER);
-                        try {
-                            fd = fsDisk.storeFile(fileName, fis);
-                            fd.setFilename(fileName);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        mvzDataset = MvzLoader.setMvzDatasetFromMetadata(metadata, combinedId);
-                        mvzDataset.addFileDescriptor(fd);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";  //$NON-NLS-1$
-                    }
-//                    mvzDataset = MvzLoader.createMvzDatasetFromMetadata(combinedId);
-                    mvzDataset = repository.addMvzDataset(mvzDataset);
-                    mvzDatasets.add(mvzDataset);
-                }
-            }
-        }
-
-        if (mvzDatasets == null) {
-            throw new NotFoundException("There is no Space in the repository.");    //$NON-NLS-1$
-        }
-        return mvzDatasets;
     }
 }
