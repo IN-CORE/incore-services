@@ -15,9 +15,11 @@ package edu.illinois.ncsa.incore.service.data.geotools;
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import edu.illinois.ncsa.incore.service.data.controllers.DatasetController;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.data.*;
@@ -59,6 +61,7 @@ public class GeotoolsUtils {
     private static final String UNI_ID_SHP = "guid";
     private static final String UNI_ID_CSV = "guid";
     private static final String DATA_FIELD_GEOM = "the_geom";
+    private static final Logger logger = Logger.getLogger(GeotoolsUtils.class);
 //    public static String outFileName = null;
 
     /**
@@ -84,8 +87,8 @@ public class GeotoolsUtils {
             GeoTiffWriter writer = new GeoTiffWriter(outTif);
             writer.write(gc, (GeneralParameterValue[]) params.values().toArray(new GeneralParameterValue[1]));
         } catch (Exception e) {
-            System.out.println("failed to conver ascii file to geotiff.");
-            e.printStackTrace();
+            logger.error("failed to conver ascii file to geotiff.");
+            throw new IOException("failed to convert ascii file to geotiff ", e);
         }
 
         return outTif;
