@@ -5,7 +5,7 @@
  * and is available at https://opensource.org/licenses/BSD-3-Clause
  *
  * Contributors:
- * Omar Elabd, Nathan Tolbert
+ * Omar Elabd, Nathan Tolbert, Chen Wang
  */
 
 package mocks;
@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import org.mockito.Mockito;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 
 import java.io.IOException;
 import java.net.URL;
@@ -53,13 +54,36 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
+    public FragilitySet saveFragility(FragilitySet fragilitySet) {
+        if (fragilitySet == null){
+            return null;
+        } else {
+            this.mockDataStore.save(fragilitySet);
+            
+            return fragilitySet;
+        }
+        
+    }
+
+    @Override
     public FragilitySet getById(String id) {
-        return null;
+        FragilitySet fragilitySet = this.mockDataStore.get(FragilitySet.class, id);
+        return fragilitySet;
     }
 
     @Override
     public List<FragilitySet> searchFragilities(String text) {
-        return null;
+        Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
+
+        query.or(query.criteria("demandType").containsIgnoreCase(text),
+                 query.criteria("legacyId").containsIgnoreCase(text),
+                 query.criteria("hazardType").containsIgnoreCase(text),
+                 query.criteria("inventoryType").containsIgnoreCase(text),
+                 query.criteria("authors").containsIgnoreCase(text));
+
+        List<FragilitySet> sets = query.limit(100).asList();
+
+        return sets;
     }
 
     @Override
@@ -69,16 +93,34 @@ public class MockFragilityDAO implements IFragilityDAO {
 
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
-        return fragilitySets;
+        List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
+                                                .filter(attributeType, attributeValue)
+                                                .limit(100)
+                                                .asList();
+
+        return sets;
     }
 
     @Override
-    public List<FragilitySet> queryFragilities(Map<String, String> typeValueMap, int offset, int limit) {
-        return null;
+    public List<FragilitySet> queryFragilities(Map<String, String> queryMap, int offset, int limit) {
+        Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
+
+        for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
+            query.filter(queryEntry.getKey(), queryEntry.getValue());
+        }
+
+        List<FragilitySet> sets = query.offset(offset).limit(limit).asList();
+
+        return sets;
     }
 
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
-        return fragilitySets;
+        List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
+                                                .field("authors")
+                                                .contains(author)
+                                                .asList();
+
+        return sets;
     }
 }

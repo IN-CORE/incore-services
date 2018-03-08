@@ -70,6 +70,7 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
             return null;
         } else {
             this.dataStore.save(fragilitySet);
+    
             return fragilitySet;
         }
         
