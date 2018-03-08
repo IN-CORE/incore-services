@@ -35,6 +35,8 @@ public class ScenarioEarthquake {
 
     private String siteAmplification;
 
+    private String rasterDatasetId;
+
     public ScenarioEarthquake() {
         defaultSiteClass = NEHRPSoilType.D;
         siteAmplification = "NEHRP";
@@ -63,4 +65,13 @@ public class ScenarioEarthquake {
     public String getSiteAmplification() {
         return siteAmplification;
     }
+
+    public String getRasterDatasetId() {
+        return rasterDatasetId;
+    }
+
+    public void setRasterDatasetId(String rasterDatasetId) {
+        this.rasterDatasetId = rasterDatasetId;
+    }
+
 }

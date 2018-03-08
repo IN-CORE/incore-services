@@ -24,11 +24,14 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResu
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.log4j.Logger;
+import org.opengis.coverage.grid.GridCoverage;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,12 +53,46 @@ public class EarthquakeController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
+    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake, @HeaderParam("X-Credential-Username") String username, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("minX") double minX, @QueryParam("minY") double minY, @QueryParam("maxX") double maxX, @QueryParam("maxY") double maxY, @QueryParam("gridSpacing") double gridSpacing, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
         if (scenarioEarthquake != null) {
-            return repository.addScenarioEarthquake(scenarioEarthquake);
+            String period = demandType;
+            String demand = demandType;
+
+            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
+                String[] demandSplit = demandType.split(" ");
+                period = demandSplit[0];
+                demand = demandSplit[1];
+            }
+
+            model.setRuptureParameters(scenarioEarthquake.getEqParameters());
+
+            // TODO this should be determined from the scenario earthquake
+            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
+            attenuations.put(model, 1.0);
+
+            try {
+                File incoreWorkDirectory = File.createTempFile("incore", ".dir");
+                incoreWorkDirectory.delete();
+                incoreWorkDirectory.mkdirs();
+
+                File hazardFile = new File(incoreWorkDirectory, "hazard.tif");
+
+                GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, minX, minY, maxX, maxY, gridSpacing, period, demand, amplifyHazard);
+                HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
+
+                String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username);
+                scenarioEarthquake.setRasterDatasetId(datasetId);
+
+                return repository.addScenarioEarthquake(scenarioEarthquake);
+            } catch (IOException e) {
+                logger.error("Error writing the hazard raster to file.", e);
+            } catch (Exception e) {
+                logger.error("Error creating the raster gridcoverage", e);
+            }
+
         }
 
-        throw new InternalServerErrorException("Earthquake was null");
+        throw new InternalServerErrorException("Earthquake couldn't be created");
     }
 
     @GET
