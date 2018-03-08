@@ -79,9 +79,19 @@ public class FragilityController {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
     public Response uploadFragilitySet(FragilitySet fragilitySet) {
-        throw new NotImplementedException();
+        FragilitySet inserted = this.dataAccess.saveFragility(fragilitySet);
+        
+        if (inserted == null){
+            throw new NotFoundException();
+        } else {
+            return Response.ok().entity(inserted).build();
+        }
+        
     }
+
 
     @GET
     @Path("{fragilityId}")

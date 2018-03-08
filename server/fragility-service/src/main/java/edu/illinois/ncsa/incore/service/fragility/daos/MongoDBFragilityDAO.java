@@ -65,6 +65,17 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
     }
 
     @Override
+    public FragilitySet saveFragility(FragilitySet fragilitySet) {
+        if (fragilitySet == null){
+            return null;
+        } else {
+            this.dataStore.save(fragilitySet);
+            return fragilitySet;
+        }
+        
+    }
+
+    @Override
     public FragilitySet getById(String id) {
         FragilitySet fragilitySet = this.dataStore.get(FragilitySet.class, id);
 
