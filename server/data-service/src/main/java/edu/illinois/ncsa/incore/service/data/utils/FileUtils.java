@@ -59,10 +59,11 @@ public class FileUtils {
     public static final int TYPE_NUMBER_META = 3;
     public static final int TYPE_NUMBER_MULTI = 10;
     public static final String DATASET_TITLE = "title";
-    public static final String DATASET_TYPE = "type";
+    public static final String DATASET_TYPE = "dataType";
     public static final String DATASET_SOURCE_DATASET = "sourceDataset";
     public static final String DATASET_FORMAT = "format";
     public static final String DATASET_SPACES = "spaces";
+    public static final String DATASET_DESCRIPTION = "description";
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FILE_ZIP_EXTENSION = "zip";
     public static final String FORMAT_SHAPEFILE = "shapefile";
