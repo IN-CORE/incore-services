@@ -15,7 +15,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Key;
 import org.mongodb.morphia.query.Query;
 
 import java.io.IOException;
@@ -23,29 +26,38 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class MockFragilityDAO implements IFragilityDAO {
     private Datastore mockDataStore;
     private List<FragilitySet> fragilitySets = new ArrayList<>();
 
-    public MockFragilityDAO() {
-        this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);
-    }
+    public MockFragilityDAO() { this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS); }
 
     @Override
     public void initialize() {
         URL fragilityPath = this.getClass().getClassLoader().getResource("json/fragility.json");
 
         try {
-            this.fragilitySets = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<FragilitySet>>(){});
+            this.fragilitySets = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<FragilitySet>>() {
+            });
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         Mockito.when(mockDataStore.createQuery(FragilitySet.class)
-                                  .limit(Mockito.any(Integer.class))
-                                  .asList())
-               .thenReturn(this.fragilitySets);
+                .limit(Mockito.any(Integer.class))
+                .asList())
+                .thenReturn(this.fragilitySets);
+
+        // generate mock key object with uuid once successfully saved
+        Answer<Key<FragilitySet>> ans = new Answer<Key<FragilitySet>>() {
+            @Override
+            public Key<FragilitySet> answer(InvocationOnMock invocation) throws Throwable {
+                return new Key(FragilitySet.class, "newdataset", UUID.randomUUID());
+            }
+        };
+        Mockito.when(mockDataStore.save(Mockito.any(FragilitySet.class))).thenAnswer(ans);
     }
 
     @Override
@@ -54,15 +66,11 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public FragilitySet saveFragility(FragilitySet fragilitySet) {
-        if (fragilitySet == null){
-            return null;
-        } else {
-            this.mockDataStore.save(fragilitySet);
-            
-            return fragilitySet;
-        }
-        
+    public String saveFragility(FragilitySet fragilitySet) {
+        Key<FragilitySet> savedFragility = this.mockDataStore.save(fragilitySet);
+        String doc_id = savedFragility.getId().toString();
+
+        return doc_id;
     }
 
     @Override

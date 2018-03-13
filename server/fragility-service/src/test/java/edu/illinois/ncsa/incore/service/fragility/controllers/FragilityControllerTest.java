@@ -29,6 +29,7 @@ import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FragilityControllerTest extends CustomJerseyTest {
@@ -38,6 +39,7 @@ public class FragilityControllerTest extends CustomJerseyTest {
 
     @Override
     public ResourceConfig configure() {
+        forceSet(TestProperties.CONTAINER_PORT, "0");
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
@@ -52,6 +54,7 @@ public class FragilityControllerTest extends CustomJerseyTest {
         Response response = target("/fragilities").request()
                                 .get();
         assertEquals(200, response.getStatus());
+        assertTrue( response.getLength() >= 0 );
     }
 
 
@@ -70,19 +73,12 @@ public class FragilityControllerTest extends CustomJerseyTest {
                                 .post(Entity.json(request), Response.class);
 
 
-        // assert
+        // assert endpoint works
         assertEquals(200, response.getStatus());
-        FragilitySet returned = response.readEntity(FragilitySet.class);
-        //assertEquals(request.getLegacyId(), returned.getLegacyId()); @XmlTransient hide this entity 
-        assertEquals(request.getDescription(), returned.getDescription());
-        assertEquals(request.getAuthors(), returned.getAuthors());
-        assertEquals(request.getPaperReference(), returned.getPaperReference());
-        assertEquals(request.getResultUnit(), returned.getResultUnit());
-        assertEquals(request.getResultType(), returned.getResultType());
-        assertEquals(request.getDemandType(), returned.getDemandType());
-        assertEquals(request.getDemandUnits(), returned.getDemandUnits());
-        assertEquals(request.getHazardType(), returned.getHazardType());
-        assertEquals(request.getInventoryType(), returned.getInventoryType());      
+
+        // succesfully ingest the data to the database will generate new id; assert if there's new id generated;
+        String doc_id = response.readEntity(String.class);
+        assertNotNull(doc_id);
     }
 
 
