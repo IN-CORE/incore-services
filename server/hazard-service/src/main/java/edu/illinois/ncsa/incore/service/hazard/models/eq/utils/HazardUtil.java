@@ -12,12 +12,12 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -190,7 +190,7 @@ public class HazardUtil {
         return dest[0];
     }
 
-    public static String createRasterDataset(File rasterFile, String title, String creator) throws IOException {
+    public static String createRasterDataset(File rasterFile, String title, String creator, String description) throws IOException {
 
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
@@ -202,33 +202,30 @@ public class HazardUtil {
             }
         }
 
-        String schema = "deterministicHazardRaster";
-        String type = "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.deterministicHazardRaster.v1.0";
-        String format = "raster";
-        String description = "scenario earthquake visualization";
-
         JSONArray spaces = new JSONArray();
-        spaces.put(creator);
-        spaces.put("ergo");
+        if (creator != null) {
+            spaces.put(creator);
+        }
+        spaces.put(HazardDataset.ERGO_SPACE);
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("schema", schema);
-        jsonObject.put("type", type);
-        jsonObject.put("title", title);
-        jsonObject.put("sourceDataset", "");
-        jsonObject.put("format", format);
-        jsonObject.put("description", description);
-        jsonObject.put("spaces", spaces);
+        jsonObject.put(HazardDataset.SCHEMA, HazardDataset.DETERMINISTIC_HAZARD_SCHEMA);
+        jsonObject.put(HazardDataset.TYPE, HazardDataset.DETERMINISTIC_HAZARD_TYPE);
+        jsonObject.put(HazardDataset.TITLE, title);
+        jsonObject.put(HazardDataset.SOURCE_DATASET, "");
+        jsonObject.put(HazardDataset.FORMAT, HazardDataset.RASTER_FORMAT);
+        jsonObject.put(HazardDataset.DESCRIPTION, description);
+        jsonObject.put(HazardDataset.SPACES, spaces);
 
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
 
-        String requestUrl = dataEndpoint + "data/api/datasets";
+        String requestUrl = dataEndpoint + HazardDataset.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader("X-Credential-Username", creator);
+        httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
-        params.addTextBody("dataset", jsonObject.toString());
+        params.addTextBody(HazardDataset.DATASET_PARAMETER, jsonObject.toString());
 
         HttpResponse response = null;
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -242,15 +239,15 @@ public class HazardUtil {
             JSONObject object = new JSONObject(responseStr);
 
             String datasetId = object.getString("id");
-            requestUrl += "/" + datasetId + "/" + "files";
+            requestUrl += "/" + datasetId + "/" + HazardDataset.DATASETS_FILES;
 
             params = MultipartEntityBuilder.create();
             params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            params.addBinaryBody("file", rasterFile);
+            params.addBinaryBody(HazardDataset.FILE_PARAMETER_, rasterFile);
 
             // Attach file
             httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader("X-Credential-Username", creator);
+            httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);

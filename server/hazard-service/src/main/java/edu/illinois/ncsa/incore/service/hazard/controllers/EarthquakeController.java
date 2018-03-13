@@ -80,7 +80,8 @@ public class EarthquakeController {
                 GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, minX, minY, maxX, maxY, gridSpacing, period, demand, amplifyHazard);
                 HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
 
-                String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username);
+                String description = "scenario earthquake visualization";
+                String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description);
                 scenarioEarthquake.setRasterDatasetId(datasetId);
 
                 return repository.addScenarioEarthquake(scenarioEarthquake);
