@@ -82,12 +82,12 @@ public class FragilityController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     public Response uploadFragilitySet(FragilitySet fragilitySet) {
-        FragilitySet inserted = this.dataAccess.saveFragility(fragilitySet);
+        String doc_id = this.dataAccess.saveFragility(fragilitySet);
         
-        if (inserted == null){
+        if (doc_id == null){
             throw new NotFoundException();
         } else {
-            return Response.ok().entity(inserted).build();
+            return Response.ok().entity(doc_id).build();
         }
         
     }
