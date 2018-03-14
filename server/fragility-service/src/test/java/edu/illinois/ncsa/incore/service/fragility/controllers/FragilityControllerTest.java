@@ -76,9 +76,9 @@ public class FragilityControllerTest extends CustomJerseyTest {
         // assert endpoint works
         assertEquals(200, response.getStatus());
 
-        // succesfully ingest the data to the database will generate new id; assert if there's new id generated;
-        String doc_id = response.readEntity(String.class);
-        assertNotNull(doc_id);
+        // succesfully ingest the data to the database will generate new id;
+        FragilitySet returned = response.readEntity(FragilitySet.class);
+        assertNotNull(returned.getId());
     }
 
 

@@ -19,7 +19,7 @@ import java.util.Map;
 public interface IFragilityDAO {
     void initialize();
     List<FragilitySet> getFragilities();
-    String saveFragility(FragilitySet fragilitySet);
+    FragilitySet saveFragility(FragilitySet fragilitySet);
     FragilitySet getById(String id);
     List<FragilitySet> searchFragilities(String text);
     Datastore getDataStore();

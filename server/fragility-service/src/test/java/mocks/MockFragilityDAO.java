@@ -23,10 +23,12 @@ import org.mongodb.morphia.query.Query;
 
 import java.io.IOException;
 import java.net.URL;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 
 public class MockFragilityDAO implements IFragilityDAO {
     private Datastore mockDataStore;
@@ -66,11 +68,26 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public String saveFragility(FragilitySet fragilitySet) {
+    public FragilitySet saveFragility(FragilitySet fragilitySet) {
         Key<FragilitySet> savedFragility = this.mockDataStore.save(fragilitySet);
         String doc_id = savedFragility.getId().toString();
 
-        return doc_id;
+        // mutate fragilitySet object with this id
+        try {
+            Field f1 = FragilitySet.class.getDeclaredField("id");
+            f1.setAccessible(true);
+            try {
+                f1.set(fragilitySet, doc_id);
+            }catch (IllegalAccessException e){
+                System.out.println(e.getMessage());
+                return null;
+            }
+        }catch(NoSuchFieldException e){
+            System.out.println(e.getMessage());
+            return null;
+        }
+
+        return fragilitySet;
     }
 
     @Override
