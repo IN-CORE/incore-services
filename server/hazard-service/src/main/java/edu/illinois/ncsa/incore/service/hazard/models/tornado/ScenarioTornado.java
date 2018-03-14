@@ -26,9 +26,7 @@ public class ScenarioTornado {
     private TornadoParameters tornadoParameters;
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;
-
-    // Todo The visualization is a shapefile of efboxes - this should be stored in the dataset repo
-
+    private String tornadoDatasetId;
 
     public String getId() {
         return id.toString();
@@ -76,4 +74,11 @@ public class ScenarioTornado {
         this.numSimulations = numSimulations;
     }
 
+    public String getTornadoDatasetId() {
+        return tornadoDatasetId;
+    }
+
+    public void setTornadoDatasetId(String tornadoDatasetId) {
+        this.tornadoDatasetId = tornadoDatasetId;
+    }
 }
