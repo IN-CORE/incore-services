@@ -81,10 +81,10 @@ public class FragilityController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response uploadFragilitySet(FragilitySet fragilitySet) {
+    public FragilitySet uploadFragilitySet(FragilitySet fragilitySet) {
         FragilitySet mutatedFragilitySet = this.dataAccess.saveFragility(fragilitySet);
 
-        return Response.ok().entity(mutatedFragilitySet).status(200).build();
+        return mutatedFragilitySet;
     }
     
 
