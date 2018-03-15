@@ -43,7 +43,7 @@ public class FragilityControllerTest extends CustomJerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(FragilityController.class, MappingController.class);
+        MockApplication application = new MockApplication(FragilityController.class);
 
         return application;
     }
