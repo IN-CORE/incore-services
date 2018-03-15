@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.fragility.typeconverters.BigDecimalConverter;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.Key;
 import org.mongodb.morphia.query.Query;
 
 import java.util.HashSet;
@@ -62,6 +63,20 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
         }
 
         return this.fragilities;
+    }
+
+    @Override
+    public FragilitySet saveFragility(FragilitySet fragilitySet) {
+        if (fragilitySet == null){
+
+            throw new IllegalArgumentException();
+        } else {
+            // the save method mutates the fragilitySet object with an document id
+            this.dataStore.save(fragilitySet);
+
+            return fragilitySet;
+        }
+        
     }
 
     @Override
