@@ -1,0 +1,760 @@
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dims:    <http://incore.ncsa.illinois.edu/semantic/schema/dimensions/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+dim:length
+      a       dims:BaseDimension ;
+      rdfs:label "Length"@en ;
+      dims:symbol "L" ;
+      dims:utf_symbol "L" .
+
+dim:mass
+      a       dims:BaseDimension ;
+      rdfs:label "Mass"@en ;
+      dims:symbol "M" ;
+      dims:utf_symbol "M" .
+
+dim:time
+      a       dims:BaseDimension ;
+      rdfs:label "Time"@en ;
+      dims:symbol "T" ;
+      dims:utf_symbol "T" .
+
+dim:electric_current
+      a       dims:BaseDimension ;
+      rdfs:label "Electric current"@en ;
+      dims:symbol "I" ;
+      dims:utf_symbol "I" .
+
+dim:temperature
+      a       dims:BaseDimension ;
+      rdfs:label "Temperature"@en ;
+      dims:symbol "O" ;
+      dims:utf_symbol "Θ" .
+
+dim:amount_of_substance
+      a       dims:BaseDimension ;
+      rdfs:label "Amount of substance"@en ;
+      dims:symbol "N" ;
+      dims:utf_symbol "N" .
+
+dim:luminous_intensity
+      a       dims:BaseDimension ;
+      rdfs:label "Luminous intensity"@en ;
+      dims:symbol "J" ;
+      dims:utf_symbol "J" .
+
+dim:acceleration
+      a       dims:DerivedDimension ;
+      rdfs:label "Acceleration"@en ;
+      dims:symbol "L^2 T^-2" ;
+      dims:utf_symbol "L²⋅T⁻²" .
+
+dim:angular_acceleration
+      a       dims:DerivedDimension ;
+      rdfs:label "Angular acceleration"@en ;
+      dims:symbol "L T^-2" ;
+      dims:utf_symbol "L⋅T⁻²" .
+
+dim:angular_velocity
+      a       dims:DerivedDimension ;
+      rdfs:label "Angular velocity"@en ;
+      dims:symbol "T^-2" ;
+      dims:utf_symbol "T⁻²" .
+
+dim:angular_momentum
+      a       dims:DerivedDimension ;
+      rdfs:label "Angular momentum"@en ;
+      dims:symbol "T^-1" ;
+      dims:utf_symbol "T⁻¹" .
+
+dim:area
+      a       dims:DerivedDimension ;
+      rdfs:label "Area"@en ;
+      dims:symbol "L^2" ;
+      dims:utf_symbol "L²" .
+
+dim:area_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Area density"@en ;
+      dims:symbol "L^-2 M" ;
+      dims:utf_symbol "L⁻²⋅M" .
+
+dim:capacitance
+      a       dims:DerivedDimension ;
+      rdfs:label "Capacitance"@en ;
+      dims:symbol "L^-2 M^-1 T^4 I^2" ;
+      dims:utf_symbol "L⁻²⋅M⁻¹⋅T⁴⋅I²" .
+
+dim:catalytic_activity
+      a       dims:DerivedDimension ;
+      rdfs:label "Catalytic activity"@en ;
+      dims:symbol "T^-1 N" ;
+      dims:utf_symbol "T⁻¹⋅N" .
+
+dim:catalytic_activity_concentration
+      a       dims:DerivedDimension ;
+      rdfs:label "Catalytic activity concentration"@en ;
+      dims:symbol "L^-3 T^-1 N" ;
+      dims:utf_symbol "L⁻³⋅T⁻¹⋅N" .
+
+dim:chemical_potential
+      a       dims:DerivedDimension ;
+      rdfs:label "Chemical potential"@en ;
+      dims:symbol "L^2 M T^-2 N^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅N⁻¹" .
+
+dim:molar_concentration
+      a       dims:DerivedDimension ;
+      rdfs:label "Molar Concentration"@en ;
+      dims:symbol "L^-3 N" ;
+      dims:utf_symbol "L⁻³⋅N" .
+
+dim:crackle
+      a       dims:DerivedDimension ;
+      rdfs:label "Crackle"@en ;
+      dims:symbol "L T^-5" ;
+      dims:utf_symbol "L⋅T⁻⁵" .
+
+dim:current_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Current density"@en ;
+      dims:symbol "L^-2 I" ;
+      dims:utf_symbol "L⁻²⋅I" .
+
+dim:dynamic_viscosity
+      a       dims:DerivedDimension ;
+      rdfs:label "Dynamic Viscosity"@en ;
+      dims:symbol "L^-1 M T^-1" ;
+      dims:utf_symbol "L⁻¹⋅M⋅T⁻¹" .
+
+dim:kinematic_viscosity
+      a       dims:DerivedDimension ;
+      rdfs:label "Kinematic Viscosity"@en ;
+      dims:symbol "L^2 T^-1" ;
+      dims:utf_symbol "L²⋅T⁻¹" .
+
+dim:electric_charge
+      a       dims:DerivedDimension ;
+      rdfs:label "Electric Charge"@en ;
+      dims:symbol "T I" ;
+      dims:utf_symbol "T⋅I" .
+
+dim:electric_charge_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Electric charge density"@en ;
+      dims:symbol "L^-3 T I" ;
+      dims:utf_symbol "L⁻³⋅T⋅I" .
+
+dim:electric_displacement
+      a       dims:DerivedDimension ;
+      rdfs:label "Electric Displacement"@en ;
+      dims:symbol "L^-2 T I" ;
+      dims:utf_symbol "L⁻²⋅T⋅I" .
+
+dim:electric_field_strength
+      a       dims:DerivedDimension ;
+      rdfs:label "Electric field strength"@en ;
+      dims:symbol "L M T^-3 I^-1" ;
+      dims:utf_symbol "L⋅M⋅T⁻³⋅I⁻¹" .
+
+dim:electrical_conductance
+      a       dims:DerivedDimension ;
+      rdfs:label "Electrical conductance"@en ;
+      dims:symbol "L^-2 M^-1 T^3 I^2" ;
+      dims:utf_symbol "L⁻²⋅M⁻¹⋅T³⋅I²" .
+
+dim:electric_potential
+      a       dims:DerivedDimension ;
+      rdfs:label "Electric potential"@en ;
+      dims:symbol "L^2 M T^-3 I^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻³⋅I⁻¹" .
+
+dim:electrical_resistance
+      a       dims:DerivedDimension ;
+      rdfs:label "Electrical resistance"@en ;
+      dims:symbol "L^2 M T^-3 I^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻³⋅I⁻²" .
+
+dim:energy
+      a       dims:DerivedDimension ;
+      rdfs:label "Energy"@en ;
+      dims:symbol "L^2 M T^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²" .
+
+dim:energy_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Energy density"@en ;
+      dims:symbol "L^-1 M T^-2" ;
+      dims:utf_symbol "L⁻¹⋅M⋅T⁻²" .
+
+dim:entropy
+      a       dims:DerivedDimension ;
+      rdfs:label "Entropy"@en ;
+      dims:symbol "L^2 M T^-2 O^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅Θ⁻¹" .
+
+dim:force
+      a       dims:DerivedDimension ;
+      rdfs:label "Force"@en ;
+      dims:symbol "L M T^-2" ;
+      dims:utf_symbol "L⋅M⋅T⁻²" .
+
+dim:fuel_efficiency
+      a       dims:DerivedDimension ;
+      rdfs:label "Fuel efficiency"@en ;
+      dims:symbol "L^-2" ;
+      dims:utf_symbol "L⁻²" .
+
+dim:impulse
+      a       dims:DerivedDimension ;
+      rdfs:label "Impulse"@en ;
+      dims:symbol "L M T^-1" ;
+      dims:utf_symbol "L⋅M⋅T⁻¹" .
+
+dim:frequency
+      a       dims:DerivedDimension ;
+      rdfs:label "Frequency"@en ;
+      dims:symbol "T^-1" ;
+      dims:utf_symbol "T⁻¹" .
+
+dim:half-life
+      a       dims:DerivedDimension ;
+      rdfs:label "Half-life"@en ;
+      dims:symbol "T" ;
+      dims:utf_symbol "T" .
+
+dim:heat
+      a       dims:DerivedDimension ;
+      rdfs:label "Heat"@en ;
+      dims:symbol "L^2 M T^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²" .
+
+dim:heat_capacity
+      a       dims:DerivedDimension ;
+      rdfs:label "Heat capacity"@en ;
+      dims:symbol "L^2 M T^-2 O^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅Θ⁻¹" .
+
+dim:heat_flux_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Heat flux density"@en ;
+      dims:symbol "M T^-3" ;
+      dims:utf_symbol "M⋅T⁻³" .
+
+dim:impedance
+      a       dims:DerivedDimension ;
+      rdfs:label "Impedance"@en ;
+      dims:symbol "L^2 M T^-3 I^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻³⋅I⁻²" .
+
+dim:inductance
+      a       dims:DerivedDimension ;
+      rdfs:label "Inductance"@en ;
+      dims:symbol "L^2 M T^-2 I^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅I⁻²" .
+
+dim:irradiance
+      a       dims:DerivedDimension ;
+      rdfs:label "Irradiance"@en ;
+      dims:symbol "M T^-2" ;
+      dims:utf_symbol "M⋅T⁻²" .
+
+dim:intensity
+      a       dims:DerivedDimension ;
+      rdfs:label "Intensity"@en ;
+      dims:symbol "M T^-3" ;
+      dims:utf_symbol "M⋅T⁻³" .
+
+dim:jerk
+      a       dims:DerivedDimension ;
+      rdfs:label "Jerk"@en ;
+      dims:symbol "L T^-3" ;
+      dims:utf_symbol "L⋅T⁻³" .
+
+dim:jounce
+      a       dims:DerivedDimension ;
+      rdfs:label "Jounce"@en ;
+      dims:symbol "L T^-4" ;
+      dims:utf_symbol "L⋅T⁻⁴" .
+
+dim:linear_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Linear density"@en ;
+      dims:symbol "L^-1 M" ;
+      dims:utf_symbol "L⁻¹⋅M" .
+
+dim:magnetic_field_strength
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic field strength"@en ;
+      dims:symbol "L^-1 I" ;
+      dims:utf_symbol "L⁻¹⋅I" .
+
+dim:magnetic_flux
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic flux"@en ;
+      dims:symbol "L^2 M T^-2 I^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅I⁻¹" .
+
+dim:magnetic_flux_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic flux density"@en ;
+      dims:symbol "M T^-2 I^-1" ;
+      dims:utf_symbol "M⋅T⁻²⋅I⁻¹" .
+
+dim:magnetization
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetization"@en ;
+      dims:symbol "L^-1 I" ;
+      dims:utf_symbol "L⁻¹⋅I" .
+
+dim:density
+      a       dims:DerivedDimension ;
+      rdfs:label "Density"@en ;
+      dims:symbol "L^-3 M" ;
+      dims:utf_symbol "L⁻³⋅M" .
+
+dim:mean_lifetime
+      a       dims:DerivedDimension ;
+      rdfs:label "Mean lifetime"@en ;
+      dims:symbol "T" ;
+      dims:utf_symbol "T" .
+
+dim:molarity
+      a       dims:DerivedDimension ;
+      rdfs:label "Molarity"@en ;
+      dims:symbol "L^-3 N" ;
+      dims:utf_symbol "L⁻³⋅N" .
+
+dim:molar_volume
+      a       dims:DerivedDimension ;
+      rdfs:label "Molar volume"@en ;
+      dims:symbol "L^3 N^-1" ;
+      dims:utf_symbol "L³⋅N⁻¹" .
+
+dim:molar_energy
+      a       dims:DerivedDimension ;
+      rdfs:label "Molar energy"@en ;
+      dims:symbol "L^2 M T^-2 N^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅N⁻¹" .
+
+dim:molar_entropy
+      a       dims:DerivedDimension ;
+      rdfs:label "Molar entropy"@en ;
+      dims:symbol "L^2 M T^-2 O^-1 N^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅Θ⁻¹⋅N⁻¹" .
+
+dim:molar_heat_capacity
+      a       dims:DerivedDimension ;
+      rdfs:label "Molar heat capacity"@en ;
+      dims:symbol "L^2 M T^-2 N^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²⋅N⁻¹" .
+
+dim:moment_of_inertia
+      a       dims:DerivedDimension ;
+      rdfs:label "Moment of inertia"@en ;
+      dims:symbol "L^2 M" ;
+      dims:utf_symbol "L²⋅M" .
+
+dim:momentum
+      a       dims:DerivedDimension ;
+      rdfs:label "Momentum"@en ;
+      dims:symbol "L M T^-1" ;
+      dims:utf_symbol "L⋅M⋅T⁻¹" .
+
+dim:permeability
+      a       dims:DerivedDimension ;
+      rdfs:label "Permeability"@en ;
+      dims:symbol "L M T^-2 I^-2" ;
+      dims:utf_symbol "L⋅M⋅T⁻²⋅I⁻²" .
+
+dim:permittivity
+      a       dims:DerivedDimension ;
+      rdfs:label "Permittivity"@en ;
+      dims:symbol "L^-3 M^-1 T^4 I^2" ;
+      dims:utf_symbol "L⁻³⋅M⁻¹⋅T⁴⋅I²" .
+
+dim:power
+      a       dims:DerivedDimension ;
+      rdfs:label "Power"@en ;
+      dims:symbol "L^2 M T^-3" ;
+      dims:utf_symbol "L²⋅M⋅T⁻³" .
+
+dim:pressure
+      a       dims:DerivedDimension ;
+      rdfs:label "Pressure"@en ;
+      dims:symbol "L^-1 M T^-2" ;
+      dims:utf_symbol "L⁻¹⋅M⋅T⁻²" .
+
+dim:pop
+      a       dims:DerivedDimension ;
+      rdfs:label "Pop"@en ;
+      dims:symbol "L T^-6" ;
+      dims:utf_symbol "L⋅T⁻⁶" .
+
+dim:reaction_rate
+      a       dims:DerivedDimension ;
+      rdfs:label "Reaction rate"@en ;
+      dims:symbol "L^-3 T^-1 N" ;
+      dims:utf_symbol "L⁻³⋅T⁻¹⋅N" .
+
+dim:velocity
+      a       dims:DerivedDimension ;
+      rdfs:label "Velocity"@en ;
+      dims:symbol "L^2 T^-2" ;
+      dims:utf_symbol "L²⋅T⁻²" .
+
+dim:specific_energy
+      a       dims:DerivedDimension ;
+      rdfs:label "Specific energy"@en ;
+      dims:symbol "L^2 T^-2" ;
+      dims:utf_symbol "L²⋅T⁻²" .
+
+dim:specific_heat_capacity
+      a       dims:DerivedDimension ;
+      rdfs:label "Specific heat capacity"@en ;
+      dims:symbol "L^2 T^-2 O^-1" ;
+      dims:utf_symbol "L²⋅T⁻²⋅Θ⁻¹" .
+
+dim:specific_volume
+      a       dims:DerivedDimension ;
+      rdfs:label "Specific volume"@en ;
+      dims:symbol "L^3 M^-1" ;
+      dims:utf_symbol "L³⋅M⁻¹" .
+
+dim:spin
+      a       dims:DerivedDimension ;
+      rdfs:label "Spin"@en ;
+      dims:symbol "L^2 M T^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻¹" .
+
+dim:stress
+      a       dims:DerivedDimension ;
+      rdfs:label "Stress"@en ;
+      dims:symbol "L^-1 M T^-2" ;
+      dims:utf_symbol "L⁻¹⋅M⋅T⁻²" .
+
+dim:stiffness
+      a       dims:DerivedDimension ;
+      rdfs:label "Stiffness"@en ;
+      dims:symbol "M T^-2" ;
+      dims:utf_symbol "M⋅T⁻²" .
+
+dim:surface_tension
+      a       dims:DerivedDimension ;
+      rdfs:label "Surface tension"@en ;
+      dims:symbol "M T^-2" ;
+      dims:utf_symbol "M⋅T⁻²" .
+
+dim:thermal_conductivity
+      a       dims:DerivedDimension ;
+      rdfs:label "Thermal conductivity"@en ;
+      dims:symbol "L M T^-3 O^-1" ;
+      dims:utf_symbol "L⋅M⋅T⁻³⋅Θ⁻¹" .
+
+dim:torque
+      a       dims:DerivedDimension ;
+      rdfs:label "Torque"@en ;
+      dims:symbol "L^2 M T^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²" .
+
+dim:volume
+      a       dims:DerivedDimension ;
+      rdfs:label "Volume"@en ;
+      dims:symbol "L^3" ;
+      dims:utf_symbol "L³" .
+
+dim:volumetric_flow
+      a       dims:DerivedDimension ;
+      rdfs:label "Volumetric Flow"@en ;
+      dims:symbol "L^3 T^-1" ;
+      dims:utf_symbol "L³⋅T⁻¹" .
+
+dim:wavelength
+      a       dims:DerivedDimension ;
+      rdfs:label "Wavelength"@en ;
+      dims:symbol "L" ;
+      dims:utf_symbol "L" .
+
+dim:wavenumber
+      a       dims:DerivedDimension ;
+      rdfs:label "Wavenumber"@en ;
+      dims:symbol "L^-1" ;
+      dims:utf_symbol "L⁻¹" .
+
+dim:weight
+      a       dims:DerivedDimension ;
+      rdfs:label "Weight"@en ;
+      dims:symbol "L M T^-2" ;
+      dims:utf_symbol "L⋅M⋅T⁻²" .
+
+dim:work
+      a       dims:DerivedDimension ;
+      rdfs:label "Work"@en ;
+      dims:symbol "L^2 M T^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²" .
+
+dim:yank
+      a       dims:DerivedDimension ;
+      rdfs:label "Yank"@en ;
+      dims:symbol "L M T^-3" ;
+      dims:utf_symbol "L⋅M⋅T⁻³" .
+
+dim:youngs_modulus
+      a       dims:DerivedDimension ;
+      rdfs:label "Young's Modulus"@en ;
+      dims:symbol "L^-1 M T^-2" ;
+      dims:utf_symbol "L⁻¹⋅M⋅T⁻²" .
+
+dim:action
+      a       dims:DerivedDimension ;
+      rdfs:label "Action"@en ;
+      dims:symbol "L^2 M T^-1" ;
+      dims:utf_symbol "L²⋅M⋅T⁻¹" .
+
+dim:compressibility
+      a       dims:DerivedDimension ;
+      rdfs:label "Compressibility"@en ;
+      dims:symbol "L M^-1 T^2" ;
+      dims:utf_symbol "L⋅M⁻¹⋅T²" .
+
+dim:magnetic_reluctance
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic reluctance"@en ;
+      dims:symbol "L^-2 M^-1 T^-2 I^2" ;
+      dims:utf_symbol "L⁻²⋅M⁻¹⋅T⁻²⋅I²" .
+
+dim:magnetic_moment
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic moment"@en ;
+      dims:symbol "L^3 M T^-2 I^-1" ;
+      dims:utf_symbol "L³⋅M⋅T⁻²⋅I⁻¹" .
+
+dim:magnetic_vector_potential
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic vector potential"@en ;
+      dims:symbol "L M T^-2 I^-1" ;
+      dims:utf_symbol "L⋅M⋅T⁻²⋅I⁻¹" .
+
+dim:magnetic_rigidity
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic rigidity"@en ;
+      dims:symbol "L M T^-2 I^-1" ;
+      dims:utf_symbol "L⋅M⋅T⁻²⋅I⁻¹" .
+
+dim:magnetic_susceptibility
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetic susceptibility"@en ;
+      dims:symbol "L^-1 M^-1 T^2 I^2" ;
+      dims:utf_symbol "L⁻¹⋅M⁻¹⋅T²⋅I²" .
+
+dim:frequency_drift
+      a       dims:DerivedDimension ;
+      rdfs:label "Frequency drift"@en ;
+      dims:symbol "T^-2" ;
+      dims:utf_symbol "T⁻²" .
+
+dim:specific_angular_momentum
+      a       dims:DerivedDimension ;
+      rdfs:label "Specific angular momentum"@en ;
+      dims:symbol "L^2 T^-1" ;
+      dims:utf_symbol "L²⋅T⁻¹" .
+
+dim:radiant_energy
+      a       dims:DerivedDimension ;
+      rdfs:label "Radiant energy"@en ;
+      dims:symbol "L^2 M T^-2" ;
+      dims:utf_symbol "L²⋅M⋅T⁻²" .
+
+dim:radiant_energy_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Radiant energy density"@en ;
+      dims:symbol "L^-1 M T^-2" ;
+      dims:utf_symbol "L⁻¹⋅M⋅T⁻²" .
+
+dim:radiant_flux
+      a       dims:DerivedDimension ;
+      rdfs:label "Radiant flux"@en ;
+      dims:symbol "L^2 M T^-3" ;
+      dims:utf_symbol "L²⋅M⋅T⁻³" .
+
+dim:radiant_exposure
+      a       dims:DerivedDimension ;
+      rdfs:label "Radiant exposure"@en ;
+      dims:symbol "M T^-2" ;
+      dims:utf_symbol "M⋅T⁻²" .
+
+dim:dose_equivalent
+      a       dims:DerivedDimension ;
+      rdfs:label "Dose equivalent"@en ;
+      dims:symbol "L^2 T^-2" ;
+      dims:utf_symbol "L²⋅T⁻²" .
+
+dim:absorbed_dose_rate
+      a       dims:DerivedDimension ;
+      rdfs:label "Absorbed dose rate"@en ;
+      dims:symbol "L^2 T^-3" ;
+      dims:utf_symbol "L²⋅T⁻³" .
+
+dim:radioactivity
+      a       dims:DerivedDimension ;
+      rdfs:label "Radioactivity"@en ;
+      dims:symbol "T^-1" ;
+      dims:utf_symbol "T⁻¹" .
+
+dim:absorbed_dose
+      a       dims:DerivedDimension ;
+      rdfs:label "Absorbed dose"@en ;
+      dims:symbol "L^2 T^-2" ;
+      dims:utf_symbol "L²⋅T⁻²" .
+
+dim:radiance
+      a       dims:DerivedDimension ;
+      rdfs:label "Radiance"@en ;
+      dims:symbol "M T^-3" ;
+      dims:utf_symbol "M⋅T⁻³" .
+
+dim:radiant_intensity
+      a       dims:DerivedDimension ;
+      rdfs:label "Radiant Intensity"@en ;
+      dims:symbol "L^2 M T^-3" ;
+      dims:utf_symbol "L²⋅M⋅T⁻³" .
+
+dim:luminous_energy
+      a       dims:DerivedDimension ;
+      rdfs:label "Luminous energy"@en ;
+      dims:symbol "T J" ;
+      dims:utf_symbol "T⋅J" .
+
+dim:luminous_flux
+      a       dims:DerivedDimension ;
+      rdfs:label "Luminous flux"@en ;
+      dims:symbol "J" ;
+      dims:utf_symbol "J" .
+
+dim:luminous_efficacy
+      a       dims:DerivedDimension ;
+      rdfs:label "Luminous efficacy"@en ;
+      dims:symbol "L^-2 M^-1 T^3 J" ;
+      dims:utf_symbol "L⁻²⋅M⁻¹⋅T³⋅J" .
+
+dim:illuminance
+      a       dims:DerivedDimension ;
+      rdfs:label "Illuminance"@en ;
+      dims:symbol "L^-2 J" ;
+      dims:utf_symbol "L⁻²⋅J" .
+
+dim:luminance
+      a       dims:DerivedDimension ;
+      rdfs:label "Luminance"@en ;
+      dims:symbol "L^-2 J" ;
+      dims:utf_symbol "L⁻²⋅J" .
+
+dim:luminous_exitance
+      a       dims:DerivedDimension ;
+      rdfs:label "Luminous exitance"@en ;
+      dims:symbol "L^-2 J" ;
+      dims:utf_symbol "L⁻²⋅J" .
+
+dim:luminous_exposure
+      a       dims:DerivedDimension ;
+      rdfs:label "Luminous exposure"@en ;
+      dims:symbol "L^-2 T J" ;
+      dims:utf_symbol "L⁻²⋅T⋅J" .
+
+dim:luminous_energy_density
+      a       dims:DerivedDimension ;
+      rdfs:label "Luminous energy density"@en ;
+      dims:symbol "L^-3 T J" ;
+      dims:utf_symbol "L⁻³⋅T⋅J" .
+
+dim:luminous_efficiency
+      a       dims:Dimensionless ;
+      rdfs:label "Luminous efficiency"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:magnetomotive_force
+      a       dims:DerivedDimension ;
+      rdfs:label "Magnetomotive force"@en ;
+      dims:symbol "I" ;
+      dims:utf_symbol "I" .
+
+dim:spectral_power
+      a       dims:DerivedDimension ;
+      rdfs:label "Spectral power"@en ;
+      dims:symbol "L M T^-3" ;
+      dims:utf_symbol "L⋅M⋅T⁻³" .
+
+dim:spectral_radiance
+      a       dims:DerivedDimension ;
+      rdfs:label "Spectral radiance"@en ;
+      dims:symbol "L^-1 M T^-3" ;
+      dims:utf_symbol "L⁻¹⋅M⋅T⁻³" .
+
+dim:spectral_intensity
+      a       dims:DerivedDimension ;
+      rdfs:label "Spectral intensity"@en ;
+      dims:symbol "L M T^-3" ;
+      dims:utf_symbol "L⋅M⋅T⁻³" .
+
+dim:plane_angle
+      a       dims:Dimensionless ;
+      rdfs:label "Plane angle"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:solid_angle
+      a       dims:Dimensionless ;
+      rdfs:label "Solid angle"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:index_of_refraction
+      a       dims:Dimensionless ;
+      rdfs:label "Index of refraction"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:mach_number
+      a       dims:Dimensionless ;
+      rdfs:label "Mach Number"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:mass_fraction
+      a       dims:Dimensionless ;
+      rdfs:label "Mass fraction"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:refractive_index
+      a       dims:Dimensionless ;
+      rdfs:label "Refractive Index"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:angle
+      a       dims:Dimensionless ;
+      rdfs:label "Angle"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:strain
+      a       dims:Dimensionless ;
+      rdfs:label "Strain"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:field_ratio
+      a       dims:Dimensionless ;
+      rdfs:label "Field Ratio"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .
+
+dim:information_entropy
+      a       dims:Dimensionless ;
+      rdfs:label "Information Entropy"@en ;
+      dims:symbol "1" ;
+      dims:utf_symbol "1" .

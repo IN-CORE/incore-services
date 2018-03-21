@@ -1,11 +1,9 @@
-
 apply plugin: 'java'
 
 compileJava {
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 }
-
 
 //add dependencies for plugins needed to run the build
 buildscript {
@@ -18,7 +16,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.akhikhl.gretty:gretty:1.4.0'
-	classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
     }
 }
 
@@ -59,13 +57,14 @@ farm {
     webapp ':hazard-service'
     webapp ':maestro-service'
     webapp ':auth-service'
+    webapp ':semantic-service'
 }
 
-task farmWars (dependsOn:war, type: Copy) {
-  from('.') {
-    include '**/*.war'
-  }
-  into ('build')
+task farmWars(dependsOn: war, type: Copy) {
+    from('.') {
+        include '**/*.war'
+    }
+    into('build')
 }
 
 //For now, all subprojects are java projects. Later this might change.
@@ -86,7 +85,7 @@ subprojects {
         compile "log4j:log4j:1.2.16"
         compile 'org.json:json:20160810'
         // Test Runtime
-	testRuntime(group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.0.2')
+        testRuntime(group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.0.2')
     }
 }
 
@@ -99,7 +98,7 @@ test {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-service", "data-service", "hazard-service", "maestro-service", "auth-service"].each { name ->
+["fragility-service", "data-service", "hazard-service", "maestro-service", "auth-service", "semantic-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'
@@ -123,10 +122,8 @@ test {
             testCompile(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.2')
             // Mocking Framework
             testCompile(group: 'org.mockito', name: 'mockito-core', version: '2.9.0')
-	    // Temporary requirement for optional junit dependency that should not be optional
-	    testCompile group: 'org.apiguardian', name: 'apiguardian-api', version: '1.0.0'
+            // Temporary requirement for optional junit dependency that should not be optional
+            testCompile group: 'org.apiguardian', name: 'apiguardian-api', version: '1.0.0'
         }
-        
-     
     }
 }
