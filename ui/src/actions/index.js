@@ -41,7 +41,7 @@ export function receiveDatasets(json: Dataset) {
 }
 
 export function fetchAnalyses() {
-	const endpoint = `${config.maestroService  }/api/analyses/metadata`;
+	const endpoint = `${ config.maestroService }/api/analyses?full=false`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, {
@@ -56,7 +56,7 @@ export function fetchAnalyses() {
 
 export function getAnalysisById(id: String) {
 	//TODO: Move to a configuration file
-	const endpoint = `${config.maestroService  }/api/analyses/${  id}`;
+	const endpoint = `${ config.maestroService }/api/analyses/${ id }`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, {
@@ -90,7 +90,7 @@ export async function loginHelper(username, password) {
 	const userRequest =  await fetch(endpoint, {
 		method: "GET",
 		headers: {
-			"Authorization": `LDAP ${window.btoa(`${username }:${ password}`)}`
+			"Authorization": `LDAP ${ window.btoa(`${username }:${ password}`) }`
 		}
 	});
 
@@ -155,7 +155,7 @@ export function receiveDatawolfResponse(json) {
 }
 
 async function getOutputDatasetHelper(executionId: String) {
-	const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
+	const datawolfUrl = `${ config.dataWolf }executions/${ executionId }`;
 	const headers = getDatawolfHeader();
 	const datawolf_execution_fetch = await fetch(datawolfUrl, {
 		method: "GET",
@@ -165,7 +165,7 @@ async function getOutputDatasetHelper(executionId: String) {
 	const datawolfExecution  = await datawolf_execution_fetch.json();
 
 	const output_dataset_id =datawolfExecution.datasets["7774de32-481f-48dd-8223-d9cdf16eaec1"];
-	const endpoint = `${config.dataService   }/${output_dataset_id}` ;
+	const endpoint = `${ config.dataService }/${ output_dataset_id }` ;
 	const output_dataset = await fetch(endpoint, {
 		headers: getHeader()
 	});
@@ -173,7 +173,7 @@ async function getOutputDatasetHelper(executionId: String) {
 	const outputDataset = await output_dataset.json();
 	const fileId = outputDataset.fileDescriptors[0].id;
 
-	const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
+	const fileDownloadUrl = `${ config.dataServiceBase }data/api/files/${ fileId }/blob`;
 	const fileBlob = await fetch(fileDownloadUrl, {method: "GET", mode: "CORS", headers: getHeader()});
 
 	const fileText = await fileBlob.text();
@@ -196,7 +196,7 @@ export function getOutputDataset(executionId: String) {
 }
 
 export async function executeDatawolfWorkflowHelper(workflowid, creatorid, title, description, parameters, datasets) {
-	const datawolfUrl = `${config.dataWolf  }executions`;
+	const datawolfUrl = `${ config.dataWolf }executions`;
 	const dataToSubmit = {
 		"title": title,
 		"parameters": parameters,
@@ -236,7 +236,7 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 
 export function getHeader() {
 	const headers = new Headers({
-		"Authorization": `LDAP ${  sessionStorage.auth}`,
+		"Authorization": `LDAP ${ sessionStorage.auth }`,
 		"auth-user": sessionStorage.user,
 		"auth-token": sessionStorage.auth
 	});
