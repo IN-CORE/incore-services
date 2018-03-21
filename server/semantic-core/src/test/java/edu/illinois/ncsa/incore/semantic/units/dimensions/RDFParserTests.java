@@ -2,10 +2,7 @@
 package edu.illinois.ncsa.incore.semantic.units.dimensions;
 
 import edu.illinois.ncsa.incore.semantic.units.dimension.BaseDimension;
-import edu.illinois.ncsa.incore.semantic.units.dimension.Dimension;
 import edu.illinois.ncsa.incore.semantic.units.instances.Dimensions;
-import edu.illinois.ncsa.incore.semantic.units.io.parser.DimensionParser;
-import edu.illinois.ncsa.incore.semantic.units.io.parser.RDFParser;
 import org.junit.jupiter.api.Test;
 
 import org.apache.commons.io.FileUtils;

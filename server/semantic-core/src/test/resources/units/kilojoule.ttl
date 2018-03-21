@@ -1,0 +1,18 @@
+@prefix unit:    <http://incore.ncsa.illinois.edu/semantic/elements/units/> .
+@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix prefix:  <http://incore.ncsa.illinois.edu/semantic/elements/prefixes/> .
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+
+unit:kilojoule
+      a       def:PrefixedUnit ;
+      rdfs:label "kilojoule"@en ;
+      def:base_unit unit:joule ;
+      def:dimension_type dim:energy ;
+      def:plural "kilojoules"@en ;
+      def:prefix prefix:kilo ;
+      def:symbol "kJ" ;
+      def:unit_system "SI" ;
+      def:utf_plural "kilojoules"@en ;
+      def:utf_symbol "kJ" .
