@@ -21,6 +21,16 @@ POST - Create scenario earthquake
     "srcLongitude" : "-89.919",
     "magnitude" : "7.9",
     "depth" : "10.0"
+  },
+  "visualizationParameters" : {
+    "demandType" : "PGA",
+    "demandUnits" : "g",
+    "minX" :"-90.3099",
+    "minY" :"34.9942",
+    "maxX" : "-89.6231",
+    "maxY" : "35.4129",
+    "numPoints" : "1025",
+    "amplifyHazard": "true"
   }
 }
 
