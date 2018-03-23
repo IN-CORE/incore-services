@@ -28,3 +28,5 @@ server/incore-v2.iws
 # local gradle files
 **/.gradle/
 server/local.properties
+
+.vagrant/

@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
@@ -53,17 +54,8 @@ public class EarthquakeController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake, @HeaderParam("X-Credential-Username") String username, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("minX") double minX, @QueryParam("minY") double minY, @QueryParam("maxX") double maxX, @QueryParam("maxY") double maxY, @QueryParam("gridSpacing") double gridSpacing, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
+    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake, @HeaderParam("X-Credential-Username") String username) {
         if (scenarioEarthquake != null) {
-            String period = demandType;
-            String demand = demandType;
-
-            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
-                String[] demandSplit = demandType.split(" ");
-                period = demandSplit[0];
-                demand = demandSplit[1];
-            }
-
             model.setRuptureParameters(scenarioEarthquake.getEqParameters());
 
             // TODO this should be determined from the scenario earthquake
@@ -71,15 +63,17 @@ public class EarthquakeController {
             attenuations.put(model, 1.0);
 
             try {
+                // TODO consider making the tif file options
                 File incoreWorkDirectory = File.createTempFile("incore", ".dir");
                 incoreWorkDirectory.delete();
                 incoreWorkDirectory.mkdirs();
 
-                File hazardFile = new File(incoreWorkDirectory, "hazard.tif");
+                File hazardFile = new File(incoreWorkDirectory, HazardDataset.HAZARD_TIF);
 
-                GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, minX, minY, maxX, maxY, gridSpacing, period, demand, amplifyHazard);
+                GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations);
                 HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
 
+                String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
                 String description = "scenario earthquake visualization";
                 String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description);
                 scenarioEarthquake.setRasterDatasetId(datasetId);

@@ -27,6 +27,8 @@ public class ScenarioEarthquake {
     // Earthquake parameters (e.g. epicenter location, depth, etc
     private EqParameters eqParameters;
 
+    private EqVisualization visualizationParameters;
+
     // ID of the site class dataset
     private String siteClassDataset;
 
@@ -73,5 +75,14 @@ public class ScenarioEarthquake {
     public void setRasterDatasetId(String rasterDatasetId) {
         this.rasterDatasetId = rasterDatasetId;
     }
+
+    public EqVisualization getVisualizationParameters() {
+        return visualizationParameters;
+    }
+
+    public void setVisualizationParameters(EqVisualization visualizationParameters) {
+        this.visualizationParameters = visualizationParameters;
+    }
+
 
 }

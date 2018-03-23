@@ -40,37 +40,37 @@ import java.io.IOException;
  * Misc utility functions for doing conversion of hazard types and units
  */
 public class HazardUtil {
-    public static final String HAZARD = "hazard"; //$NON-NLS-1$
+    public static final String HAZARD = "hazard";
 
-    public static final String units_g = "g"; //$NON-NLS-1$
-    public static final String units_cm = "cm"; //$NON-NLS-1$
+    public static final String units_g = "g";
+    public static final String units_cm = "cm";
     // Constant string expressions appearing throughout hazard code
     public static final String NONE = "None";
-    public static final String PGA = "PGA"; //$NON-NLS-1$
-    public static final String PGV = "PGV"; //$NON-NLS-1$
-    public static final String PGD = "PGD"; //$NON-NLS-1$
-    public static final String SA = "SA"; //$NON-NLS-1$
-    public static final String SD = "SD"; //$NON-NLS-1$
-    public static final String SV = "SV"; //$NON-NLS-1$
-    public static final String LIQUEFACTION_PGD = "liquefactionPGD"; //$NON-NLS-1$
-    private static final String units_percg = "%g"; //$NON-NLS-1$
+    public static final String PGA = "PGA";
+    public static final String PGV = "PGV";
+    public static final String PGD = "PGD";
+    public static final String SA = "SA";
+    public static final String SD = "SD";
+    public static final String SV = "SV";
+    public static final String LIQUEFACTION_PGD = "liquefactionPGD";
+    private static final String units_percg = "%g";
     // Metric
-    private static final String units_m = "meters"; //$NON-NLS-1$
-    private static final String units_cms = "cm/s"; //$NON-NLS-1$
-    private static final String units_ins = "in/s"; //$NON-NLS-1$
+    private static final String units_m = "meters";
+    private static final String units_cms = "cm/s";
+    private static final String units_ins = "in/s";
     // English
-    private static final String units_in = "in"; //$NON-NLS-1$
-    private static final String units_ft = "feet"; //$NON-NLS-1$
-    private static final String sa_pgv = "sapgv"; //$NON-NLS-1$
-    private static final String pga_pgd = "pgapgd"; //$NON-NLS-1$
-    private static final String pga_pga = "pgapga"; //$NON-NLS-1$
-    private static final String sa_sa = "sasa"; //$NON-NLS-1$
-    private static final String sa_sv = "sasv"; //$NON-NLS-1$
-    private static final String sa_sd = "sasd"; //$NON-NLS-1$
-    private static final String sd_sd = "sdsd"; //$NON-NLS-1$
-    private static final String pgv_pgv = "pgvpgv"; //$NON-NLS-1$
-    private static final String FAULT_LENGTH = "Length"; //$NON-NLS-1$
-    private static final String FAULT_WIDTH = "Width"; //$NON-NLS-1$
+    private static final String units_in = "in";
+    private static final String units_ft = "feet";
+    private static final String sa_pgv = "sapgv";
+    private static final String pga_pgd = "pgapgd";
+    private static final String pga_pga = "pgapga";
+    private static final String sa_sa = "sasa";
+    private static final String sa_sv = "sasv";
+    private static final String sa_sd = "sasd";
+    private static final String sd_sd = "sdsd";
+    private static final String pgv_pgv = "pgvpgv";
+    private static final String FAULT_LENGTH = "Length";
+    private static final String FAULT_WIDTH = "Width";
     public static double R_EARTH = 6373.0; // km
     // NEHRP Site Amplification
     // XXX: should this be a table dataset so it can be changed in the future?
@@ -109,18 +109,18 @@ public class HazardUtil {
         double convertedHazard = hazard;
 
         if (period == null) {
-//            logger.warn("Null period, returning unconverted hazard value"); //$NON-NLS-1$
+//            logger.warn("Null period, returning unconverted hazard value");
             return convertedHazard;
         }
 
         // Convert to B/C and the assume site class D
         if (period.equalsIgnoreCase(PGA)) {
             convertedHazard *= 1.52;
-        } else if (period.equalsIgnoreCase("0.2")) { //$NON-NLS-1$
+        } else if (period.equalsIgnoreCase("0.2")) {
             convertedHazard *= 1.76;
-        } else if (period.equalsIgnoreCase("0.3")) { //$NON-NLS-1$
+        } else if (period.equalsIgnoreCase("0.3")) {
             convertedHazard *= 1.72;
-        } else if (period.equalsIgnoreCase("1.0") || period.equalsIgnoreCase("1")) { //$NON-NLS-1$//$NON-NLS-2$
+        } else if (period.equalsIgnoreCase("1.0") || period.equalsIgnoreCase("1")) {
             convertedHazard *= 1.34;
         }
         return convertedHazard;
@@ -131,13 +131,13 @@ public class HazardUtil {
      * @return
      */
     public static String stripPeriod(String hazard) {
-        hazard = hazard.replaceAll("[0-9]*", ""); //$NON-NLS-1$ //$NON-NLS-2$
-        hazard = hazard.replaceAll("\\.*", "");//$NON-NLS-1$ //$NON-NLS-2$
-        hazard = hazard.replaceAll("sec", "");//$NON-NLS-1$ //$NON-NLS-2$
-        hazard = hazard.replaceAll(" ", "");//$NON-NLS-1$ //$NON-NLS-2$
-        if ("".equals(hazard)) //$NON-NLS-1$
+        hazard = hazard.replaceAll("[0-9]*", "");
+        hazard = hazard.replaceAll("\\.*", "");
+        hazard = hazard.replaceAll("sec", "");
+        hazard = hazard.replaceAll(" ", "");
+        if ("".equals(hazard))
         {
-            hazard = "Sa"; //$NON-NLS-1$
+            hazard = "Sa";
         }
         return hazard;
     }
@@ -147,7 +147,7 @@ public class HazardUtil {
      * @return
      */
     public static double getPeriod(String hazard) {
-        hazard = hazard.replaceAll("[ a-zA-Z]*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        hazard = hazard.replaceAll("[ a-zA-Z]*", "");
         try {
             return Double.parseDouble(hazard);
         } catch (NumberFormatException e) {

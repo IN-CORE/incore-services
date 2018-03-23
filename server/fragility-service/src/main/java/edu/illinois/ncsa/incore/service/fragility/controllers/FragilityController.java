@@ -79,9 +79,15 @@ public class FragilityController {
     }
 
     @POST
-    public Response uploadFragilitySet(FragilitySet fragilitySet) {
-        throw new NotImplementedException();
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    public FragilitySet uploadFragilitySet(FragilitySet fragilitySet) {
+        FragilitySet mutatedFragilitySet = this.dataAccess.saveFragility(fragilitySet);
+
+        return mutatedFragilitySet;
     }
+    
+
 
     @GET
     @Path("{fragilityId}")

@@ -11,18 +11,21 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.EqVisualization;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
+import org.apache.log4j.Logger;
 import org.geotools.coverage.CoverageFactoryFinder;
 import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.gce.arcgrid.ArcGridFormat;
 import org.geotools.gce.arcgrid.ArcGridWriteParams;
-import org.geotools.gce.geotiff.GeoTiffWriter;
+import org.geotools.gce.geotiff.GeoTiffFormat;
+import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.geometry.Envelope2D;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.coverage.grid.GridCoverage;
@@ -40,9 +43,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class HazardCalc {
-
+    private static final Logger logger = Logger.getLogger(HazardCalc.class);
     private static GeometryFactory factory = new GeometryFactory();
 
     public static SeismicHazardResult getGroundMotionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String hazardType, String demand, int spectrumOverride, boolean amplifyHazard) throws Exception {
@@ -90,9 +94,30 @@ public class HazardCalc {
         return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand);
     }
 
-    public static GridCoverage getEarthquakeHazardRaster(ScenarioEarthquake scenarioEarthquake, Map<BaseAttenuation, Double> attenuations, double minX, double minY, double maxX, double maxY, double gridSpacing, String period, String demand, boolean amplifyHazard) throws Exception {
+    public static GridCoverage getEarthquakeHazardRaster(ScenarioEarthquake scenarioEarthquake, Map<BaseAttenuation, Double> attenuations) throws Exception {
+        EqVisualization visualizationParameters = scenarioEarthquake.getVisualizationParameters();
+        boolean amplifyHazard = visualizationParameters.isAmplifyHazard();
+        double minX = visualizationParameters.getMinX();
+        double maxX = visualizationParameters.getMaxX();
+        double minY = visualizationParameters.getMinY();
+        double maxY = visualizationParameters.getMaxY();
+        int numPoints = visualizationParameters.getNumPoints();
+
+        String demandType = visualizationParameters.getDemandType();
+        String period = demandType;
+        String demand = demandType;
+
+        if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
+            String[] demandSplit = demandType.split(" ");
+            period = demandSplit[0];
+            demand = demandSplit[1];
+        }
+
         int width = 0;
         int height = 0;
+
+        // Compute Grid spacing
+        double gridSpacing = Math.sqrt((maxX - minX) * (maxY - minY) / numPoints);
 
         double dx = (maxX - minX);
         double dy = (maxY - minY);
@@ -100,14 +125,18 @@ public class HazardCalc {
         dx = Math.ceil(dx / gridSpacing) * gridSpacing;
         dy = Math.ceil(dy / gridSpacing) * gridSpacing;
 
+        // Make sure we end up slightly past the end or we might end up with a grid smaller than intended
         maxX = minX + dx;
         maxY = minY + dy;
+
+        // Recompute the grid spacing using the new min/max so number of points matches request
+        gridSpacing = Math.sqrt((maxX - minX) * (maxY - minY) / numPoints);
 
         if (gridSpacing != 0) {
             long widthLong = Math.round(Math.abs((maxX - minX) / gridSpacing)); // + 1;
             long heightLong = Math.round(Math.abs((maxY - minY) / gridSpacing)); // + 1;
             if ((widthLong > Integer.MAX_VALUE) || (heightLong > Integer.MAX_VALUE)) {
-                System.out.println("Overflow....too many points to fit in an int"); //$NON-NLS-1$
+                logger.error("Overflow....too many points to fit in an int");
             }
             // adjustMaxMin();
             width = (int) widthLong;
@@ -118,6 +147,7 @@ public class HazardCalc {
         float cellsize = (float) gridSpacing;
         float startX = (float) minX + ((float) gridSpacing / 2.0f);
         float startY = (float) maxY - ((float) gridSpacing / 2.0f);
+
         Site localSite = null;
 
         CoordinateReferenceSystem crs = DefaultGeographicCRS.WGS84;
@@ -125,7 +155,6 @@ public class HazardCalc {
         WritableRaster raster = RasterFactory.createBandedRaster(DataBuffer.TYPE_FLOAT, width, height, 1, null);
 
         Envelope envelope = new Envelope2D(crs, minX, minY, width * cellsize, height * cellsize);
-
         for (int y = 0; y < height; y++) {
 
             startX = (float) minX + (cellsize / 2.0f);
@@ -136,6 +165,7 @@ public class HazardCalc {
                 raster.setSample(x, y, 0, hazardValue);
 
                 startX += (float) gridSpacing;
+
             }
             startY -= gridSpacing;
         }
@@ -161,15 +191,23 @@ public class HazardCalc {
     }
 
     public static void getEarthquakeHazardAsGeoTiff(GridCoverage gridCoverage, File tiffFile) throws IOException {
-        GeoTiffWriter writer = new GeoTiffWriter(tiffFile);
+        //getting a format
+        final GeoTiffFormat format = new GeoTiffFormat();
 
-        final ArcGridWriteParams wp = new ArcGridWriteParams();
-        wp.setSourceBands(new int[]{0});
-        ParameterValueGroup params = writer.getFormat().getWriteParameters();
+        //getting the write parameters
+        final GeoTiffWriteParams wp = new GeoTiffWriteParams();
+
+        //setting compression to LZW
+        wp.setCompressionMode(GeoTiffWriteParams.MODE_EXPLICIT);
+        wp.setCompressionType("LZW");
+        wp.setCompressionQuality(0.75F);
+
+        //setting the write parameters for this geotiff
+        final ParameterValueGroup params = format.getWriteParameters();
         params.parameter(AbstractGridFormat.GEOTOOLS_WRITE_PARAMS.getName().toString()).setValue(wp);
 
-        GeneralParameterValue[] gpv = {params.parameter(AbstractGridFormat.GEOTOOLS_WRITE_PARAMS.getName().toString())};
-        writer.write(gridCoverage, gpv);
+        GridCoverageWriter writer = format.getWriter(tiffFile);
+        writer.write(gridCoverage, (GeneralParameterValue[]) params.values().toArray(new GeneralParameterValue[1]));
         writer.dispose();
     }
 

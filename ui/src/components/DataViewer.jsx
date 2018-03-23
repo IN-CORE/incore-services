@@ -64,7 +64,7 @@ class DataViewer extends Component {
 	}
 
 	async onClickFileDescriptor(selected_dataset_id, file_descriptor_id, file_name) {
-		const url = `${config.dataService}/files/${  file_descriptor_id  }/file`;
+		const url = `${config.dataServiceBase }data/api/files/${  file_descriptor_id  }/blob`;
 		await fetch(url, {method: "GET", mode: "CORS", headers: getHeader()}).then((response) => {
 			return response.text();
 		}).then((text) => {
@@ -77,7 +77,7 @@ class DataViewer extends Component {
 	render() {
 		let dataset_types = "";
 		const dataset_all_types = this.props.datasets.map(dataset =>
-			dataset.type
+			dataset.dataType
 		);
 		const unique_types = Array.from(new Set(dataset_all_types));
 		if(unique_types.length > 0) {
