@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -21,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MongoDBRepository implements IRepository {
+public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     private String hostUri;
     private String databaseName;
     private int port;
@@ -30,19 +29,19 @@ public class MongoDBRepository implements IRepository {
     private Datastore dataStore;
 
     // TODO I believe we can just use the URI and remove this later
-    public MongoDBRepository() {
+    public MongoDBEarthquakeRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
         this.databaseName = "hazarddb";
     }
 
-    public MongoDBRepository(String hostUri, String databaseName, int port) {
+    public MongoDBEarthquakeRepository(String hostUri, String databaseName, int port) {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
     }
 
-    public MongoDBRepository(MongoClientURI mongoClientURI) {
+    public MongoDBEarthquakeRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
         this.databaseName = mongoClientURI.getDatabase();
     }
@@ -78,23 +77,6 @@ public class MongoDBRepository implements IRepository {
     public List<ScenarioEarthquake> getScenarioEarthquakes() {
         List<ScenarioEarthquake> scenarioEarthquakes = this.dataStore.createQuery(ScenarioEarthquake.class).asList();
         return scenarioEarthquakes;
-    }
-
-    @Override
-    public List<ScenarioTornado> getScenarioTornadoes() {
-        List<ScenarioTornado> scenarioTornadoes = this.dataStore.createQuery(ScenarioTornado.class).asList();
-        return scenarioTornadoes;
-    }
-
-    @Override
-    public ScenarioTornado addScenarioTornado(ScenarioTornado scenarioTornado) {
-        String id = this.dataStore.save(scenarioTornado).getId().toString();
-        return getScenarioTornadoById(id);
-    }
-
-    @Override
-    public ScenarioTornado getScenarioTornadoById(String id) {
-        return this.dataStore.get(ScenarioTornado.class, new ObjectId(id));
     }
 
     @Override
