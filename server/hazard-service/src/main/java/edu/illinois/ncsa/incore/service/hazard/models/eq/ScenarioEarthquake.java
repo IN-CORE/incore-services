@@ -27,6 +27,8 @@ public class ScenarioEarthquake {
     // Earthquake parameters (e.g. epicenter location, depth, etc
     private EqParameters eqParameters;
 
+    private EqVisualization visualizationParameters;
+
     // ID of the site class dataset
     private String siteClassDataset;
 
@@ -34,6 +36,8 @@ public class ScenarioEarthquake {
     private String defaultSiteClass;
 
     private String siteAmplification;
+
+    private String rasterDatasetId;
 
     public ScenarioEarthquake() {
         defaultSiteClass = NEHRPSoilType.D;
@@ -63,4 +67,22 @@ public class ScenarioEarthquake {
     public String getSiteAmplification() {
         return siteAmplification;
     }
+
+    public String getRasterDatasetId() {
+        return rasterDatasetId;
+    }
+
+    public void setRasterDatasetId(String rasterDatasetId) {
+        this.rasterDatasetId = rasterDatasetId;
+    }
+
+    public EqVisualization getVisualizationParameters() {
+        return visualizationParameters;
+    }
+
+    public void setVisualizationParameters(EqVisualization visualizationParameters) {
+        this.visualizationParameters = visualizationParameters;
+    }
+
+
 }
