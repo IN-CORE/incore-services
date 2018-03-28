@@ -2,13 +2,16 @@
 package edu.illinois.ncsa.incore.semantic.units.dimensions;
 
 import edu.illinois.ncsa.incore.semantic.units.dimension.BaseDimension;
+import edu.illinois.ncsa.incore.semantic.units.dimension.Dimension;
 import edu.illinois.ncsa.incore.semantic.units.instances.Dimensions;
+import edu.illinois.ncsa.incore.semantic.units.io.parser.RDFParser;
 import org.junit.jupiter.api.Test;
 
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,9 +26,9 @@ public class RDFParserTests {
         BaseDimension expected = Dimensions.length;
 
         // act
-        // Dimension actual = RDFParser.parseDimensions(rdf).get(0);
+        Optional<Dimension> actual = RDFParser.parseDimensions(rdf).get(0);
 
         // assert
-        // assertEquals(expected, actual);
+        assertEquals(expected, actual.get());
     }
 }
