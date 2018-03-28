@@ -77,6 +77,7 @@ public class EquivalenceTests {
         Normalization j2Norm = J2.getBaseNormalForm();
         Normalization j2BaseNorm = J2.getBaseNormalForm();
 
-        int i = 0;
+        // assert
+        // TODO validate Normalized forms are equivalent
     }
 }
