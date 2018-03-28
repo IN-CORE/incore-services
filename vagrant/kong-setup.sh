@@ -72,6 +72,11 @@ ANON_JSON=`curl -X GET  --url http://localhost:8001/consumers/anonymous`
 ANON_ID=`echo "$ANON_JSON" | sed -e 's/.*"id":"\(.*\)"}/\1/g'`
 
 #this requires that my ldaps patch has been applied to /usr/local/share/lua/xx/kong/
+
+
+
+curl -i -X DELETE --url http://localhost:8001/plugins/98c80b29-9aca-4124-bd45-e3195da2455a
+
 curl -i -X POST \
   --url http://localhost:8001/plugins/ \
   --data 'name=ldap-auth' \
@@ -79,8 +84,7 @@ curl -i -X POST \
   --data 'config.base_dn=dc=ncsa,dc=illinois,dc=edu' \
   --data 'config.ldap_host=ldap.ncsa.illinois.edu' \
   --data 'config.attribute=uid' \
-  --data 'config.ldaps=true' \
-  --data "config.anonymous=$ANON_ID" 
+  --data 'config.ldaps=true' 
 
 
 
