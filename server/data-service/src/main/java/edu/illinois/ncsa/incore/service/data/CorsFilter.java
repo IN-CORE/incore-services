@@ -16,12 +16,6 @@ import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.MultivaluedMap;
-import java.io.IOException;
-
 public class CorsFilter implements ContainerResponseFilter {
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
@@ -29,6 +23,8 @@ public class CorsFilter implements ContainerResponseFilter {
 
         headers.add("Access-Control-Allow-Origin", "*");
         headers.add("Access-Control-Allow-Methods", "GET");
-        headers.add("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
+        headers.add("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, " +
+            "Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization, auth-user, " +
+            "auth-token");
     }
 }

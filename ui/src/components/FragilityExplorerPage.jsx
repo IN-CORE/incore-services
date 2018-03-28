@@ -154,11 +154,11 @@ class FragilityExplorerPage extends React.Component {
 		let url = "";
 
 		if (this.state.selectedInventory !== null && this.state.selectedHazard !== null) {
-			url = `${host}/query?inventory=${this.state.selectedInventory}&hazard=${this.state.selectedHazard}`;
+			url = `${host}?inventory=${this.state.selectedInventory}&hazard=${this.state.selectedHazard}`;
 		} else if (this.state.selectedInventory !== null) {
-			url = `${host}/query?inventory=${this.state.selectedInventory}`;
+			url = `${host}?inventory=${this.state.selectedInventory}`;
 		} else if (this.state.selectedHazard !== null) {
-			url = `${host}/query?hazard=${this.state.selectedHazard}`;
+			url = `${host}?hazard=${this.state.selectedHazard}`;
 		} else {
 			url = `${host}`;
 		}

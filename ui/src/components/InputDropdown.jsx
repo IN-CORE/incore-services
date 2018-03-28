@@ -13,7 +13,7 @@ class InputDropdown extends Component {
 		this.props.onChange(this.props.input.name, value);
 	}
 	render() {
-		const filtered = this.props.options.filter(dataset => this.props.input.type.indexOf(dataset.type) > -1);
+		const filtered = this.props.options.filter(dataset => this.props.input.type.indexOf(dataset.dataType) > -1);
 		const menu_options = filtered.map(option =>
 			<MenuItem key={option.id} value={option.id} primaryText={option.title}/>
 		);
