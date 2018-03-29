@@ -5,6 +5,10 @@ repositories {
     mavenCentral()
 }
 
+compileTestJava {
+    options.encoding = "UTF-8"
+}
+
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile group: 'org.jgrapht', name: 'jgrapht-core', version: '1.0.1'
