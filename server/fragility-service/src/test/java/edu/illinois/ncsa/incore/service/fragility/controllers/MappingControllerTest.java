@@ -12,10 +12,10 @@ package edu.illinois.ncsa.incore.service.fragility.controllers;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.fragility.models.MappingRequest;
-import edu.illinois.ncsa.incore.service.fragility.models.MappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingSubject;
 import edu.illinois.ncsa.incore.service.fragility.models.SchemaType;
+import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
+import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingResponse;
 import mocks.MockApplication;
 import org.geojson.FeatureCollection;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -39,10 +39,12 @@ public class MappingControllerTest extends CustomJerseyTest {
 
     @Override
     public ResourceConfig configure() {
+        forceSet(TestProperties.CONTAINER_PORT, "0");
+
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(FragilityController.class, MappingController.class);
+        MockApplication application = new MockApplication(MappingController.class);
 
         return application;
     }
@@ -50,25 +52,27 @@ public class MappingControllerTest extends CustomJerseyTest {
     @Test
     public void testMappingFunctionFeature() throws IOException {
         // arrange
-        URL jsonURL = this.getClass().getClassLoader().getResource("json/mapping_request.json");
+        URL jsonURL = this.getClass().getClassLoader().getResource("mapping_request.json");
 
         MappingRequest request = new ObjectMapper()
             .configure(MapperFeature.USE_ANNOTATIONS, true)
             .readValue(jsonURL, MappingRequest.class);
 
         // act
-        MappingResponse response = target("/mappings/match").request()
-                                                           .accept(MediaType.APPLICATION_JSON)
-                                                           .post(Entity.json(request), MappingResponse.class);
+        MappingResponse response = target("/mappings/match/fakemappingid").request()
+                                                                          .accept(MediaType.APPLICATION_JSON)
+                                                                          .post(Entity.json(request), MappingResponse.class);
 
         // assert
-        assertTrue(response.getFragilitySets().containsKey("NSDS_PFM_MTB_UL_475_W1_4"));
+        // NSDS_PFM_MTB_UL_475_W1_4
+        String fragilityKey = "5aa9858b949f232724db42e0";
+        assertTrue(response.getFragilitySets().containsKey(fragilityKey));
     }
 
     @Test
     public void testMappingFunctionFeatureCollection() throws IOException {
         // arrange
-        URL jsonURL = this.getClass().getClassLoader().getResource("json/inventory.json");
+        URL jsonURL = this.getClass().getClassLoader().getResource("inventory.json");
 
         FeatureCollection featureCollection = new ObjectMapper().readValue(jsonURL, FeatureCollection.class);
 
@@ -77,13 +81,15 @@ public class MappingControllerTest extends CustomJerseyTest {
         MappingRequest request = new MappingRequest(subject);
 
         // act
-        MappingResponse response = target("/mappings/match").request()
-                                                           .accept(MediaType.APPLICATION_JSON)
-                                                           .post(Entity.json(request), MappingResponse.class);
+        MappingResponse response = target("/mappings/match/fakemappingid").request()
+                                                                          .accept(MediaType.APPLICATION_JSON)
+                                                                          .post(Entity.json(request), MappingResponse.class);
 
         // assert
-        assertTrue(response.getFragilitySets().containsKey("NSDS_PFM_MTB_UL_475_W1_4"));
-        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.1"), "NSDS_PFM_MTB_UL_475_W1_4");
-        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.2"), "NSDS_PFM_MTB_UL_475_W1_4");
+        // NSDS_PFM_MTB_UL_475_W1_4
+        String fragilityKey = "5aa9858b949f232724db42e0";
+        assertTrue(response.getFragilitySets().containsKey(fragilityKey));
+        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.1"), fragilityKey);
+        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.2"), fragilityKey);
     }
 }

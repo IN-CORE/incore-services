@@ -25,7 +25,7 @@ public class MatchFilter implements Filter
 	public static final String TAG_SELF = "match-filter";
 
 	private boolean not = false;
-	private List clauses = new ArrayList();
+	private List<MatchClause> clauses = new ArrayList();
 
 	/**
 	 * @return true if object satisfies filter; false otherwise.

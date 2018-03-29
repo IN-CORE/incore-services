@@ -10,17 +10,16 @@
 
 package edu.illinois.ncsa.incore.service.fragility;
 
+import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
+import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBFragilityDAO;
-import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
-import ncsa.tools.common.exceptions.DeserializationException;
+import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBMappingDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-
-import java.net.URL;
 
 public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
@@ -33,29 +32,18 @@ public class Application extends ResourceConfig {
             mongodbUri = mongodbUriProp;
         }
 
-        IFragilityDAO mongoRepository = new MongoDBFragilityDAO(new MongoClientURI(mongodbUri));
-        mongoRepository.initialize();
-
-        MatchFilterMap loadedMappings = null;
-
-        try {
-            URL mappingUrl = this.getClass().getClassLoader().getResource("mappings/buildings.xml");
-            loadedMappings = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
-        } catch (DeserializationException ex) {
-            log.error("Could not load match filter map", ex);
-        }
-
-        MatchFilterMap matchFilterMap = loadedMappings;
+        // use same instance of mongo client
+        MongoClientURI mongoClientUri = new MongoClientURI(mongodbUri);
+        IFragilityDAO fragilityDAO = new MongoDBFragilityDAO(mongoClientUri);
+        fragilityDAO.initialize();
+        IMappingDAO mappingDAO = new MongoDBMappingDAO(mongoClientUri);
+        mappingDAO.initialize();
 
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                super.bind(mongoRepository).to(IFragilityDAO.class);
-                if (matchFilterMap != null) {
-                    super.bind(matchFilterMap).to(MatchFilterMap.class);
-                } else {
-                    log.error("Could not set null match filter map");
-                }
+                super.bind(fragilityDAO).to(IFragilityDAO.class);
+                super.bind(mappingDAO).to(IMappingDAO.class);
             }
         });
 
