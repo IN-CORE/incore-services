@@ -11,8 +11,6 @@ gretty {
 
 dependencies {
 
-
-
 }
 
 task wrapper(type: Wrapper) {

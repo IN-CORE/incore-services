@@ -10,18 +10,16 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
-import java.math.BigDecimal;
-
 public class StandardFragilityCurve extends FragilityCurve {
-    public BigDecimal median;
-    public BigDecimal beta;
+    public double median;
+    public double beta;
     public FragilityCurveType curveType;
 
     public StandardFragilityCurve() {
         super();
     }
 
-    public StandardFragilityCurve(BigDecimal median, BigDecimal beta, FragilityCurveType curveType, String label) {
+    public StandardFragilityCurve(double median, double beta, FragilityCurveType curveType, String label) {
         super(label);
 
         this.median = median;

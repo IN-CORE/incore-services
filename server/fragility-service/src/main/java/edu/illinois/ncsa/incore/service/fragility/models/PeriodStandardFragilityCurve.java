@@ -10,8 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
-import java.math.BigDecimal;
-
 public class PeriodStandardFragilityCurve extends StandardFragilityCurve {
     public double periodParam2;
     public double periodParam1;
@@ -22,7 +20,7 @@ public class PeriodStandardFragilityCurve extends StandardFragilityCurve {
         super();
     }
 
-    public PeriodStandardFragilityCurve(BigDecimal median, BigDecimal beta, FragilityCurveType curveType, String label,
+    public PeriodStandardFragilityCurve(double median, double beta, FragilityCurveType curveType, String label,
                                         int periodEqnType, double periodParam0, double periodParam1, double periodParam2) {
         super(median, beta, curveType, label);
 
