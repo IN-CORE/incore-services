@@ -9,7 +9,7 @@ gretty {
 }
 
 repositories {
-	maven { url 'http://download.osgeo.org/webdav/geotools/' }
+
 	jcenter()
 	maven { url "http://repo.boundlessgeo.com/main"}
 	maven { url "http://dl.bintray.com/milton/Milton"}
@@ -19,41 +19,16 @@ repositories {
 //specify additional dependencies that are specific to this sub-project.
 // (it will inherit common dependencies from the parent build script)
 dependencies {
-	compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
 
-	compile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: '2.25.1'
-	compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet', version: '2.25.1'
-	compile group: 'org.glassfish.jersey.media', name: 'jersey-media-moxy', version: '2.25.1'
-	compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1'
-    compile group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13'
-	compile group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.25.1'
 
-//	 compile group: 'io.milton', name: 'milton-client', version: '2.7.2.7'
-
-	testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:2.25.1"
-	testCompile "org.glassfish.jersey.containers:jersey-container-grizzly2-servlet:2.25.1"
-
-	// https://mvnrepository.com/artifact/org.json/json
-	compile group: 'org.json', name: 'json', version: '20171018'
 
 	compile group: 'com.google.inject', name: 'guice', version: '3.0'
 	compile group: 'com.google.code.gson', name: 'gson', version: '2.2.4'
 
-	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.3.0'
-	compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.2.1'
-	compile project(':incore-common');
-
 	compile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
 	compile group: 'it.geosolutions', name: 'geoserver-manager', version: '1.7.0'
 
-	compile group: 'org.geotools', name: 'gt-main', version: '17.0'
-	compile group: 'org.geotools', name: 'gt-geojson', version: '17.0'
-	compile group: 'org.geotools', name: 'gt-shapefile', version: '17.0'
-	compile group: 'org.geotools', name: 'gt-arcgrid', version: '17.0'
-	compile group: 'org.geotools', name: 'gt-geotiff', version: '17.0'
 	compile group: 'com.opencsv', name: 'opencsv', version: '3.3'
-
-	compile 'javax.media.jai:com.springsource.javax.media.jai.core:1.1.3'
 
 	compile 'org.jsoup:jsoup:1.10.2'
 	compile 'com.github.lookfirst:sardine:5.1'
