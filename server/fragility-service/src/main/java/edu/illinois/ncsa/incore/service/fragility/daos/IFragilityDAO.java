@@ -15,13 +15,14 @@ import org.mongodb.morphia.Datastore;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface IFragilityDAO {
     void initialize();
     List<FragilitySet> getFragilities();
-    FragilitySet getById(String id);
+    void saveFragility(FragilitySet fragilitySet);
+    Optional<FragilitySet> getFragilitySetById(String id);
     List<FragilitySet> searchFragilities(String text);
-    Datastore getDataStore();
     List<FragilitySet> queryFragilities(String attributeType, String attributeValue);
     List<FragilitySet> queryFragilities(Map<String, String> typeValueMap, int offset, int limit);
     List<FragilitySet> queryFragilityAuthor(String author);

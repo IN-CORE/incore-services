@@ -13,51 +13,31 @@ package edu.illinois.ncsa.incore.service.fragility.daos;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
-import edu.illinois.ncsa.incore.service.fragility.typeconverters.BigDecimalConverter;
+import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class MongoDBFragilityDAO implements IFragilityDAO {
-    private String hostUri;
-    private String databaseName;
-    private int port;
-    private MongoClientURI mongoClientURI;
-
-    private Datastore dataStore;
+public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
+    // Since the list of fragilities are currently few (at the moment) we can store them in memory
     private List<FragilitySet> fragilities;
 
-    public MongoDBFragilityDAO() {
-        this.port = 27017;
-        this.hostUri = "localhost";
-        this.databaseName = "fragilitydb";
-    }
-
-    public MongoDBFragilityDAO(String hostUri, String databaseName, int port) {
-        this.databaseName = databaseName;
-        this.hostUri = hostUri;
-        this.port = port;
-    }
-
     public MongoDBFragilityDAO(MongoClientURI mongoClientURI) {
-        this.mongoClientURI = mongoClientURI;
-        this.databaseName = mongoClientURI.getDatabase();
+        super(mongoClientURI);
     }
 
     @Override
     public void initialize() {
-        this.initializeDataStore();
+        super.initializeDataStore(FragilitySet.class);
         this.loadFragilities();
     }
 
     @Override
     public List<FragilitySet> getFragilities() {
-        if (this.fragilities == null) {
+        if (this.fragilities == null || this.fragilities.isEmpty()) {
             this.loadFragilities();
         }
 
@@ -65,10 +45,25 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public FragilitySet getById(String id) {
-        FragilitySet fragilitySet = this.dataStore.get(FragilitySet.class, id);
+    public void saveFragility(FragilitySet fragilitySet) {
+        if (fragilitySet == null) {
+            throw new IllegalArgumentException();
+        } else {
+            // the save method mutates the fragilitySet object with an document id
+            this.dataStore.save(fragilitySet);
+        }
 
-        return fragilitySet;
+    }
+
+    @Override
+    public Optional<FragilitySet> getFragilitySetById(String id) {
+        FragilitySet fragilitySet = this.dataStore.get(FragilitySet.class, new ObjectId(id));
+
+        if (fragilitySet == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(fragilitySet);
+        }
     }
 
     @Override
@@ -84,11 +79,6 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
         List<FragilitySet> sets = query.limit(100).asList();
 
         return sets;
-    }
-
-    @Override
-    public Datastore getDataStore() {
-        return this.dataStore;
     }
 
     @Override
@@ -124,22 +114,8 @@ public class MongoDBFragilityDAO implements IFragilityDAO {
         return sets;
     }
 
-    private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-
-        Set<Class> classesToMap = new HashSet<>();
-        classesToMap.add(FragilitySet.class);
-        Morphia morphia = new Morphia(classesToMap);
-        morphia.getMapper().getConverters().addConverter(BigDecimalConverter.class);
-
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
-        morphiaStore.ensureIndexes();
-
-        this.dataStore = morphiaStore;
-    }
-
     private void loadFragilities() {
-        List<FragilitySet> sets = this.dataStore.createQuery(FragilitySet.class).asList();
-        fragilities = sets;
+        List<FragilitySet> fragilitySets = this.dataStore.createQuery(FragilitySet.class).asList();
+        this.fragilities = fragilitySets;
     }
 }

@@ -11,8 +11,10 @@ package edu.illinois.ncsa.incore.service.hazard;
 
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBEarthquakeRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBTornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -20,19 +22,22 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import java.net.URL;
 
-public class Application  extends ResourceConfig {
+public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
         String mongodbUri = "mongodb://localhost:27017/hazarddb";
 
         String mongodbUriProp = Config.getConfigProperties().getProperty("hazard.mongodbURI");
-        if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
+        if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
 
-        IRepository mongoRepository = new MongoDBRepository(new MongoClientURI(mongodbUri));
-        mongoRepository.initialize();
+        IEarthquakeRepository earthquakeRepository = new MongoDBEarthquakeRepository(new MongoClientURI(mongodbUri));
+        earthquakeRepository.initialize();
+
+        ITornadoRepository tornadoRepository = new MongoDBTornadoRepository(new MongoClientURI(mongodbUri));
+        tornadoRepository.initialize();
 
         // Bind Atkinson and Boore 1995 model
         // TODO We need some kind of provider where we can register the hazard models
@@ -49,7 +54,8 @@ public class Application  extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(model).to(AtkinsonBoore1995.class);
-                super.bind(mongoRepository).to(IRepository.class);
+                super.bind(earthquakeRepository).to(IEarthquakeRepository.class);
+                super.bind(tornadoRepository).to(ITornadoRepository.class);
             }
         });
     }

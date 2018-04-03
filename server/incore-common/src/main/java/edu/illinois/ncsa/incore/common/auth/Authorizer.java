@@ -1,26 +1,37 @@
+/*
+ * ******************************************************************************
+ *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ *   This program and the accompanying materials are made available under the
+ *   terms of the BSD-3-Clause which accompanies this distribution,
+ *   and is available at https://opensource.org/licenses/BSD-3-Clause
+ *
+ *   Contributors:
+ *   Nathan Tolbert
+ *  ******************************************************************************
+ */
+
 package edu.illinois.ncsa.incore.common.auth;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 
 /**
  * Authorizer is used by various services to determine if,
- * based on an entity's PrivilegeSpec and a user, whether that user
+ * based on an entity's Privileges and a user, whether that user
  * has a specific privilege for the entity
  */
-public class Authorizer {
+public class Authorizer implements IAuthorizer {
 
     public static final String ANONYMOUS_USER = "anonymous";
-    private static Authorizer instance;
+    private static IAuthorizer instance;
     private LdapClient ldapClient;
 
     //I don't really like the idea of doing this as a singleton,
     //this thing is going to need some configuration to know what
     //ldap it connects to, etc. Some sort of configuration or dependency injection
     //might be preferable, but that's not going to happen for the prototype
-    public static Authorizer getInstance() {
+    public static IAuthorizer getInstance() {
         if (instance == null) {
             instance = new Authorizer();
         }
@@ -28,16 +39,18 @@ public class Authorizer {
     }
 
 
-    public Set<Privilege> getPrivilegesFor(String user, PrivilegeSpec spec) {
-        Set<Privilege> privs = getUserSpecificPrivileges(user, spec);
+    @Override
+    public Set<PrivilegeLevel> getPrivilegesFor(String user, Privileges spec) {
+        Set<PrivilegeLevel> privs = getUserSpecificPrivileges(user, spec);
         privs.addAll(getGroupSpecificPrivileges(user, spec));
         return privs;
     }
 
 
 
-    public Set<Privilege> getPrivilegesFor(String user, String privilegeSpecJson) {
-        PrivilegeSpec spec =  PrivilegeSpec.fromJson(privilegeSpecJson);
+    @Override
+    public Set<PrivilegeLevel> getPrivilegesFor(String user, String privilegeSpecJson) {
+        Privileges spec =  Privileges.fromJson(privilegeSpecJson);
         return getPrivilegesFor(user, spec);
     }
 
@@ -45,24 +58,28 @@ public class Authorizer {
     // convenience methods to make it easier to query
     /////////////////////////////////////////////////////////
 
-    public boolean canRead(String user, PrivilegeSpec privilegeSpec) {
-        return getPrivilegesFor(user, privilegeSpec).contains(Privilege.READ);
+    @Override
+    public boolean canRead(String user, Privileges privileges) {
+        return getPrivilegesFor(user, privileges).contains(PrivilegeLevel.READ);
     }
 
+    @Override
     public boolean canRead(String user, String privilegeSpecJson) {
-        return getPrivilegesFor(user, privilegeSpecJson).contains(Privilege.READ);
+        return getPrivilegesFor(user, privilegeSpecJson).contains(PrivilegeLevel.READ);
     }
 
-    public boolean canWrite(String user, PrivilegeSpec privilegeSpec) {
-        return getPrivilegesFor(user, privilegeSpec).contains(Privilege.WRITE);
+    @Override
+    public boolean canWrite(String user, Privileges privileges) {
+        return getPrivilegesFor(user, privileges).contains(PrivilegeLevel.WRITE);
     }
 
+    @Override
     public boolean canWrite(String user, String privilegeSpecJson) {
-        return getPrivilegesFor(user, privilegeSpecJson).contains(Privilege.WRITE);
+        return getPrivilegesFor(user, privilegeSpecJson).contains(PrivilegeLevel.WRITE);
     }
 
 
-    private Set<Privilege> getGroupSpecificPrivileges(String user, PrivilegeSpec spec) {
+    private Set<PrivilegeLevel> getGroupSpecificPrivileges(String user, Privileges spec) {
         LdapClient ldapClient = getLdapClient();
         Set<String> userGroups = ldapClient.getUserGroups(user);
         return spec.groupPrivileges.keySet().stream()
@@ -71,7 +88,7 @@ public class Authorizer {
                 .collect(Collectors.toSet());
     }
 
-    private Set<Privilege> getUserSpecificPrivileges(String user, PrivilegeSpec spec) {
+    private Set<PrivilegeLevel> getUserSpecificPrivileges(String user, Privileges spec) {
         return spec.userPrivileges.keySet().stream()
                 .filter(user::equals)
                 .map( key -> spec.userPrivileges.get(key))

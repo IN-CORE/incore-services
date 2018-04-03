@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
-import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
@@ -30,7 +30,7 @@ public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
 
     @Inject
-    private IRepository repository;
+    private ITornadoRepository repository;
 
     private GeometryFactory factory = new GeometryFactory();
 

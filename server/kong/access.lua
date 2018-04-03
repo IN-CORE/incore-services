@@ -101,7 +101,7 @@ local function store_new_token(login, token_seed)
 	end
 	ngx_log(ngx_debug, "[ldap-auth] inserting new token seed into db:" ..login .. ":" .. token_seed)
 	consumer_id = lookup_consumer_id()
-	local insert_result,err = singletons.dao.basicauth_credentials:insert({username=login,password=token, consumer_id="a81a3205-3eb2-44ff-b3bd-1e9c2ac55d18"})
+	local insert_result,err = singletons.dao.basicauth_credentials:insert({username=login,password=token, consumer_id=consumer_id})
 	if err ~= nil then
 		ngx_log(ngx_debug, "[ldap-auth] error inserting" ..dump(err))
 		return nil

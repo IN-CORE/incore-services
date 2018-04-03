@@ -10,8 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.hazard;
 
-import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.MockRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.MockTornadoRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -20,15 +20,15 @@ public class MockApplication extends ResourceConfig {
     private static final Logger log = Logger.getLogger(MockApplication.class);
 
     public MockApplication(Class clazz) {
-        IRepository mockRepository = new MockRepository();
-        mockRepository.initialize();
+        ITornadoRepository mockTornadoRepository = new MockTornadoRepository();
+        mockTornadoRepository.initialize();
 
         super.register(clazz);
         super.register(new AbstractBinder() {
 
             @Override
             protected void configure() {
-                super.bind(mockRepository).to(IRepository.class);
+                super.bind(mockTornadoRepository).to(ITornadoRepository.class);
             }
         });
     }

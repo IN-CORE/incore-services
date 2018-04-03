@@ -11,7 +11,8 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
+import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
+import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
@@ -24,11 +25,14 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResu
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.log4j.Logger;
+import org.opengis.coverage.grid.GridCoverage;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,7 +46,7 @@ public class EarthquakeController {
     private GeometryFactory factory = new GeometryFactory();
 
     @Inject
-    private IRepository repository;
+    private IEarthquakeRepository repository;
 
     @Inject
     private AtkinsonBoore1995 model;
@@ -50,12 +54,40 @@ public class EarthquakeController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
+    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake, @HeaderParam("X-Credential-Username") String username) {
         if (scenarioEarthquake != null) {
-            return repository.addScenarioEarthquake(scenarioEarthquake);
+            model.setRuptureParameters(scenarioEarthquake.getEqParameters());
+
+            // TODO this should be determined from the scenario earthquake
+            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
+            attenuations.put(model, 1.0);
+
+            try {
+                // TODO consider making the tif file options
+                File incoreWorkDirectory = File.createTempFile("incore", ".dir");
+                incoreWorkDirectory.delete();
+                incoreWorkDirectory.mkdirs();
+
+                File hazardFile = new File(incoreWorkDirectory, HazardDataset.HAZARD_TIF);
+
+                GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations);
+                HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
+
+                String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
+                String description = "scenario earthquake visualization";
+                String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description);
+                scenarioEarthquake.setRasterDatasetId(datasetId);
+
+                return repository.addScenarioEarthquake(scenarioEarthquake);
+            } catch (IOException e) {
+                logger.error("Error writing the hazard raster to file.", e);
+            } catch (Exception e) {
+                logger.error("Error creating the raster gridcoverage", e);
+            }
+
         }
 
-        throw new InternalServerErrorException("Earthquake was null");
+        throw new InternalServerErrorException("Earthquake couldn't be created");
     }
 
     @GET

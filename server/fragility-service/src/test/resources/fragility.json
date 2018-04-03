@@ -1,9 +1,9 @@
 [
   {
-    "id": "5894ebee1a743941f0c4bc26",
+    "id": "5aa9858b949f232724db42e0",
     "legacyId": "NSDS_PFM_MTB_UL_475_W1_4",
-    "hazardType": "Seismic",
-    "inventoryType": "Building",
+    "hazardType": "earthquake",
+    "inventoryType": "building",
     "authors": [
       "Amr S. Elnashai",
       "Seong-Hoon Jeong",
@@ -50,10 +50,10 @@
     ]
   },
   {
-    "id": "5894ebee1a743941f0c4a4e0",
+    "id": "5aa9858a949f232724db2b9a",
     "legacyId": "STR_PFM_MTB_UL_475_S2_9",
-    "hazardType": "Seismic",
-    "inventoryType": "Building",
+    "hazardType": "earthquake",
+    "inventoryType": "building",
     "authors": [
       "Amr S. Elnashai",
       "Seong-Hoon Jeong",

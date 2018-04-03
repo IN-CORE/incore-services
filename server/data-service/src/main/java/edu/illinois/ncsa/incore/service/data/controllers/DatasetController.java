@@ -12,6 +12,8 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
@@ -40,6 +42,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -60,6 +63,12 @@ public class DatasetController {
     @Inject
     private IRepository repository;
 
+
+    @Inject
+    private IAuthorizer authorizer;
+
+
+
     /**
      * Returns a list of datasets in the Dataset collection
      *
@@ -69,11 +78,15 @@ public class DatasetController {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Dataset getDatasetFromRepo(@PathParam("id") String datasetId) {
+    public Dataset getDatasetFromRepo(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
+        if (!authorizer.canRead(username, dataset.getPrivileges())){
+            throw new ForbiddenException("You are not allowed to access that dataset");
         }
 
         return dataset;
@@ -87,7 +100,7 @@ public class DatasetController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getDatasets(@QueryParam("type") String typeStr, @QueryParam("title") String titleStr) {
+    public List<Dataset> getDatasets(@HeaderParam("X-Credential-Username") String username, @QueryParam("type") String typeStr, @QueryParam("title") String titleStr) {
         List<Dataset> datasets = null;
         if (typeStr != null && titleStr == null) {  // query only for the type
             datasets = repository.getDatasetByType(typeStr);
@@ -103,7 +116,10 @@ public class DatasetController {
             logger.error("Error finding dataset");
             throw new NotFoundException("Error finding dataset");
         }
-        return datasets;
+
+        return datasets.stream()
+            .filter( d -> authorizer.canRead(username, d.getPrivileges()) )
+            .collect(Collectors.toList());
     }
 
     /**
@@ -114,13 +130,18 @@ public class DatasetController {
     @GET
     @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByDataset(@PathParam("id") String datasetId) {
+    public Response getFileByDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
         File outFile = null;
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset ==  null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
+
+        if (!authorizer.canRead(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
+        }
+
         try {
             outFile = FileUtils.loadFileFromService(dataset, repository, false, "");
         } catch (IOException e){
@@ -172,13 +193,18 @@ public class DatasetController {
     @GET
     @Path("{id}/files/{file_id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) {
+    public Response getFileByFileDescriptor(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String id, @PathParam("file_id") String fileId) {
         File outFile = null;
         Dataset dataset = repository.getDatasetById(id);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + id);
             throw new NotFoundException("Error finding dataset with the id of " + id);
         }
+
+        if (!authorizer.canRead(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
+        }
+
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         String dataUrl = "";
@@ -231,6 +257,7 @@ public class DatasetController {
         String fdId = "";
         FileDescriptor fileDescriptor = null;
 
+
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
             if (fdId.equals(fileId)) {
@@ -260,6 +287,7 @@ public class DatasetController {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
         }
+
 
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
@@ -292,6 +320,7 @@ public class DatasetController {
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
+            dataset.setPrivileges(Privileges.newWithSingleOwner(username));
 
 
             dataset = repository.addDataset(dataset);
@@ -434,7 +463,7 @@ public class DatasetController {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                 String fileExt = FilenameUtils.getExtension(fileName);
                 if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||
-                        fileExt.equalsIgnoreCase("tif")) {
+                    fileExt.equalsIgnoreCase("tif")) {
                     isGeoserver = true;
                     if (fileExt.equalsIgnoreCase("asc")) {
                         isAsc = true;
@@ -543,7 +572,7 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    public Object updateObject(@PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
+    public Object updateObject(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
             logger.error("Posted json is not a valid json.");
@@ -551,6 +580,11 @@ public class DatasetController {
         }
 
         Dataset dataset = null;
+        dataset = repository.getDatasetById(datasetId);
+        if (!(authorizer.canWrite(username, dataset.getPrivileges()))) {
+            throw new ForbiddenException();
+        }
+
 
         if (isJsonValid) {
             String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);

@@ -12,16 +12,15 @@ package edu.illinois.ncsa.incore.service.fragility.controllers;
 
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -30,7 +29,7 @@ public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
 
     @Inject
-    private IFragilityDAO dataAccess;
+    private IFragilityDAO fragilityDAO;
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
@@ -65,34 +64,37 @@ public class FragilityController {
 
         if (queryMap.isEmpty()) {
             // return top 100
-            fragilitySets = this.dataAccess.getFragilities()
-                                           .stream()
-                                           .skip(offset)
-                                           .limit(limit)
-                                           .collect(Collectors.toList());
+            fragilitySets = this.fragilityDAO.getFragilities()
+                                             .stream()
+                                             .skip(offset)
+                                             .limit(limit)
+                                             .collect(Collectors.toList());
         } else {
             // return query
-            fragilitySets = this.dataAccess.queryFragilities(queryMap, offset, limit);
+            fragilitySets = this.fragilityDAO.queryFragilities(queryMap, offset, limit);
         }
 
         return fragilitySets;
     }
 
     @POST
-    public Response uploadFragilitySet(FragilitySet fragilitySet) {
-        throw new NotImplementedException();
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    public FragilitySet uploadFragilitySet(FragilitySet fragilitySet) {
+        this.fragilityDAO.saveFragility(fragilitySet);
+        return fragilitySet;
     }
 
     @GET
     @Path("{fragilityId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public FragilitySet getFragilityById(@PathParam("fragilityId") String id) throws Exception {
-        FragilitySet fragilitySet = this.dataAccess.getById(id);
+    public FragilitySet getFragilityById(@PathParam("fragilityId") String id) {
+        Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
-        if (fragilitySet == null) {
-            throw new NotFoundException();
+        if (fragilitySet.isPresent()) {
+            return fragilitySet.get();
         } else {
-            return fragilitySet;
+            throw new NotFoundException();
         }
     }
 
@@ -100,7 +102,7 @@ public class FragilityController {
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> findFragilities(@QueryParam("text") String text) {
-        List<FragilitySet> sets = this.dataAccess.searchFragilities(text);
+        List<FragilitySet> sets = this.fragilityDAO.searchFragilities(text);
 
         if (sets == null || sets.size() == 0) {
             throw new NotFoundException();

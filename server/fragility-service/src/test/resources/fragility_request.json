@@ -1,0 +1,47 @@
+{
+  "legacyId": "legacyId",
+  "hazardType": "hazardType",
+  "inventoryType": "inventoryType",
+  "authors": [
+    "Chen Wang"
+  ],
+  "description": "description",
+  "resultType": "resultType",
+  "demandType": "demandType",
+  "demandUnits": "demandUnits",
+  "fragilityCurves": [
+    {
+      "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
+      "periodParam2": 0.0,
+      "periodParam1": 0.0,
+      "periodParam0": 0.35,
+      "periodEqnType": 1,
+      "median": -1.129,
+      "beta": 0.644,
+      "curveType": "LogNormal",
+      "description": "Moderate"
+    },
+    {
+      "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
+      "periodParam2": 0.0,
+      "periodParam1": 0.0,
+      "periodParam0": 0.35,
+      "periodEqnType": 1,
+      "median": 0.088,
+      "beta": 0.644,
+      "curveType": "LogNormal",
+      "description": "Extensive"
+    },
+    {
+      "className": "edu.illinois.ncsa.incore.service.fragility.models.PeriodStandardFragilityCurve",
+      "periodParam2": 0.0,
+      "periodParam1": 0.0,
+      "periodParam0": 0.35,
+      "periodEqnType": 1,
+      "median": 0.83,
+      "beta": 0.644,
+      "curveType": "LogNormal",
+      "description": "Complete"
+    }
+  ]
+}
