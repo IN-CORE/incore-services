@@ -1,4 +1,4 @@
-Unit]
+[Unit]
 Description= kong service
 After=syslog.target network.target
  
