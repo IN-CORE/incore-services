@@ -4,6 +4,7 @@ package edu.illinois.ncsa.incore.semantic.units.parser.units;
 import edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits;
 import edu.illinois.ncsa.incore.semantic.units.instances.Units;
 import edu.illinois.ncsa.incore.semantic.units.model.Unit;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,9 +12,8 @@ import java.text.ParseException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 public class ParserTests {
-
-
     @Test
     @DisplayName("centimetres per second squared")
     public void testParse_Prefix_Long_Plural() throws ParseException {
