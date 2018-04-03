@@ -18,13 +18,13 @@ curl -i -X POST \
 
 
 
-curl -i -X DELETE --url http://localhost:8001/apis/repo
+curl -i -X DELETE --url http://localhost:8001/apis/data
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
-  --data 'name=repo' \
-  --data 'uris=/repo' \
-  --data 'upstream_url=http://10.0.2.2:8080/repo/'
+  --data 'name=data' \
+  --data 'uris=/data' \
+  --data 'upstream_url=http://10.0.2.2:8080/data/'
 
 
 
@@ -38,13 +38,6 @@ curl -i -X POST \
   --data 'uris=/hazard' \
   --data 'upstream_url=http://10.0.2.2:8080/hazard/'
 
-
-curl -i -X DELETE --url http://localhost:8001/apis/data
-curl -i -X POST \
-  --url http://localhost:8001/apis/ \
-  --data 'name=data' \
-  --data 'uris=/data' \
-  --data 'upstream_url=http://10.0.2.2:8080/data/'
 
 curl -i -X DELETE --url http://localhost:8001/apis/auth
 curl -i -X POST \
