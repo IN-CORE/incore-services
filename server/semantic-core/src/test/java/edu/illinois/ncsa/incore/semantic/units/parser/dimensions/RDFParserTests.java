@@ -27,7 +27,7 @@ public class RDFParserTests {
         BaseDimension expected = Dimensions.length;
 
         // act
-        Dimension actual = RDFParser.parseDimensions(rdf).get(0).get();
+        Dimension actual = RDFParser.parseDimensions(rdf).get(0);
 
         // assert
         assertEquals(expected, actual);
@@ -41,7 +41,7 @@ public class RDFParserTests {
         Dimensionless expected = Dimensions.angle;
 
         // act
-        Dimension actual = RDFParser.parseDimensions(rdf).get(0).get();
+        Dimension actual = RDFParser.parseDimensions(rdf).get(0);
 
         // assert
         assertEquals(expected, actual);
@@ -55,7 +55,7 @@ public class RDFParserTests {
         DerivedDimension expected = Dimensions.electricCurrentDensity;
 
         // act
-        Dimension actual = RDFParser.parseDimensions(rdf).get(0).get();
+        Dimension actual = RDFParser.parseDimensions(rdf).get(0);
 
         // assert
         assertEquals(expected, actual);

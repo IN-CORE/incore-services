@@ -17,6 +17,7 @@ import org.apache.jena.vocabulary.RDFS;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,26 +44,32 @@ public final class RDFParser {
             String symbol = resource.getProperty(RDFModel.symbol).getObject().asLiteral().getString();
             String unicodeSymbol = resource.getProperty(RDFModel.symbolUnicode).getObject().asLiteral().getString();
             String typeURI = resource.getProperty(RDF.type).getObject().asResource().getLocalName();
-
         }
 
         return units;
     }
 
-    public static List<Optional<Dimension>> parseDimensions(String rdf) {
-        List<Optional<Dimension>> dimensions = new ArrayList<>();
-
-        InputStream stream = new ByteArrayInputStream(rdf.getBytes());
+    public static List<Dimension> parseDimensions(String rdf) {
+        List<Dimension> dimensions = new ArrayList<>();
 
         Model model = ModelFactory.createDefaultModel();
-        model.read(stream, "", "TTL");
+
+        try {
+            InputStream stream = new ByteArrayInputStream(rdf.getBytes("UTF-8"));
+            model.read(stream, "", "TTL");
+        } catch (UnsupportedEncodingException ex) {
+            // return empty array if there are utf-8 issues
+            return dimensions;
+        }
 
         for (ResIterator iterator = model.listResourcesWithProperty(RDF.type); iterator.hasNext(); ) {
             Resource resource = iterator.next();
 
             Optional<Dimension> parseResult = parseDimension(resource);
 
-            dimensions.add(parseResult);
+            if (parseResult.isPresent()) {
+                dimensions.add(parseResult.get());
+            }
         }
 
         return dimensions;
