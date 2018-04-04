@@ -10,19 +10,18 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.ArrayList;
 import java.util.List;
 
-@XmlRootElement
+@Entity("FragilitySet")
 public class FragilitySet {
     @Id
-    @Property("_id")
-    private String id;
+    private ObjectId id;
 
     @XmlTransient
     private String legacyId;
@@ -62,7 +61,11 @@ public class FragilitySet {
 
     // region Getters
     public String getId() {
-        return id;
+        if (id == null) {
+            return null;
+        } else {
+            return id.toHexString();
+        }
     }
 
     public String getLegacyId() {

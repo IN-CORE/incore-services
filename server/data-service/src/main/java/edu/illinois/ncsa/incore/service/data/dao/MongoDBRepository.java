@@ -37,7 +37,7 @@ import static com.mongodb.client.model.Filters.eq;
 public class MongoDBRepository implements IRepository {
     private final String DATASET_COLLECTION_NAME = "Dataset";
     private final String DATASET_FIELD_NAME = "name";
-    private final String DATASET_FIELD_TYPE = "type";
+    private final String DATASET_FIELD_TYPE = "dataType";
     private final String DATASET_FIELD_TITLE = "title";
     private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";
     private String hostUri;
