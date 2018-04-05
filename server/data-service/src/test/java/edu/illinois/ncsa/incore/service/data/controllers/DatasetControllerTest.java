@@ -40,6 +40,7 @@ class DatasetControllerTest extends CustomJerseyTest{
     @Override
     public ResourceConfig configure() {
         forceSet(TestProperties.CONTAINER_PORT, "0");
+
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 

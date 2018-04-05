@@ -5,7 +5,7 @@
  * and is available at https://opensource.org/licenses/BSD-3-Clause
  *
  * Contributors:
- * Omar Elabd, Nathan Tolbert, Chen Wang
+ * Omar Elabd, Nathan Tolbert
  */
 
 package mocks;
@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
+import org.bson.types.ObjectId;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -22,34 +23,32 @@ import org.mongodb.morphia.Key;
 import org.mongodb.morphia.query.Query;
 
 import java.io.IOException;
-import java.net.URL;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.net.URL;
+import java.util.*;
 
 public class MockFragilityDAO implements IFragilityDAO {
     private Datastore mockDataStore;
     private List<FragilitySet> fragilitySets = new ArrayList<>();
 
-    public MockFragilityDAO() { this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS); }
+    public MockFragilityDAO() {
+        this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);
+    }
 
     @Override
     public void initialize() {
-        URL fragilityPath = this.getClass().getClassLoader().getResource("json/fragility.json");
+        URL fragilityPath = this.getClass().getClassLoader().getResource("fragility.json");
 
         try {
-            this.fragilitySets = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<FragilitySet>>() {
-            });
+            this.fragilitySets = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<FragilitySet>>() {});
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         Mockito.when(mockDataStore.createQuery(FragilitySet.class)
-                .limit(Mockito.any(Integer.class))
-                .asList())
-                .thenReturn(this.fragilitySets);
+                                  .limit(Mockito.any(Integer.class))
+                                  .asList())
+               .thenReturn(this.fragilitySets);
 
         // generate mock key object with uuid once successfully saved
         Answer<Key<FragilitySet>> ans = new Answer<Key<FragilitySet>>() {
@@ -67,32 +66,27 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public FragilitySet saveFragility(FragilitySet fragilitySet) {
-        Key<FragilitySet> savedFragility = this.mockDataStore.save(fragilitySet);
-        String doc_id = savedFragility.getId().toString();
-
+    public void saveFragility(FragilitySet fragilitySet) {
         // mutate fragilitySet object with this id
         try {
-            Field f1 = FragilitySet.class.getDeclaredField("id");
-            f1.setAccessible(true);
-            try {
-                f1.set(fragilitySet, doc_id);
-            }catch (IllegalAccessException e){
-                System.out.println(e.getMessage());
-                return null;
-            }
-        }catch(NoSuchFieldException e){
-            System.out.println(e.getMessage());
-            return null;
-        }
+            Field field = FragilitySet.class.getDeclaredField("id");
+            field.setAccessible(true);
 
-        return fragilitySet;
+            try {
+                field.set(fragilitySet, new ObjectId());
+            } catch (IllegalAccessException e) {
+                // do nothing
+            }
+        } catch (NoSuchFieldException e) {
+            // do nothing
+        }
     }
 
+
     @Override
-    public FragilitySet getById(String id) {
+    public Optional<FragilitySet> getFragilitySetById(String id) {
         FragilitySet fragilitySet = this.mockDataStore.get(FragilitySet.class, id);
-        return fragilitySet;
+        return Optional.of(fragilitySet);
     }
 
     @Override
@@ -111,16 +105,11 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public Datastore getDataStore() {
-        return this.mockDataStore;
-    }
-
-    @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
-                                                .filter(attributeType, attributeValue)
-                                                .limit(100)
-                                                .asList();
+                                                    .filter(attributeType, attributeValue)
+                                                    .limit(100)
+                                                    .asList();
 
         return sets;
     }
@@ -141,9 +130,9 @@ public class MockFragilityDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
         List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
-                                                .field("authors")
-                                                .contains(author)
-                                                .asList();
+                                                    .field("authors")
+                                                    .contains(author)
+                                                    .asList();
 
         return sets;
     }

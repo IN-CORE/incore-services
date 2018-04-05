@@ -9,6 +9,8 @@
  *******************************************************************************/
 package mocks;
 
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.MockAuthorizer;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -24,6 +26,9 @@ public class MockApplication extends ResourceConfig {
         IRepository mockRepository = new MockRepository();
         mockRepository.initialize();
 
+        IAuthorizer mockAuthorizer = new MockAuthorizer(true, true);
+
+
         super.register(klass);
 
         super.register(MultiPart.class);
@@ -33,6 +38,7 @@ public class MockApplication extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(mockRepository).to(IRepository.class);
+                super.bind(mockAuthorizer).to(IAuthorizer.class);
             }
         });
     }

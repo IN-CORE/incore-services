@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
@@ -104,6 +105,13 @@ public class Dataset {
      * List of spaces to the artifact.
      */
     private List<String> spaces = null;
+
+
+
+    /**
+     * Privileges associated with this dataset
+     */
+    private Privileges privileges = new Privileges();
 
     public Dataset() {
     }
@@ -408,6 +416,15 @@ public class Dataset {
      */
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+
+    public Privileges getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Privileges privileges) {
+        this.privileges = privileges;
     }
 
     /**

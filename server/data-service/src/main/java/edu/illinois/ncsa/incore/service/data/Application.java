@@ -15,6 +15,7 @@ package edu.illinois.ncsa.incore.service.data;
 
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.dao.MongoDBRepository;
@@ -37,12 +38,14 @@ public class Application extends ResourceConfig {
         mongoRepository.initialize();
 
 
+        IAuthorizer authorizer = Authorizer.getInstance();
+
         super.register(new AbstractBinder () {
 
             @Override
             protected void configure() {
                 super.bind(mongoRepository).to(IRepository.class);
-                super.bind(mongoRepository).to(IRepository.class);
+                super.bind(authorizer).to(IAuthorizer.class);
             }
 
         });

@@ -28,6 +28,7 @@ Vagrant.configure(2) do |config|
   # accessing "localhost:8080" will access port 80 on the guest machine.
   config.vm.network "forwarded_port", guest: 3456,   host: 3456  #logstash
   config.vm.network "forwarded_port", guest: 8088,   host: 8088  #kong
+  config.vm.network "forwarded_port", guest: 8001,   host: 8001  #kong admin
   config.vm.network "forwarded_port", guest: 27017,  host: 27017 #mongo
   config.vm.network "forwarded_port", guest: 8888,   host: 8888  #datawolf
 

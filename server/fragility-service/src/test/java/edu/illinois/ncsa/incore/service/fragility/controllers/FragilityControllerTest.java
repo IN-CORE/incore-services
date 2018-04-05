@@ -10,12 +10,9 @@
 
 package edu.illinois.ncsa.incore.service.fragility.controllers;
 
-import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import mocks.MockApplication;
-import org.geojson.FeatureCollection;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.jupiter.api.Test;
@@ -27,9 +24,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URL;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FragilityControllerTest extends CustomJerseyTest {
@@ -40,6 +35,7 @@ public class FragilityControllerTest extends CustomJerseyTest {
     @Override
     public ResourceConfig configure() {
         forceSet(TestProperties.CONTAINER_PORT, "0");
+
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
@@ -48,40 +44,29 @@ public class FragilityControllerTest extends CustomJerseyTest {
         return application;
     }
 
-    // test GET /fragilities
     @Test
     public void testGetFragilities() throws IOException {
-        Response response = target("/fragilities").request()
-                                .get();
+        Response response = target("/fragilities").request().get();
+
         assertEquals(200, response.getStatus());
-        assertTrue( response.getLength() >= 0 );
+        assertTrue(response.getLength() >= 0);
     }
 
-
-    // test POST /fragilities
     @Test
     public void testSaveFragility() throws IOException {
-        
         // read payload data from json file
-        URL jsonURL = this.getClass().getClassLoader().getResource("json/fragility_request.json");
+        URL jsonURL = this.getClass().getClassLoader().getResource("fragility_request.json");
         ObjectMapper mapper = new ObjectMapper();
         FragilitySet request = mapper.readValue(jsonURL, FragilitySet.class);
 
         // act
-        Response response = target("/fragilities").request()
-                                .accept(MediaType.APPLICATION_JSON)
-                                .post(Entity.json(request), Response.class);
+        FragilitySet returned = target("/fragilities").request()
+                                                      .accept(MediaType.APPLICATION_JSON)
+                                                      .post(Entity.json(request), FragilitySet.class);
 
-
-        // assert endpoint works
-        assertEquals(200, response.getStatus());
-
-        // succesfully ingest the data to the database will generate new id;
-        FragilitySet returned = response.readEntity(FragilitySet.class);
+        // assert
         assertNotNull(returned.getId());
     }
-
-
 }
 
 

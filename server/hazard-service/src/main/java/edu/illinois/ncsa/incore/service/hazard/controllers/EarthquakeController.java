@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
-import edu.illinois.ncsa.incore.service.hazard.dao.IRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
@@ -46,7 +46,7 @@ public class EarthquakeController {
     private GeometryFactory factory = new GeometryFactory();
 
     @Inject
-    private IRepository repository;
+    private IEarthquakeRepository repository;
 
     @Inject
     private AtkinsonBoore1995 model;

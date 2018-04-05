@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2018 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
  * terms of the BSD-3-Clause which accompanies this distribution,
  * and is available at https://opensource.org/licenses/BSD-3-Clause
@@ -11,7 +11,6 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -21,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MongoDBRepository implements IRepository {
+public class MongoDBTornadoRepository implements ITornadoRepository {
     private String hostUri;
     private String databaseName;
     private int port;
@@ -29,20 +28,19 @@ public class MongoDBRepository implements IRepository {
 
     private Datastore dataStore;
 
-    // TODO I believe we can just use the URI and remove this later
-    public MongoDBRepository() {
+    public MongoDBTornadoRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
         this.databaseName = "hazarddb";
     }
 
-    public MongoDBRepository(String hostUri, String databaseName, int port) {
+    public MongoDBTornadoRepository(String hostUri, String databaseName, int port) {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
     }
 
-    public MongoDBRepository(MongoClientURI mongoClientURI) {
+    public MongoDBTornadoRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
         this.databaseName = mongoClientURI.getDatabase();
     }
@@ -57,27 +55,10 @@ public class MongoDBRepository implements IRepository {
 
         Set<Class> classesToMap = new HashSet<>();
         Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(ScenarioEarthquake.class);
+        classesToMap.add(ScenarioTornado.class);
         Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
-    }
-
-    @Override
-    public ScenarioEarthquake addScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
-        String id = this.dataStore.save(scenarioEarthquake).getId().toString();
-        return getScenarioEarthquakeById(id);
-    }
-
-    @Override
-    public ScenarioEarthquake getScenarioEarthquakeById(String id) {
-        return this.dataStore.get(ScenarioEarthquake.class, new ObjectId(id));
-    }
-
-    @Override
-    public List<ScenarioEarthquake> getScenarioEarthquakes() {
-        List<ScenarioEarthquake> scenarioEarthquakes = this.dataStore.createQuery(ScenarioEarthquake.class).asList();
-        return scenarioEarthquakes;
     }
 
     @Override
