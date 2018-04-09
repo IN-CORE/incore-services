@@ -12,6 +12,9 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
+import org.apache.log4j.Logger;
+
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,6 +25,8 @@ import java.util.stream.Collectors;
  * has a specific privilege for the entity
  */
 public class Authorizer implements IAuthorizer {
+
+    private static final Logger logger = Logger.getLogger(Authorizer.class);
 
     public static final String ANONYMOUS_USER = "anonymous";
     private static IAuthorizer instance;
@@ -47,10 +52,9 @@ public class Authorizer implements IAuthorizer {
     }
 
 
-
     @Override
     public Set<PrivilegeLevel> getPrivilegesFor(String user, String privilegeSpecJson) {
-        Privileges spec =  Privileges.fromJson(privilegeSpecJson);
+        Privileges spec = Privileges.fromJson(privilegeSpecJson);
         return getPrivilegesFor(user, spec);
     }
 
@@ -80,19 +84,41 @@ public class Authorizer implements IAuthorizer {
 
 
     private Set<PrivilegeLevel> getGroupSpecificPrivileges(String user, Privileges spec) {
-        LdapClient ldapClient = getLdapClient();
-        Set<String> userGroups = ldapClient.getUserGroups(user);
-        return spec.groupPrivileges.keySet().stream()
+        if (spec == null) {
+            return allowThisUser(user);
+        }
+        try {
+            LdapClient ldapClient = getLdapClient();
+            Set<String> userGroups = ldapClient.getUserGroups(user);
+            return spec.groupPrivileges.keySet().stream()
                 .filter(userGroups::contains)
-                .map( key -> spec.groupPrivileges.get(key))
+                .map(key -> spec.groupPrivileges.get(key))
                 .collect(Collectors.toSet());
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return new HashSet<PrivilegeLevel>();
+    }
+
+    private Set<PrivilegeLevel> allowThisUser(String user) {
+        Set<PrivilegeLevel> allower = new HashSet<>();
+        allower.add(PrivilegeLevel.ADMIN);
+        return allower;
     }
 
     private Set<PrivilegeLevel> getUserSpecificPrivileges(String user, Privileges spec) {
-        return spec.userPrivileges.keySet().stream()
+        if (spec == null) {
+            return allowThisUser(user);
+        }
+        try {
+            return spec.userPrivileges.keySet().stream()
                 .filter(user::equals)
-                .map( key -> spec.userPrivileges.get(key))
+                .map(key -> spec.userPrivileges.get(key))
                 .collect(Collectors.toSet());
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return new HashSet<PrivilegeLevel>();
     }
 
     private LdapClient getLdapClient() {
