@@ -17,12 +17,18 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.log4j.Logger;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.json.JSONObject;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
 import java.util.List;
 
 @Path("tornadoes")
@@ -43,7 +49,7 @@ public class TornadoController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioTornado createScenarioTornado(ScenarioTornado scenarioTornado) throws Exception {
+    public ScenarioTornado createScenarioTornado(ScenarioTornado scenarioTornado, @HeaderParam("X-Credential-Username") String username) throws Exception {
         if (scenarioTornado != null) {
             if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
                 Tornado tornado = new MeanWidthTornado();
@@ -55,7 +61,15 @@ public class TornadoController {
                 scenarioTornado.setTornadoWidth(tornado.getTornadoWidths());
                 scenarioTornado.setEfBoxes(tornado.getEFBoxes());
 
-                // TODO we should generate the shapefile and store this with the model for display
+                SimpleFeatureCollection collection = TornadoUtils.createTornadoGeometry(scenarioTornado);
+
+                // Create the files from feature collection
+                File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection)collection);
+                // Create dataset object representation for storing shapefile
+                JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
+                // Store the dataset
+                String datasetId = ServiceUtil.createDataset(datasetObject, username, files);
+                scenarioTornado.setTornadoDatasetId(datasetId);
             } else {
                 throw new InternalServerErrorException("Tornado model " + scenarioTornado.getTornadoModel() + " not yet implemented.");
             }

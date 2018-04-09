@@ -12,11 +12,31 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.operation.buffer.BufferOp;
+import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoHazard;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoParameters;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import org.apache.log4j.Logger;
+import org.geotools.data.DataStore;
+import org.geotools.data.Transaction;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.AttributeTypeBuilder;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.GeometryDescriptor;
+import org.opengis.feature.type.GeometryType;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -197,6 +217,44 @@ public class TornadoUtils {
         return geometryFactory.createLineString(coords);
     }
 
+    public static SimpleFeatureCollection createTornadoGeometry(ScenarioTornado scenarioTornado) {
+
+        DefaultFeatureCollection collection = new DefaultFeatureCollection();
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        // FeatureTypeBuilder builder = FeatureTypeBuilder.newInstance("Tornado output"); //$NON-NLS-1$
+
+        AttributeTypeBuilder attBuilder = new AttributeTypeBuilder();
+        attBuilder.setName("the_geom"); //$NON-NLS-1$
+        attBuilder.setBinding(Polygon.class);
+        attBuilder.crs(DefaultGeographicCRS.WGS84);
+        GeometryType geomType = attBuilder.buildGeometryType();
+        GeometryDescriptor geomDesc = attBuilder.buildDescriptor("the_geom", geomType); //$NON-NLS-1$
+
+        builder.setName(TornadoHazard.TORNADO_SCHEMA_NAME);
+        builder.add(geomDesc);
+        builder.add(TornadoHazard.SIMULATION, Integer.class);
+        builder.add(TornadoHazard.EF_RATING_FIELD, String.class);
+
+        SimpleFeatureType schema = builder.buildFeatureType();
+        SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(schema);
+        for (int simulation = 0; simulation < scenarioTornado.getNumSimulations(); simulation++) {
+            LineString tornadoPath = TornadoUtils.createTornadoPath(scenarioTornado.getTornadoParameters(), simulation);
+            EFBox efbox = scenarioTornado.getEfBoxes().get(simulation);
+            List<Geometry> geometry = createTornadoGeometry(scenarioTornado.getTornadoParameters(), efbox.getEfBoxWidths(), tornadoPath);
+
+            for (int index = 0; index < geometry.size(); index++) {
+                featureBuilder.add(geometry.get(index));
+                featureBuilder.add(simulation);
+                featureBuilder.add("EF" + (geometry.size() - index - 1)); //$NON-NLS-1$
+                SimpleFeature feature = featureBuilder.buildFeature(null);
+                collection.add(feature);
+            }
+
+        }
+
+        return collection;
+    }
+
     public static List<Geometry> createTornadoGeometry(TornadoParameters tornadoParameters, List<Double> efBoxWidths, LineString tornadoPath) {
 
         // Tornado Parameters
@@ -237,4 +295,53 @@ public class TornadoUtils {
         return efBoxPolys;
 
     }
+
+    public static File[] createTornadoShapefile(DefaultFeatureCollection featureCollection) throws IOException {
+
+        Transaction transaction = null;
+        File incoreWorkDirectory = null;
+        try {
+            incoreWorkDirectory = File.createTempFile("incore", ".dir");
+            incoreWorkDirectory.delete();
+            incoreWorkDirectory.mkdirs();
+
+            File hazardFile = new File(incoreWorkDirectory, "tornado.shp");
+
+            DataStore dataStore = new ShapefileDataStore(hazardFile.toURI().toURL());
+            dataStore.createSchema(featureCollection.getSchema());
+            SimpleFeatureStore featureStore = (SimpleFeatureStore) dataStore.getFeatureSource(dataStore.getNames().get(0));
+            transaction = featureStore.getTransaction();
+
+            featureStore.addFeatures(featureCollection);
+
+        } finally {
+            if(transaction != null) {
+                transaction.commit();
+                transaction.close();
+
+                return incoreWorkDirectory.listFiles();
+            }
+        }
+        return null;
+    }
+
+    public static JSONObject getTornadoDatasetObject(String title, String creator, String description) {
+        JSONArray spaces = new JSONArray();
+        if (creator != null) {
+            spaces.put(creator);
+        }
+        spaces.put(HazardDataset.ERGO_SPACE);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(HazardDataset.SCHEMA, TornadoHazard.TORNADO_SCHEMA_NAME);
+        jsonObject.put(HazardDataset.TYPE, TornadoHazard.TORNADO_HAZARD_TYPE);
+        jsonObject.put(HazardDataset.TITLE, title);
+        jsonObject.put(HazardDataset.SOURCE_DATASET, "");
+        jsonObject.put(HazardDataset.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
+        jsonObject.put(HazardDataset.DESCRIPTION, description);
+        jsonObject.put(HazardDataset.SPACES, spaces);
+
+        return jsonObject;
+    }
+
 }
