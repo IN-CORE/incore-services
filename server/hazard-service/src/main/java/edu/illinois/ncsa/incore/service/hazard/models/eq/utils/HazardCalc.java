@@ -136,7 +136,7 @@ public class HazardCalc {
             long widthLong = Math.round(Math.abs((maxX - minX) / gridSpacing)); // + 1;
             long heightLong = Math.round(Math.abs((maxY - minY) / gridSpacing)); // + 1;
             if ((widthLong > Integer.MAX_VALUE) || (heightLong > Integer.MAX_VALUE)) {
-                logger.error("Overflow....too many points to fit in an int"); //$NON-NLS-1$
+                logger.error("Overflow....too many points to fit in an int");
             }
             // adjustMaxMin();
             width = (int) widthLong;

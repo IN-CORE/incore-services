@@ -17,10 +17,7 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -33,6 +30,8 @@ public class LdapClient {
     public static String ldapUri = Config.getConfigProperties().getProperty("auth.ldap.url");
     public static String userDn = Config.getConfigProperties().getProperty("auth.ldap.userDn");
 
+    public Map<String,Set<String>> userGroupCache = new HashMap<>();
+
     private DirContext getContext() throws NamingException {
 
         Hashtable env = new Hashtable();
@@ -43,6 +42,10 @@ public class LdapClient {
     }
 
     public Set<String> getUserGroups(String user) {
+
+        if (userGroupCache.containsKey(user)) {
+            return userGroupCache.get(user);
+        }
 
         Set<String> result = new HashSet<>();
         try {
@@ -74,6 +77,7 @@ public class LdapClient {
         } catch (NamingException e) {
             log.error("Could not find groups for user " + user, e);
         }
+        userGroupCache.put(user, result);
         return result;
     }
 

@@ -89,7 +89,7 @@ public class MappingController {
     }
 
     @POST
-    @Path("/match/{mappingSetId}")
+    @Path("{mappingSetId}/matched")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     public MappingResponse mapFragilities(@PathParam("mappingSetId") String mappingSetId,
