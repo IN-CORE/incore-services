@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
@@ -31,6 +32,8 @@ public class ScenarioEarthquake {
 
     // ID of the site class dataset
     private String siteClassDataset;
+
+    private Privileges privileges;
 
     // Default site class
     private String defaultSiteClass;
@@ -83,6 +86,14 @@ public class ScenarioEarthquake {
     public void setVisualizationParameters(EqVisualization visualizationParameters) {
         this.visualizationParameters = visualizationParameters;
     }
+    public Privileges getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Privileges privileges) {
+        this.privileges = privileges;
+    }
+
 
 
 }

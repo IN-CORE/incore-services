@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
@@ -27,6 +28,8 @@ public class ScenarioTornado {
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;
     private String tornadoDatasetId;
+
+    private Privileges privileges;
 
     public String getId() {
         return id.toString();
@@ -80,5 +83,13 @@ public class ScenarioTornado {
 
     public void setTornadoDatasetId(String tornadoDatasetId) {
         this.tornadoDatasetId = tornadoDatasetId;
+    }
+
+    public Privileges getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Privileges privileges) {
+        this.privileges = privileges;
     }
 }
