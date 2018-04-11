@@ -10,6 +10,8 @@
 
 package mocks;
 
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.MockAuthorizer;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
 import org.apache.log4j.Logger;
@@ -30,11 +32,14 @@ public class MockApplication extends ResourceConfig {
             super.register(klass);
         }
 
+        IAuthorizer mockAuthorizor = new MockAuthorizer(true, true);
+
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
                 super.bind(fragilityDAO).to(IFragilityDAO.class);
                 super.bind(mappingDAO).to(IMappingDAO.class);
+                super.bind(mockAuthorizor).to(IAuthorizer.class);
             }
         });
     }
