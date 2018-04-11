@@ -48,7 +48,7 @@ public class FileControllerTest extends CustomJerseyTest {
         String output = target("/files").request().accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
-        assertEquals(2, parsedObject.length());
+        assertEquals(4, parsedObject.length());
         JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
 
         assertNotNull(firstObject.get("id").toString());
