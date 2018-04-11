@@ -10,6 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.fragility.controllers;
 
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
@@ -38,9 +40,13 @@ public class MappingController {
     @Inject
     private IFragilityDAO fragilityDAO;
 
+    @Inject
+    private IAuthorizer authorizer;
+
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<MappingSet> getMappings(@QueryParam("hazard") String hazardType, @QueryParam("inventory") String inventoryType,
+    public List<MappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
+                                        @QueryParam("hazard") String hazardType, @QueryParam("inventory") String inventoryType,
                                         @QueryParam("skip") int offset, @DefaultValue("100") @QueryParam("limit") int limit) {
         Map<String, String> queryMap = new HashMap<>();
 
@@ -56,25 +62,32 @@ public class MappingController {
 
         if (queryMap.isEmpty()) {
             mappingSets = this.mappingDAO.getMappingSets()
-                                         .stream()
-                                         .skip(offset)
-                                         .limit(limit)
-                                         .collect(Collectors.toList());
+                .stream()
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
         } else {
             mappingSets = this.mappingDAO.queryMappingSets(queryMap, offset, limit);
         }
 
-        return mappingSets;
+        return mappingSets.stream()
+            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .collect(Collectors.toList());
     }
 
     @GET
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public MappingSet getMappingSetById(@PathParam("mappingSetId") String id) {
+    public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username, @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
-            return mappingSet.get();
+            MappingSet actual = mappingSet.get();
+            if (authorizer.canRead(username, actual.getPrivileges())) {
+                return actual;
+            } else {
+                throw new ForbiddenException();
+            }
         } else {
             throw new NotFoundException();
         }
@@ -83,7 +96,8 @@ public class MappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    public MappingSet uploadMapping(MappingSet mappingSet) {
+    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username, MappingSet mappingSet) {
+        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         this.mappingDAO.saveMappingSet(mappingSet);
         return mappingSet;
     }
@@ -92,9 +106,14 @@ public class MappingController {
     @Path("{mappingSetId}/matched")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    public MappingResponse mapFragilities(@PathParam("mappingSetId") String mappingSetId,
+    public MappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
+                                          @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
-        List<FragilitySet> fragilitySets = this.fragilityDAO.getFragilities();
+
+        List<FragilitySet> fragilitySets = this.fragilityDAO.getFragilities().stream()
+            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .collect(Collectors.toList());
+
 
         Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();
@@ -124,11 +143,11 @@ public class MappingController {
 
         for (Feature feature : features) {
             String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(),
-                                                         feature.getProperties(), mappingRequest.parameters);
+                feature.getProperties(), mappingRequest.parameters);
 
             Optional<FragilitySet> fragilityMatch = fragilitySets.stream()
-                                                                 .filter(set -> set.getId().equals(fragilityKey))
-                                                                 .findFirst();
+                .filter(set -> set.getId().equals(fragilityKey))
+                .findFirst();
 
             if (fragilityMatch.isPresent()) {
                 FragilitySet fragilitySet = fragilityMatch.get();

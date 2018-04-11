@@ -10,6 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.fragility.controllers;
 
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import org.apache.log4j.Logger;
@@ -31,9 +33,13 @@ public class FragilityController {
     @Inject
     private IFragilityDAO fragilityDAO;
 
+    @Inject
+    private IAuthorizer authorizer;
+
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<FragilitySet> getFragilities(@QueryParam("demand") String demandType, @QueryParam("hazard") String hazardType,
+    public List<FragilitySet> getFragilities(@HeaderParam("X-Credential-Username") String username,
+                                             @QueryParam("demand") String demandType, @QueryParam("hazard") String hazardType,
                                              @QueryParam("inventory") String inventoryType, @QueryParam("author") String author,
                                              @QueryParam("legacy_id") String legacyId, @QueryParam("skip") int offset,
                                              @DefaultValue("100") @QueryParam("limit") int limit) {
@@ -65,22 +71,25 @@ public class FragilityController {
         if (queryMap.isEmpty()) {
             // return top 100
             fragilitySets = this.fragilityDAO.getFragilities()
-                                             .stream()
-                                             .skip(offset)
-                                             .limit(limit)
-                                             .collect(Collectors.toList());
+                .stream()
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
         } else {
             // return query
             fragilitySets = this.fragilityDAO.queryFragilities(queryMap, offset, limit);
         }
 
-        return fragilitySets;
+        return fragilitySets.stream()
+            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    public FragilitySet uploadFragilitySet(FragilitySet fragilitySet) {
+    public FragilitySet uploadFragilitySet(@HeaderParam("X-Credential-Username") String username, FragilitySet fragilitySet) {
+        fragilitySet.setPrivileges(Privileges.newWithSingleOwner(username));
         this.fragilityDAO.saveFragility(fragilitySet);
         return fragilitySet;
     }
@@ -88,11 +97,15 @@ public class FragilityController {
     @GET
     @Path("{fragilityId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public FragilitySet getFragilityById(@PathParam("fragilityId") String id) {
+    public FragilitySet getFragilityById(@HeaderParam("X-Credential-Username") String username, @PathParam("fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
         if (fragilitySet.isPresent()) {
-            return fragilitySet.get();
+            FragilitySet frag = fragilitySet.get();
+            if (authorizer.canRead(username, frag.getPrivileges())) {
+                return frag;
+            }
+            throw new ForbiddenException();
         } else {
             throw new NotFoundException();
         }
@@ -101,13 +114,15 @@ public class FragilityController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<FragilitySet> findFragilities(@QueryParam("text") String text) {
+    public List<FragilitySet> findFragilities(@HeaderParam("X-Credential-Username") String username, @QueryParam("text") String text) {
         List<FragilitySet> sets = this.fragilityDAO.searchFragilities(text);
 
         if (sets == null || sets.size() == 0) {
             throw new NotFoundException();
         } else {
-            return sets;
+            return sets.stream()
+                .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+                .collect(Collectors.toList());
         }
     }
 }

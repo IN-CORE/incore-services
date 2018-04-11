@@ -10,6 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -40,6 +41,7 @@ public class FragilitySet {
     private String inventoryType;
 
     private List<FragilityCurve> fragilityCurves;
+    private Privileges privileges;
 
     public FragilitySet() { }
 
@@ -110,6 +112,14 @@ public class FragilitySet {
 
     public List<FragilityCurve> getFragilityCurves() {
         return fragilityCurves;
+    }
+
+    public Privileges getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Privileges privileges) {
+        this.privileges = privileges;
     }
     // endregion
 }
