@@ -16,3 +16,7 @@ dependencies {
 task wrapper(type: Wrapper) {
 	gradleVersion = '4.2'
 }
+
+test.doFirst {
+	jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005'
+}

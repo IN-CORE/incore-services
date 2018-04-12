@@ -61,8 +61,9 @@ public class FragilityControllerTest extends CustomJerseyTest {
 
         // act
         FragilitySet returned = target("/fragilities").request()
-                                                      .accept(MediaType.APPLICATION_JSON)
-                                                      .post(Entity.json(request), FragilitySet.class);
+            .header("X-Credential-Username", "tester")
+            .accept(MediaType.APPLICATION_JSON)
+            .post(Entity.json(request), FragilitySet.class);
 
         // assert
         assertNotNull(returned.getId());
