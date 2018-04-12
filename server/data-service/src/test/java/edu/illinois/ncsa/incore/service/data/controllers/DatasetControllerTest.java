@@ -88,7 +88,7 @@ class DatasetControllerTest extends CustomJerseyTest{
         InputStream inputStream = jsonURL.openStream();
         String jsontext = IOUtils.toString(inputStream);
         final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("dataset", jsontext);
-        Response response = target("/datasets").register(MultiPartWriter.class).request().header("X-Credential-Username", "testerwe").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+        Response response = target("/datasets").register(MultiPartWriter.class).request().header("X-Credential-Username", "tester").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
         Dataset output = response.readEntity(Dataset.class);
 
         assertNotNull(output.getId());
@@ -100,7 +100,7 @@ class DatasetControllerTest extends CustomJerseyTest{
     public void testGetDatasetFiles() throws IOException {
         String id = "5ac4ef37f9ebf2057a08f566";
 
-        String output = target("/datasets/" + id + "/files").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output = target("/datasets/" + id + "/files").request().header("X-Credential-Username", "gowtham").accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(1, parsedObject.length());
@@ -112,7 +112,7 @@ class DatasetControllerTest extends CustomJerseyTest{
         String dsId = "5ac4ef37f9ebf2057a08f566";
         String fileId = "5a393841c7d30d044d9b66f4";
 
-        String output = target("/datasets/" + dsId+ "/files/"+fileId).request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output = target("/datasets/" + dsId+ "/files/"+fileId).request().header("X-Credential-Username", "gowtham").accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONObject parsedObject = new JSONObject(output);
 
         //assertEquals(1, parsedObject.length());
