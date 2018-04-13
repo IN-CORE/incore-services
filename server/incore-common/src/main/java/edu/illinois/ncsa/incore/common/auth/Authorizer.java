@@ -64,22 +64,36 @@ public class Authorizer implements IAuthorizer {
 
     @Override
     public boolean canRead(String user, Privileges privileges) {
-        return getPrivilegesFor(user, privileges).contains(PrivilegeLevel.READ);
+        Set<PrivilegeLevel> privilegesFor = getPrivilegesFor(user, privileges);
+        return (privilegesFor.contains(PrivilegeLevel.READ) ||
+            privilegesFor.contains(PrivilegeLevel.WRITE) ||
+            privilegesFor.contains(PrivilegeLevel.ADMIN)
+        );
     }
 
     @Override
     public boolean canRead(String user, String privilegeSpecJson) {
-        return getPrivilegesFor(user, privilegeSpecJson).contains(PrivilegeLevel.READ);
+        Set<PrivilegeLevel> privilegesFor = getPrivilegesFor(user, privilegeSpecJson);
+        return (privilegesFor.contains(PrivilegeLevel.READ) ||
+            privilegesFor.contains(PrivilegeLevel.WRITE) ||
+            privilegesFor.contains(PrivilegeLevel.ADMIN)
+        );
     }
 
     @Override
     public boolean canWrite(String user, Privileges privileges) {
-        return getPrivilegesFor(user, privileges).contains(PrivilegeLevel.WRITE);
+        Set<PrivilegeLevel> privilegesFor = getPrivilegesFor(user, privileges);
+        return (privilegesFor.contains(PrivilegeLevel.WRITE) ||
+            privilegesFor.contains(PrivilegeLevel.ADMIN)
+        );
     }
 
     @Override
     public boolean canWrite(String user, String privilegeSpecJson) {
-        return getPrivilegesFor(user, privilegeSpecJson).contains(PrivilegeLevel.WRITE);
+        Set<PrivilegeLevel> privilegesFor = getPrivilegesFor(user, privilegeSpecJson);
+        return (privilegesFor.contains(PrivilegeLevel.WRITE) ||
+            privilegesFor.contains(PrivilegeLevel.ADMIN)
+        );
     }
 
 
