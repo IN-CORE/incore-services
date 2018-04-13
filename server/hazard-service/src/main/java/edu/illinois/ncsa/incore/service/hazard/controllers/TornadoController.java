@@ -12,6 +12,8 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
@@ -37,6 +39,9 @@ public class TornadoController {
 
     @Inject
     private ITornadoRepository repository;
+
+    @Inject
+    private IAuthorizer authorizer;
 
     private GeometryFactory factory = new GeometryFactory();
 
@@ -64,12 +69,14 @@ public class TornadoController {
                 SimpleFeatureCollection collection = TornadoUtils.createTornadoGeometry(scenarioTornado);
 
                 // Create the files from feature collection
-                File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection)collection);
+                File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection) collection);
                 // Create dataset object representation for storing shapefile
                 JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
                 // Store the dataset
                 String datasetId = ServiceUtil.createDataset(datasetObject, username, files);
                 scenarioTornado.setTornadoDatasetId(datasetId);
+
+                scenarioTornado.setPrivileges(Privileges.newWithSingleOwner(username));
             } else {
                 throw new InternalServerErrorException("Tornado model " + scenarioTornado.getTornadoModel() + " not yet implemented.");
             }
@@ -84,15 +91,19 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public ScenarioTornado getScenarioTornado(@PathParam("tornado-id") String tornadoId) {
-        return repository.getScenarioTornadoById(tornadoId);
+    public ScenarioTornado getScenarioTornado(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId) {
+        ScenarioTornado tornado = repository.getScenarioTornadoById(tornadoId);
+        if (!authorizer.canRead(username, tornado.getPrivileges())) {
+            throw new ForbiddenException();
+        }
+        return tornado;
     }
 
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getScenarioTornadoHazard(@PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
-        ScenarioTornado tornado = repository.getScenarioTornadoById(tornadoId);
+    public Response getScenarioTornadoHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+        ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
