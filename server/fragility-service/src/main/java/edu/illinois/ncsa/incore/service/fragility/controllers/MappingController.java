@@ -40,8 +40,11 @@ public class MappingController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<MappingSet> getMappings(@QueryParam("hazard") String hazardType, @QueryParam("inventory") String inventoryType,
-                                        @QueryParam("skip") int offset, @DefaultValue("100") @QueryParam("limit") int limit) {
+    public List<MappingSet> getMappings(@QueryParam("hazard") String hazardType,
+                                        @QueryParam("inventory") String inventoryType,
+                                        @QueryParam("creator") String creator,
+                                        @QueryParam("skip") int offset,
+                                        @DefaultValue("100") @QueryParam("limit") int limit) {
         Map<String, String> queryMap = new HashMap<>();
 
         if (hazardType != null) {
@@ -50,6 +53,10 @@ public class MappingController {
 
         if (inventoryType != null) {
             queryMap.put("inventoryType", inventoryType);
+        }
+
+        if (creator != null) {
+            queryMap.put("creator", creator);
         }
 
         List<MappingSet> mappingSets;
@@ -83,7 +90,8 @@ public class MappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    public MappingSet uploadMapping(MappingSet mappingSet) {
+    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username, MappingSet mappingSet) {
+        mappingSet.setCreator(username);
         this.mappingDAO.saveMappingSet(mappingSet);
         return mappingSet;
     }
