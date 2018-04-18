@@ -68,7 +68,6 @@ public class DatasetController {
     private IAuthorizer authorizer;
 
 
-
     /**
      * Returns a list of datasets in the Dataset collection
      *
@@ -85,7 +84,7 @@ public class DatasetController {
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
-        if (!authorizer.canRead(username, dataset.getPrivileges())){
+        if (!authorizer.canRead(username, dataset.getPrivileges())) {
             throw new ForbiddenException("You are not allowed to access that dataset");
         }
 
@@ -94,13 +93,19 @@ public class DatasetController {
 
     /**
      * query dataset by using either title or type or both
+     *
      * @param typeStr
      * @param titleStr
      * @return
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Dataset> getDatasets(@HeaderParam("X-Credential-Username") String username, @QueryParam("type") String typeStr, @QueryParam("title") String titleStr) {
+    public List<Dataset> getDatasets(@HeaderParam("X-Credential-Username") String username,
+                                     @QueryParam("type") String typeStr,
+                                     @QueryParam("title") String titleStr,
+                                     @QueryParam("creator") String creator,
+                                     @QueryParam("space") String space
+                                     ) {
         List<Dataset> datasets = null;
         if (typeStr != null && titleStr == null) {  // query only for the type
             datasets = repository.getDatasetByType(typeStr);
@@ -118,12 +123,15 @@ public class DatasetController {
         }
 
         return datasets.stream()
-            .filter( d -> authorizer.canRead(username, d.getPrivileges()) )
+            .filter(d -> (creator == null || "".equals(creator.trim()) || creator.trim().equals(d.getCreator())))
+            .filter(d -> (space == null || "".equals(space.trim()) || d.getSpaces().contains(space)))
+            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
     }
 
     /**
      * Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset
+     *
      * @param datasetId id of the Dataset in mongodb
      * @return
      */
@@ -133,18 +141,18 @@ public class DatasetController {
     public Response getFileByDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
         File outFile = null;
         Dataset dataset = repository.getDatasetById(datasetId);
-        if (dataset ==  null) {
+        if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
-        if (!authorizer.canRead(username, dataset.getPrivileges())){
+        if (!authorizer.canRead(username, dataset.getPrivileges())) {
             throw new ForbiddenException();
         }
 
         try {
             outFile = FileUtils.loadFileFromService(dataset, repository, false, "");
-        } catch (IOException e){
+        } catch (IOException e) {
             logger.error("Error creating temp directory for " + datasetId, e);
             throw new InternalServerErrorException("Error creating temp directory for " + datasetId, e);
         } catch (URISyntaxException e) {
@@ -163,6 +171,7 @@ public class DatasetController {
 
     /**
      * provide list of FileDescriptor by dataset id
+     *
      * @param datasetId
      * @return
      */
@@ -186,6 +195,7 @@ public class DatasetController {
 
     /**
      * Returns a file that is attached to a FileDescriptor specified by dataset and fileDescriptor id
+     *
      * @param id
      * @param fileId
      * @return
@@ -201,7 +211,7 @@ public class DatasetController {
             throw new NotFoundException("Error finding dataset with the id of " + id);
         }
 
-        if (!authorizer.canRead(username, dataset.getPrivileges())){
+        if (!authorizer.canRead(username, dataset.getPrivileges())) {
             throw new ForbiddenException();
         }
 
@@ -239,6 +249,7 @@ public class DatasetController {
 
     /**
      * get file descriptor by datasetid and file descriptor id
+     *
      * @param id
      * @param fileId
      * @return
@@ -275,6 +286,7 @@ public class DatasetController {
 
     /**
      * ingest dataset object using json
+     *
      * @param username
      * @param inDatasetJson
      * @return
@@ -364,6 +376,7 @@ public class DatasetController {
 
     /**
      * delete dataset from database and attached information like files and geoserver layer
+     *
      * @param username
      * @param datasetId
      * @return
@@ -430,6 +443,7 @@ public class DatasetController {
 
     /**
      * upload file(s) to attach to a dataset by FileDescriptor
+     *
      * @param datasetId
      * @param inputs
      * @return
@@ -519,7 +533,7 @@ public class DatasetController {
                         isShpfile = true;
                     }
                 }
-            } catch (URISyntaxException e){
+            } catch (URISyntaxException e) {
                 logger.error("Error creating file from dataset locatoin ", e);
                 throw new InternalServerErrorException("Error creating file from dataset location ", e);
             }
@@ -528,7 +542,7 @@ public class DatasetController {
                 if (isGuid) {
                     logger.debug("The shapefile already has guid field");
                 }
-            } catch (IOException e){
+            } catch (IOException e) {
                 logger.error("Error creating temp directory in guid creation process ", e);
                 throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
             }
@@ -564,6 +578,7 @@ public class DatasetController {
 
     /**
      * file(s) to upload to attach to a dataset by FileDescriptor
+     *
      * @param datasetId
      * @param inDatasetJson
      * @return
