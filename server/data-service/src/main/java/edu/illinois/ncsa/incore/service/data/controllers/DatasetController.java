@@ -538,23 +538,23 @@ public class DatasetController {
             if (isJoin) {
                 try {
                     zipFile = FileUtils.joinShpTable(dataset, repository, true);
-                    boolean published = GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+                    GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
                 } catch (IOException e) {
                     logger.error("Error making temp directory in joining process ", e);
                     throw new InternalServerErrorException("Error making temp directory in joining process ", e);
                 } catch (URISyntaxException e) {
-                    logger.error("Error making file using dataset's location url in table join process", e);
+                    logger.error("Error making file using dataset's location url in table join process ", e);
                     throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
                 }
             } else {
                 try {
-                    boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                    GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
                 } catch (IOException e) {
-                    logger.error("Error making temp directory in joining process ", e);
-                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
+                    logger.error("Error uploading dataset to geoserver ", e);
+                    throw new InternalServerErrorException("Error uploading dataset to geoserver ", e);
                 } catch (URISyntaxException e) {
-                    logger.error("Error making file using dataset's location url in table join process", e);
-                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
+                    logger.error("Error making file using dataset's location url ", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri ", e);
                 }
             }
         }
