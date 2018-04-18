@@ -15,7 +15,6 @@ package edu.illinois.ncsa.incore.service.data.geotools;
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import edu.illinois.ncsa.incore.service.data.controllers.DatasetController;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -31,7 +30,6 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
@@ -46,6 +44,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.GeometryType;
+import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
@@ -142,75 +141,77 @@ public class GeotoolsUtils {
             }
         }
 
-        DataStore store = getShapefileDataStore(inSourceFileUrl, false);
-        FileDataStore fileStore = (FileDataStore) store;
-        SimpleFeatureSource featureSource = fileStore.getFeatureSource();
-        SimpleFeatureCollection inputFeatures = featureSource.getFeatures();
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("url", inSourceFileUrl);
 
-        SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
-        List<Geometry> tmpList = new LinkedList<Geometry>();
-        List<Geometry> finalList = new LinkedList<Geometry>();
-        List<Map> resultMapList = new LinkedList<Map>();
-        List<Map> finalResultMapList = new LinkedList<Map>();
+        DataStore dataStore = DataStoreFinder.getDataStore(map);
+        String typeName = dataStore.getTypeNames()[0];
+
+        FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
+
+        Filter filter = Filter.INCLUDE;
+        dataStore.dispose();
+        SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures(filter);
+
+        SimpleFeatureType sft = inputFeatures.getSchema();
+
+        SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
+        sftBuilder.init(sft);
+
+        for (int i = 0; i < csvHeaders.length; i++) {
+            if (i != csvIdLoc) {
+                AttributeTypeBuilder build = new AttributeTypeBuilder();
+                build.setNillable(false);
+                build.setBinding(String.class);
+                build.setLength(55);    // currently it has been set to 55 but needs to be discussed
+                sftBuilder.add(build.buildDescriptor(csvHeaders[i]));
+            }
+        }
+        SimpleFeatureType newSft = sftBuilder.buildFeatureType();
+
+        DefaultFeatureCollection newCollection = new DefaultFeatureCollection();
+
+        FeatureIterator<SimpleFeature> inputFeatureIterator = inputFeatures.features();
+
+        // figure out the unique id column location
+        int shpUniqueColLoc = 0;
+        List<AttributeDescriptor> ads = inputFeatures.getSchema().getAttributeDescriptors();
+        for (int i = 0; i < ads.size(); i++) {
+            if (ads.get(i).getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
+                shpUniqueColLoc = i;
+            }
+        }
 
         try {
             while (inputFeatureIterator.hasNext()) {
                 SimpleFeature inputFeature = inputFeatureIterator.next();
-                Geometry g = (Geometry) inputFeature.getAttribute(0);
-                Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
-
-                tmpList.clear();
-                resultMapList.clear();
-
-                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
-                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
-                    Object attribute = inputFeature.getAttribute(i);
-                    String csvConnector = null;
-
-                    // resultMap is an actual table.
-                    if (attributeType.getLocalName() != DATA_FIELD_GEOM) {
-                        resultMap.put(attributeType.getLocalName(), attribute);
-                        // check if this is unique id
-                        if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
-                            if (attribute instanceof Integer || attribute instanceof Float
-                                    || attribute instanceof Double) {
-                                csvConnector = String.valueOf(attribute);
-                            } else {
-                                csvConnector = (String) attribute;
-                            }
-
-                            // find matching csv rows
-                            String[] matchedCsvRow = null;
-                            for (int j = 0; j < csvRows.size(); j++) {
-                                if (csvRows.get(j)[csvIdLoc].equals(csvConnector)) {
-                                    matchedCsvRow = csvRows.get(j);
-                                    csvRows.remove(j);
-                                }
-                            }
-
-                            // add matched row to resultMap
-                            if (matchedCsvRow != null) {
-                                for (int j = 0; j < matchedCsvRow.length; j++) {
-                                    if (j != csvIdLoc) {
-                                        resultMap.put(csvHeaders[j], matchedCsvRow[j]);
-
-                                    }
-                                }
-                            }
-                        }
-
+                SimpleFeatureBuilder sfb = new SimpleFeatureBuilder(newSft);
+                sfb.init(inputFeature);
+                String csvConnector = inputFeature.getAttribute(shpUniqueColLoc).toString();
+                // find matching csv rows
+                String[] matchedCsvRow = null;
+                for (int j = 0; j < csvRows.size(); j++) {
+                    if (csvRows.get(j)[csvIdLoc].toString().equals(csvConnector)) {
+                        matchedCsvRow = csvRows.get(j);
+                        csvRows.remove(j);
                     }
                 }
-                resultMapList.add(resultMap);
-
-                finalList.add(g);
-                finalResultMapList.addAll(resultMapList);
+                // insert the values in the new column
+                if (matchedCsvRow != null) {
+                    for (int j = 0; j < csvHeaders.length; j++) {
+                        if (j != csvIdLoc) {
+                            sfb.set(csvHeaders[j], matchedCsvRow[j]);
+                        }
+                    }
+                }
+                SimpleFeature newFeature = sfb.buildFeature(null);
+                newCollection.add(newFeature);
             }
         } finally {
             inputFeatureIterator.close();
         }
 
-        return createOutfile(finalList, finalResultMapList, tempDir, outFileName);
+        return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
     }
 
     /**
@@ -265,59 +266,6 @@ public class GeotoolsUtils {
     }
 
     /**
-     * create an output shapefile
-     *
-     * @param finalList
-     * @param resultMapList
-     * @param outDir
-     * @return
-     * @throws IOException
-     */
-    @SuppressWarnings("unchecked")
-    public static File createOutfile(List<Geometry> finalList, @SuppressWarnings("rawtypes") List<Map> resultMapList,
-                                     String outDir, String outFileName) throws IOException {
-        File outFile = new File(outDir + File.separator + outFileName);
-
-        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-
-        AttributeTypeBuilder attBuilder = new AttributeTypeBuilder();
-        attBuilder.setName("the_geom");
-        attBuilder.setBinding(finalList.get(0).getClass());
-        attBuilder.crs(DefaultGeographicCRS.WGS84);
-
-        GeometryType geomType = attBuilder.buildGeometryType();
-        GeometryDescriptor geomDesc = attBuilder.buildDescriptor("the_geom", geomType);
-
-        builder.setName("output");
-        builder.add(geomDesc);
-//		builder.add("NEW_UNI_ID", Integer.class);   	// to add new unique id column
-
-        // create the columns
-        Map<String, Object> columnMap = resultMapList.get(0);
-        for (String name : columnMap.keySet()) {
-            builder.add(name, String.class);
-        }
-
-
-        SimpleFeatureType schema = builder.buildFeatureType();
-        SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(schema);
-
-        DefaultFeatureCollection collection = new DefaultFeatureCollection();
-        for (int i = 0; i < finalList.size(); i++) {
-            columnMap = resultMapList.get(i);
-            featureBuilder.add(finalList.get(i));
-//			featureBuilder.add(i);	// this line is for new unique id field
-            for (String name : columnMap.keySet()) {
-                Object value = resultMapList.get(i).get(name);
-                featureBuilder.add(value);
-            }
-            SimpleFeature feature = featureBuilder.buildFeature(null);
-            collection.add(feature);
-        }
-        return outToFile(outFile, schema, collection);
-    }
-
-    /**
      * create actual output shapefile in the directory
      *
      * @param pathFile
@@ -358,7 +306,7 @@ public class GeotoolsUtils {
                 transaction.close();
             }
         } else {
-            System.out.println(typeName + " does not support read/write access");
+            logger.error(typeName + " does not support read/write access");
             System.exit(1);
         }
 
@@ -442,8 +390,7 @@ public class GeotoolsUtils {
     }
 
     /**
-     * create GUID field if there is none
-     *
+     * create GUID field in the shapefile
      * @param dataset
      * @param shpfiles
      * @return
@@ -466,52 +413,54 @@ public class GeotoolsUtils {
                 inSourceFileUrl = copiedFile.toURI().toURL();
             }
         }
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("url", inSourceFileUrl);
 
-        DataStore store = getShapefileDataStore(inSourceFileUrl, false);
-        FileDataStore fileStore = (FileDataStore) store;
-        SimpleFeatureSource featureSource = fileStore.getFeatureSource();
-        SimpleFeatureCollection inputFeatures = featureSource.getFeatures();
+        DataStore dataStore = DataStoreFinder.getDataStore(map);
+        String typeName = dataStore.getTypeNames()[0];
 
-        List<Geometry> tmpList = new LinkedList<Geometry>();
-        List<Geometry> finalList = new LinkedList<Geometry>();
-        List<Map> resultMapList = new LinkedList<Map>();
-        List<Map> finalResultMapList = new LinkedList<Map>();
+        FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore
+                .getFeatureSource(typeName);
+
+        Filter filter = Filter.INCLUDE;
+        dataStore.dispose();
+        SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures(filter);
+//        FeatureCollection<SimpleFeatureType, SimpleFeature> inputFeatures = source.getFeatures(filter);
 
         // check if there is guid exists
         isGuid = isGuidExist(inputFeatures);
-
         // creaste new dbf in the temp dir and move it to data repo directory
         if (isGuid != true) {
-            SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
+            logger.debug("Creating GUID field in the dataset for " +  outFileName);
+            SimpleFeatureType sft = inputFeatures.getSchema();
+
+            SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
+            sftBuilder.init(sft);
+
+            AttributeTypeBuilder build = new AttributeTypeBuilder();
+            build.setNillable(false);
+            build.setBinding(String.class);
+            build.setLength(36);    // UUID length is fixed to 36
+            sftBuilder.add(build.buildDescriptor(UNI_ID_SHP));
+            SimpleFeatureType newSft = sftBuilder.buildFeatureType();
+
+
+            DefaultFeatureCollection newCollection = new DefaultFeatureCollection();
+
+            FeatureIterator<SimpleFeature> inputFeatureIterator = inputFeatures.features();
             try {
                 while (inputFeatureIterator.hasNext()) {
                     SimpleFeature inputFeature = inputFeatureIterator.next();
-                    Geometry g = (Geometry) inputFeature.getAttribute(0);
-                    Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
+                    SimpleFeatureBuilder sfb = new SimpleFeatureBuilder(newSft);
+                    sfb.init(inputFeature);
+                    UUID uuid = UUID.randomUUID();
 
-                    tmpList.clear();
-                    resultMapList.clear();
-
-                    for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
-                        AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
-                        Object attribute = inputFeature.getAttribute(i);
-
-                        // resultMap is an actual table.
-                        if (attributeType.getLocalName() != DATA_FIELD_GEOM) {
-                            resultMap.put(attributeType.getLocalName(), attribute);
-                        }
-
-                        // create GUID
-                        if (!isGuid) {
-                            UUID uuid = UUID.randomUUID();
-                            resultMap.put(UNI_ID_SHP, uuid.toString());
-                        }
-                    }
-                    resultMapList.add(resultMap);
-                    finalList.add(g);
-                    finalResultMapList.addAll(resultMapList);
+                    sfb.set(UNI_ID_SHP, uuid.toString());
+                    SimpleFeature newFeature = sfb.buildFeature(null);
+                    newCollection.add(newFeature);
                 }
-                File outFile = createOutfile(finalList, finalResultMapList, tempDir, outFileName);
+
+                File outFile =  outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
                 FileUtils.switchDbfFile(outFile, shpfiles);
             } finally {
                 inputFeatureIterator.close();
@@ -529,6 +478,7 @@ public class GeotoolsUtils {
 
     /**
      * check if the guid exists
+     *
      * @param inputFeatures
      * @return
      */
