@@ -86,5 +86,16 @@ curl -i -X POST \
   --data 'config.attribute=uid' \
   --data 'config.ldaps=true' 
 
+curl -i -X POST \
+  --url http://localhost:8001/plugins/ \
+  --data 'name=cors' \
+  --data 'config.methods=GET,HEAD,PUT,PATCH,POST' \
+  --data 'config.origins=*' \
+  --data 'config.credentials=true' \
+  --data 'config.headers=Access-Control-Allow-Headers,Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,auth-user,auth-token,X-Credential-User' \
+  --data 'config.exposed_headers=X-Credential-User' 
+
+
+
 
 
