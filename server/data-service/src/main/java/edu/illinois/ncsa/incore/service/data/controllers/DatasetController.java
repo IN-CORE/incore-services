@@ -312,6 +312,9 @@ public class DatasetController {
             format = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FORMAT, inDatasetJson);
             fileName = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FILE_NAME, inDatasetJson);
             spaces = JsonUtils.extractValueListFromJsonString(FileUtils.DATASET_SPACES, inDatasetJson);
+            if(!spaces.contains(username)){
+                spaces.add(username);
+            }
             description = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_DESCRIPTION, inDatasetJson);
             dataset.setTitle(title);
             dataset.setCreator(username);
@@ -344,13 +347,8 @@ public class DatasetController {
                 } else {    // the space with space name exists
                     // get dataset ids
                     List<String> datasetIds = foundSpace.getDatasetIds();
-                    boolean isIdExists = false;
-                    for (String datasetId : datasetIds) {
-                        if (datasetId.equals(id)) {
-                            isIdExists = true;
-                        }
-                    }
-                    if (!isIdExists) {
+
+                    if(!datasetIds.contains(id)){
                         foundSpace.addDatasetId(id);
                         // this will update it since the objectId is identical
                         repository.addSpace(foundSpace);
@@ -378,11 +376,16 @@ public class DatasetController {
             throw new BadRequestException("Credential user name should be provided.");
         }
 
+
         Dataset dataset = null;
         dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
+        if (!authorizer.canWrite(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
         }
 
         String creator = dataset.getCreator();
@@ -438,7 +441,13 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/files")
-    public Dataset uploadFiles(@PathParam("id") String datasetId, FormDataMultiPart inputs) {
+    public Dataset uploadFiles(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId, FormDataMultiPart inputs) {
+
+        if (username == null) {
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
+        }
+
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
         String inJson = "";
@@ -447,6 +456,10 @@ public class DatasetController {
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
+        if (!authorizer.canWrite(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
         }
 
         boolean isJsonValid = false;
