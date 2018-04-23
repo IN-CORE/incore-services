@@ -176,7 +176,7 @@ public class MockRepository implements IRepository {
     @Override
     public Space getSpaceByName(String name) {
         for(int i = 0; i <this.spaces.size(); i++) {
-            if(this.datasets.get(i).getTitle().equalsIgnoreCase(name)) {
+            if(this.spaces.get(i).getName().equalsIgnoreCase(name)) {
                 return this.spaces.get(i);
             }
         }
