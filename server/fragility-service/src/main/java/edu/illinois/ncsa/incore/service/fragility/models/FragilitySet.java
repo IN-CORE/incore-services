@@ -40,6 +40,7 @@ public class FragilitySet {
     private String inventoryType;
 
     private List<FragilityCurve> fragilityCurves;
+    private String creator;
 
     public FragilitySet() { }
 
@@ -110,6 +111,14 @@ public class FragilitySet {
 
     public List<FragilityCurve> getFragilityCurves() {
         return fragilityCurves;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getCreator() {
+        return creator;
     }
     // endregion
 }

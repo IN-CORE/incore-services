@@ -29,6 +29,7 @@ public class MappingSet {
     private String hazardType;
     private String inventoryType;
     private List<Mapping> mappings = new ArrayList<>();
+    private String creator;
 
     public String getId() {
         if (id == null) {
@@ -65,5 +66,13 @@ public class MappingSet {
         MatchFilterMap matchFilterMap = new MatchFilterMap(propertyMatches);
 
         return matchFilterMap;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getCreator() {
+        return creator;
     }
 }

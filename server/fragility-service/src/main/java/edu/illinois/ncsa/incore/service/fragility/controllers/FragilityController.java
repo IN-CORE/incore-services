@@ -36,6 +36,7 @@ public class FragilityController {
     public List<FragilitySet> getFragilities(@QueryParam("demand") String demandType, @QueryParam("hazard") String hazardType,
                                              @QueryParam("inventory") String inventoryType, @QueryParam("author") String author,
                                              @QueryParam("legacy_id") String legacyId, @QueryParam("skip") int offset,
+                                             @QueryParam("creator") String creator,
                                              @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
@@ -54,6 +55,10 @@ public class FragilityController {
 
         if (inventoryType != null) {
             queryMap.put("inventoryType", inventoryType);
+        }
+
+        if (creator != null) {
+            queryMap.put("creator", creator);
         }
 
         if (author != null) {
@@ -80,7 +85,8 @@ public class FragilityController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    public FragilitySet uploadFragilitySet(FragilitySet fragilitySet) {
+    public FragilitySet uploadFragilitySet(@HeaderParam("X-Credential-Username") String username, FragilitySet fragilitySet) {
+        fragilitySet.setCreator(username);
         this.fragilityDAO.saveFragility(fragilitySet);
         return fragilitySet;
     }
