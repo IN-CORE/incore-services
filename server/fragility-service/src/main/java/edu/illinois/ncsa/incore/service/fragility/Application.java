@@ -12,6 +12,8 @@ package edu.illinois.ncsa.incore.service.fragility;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
@@ -39,11 +41,16 @@ public class Application extends ResourceConfig {
         IMappingDAO mappingDAO = new MongoDBMappingDAO(mongoClientUri);
         mappingDAO.initialize();
 
+
+
+        IAuthorizer authorizer = Authorizer.getInstance();
+
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
                 super.bind(fragilityDAO).to(IFragilityDAO.class);
                 super.bind(mappingDAO).to(IMappingDAO.class);
+                super.bind(authorizer).to(IAuthorizer.class);
             }
         });
 
