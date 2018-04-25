@@ -10,6 +10,8 @@
 package edu.illinois.ncsa.incore.service.hazard;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
@@ -49,6 +51,8 @@ public class Application extends ResourceConfig {
         AtkinsonBoore1995 model = new AtkinsonBoore1995();
         model.readCoefficients(coefficientURL);
 
+        IAuthorizer authorizer = Authorizer.getInstance();
+
         super.register(new AbstractBinder() {
 
             @Override
@@ -56,7 +60,9 @@ public class Application extends ResourceConfig {
                 super.bind(model).to(AtkinsonBoore1995.class);
                 super.bind(earthquakeRepository).to(IEarthquakeRepository.class);
                 super.bind(tornadoRepository).to(ITornadoRepository.class);
+                super.bind(authorizer).to(IAuthorizer.class);
             }
         });
+        super.register(new CorsFilter());
     }
 }

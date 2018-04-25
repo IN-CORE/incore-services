@@ -18,13 +18,13 @@ curl -i -X POST \
 
 
 
-curl -i -X DELETE --url http://localhost:8001/apis/repo
+curl -i -X DELETE --url http://localhost:8001/apis/data
 
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
-  --data 'name=repo' \
-  --data 'uris=/repo' \
-  --data 'upstream_url=http://10.0.2.2:8080/repo/'
+  --data 'name=data' \
+  --data 'uris=/data' \
+  --data 'upstream_url=http://10.0.2.2:8080/data/'
 
 
 
@@ -38,13 +38,6 @@ curl -i -X POST \
   --data 'uris=/hazard' \
   --data 'upstream_url=http://10.0.2.2:8080/hazard/'
 
-
-curl -i -X DELETE --url http://localhost:8001/apis/data
-curl -i -X POST \
-  --url http://localhost:8001/apis/ \
-  --data 'name=data' \
-  --data 'uris=/data' \
-  --data 'upstream_url=http://10.0.2.2:8080/data/'
 
 curl -i -X DELETE --url http://localhost:8001/apis/auth
 curl -i -X POST \
@@ -85,6 +78,17 @@ curl -i -X POST \
   --data 'config.ldap_host=ldap.ncsa.illinois.edu' \
   --data 'config.attribute=uid' \
   --data 'config.ldaps=true' 
+
+curl -i -X POST \
+  --url http://localhost:8001/plugins/ \
+  --data 'name=cors' \
+  --data 'config.methods=GET,HEAD,PUT,PATCH,POST' \
+  --data 'config.origins=*' \
+  --data 'config.credentials=true' \
+  --data 'config.headers=Access-Control-Allow-Headers,Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,auth-user,auth-token,X-Credential-User' \
+  --data 'config.exposed_headers=X-Credential-User' 
+
+
 
 
 

@@ -342,6 +342,9 @@ public class Dataset {
      * @return source dataset that represents the source dataset of the artifact
      */
     public List<String> getSpaces() {
+        if (spaces == null) {
+            spaces = new ArrayList<String>();
+        }
         return spaces;
     }
 

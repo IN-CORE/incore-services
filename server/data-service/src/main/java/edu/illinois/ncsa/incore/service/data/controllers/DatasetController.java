@@ -296,24 +296,30 @@ public class DatasetController {
         }
 
         String title = "";
-        String type = "";
+        String dataType = "";
         String sourceDataset = "";
         String format = "";
         String fileName = "";
+        String description = "";
         List<String> spaces = null;
 
         // create DataWolf POJO object
         Dataset dataset = new Dataset();
         if (isJsonValid) {
             title = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TITLE, inDatasetJson);
-            type = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TYPE, inDatasetJson);
+            dataType = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TYPE, inDatasetJson);
             sourceDataset = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
             format = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FORMAT, inDatasetJson);
             fileName = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FILE_NAME, inDatasetJson);
             spaces = JsonUtils.extractValueListFromJsonString(FileUtils.DATASET_SPACES, inDatasetJson);
+            if(!spaces.contains(username)){
+                spaces.add(username);
+            }
+            description = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_DESCRIPTION, inDatasetJson);
             dataset.setTitle(title);
             dataset.setCreator(username);
-            dataset.setDataType(type);
+            dataset.setDataType(dataType);
+            dataset.setDescription(description);
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
@@ -341,13 +347,8 @@ public class DatasetController {
                 } else {    // the space with space name exists
                     // get dataset ids
                     List<String> datasetIds = foundSpace.getDatasetIds();
-                    boolean isIdExists = false;
-                    for (String datasetId : datasetIds) {
-                        if (datasetId.equals(id)) {
-                            isIdExists = true;
-                        }
-                    }
-                    if (!isIdExists) {
+
+                    if(!datasetIds.contains(id)){
                         foundSpace.addDatasetId(id);
                         // this will update it since the objectId is identical
                         repository.addSpace(foundSpace);
@@ -375,11 +376,16 @@ public class DatasetController {
             throw new BadRequestException("Credential user name should be provided.");
         }
 
+
         Dataset dataset = null;
         dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
+        if (!authorizer.canWrite(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
         }
 
         String creator = dataset.getCreator();
@@ -435,7 +441,13 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/files")
-    public Dataset uploadFiles(@PathParam("id") String datasetId, FormDataMultiPart inputs) {
+    public Dataset uploadFiles(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId, FormDataMultiPart inputs) {
+
+        if (username == null) {
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
+        }
+
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
         String inJson = "";
@@ -444,6 +456,10 @@ public class DatasetController {
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
+        if (!authorizer.canWrite(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
         }
 
         boolean isJsonValid = false;
@@ -497,31 +513,6 @@ public class DatasetController {
             isGeoserver = true;
         }
 
-        if (isGeoserver) {
-            if (isJoin) {
-                try {
-                    File zipFile = FileUtils.joinShpTable(dataset, repository, true);
-                    boolean published = GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
-                } catch (IOException e) {
-                    logger.error("Error making temp directory in joining process ", e);
-                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
-                } catch (URISyntaxException e) {
-                    logger.error("Error making file using dataset's location url in table join process", e);
-                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
-                }
-            } else {
-                try {
-                    boolean published = GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
-                } catch (IOException e) {
-                    logger.error("Error making temp directory in joining process ", e);
-                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
-                } catch (URISyntaxException e) {
-                    logger.error("Error making file using dataset's location url in table join process", e);
-                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
-                }
-            }
-        }
-
         // create GUID if there is no GUID in the table
         List<FileDescriptor> shpFDs = dataset.getFileDescriptors();
         List<File> files = new ArrayList<File>();
@@ -553,6 +544,31 @@ public class DatasetController {
             } catch (IOException e){
                 logger.error("Error creating temp directory in guid creation process ", e);
                 throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
+            }
+        }
+
+        if (isGeoserver) {
+            if (isJoin) {
+                try {
+                    zipFile = FileUtils.joinShpTable(dataset, repository, true);
+                    GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+                } catch (IOException e) {
+                    logger.error("Error making temp directory in joining process ", e);
+                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
+                } catch (URISyntaxException e) {
+                    logger.error("Error making file using dataset's location url in table join process ", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
+                }
+            } else {
+                try {
+                    GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                } catch (IOException e) {
+                    logger.error("Error uploading dataset to geoserver ", e);
+                    throw new InternalServerErrorException("Error uploading dataset to geoserver ", e);
+                } catch (URISyntaxException e) {
+                    logger.error("Error making file using dataset's location url ", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri ", e);
+                }
             }
         }
 

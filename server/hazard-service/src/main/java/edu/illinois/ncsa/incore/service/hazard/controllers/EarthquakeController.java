@@ -11,6 +11,8 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
@@ -38,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 @Path("earthquakes")
@@ -50,6 +53,9 @@ public class EarthquakeController {
 
     @Inject
     private AtkinsonBoore1995 model;
+
+    @Inject
+    private IAuthorizer authorizer;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -78,6 +84,8 @@ public class EarthquakeController {
                 String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description);
                 scenarioEarthquake.setRasterDatasetId(datasetId);
 
+                scenarioEarthquake.setPrivileges(Privileges.newWithSingleOwner(username));
+
                 return repository.addScenarioEarthquake(scenarioEarthquake);
             } catch (IOException e) {
                 logger.error("Error writing the hazard raster to file.", e);
@@ -92,15 +100,24 @@ public class EarthquakeController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<ScenarioEarthquake> getScenarioEarthquakes() {
-        return repository.getScenarioEarthquakes();
+    public List<ScenarioEarthquake> getScenarioEarthquakes(@HeaderParam("X-Credential-Username") String username) {
+        return repository.getScenarioEarthquakes().stream()
+            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .collect(Collectors.toList());
     }
 
     @GET
     @Path("{earthquake-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public ScenarioEarthquake getScenarioEarthquake(@PathParam("earthquake-id") String earthquakeId) {
-        return repository.getScenarioEarthquakeById(earthquakeId);
+    public ScenarioEarthquake getScenarioEarthquake(@PathParam("earthquake-id") String earthquakeId, @HeaderParam("X-Credential-Username") String username) {
+        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+        if (earthquake == null) {
+            throw new NotFoundException();
+        }
+        if (!authorizer.canRead(username, earthquake.getPrivileges())) {
+            throw new ForbiddenException();
+        }
+        return earthquake;
     }
 
     @GET
@@ -114,8 +131,8 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/raster")
     @Produces({MediaType.APPLICATION_JSON})
-    public SeismicHazardResults getScenarioEarthquakeHazardForBox(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("minX") double minX, @QueryParam("minY") double minY, @QueryParam("maxX") double maxX, @QueryParam("maxY") double maxY, @QueryParam("gridSpacing") double gridSpacing, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
-        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+    public SeismicHazardResults getScenarioEarthquakeHazardForBox(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("minX") double minX, @QueryParam("minY") double minY, @QueryParam("maxX") double maxX, @QueryParam("maxY") double maxY, @QueryParam("gridSpacing") double gridSpacing, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
+        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
         SeismicHazardResults results = null;
         if (earthquake != null) {
             String period = demandType;
@@ -190,8 +207,8 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public SeismicHazardResults getScenarioEarthquakeHazardValues(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard, @QueryParam("point") List<Double> points) {
-        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+    public SeismicHazardResults getScenarioEarthquakeHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard, @QueryParam("point") List<Double> points) {
+        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
         if (points.size() % 2 != 0) {
             logger.error("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
             throw new BadRequestException("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
@@ -238,8 +255,8 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    public SeismicHazardResult getScenarioEarthquakeHazard(@PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
-        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+    public SeismicHazardResult getScenarioEarthquakeHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
+        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
         if (earthquake != null) {
             String period = demandType;
             String demand = demandType;

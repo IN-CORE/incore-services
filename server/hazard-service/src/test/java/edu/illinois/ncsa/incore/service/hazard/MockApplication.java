@@ -10,6 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.hazard;
 
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.MockAuthorizer;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.MockTornadoRepository;
 import org.apache.log4j.Logger;
@@ -23,12 +25,15 @@ public class MockApplication extends ResourceConfig {
         ITornadoRepository mockTornadoRepository = new MockTornadoRepository();
         mockTornadoRepository.initialize();
 
+        IAuthorizer authorizer = new MockAuthorizer(true, true);
+
         super.register(clazz);
         super.register(new AbstractBinder() {
 
             @Override
             protected void configure() {
                 super.bind(mockTornadoRepository).to(ITornadoRepository.class);
+                super.bind(authorizer).to(IAuthorizer.class);
             }
         });
     }

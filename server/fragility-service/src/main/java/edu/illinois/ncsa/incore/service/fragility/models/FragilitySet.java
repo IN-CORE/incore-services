@@ -42,6 +42,7 @@ public class FragilitySet {
 
     private List<FragilityCurve> fragilityCurves;
     private Privileges privileges;
+    private String creator;
 
     public FragilitySet() { }
 
@@ -120,6 +121,14 @@ public class FragilitySet {
 
     public void setPrivileges(Privileges privileges) {
         this.privileges = privileges;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getCreator() {
+        return creator;
     }
     // endregion
 }

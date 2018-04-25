@@ -31,6 +31,7 @@ public class MappingSet {
     private String inventoryType;
     private List<Mapping> mappings = new ArrayList<>();
     private Privileges privileges;
+    private String creator;
 
     public String getId() {
         if (id == null) {
@@ -75,5 +76,13 @@ public class MappingSet {
 
     public void setPrivileges(Privileges privileges) {
         this.privileges = privileges;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getCreator() {
+        return creator;
     }
 }

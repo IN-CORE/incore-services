@@ -8,7 +8,7 @@
  * Omar Elabd, Nathan Tolbert
  */
 
-package edu.illinois.ncsa.incore.service.fragility;
+package edu.illinois.ncsa.incore.service.hazard;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
