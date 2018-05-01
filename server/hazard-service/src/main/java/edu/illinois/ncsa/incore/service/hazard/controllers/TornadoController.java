@@ -18,6 +18,7 @@ import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
@@ -31,6 +32,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 @Path("tornadoes")
@@ -102,18 +104,44 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getScenarioTornadoHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+    public WindHazardResult getScenarioTornadoHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
         ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return Response.ok(TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation)).build();
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation);
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }
         } else {
-            throw new NotFoundException("Scenario earthquake with id " + tornadoId + " was not found.");
+            throw new NotFoundException("Tornado with id " + tornadoId + " was not found.");
+        }
+    }
+
+    @GET
+    @Path("{tornado-id}/values")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<WindHazardResult> getScenarioTornadoHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<Double> points, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+        if (points.size() % 2 != 0) {
+            logger.error("List of points to obtain tornado hazard values must contain pairs of latitude and longitude values.");
+            throw new BadRequestException("List of points to obtain tornado hazard values must contain pairs of latitude and longitude values.");
+        }
+
+        ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
+        if (tornado != null) {
+            List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
+            for (int index = 0; index < points.size(); index += 2) {
+                double siteLat = points.get(index);
+                double siteLong = points.get(index + 1);
+                Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
+
+                hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation));
+            }
+
+            return hazardResults;
+        } else {
+            throw new NotFoundException("Tornado with id " + tornadoId + " was not found.");
         }
     }
 
