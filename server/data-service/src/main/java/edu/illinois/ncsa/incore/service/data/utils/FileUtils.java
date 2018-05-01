@@ -697,16 +697,36 @@ public class FileUtils {
      * @throws IOException
      */
     public static void switchDbfFile(File inFile, List<File> shpfiles) throws IOException {
+        String inShpName = FilenameUtils.removeExtension(inFile.getAbsolutePath()) + ".shp";
+        String inShxName = FilenameUtils.removeExtension(inFile.getAbsolutePath()) + ".shx";
         String inDbfName = FilenameUtils.removeExtension(inFile.getAbsolutePath()) + ".dbf";
+        String inPrjName = FilenameUtils.removeExtension(inFile.getAbsolutePath()) + ".prj";
+        File inShpFile = new File(inShpName);
+        File inShxFIle = new File(inShxName);
         File inDbfFile = new File(inDbfName);
+        File inPrjFile = new File(inPrjName);
+        File outShpFile = null;
+        File outShxFile = null;
         File outDbfFile = null;
+        File outPrjFIle = null;
         for (File tmpFile: shpfiles) {
             String extStr = FilenameUtils.getExtension(tmpFile.getName());
+            if (extStr.equalsIgnoreCase("shp")) {
+                outShpFile = tmpFile;
+                org.apache.commons.io.FileUtils.copyFile(inShpFile, outShpFile);
+            }
+            if (extStr.equalsIgnoreCase("shx")) {
+                outShxFile = tmpFile;
+                org.apache.commons.io.FileUtils.copyFile(inShxFIle, outShxFile);
+            }
             if (extStr.equalsIgnoreCase("dbf")) {
                 outDbfFile = tmpFile;
-                System.out.println(outDbfFile);
+                org.apache.commons.io.FileUtils.copyFile(inDbfFile, outDbfFile);
+            }
+            if (extStr.equalsIgnoreCase("prj")) {
+                outPrjFIle = tmpFile;
+                org.apache.commons.io.FileUtils.copyFile(inPrjFile, outPrjFIle);
             }
         }
-        org.apache.commons.io.FileUtils.copyFile(inDbfFile, outDbfFile);
     }
 }
