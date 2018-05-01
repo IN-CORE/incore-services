@@ -13,7 +13,6 @@
 package edu.illinois.ncsa.incore.service.data.geotools;
 
 import com.opencsv.CSVReader;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
@@ -38,12 +37,9 @@ import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.feature.type.GeometryType;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -443,7 +439,6 @@ public class GeotoolsUtils {
             build.setLength(36);    // UUID length is fixed to 36
             sftBuilder.add(build.buildDescriptor(UNI_ID_SHP));
             SimpleFeatureType newSft = sftBuilder.buildFeatureType();
-
 
             DefaultFeatureCollection newCollection = new DefaultFeatureCollection();
 
