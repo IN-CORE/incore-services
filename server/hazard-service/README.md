@@ -89,3 +89,5 @@ value should be between 65 and 85 mph
 
 http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35.2286&siteLong=-97.4770
 value should be between 136 and 165 mph
+
+http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=35.1393&point=-89.9996&point=35.207&point=-89.871
