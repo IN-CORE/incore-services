@@ -245,7 +245,7 @@ public class TornadoUtils {
             for (int index = 0; index < geometry.size(); index++) {
                 featureBuilder.add(geometry.get(index));
                 featureBuilder.add(simulation);
-                featureBuilder.add("EF" + (scenarioTornado.getNumSimulations() - index - 1)); //$NON-NLS-1$
+                featureBuilder.add("EF" + (geometry.size() - index - 1));
                 SimpleFeature feature = featureBuilder.buildFeature(null);
                 collection.add(feature);
             }
