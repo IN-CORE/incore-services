@@ -159,9 +159,9 @@ public class DatasetController {
             logger.error("Error creating file with given url for " + datasetId, e);
             throw new InternalServerErrorException("Error creating file with given url for " + datasetId, e);
         }
-        String fileName = outFile.getName();
 
         if (outFile != null) {
+            String fileName = outFile.getName();
             return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
         } else {
             logger.error("Error finding output zip file for " + datasetId);
@@ -178,11 +178,15 @@ public class DatasetController {
     @GET
     @Path("{id}/files")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<FileDescriptor> getDatasets(@PathParam("id") String datasetId) {
+    public List<FileDescriptor> getDatasets(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+        }
+
+        if (!authorizer.canRead(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
@@ -257,11 +261,15 @@ public class DatasetController {
     @GET
     @Path("{id}/files/{file_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public FileDescriptor getFileByDatasetIdFileDescriptor(@PathParam("id") String id, @PathParam("file_id") String fileId) {
+    public FileDescriptor getFileByDatasetIdFileDescriptor(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String id, @PathParam("file_id") String fileId) {
         Dataset dataset = repository.getDatasetById(id);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + id);
             throw new NotFoundException("Error finding dataset with the id of " + id);
+        }
+
+        if (!authorizer.canRead(username, dataset.getPrivileges())){
+            throw new ForbiddenException();
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();

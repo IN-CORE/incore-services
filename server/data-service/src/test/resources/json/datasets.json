@@ -52,5 +52,90 @@
     "spaces": [
       "ergo"
     ]
+  },
+  {
+    "id" : "5ac4ef37f9ebf2057a08f566",
+    "deleted" : false,
+    "title" : "test-me",
+    "description" : "",
+    "date" : "2018-04-04T15:28:55.523+0000",
+    "creator" : "gowtham",
+    "dataType" : "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0",
+    "fileDescriptors" : [
+      {
+        "filename" : "test-file.csv",
+        "mimeType" : "application/octet-stream",
+        "size" : 5211,
+        "dataURL" : "file:/Users/vnarah2/incore-data/test-file.csv",
+        "md5sum" : "16ba2438091ca8f43a77971418596ad0",
+        "id" : "5a393841c7d30d044d9b66f4",
+        "deleted" : false
+      }
+    ],
+    "storedUrl" : "",
+    "format" : "table",
+    "sourceDataset" : "",
+    "spaces" : [
+      "ywkim",
+      "ergo"
+    ],
+    "privileges" : {
+      "userPrivileges" : {
+        "gowtham" : "READ"
+      }
+    }
+  },
+  {
+    "id" : "5a393841c7d30d044d9b66ec",
+    "title" : "Building Damage",
+    "description" : "",
+    "date" : "2017-12-19T16:03:13.340+0000",
+    "creator" : "indiragp",
+    "fileDescriptors" : [
+      {
+        "filename" : "dmg-results.csv",
+        "mimeType" : "application/octet-stream",
+        "size" : 5211,
+        "dataURL" : "file:/home/incore/data/5a/39/5a393841c7d30d044d9b66f4/dmg-results.csv",
+        "md5sum" : "16ba2438091ca8f43a77971418596ad0",
+        "id" : "5a393841c7d30d044d9b66f4",
+        "deleted" : false
+      }
+    ],
+    "storedUrl" : "",
+    "format" : "table",
+    "sourceDataset" : "5a284f0bc7d30d13bc081a28",
+    "spaces" : [
+      "indiragp"
+    ],
+    "privileges" : {
+      "userPrivileges" : {
+        "indiragp" : "WRITE"
+      }
+    },
+    "deleted" : false,
+    "dataType" : "edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0"
+  },
+  {
+    "id" : "5ac4eefdf9ebf2057a08f54d",
+    "deleted" : false,
+    "title" : "test",
+    "description" : "",
+    "date" : "2018-04-04T15:27:57.494+0000",
+    "creator" : "gowtham",
+    "dataType" : "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0",
+    "storedUrl" : "",
+    "format" : "shapefile",
+    "sourceDataset" : "",
+    "spaces" : [
+      "ywkim",
+      "ergo"
+    ],
+    "privileges" : {
+      "userPrivileges" : {
+        "gowtham" : "READ"
+      }
+    }
   }
+
 ]
