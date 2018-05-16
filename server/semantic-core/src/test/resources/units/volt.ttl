@@ -1,0 +1,18 @@
+@prefix unit:    <http://incore.ncsa.illinois.edu/semantic/elements/units/> .
+@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix prefix:  <http://incore.ncsa.illinois.edu/semantic/elements/prefixes/> .
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+
+unit:volt
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "volt"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:electric_potential ;
+      def:plural "volts"@en ;
+      def:symbol "V" ;
+      def:unit_system "SI" ;
+      def:utf_plural "volts"@en ;
+      def:utf_symbol "V" .

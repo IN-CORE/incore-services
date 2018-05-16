@@ -1,0 +1,18 @@
+@prefix unit:    <http://incore.ncsa.illinois.edu/semantic/elements/units/> .
+@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix prefix:  <http://incore.ncsa.illinois.edu/semantic/elements/prefixes/> .
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+
+unit:centimetre
+      a       def:PrefixedUnit ;
+      rdfs:label "centimetre"@en ;
+      def:base_unit unit:metre ;
+      def:dimension_type dim:length ;
+      def:plural "centimetres"@en ;
+      def:prefix prefix:centi ;
+      def:symbol "cm" ;
+      def:unit_system "SI" ;
+      def:utf_plural "centimetres"@en ;
+      def:utf_symbol "cm" .
