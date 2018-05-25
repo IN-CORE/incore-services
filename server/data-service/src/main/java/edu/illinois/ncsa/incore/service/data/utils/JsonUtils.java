@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -31,10 +32,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by ywkim on 9/27/2017.
@@ -113,6 +114,51 @@ public class JsonUtils {
             }
         }
         return true;
+    }
+
+    public static boolean isDatasetParameterValid(String inJson) {
+        boolean isValid = true;
+        Dataset dataset = new Dataset();
+        List<String> datasetParams = new ArrayList<>();
+        List<String> inJsonKyes = new ArrayList<>();
+
+        Field[] allFields = Dataset.class.getDeclaredFields();
+        for (Field field: allFields) {
+            datasetParams.add(field.getName().toString());
+        }
+
+        Object json = null;
+        Set<String> keys = null;
+        try {
+            json = new JSONObject(inJson);
+            keys = ((JSONObject) json).keySet();
+        } catch (JSONException ex) {
+            try {
+                json = new JSONArray(inJson);
+                keys = ((JSONObject) json).keySet();
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        for (String key: keys) {
+            inJsonKyes.add(key);
+        }
+
+        // check if the json key is in the dataset parameters
+        for (String key: inJsonKyes) {
+            int matchingCounter = 0;
+            for (String param: datasetParams) {
+                if (key.equals(param)) {
+                    matchingCounter += 1;
+                    break;
+                }
+            }
+            if (matchingCounter == 0) {
+                isValid = false;
+            }
+        }
+
+        return isValid;
     }
 
     public static String extractValueFromJsonString(String inId, String inJson) {
