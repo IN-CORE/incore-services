@@ -15,13 +15,16 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.EqVisualization;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.liquefaction.HazusLiquefaction;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.LiquefactionHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.CoverageFactoryFinder;
 import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.gce.arcgrid.ArcGridFormat;
 import org.geotools.gce.arcgrid.ArcGridWriteParams;
 import org.geotools.gce.geotiff.GeoTiffFormat;
@@ -30,6 +33,7 @@ import org.geotools.geometry.Envelope2D;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageWriter;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -48,6 +52,30 @@ import java.util.regex.Pattern;
 public class HazardCalc {
     private static final Logger logger = Logger.getLogger(HazardCalc.class);
     private static GeometryFactory factory = new GeometryFactory();
+
+    public static LiquefactionHazardResult getLiquefactionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, SimpleFeatureCollection soilGeology) {
+        HazusLiquefaction liquefaction = new HazusLiquefaction();
+        String susceptibilitity = null;
+        double pgaValue = 0.0;
+        double groundDeformation = 0.0;
+        try {
+            SimpleFeature feature = HazardUtil.getPointInPolygon(site.getLocation(), soilGeology);
+            if(feature != null) {
+                susceptibilitity = feature.getAttribute("liq_suscep").toString();
+                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "PGA", "PGA", 0, true).getHazardValue();
+                groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, earthquake.getEqParameters().getMagnitude());
+                double liqProbability = liquefaction.getProbabilityOfLiquefaction(earthquake.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, -1);
+
+                return new LiquefactionHazardResult(groundDeformation, "in", liqProbability);
+            } else {
+                return new LiquefactionHazardResult(0.0, "in", 0.0);
+            }
+        } catch(Exception e) {
+            logger.error("Could not compute PGA ground motion required to determine liquefaction.");
+            return null;
+        }
+
+    }
 
     public static SeismicHazardResult getGroundMotionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String hazardType, String demand, int spectrumOverride, boolean amplifyHazard) throws Exception {
         Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
