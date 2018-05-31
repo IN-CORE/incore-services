@@ -120,7 +120,7 @@ public class JsonUtils {
         boolean isValid = true;
         Dataset dataset = new Dataset();
         List<String> datasetParams = new ArrayList<>();
-        List<String> inJsonKyes = new ArrayList<>();
+        List<String> inJsonKeys = new ArrayList<>();
 
         Field[] allFields = Dataset.class.getDeclaredFields();
         for (Field field: allFields) {
@@ -141,11 +141,11 @@ public class JsonUtils {
             }
         }
         for (String key: keys) {
-            inJsonKyes.add(key);
+            inJsonKeys.add(key);
         }
 
         // check if the json key is in the dataset parameters
-        for (String key: inJsonKyes) {
+        for (String key: inJsonKeys) {
             int matchingCounter = 0;
             for (String param: datasetParams) {
                 if (key.equals(param)) {
