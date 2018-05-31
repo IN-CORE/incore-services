@@ -36,6 +36,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by ywkim on 9/27/2017.
@@ -117,48 +118,63 @@ public class JsonUtils {
     }
 
     public static boolean isDatasetParameterValid(String inJson) {
-        boolean isValid = true;
-        Dataset dataset = new Dataset();
-        List<String> datasetParams = new ArrayList<>();
-        List<String> inJsonKeys = new ArrayList<>();
-
         Field[] allFields = Dataset.class.getDeclaredFields();
-        for (Field field: allFields) {
-            datasetParams.add(field.getName().toString());
-        }
+        List<String> datasetParams = Arrays.stream(allFields).map(Field::getName).collect(Collectors.toList());
 
         Object json = null;
-        Set<String> keys = null;
+        Set<String> jsonKeys = null;
         try {
             json = new JSONObject(inJson);
-            keys = ((JSONObject) json).keySet();
+            jsonKeys = ((JSONObject) json).keySet();
         } catch (JSONException ex) {
             try {
                 json = new JSONArray(inJson);
-                keys = ((JSONObject) json).keySet();
+                jsonKeys = ((JSONObject) json).keySet();
             } catch (JSONException ex1) {
                 return false;
             }
         }
-        for (String key: keys) {
-            inJsonKeys.add(key);
-        }
 
-        // check if the json key is in the dataset parameters
-        for (String key: inJsonKeys) {
-            int matchingCounter = 0;
-            for (String param: datasetParams) {
-                if (key.equals(param)) {
-                    matchingCounter += 1;
-                    break;
-                }
-            }
-            if (matchingCounter == 0) {
-                isValid = false;
-            }
-        }
+        return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
 
-        return isValid;
+
+//        Field[] allFields = Dataset.class.getDeclaredFields();
+//        for (Field field: allFields) {
+//            datasetParams.add(field.getName().toString());
+//        }
+//
+//        Object json = null;
+//        Set<String> keys = null;
+//        try {
+//            json = new JSONObject(inJson);
+//            keys = ((JSONObject) json).keySet();
+//        } catch (JSONException ex) {
+//            try {
+//                json = new JSONArray(inJson);
+//                keys = ((JSONObject) json).keySet();
+//            } catch (JSONException ex1) {
+//                return false;
+//            }
+//        }
+//        for (String key: keys) {
+//            inJsonKeys.add(key);
+//        }
+//
+//        // check if the json key is in the dataset parameters
+//        for (String key: inJsonKeys) {
+//            int matchingCounter = 0;
+//            for (String param: datasetParams) {
+//                if (key.equals(param)) {
+//                    matchingCounter += 1;
+//                    break;
+//                }
+//            }
+//            if (matchingCounter == 0) {
+//                isValid = false;
+//            }
+//        }
+//
+//        return isValid;
     }
 
     public static String extractValueFromJsonString(String inId, String inJson) {
