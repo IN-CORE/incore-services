@@ -188,7 +188,7 @@ public class EarthquakeController {
                 for (int x = 0; x < width; x++) {
                     try {
                         localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
-                        hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, 0, amplifyHazard);
+                        hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard);
                         hazardResults.add(new HazardResult(startY, startX, hazardValue.getHazardValue()));
                     } catch (Exception e) {
                         logger.error("Error computing hazard value.", e);
@@ -240,7 +240,7 @@ public class EarthquakeController {
 
                 // TODO spectrum override should be part of the endpoint parameters
                 try {
-                    hazardResults.add(HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, 0, amplifyHazard));
+                    hazardResults.add(HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits,0, amplifyHazard));
                 } catch (Exception e) {
                     throw new InternalServerErrorException("Error computing hazard.", e);
                 }
@@ -277,7 +277,7 @@ public class EarthquakeController {
 
             // TODO spectrum override should be part of the endpoint parameters
             try {
-                return HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, 0, amplifyHazard);
+                return HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits,0, amplifyHazard);
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }

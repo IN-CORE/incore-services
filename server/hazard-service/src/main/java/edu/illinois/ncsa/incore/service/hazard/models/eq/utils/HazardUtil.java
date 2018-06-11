@@ -119,6 +119,259 @@ public class HazardUtil {
         return siteClassInt;
     }
 
+    public static double convertHazard(double hazard, String fromUnits, double t, String fromHazardType, String toUnits,
+                                       String toHazardType)
+    {
+        double hazardVal = convertHazardType(hazard, fromUnits, t, fromHazardType, toUnits, toHazardType);
+        if (Double.isNaN(hazardVal)) {
+            hazardVal = 0.0;
+        }
+        // not really sure that we should use 0.0 for infinite values, but we
+        // know there's no way we want them in our actual values
+        if (Double.isInfinite(hazardVal)) {
+            hazardVal = 0.0;
+        }
+        return hazardVal;
+
+    }
+
+    /**
+     *
+     * @param hazard
+     *            Hazard Input
+     * @param units0
+     *            Units of the hazard input
+     * @param t
+     *            Period, if applicable to the conversion
+     * @param hazardType0
+     *            Type of hazard input
+     * @param units1
+     *            Units of the required hazard
+     * @param hazardType1
+     *            Type of required hazard
+     * @return
+     */
+    private static double convertHazardType(double hazard, String units0, double t, String hazardType0, String units1, String hazardType1)
+    {
+        String concat = hazardType0.concat(hazardType1);
+        if (concat.equalsIgnoreCase(sa_pgv)) {
+            double pgv_from_sa = convertSAToPGV(hazard, units0, units1);
+            return convertHazard(pgv_from_sa, units_cms, 0.0, PGV, units1, PGV);
+        } else if (concat.equalsIgnoreCase(pga_pga)) {
+            return getCorrectUnitsOfPGA(hazard, units0, units1);
+        } else if (concat.equalsIgnoreCase(sa_sa)) {
+            return getCorrectUnitsOfSA(hazard, units0, units1);
+        } else if (concat.equalsIgnoreCase(sa_sd)) {
+            return convertSAToSD(hazard, t, units0, units1);
+        } else if (concat.equalsIgnoreCase(sa_sv)) {
+            return convertSAToSV(hazard, t, units0);
+        } else if (concat.equalsIgnoreCase(sd_sd)) {
+            return getCorrectUnitsOfSD(hazard, units0, units1);
+        } else if (concat.equalsIgnoreCase(pga_pgd)) {
+            // logger.debug( "***************hazard val in: " + hazard );
+            return convertPGAToPGD(hazard, units0, units1);
+        } else if (concat.equalsIgnoreCase(pgv_pgv)) {
+            // logger.debug( "***************hazard val in: " + hazard );
+            return getCorrectUnitsOfPGV(hazard, units0, units1);
+        }
+        return hazard;
+    }
+
+    /**
+     *
+     * @param sa_1
+     *            1.0 Second Spectral Acceleration
+     * @param units0
+     *            Units of the SA value
+     * @return PGV in cm/sec
+     */
+    private static double convertSAToPGV(double sa_1, String units0, String units1)
+    {
+        double hazard = sa_1;
+        if (units_g.equalsIgnoreCase(units0)) {
+
+        } else if (units_percg.equalsIgnoreCase(units0)) {
+            hazard /= 100.0;
+        }
+
+        return ((386.4 * hazard) / (2 * Math.PI)) * 2.54 / 1.65;
+    }
+
+    /**
+     *
+     * @param pga
+     * @param units0
+     * @param units1
+     * @return
+     */
+    private static double convertPGAToPGD(double pga, String units0, String units1)
+    {
+        // XXX: assuming ground type B here, that's not always true, how do we
+        // handle that?
+        double hazard = pga;
+        if (units_g.equalsIgnoreCase(units0)) {
+            hazard *= 9.80;
+        } else if (units_percg.equalsIgnoreCase(units0)) {
+            hazard = hazard * 9.8 / 100.0;
+        } else {
+            logger.warn("unknown units in converting PGA to PGD, returning base hazard: " + hazard);
+        }
+        return getCorrectUnitsOfPGD(convertPGAToPGD(hazard, 1.2, 0.5, 2.0), "m", units1);
+    }
+
+    /**
+     *
+     * @param pga
+     *            Peak Ground Acceleration in m/s^2
+     * @param s
+     *            Constant for specific ground type
+     * @param t_c
+     *            Constant for specific ground type
+     * @param t_d
+     *            Constant for specific ground type
+     * @return Peak Ground Displacement in meters
+     */
+    private static double convertPGAToPGD(double pga, double s, double t_c, double t_d)
+    {
+        return (0.025 * pga * s * t_c * t_d);
+    }
+
+    /**
+     *
+     * @param sa
+     *            spectral acceleration
+     * @param t
+     *            period
+     * @param units0
+     *            units of Sa
+     * @return spectral displacement in cm
+     */
+    private static double convertSAToSD(double sa, double t, String units0, String units1)
+    {
+        sa = getCorrectUnitsOfSA(sa, units0, units_g);
+        return getCorrectUnitsOfSD(sa * 9.78 * Math.pow(t, 2) * 2.54, units_cm, units1);
+    }
+
+    /**
+     *
+     * @param sa
+     *            spectral acceleration
+     * @param t
+     *            period
+     * @param units0
+     *            units of Sa
+     * @return spectral velocity in cm/s
+     */
+    private static double convertSAToSV(double sa, double t, String units0)
+    {
+        sa = getCorrectUnitsOfSA(sa, units0, units_g);
+        return sa * 9.8 * t / (2 * Math.PI);
+    }
+
+    /**
+     *
+     * @param pga
+     * @param units0
+     * @param units1
+     * @return
+     */
+    public static double getCorrectUnitsOfPGA(double pga, String units0, String units1)
+    {
+        if (units1 != null && units1.equalsIgnoreCase(units0)) {
+            return pga;
+        } else if (units_g.equalsIgnoreCase(units1) && units_percg.equalsIgnoreCase(units0)) {
+            return pga / 100.0;
+        } else {
+            logger.warn("Unknown PGA unit, returning unconverted pga value");
+            // Unknown type
+            return pga;
+        }
+    }
+
+    /**
+     *
+     * @param pgd
+     * @param units0
+     * @param units1
+     * @return
+     */
+    public static double getCorrectUnitsOfPGD(double pgd, String units0, String units1)
+    {
+        if (units0 != null && units0.equalsIgnoreCase(units1)) {
+            return pgd;
+        } else if (units_m.equalsIgnoreCase(units0) || "m".equalsIgnoreCase(units0) && units_ft.equalsIgnoreCase(units1)) {
+            return pgd * 3.2808399;
+        } else if (units_m.equalsIgnoreCase(units0) || "m".equalsIgnoreCase(units0) && units_cm.equalsIgnoreCase(units1)) {
+            return pgd * 100.0;
+        } else {
+            // Unknown type
+            logger.warn("PGD unit type was " + units0 + ", but no conversion is implemented for units of " + units1);
+            return pgd;
+        }
+    }
+
+    /**
+     *
+     * @param sa
+     * @param units0
+     * @param units1
+     * @return
+     */
+    public static double getCorrectUnitsOfSA(double sa, String units0, String units1)
+    {
+        if (units1 != null && units1.equalsIgnoreCase(units0)) {
+            return sa;
+        } else if (units_g.equalsIgnoreCase(units1) && units_percg.equalsIgnoreCase(units0)) {
+            return sa / 100.0;
+        } else {
+            // Unknown type
+            logger.warn("Unknown SA unit, returning unconverted sa value");
+            return sa;
+        }
+    }
+
+    /**
+     *
+     * @param sd
+     * @param units0
+     * @param units1
+     * @return
+     */
+    public static double getCorrectUnitsOfSD(double sd, String units0, String units1)
+    {
+        if (units1 != null && units1.equalsIgnoreCase(units0)) {
+            return sd;
+        } else if (units_in.equalsIgnoreCase(units1) && units_cm.equalsIgnoreCase(units0)) {
+            return sd / 2.54;
+        } else if (units_cm.equalsIgnoreCase(units1) && units_in.equalsIgnoreCase(units0)) {
+            return sd * 2.54;
+        } else {
+            // Unknown type
+            logger.warn("Unknown SD unit, returning unconverted sd value");
+            return sd;
+        }
+    }
+
+    /**
+     *
+     * @param pgv
+     * @param units0
+     * @param units1
+     * @return
+     */
+    public static double getCorrectUnitsOfPGV(double pgv, String units0, String units1)
+    {
+        if (units1 != null && units1.equalsIgnoreCase(units0)) {
+            return pgv;
+        } else if (units_ins.equalsIgnoreCase(units1) && units_cms.equalsIgnoreCase(units0)) {
+            return pgv / 2.54;
+        } else {
+            logger.warn("Unknown pgv unit, returning unconverted pgv value");
+            return pgv;
+        }
+    }
+
+
     /**
      * @param period
      * @param hazard
