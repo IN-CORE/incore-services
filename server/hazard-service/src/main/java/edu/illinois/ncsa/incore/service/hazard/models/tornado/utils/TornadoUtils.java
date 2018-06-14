@@ -391,7 +391,7 @@ public class TornadoUtils {
 
         SimpleFeatureType schema = builder.buildFeatureType();
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(schema);
-        for (int simulation = 0; simulation < scenarioTornado.getNumSimulations(); simulation++) {
+        for (int simulation = 0; simulation < scenarioTornado.getTornadoParameters().getNumSimulations(); simulation++) {
             LineString tornadoPath = TornadoUtils.createTornadoPath(scenarioTornado.getTornadoParameters(), simulation);
             EFBox efbox = scenarioTornado.getEfBoxes().get(simulation);
             List<Geometry> geometry = createTornadoGeometry(scenarioTornado.getTornadoParameters(), efbox.getEfBoxWidths(), tornadoPath);
