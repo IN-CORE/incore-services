@@ -63,10 +63,11 @@ public class TornadoController {
             Tornado tornado = null;
             if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
                 tornado = new MeanWidthTornado();
-            } else if(scenarioTornado.getTornadoModel().equalsIgnoreCase("RandomWidthTornado")) {
+            } else if (scenarioTornado.getTornadoModel().equalsIgnoreCase("RandomWidthTornado")) {
                 tornado = new TornadoRandomWidth();
             } else {
-                throw new UnsupportedHazardException(scenarioTornado.getTornadoModel() + " model not yet implemented");
+                logger.error("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
+                throw new UnsupportedHazardException("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
             }
 
             // Run the model
@@ -92,7 +93,7 @@ public class TornadoController {
         } else {
             logger.warn("scenario tornado is null");
         }
-
+        logger.error("Scenario tornado was null.");
         throw new InternalServerErrorException("Tornado was null");
     }
 
