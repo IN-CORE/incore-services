@@ -33,7 +33,6 @@ import org.geotools.data.DataStoreFinder;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTS;
@@ -78,7 +77,7 @@ public class HazardUtil {
     private static final String units_cms = "cm/s";
     private static final String units_ins = "in/s";
     // English
-    private static final String units_in = "in";
+    public static final String units_in = "in";
     private static final String units_ft = "feet";
     private static final String sa_pgv = "sapgv";
     private static final String pga_pgd = "pgapgd";

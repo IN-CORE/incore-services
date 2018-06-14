@@ -289,7 +289,7 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("geologyDataset") String geologyId, @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId, @QueryParam("point") List<Double> points) {
+    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("geologyDataset") String geologyId, @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<Double> points) {
         ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
         if (points.size() % 2 != 0) {
             logger.error("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
@@ -311,7 +311,7 @@ public class EarthquakeController {
 
                 Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
                 // TODO find groundwater depth if shapefile is passed in
-                hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology));
+                hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology, demandUnits));
             }
 
             return hazardResults;

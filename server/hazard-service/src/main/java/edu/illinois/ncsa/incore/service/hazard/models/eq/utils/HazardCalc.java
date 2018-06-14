@@ -54,7 +54,7 @@ public class HazardCalc {
     private static final Logger logger = Logger.getLogger(HazardCalc.class);
     private static GeometryFactory factory = new GeometryFactory();
 
-    public static LiquefactionHazardResult getLiquefactionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, SimpleFeatureCollection soilGeology) {
+    public static LiquefactionHazardResult getLiquefactionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, SimpleFeatureCollection soilGeology, String demandUnits) {
         HazusLiquefaction liquefaction = new HazusLiquefaction();
         String susceptibilitity = null;
         double pgaValue = 0.0;
@@ -67,7 +67,15 @@ public class HazardCalc {
                 groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, earthquake.getEqParameters().getMagnitude());
                 double liqProbability = liquefaction.getProbabilityOfLiquefaction(earthquake.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, -1);
 
-                return new LiquefactionHazardResult(groundDeformation, "in", liqProbability);
+                // Default units of permanent ground deformation
+                String pgdUnits = HazardUtil.units_in;
+                if(demandUnits.equalsIgnoreCase(HazardUtil.units_cm)) {
+                    pgdUnits = HazardUtil.units_cm;
+                    groundDeformation *= 2.54;
+                }
+
+                // TODO we could add other conversions or let the user convert from the default
+                return new LiquefactionHazardResult(groundDeformation, pgdUnits, liqProbability);
             } else {
                 return new LiquefactionHazardResult(0.0, "in", 0.0);
             }
