@@ -1,27 +1,11 @@
 {
-  "id": "5a7360ee5a52282c033e5ba3",
   "tornadoModel": "MeanLengthWidthAngleTornado",
-  "numSimulations": 1,
   "tornadoParameters":{
     "efRating": "EF5",
     "maxWindSpeed": 250,
     "startLatitude": 35.02704146461473,
     "startLongitude": -90.13129751739712,
     "randomSeed": 1234,
-    "windSpeedMethod": 1,
-    "endLatitude":[
-      35.22678630770863
-    ],
-    "endLongitude":[
-      -89.74196434865476
-    ]
-  },
-  "tornadoWidth":[
-    815.9980909090909
-  ],
-  "efBoxes":[
-    {
-      "efBoxWidths":[0.001002256638187928, 0.0017328393158413994, 0.0022321320000668874, 0.0027387672237662794, 0.003205018480359198, 0.003671269736952117]
-    }
-  ]
+    "windSpeedMethod": 1
+  }
 }

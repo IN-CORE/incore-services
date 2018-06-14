@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MeanLengthWidthAngleTornado extends Tornado{
 
@@ -23,6 +24,15 @@ public class MeanLengthWidthAngleTornado extends Tornado{
 
         this.efBoxes.add(this.computeTornadoEFBoxWidths(startPtCoordinate, endPtCoordinate, meanWidth, efRating));
 
+        List<Double> endLongitude = new ArrayList<Double>();
+        List<Double> endLatitude = new ArrayList<Double>();
+        endLongitude.add(endPtCoordinate.x);
+        endLatitude.add(endPtCoordinate.y);
+
+        tornadoParameters.setEndLongitude(endLongitude);
+        tornadoParameters.setEndLatitude(endLatitude);
+
+        this.tornadoParameters = tornadoParameters;
     }
 
     @Override
