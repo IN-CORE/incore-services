@@ -81,7 +81,7 @@ public class TornadoController {
             scenarioTornado.setEfBoxes(tornado.getEFBoxes());
 
             // if createTornado has updated the parameters (such as calculate the endPtCoordinate)
-            if (scenarioTornado.getTornadoParameters() != tornado.getTornadoParameters()) {
+            if (tornado.getTornadoParameters() != null && scenarioTornado.getTornadoParameters() != tornado.getTornadoParameters()) {
                 scenarioTornado.setTornadoParameters(tornado.getTornadoParameters());
             }
 
