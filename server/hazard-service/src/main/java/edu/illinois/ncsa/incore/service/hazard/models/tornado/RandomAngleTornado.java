@@ -33,6 +33,10 @@ public class RandomAngleTornado extends Tornado {
 
         double randomAngle = 0;
 
+        // put the caclulated endpoint back to tornadoParameters
+        List<Double> endLongitude = new ArrayList<Double>();
+        List<Double> endLatitude = new ArrayList<Double>();
+
         for (int i = 0; i < tornadoParameters.getNumSimulations(); i++){
             // Get a random angle following the normal distribution
             randomAngle = (randomAngleGenerator.nextGaussian() * stdDevAngle) + meanAngle;
@@ -45,11 +49,8 @@ public class RandomAngleTornado extends Tornado {
             this.efBoxes.add(this.computeTornadoEFBoxWidths(startPtCoordinate, endPtCoordinate, meanWidth, efRating));
 
             // put the caclulated endpoint back to tornadoParameters
-            List<Double> endLongitude = new ArrayList<Double>();
-            List<Double> endLatitude = new ArrayList<Double>();
             endLongitude.add(endPtCoordinate.x);
             endLatitude.add(endPtCoordinate.y);
-
             tornadoParameters.setEndLongitude(endLongitude);
             tornadoParameters.setEndLatitude(endLatitude);
         }
