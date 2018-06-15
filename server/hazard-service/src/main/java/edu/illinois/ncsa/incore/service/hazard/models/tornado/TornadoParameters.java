@@ -19,6 +19,7 @@ public class TornadoParameters {
     private double startLongitude;
     private int randomSeed;
     private int windSpeedMethod = 1;
+    private int numSimulations = 1;
     private List<Double> endLatitude = new ArrayList<Double>();
     private List<Double> endLongitude = new ArrayList<Double>();
 
@@ -86,5 +87,9 @@ public class TornadoParameters {
     public void setStartLongitude(double startLongitude) {
         this.startLongitude = startLongitude;
     }
+
+    public int getNumSimulations(){ return numSimulations; }
+
+    public void setNumSimulations(int numSimulations){ this.numSimulations = numSimulations; }
 
 }
