@@ -50,8 +50,8 @@ public class RandomAngleTornado extends Tornado {
             endLongitude.add(endPtCoordinate.x);
             endLatitude.add(endPtCoordinate.y);
 
-            tornadoParameters.setEndLongitude(endLongitude);
-            tornadoParameters.setEndLatitude(endLatitude);
+            this.tornadoParameters.setEndLongitude(endLongitude);
+            this.tornadoParameters.setEndLatitude(endLatitude);
         }
     }
 
