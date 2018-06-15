@@ -31,8 +31,6 @@ public class MeanLengthWidthAngleTornado extends Tornado{
 
         tornadoParameters.setEndLongitude(endLongitude);
         tornadoParameters.setEndLatitude(endLatitude);
-
-        this.tornadoParameters = tornadoParameters;
     }
 
     @Override

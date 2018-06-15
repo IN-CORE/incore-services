@@ -365,7 +365,14 @@ public class TornadoUtils {
 
     public static LineString createTornadoPath(TornadoParameters tornadoParameters, int numSimulation) {
         Coordinate startPtCoordinate = new Coordinate(tornadoParameters.getStartLongitude(), tornadoParameters.getStartLatitude());
-        Coordinate endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
+
+        Coordinate endPtCoordinate = null;
+        if (tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()){
+            endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
+        }
+        else{
+            endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(0), tornadoParameters.getEndLatitude().get(0));
+        }
 
         Coordinate[] coords = new Coordinate[]{startPtCoordinate, endPtCoordinate};
         return geometryFactory.createLineString(coords);
@@ -393,7 +400,16 @@ public class TornadoUtils {
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(schema);
         for (int simulation = 0; simulation < scenarioTornado.getTornadoParameters().getNumSimulations(); simulation++) {
             LineString tornadoPath = TornadoUtils.createTornadoPath(scenarioTornado.getTornadoParameters(), simulation);
-            EFBox efbox = scenarioTornado.getEfBoxes().get(simulation);
+
+            // EFBox size will not be the same as simulation number for non-random tornado methods
+            EFBox efbox = null;
+            if (scenarioTornado.getEfBoxes().size() == scenarioTornado.getTornadoParameters().getNumSimulations()) {
+                efbox = scenarioTornado.getEfBoxes().get(simulation);
+            }
+            else{
+                efbox = scenarioTornado.getEfBoxes().get(0);
+            }
+
             List<Geometry> geometry = createTornadoGeometry(scenarioTornado.getTornadoParameters(), efbox.getEfBoxWidths(), tornadoPath);
 
             for (int index = 0; index < geometry.size(); index++) {
