@@ -64,7 +64,7 @@ public class TornadoController {
             if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
                 tornado = new MeanWidthTornado();
             }
-            else if(scenarioTornado.getTornadoModel().equals("RandomAngleTorndo")) {
+            else if(scenarioTornado.getTornadoModel().equals("RandomAngleTornado")) {
                 tornado = new RandomAngleTornado();
             }
             else {

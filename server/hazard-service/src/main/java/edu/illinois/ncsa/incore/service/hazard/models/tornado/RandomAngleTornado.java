@@ -15,7 +15,6 @@ public class RandomAngleTornado extends Tornado {
         return true;
     }
 
-    @Override
     public void createTornado(TornadoParameters tornadoParameters){
         // generate random
         int randomSeed = tornadoParameters.getRandomSeed();
