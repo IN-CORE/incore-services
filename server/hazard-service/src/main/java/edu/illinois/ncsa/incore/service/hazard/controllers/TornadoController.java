@@ -80,11 +80,6 @@ public class TornadoController {
             scenarioTornado.setTornadoWidth(tornado.getTornadoWidths());
             scenarioTornado.setEfBoxes(tornado.getEFBoxes());
 
-            // if createTornado has updated the parameters (such as calculate the endPtCoordinate)
-            if (tornado.getTornadoParameters() != null && scenarioTornado.getTornadoParameters() != tornado.getTornadoParameters()) {
-                scenarioTornado.setTornadoParameters(tornado.getTornadoParameters());
-            }
-
             SimpleFeatureCollection collection = TornadoUtils.createTornadoGeometry(scenarioTornado);
 
             // Create the files from feature collection

@@ -30,7 +30,6 @@ public abstract class Tornado {
     private static final Logger logger = Logger.getLogger(Tornado.class);
     protected List<EFBox> efBoxes = new ArrayList<EFBox>();
     protected List<Double> tornadoWidths = new ArrayList<Double>();
-    protected TornadoParameters tornadoParameters = null;
     /**
      * Returns whether the model requires an endpoint to be defined
      *
@@ -263,7 +262,4 @@ public abstract class Tornado {
         }
     }
 
-    public TornadoParameters getTornadoParameters(){
-        return tornadoParameters;
-    }
 }

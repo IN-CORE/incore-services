@@ -15,6 +15,7 @@ public class RandomAngleTornado extends Tornado {
         return true;
     }
 
+    @Override
     public void createTornado(TornadoParameters tornadoParameters){
         // generate random
         int randomSeed = tornadoParameters.getRandomSeed();
@@ -49,8 +50,8 @@ public class RandomAngleTornado extends Tornado {
             endLongitude.add(endPtCoordinate.x);
             endLatitude.add(endPtCoordinate.y);
 
-            this.tornadoParameters.setEndLongitude(endLongitude);
-            this.tornadoParameters.setEndLatitude(endLatitude);
+            tornadoParameters.setEndLongitude(endLongitude);
+            tornadoParameters.setEndLatitude(endLatitude);
         }
     }
 
