@@ -52,6 +52,10 @@ public class RandomLengthWidthAngleTornado extends Tornado {
         double rLength = 0.0;
         double rAngle = 0.0;
 
+        // put the calculated endpoint back to tornadoParameters
+        List<Double> endLongitude = new ArrayList<Double>();
+        List<Double> endLatitude = new ArrayList<Double>();
+
         // For each simulation, obtain the random width from the GEV
         for (int i = 0; i < tornadoParameters.getNumSimulations(); i++) {
             // CMN: There are cases when the random sample is less than 0. When the value is less than 0, we go to the next random
@@ -82,8 +86,15 @@ public class RandomLengthWidthAngleTornado extends Tornado {
             Coordinate endPtCoordinate = TornadoUtils.calculateDestination(startPtCoordinate, normalizedAngle, tornadoLengths.get(i));
 
             this.efBoxes.add(this.computeTornadoEFBoxWidths(startPtCoordinate, endPtCoordinate, tornadoWidths.get(i), efRating));
+
+            // put the caclulated endpoint back to tornadoParameters
+            endLongitude.add(endPtCoordinate.x);
+            endLatitude.add(endPtCoordinate.y);
         }
 
+        // put the caclulated endpoint back to tornadoParameters
+        tornadoParameters.setEndLongitude(endLongitude);
+        tornadoParameters.setEndLatitude(endLatitude);
     }
 
 
