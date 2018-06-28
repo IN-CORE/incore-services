@@ -12,6 +12,7 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
+import edu.illinois.ncsa.incore.common.config.Config;
 import org.apache.log4j.Logger;
 
 import java.util.HashSet;
@@ -104,6 +105,16 @@ public class Authorizer implements IAuthorizer {
         try {
             LdapClient ldapClient = getLdapClient();
             Set<String> userGroups = ldapClient.getUserGroups(user);
+
+            //if the user is an admin, they get full privileges
+            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.admins"))) {
+                HashSet<PrivilegeLevel> admin  = new HashSet<>();
+                admin.add(PrivilegeLevel.ADMIN);
+                admin.add(PrivilegeLevel.WRITE);
+                admin.add(PrivilegeLevel.READ);
+                return admin;
+            }
+
             return spec.groupPrivileges.keySet().stream()
                 .filter(userGroups::contains)
                 .map(key -> spec.groupPrivileges.get(key))
