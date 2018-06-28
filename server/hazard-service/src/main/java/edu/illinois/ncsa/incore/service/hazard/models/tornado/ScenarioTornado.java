@@ -23,7 +23,7 @@ public class ScenarioTornado {
     private ObjectId id;
 
     private String tornadoModel;
-    private int numSimulations = 1;
+
     private TornadoParameters tornadoParameters;
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;
@@ -69,13 +69,7 @@ public class ScenarioTornado {
     }
 
 
-    public int getNumSimulations() {
-        return numSimulations;
-    }
 
-    public void setNumSimulations(int numSimulations) {
-        this.numSimulations = numSimulations;
-    }
 
     public String getTornadoDatasetId() {
         return tornadoDatasetId;
