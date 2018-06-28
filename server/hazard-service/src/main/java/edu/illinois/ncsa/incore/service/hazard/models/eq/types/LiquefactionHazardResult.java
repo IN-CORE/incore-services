@@ -4,15 +4,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class LiquefactionHazardResult {
-
     private String pgdUnits;
     private double pgd;
     private double liqProbability;
+    private double[] groundFailureProb;
 
-    public LiquefactionHazardResult(double pgd, String pgdUnits, double liqProbability) {
+    public LiquefactionHazardResult(double pgd, String pgdUnits, double liqProbability, double[] groundFailureProb) {
         this.pgd = pgd;
         this.pgdUnits = pgdUnits;
         this.liqProbability = liqProbability;
+        this.groundFailureProb = groundFailureProb;
     }
 
     public String getPgdUnits() {
@@ -39,5 +40,11 @@ public class LiquefactionHazardResult {
         this.liqProbability = liqProbability;
     }
 
+    public double[] getGroundFailureProb() {
+        return groundFailureProb;
+    }
 
+    public void setGroundFailureProb(double[] groundFailureProb) {
+        this.groundFailureProb = groundFailureProb;
+    }
 }
