@@ -410,12 +410,10 @@ public class TornadoUtils {
 
     public static LineString createTornadoPath(TornadoParameters tornadoParameters, int numSimulation) {
         Coordinate startPtCoordinate = new Coordinate(tornadoParameters.getStartLongitude(), tornadoParameters.getStartLatitude());
-
         Coordinate endPtCoordinate = null;
-        if (tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()){
+        if(tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()) {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
-        }
-        else{
+        } else {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(0), tornadoParameters.getEndLatitude().get(0));
         }
 

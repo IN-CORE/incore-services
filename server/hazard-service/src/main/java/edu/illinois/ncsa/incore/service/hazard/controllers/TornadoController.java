@@ -20,6 +20,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomLengthWidthAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoRandomWidth;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
@@ -68,7 +69,9 @@ public class TornadoController {
             else if(scenarioTornado.getTornadoModel().equals("RandomLengthWidthAngleTornado")) {
                 tornado = new RandomLengthWidthAngleTornado();
             }
-            else {
+            else if (scenarioTornado.getTornadoModel().equalsIgnoreCase("RandomWidthTornado")) {
+                tornado = new TornadoRandomWidth();
+            } else {
                 logger.error("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
                 throw new UnsupportedHazardException("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
             }
@@ -91,11 +94,11 @@ public class TornadoController {
             scenarioTornado.setTornadoDatasetId(datasetId);
 
             scenarioTornado.setPrivileges(Privileges.newWithSingleOwner(username));
+
             return repository.addScenarioTornado(scenarioTornado);
         } else {
             logger.warn("scenario tornado is null");
         }
-
         logger.error("Scenario tornado was null.");
         throw new InternalServerErrorException("Tornado was null");
     }
