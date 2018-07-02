@@ -87,12 +87,12 @@ public class RandomLengthWidthAngleTornado extends Tornado {
 
             this.efBoxes.add(this.computeTornadoEFBoxWidths(startPtCoordinate, endPtCoordinate, tornadoWidths.get(i), efRating));
 
-            // put the caclulated endpoint back to tornadoParameters
+            // put the calculated endpoint back to tornadoParameters
             endLongitude.add(endPtCoordinate.x);
             endLatitude.add(endPtCoordinate.y);
         }
 
-        // put the caclulated endpoint back to tornadoParameters
+        // put the calculated endpoint back to tornadoParameters
         tornadoParameters.setEndLongitude(endLongitude);
         tornadoParameters.setEndLatitude(endLatitude);
     }
