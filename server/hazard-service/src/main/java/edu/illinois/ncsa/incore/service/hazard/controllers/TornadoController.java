@@ -18,8 +18,10 @@ import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanLengthWidthAngleTornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomLengthWidthAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoRandomWidth;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
@@ -61,16 +63,21 @@ public class TornadoController {
     public ScenarioTornado createScenarioTornado(ScenarioTornado scenarioTornado, @HeaderParam("X-Credential-Username") String username) throws Exception {
         if (scenarioTornado != null) {
             Tornado tornado = null;
+
             if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
-                tornado = new MeanWidthTornado();
+                 tornado = new MeanWidthTornado();
             }
             else if(scenarioTornado.getTornadoModel().equals("MeanLengthWidthAngleTornado")) {
                 tornado = new MeanLengthWidthAngleTornado();
             }
-            else {
+            else if(scenarioTornado.getTornadoModel().equals("RandomLengthWidthAngleTornado")) {
+                tornado = new RandomLengthWidthAngleTornado();
+            }
+            else if (scenarioTornado.getTornadoModel().equalsIgnoreCase("RandomWidthTornado")) {
+                tornado = new TornadoRandomWidth();
+            } else {
                 logger.error("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
                 throw new UnsupportedHazardException("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
-
             }
 
             // Run the model
@@ -97,7 +104,6 @@ public class TornadoController {
         } else {
             logger.warn("scenario tornado is null");
         }
-
         logger.error("Scenario tornado was null.");
         throw new InternalServerErrorException("Tornado was null");
     }

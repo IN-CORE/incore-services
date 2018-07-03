@@ -131,6 +131,7 @@ public class TornadoUtils {
         return new Coordinate((((Math.toDegrees(long2) + 540) % 360) -180), Math.toDegrees(lat2));
     }
 
+
     /**
      * Computes azimuth angle between start and end location
      *
@@ -157,6 +158,66 @@ public class TornadoUtils {
         brng = (brng + 360) % 360;
 
         return brng;
+    }
+
+    /**
+     * Computes the standard deviation of the tornado directions for a specified EF rating
+     *
+     * @param efRating
+     *            Enhanced Fujita scale of the Tornado (0-5)
+     * @return The directional standard deviation (in degrees) of the angles for a specific EF rating
+     */
+    public static double computeAngleStandardDeviation(String efRating){
+        int efRatingValue = TornadoUtils.getEFRating(efRating);
+        try (BufferedReader input = new BufferedReader(new InputStreamReader(TornadoUtils.class.getClassLoader()
+            .getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))) {
+
+            String line = null;
+            int intensity = 0;
+            double angle = 0.0;
+            double x = 0.0;
+            double y = 0.0;
+
+            int count = 1;
+
+            while ((line = input.readLine()) != null){
+                String[] values = line.split("\t");
+                intensity = Integer.parseInt(values[3]);
+
+                if (intensity == efRatingValue){
+                    double startLatitude = Double.parseDouble(values[6]);
+                    double startLongitude = Double.parseDouble(values[7]);
+                    double endLatitude = Double.parseDouble(values[8]);
+                    double endLongtide = Double.parseDouble(values[9]);
+
+                    if ((startLatitude !=0 && startLongitude !=0 && endLatitude !=0 && endLongtide != 0)
+                        && (startLatitude != endLatitude && startLongitude != endLongtide)){
+                        angle = computeAngle(startLatitude, startLongitude, endLatitude, endLongtide);
+
+                        x += Math.cos(Math.toRadians(angle));
+                        y += Math.sin(Math.toRadians(angle));
+
+                        count++;
+                    }
+                }
+            }
+
+            // cos a bar
+            double normalizedX = x / count;
+            // sin a bar
+            double normalizedY = y / count;
+
+            //Mean Resultant Vector Length
+            double R = Math.sqrt(Math.pow(normalizedX, 2) + Math.pow(normalizedY, 2));
+            double standardDeviation = Math.sqrt(-2 * Math.log(R));
+
+            return Math.toDegrees(standardDeviation);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     public static double computeMeanWidth(String efRating) {
@@ -367,10 +428,9 @@ public class TornadoUtils {
         Coordinate startPtCoordinate = new Coordinate(tornadoParameters.getStartLongitude(), tornadoParameters.getStartLatitude());
 
         Coordinate endPtCoordinate = null;
-        if (tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()){
+        if(tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()) {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
-        }
-        else{
+        } else {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(0), tornadoParameters.getEndLatitude().get(0));
         }
 

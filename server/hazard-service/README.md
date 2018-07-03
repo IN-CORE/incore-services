@@ -55,10 +55,15 @@ http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&deman
 ## Tornadoes
 
 ### Create Scenario Tornado
+Supported tornado models are:
+* MeanWidthTornado
+* RandomWidthTornado
+
+For the example below, replace the tornadoModel with the model you want to create and if applicable, update the number of simulations for how many tornadoes to create.
 
 http://localhost:8080/hazard/api/tornadoes
 
-POST - Create scenario tornado
+POST - Create mean width scenario tornado
 
 {
   "tornadoModel" : "MeanWidthTornado",
@@ -69,7 +74,8 @@ POST - Create scenario tornado
     "randomSeed" : "1234",
     "endLatitude" : [35.246],
     "endLongitude" : [-97.438],
-    "windSpeedMethod" : "1"
+    "windSpeedMethod" : "1",
+    "numSimulations" : "1"
   }
 }
 

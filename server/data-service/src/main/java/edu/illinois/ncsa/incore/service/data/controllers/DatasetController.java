@@ -315,6 +315,12 @@ public class DatasetController {
             throw new BadRequestException("Posted json is not a valid json.");
         }
 
+        boolean isDatasetParameterValid = JsonUtils.isDatasetParameterValid(inDatasetJson);
+        if (isDatasetParameterValid != true) {
+            logger.error("Posted json is not a valid json.");
+            throw new BadRequestException("Posted json has wrong parameter");
+        }
+
         String title = "";
         String dataType = "";
         String sourceDataset = "";
