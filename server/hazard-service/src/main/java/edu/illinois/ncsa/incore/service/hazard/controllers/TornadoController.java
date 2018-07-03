@@ -17,6 +17,7 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomLengthWidthAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoRandomWidth;
@@ -61,9 +62,14 @@ public class TornadoController {
     public ScenarioTornado createScenarioTornado(ScenarioTornado scenarioTornado, @HeaderParam("X-Credential-Username") String username) throws Exception {
         if (scenarioTornado != null) {
             Tornado tornado = null;
+
             if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
-                tornado = new MeanWidthTornado();
-            } else if (scenarioTornado.getTornadoModel().equalsIgnoreCase("RandomWidthTornado")) {
+                 tornado = new MeanWidthTornado();
+            }
+            else if(scenarioTornado.getTornadoModel().equals("RandomLengthWidthAngleTornado")) {
+                tornado = new RandomLengthWidthAngleTornado();
+            }
+            else if (scenarioTornado.getTornadoModel().equalsIgnoreCase("RandomWidthTornado")) {
                 tornado = new TornadoRandomWidth();
             } else {
                 logger.error("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
