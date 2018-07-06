@@ -25,7 +25,7 @@ public class IncorePoint {
     public IncorePoint(String latlong) {
         String[] str = latlong.split(",");
         if (str.length != 2) {
-            throw new IllegalArgumentException("The format needs to me decimalLat,decimalLong");
+            throw new IllegalArgumentException("The format needs to be decimalLat,decimalLong");
         }
         double latitude = Double.parseDouble(str[0]);
         double longitude = Double.parseDouble(str[1]);
