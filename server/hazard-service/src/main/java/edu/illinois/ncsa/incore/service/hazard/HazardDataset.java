@@ -19,7 +19,6 @@ public class HazardDataset {
     public static final String ERGO_SPACE = "ergo";
 
     // Dataset fields
-    public static final String SCHEMA = "schema";
     public static final String DATA_TYPE = "dataType";
     public static final String TITLE = "title";
     public static final String SOURCE_DATASET = "sourceDataset";

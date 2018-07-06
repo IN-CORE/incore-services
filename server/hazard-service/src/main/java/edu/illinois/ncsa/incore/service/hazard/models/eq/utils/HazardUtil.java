@@ -464,8 +464,7 @@ public class HazardUtil {
         spaces.put(HazardDataset.ERGO_SPACE);
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardDataset.SCHEMA, HazardDataset.DETERMINISTIC_HAZARD_SCHEMA);
-        jsonObject.put(HazardDataset.DATA_TYPE, HazardDataset.DETERMINISTIC_HAZARD_TYPE);
+        jsonObject.put(HazardDataset.DATA_TYPE, HazardDataset.DETERMINISTIC_HAZARD_SCHEMA);
         jsonObject.put(HazardDataset.TITLE, title);
         jsonObject.put(HazardDataset.SOURCE_DATASET, "");
         jsonObject.put(HazardDataset.FORMAT, HazardDataset.RASTER_FORMAT);

@@ -113,11 +113,6 @@ public class Dataset {
      */
     private Privileges privileges = new Privileges();
 
-    /**
-     * Schema of the hazard dataset
-     */
-    private String schema = "";
-
     public Dataset() {
     }
 
@@ -433,14 +428,6 @@ public class Dataset {
 
     public void setPrivileges(Privileges privileges) {
         this.privileges = privileges;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema){
-        this.schema = schema;
     }
 
     /**
