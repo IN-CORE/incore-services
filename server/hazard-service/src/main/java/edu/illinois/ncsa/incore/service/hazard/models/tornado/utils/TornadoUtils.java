@@ -554,16 +554,6 @@ public class TornadoUtils {
         jsonObject.put(HazardDataset.DESCRIPTION, description);
         jsonObject.put(HazardDataset.SPACES, spaces);
 
-        // new added fields to pass dataset field check
-        jsonObject.put(HazardDataset.DELETED,"");
-        jsonObject.put(HazardDataset.DATE, "");
-        jsonObject.put(HazardDataset.CREATOR, "");
-        jsonObject.put(HazardDataset.CONTRIBUTORS, "");
-        jsonObject.put(HazardDataset.FILE_DESCRIPTORS, "");
-        jsonObject.put(HazardDataset.STORED_URL,"");
-        jsonObject.put(HazardDataset.PRIVILEGES,"");
-        jsonObject.put(HazardDataset.SERIAL_VERSION_UID,"");
-
         return jsonObject;
     }
 
