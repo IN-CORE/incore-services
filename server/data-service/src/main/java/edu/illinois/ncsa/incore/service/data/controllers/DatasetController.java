@@ -327,7 +327,6 @@ public class DatasetController {
         String format = "";
         String fileName = "";
         String description = "";
-        String schema = "";
         List<String> spaces = null;
 
         // create DataWolf POJO object
