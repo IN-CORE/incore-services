@@ -119,7 +119,12 @@ public class JsonUtils {
 
     public static boolean isDatasetParameterValid(String inJson) {
         Field[] allFields = Dataset.class.getDeclaredFields();
-        List<String> datasetParams = Arrays.stream(allFields).map(Field::getName).collect(Collectors.toList());
+        // id field is added by mongo in the dataservice, should not be contained in the post request hence should
+        // not be checked!
+        List<String> datasetParams = Arrays.stream(allFields)
+            .map(Field::getName)
+            .filter(field -> !field.equals("id"))
+            .collect(Collectors.toList());
 
         Object json = null;
         Set<String> jsonKeys = null;

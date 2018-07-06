@@ -547,12 +547,22 @@ public class TornadoUtils {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(HazardDataset.SCHEMA, TornadoHazard.TORNADO_SCHEMA_NAME);
-        jsonObject.put(HazardDataset.TYPE, TornadoHazard.TORNADO_HAZARD_TYPE);
+        jsonObject.put(HazardDataset.DATA_TYPE, TornadoHazard.TORNADO_HAZARD_TYPE);
         jsonObject.put(HazardDataset.TITLE, title);
         jsonObject.put(HazardDataset.SOURCE_DATASET, "");
         jsonObject.put(HazardDataset.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
         jsonObject.put(HazardDataset.DESCRIPTION, description);
         jsonObject.put(HazardDataset.SPACES, spaces);
+
+        // new added fields to pass dataset field check
+        jsonObject.put(HazardDataset.DELETED,"");
+        jsonObject.put(HazardDataset.DATE, "");
+        jsonObject.put(HazardDataset.CREATOR, "");
+        jsonObject.put(HazardDataset.CONTRIBUTORS, "");
+        jsonObject.put(HazardDataset.FILE_DESCRIPTORS, "");
+        jsonObject.put(HazardDataset.STORED_URL,"");
+        jsonObject.put(HazardDataset.PRIVILEGES,"");
+        jsonObject.put(HazardDataset.SERIAL_VERSION_UID,"");
 
         return jsonObject;
     }

@@ -67,6 +67,7 @@ public class FileUtils {
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FILE_ZIP_EXTENSION = "zip";
     public static final String FORMAT_SHAPEFILE = "shapefile";
+    public static final String SCHEMA = "schema";
 
     public static final Logger logger = Logger.getLogger(FileUtils.class);
 

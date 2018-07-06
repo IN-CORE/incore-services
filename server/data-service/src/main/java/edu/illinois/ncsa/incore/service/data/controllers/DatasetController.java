@@ -327,6 +327,7 @@ public class DatasetController {
         String format = "";
         String fileName = "";
         String description = "";
+        String schema = "";
         List<String> spaces = null;
 
         // create DataWolf POJO object
@@ -342,6 +343,8 @@ public class DatasetController {
                 spaces.add(username);
             }
             description = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_DESCRIPTION, inDatasetJson);
+            schema = JsonUtils.extractValueFromJsonString(FileUtils.SCHEMA, inDatasetJson);
+
             dataset.setTitle(title);
             dataset.setCreator(username);
             dataset.setDataType(dataType);
@@ -350,7 +353,7 @@ public class DatasetController {
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
             dataset.setPrivileges(Privileges.newWithSingleOwner(username));
-
+            dataset.setSchema(schema);
 
             dataset = repository.addDataset(dataset);
             if (dataset == null) {

@@ -20,7 +20,7 @@ public class HazardDataset {
 
     // Dataset fields
     public static final String SCHEMA = "schema";
-    public static final String TYPE = "type";
+    public static final String DATA_TYPE = "dataType";
     public static final String TITLE = "title";
     public static final String SOURCE_DATASET = "sourceDataset";
     public static final String FORMAT = "format";
@@ -28,6 +28,16 @@ public class HazardDataset {
     public static final String SPACES = "spaces";
     public static final String DATASET_PARAMETER = "dataset";
     public static final String FILE_PARAMETER_ = "file";
+
+    // optinal fields
+    public static final String DATE = "date";
+    public static final String DELETED = "deleted";
+    public static final String CREATOR = "creator";
+    public static final String CONTRIBUTORS = "contributors";
+    public static final String FILE_DESCRIPTORS = "fileDescriptors";
+    public static final String STORED_URL = "storedUrl";
+    public static final String PRIVILEGES = "privileges";
+    public static final String SERIAL_VERSION_UID = "serialVersionUID";
 
     // Kong
     public static final String X_CREDENTIAL_USERNAME = "X-Credential-Username";
