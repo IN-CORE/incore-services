@@ -4,12 +4,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class LiquefactionHazardResult {
+    private double latitude;
+    private double longitude;
     private String pgdUnits;
     private double pgd;
     private double liqProbability;
     private double[] groundFailureProb;
 
-    public LiquefactionHazardResult(double pgd, String pgdUnits, double liqProbability, double[] groundFailureProb) {
+    public LiquefactionHazardResult(double latitude, double longitude, double pgd, String pgdUnits, double liqProbability, double[] groundFailureProb) {
+        this.longitude = longitude;
+        this.latitude = latitude;
         this.pgd = pgd;
         this.pgdUnits = pgdUnits;
         this.liqProbability = liqProbability;
@@ -46,5 +50,21 @@ public class LiquefactionHazardResult {
 
     public void setGroundFailureProb(double[] groundFailureProb) {
         this.groundFailureProb = groundFailureProb;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 }

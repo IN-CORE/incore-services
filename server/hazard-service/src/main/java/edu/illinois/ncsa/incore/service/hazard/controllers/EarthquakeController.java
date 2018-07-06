@@ -21,10 +21,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBo
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.HazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.LiquefactionHazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResults;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.log4j.Logger;
@@ -289,12 +286,8 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("geologyDataset") String geologyId, @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<Double> points) {
+    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("geologyDataset") String geologyId, @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points) {
         ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
-        if (points.size() % 2 != 0) {
-            logger.error("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
-            throw new BadRequestException("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
-        }
         if (earthquake != null) {
             model.setRuptureParameters(earthquake.getEqParameters());
 
@@ -305,11 +298,8 @@ public class EarthquakeController {
             List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection)HazardUtil.getFeatureCollection(geologyId, username);
 
-            for (int index = 0; index < points.size(); index += 2) {
-                double siteLat = points.get(index);
-                double siteLong = points.get(index + 1);
-
-                Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
+            for (IncorePoint point: points) {
+                Site localSite = new Site(point.getLocation());
                 // TODO find groundwater depth if shapefile is passed in
                 hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology, demandUnits));
             }
