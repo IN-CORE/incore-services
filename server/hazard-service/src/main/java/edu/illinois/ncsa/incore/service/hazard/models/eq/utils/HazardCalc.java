@@ -83,7 +83,7 @@ public class HazardCalc {
                 // TODO we could add other conversions or let the user convert from the default
                 return new LiquefactionHazardResult(site.getLocation().getY(), site.getLocation().getX(), groundDeformation, pgdUnits, liqProbability, groundFailureProb);
             } else {
-                return new LiquefactionHazardResult(0.0, 0.0, 0.0, "in", 0.0, groundFailureProb);
+                return new LiquefactionHazardResult(site.getLocation().getY(), site.getLocation().getX(), 0.0, "in", 0.0, groundFailureProb);
             }
         } catch (Exception e) {
             logger.error("Could not compute PGA ground motion required to determine liquefaction.");
