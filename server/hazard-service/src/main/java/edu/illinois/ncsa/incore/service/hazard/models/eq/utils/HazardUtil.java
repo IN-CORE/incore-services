@@ -10,13 +10,17 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -24,18 +28,30 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.FeatureSource;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.opengis.coverage.PointOutsideCoverageException;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
 
 import java.awt.geom.Point2D;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Misc utility functions for doing conversion of hazard types and units
@@ -61,7 +77,7 @@ public class HazardUtil {
     private static final String units_cms = "cm/s";
     private static final String units_ins = "in/s";
     // English
-    private static final String units_in = "in";
+    public static final String units_in = "in";
     private static final String units_ft = "feet";
     private static final String sa_pgv = "sapgv";
     private static final String pga_pgd = "pgapgd";
@@ -513,6 +529,145 @@ public class HazardUtil {
         }
 
         return null;
+    }
+
+    public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
+
+
+        String dataEndpoint = "http://localhost:8080/";
+        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
+            dataEndpoint = dataEndpointProp;
+            if (!dataEndpoint.endsWith("/")) {
+                dataEndpoint += "/";
+            }
+        }
+
+        InputStream inputStream = null;
+        try {
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            HttpClient httpclient = builder.build();
+
+            String requestUrl = dataEndpoint + HazardDataset.DATASETS_ENDPOINT + "/" + datasetId + "/blob";
+            HttpGet httpGet = new HttpGet(requestUrl);
+            httpGet.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
+
+            HttpResponse response = null;
+
+            response = httpclient.execute(httpGet);
+            inputStream = response.getEntity().getContent();
+        } catch(IOException e) {
+           // TODO add logging
+           logger.error(e);
+        }
+
+        File incoreWorkDirectory = null;
+        try {
+            incoreWorkDirectory = File.createTempFile("incore", ".dir");
+            incoreWorkDirectory.delete();
+            incoreWorkDirectory.mkdirs();
+        } catch(IOException e) {
+            logger.error("Error creating temporary directory.", e);
+            return null;
+        }
+
+        String filename = "shapefile.zip";
+        File file = new File(incoreWorkDirectory, filename);
+
+        try(BufferedInputStream bis = new BufferedInputStream(inputStream);
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))
+        ) {
+
+            int inByte;
+            while ((inByte = bis.read()) != -1) {
+                bos.write(inByte);
+            }
+
+        } catch(IOException e) {
+
+            logger.error(e);
+        }
+
+
+        URL inSourceFileUrl = null;
+        byte[] buffer = new byte[1024];
+        try(ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
+            ZipEntry zipEntry = zis.getNextEntry();
+            while(zipEntry != null){
+                String fileName = zipEntry.getName();
+                File newFile = new File(incoreWorkDirectory, fileName);
+                FileOutputStream fos = new FileOutputStream(newFile);
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.close();
+
+                String fileExt = FilenameUtils.getExtension(newFile.getName());
+                if (fileExt.equalsIgnoreCase("shp")) {
+                    inSourceFileUrl = newFile.toURI().toURL();
+                }
+                zipEntry = zis.getNextEntry();
+            }
+        } catch(IOException e) {
+           logger.error("Error unzipping shapefile", e);
+           return null;
+        }
+
+        try {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("url", inSourceFileUrl);
+
+            DataStore dataStore = DataStoreFinder.getDataStore(map);
+            String typeName = dataStore.getTypeNames()[0];
+
+            FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
+            dataStore.dispose();
+            SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures();
+            return inputFeatures;
+        } catch(IOException e) {
+            logger.error("Error reading shapefile");
+            return null;
+        }
+
+    }
+
+public static SimpleFeature getPointInPolygon(Point point, SimpleFeatureCollection featureCollection)
+    {
+        SimpleFeature feature = null;
+        boolean found = false;
+
+        SimpleFeatureIterator geologyIterator = featureCollection.features();
+        try {
+            while (geologyIterator.hasNext() && !found) {
+                // String featureId = featureIdIterator.next();
+                SimpleFeature f = geologyIterator.next();
+
+                Object polygonObject = f.getAttribute(0);
+                if (polygonObject instanceof Polygon) {
+                    Polygon polygon = (Polygon) polygonObject;
+                    found = polygon.contains(point);
+                    if (found) {
+                        feature = f;
+                    }
+                } else {
+                    MultiPolygon attribute = (MultiPolygon) polygonObject;
+                    for (int i = 0; i < attribute.getNumGeometries(); i++) {
+                        Polygon p = (Polygon) attribute.getGeometryN(i);
+
+                        found = p.contains(point);
+                        if (found) {
+                            i = attribute.getNumGeometries();
+                            feature = f;
+                        }
+                    }
+                }
+            }
+        } finally {
+            geologyIterator.close();
+        }
+
+        return feature;
     }
 
 }

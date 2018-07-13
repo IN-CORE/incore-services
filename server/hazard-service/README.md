@@ -48,6 +48,11 @@ http://localhost:8080/hazard/api/earthquakes/soil/amplification?method=NEHRP&dem
 GET values from a scenario earthquake, all values must be for the same demand type and period, order of points should be latitude then longitude
 http://localhost:8080/hazard/api/earthquakes/{id}/values?demandType=0.2+SA&demandUnits=g&point=35.07899&point=-90.0178&point=35.17899&point=-90.0178&point=35.07899&point=-90.1178
 
+### Get Liquefaction Values
+
+GET
+http://localhost:8080/hazard/api/earthquakes/{id}/liquefaction/values?geologyDataset=5b0f05a5c6a4925f6fa3be72&demandUnits=in&point=35.07899&point=-90.0178&point=35.17899&point=-90.0178
+
 ### Generate Raster
 
 http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&demandUnits=g&minX=-90.3099&minY=34.9942&maxX=-89.6231&maxY=35.4129&gridSpacing=0.01696
