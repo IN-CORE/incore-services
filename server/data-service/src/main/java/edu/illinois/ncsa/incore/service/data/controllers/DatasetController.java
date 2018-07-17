@@ -342,6 +342,7 @@ public class DatasetController {
                 spaces.add(username);
             }
             description = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_DESCRIPTION, inDatasetJson);
+
             dataset.setTitle(title);
             dataset.setCreator(username);
             dataset.setDataType(dataType);
@@ -350,7 +351,6 @@ public class DatasetController {
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
             dataset.setPrivileges(Privileges.newWithSingleOwner(username));
-
 
             dataset = repository.addDataset(dataset);
             if (dataset == null) {

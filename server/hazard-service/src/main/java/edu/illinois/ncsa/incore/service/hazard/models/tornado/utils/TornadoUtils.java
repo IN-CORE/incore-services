@@ -546,8 +546,7 @@ public class TornadoUtils {
         spaces.put(HazardDataset.ERGO_SPACE);
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardDataset.SCHEMA, TornadoHazard.TORNADO_SCHEMA_NAME);
-        jsonObject.put(HazardDataset.TYPE, TornadoHazard.TORNADO_HAZARD_TYPE);
+        jsonObject.put(HazardDataset.DATA_TYPE, TornadoHazard.TORNADO_SCHEMA_NAME);
         jsonObject.put(HazardDataset.TITLE, title);
         jsonObject.put(HazardDataset.SOURCE_DATASET, "");
         jsonObject.put(HazardDataset.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
