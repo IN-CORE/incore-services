@@ -68,9 +68,6 @@ public class ScenarioTornado {
         this.tornadoModel = tornadoModel;
     }
 
-
-
-
     public String getTornadoDatasetId() {
         return tornadoDatasetId;
     }

@@ -17,6 +17,7 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanLengthWidthAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomLengthWidthAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
@@ -66,6 +67,9 @@ public class TornadoController {
             if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
                  tornado = new MeanWidthTornado();
             }
+            else if(scenarioTornado.getTornadoModel().equals("MeanLengthWidthAngleTornado")) {
+                tornado = new MeanLengthWidthAngleTornado();
+            }
             else if(scenarioTornado.getTornadoModel().equals("RandomLengthWidthAngleTornado")) {
                 tornado = new RandomLengthWidthAngleTornado();
             }
@@ -96,6 +100,7 @@ public class TornadoController {
             scenarioTornado.setPrivileges(Privileges.newWithSingleOwner(username));
 
             return repository.addScenarioTornado(scenarioTornado);
+
         } else {
             logger.warn("scenario tornado is null");
         }

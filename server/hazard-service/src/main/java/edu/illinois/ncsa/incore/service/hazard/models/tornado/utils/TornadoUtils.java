@@ -130,6 +130,20 @@ public class TornadoUtils {
         return new Coordinate((((Math.toDegrees(long2) + 540) % 360) -180), Math.toDegrees(lat2));
     }
 
+
+    /**
+     * Computes azimuth angle between start and end location
+     *
+     * @param startLatitude
+     *            Start Latitude
+     * @param startLongitude
+     *            Start Longitude
+     * @param endLatitude
+     *            End Latitude
+     * @param endLongitude
+     *            End Longitude
+     * @return Angle in degrees between Start and End location
+     */
     private static double computeAngle(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
         double dLon = (endLongitude - startLongitude);
 
@@ -208,7 +222,8 @@ public class TornadoUtils {
     public static double computeMeanWidth(String efRating) {
         int efRatingValue = TornadoUtils.getEFRating(efRating);
 
-        try (BufferedReader input = new BufferedReader(new InputStreamReader(TornadoUtils.class.getClassLoader().getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))) {
+        try (BufferedReader input = new BufferedReader(new InputStreamReader(TornadoUtils.class.getClassLoader()
+            .getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))) {
             String line = null;
             int ratingCount = 0;
             int intensity = 0;
@@ -410,6 +425,7 @@ public class TornadoUtils {
 
     public static LineString createTornadoPath(TornadoParameters tornadoParameters, int numSimulation) {
         Coordinate startPtCoordinate = new Coordinate(tornadoParameters.getStartLongitude(), tornadoParameters.getStartLatitude());
+
         Coordinate endPtCoordinate = null;
         if(tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()) {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
