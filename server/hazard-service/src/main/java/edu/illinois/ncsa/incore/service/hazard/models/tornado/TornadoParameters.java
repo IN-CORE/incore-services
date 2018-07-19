@@ -88,8 +88,12 @@ public class TornadoParameters {
         this.startLongitude = startLongitude;
     }
 
-    public int getNumSimulations(){ return numSimulations; }
+    public int getNumSimulations() {
+        return numSimulations;
+    }
 
-    public void setNumSimulations(int numSimulations){ this.numSimulations = numSimulations; }
+    public void setNumSimulations(int numSimulations) {
+        this.numSimulations = numSimulations;
+    }
 
 }

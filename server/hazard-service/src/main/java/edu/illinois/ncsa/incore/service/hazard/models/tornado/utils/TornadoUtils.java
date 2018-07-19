@@ -130,6 +130,19 @@ public class TornadoUtils {
         return new Coordinate((((Math.toDegrees(long2) + 540) % 360) -180), Math.toDegrees(lat2));
     }
 
+    /**
+     * Computes azimuth angle between start and end location
+     *
+     * @param startLatitude
+     *            Start Latitude
+     * @param startLongitude
+     *            Start Longitude
+     * @param endLatitude
+     *            End Latitude
+     * @param endLongitude
+     *            End Longitude
+     * @return Angle in degrees between Start and End location
+     */
     private static double computeAngle(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
         double dLon = (endLongitude - startLongitude);
 
@@ -199,8 +212,8 @@ public class TornadoUtils {
             return Math.toDegrees(standardDeviation);
 
         } catch (IOException e) {
-        e.printStackTrace();
-    }
+            e.printStackTrace();
+        }
 
         return 0;
     }
@@ -413,10 +426,9 @@ public class TornadoUtils {
         Coordinate startPtCoordinate = new Coordinate(tornadoParameters.getStartLongitude(), tornadoParameters.getStartLatitude());
 
         Coordinate endPtCoordinate = null;
-        if (tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()){
+        if(tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()) {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
-        }
-        else{
+        } else {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(0), tornadoParameters.getEndLatitude().get(0));
         }
 
@@ -549,8 +561,7 @@ public class TornadoUtils {
         spaces.put(HazardDataset.ERGO_SPACE);
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardDataset.SCHEMA, TornadoHazard.TORNADO_SCHEMA_NAME);
-        jsonObject.put(HazardDataset.TYPE, TornadoHazard.TORNADO_HAZARD_TYPE);
+        jsonObject.put(HazardDataset.DATA_TYPE, TornadoHazard.TORNADO_SCHEMA_NAME);
         jsonObject.put(HazardDataset.TITLE, title);
         jsonObject.put(HazardDataset.SOURCE_DATASET, "");
         jsonObject.put(HazardDataset.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);

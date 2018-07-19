@@ -23,6 +23,7 @@ public class ScenarioTornado {
     private ObjectId id;
 
     private String tornadoModel;
+
     private TornadoParameters tornadoParameters;
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;

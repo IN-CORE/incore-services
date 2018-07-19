@@ -48,6 +48,11 @@ http://localhost:8080/hazard/api/earthquakes/soil/amplification?method=NEHRP&dem
 GET values from a scenario earthquake, all values must be for the same demand type and period, order of points should be latitude then longitude
 http://localhost:8080/hazard/api/earthquakes/{id}/values?demandType=0.2+SA&demandUnits=g&point=35.07899&point=-90.0178&point=35.17899&point=-90.0178&point=35.07899&point=-90.1178
 
+### Get Liquefaction Values
+
+GET
+http://localhost:8080/hazard/api/earthquakes/{id}/liquefaction/values?geologyDataset=5b0f05a5c6a4925f6fa3be72&demandUnits=in&point=35.07899&point=-90.0178&point=35.17899&point=-90.0178
+
 ### Generate Raster
 
 http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&demandUnits=g&minX=-90.3099&minY=34.9942&maxX=-89.6231&maxY=35.4129&gridSpacing=0.01696
@@ -55,10 +60,15 @@ http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&deman
 ## Tornadoes
 
 ### Create Scenario Tornado
+Supported tornado models are:
+* MeanWidthTornado
+* RandomWidthTornado
+
+For the example below, replace the tornadoModel with the model you want to create and if applicable, update the number of simulations for how many tornadoes to create.
 
 http://localhost:8080/hazard/api/tornadoes
 
-POST - Create scenario tornado
+POST - Create mean width scenario tornado
 
 {
   "tornadoModel" : "MeanWidthTornado",
@@ -69,16 +79,19 @@ POST - Create scenario tornado
     "randomSeed" : "1234",
     "endLatitude" : [35.246],
     "endLongitude" : [-97.438],
-    "windSpeedMethod" : "1"
+    "windSpeedMethod" : "1",
+    "numSimulations" : "1"
   }
 }
+
+
 
 * tornadoModel (required) - specify tornado model (Mean width will create a tornado using the mean width from historical
 data for the EF rating)
 * efRating (required) - specify the Enhanced Fujita (EF) scale intensity of the tornado (EF0 - EF5)
 * startLatitude/startLongitude (required) - specify the starting location of the tornado
 * endLatitude/endLongitude (optional)- depending on the model, specify an end latitude/longitude value. Some tornado
-models (e.g. random angle) will generate multiple endpoints programmatically so the input must be passed as an array
+models (e.g. mean length width, and angle) calcuate endLat and endLon, others (e.g. random angle) will generate multiple endpoints programmatically so the input must be passed as an array
 * windSpeedMethod(optional) - for computing wind speed within an EF boundary, 0 indicates using linear interpolation, 1
 indicates uniform random distribution. Default is Uniform random distribution.
 

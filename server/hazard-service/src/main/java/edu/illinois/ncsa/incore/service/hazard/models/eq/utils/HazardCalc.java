@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -17,13 +16,16 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.EqVisualization;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.liquefaction.HazusLiquefaction;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.LiquefactionHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.CoverageFactoryFinder;
 import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.gce.arcgrid.ArcGridFormat;
 import org.geotools.gce.arcgrid.ArcGridWriteParams;
 import org.geotools.gce.geotiff.GeoTiffFormat;
@@ -32,6 +34,7 @@ import org.geotools.geometry.Envelope2D;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageWriter;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -51,22 +54,61 @@ public class HazardCalc {
     private static final Logger logger = Logger.getLogger(HazardCalc.class);
     private static GeometryFactory factory = new GeometryFactory();
 
-    public static SeismicHazardResult getGroundMotionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String hazardType, String demand, String demandUnits, int spectrumOverride, boolean amplifyHazard) throws Exception {
+    public static LiquefactionHazardResult getLiquefactionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, SimpleFeatureCollection soilGeology, String demandUnits) {
+        HazusLiquefaction liquefaction = new HazusLiquefaction();
+        String susceptibilitity = null;
+        double pgaValue = 0.0;
+        double groundDeformation = 0.0;
+        double[] groundFailureProb = new double[3];
+        double magnitude = earthquake.getEqParameters().getMagnitude();
+        // Assumption from Hazus
+        // TODO this should be optionally provided by the user with a ground water depth map
+        double groundWaterDepth = 5.0;
+        try {
+            SimpleFeature feature = HazardUtil.getPointInPolygon(site.getLocation(), soilGeology);
+            if (feature != null) {
+                susceptibilitity = feature.getAttribute("liq_suscep").toString();
+                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "PGA", "PGA", "g", 0, true).getHazardValue();
+                groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, magnitude);
+                double liqProbability = liquefaction.getProbabilityOfLiquefaction(earthquake.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, groundWaterDepth);
+                groundFailureProb = liquefaction.getProbabilityOfGroundFailure(susceptibilitity, pgaValue, groundWaterDepth, magnitude);
 
-        if(HazardUtil.SD.equalsIgnoreCase(hazardType)) {
+                // Default units of permanent ground deformation
+                String pgdUnits = HazardUtil.units_in;
+                if (demandUnits.equalsIgnoreCase(HazardUtil.units_cm)) {
+                    pgdUnits = HazardUtil.units_cm;
+                    groundDeformation *= 2.54;
+                }
+
+                // TODO we could add other conversions or let the user convert from the default
+                return new LiquefactionHazardResult(site.getLocation().getY(), site.getLocation().getX(), groundDeformation, pgdUnits, liqProbability, groundFailureProb);
+            } else {
+                return new LiquefactionHazardResult(site.getLocation().getY(), site.getLocation().getX(), 0.0, "in", 0.0, groundFailureProb);
+            }
+        } catch (Exception e) {
+            logger.error("Could not compute PGA ground motion required to determine liquefaction.");
+            return null;
+        }
+
+    }
+
+    public static SeismicHazardResult getGroundMotionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String hazardType, String demand, String demandUnits, int spectrumOverride, boolean amplifyHazard) throws Exception {
+        Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+
+        if (HazardUtil.SD.equalsIgnoreCase(hazardType)) {
             // TODO CMN - I don't see any example that uses this so deferring implementation
             throw new UnsupportedHazardException("Conversion to SD is not yet implemented");
-        } else if(HazardUtil.PGV.equalsIgnoreCase(hazardType)) {
+        } else if (HazardUtil.PGV.equalsIgnoreCase(hazardType)) {
             // First, check if it supports the hazard directly from the attenuation models
             boolean supported = supportsHazard(attenuations, hazardType);
             // If not supported, check if it supports 1.0 Sec SA
-            if(!supported) {
+            if (!supported) {
                 supported = supportsHazard(attenuations, "1.0 Sa");
 
-                if(!supported) {
-                    throw new UnsupportedHazardException(hazardType +" is not supported and cannot be converted to given the scenario earthquake");
+                if (!supported) {
+                    throw new UnsupportedHazardException(hazardType + " is not supported and cannot be converted to given the scenario earthquake");
                 }
-                logger.debug(hazardType + " is not directly supported by the scenario earthquake, using 1.0 second SA to compute "+hazardType);
+                logger.debug(hazardType + " is not directly supported by the scenario earthquake, using 1.0 second SA to compute " + hazardType);
 
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0", "Sa", spectrumOverride, amplifyHazard);
                 double updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits, HazardUtil.PGV);
@@ -75,8 +117,8 @@ public class HazardCalc {
 
         } else {
             boolean supported = supportsHazard(attenuations, hazardType);
-            if(!supported) {
-               // TODO add spectrum method support so we can infer values
+            if (!supported) {
+                // TODO add spectrum method support so we can infer values
                 throw new UnsupportedHazardException(hazardType + " is not supported by the given scenario earthquake.");
             }
             return computeGroundMotionAtSite(earthquake, attenuations, site, hazardType, demand, spectrumOverride, amplifyHazard);
@@ -133,9 +175,9 @@ public class HazardCalc {
     public static boolean supportsHazard(Map<BaseAttenuation, Double> attenuations, String demandType) {
         Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
         boolean canOutputHazard = true;
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             BaseAttenuation model = iterator.next();
-            if(!model.canOutput(demandType)) {
+            if (!model.canOutput(demandType)) {
                 canOutputHazard = false;
             }
         }
@@ -211,7 +253,7 @@ public class HazardCalc {
             startX = (float) minX + (cellsize / 2.0f);
             for (int x = 0; x < width; x++) {
                 localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
-                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations, localSite, period, demand, demandUnits,0, amplifyHazard).getHazardValue();
+                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard).getHazardValue();
 
                 raster.setSample(x, y, 0, hazardValue);
 

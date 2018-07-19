@@ -21,12 +21,11 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBo
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.HazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResults;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.log4j.Logger;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.opengis.coverage.grid.GridCoverage;
 
 import javax.inject.Inject;
@@ -281,6 +280,34 @@ public class EarthquakeController {
             }
         } else {
             throw new NotFoundException("Scenario earthquake with id " + earthquakeId + " was not found.");
+        }
+    }
+
+    @GET
+    @Path("{earthquake-id}/liquefaction/values")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("geologyDataset") String geologyId, @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points) {
+        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
+        if (earthquake != null) {
+            model.setRuptureParameters(earthquake.getEqParameters());
+
+            // TODO this should be determined from the scenario earthquake
+            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
+            attenuations.put(model, 1.0);
+
+            List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
+            SimpleFeatureCollection soilGeology = (SimpleFeatureCollection)HazardUtil.getFeatureCollection(geologyId, username);
+
+            for (IncorePoint point: points) {
+                Site localSite = new Site(point.getLocation());
+                // TODO find groundwater depth if shapefile is passed in
+                hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology, demandUnits));
+            }
+
+            return hazardResults;
+        } else {
+            logger.error("Could not find scenario earthquake with id " + earthquakeId);
+            throw new NotFoundException("Could not find scenario earthquake with id " + earthquakeId);
         }
     }
 

@@ -2,8 +2,8 @@
   {
     "id": "5a7360ee5a52282c033e5ba3",
     "tornadoModel": "MeanWidthTornado",
-    "numSimulations": 1,
     "tornadoParameters":{
+      "numSimulations": 1,
       "efRating": "EF5",
       "maxWindSpeed": 250,
       "startLatitude": 35.02704146461473,
@@ -29,8 +29,8 @@
   {
     "id": "5a7385645a52284c6a7d273a",
     "tornadoModel": "MeanWidthTornado",
-    "numSimulations": 1,
     "tornadoParameters":{
+      "numSimulations": 1,
       "efRating": "EF5",
       "maxWindSpeed": 250,
       "startLatitude": 35.218,

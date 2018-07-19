@@ -315,6 +315,12 @@ public class DatasetController {
             throw new BadRequestException("Posted json is not a valid json.");
         }
 
+        boolean isDatasetParameterValid = JsonUtils.isDatasetParameterValid(inDatasetJson);
+        if (isDatasetParameterValid != true) {
+            logger.error("Posted json is not a valid json.");
+            throw new BadRequestException("Posted json has wrong parameter");
+        }
+
         String title = "";
         String dataType = "";
         String sourceDataset = "";
@@ -336,6 +342,7 @@ public class DatasetController {
                 spaces.add(username);
             }
             description = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_DESCRIPTION, inDatasetJson);
+
             dataset.setTitle(title);
             dataset.setCreator(username);
             dataset.setDataType(dataType);
@@ -344,7 +351,6 @@ public class DatasetController {
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
             dataset.setPrivileges(Privileges.newWithSingleOwner(username));
-
 
             dataset = repository.addDataset(dataset);
             if (dataset == null) {
