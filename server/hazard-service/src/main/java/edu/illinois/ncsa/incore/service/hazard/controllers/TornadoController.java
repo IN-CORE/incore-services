@@ -17,6 +17,7 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanLengthWidthAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomLengthWidthAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
@@ -73,9 +74,13 @@ public class TornadoController {
             else if(scenarioTornado.getTornadoModel().equals("RandomLengthWidthAngleTornado")) {
                 tornado = new RandomLengthWidthAngleTornado();
             }
-            else if (scenarioTornado.getTornadoModel().equalsIgnoreCase("RandomWidthTornado")) {
+            else if (scenarioTornado.getTornadoModel().equals("RandomWidthTornado")) {
                 tornado = new TornadoRandomWidth();
-            } else {
+            }
+            else if(scenarioTornado.getTornadoModel().equals("RandomAngleTornado")) {
+                tornado = new RandomAngleTornado();
+            }
+            else {
                 logger.error("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
                 throw new UnsupportedHazardException("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
             }
@@ -88,7 +93,6 @@ public class TornadoController {
             scenarioTornado.setEfBoxes(tornado.getEFBoxes());
 
             SimpleFeatureCollection collection = TornadoUtils.createTornadoGeometry(scenarioTornado);
-
             // Create the files from feature collection
             File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection) collection);
             // Create dataset object representation for storing shapefile

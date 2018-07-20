@@ -130,7 +130,6 @@ public class TornadoUtils {
         return new Coordinate((((Math.toDegrees(long2) + 540) % 360) -180), Math.toDegrees(lat2));
     }
 
-
     /**
      * Computes azimuth angle between start and end location
      *
