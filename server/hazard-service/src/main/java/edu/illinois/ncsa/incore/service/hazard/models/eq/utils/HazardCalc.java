@@ -119,7 +119,7 @@ public class HazardCalc {
             boolean supported = supportsHazard(attenuations, hazardType);
             if (!supported) {
                 // TODO add spectrum method support so we can infer values
-                throw new UnsupportedHazardException(hazardType + " is not supported by the given scenario earthquake.");
+                logger.warn(hazardType + " is not supported by the given scenario earthquake, defaulting to closest match.");
             }
             return computeGroundMotionAtSite(earthquake, attenuations, site, hazardType, demand, spectrumOverride, amplifyHazard);
         }
