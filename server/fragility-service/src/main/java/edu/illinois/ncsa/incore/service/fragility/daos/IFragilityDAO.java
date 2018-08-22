@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public interface IFragilityDAO {
     void initialize();
-    List<FragilitySet> getFragilities();
+    List<FragilitySet> getCachedFragilities();
     void saveFragility(FragilitySet fragilitySet);
     Optional<FragilitySet> getFragilitySetById(String id);
     List<FragilitySet> searchFragilities(String text);

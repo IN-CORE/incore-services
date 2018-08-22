@@ -75,7 +75,7 @@ public class FragilityController {
 
         if (queryMap.isEmpty()) {
             // return top 100
-            fragilitySets = this.fragilityDAO.getFragilities()
+            fragilitySets = this.fragilityDAO.getCachedFragilities()
                 .stream()
                 .skip(offset)
                 .limit(limit)
