@@ -119,7 +119,7 @@ public class MappingController {
                                           @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
 
-        List<FragilitySet> fragilitySets = this.fragilityDAO.getFragilities().stream()
+        List<FragilitySet> fragilitySets = this.fragilityDAO.getCachedFragilities().stream()
             .filter(b -> authorizer.canRead(username, b.getPrivileges()))
             .collect(Collectors.toList());
 

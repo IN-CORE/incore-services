@@ -36,7 +36,7 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     }
 
     @Override
-    public List<FragilitySet> getFragilities() {
+    public List<FragilitySet> getCachedFragilities() {
         if (this.fragilities == null || this.fragilities.isEmpty()) {
             this.loadFragilities();
         }
@@ -51,6 +51,9 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
         } else {
             // the save method mutates the fragilitySet object with an document id
             this.dataStore.save(fragilitySet);
+
+            // make sure that this.fragilities get updated as well
+            this.loadFragilities();
         }
 
     }
