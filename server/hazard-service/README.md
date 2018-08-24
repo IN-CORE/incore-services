@@ -11,8 +11,9 @@ After starting the service, you should be able to create scenario earthquakes an
 http://localhost:8080/hazard/api/earthquakes
 
 POST - Create scenario earthquake
-
 {
+  "name": "Memphis EQ Model",
+  "eqType": "model",
   "attenuations" : {
     "AtkinsonBoore1995" : "1.0"
   },
@@ -32,6 +33,76 @@ POST - Create scenario earthquake
     "numPoints" : "1025",
     "amplifyHazard": "true"
   }
+
+}
+
+### Create Earthquake Dataset
+
+When creating an earthquake dataset, the files must be include in the POST in the order found in the JSON
+so the correct dataset and metadata are associated.
+
+http://localhost:8080/hazard/api/earthquakes
+
+POST - Create deterministic earthquake
+{
+  "name": "Memphis Deterministic EQ",
+  "eqType": "dataset",
+  "hazardDatasets" :  [ 
+    {
+
+	"hazardType" : "deterministic",
+	"demandType" : "SA",
+        "demandUnits" : "g",
+        "period" : "0.2",
+	"eqParameters" : {
+	    "srcLatitude" : "35.927",
+	    "srcLongitude" : "-89.919",
+	    "magnitude" : "7.9",
+	    "depth" : "10.0"
+	}
+    },
+    {
+	
+        "hazardType" : "deterministic",
+	"demandType" : "PGA",
+	"demandUnits" : "g",
+	"period" : "0.0",
+        "eqParameters" : {
+            "srcLatitude" : "35.927",
+            "srcLongitude" : "-89.919",
+            "magnitude" : "7.9",
+            "depth" : "10.0"
+        }
+    }
+    
+  ]
+}
+
+POST - Create probabilistic earthquake
+{ 
+  "name": "Memphis Probabilistic EQ",
+  "eqType": "dataset",
+  "hazardDatasets" :  [
+    {
+        
+        "hazardType" : "probabilistic",
+        "demandType" : "SA",
+        "demandUnits" : "g",
+	"recurrenceInterval" : "50",
+	"recurrenceUnit" : "years",
+        "period" : "0.2"
+    },
+    {
+        
+        "hazardType" : "probabilistic",
+        "demandType" : "PGA",
+        "demandUnits" : "g",
+	"recurrenceInterval" : "50",
+        "recurrenceUnit" : "years",
+        "period" : "0.0"
+    }
+   
+  ]
 }
 
 ### Get Values from Scenario Earthquake

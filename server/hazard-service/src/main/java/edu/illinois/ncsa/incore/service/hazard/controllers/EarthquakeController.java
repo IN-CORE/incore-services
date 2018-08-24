@@ -9,14 +9,14 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
@@ -26,6 +26,8 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.opengis.coverage.grid.GridCoverage;
 
 import javax.inject.Inject;
@@ -34,13 +36,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 
 @Path("earthquakes")
 public class EarthquakeController {
@@ -57,50 +59,98 @@ public class EarthquakeController {
     private IAuthorizer authorizer;
 
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioEarthquake createScenarioEarthquake(ScenarioEarthquake scenarioEarthquake, @HeaderParam("X-Credential-Username") String username) {
-        if (scenarioEarthquake != null) {
-            model.setRuptureParameters(scenarioEarthquake.getEqParameters());
+    @Consumes({MediaType.MULTIPART_FORM_DATA})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Earthquake createEarthquake(@HeaderParam("X-Credential-Username") String username, FormDataMultiPart inputs) {
 
-            // TODO this should be determined from the scenario earthquake
-            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
-            attenuations.put(model, 1.0);
+        // TODO finish adding log statements
+        // First, get the Earthquake object from the form
+        // TODO what should be done if a user sends multiple earthquake objects?
+        FormDataBodyPart eq = inputs.getField("earthquake");
+        ObjectMapper mapper = new ObjectMapper();
+        Earthquake earthquake = null;
+        try {
+            earthquake = mapper.readValue(eq.getValue(), Earthquake.class);
+            earthquake.setPrivileges(Privileges.newWithSingleOwner(username));
 
-            try {
-                // TODO consider making the tif file options
-                File incoreWorkDirectory = File.createTempFile("incore", ".dir");
-                incoreWorkDirectory.delete();
-                incoreWorkDirectory.mkdirs();
+            // Create temporary working directory
+            File incoreWorkDirectory = File.createTempFile("incore", ".dir");
+            incoreWorkDirectory.delete();
+            incoreWorkDirectory.mkdirs();
 
-                File hazardFile = new File(incoreWorkDirectory, HazardDataset.HAZARD_TIF);
+            if (earthquake != null && earthquake instanceof EarthquakeModel) {
 
-                GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations);
-                HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
+                EarthquakeModel scenarioEarthquake = (EarthquakeModel) earthquake;
+                model.setRuptureParameters(scenarioEarthquake.getEqParameters());
 
-                String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
-                String description = "scenario earthquake visualization";
-                String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description);
-                scenarioEarthquake.setRasterDatasetId(datasetId);
+                // TODO this should be determined from the scenario earthquake
+                Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
+                attenuations.put(model, 1.0);
 
-                scenarioEarthquake.setPrivileges(Privileges.newWithSingleOwner(username));
+                try {
+                    File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
 
-                return repository.addScenarioEarthquake(scenarioEarthquake);
-            } catch (IOException e) {
-                logger.error("Error writing the hazard raster to file.", e);
-            } catch (Exception e) {
-                logger.error("Error creating the raster gridcoverage", e);
+                    GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, username);
+                    HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
+
+                    String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
+                    String description = "scenario earthquake visualization";
+                    String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+                    scenarioEarthquake.setRasterDatasetId(datasetId);
+
+                    earthquake = repository.addEarthquake(earthquake);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (earthquake != null && earthquake instanceof EarthquakeDataset) {
+                EarthquakeDataset eqDataset = (EarthquakeDataset) earthquake;
+
+                // We assume the input files in the request are in the same order listed in the earthquake dataset object
+                int hazardDatasetIndex = 0;
+                for (int i = 0; i < inputs.getBodyParts().size(); i++) {
+                    String paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get("name");
+                    // We only want the file parts
+                    if (paramName.equals("file")) {
+                        HazardDataset hazardDataset = eqDataset.getHazardDatasets().get(hazardDatasetIndex);
+                        String description = "Deterministic hazard raster";
+                        String datasetType = HazardConstants.DETERMINISTIC_HAZARD_SCHEMA;
+                        if (hazardDataset instanceof ProbabilisticHazardDataset) {
+                            datasetType = HazardConstants.PROBABILISTIC_HAZARD_SCHEMA;
+                            description = "Probabilistic hazard raster";
+                        }
+                        hazardDatasetIndex++;
+
+                        String demandType = hazardDataset.getDemandType();
+                        double period = hazardDataset.getPeriod();
+                        String datasetName = demandType;
+
+                        if (period > 0.0) {
+                            datasetName = Double.toString(period) + " " + demandType;
+                        }
+                        InputStream fis = inputs.getFields("file").get(0).getValueAs(InputStream.class);
+                        String filename = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
+
+                        String datasetId = HazardUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName, username, description, datasetType);
+                        hazardDataset.setDatasetId(datasetId);
+                    }
+                }
+                // Save changes to earthquake
+                earthquake = repository.addEarthquake(earthquake);
             }
 
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        throw new InternalServerErrorException("Earthquake couldn't be created");
+        return earthquake;
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<ScenarioEarthquake> getScenarioEarthquakes(@HeaderParam("X-Credential-Username") String username) {
-        return repository.getScenarioEarthquakes().stream()
+    public List<Earthquake> getEarthquakes(@HeaderParam("X-Credential-Username") String username) {
+        return repository.getEarthquakes().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
     }
@@ -108,8 +158,8 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public ScenarioEarthquake getScenarioEarthquake(@PathParam("earthquake-id") String earthquakeId, @HeaderParam("X-Credential-Username") String username) {
-        ScenarioEarthquake earthquake = repository.getScenarioEarthquakeById(earthquakeId);
+    public Earthquake getEarthquake(@PathParam("earthquake-id") String earthquakeId, @HeaderParam("X-Credential-Username") String username) {
+        Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
         if (earthquake == null) {
             throw new NotFoundException();
         }
@@ -120,20 +170,13 @@ public class EarthquakeController {
     }
 
     @GET
-    @Path("{earthquake-id}/dataset")
-    @Produces({MediaType.TEXT_PLAIN})
-    public Response getFile() {
-        // TODO implement this and change MediaType to Octet Stream
-        return Response.ok("Geotiff representing scenario earthquake not yet implemented.").build();
-    }
-
-    @GET
     @Path("{earthquake-id}/raster")
     @Produces({MediaType.APPLICATION_JSON})
     public SeismicHazardResults getScenarioEarthquakeHazardForBox(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("minX") double minX, @QueryParam("minY") double minY, @QueryParam("maxX") double maxX, @QueryParam("maxY") double maxY, @QueryParam("gridSpacing") double gridSpacing, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
-        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
+        Earthquake eq = getEarthquake(earthquakeId, username);
         SeismicHazardResults results = null;
-        if (earthquake != null) {
+        if (eq != null && eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
             String period = demandType;
             String demand = demandType;
 
@@ -165,7 +208,7 @@ public class EarthquakeController {
                 long widthLong = Math.round(Math.abs((maxX - minX) / gridSpacing)); // + 1;
                 long heightLong = Math.round(Math.abs((maxY - minY) / gridSpacing)); // + 1;
                 if ((widthLong > Integer.MAX_VALUE) || (heightLong > Integer.MAX_VALUE)) {
-                    System.out.println("Overflow....too many points to fit in an int"); //$NON-NLS-1$
+                    logger.warn("Overflow....too many points to fit in an int");
                 }
                 // adjustMaxMin();
                 width = (int) widthLong;
@@ -178,14 +221,14 @@ public class EarthquakeController {
             float startY = (float) maxY - ((float) gridSpacing / 2.0f);
             Site localSite = null;
             SeismicHazardResult hazardValue = null;
-            List<HazardResult> hazardResults = new LinkedList<HazardResult>();
+            List<HazardResult> hazardResults = new LinkedList<>();
             for (int y = 0; y < height; y++) {
 
                 startX = (float) minX + (cellsize / 2.0f);
                 for (int x = 0; x < width; x++) {
                     try {
                         localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
-                        hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard);
+                        hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard, username);
                         hazardResults.add(new HazardResult(startY, startX, hazardValue.getHazardValue()));
                     } catch (Exception e) {
                         logger.error("Error computing hazard value.", e);
@@ -207,28 +250,27 @@ public class EarthquakeController {
     @Path("{earthquake-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     public List<SeismicHazardResult> getScenarioEarthquakeHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard, @QueryParam("point") List<Double> points) {
-        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
+
+        Earthquake eq = getEarthquake(earthquakeId, username);
         if (points.size() % 2 != 0) {
             logger.error("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
             throw new BadRequestException("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
         }
-        if (earthquake != null) {
-            String period = demandType;
-            String demand = demandType;
 
-            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
-                String[] demandSplit = demandType.split(" ");
-                period = demandSplit[0];
-                demand = demandSplit[1];
+        String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
+
+        List<SeismicHazardResult> hazardResults = new LinkedList<SeismicHazardResult>();
+        if (eq != null) {
+            Map<BaseAttenuation, Double> attenuations = null;
+            if (eq instanceof EarthquakeModel) {
+                EarthquakeModel earthquake = (EarthquakeModel) eq;
+                model.setRuptureParameters(earthquake.getEqParameters());
+
+                // TODO this should be determined from the scenario earthquake
+                attenuations = new HashMap<BaseAttenuation, Double>();
+                attenuations.put(model, 1.0);
             }
 
-            model.setRuptureParameters(earthquake.getEqParameters());
-
-            // TODO this should be determined from the scenario earthquake
-            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
-            attenuations.put(model, 1.0);
-
-            List<SeismicHazardResult> hazardResults = new LinkedList<SeismicHazardResult>();
             for (int index = 0; index < points.size(); index += 2) {
                 double siteLat = points.get(index);
                 double siteLong = points.get(index + 1);
@@ -237,7 +279,7 @@ public class EarthquakeController {
 
                 // TODO spectrum override should be part of the endpoint parameters
                 try {
-                    hazardResults.add(HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits,0, amplifyHazard));
+                    hazardResults.add(HazardCalc.getGroundMotionAtSite(eq, attenuations, localSite, demandComponents[0], demandComponents[1], demandUnits, 0, amplifyHazard, username));
                 } catch (Exception e) {
                     throw new InternalServerErrorException("Error computing hazard.", e);
                 }
@@ -254,8 +296,11 @@ public class EarthquakeController {
     @Path("{earthquake-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
     public SeismicHazardResult getScenarioEarthquakeHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
-        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
-        if (earthquake != null) {
+        Earthquake eq = getEarthquake(earthquakeId, username);
+
+        // TODO Handle earthquake dataset
+        if (eq != null && eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
             String period = demandType;
             String demand = demandType;
 
@@ -274,7 +319,7 @@ public class EarthquakeController {
 
             // TODO spectrum override should be part of the endpoint parameters
             try {
-                return HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits,0, amplifyHazard);
+                return HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard, username);
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }
@@ -287,8 +332,10 @@ public class EarthquakeController {
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
     public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("geologyDataset") String geologyId, @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points) {
-        ScenarioEarthquake earthquake = getScenarioEarthquake(earthquakeId, username);
-        if (earthquake != null) {
+        Earthquake eq = getEarthquake(earthquakeId, username);
+        // TODO add logging/error for earthquake dataset that it can't be used
+        if (eq != null && eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
             model.setRuptureParameters(earthquake.getEqParameters());
 
             // TODO this should be determined from the scenario earthquake
@@ -296,12 +343,12 @@ public class EarthquakeController {
             attenuations.put(model, 1.0);
 
             List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
-            SimpleFeatureCollection soilGeology = (SimpleFeatureCollection)HazardUtil.getFeatureCollection(geologyId, username);
+            SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) HazardUtil.getFeatureCollection(geologyId, username);
 
-            for (IncorePoint point: points) {
+            for (IncorePoint point : points) {
                 Site localSite = new Site(point.getLocation());
                 // TODO find groundwater depth if shapefile is passed in
-                hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology, demandUnits));
+                hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology, demandUnits, username));
             }
 
             return hazardResults;
@@ -354,4 +401,6 @@ public class EarthquakeController {
     public Response getEarthquakeSlopeAmplification(@QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong) {
         return Response.ok("Topographic amplification not yet implemented").build();
     }
+
+
 }

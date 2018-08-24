@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -49,12 +49,12 @@ public class ServiceUtil {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
 
-        String requestUrl = dataEndpoint + HazardDataset.DATASETS_ENDPOINT;
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
-        params.addTextBody(HazardDataset.DATASET_PARAMETER, datasetObject.toString());
+        params.addTextBody(HazardConstants.DATASET_PARAMETER, datasetObject.toString());
 
         HttpResponse response = null;
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -68,18 +68,18 @@ public class ServiceUtil {
             JSONObject object = new JSONObject(responseStr);
 
             String datasetId = object.getString("id");
-            requestUrl += "/" + datasetId + "/" + HazardDataset.DATASETS_FILES;
+            requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
 
             params = MultipartEntityBuilder.create();
             params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 
-            for(File file : files) {
-                params.addBinaryBody(HazardDataset.FILE_PARAMETER_, file);
+            for (File file : files) {
+                params.addBinaryBody(HazardConstants.FILE_PARAMETER_, file);
             }
 
             // Attach file
             httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
+            httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);

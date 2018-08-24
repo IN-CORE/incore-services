@@ -9,8 +9,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard;
 
-public class HazardDataset {
+public class HazardConstants {
     // Hazard Raster
+    public static final String PROBABILISTIC_HAZARD_SCHEMA = "probabilisticHazardRaster";
     public static final String DETERMINISTIC_HAZARD_SCHEMA = "deterministicHazardRaster";
     public static final String DETERMINISTIC_HAZARD_TYPE = "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.deterministicHazardRaster.v1.0";
     public static final String RASTER_FORMAT = "raster";
@@ -32,6 +33,6 @@ public class HazardDataset {
     public static final String X_CREDENTIAL_USERNAME = "X-Credential-Username";
 
     // Dataset API
-    public static final String  DATASETS_ENDPOINT = "data/api/datasets";
-    public static final String  DATASETS_FILES = "files";
+    public static final String DATASETS_ENDPOINT = "data/api/datasets";
+    public static final String DATASETS_FILES = "files";
 }
