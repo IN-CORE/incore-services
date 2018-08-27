@@ -19,6 +19,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplifica
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.LiquefactionHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.CoverageFactoryFinder;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -67,7 +68,7 @@ public class HazardCalc {
         // TODO this should be optionally provided by the user with a ground water depth map
         double groundWaterDepth = 5.0;
         try {
-            SimpleFeature feature = HazardUtil.getPointInPolygon(site.getLocation(), soilGeology);
+            SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), soilGeology);
             if (feature != null) {
                 susceptibilitity = feature.getAttribute("liq_suscep").toString();
                 pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "PGA", "PGA", "g", 0, true, creator).getHazardValue();
@@ -179,7 +180,7 @@ public class HazardCalc {
             HazardDataset hazardDataset = HazardUtil.findHazard(eqDataset.getHazardDatasets(), demand, period, false);
 
             // TODO We should consider caching these on the server side, at least temporarily
-            GridCoverage gc = HazardUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
+            GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
             try {
                 hazardValue = HazardUtil.findRasterPoint(site.getLocation(), (GridCoverage2D) gc);
                 hazardValue = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(), Double.parseDouble(period), hazardDataset.getDemandType(), demandUnits, demand);

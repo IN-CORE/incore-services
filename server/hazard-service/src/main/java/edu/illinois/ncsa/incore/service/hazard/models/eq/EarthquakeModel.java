@@ -8,25 +8,25 @@ public class EarthquakeModel extends Earthquake {
     // Earthquake parameters (e.g. epicenter location, depth, etc
     private EqParameters eqParameters;
 
-    // TODO there is no need for this, it should be a HazardDataset
-    private String rasterDatasetId;
     private EqVisualization visualizationParameters;
     // Default site class
     private String defaultSiteClass;
     private String siteAmplification;
+
+    // Visualization raster
+    private HazardDataset rasterDataset;
 
     public EarthquakeModel() {
         defaultSiteClass = NEHRPSoilType.D;
         siteAmplification = "NEHRP";
     }
 
-
-    public String getRasterDatasetId() {
-        return rasterDatasetId;
+    public void setHazardDataset(HazardDataset rasterDataset) {
+        this.rasterDataset = rasterDataset;
     }
 
-    public void setRasterDatasetId(String rasterDatasetId) {
-        this.rasterDatasetId = rasterDatasetId;
+    public HazardDataset getRasterDataset() {
+        return this.rasterDataset;
     }
 
     public Map<String, Double> getAttenuations() {

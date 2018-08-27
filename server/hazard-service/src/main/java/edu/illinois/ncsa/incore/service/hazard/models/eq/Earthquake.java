@@ -17,8 +17,22 @@ public abstract class Earthquake {
     @Property("_id")
     private ObjectId id;
     private Privileges privileges;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     // Friendly name of defined earthquake
     private String name;
+    private String description;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public String getId() {
         return id.toString();

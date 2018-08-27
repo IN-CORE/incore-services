@@ -10,58 +10,20 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.HazardDataset;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.coverage.grid.io.AbstractGridFormat;
-import org.geotools.data.DataSourceException;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.factory.Hints;
-import org.geotools.feature.FeatureCollection;
-import org.geotools.gce.geotiff.GeoTiffFormat;
-import org.geotools.gce.geotiff.GeoTiffReader;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.opengis.coverage.PointOutsideCoverageException;
-import org.opengis.coverage.grid.GridCoverage;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
 
 import java.awt.geom.Point2D;
-import java.io.*;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 /**
  * Misc utility functions for doing conversion of hazard types and units
@@ -429,304 +391,6 @@ public class HazardUtil {
         return dest[0];
     }
 
-    public static String getDataServiceEndpoint() {
-        // CMN: we could go through Kong, but then we would need a token
-        String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
-        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
-            dataEndpoint = dataEndpointProp;
-            if (!dataEndpoint.endsWith("/")) {
-                dataEndpoint += "/";
-            }
-        }
-
-        return dataEndpoint;
-    }
-
-    public static String createDataset(String title, String creator, String description, String datasetType) throws IOException {
-        String dataEndpoint = getDataServiceEndpoint();
-        JSONArray spaces = new JSONArray();
-        if (creator != null) {
-            spaces.put(creator);
-        }
-        spaces.put(HazardConstants.ERGO_SPACE);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardConstants.DATA_TYPE, datasetType);
-        jsonObject.put(HazardConstants.TITLE, title);
-        jsonObject.put(HazardConstants.SOURCE_DATASET, "");
-        jsonObject.put(HazardConstants.FORMAT, HazardConstants.RASTER_FORMAT);
-        jsonObject.put(HazardConstants.DESCRIPTION, description);
-        jsonObject.put(HazardConstants.SPACES, spaces);
-
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        HttpClient httpclient = builder.build();
-
-        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
-        HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
-
-        MultipartEntityBuilder params = MultipartEntityBuilder.create();
-        params.addTextBody(HazardConstants.DATASET_PARAMETER, jsonObject.toString());
-
-        HttpResponse response = null;
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        String responseStr = null;
-
-        httpPost.setEntity(params.build());
-        response = httpclient.execute(httpPost);
-        responseStr = responseHandler.handleResponse(response);
-
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            JSONObject object = new JSONObject(responseStr);
-
-            String datasetId = object.getString("id");
-            return datasetId;
-        }
-
-        return null;
-    }
-
-    public static String createRasterDataset(File rasterFile, String title, String creator, String description, String datasetType) throws IOException {
-        String datasetId = createDataset(title, creator, description, datasetType);
-
-        if (datasetId != null) {
-            MultipartEntityBuilder params = MultipartEntityBuilder.create();
-            params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            params.addBinaryBody(HazardConstants.FILE_PARAMETER_, rasterFile);
-
-            attachFileToDataset(datasetId, creator, params);
-        }
-
-        return datasetId;
-    }
-
-    public static String createRasterDataset(String filename, InputStream fis, String title, String creator, String description, String datasetType) throws IOException {
-        String datasetId = createDataset(title, creator, description, datasetType);
-        if (datasetId != null) {
-            MultipartEntityBuilder params = MultipartEntityBuilder.create();
-            params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            params.addBinaryBody(HazardConstants.FILE_PARAMETER_, fis, ContentType.DEFAULT_BINARY, filename);
-
-            attachFileToDataset(datasetId, creator, params);
-        }
-        return datasetId;
-    }
-
-    public static void attachFileToDataset(String datasetId, String creator, MultipartEntityBuilder params) throws IOException {
-        String dataEndpoint = getDataServiceEndpoint();
-        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
-        requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
-
-        // Attach file
-        HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
-        httpPost.setEntity(params.build());
-
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        HttpClient httpclient = builder.build();
-        HttpResponse response = httpclient.execute(httpPost);
-
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        String responseStr = responseHandler.handleResponse(response);
-
-        // This could be useful if there is a failure
-        logger.debug("Attach file response " + responseStr);
-    }
-
-    public static File getFileFromDataService(String datasetId, String creator, File incoreWorkDirectory) {
-        String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
-        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
-            dataEndpoint = dataEndpointProp;
-            if (!dataEndpoint.endsWith("/")) {
-                dataEndpoint += "/";
-            }
-        }
-
-        InputStream inputStream = null;
-        try {
-            HttpClientBuilder builder = HttpClientBuilder.create();
-            HttpClient httpclient = builder.build();
-
-            String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId + "/blob";
-            HttpGet httpGet = new HttpGet(requestUrl);
-            httpGet.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
-
-            HttpResponse response = null;
-
-            response = httpclient.execute(httpGet);
-            inputStream = response.getEntity().getContent();
-        } catch (IOException e) {
-            // TODO add logging
-            logger.error(e);
-        }
-
-        String filename = "files.zip";
-        File file = new File(incoreWorkDirectory, filename);
-
-        try (BufferedInputStream bis = new BufferedInputStream(inputStream);
-             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))
-        ) {
-
-            int inByte;
-            while ((inByte = bis.read()) != -1) {
-                bos.write(inByte);
-            }
-
-        } catch (IOException e) {
-
-            logger.error(e);
-        }
-
-        return file;
-    }
-
-    public static GridCoverage getGridCoverage(String datasetId, String creator) {
-        File incoreWorkDirectory = getWorkDirectory();
-        File file = getFileFromDataService(datasetId, creator, incoreWorkDirectory);
-
-        URL inSourceFileUrl = null;
-        byte[] buffer = new byte[1024];
-        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                String fileName = zipEntry.getName();
-                File newFile = new File(incoreWorkDirectory, fileName);
-                FileOutputStream fos = new FileOutputStream(newFile);
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
-                }
-                fos.close();
-
-                String fileExt = FilenameUtils.getExtension(newFile.getName());
-                if (fileExt.equalsIgnoreCase("tif")) {
-                    inSourceFileUrl = newFile.toURI().toURL();
-                }
-                zipEntry = zis.getNextEntry();
-            }
-        } catch (IOException e) {
-            logger.error("Error getting tif file from data service", e);
-            return null;
-        }
-
-        final AbstractGridFormat format = new GeoTiffFormat();
-        GridCoverage gridCoverage = null;
-        GeoTiffReader reader = null;
-        try {
-            reader = new GeoTiffReader(inSourceFileUrl, new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE));
-            if (reader != null) {
-                gridCoverage = reader.read(null);
-            }
-        } catch (DataSourceException e) {
-            logger.error("Error creating tiff reader.", e);
-        } catch (IOException e) {
-            logger.error("Error reading grid coverage.", e);
-        }
-        return gridCoverage;
-    }
-
-    public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
-
-        File incoreWorkDirectory = getWorkDirectory();
-        File file = getFileFromDataService(datasetId, creator, incoreWorkDirectory);
-
-        URL inSourceFileUrl = null;
-        byte[] buffer = new byte[1024];
-        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                String fileName = zipEntry.getName();
-                File newFile = new File(incoreWorkDirectory, fileName);
-                FileOutputStream fos = new FileOutputStream(newFile);
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
-                }
-                fos.close();
-
-                String fileExt = FilenameUtils.getExtension(newFile.getName());
-                if (fileExt.equalsIgnoreCase("shp")) {
-                    inSourceFileUrl = newFile.toURI().toURL();
-                }
-                zipEntry = zis.getNextEntry();
-            }
-        } catch (IOException e) {
-            logger.error("Error unzipping shapefile", e);
-            return null;
-        }
-
-        try {
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("url", inSourceFileUrl);
-
-            DataStore dataStore = DataStoreFinder.getDataStore(map);
-            String typeName = dataStore.getTypeNames()[0];
-
-            FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
-            dataStore.dispose();
-            SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures();
-            return inputFeatures;
-        } catch (IOException e) {
-            logger.error("Error reading shapefile");
-            return null;
-        }
-
-    }
-
-    public static File getWorkDirectory() {
-        File incoreWorkDirectory = null;
-        try {
-            incoreWorkDirectory = File.createTempFile("incore", ".dir");
-            incoreWorkDirectory.delete();
-            incoreWorkDirectory.mkdirs();
-
-            return incoreWorkDirectory;
-        } catch (IOException e) {
-            logger.error("Error creating temporary directory.", e);
-        }
-        return incoreWorkDirectory;
-    }
-
-
-    public static SimpleFeature getPointInPolygon(Point point, SimpleFeatureCollection featureCollection) {
-        SimpleFeature feature = null;
-        boolean found = false;
-
-        SimpleFeatureIterator geologyIterator = featureCollection.features();
-        try {
-            while (geologyIterator.hasNext() && !found) {
-                // String featureId = featureIdIterator.next();
-                SimpleFeature f = geologyIterator.next();
-
-                Object polygonObject = f.getAttribute(0);
-                if (polygonObject instanceof Polygon) {
-                    Polygon polygon = (Polygon) polygonObject;
-                    found = polygon.contains(point);
-                    if (found) {
-                        feature = f;
-                    }
-                } else {
-                    MultiPolygon attribute = (MultiPolygon) polygonObject;
-                    for (int i = 0; i < attribute.getNumGeometries(); i++) {
-                        Polygon p = (Polygon) attribute.getGeometryN(i);
-
-                        found = p.contains(point);
-                        if (found) {
-                            i = attribute.getNumGeometries();
-                            feature = f;
-                        }
-                    }
-                }
-            }
-        } finally {
-            geologyIterator.close();
-        }
-
-        return feature;
-    }
-
     /**
      * @param hazardType0
      * @param period
@@ -738,10 +402,10 @@ public class HazardUtil {
             return s;
         } else if (SA.equalsIgnoreCase(hazardType0)) {
             if (Double.compare(period, 1.0) == 0) {
-                String[] s = {"Sa", "Sd", "Sv", PGV}; //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+                String[] s = {"Sa", "Sd", "Sv", PGV};
                 return s;
             } else {
-                String[] s = {"Sa", "Sd", "Sv"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                String[] s = {"Sa", "Sd", "Sv"};
                 return s;
             }
         } else {
@@ -787,7 +451,7 @@ public class HazardUtil {
 
         if (exactOnly) {
             for (HazardDataset rasterDataset : matches) {
-                double rasterPeriod = rasterDataset.getPeriod(); //$NON-NLS-1$
+                double rasterPeriod = rasterDataset.getPeriod();
                 if (Math.abs(rasterPeriod - period) < .001) {
                     return rasterDataset;
                 }
@@ -796,9 +460,9 @@ public class HazardUtil {
         }
 
         if (matches.size() == 0) {
-            logger.debug("Did not find appropriate hazard or a conversion"); //$NON-NLS-1$
-            logger.debug("Fragility curve requires hazard type: " + demandHazard); //$NON-NLS-1$
-            logger.debug("Here are the hazard types we have: "); //$NON-NLS-1$
+            logger.debug("Did not find appropriate hazard or a conversion");
+            logger.debug("Fragility curve requires hazard type: " + demandHazard);
+            logger.debug("Here are the hazard types we have: ");
             for (HazardDataset dataset : hazardDataset) {
                 logger.debug(dataset.getDemandType());
             }
@@ -845,6 +509,5 @@ public class HazardUtil {
             return Double.toString(period) + " " + demandType.trim();
         }
     }
-
 
 }

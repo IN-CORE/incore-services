@@ -24,6 +24,8 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -94,10 +96,18 @@ public class EarthquakeController {
                     HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
 
                     String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
+                    String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
                     String description = "scenario earthquake visualization";
-                    String datasetId = HazardUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
-                    scenarioEarthquake.setRasterDatasetId(datasetId);
+                    String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
 
+                    DeterministicHazardDataset rasterDataset = new DeterministicHazardDataset();
+                    rasterDataset.setEqParameters(scenarioEarthquake.getEqParameters());
+                    rasterDataset.setDatasetId(datasetId);
+                    rasterDataset.setDemandType(demandComponents[1]);
+                    rasterDataset.setDemandUnits(scenarioEarthquake.getVisualizationParameters().getDemandUnits());
+                    rasterDataset.setPeriod(Double.parseDouble(demandComponents[0]));
+
+                    scenarioEarthquake.setHazardDataset(rasterDataset);
                     earthquake = repository.addEarthquake(earthquake);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -132,7 +142,7 @@ public class EarthquakeController {
                         InputStream fis = inputs.getFields("file").get(0).getValueAs(InputStream.class);
                         String filename = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
 
-                        String datasetId = HazardUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName, username, description, datasetType);
+                        String datasetId = ServiceUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName, username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
                 }
@@ -343,7 +353,7 @@ public class EarthquakeController {
             attenuations.put(model, 1.0);
 
             List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
-            SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) HazardUtil.getFeatureCollection(geologyId, username);
+            SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId, username);
 
             for (IncorePoint point : points) {
                 Site localSite = new Site(point.getLocation());

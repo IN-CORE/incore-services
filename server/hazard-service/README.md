@@ -13,6 +13,7 @@ http://localhost:8080/hazard/api/earthquakes
 POST - Create scenario earthquake
 {
   "name": "Memphis EQ Model",
+  "description": "Memphis model based hazard",
   "eqType": "model",
   "attenuations" : {
     "AtkinsonBoore1995" : "1.0"
@@ -46,6 +47,7 @@ http://localhost:8080/hazard/api/earthquakes
 POST - Create deterministic earthquake
 {
   "name": "Memphis Deterministic EQ",
+  "description": "Memphis dataset based deterministic hazard",
   "eqType": "dataset",
   "hazardDatasets" :  [ 
     {
@@ -81,6 +83,7 @@ POST - Create deterministic earthquake
 POST - Create probabilistic earthquake
 { 
   "name": "Memphis Probabilistic EQ",
+  "description": "Memphis dataset based probabilistic hazard",
   "eqType": "dataset",
   "hazardDatasets" :  [
     {
