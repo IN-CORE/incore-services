@@ -9,7 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
 import org.mongodb.morphia.Datastore;
@@ -29,17 +29,17 @@ public class MockRepository implements IEarthquakeRepository {
     }
 
     @Override
-    public ScenarioEarthquake getScenarioEarthquakeById(String id) {
+    public Earthquake getEarthquakeById(String id) {
         return null;
     }
 
     @Override
-    public ScenarioEarthquake addScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
+    public Earthquake addEarthquake(Earthquake scenarioEarthquake) {
         return null;
     }
 
     @Override
-    public List<ScenarioEarthquake> getScenarioEarthquakes() {
+    public List<Earthquake> getEarthquakes() {
         return null;
     }
 
