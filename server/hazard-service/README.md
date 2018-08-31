@@ -39,7 +39,7 @@ POST - Create scenario earthquake
 
 ### Create Earthquake Dataset
 
-When creating an earthquake dataset, the files must be include in the POST in the order found in the JSON
+When creating an earthquake dataset, the files must be included in the POST in the order found in the JSON
 so the correct dataset and metadata are associated.
 
 http://localhost:8080/hazard/api/earthquakes
