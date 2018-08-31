@@ -11,12 +11,15 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeModel;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -56,27 +59,39 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
 
         Set<Class> classesToMap = new HashSet<>();
         Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(ScenarioEarthquake.class);
+        classesToMap.add(Earthquake.class);
         Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
 
     @Override
-    public ScenarioEarthquake addScenarioEarthquake(ScenarioEarthquake scenarioEarthquake) {
-        String id = this.dataStore.save(scenarioEarthquake).getId().toString();
-        return getScenarioEarthquakeById(id);
+    public Earthquake addEarthquake(Earthquake earthquake) {
+        String id = this.dataStore.save(earthquake).getId().toString();
+        return getEarthquakeById(id);
     }
 
     @Override
-    public ScenarioEarthquake getScenarioEarthquakeById(String id) {
-        return this.dataStore.get(ScenarioEarthquake.class, new ObjectId(id));
+    public Earthquake getEarthquakeById(String id) {
+        // There doesn't seem to be a way to find by the parent class Earthquake
+        // TODO Look into this later to see if there is a better way to handle this
+        Earthquake earthquake = this.dataStore.get(EarthquakeModel.class, new ObjectId(id));
+        if (earthquake == null) {
+            earthquake = this.dataStore.get(EarthquakeDataset.class, new ObjectId(id));
+        }
+        return earthquake;
     }
 
     @Override
-    public List<ScenarioEarthquake> getScenarioEarthquakes() {
-        List<ScenarioEarthquake> scenarioEarthquakes = this.dataStore.createQuery(ScenarioEarthquake.class).asList();
-        return scenarioEarthquakes;
+    public List<Earthquake> getEarthquakes() {
+        List<Earthquake> earthquakes = new LinkedList<Earthquake>();
+        List<EarthquakeModel> earthquakes1 = this.dataStore.createQuery(EarthquakeModel.class).asList();
+        List<EarthquakeDataset> earthquakes2 = this.dataStore.createQuery(EarthquakeDataset.class).asList();
+
+        earthquakes.addAll(earthquakes1);
+        earthquakes.addAll(earthquakes2);
+
+        return earthquakes;
     }
 
     @Override

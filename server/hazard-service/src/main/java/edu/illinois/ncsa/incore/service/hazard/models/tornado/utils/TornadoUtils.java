@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.operation.buffer.BufferOp;
-import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoHazard;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoParameters;
@@ -558,15 +558,15 @@ public class TornadoUtils {
         if (creator != null) {
             spaces.put(creator);
         }
-        spaces.put(HazardDataset.ERGO_SPACE);
+        spaces.put(HazardConstants.ERGO_SPACE);
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardDataset.DATA_TYPE, TornadoHazard.TORNADO_SCHEMA_NAME);
-        jsonObject.put(HazardDataset.TITLE, title);
-        jsonObject.put(HazardDataset.SOURCE_DATASET, "");
-        jsonObject.put(HazardDataset.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
-        jsonObject.put(HazardDataset.DESCRIPTION, description);
-        jsonObject.put(HazardDataset.SPACES, spaces);
+        jsonObject.put(HazardConstants.DATA_TYPE, TornadoHazard.TORNADO_SCHEMA_NAME);
+        jsonObject.put(HazardConstants.TITLE, title);
+        jsonObject.put(HazardConstants.SOURCE_DATASET, "");
+        jsonObject.put(HazardConstants.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
+        jsonObject.put(HazardConstants.DESCRIPTION, description);
+        jsonObject.put(HazardConstants.SPACES, spaces);
 
         return jsonObject;
     }

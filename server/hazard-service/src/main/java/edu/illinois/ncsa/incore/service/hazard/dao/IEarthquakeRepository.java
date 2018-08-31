@@ -9,7 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import org.mongodb.morphia.Datastore;
 
 import java.util.List;
@@ -17,11 +17,11 @@ import java.util.List;
 public interface IEarthquakeRepository {
     void initialize();
 
-    ScenarioEarthquake getScenarioEarthquakeById(String id);
+    Earthquake getEarthquakeById(String id);
 
-    ScenarioEarthquake addScenarioEarthquake(ScenarioEarthquake scenarioEarthquake);
+    Earthquake addEarthquake(Earthquake earthquake);
 
-    List<ScenarioEarthquake> getScenarioEarthquakes();
+    List<Earthquake> getEarthquakes();
 
     Datastore getDataStore();
 }
