@@ -109,10 +109,11 @@ public class EarthquakeController {
 
                     scenarioEarthquake.setHazardDataset(rasterDataset);
                     earthquake = repository.addEarthquake(earthquake);
+                    return earthquake;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Error creating raster dataset", e);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Error creating grid coverage.", e);
                 }
             } else if (earthquake != null && earthquake instanceof EarthquakeDataset) {
                 EarthquakeDataset eqDataset = (EarthquakeDataset) earthquake;
@@ -148,13 +149,13 @@ public class EarthquakeController {
                 }
                 // Save changes to earthquake
                 earthquake = repository.addEarthquake(earthquake);
+                return earthquake;
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error mapping the request to an Earthquake object.", e);
         }
-
-        return earthquake;
+        throw new BadRequestException("Could not create earthquake, check the format of your request.");
     }
 
     @GET
