@@ -22,7 +22,7 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
     private static double[] aleatoricUncertainties = {0.620, 0.581, 0.5730878, 0.550};
 
     public AtkinsonBoore1995() {
-        URL coefficientURL = this.getClass().getClassLoader().getResource("/hazard/earthquake/coefficients/AtkinsonBoore1995.csv");
+        URL coefficientURL = AtkinsonBoore1995.class.getResource("/hazard/earthquake/coefficients/AtkinsonBoore1995.csv");
         readCoefficients(coefficientURL);
     }
 

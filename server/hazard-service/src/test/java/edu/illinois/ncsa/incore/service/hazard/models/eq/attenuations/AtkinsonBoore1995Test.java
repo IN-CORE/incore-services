@@ -34,11 +34,7 @@ public class AtkinsonBoore1995Test {
         ruptureParameters.setSrcLatitude(latitude);
         ruptureParameters.setSrcLongitude(longitude);
 
-        String modelId = "AtkinsonBoore1995";
-        String fileName = modelId + ".csv";
-        URL coefficientURL = this.getClass().getResource("/hazard/earthquake/coefficients/" + fileName);
         attenuation = new AtkinsonBoore1995();
-        attenuation.readCoefficients(coefficientURL);
         attenuation.setRuptureParameters(ruptureParameters);
     }
 
