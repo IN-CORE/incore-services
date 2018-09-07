@@ -40,12 +40,15 @@ import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.complex.ComplexFormat;
+import org.apache.commons.collections4.ListUtils;
 import static java.lang.Math.*;
 
 
@@ -111,7 +114,7 @@ public class HurricaneController {
 
         JSONArray para = (JSONArray) params.get("para");
         JSONArray omegaFitted = (JSONArray) params.get("omega_miss_fitted");
-        JSONArray radiusM = (JSONArray) params.get("rconv");
+        JSONArray radiusM = (JSONArray) params.get("Rs");
         JSONArray zonesFitted = (JSONArray) params.get("contouraxis_zones_fitted");
 
         int paras = para.size();
@@ -276,11 +279,11 @@ public class HurricaneController {
     private static void simulateWindfieldWithCores(JSONObject para, HurricaneGrid grid, Complex VTs,
                                                     JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM){
         //Add functionaility to Access Maps
-        double rho = 1.2754; // air density, kg/m^3
-        double mb2Pa = 100; // unit change from mb to Pa
-        double pn = 1013.25*mb2Pa; // Pa, ambient pressure, 101.325 kPa, 29.921 inHg, 760 mmHg.
-        double kt2ms = 0.514444; // unit change from KT to m/s
-        double fr = 0.8; //Conversion parameter
+        final double rho = 1.2754; // air density, kg/m^3
+        final double mb2Pa = 100; // unit change from mb to Pa
+        final double pn = 1013.25*mb2Pa; // Pa, ambient pressure, 101.325 kPa, 29.921 inHg, 760 mmHg.
+        final double kt2ms = 0.514444; // unit change from KT to m/s
+        final double fr = 0.8; //Conversion parameter
 
         ArrayList<Double> thetaRadians = new ArrayList<Double>();
 
@@ -298,7 +301,7 @@ public class HurricaneController {
         JSONArray vgInner = (JSONArray) para.get("vg_inner");
         JSONArray vgOuter = (JSONArray) para.get("vg_outer");
 
-        double rm = (double)para.get("rm_outer"); // inner is not being used at all. why?
+        double rm = (double)para.get("rm_outer"); // rm_inner is not being used at all. why?
 
         /*
         Convert Cartesian Coordinates to Polar Coordinates
@@ -314,8 +317,106 @@ public class HurricaneController {
         for(int i=0; i< cordSize; i++){
             double th = atan2(xs.get(i), ys.get(i));
             double rx = hypot(xs.get(i), ys.get(i));
+
+            if(th < 0 && th >= -Math.PI ){
+                th = th + 2* Math.PI;
+            }
+
+            thetas.add(th);
+            r.add(rx);
+
+
+//            if(i == 3000 || i == 18000){
+//                System.out.println("Starting...");
+//                System.out.println(i+":"+th+":"+rx);
+//            }
         }
 
+        rangeWindSpeedComb(omegaFitted);
+
+    }
+
+    //finds theta ranges and zone classes to separately model asymmetric wind fields.
+    private static void rangeWindSpeedComb(JSONArray omegaFitted){
+        final int totalOmegas = 16; //This is 360 degrees divided by 22.5 degrees
+
+        int omegaSize = omegaFitted.size();
+        List<Integer> omegaMissAll = new ArrayList<Integer>();
+
+        for(int i=0; i<omegaSize; i++){
+            List<Long> tempLong = (ArrayList<Long>)omegaFitted.get(i); // init to each row of the array
+            List<Integer> temp = tempLong.stream().map(Long::intValue).collect(Collectors.toList());
+            int elemCnt = temp.size();
+            List<Integer> temp2 = new ArrayList<Integer>(); //will hold the result of each row
+
+            List<Integer> sep = new ArrayList<Integer>(); //separator
+            List<Integer> allSeps = new ArrayList<Integer>();
+            for(int j=0; j< (temp.size() -1); j++){
+                sep.add(temp.get(j+1) - temp.get(j));
+            }
+
+            int idx= 0;
+            for (int e:sep) {
+                if(e != 1){
+                    allSeps.add(idx);
+                }
+                idx++;
+            }
+
+            int sepsSize = allSeps.size();
+
+            if (sepsSize == 0){
+                temp2 = Arrays.asList(temp.get(0), temp.get(elemCnt-1));
+            }
+            else{
+                for(int k=0; k< sepsSize; k++){
+                    if(k==0){
+                        temp2 = ListUtils.union(temp2, Arrays.asList(temp.get(0), temp.get(allSeps.get(k))));    //ncsa.tools.common.utils.ListUtils is also available?!
+                    }
+                    else{
+                        temp2 = ListUtils.union(temp2, Arrays.asList(temp.get(allSeps.get(k-1)+1), temp.get(allSeps.get(k)) ));
+                    }
+                }
+
+                temp2 = ListUtils.union(temp2, Arrays.asList(temp.get(allSeps.get(sepsSize -1) +1 ), temp.get(elemCnt-1)));
+            }
+
+            omegaMissAll = ListUtils.union(omegaMissAll, temp2);
+        }
+
+        List<Integer> divisionS = omegaMissAll.stream().distinct().collect(Collectors.toList());
+        divisionS.sort(Comparator.naturalOrder());
+
+        int zones = divisionS.size();
+        int[][] thetaRange = new int[zones][2];
+
+        List<List<Integer>> thetaRangesAll = new ArrayList<>();
+
+        for(int i=0; i < zones; i++){
+            if(i == zones-1){
+                thetaRange[i][0] = divisionS.get(i);
+                thetaRange[i][1] = divisionS.get(0);
+            }
+            else{
+                thetaRange[i][0] = divisionS.get(i);
+                thetaRange[i][1] = divisionS.get(i+1);
+            }
+
+            List <Integer> rangeList = new ArrayList<Integer>();
+
+            if(thetaRange[i][0] <= thetaRange[i][1]){
+                for(int p = thetaRange[i][0]; p <= thetaRange[i][1]; p++){
+                    rangeList.add(p);
+                }
+            }
+            else{
+                rangeList.add(thetaRange[i][0]);
+                rangeList.add(thetaRange[i][1]);
+            }
+            thetaRangesAll.add(rangeList);
+        }
+
+        int asd= 1;
     }
 
 
