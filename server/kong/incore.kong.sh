@@ -69,3 +69,21 @@ curl -i -X POST \
   --data 'config.ldaps=true' 
 
 
+
+curl -i -X POST \
+  --url http://localhost:8001/plugins/ \
+  --data 'name=cors' \
+  --data 'config.methods=GET,HEAD,PUT,PATCH,POST' \
+  --data 'config.exposed_headers=X-Credential-User' \
+  --data 'config.preflight_continue=false ' \
+  --data 'config.origins=*' \
+  --data 'config.headers=Access-Control-Allow-Headers,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,auth-user,auth-token,X-Credential-User' \
+
+
+
+
+curl -i -X POST \
+  --url http://localhost:8001/plugins/ \
+  --data 'name=request-transformer' \
+  --data "config.remove.headers=Access-Control-Allow-Origin" 
+

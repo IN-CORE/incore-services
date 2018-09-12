@@ -36,4 +36,4 @@ The maestro service uses MongoDB and provides basic support for creating new ana
 ## Web application
 
 The web front-end provides a user interface for interacting with the service layer. The initial prototype also includes
-basic visualization capabilities for viewing fragilities, executing an analysis, etc. 
+basic visualization capabilities for viewing fragilities, executing an analysis, etc. .
