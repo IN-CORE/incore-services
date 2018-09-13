@@ -38,10 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -265,7 +262,6 @@ public class HurricaneController {
             longi.add(longis.get(j*cords));
         }
 
-
         g.setXs(xs);
         g.setYs(ys);
         g.setLongis(longis);
@@ -274,6 +270,39 @@ public class HurricaneController {
         g.setLongi(longi);
         g.setCenter(center);
         return g;
+    }
+
+    private static List<List<Complex>> convert2DComplexArrayToList(JSONArray arr){
+
+        List<List<Complex>> retList = new ArrayList<>();
+
+        int rows = arr.size();
+        ComplexFormat cf = new ComplexFormat("j");
+
+
+        for(int i=0;i < rows; i++){
+            List<Complex> rowList = new ArrayList<>();
+            List<Complex> row = (List<Complex>)arr.get(i);
+            int cols = row.size();
+            for(int j=0; j< cols; j++){
+                Object col = row.get(j);
+
+                if(col instanceof String){
+                    rowList.add(cf.parse((String)col));
+                }
+                else if(col instanceof Double){
+                    rowList.add( new Complex((Double)col, 0));
+                }
+                else if(col instanceof Complex){
+                    rowList.add((Complex)col);
+                }
+                else{
+                    System.out.println("Unknown Type Detected"); // This should never happen
+                }
+            }
+            retList.add(rowList);
+        }
+        return retList;
     }
 
     private static void simulateWindfieldWithCores(JSONObject para, HurricaneGrid grid, Complex VTs,
@@ -295,13 +324,29 @@ public class HurricaneController {
         double bOuter = (double)para.get("b_outer");
         double fCorolosis = (double)para.get("f");
 
-        JSONArray rmThetaVspInner = (JSONArray) para.get("rm_theta_vsp_inner");
-        JSONArray rmThetaVspOuter = (JSONArray) para.get("rm_theta_vsp_outer");
+        JSONArray arrRmThetaVspInner = (JSONArray) para.get("rm_theta_vsp_inner");
+        JSONArray arrRmThetaVspOuter = (JSONArray) para.get("rm_theta_vsp_outer");
+
+        List<List<Complex>>rmThetaVspOuter = convert2DComplexArrayToList(arrRmThetaVspOuter);
+        List<List<Complex>>rmThetaVspInner = convert2DComplexArrayToList(arrRmThetaVspInner);
+
         double pc = (double)para.get("pc"); //central Pressure
         JSONArray vgInner = (JSONArray) para.get("vg_inner");
         JSONArray vgOuter = (JSONArray) para.get("vg_outer");
 
         double rm = (double)para.get("rm_outer"); // rm_inner is not being used at all. why?
+
+        List<List<Integer>> zonesFittedInts = new ArrayList<>();
+
+        //Converting all Longs to Integers
+        for(int i=0; i<zonesFitted.size(); i++){
+            List<Long> tempLong = (ArrayList<Long>)zonesFitted.get(i); // init to each row of the array
+            List<Integer> temp = tempLong.stream().map(Long::intValue).collect(Collectors.toList());
+            zonesFittedInts.add(temp);
+        }
+
+//        List<List<Integer>> zonesFittedIntsd = zonesFittedInts;
+//        int s = zonesFittedInts.size();
 
         /*
         Convert Cartesian Coordinates to Polar Coordinates
@@ -332,20 +377,234 @@ public class HurricaneController {
 //            }
         }
 
-        rangeWindSpeedComb(omegaFitted);
+        Map<String,Object> thetaRangeZones = rangeWindSpeedComb(omegaFitted);
 
+        double[][] thetaRange =  (double[][])thetaRangeZones.get("thetaRange");
+        int[] zoneClass = (int[]) thetaRangeZones.get("zoneClass");
+
+        int rangeCnt = thetaRange.length;
+
+
+        for(int i = 0; i < rangeCnt; i++){
+
+            int zoneI = zoneClass[i];
+
+            List<List<Complex>> rmThetaVspOuterRi = new ArrayList<List<Complex>>();
+            List<List<Complex>> rmThetaVspInnerRi = new ArrayList<List<Complex>>();
+            List<List<Double>> vgInnerRi = new ArrayList<>();
+            List<List<Double>> vgOuterRi = new ArrayList<>();
+            List<Double> vspGInner = new ArrayList<>();
+            List<Double> vspGOuter = new ArrayList<>();
+            List<List<Complex>> vGsInner = new ArrayList<List<Complex>>();
+            List<List<Complex>> vGsOuter = new ArrayList<List<Complex>>();
+
+            int noOfLoops = zonesFittedInts.get(zoneI -1).get(1);
+
+//            for (List<Integer> zone:
+//                 zonesFittedInts) {
+                for(int j = 0; j < noOfLoops; j++) {
+                    rmThetaVspInnerRi.add((List<Complex>) rmThetaVspInner.get(j)); // Casting to List<Complex> is only casting as list of strings
+                    rmThetaVspOuterRi.add((List<Complex>) rmThetaVspOuter.get(j));
+                    List<Double> vgI = (List<Double>) vgInner.get(j);
+                    List<Double> vgO = (List<Double>) vgOuter.get(j);
+
+                    double meanInner = vgI.stream().mapToDouble(d -> d).average().orElse(0.0);
+                    double meanOuter = vgO.stream().mapToDouble(d -> d).average().orElse(0.0);
+
+                    vspGInner.add(meanInner);
+                    vspGOuter.add(meanOuter);
+
+                    vgInnerRi.add(vgI);
+                    vgOuterRi.add(vgO);
+                }
+//            }
+
+            int nspOuter = rmThetaVspOuterRi.size(); //this should be same a nspInner
+            int nspInner = nspOuter; //Not needed. Only added for clarity
+
+            List<Double> rRiList = new ArrayList<Double>();
+            List<Double> thetaRiList = new ArrayList<Double>();
+
+            int thetaIndex = 0;
+            List<Integer> thetaIndices = new ArrayList<>();
+            for (double theta:
+                 thetas) {
+                if (theta >= thetaRange[i][0] && theta < thetaRange[i][1]) {
+                    double rRi = r.get(thetaIndex);
+                    double thetaRi = theta;
+                    rRiList.add(rRi);
+                    thetaRiList.add(thetaRi);
+                    List<Double> thetaDiff = new ArrayList<>();
+                    for (int z = 0; z < thetaRadians.size(); z++) {
+                        thetaDiff.add(abs(thetaRi - thetaRadians.get(z)));
+                    }
+
+                    int minIndex = thetaDiff.indexOf(Collections.min(thetaDiff)); // There will always be a single min value in radians List
+
+                    thetaIndices.add(minIndex);
+                    List<Complex> vGsInnerRi = new ArrayList<>();
+                    List<Complex> vGsOuterRi = new ArrayList<>();
+
+                    for (int nsp = 0; nsp < nspOuter; nsp++) {
+                        vGsOuterRi.add(HollandGradientWind(rRi, thetaRi, bOuter, fCorolosis,
+                            rmThetaVspOuterRi.get(nsp).get(minIndex), rho, pn, pc));
+                        vGsInnerRi.add(HollandGradientWind(rRi, thetaRi, bInner, fCorolosis,
+                            rmThetaVspInnerRi.get(nsp).get(minIndex), rho, pn, pc));
+                    }
+                    vGsOuter.add(vGsOuterRi);
+                    vGsInner.add(vGsInnerRi);
+                }
+                thetaIndex++;
+            }
+
+            List<Complex> rowRmThetaVspOuterRi= rmThetaVspOuterRi.get(nspOuter-1);
+
+            // Combine inner and outer wind fields
+
+            int index = 0;
+            List<Integer> grIndices = new ArrayList<>();
+            List<Integer> lsIndices = new ArrayList<>();
+
+            List<List<Complex>> tempVgsOuter = new ArrayList<>();
+            List<List<Complex>> tempVgsInner = new ArrayList<>();
+
+            List<List<Double>> tempAbsVgsOuter = new ArrayList<>();
+            List<List<Double>> tempAbsVgsInner = new ArrayList<>();
+
+
+            for (Double rElem:
+                 rRiList) {
+//                if(index >= 1220){
+//                    System.out.print('5');
+//                }
+                Complex v = rowRmThetaVspOuterRi.get(thetaIndices.get(index));
+                Double b = v.abs();
+                if( rElem >= b){
+                    grIndices.add(index);
+
+                    List<Complex> tempI;
+                    tempI = vGsOuter.get(index);
+                    tempVgsOuter.add(tempI);
+
+                    List<Double> tempIAbs = tempI.stream().map( compl -> compl.abs() ).collect( Collectors.toList() );
+                    tempAbsVgsOuter.add(tempIAbs);
+                }
+                index++;
+            }
+
+            int absSize = tempAbsVgsOuter.size();
+
+            //List<List<Integer>> condsO = new ArrayList<>();
+            boolean[][] condsO = new boolean[absSize][nspOuter+1]; //TODO: condsO can be removed?
+            Complex[] combVgsOuter = new Complex[absSize];
+            Complex[] riVgs = new Complex[thetaIndices.size()];
+
+            for(int j=0; j<= nspOuter; j++) {
+                for (int k = 0; k < absSize; k++) {
+                    if(j == 0) {
+                        condsO[k][j] = (tempAbsVgsOuter.get(k).get(j) < vspGOuter.get(j)) ? true : false;
+                        if (condsO[k][j]) {
+                            combVgsOuter[k] = tempVgsOuter.get(k).get(j);
+                        }
+                    }
+                    else if(j >=1 && j < nspOuter){
+                        condsO[k][j] = (tempAbsVgsOuter.get(k).get(j-1) >= vspGOuter.get(j-1)) &&
+                            (tempAbsVgsOuter.get(k).get(j) < vspGOuter.get(j)) ? true : false;
+
+                        /*
+                        fui=Vgs_temp_abs(ind,i)/Vsp_g_outer(i);
+                        fui1=Vgs_temp_abs(ind,i+1)/Vsp_g_outer(i+1);
+                        wi=(fui.^(-1).*(1-fui1))./(fui.^(-1).*(1-fui1)+fui1.*(1-fui.^(-1)));
+                        wi_1=(fui1.*(1-fui.^(-1)))./(fui.^(-1).*(1-fui1)+fui1.*(1-fui.^(-1)));
+                        Vgs_comb(ind)=wi.*Vgs_temp(ind,i)+wi_1.*Vgs_temp(ind,i+1);*/
+
+                        if (condsO[k][j]) {
+                            Double fui = (tempAbsVgsOuter.get(k).get(j - 1)) / vspGOuter.get(j - 1);
+                            Double fui1 = (tempAbsVgsOuter.get(k).get(j)) / vspGOuter.get(j);
+
+                            Double wiNum = pow(fui, -1) * (1 - fui1);
+                            Double wiDen = pow(fui, -1) * (1 - fui1) + fui1 * (1 - pow(fui, -1));
+                            Double wi = wiNum / wiDen;
+
+                            Double wi1Num = fui1 * (1 - pow(fui, -1));
+                            Double wi1Den = pow(fui, -1) * (1 - fui1) + fui1 * (1 - pow(fui, -1));
+                            Double wi1 = wi1Num / wi1Den;
+
+                            combVgsOuter[k] = tempVgsOuter.get(k).get(j - 1).multiply(wi).add(tempVgsOuter.get(k).get(j).multiply(wi1));
+                        }
+                    }
+                    else{  // j == nspOuter condition
+                        condsO[k][j] = (tempAbsVgsOuter.get(k).get(j-1) >= vspGOuter.get(j-1)) ? true : false;
+                        if (condsO[k][j]) {
+                            combVgsOuter[k] = tempVgsOuter.get(k).get(j - 1);
+                        }
+                    }
+                }
+            }
+
+            int tempIndex = 0;
+            for (int gr:
+                 grIndices) {
+                riVgs[gr] =combVgsOuter[tempIndex];
+                tempIndex++;
+            }
+
+            int innerBlah = 1;
+        }
+
+        int blah =1;
+    }
+
+    //Simulates wind speed using Holland model
+    private static Complex HollandGradientWind(Double r, Double theta, Double b, Double fCorolosis, Complex rmThetaVsp, Double rho, Double pn, Double pc){
+        //TODO: Remove rho and pn from paramters and use global variables.
+        /*
+        Vg_=sqrt(B/rho*(Rm./r).^B*(pn-pc).*exp(-(Rm./r).^B)+(r*f/2).^2)-r*f/2;
+        Vg_=abs(Vg_);
+        Vg=-Vg_*cos(theta)+Vg_*sin(theta)*i;
+        */
+
+        Complex expImg = (rmThetaVsp.divide(r)).pow(b).negate().exp();
+//        Complex i = expImg1.pow(b);
+//        Complex j = i.negate();
+//        Complex k = j.exp();
+//        Complex expImg = k;
+
+        Complex sqrtImg = rmThetaVsp.divide(r).pow(b);
+
+        double sqrtRealMulti = (b/rho)* (pn-pc);
+        double sqrtRealAdd = pow(r*fCorolosis/2, 2);
+
+        Complex vGTemp = expImg.multiply(sqrtImg).multiply(sqrtRealMulti).add(sqrtRealAdd).sqrt().subtract(r*fCorolosis/2);
+        Double vgAbs = vGTemp.abs();
+
+        Complex vG = new Complex(-vgAbs*cos(theta), vgAbs*sin(theta));
+        return vG;
     }
 
     //finds theta ranges and zone classes to separately model asymmetric wind fields.
-    private static void rangeWindSpeedComb(JSONArray omegaFitted){
+    private static Map<String,Object> rangeWindSpeedComb(JSONArray omegaFitted){
         final int totalOmegas = 16; //This is 360 degrees divided by 22.5 degrees
+        List<Integer> omegasAll =   Arrays.asList(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
 
         int omegaSize = omegaFitted.size();
         List<Integer> omegaMissAll = new ArrayList<Integer>();
 
+        List<List<Integer>> omegaFittedInts = new ArrayList<>();
+
+        //Converting all Longs to Integers
         for(int i=0; i<omegaSize; i++){
             List<Long> tempLong = (ArrayList<Long>)omegaFitted.get(i); // init to each row of the array
             List<Integer> temp = tempLong.stream().map(Long::intValue).collect(Collectors.toList());
+            omegaFittedInts.add(temp);
+        }
+
+
+
+        for(int i=0; i<omegaSize; i++){
+            //List<Long> tempLong = (ArrayList<Long>)omegaFitted.get(i); // init to each row of the array
+            //List<Integer> temp = tempLong.stream().map(Long::intValue).collect(Collectors.toList());
+            List<Integer> temp = omegaFittedInts.get(i);
             int elemCnt = temp.size();
             List<Integer> temp2 = new ArrayList<Integer>(); //will hold the result of each row
 
@@ -410,13 +669,177 @@ public class HurricaneController {
                 }
             }
             else{
-                rangeList.add(thetaRange[i][0]);
-                rangeList.add(thetaRange[i][1]);
+                //Can I add it in a single loop without changing order?
+                for(int p=1;p<=16;p++){
+                    if(p >= thetaRange[i][0]){
+                        rangeList.add(p);
+                    }
+                }
+                for(int p=1;p<=16;p++){
+                    if(p <= thetaRange[i][1]){
+                        rangeList.add(p);
+                    }
+                }
+                //TODO: Test this case with something that is not {16,1}. {14,2} should return {14, 15, 16, 1, 2}
             }
             thetaRangesAll.add(rangeList);
         }
 
-        int asd= 1;
+        int noClass = omegaSize +1;
+
+        List<List<Integer>> riS = new ArrayList<>();
+        List<Integer> ri = new ArrayList<Integer>();
+        List<Integer> riNext = new ArrayList<Integer>();
+        for(int i=-1; i<omegaSize; i++){
+            if(i != -1){
+                ri = omegaFittedInts.get(i);
+            }
+
+            if(i != omegaSize -1){
+                riNext = omegaFittedInts.get(i+1);
+            }
+
+            if(i==-1){
+                ri = riNext;
+            }
+            else if(i == omegaSize -1){
+                List<Integer> diff = ListUtils.subtract(omegasAll, ri);
+                List<Integer> omegaIndexComplement = new ArrayList<Integer>();
+
+                for(int z= diff.get(0) -1; z <= diff.get(diff.size() -1) +1; z++){
+                    omegaIndexComplement.add(z);
+                }
+
+                if(omegaIndexComplement.get(0) == 0){
+                    omegaIndexComplement.set(0, 16);
+                }
+
+                ri = omegaIndexComplement;
+            }
+            else{
+                List<Integer> diff = ListUtils.subtract(omegasAll, ri);
+                List<Integer> omegaIndexComplement = new ArrayList<Integer>();
+
+                for(int z= diff.get(0) -1; z <= diff.get(diff.size() -1) +1; z++){
+                    omegaIndexComplement.add(z);
+                }
+
+                //diff.add(0, diff.get(0) -1);
+                //diff.add(diff.get(diff.size() -1) +1);
+
+                if(omegaIndexComplement.get(0) == 0){
+                    omegaIndexComplement.set(0, 16);
+                }
+
+                ri = ListUtils.intersection(omegaIndexComplement, riNext);
+                ri.sort(Comparator.naturalOrder());
+            }
+            riS.add(ri);
+
+        }
+
+        List<Integer> ri1 = riS.get(0);
+        ri1.sort(Comparator.naturalOrder());
+        int[] zoneClass = new int[zones];
+        List<Integer> fullRange = new ArrayList<Integer>();
+
+        //int p = 0;
+        for(int i =0; i< zones; i++){ //matlab codes uses size(thetaRange,1) which should be the same as zones!?
+            List<Integer> tempTheta = thetaRangesAll.get(i);
+            tempTheta.sort(Comparator.naturalOrder());
+
+
+            //if(ListUtils.intersection(tempTheta, ri1).size() > 0){
+            if(ri1.containsAll(tempTheta)){
+                zoneClass[i] = 1;
+            }
+            else {
+                fullRange.add(i+1);
+                //p++;
+            }
+        }
+
+        for (int e:
+             fullRange) {
+            List<Integer> tempTheta = thetaRangesAll.get(e-1); //TODO: Test if this will ever be indexoutofbound
+            for(int i=0; i<noClass; i++){
+                List<Integer> riCurr = riS.get(i);
+                if(riCurr.containsAll(tempTheta)){
+                    zoneClass[e-1] = i+1;
+                }
+            }
+        }
+
+        /* Convert theta to angle */
+
+        List<Integer> specRows = new ArrayList<Integer>();
+
+        int specIndex = 0;
+        for (int[] thetaR:
+             thetaRange) {
+            if(thetaR[1] < thetaR[0]){
+                specRows.add(specIndex);
+            }
+            specIndex++;
+        }
+
+        for (int row:
+             specRows) {
+            if(thetaRange[row][1] == 1){
+                thetaRange[row][1] = 17;
+            }
+            else{
+                int[] zoneClassLast = new int[zones +1];
+                int[][] thetaRangeLast = new int[zones+1][2];
+
+                for(int i=0; i <= row+2; i++){
+                    if(i <= row-1) {
+                        thetaRangeLast[i] = thetaRange[i];
+                    }
+                    if(i<=row) {
+                        zoneClassLast[i] = zoneClass[i];
+                    }
+
+                    if(i == row){
+
+                        thetaRangeLast[i][0] = thetaRange[i][0];
+                        thetaRangeLast[i][1] = 17;
+                    }
+
+                    if(i == row+1){
+                        thetaRangeLast[i][0] = 1;
+                        thetaRangeLast[i][1] = thetaRange[i-1][1];
+                        zoneClassLast[i] = zoneClass[i-1];
+                    }
+
+                    if(i == row+2){
+                        // This code from matlab seems unecessary, the size is initialized as zones+1 and it's trying
+                        // to set value at index zones+2. Java will throw index our of bound exception.
+
+                        //thetaRange_(index_spec_row+2:end,:)=thetaRange(index_spec_row+1:end,:);
+                        //zone_class_(index_spec_row+2:end)=zone_class(index_spec_row+2:end);
+                    }
+                }
+
+                thetaRange = thetaRangeLast;
+                zoneClass = zoneClassLast;
+            }
+        }
+
+        double[][] thetaRangeAngle = new double[thetaRange.length][2];
+
+        for(int i=0; i<thetaRange.length; i++) {
+            for(int j=0; j<thetaRange[i].length; j++) {
+                thetaRangeAngle[i][j] = (thetaRange[i][j] -1 ) * 22.5 * (Math.PI/180);
+            }
+        }
+
+        Map<String,Object> thetaRangeZones = new HashMap<String,Object>();
+
+        thetaRangeZones.put("thetaRange", thetaRangeAngle);
+        thetaRangeZones.put("zoneClass", zoneClass);
+
+        return thetaRangeZones;
     }
 
 
