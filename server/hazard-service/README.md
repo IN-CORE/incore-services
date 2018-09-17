@@ -104,3 +104,13 @@ http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35
 value should be between 136 and 165 mph
 
 http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=35.1393&point=-89.9996&point=35.207&point=-89.871
+
+## Hurricanes - WIP
+
+http://localhost:8080/hazard/api/hurricanes/gulf?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6
+Category mapping can be found at: https://uofi.box.com/s/dasneh1ks4vfc4vpifzwzwq5wo6udynp
+
+
+http://localhost:8080/hazard/api/hurricanes?model=Wilma&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6
+
+

@@ -26,6 +26,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.ws.rs.NotFoundException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -73,6 +74,7 @@ public class DBHurricaneRepository implements IHurricaneRepository {
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            throw new NotFoundException("Model not found in the database");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
