@@ -75,92 +75,87 @@ public class GeotoolsUtils {
     /**
      * find shortest distance to the feature boundary from the point
      *
-     * @param filePath
+     * @param inFeatures
      * @param lat
      * @param lon
      * @return
      * @throws IOException
      */
-    public static double FindShortestDistancePointFromFeatures(String filePath, double lat, double lon) throws IOException {
-        SimpleFeatureCollection inFeatures = GetSimpleFeatureCollectionFromPath(filePath);
-        if (inFeatures != null) {
-            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
-            SpatialIndexFeatureCollection featureIndex;
-            SimpleFeature touchedFeature = null;
-            Coordinate coord = new Coordinate(lon, lat);
-            Point startPoint = geometryFactory.createPoint(coord);
-            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
+    public static double FindShortestDistancePointFromFeatures(SimpleFeatureCollection inFeatures, double lat, double lon) throws IOException {
+        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+        SpatialIndexFeatureCollection featureIndex;
+        SimpleFeature touchedFeature = null;
+        Coordinate coord = new Coordinate(lon, lat);
+        Point startPoint = geometryFactory.createPoint(coord);
+        DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
-            featureIndex = new SpatialIndexFeatureCollection(inFeatures.getSchema());
-            featureIndex.addAll(inFeatures);
+        featureIndex = new SpatialIndexFeatureCollection(inFeatures.getSchema());
+        featureIndex.addAll(inFeatures);
 
-            final double searchDistLimit = featureIndex.getBounds().getSpan(0);
-            Coordinate pCoord = startPoint.getCoordinate();
-            ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
-                    featureIndex.getSchema().getCoordinateReferenceSystem());
-            refEnv.expandBy(searchDistLimit);
-            BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
-            SimpleFeatureCollection sfc = featureIndex.subCollection(bbox);
+        final double searchDistLimit = featureIndex.getBounds().getSpan(0);
+        Coordinate pCoord = startPoint.getCoordinate();
+        ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
+                featureIndex.getSchema().getCoordinateReferenceSystem());
+        refEnv.expandBy(searchDistLimit);
+        BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
+        SimpleFeatureCollection sfc = featureIndex.subCollection(bbox);
 
-            // check if the point is in the land
+        // check if the point is in the land
 
-            // give enough distance for the minimum distance to start
-            double minDist = searchDistLimit + 1.0e-6;
+        // give enough distance for the minimum distance to start
+        double minDist = searchDistLimit + 1.0e-6;
 
-            Coordinate minDistPoint = null;
-            SimpleFeatureIterator sfi = sfc.features();
+        Coordinate minDistPoint = null;
+        SimpleFeatureIterator sfi = sfc.features();
+        try {
+            while (sfi.hasNext()) {
+                SimpleFeature sf = sfi.next();
+                LocationIndexedLine tempLine = new LocationIndexedLine(((MultiPolygon) sf.getDefaultGeometry()).getBoundary());
+                LinearLocation snapPoint = tempLine.project(pCoord);
+                Coordinate tempPoint = tempLine.extractPoint(snapPoint);
+                double distance = tempPoint.distance(pCoord);
+                if (distance < minDist) {
+                    minDist = distance;
+                    minDistPoint = tempPoint;
+                    touchedFeature = sf;
+                }
+            }
+        } finally {
+            sfi.close();
+        }
+
+
+        Point minTouchedPoint = null;
+
+        if (minDistPoint == null) {
+            minTouchedPoint = geometryFactory.createPoint((Coordinate) null);
+        } else {
+            minTouchedPoint = geometryFactory.createPoint(minDistPoint);
+        }
+
+
+        if (!minTouchedPoint.isEmpty()) {
+            // calculation distance between the minTouchedPoint and input point
+            GeodeticCalculator gc = new GeodeticCalculator(crs);
             try {
-                while (sfi.hasNext()) {
-                    SimpleFeature sf = sfi.next();
-                    LocationIndexedLine tempLine = new LocationIndexedLine(((MultiPolygon) sf.getDefaultGeometry()).getBoundary());
-                    LinearLocation snapPoint = tempLine.project(pCoord);
-                    Coordinate tempPoint = tempLine.extractPoint(snapPoint);
-                    double distance = tempPoint.distance(pCoord);
-                    if (distance < minDist) {
-                        minDist = distance;
-                        minDistPoint = tempPoint;
-                        touchedFeature = sf;
-                    }
-                }
-            } finally {
-                sfi.close();
+                gc.setStartingPosition(JTS.toDirectPosition(minTouchedPoint.getCoordinate(), crs));
+                gc.setDestinationPosition(JTS.toDirectPosition(startPoint.getCoordinate(), crs));
+            } catch (TransformException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
 
+            double distance = gc.getOrthodromicDistance();
 
-            Point minTouchedPoint = null;
+            double totalmeters = distance;
+            double km = totalmeters / 1000;
+            double meters = totalmeters - (km * 1000);
+            double remaining_cm = distance - totalmeters * 10000;
+            remaining_cm = Math.round(remaining_cm);
+            double cm = remaining_cm / 100;
 
-            if (minDistPoint == null) {
-                minTouchedPoint = geometryFactory.createPoint((Coordinate) null);
-            } else {
-                minTouchedPoint = geometryFactory.createPoint(minDistPoint);
-            }
+            return km;
 
-
-            if (!minTouchedPoint.isEmpty()) {
-                // calculation distance between the minTouchedPoint and input point
-                GeodeticCalculator gc = new GeodeticCalculator(crs);
-                try {
-                    gc.setStartingPosition(JTS.toDirectPosition(minTouchedPoint.getCoordinate(), crs));
-                    gc.setDestinationPosition(JTS.toDirectPosition(startPoint.getCoordinate(), crs));
-                } catch (TransformException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-                double distance = gc.getOrthodromicDistance();
-
-                double totalmeters = distance;
-                double km = totalmeters / 1000;
-                double meters = totalmeters - (km * 1000);
-                double remaining_cm = distance - totalmeters * 10000;
-                remaining_cm = Math.round(remaining_cm);
-                double cm = remaining_cm / 100;
-
-                return km;
-
-            } else {
-                return 0;
-            }
         } else {
             return 0;
         }
@@ -169,15 +164,14 @@ public class GeotoolsUtils {
     /**
      * find a field value of the feature using the point location
      *
-     * @param filePath
+     * @param inFeatures
      * @param fieldName
      * @param lat
      * @param lon
      * @return
      * @throws IOException
      */
-    public static String getUnderlyingFieldValueFromPoint(String filePath, String fieldName, double lat, double lon) throws IOException{
-        SimpleFeatureCollection inFeatures = GetSimpleFeatureCollectionFromPath(filePath);
+    public static String getUnderlyingFieldValueFromPoint(SimpleFeatureCollection inFeatures, String fieldName, double lat, double lon) throws IOException{
         SimpleFeature touchedFeature = null;
         Coordinate coord = new Coordinate(lon, lat);
         Point point = geometryFactory.createPoint(coord);
@@ -216,15 +210,14 @@ public class GeotoolsUtils {
     /**
      * find if the point is located in the polygon feature
      *
-     * @param filePath
+     * @param inFeatures
      * @param lat
      * @param lon
      * @return
      * @throws IOException
      */
-    public static boolean isPointInPolygon(String filePath, double lat, double lon) throws IOException{
+    public static boolean isPointInPolygon(SimpleFeatureCollection inFeatures, double lat, double lon) throws IOException{
         boolean isContained = false;
-        SimpleFeatureCollection inFeatures = GetSimpleFeatureCollectionFromPath(filePath);
         if (inFeatures != null) {
             Coordinate coord = new Coordinate(lon, lat);
             Point point = geometryFactory.createPoint(coord);
@@ -272,21 +265,24 @@ public class GeotoolsUtils {
         // file path for country boundary polygon
         String sprPolygon = "hazard-service\\src\\main\\data\\hurricane\\tm_north_america_country.shp";
 
+        SimpleFeatureCollection dslvFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
+        SimpleFeatureCollection sprFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
+
         // lat, lon value
         double lat = 41.378178;
         double lon = -87.925500;
 
         // check if the point is on the land
-        boolean isContained = isPointInPolygon(dslvPolygon, lat, lon);
+        boolean isContained = isPointInPolygon(dslvFeatures, lat, lon);
         System.out.println(isContained);
 
         if (isContained) {
             // if it is on the land, get the country name
-            String name = getUnderlyingFieldValueFromPoint(sprPolygon, "NAME", lat, lon);
+            String name = getUnderlyingFieldValueFromPoint(sprFeatures, "NAME", lat, lon);
             System.out.println(name);
 
             // get shortest km distance to coastal line
-            double shortestDist =  FindShortestDistancePointFromFeatures(dslvPolygon, lat, lon);
+            double shortestDist =  FindShortestDistancePointFromFeatures(dslvFeatures, lat, lon);
             System.out.println(shortestDist);
         }
 
