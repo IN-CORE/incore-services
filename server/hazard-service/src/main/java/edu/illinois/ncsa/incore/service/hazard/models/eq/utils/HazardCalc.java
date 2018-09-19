@@ -71,7 +71,7 @@ public class HazardCalc {
             SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), soilGeology);
             if (feature != null) {
                 susceptibilitity = feature.getAttribute("liq_suscep").toString();
-                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "PGA", "PGA", "g", 0, true, creator).getHazardValue();
+                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA", "g", 0, true, creator).getHazardValue();
                 groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, magnitude);
                 double liqProbability = liquefaction.getProbabilityOfLiquefaction(eqModel.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, groundWaterDepth);
                 groundFailureProb = liquefaction.getProbabilityOfGroundFailure(susceptibilitity, pgaValue, groundWaterDepth, magnitude);
