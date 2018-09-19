@@ -14,6 +14,8 @@ public class HurricaneSimulation {
 
     private List<List<String>> surfaceVelocity = new ArrayList<>();
 
+    private List<List<Double>> surfaceVelocityAbs = new ArrayList<>();
+
     public String getAbsTime() {
         return absTime;
     }
@@ -45,5 +47,14 @@ public class HurricaneSimulation {
     public void setSurfaceVelocity(List<List<String>> surfaceVelocity) {
         this.surfaceVelocity = surfaceVelocity;
     }
+
+    public List<List<Double>> getSurfaceVelocityAbs() {
+        return surfaceVelocityAbs;
+    }
+
+    public void setSurfaceVelocityAbs(List<List<Double>> surfaceVelocityAbs) {
+        this.surfaceVelocityAbs = surfaceVelocityAbs;
+    }
+
 
 }

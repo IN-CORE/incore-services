@@ -102,7 +102,29 @@ public class HurricaneUtil {
         return retList;
     }
 
-    public static final List<List<String>> convert2DComplexArrayToList(Complex[][] cArr){
+    //Calculate abs value
+    public static final List<List<Double>> convert2DComplexArrayToAbsList(Complex[][] cArr){
+        List<List<Double>> retList = new ArrayList<>();
+        int rows = cArr.length;
+        int cols = 0;
+        if(cArr[0] != null){
+            cols = cArr[0].length;
+        }
+
+        for(int row=0; row<rows; row++) {
+            List<Double> rowList = new ArrayList<>();
+            for (int col = 0; col < cols; col++) {
+                //rowList.add(cArr[row][col].toString());
+                rowList.add(cArr[row][col].abs());
+            }
+            retList.add(rowList);
+        }
+
+        return retList;
+    }
+
+
+    public static final List<List<String>> convert2DComplexArrayToStringList(Complex[][] cArr){
         List<List<String>> retList = new ArrayList<>();
         int rows = cArr.length;
         int cols = 0;

@@ -71,6 +71,7 @@ public class HurricaneController {
                                                     @DefaultValue("6") @QueryParam("resolution") int resolution) {
 
         //TODO: Find a way to include exception reason in HTTP Response INCORE-461
+        //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
         if(coast == null || category <=0 || category > 5){
             throw new NotFoundException("Coast needs to be gulf, florida or east. Category should be between 1 to 5");
         }
@@ -164,10 +165,20 @@ public class HurricaneController {
             hsim.setGridLongs(hgrid.getLongi());
 
             Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores((JSONObject) para.get(i), hgrid, VTsSimu.get(i),
-                (JSONArray) omegaFitted.get(i), (JSONArray) zonesFitted.get(i), radiusM);
+                (JSONArray) omegaFitted.get(i), (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
 
-            hsim.setSurfaceVelocity(HurricaneUtil.convert2DComplexArrayToList(vsFinal));
+            //hsim.setSurfaceVelocity(HurricaneUtil.convert2DComplexArrayToStringList(vsFinal));
+            hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
             hSimulations.add(hsim);
+
+            /* Use this to return velcoity of center point.
+            IncorePoint ctr = hgrid.getCenter();
+            int lonPos = hgrid.getLongi().indexOf(ctr.getLocation().getX()); //col
+            int latPos = hgrid.getLati().indexOf(ctr.getLocation().getY()); //row
+
+            double centerVelocity = hsim.getSurfaceVelocityAbs().get(latPos).get(lonPos);
+            */
+
         }
 
         HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
@@ -176,7 +187,7 @@ public class HurricaneController {
         hEnsemble.setLandfallLocation(landfallLoc);
         hEnsemble.setModelUsed(model);
         hEnsemble.setTimes(times);
-        //hEnsemble.setHurricaneSimulations(hSimulations);
+        hEnsemble.setHurricaneSimulations(hSimulations);
        return  hEnsemble;
 
 

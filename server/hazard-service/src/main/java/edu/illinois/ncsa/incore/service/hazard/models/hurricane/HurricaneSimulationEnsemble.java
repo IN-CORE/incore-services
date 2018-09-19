@@ -17,8 +17,8 @@ public class HurricaneSimulationEnsemble {
     public List<String> times = new ArrayList();
 
 
-    public final String gridRowType = "longitude";
-    public final String gridColumnType = "latitude";
+    public final String gridRowType = "latitude";
+    public final String gridColumnType = "longitude";
 
     public final String description = "Surface Windfield is simulated for the provided times. A simulated grid that " +
         "represents the affected area for each time is also returned ";

@@ -13,11 +13,17 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
+import javax.ws.rs.NotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 import static java.lang.Math.*;
 
@@ -323,25 +329,22 @@ public class HurricaneCalc {
             int innerBlah = 1;
         }
 
-        Complex[][] vsFinal = convertToSurfaceWind(vGsTotal, radiusM, vTs, rm, r, grid);
-        return vsFinal;
+        Complex[] vsRotated = convertToSurfaceWind(vGsTotal, vTs, rm, r);
+        Complex[][] vsReduced = applyReductionFactor(vsRotated, grid.getLati(), grid.getLongi(), radiusM);
+        return vsReduced;
     }
 
 
     /**
      *
      * @param vGsTotal
-     * @param radiusM
      * @param vTs
      * @param rmOuter
      * @param radians
-     * @param grid
      * @return
      */
-    public  static final Complex[][] convertToSurfaceWind(Complex[] vGsTotal, JSONArray radiusM, Complex vTs, double rmOuter,
-                                                          List<Double> radians, HurricaneGrid grid) {
+    public  static final Complex[] convertToSurfaceWind(Complex[] vGsTotal, Complex vTs, double rmOuter, List<Double> radians) {
 
-        //TODO: Remove fr kt2ms
         double[] fdp = new double[radians.size()];
 
         Complex[] vSurfRot = new Complex[radians.size()];
@@ -353,7 +356,7 @@ public class HurricaneCalc {
         double a2 = (a3 - a1) / 0.2;
 
         int cordsSize = radians.size();
-        int pointSize = (int) sqrt(cordsSize); //This is always going to be int
+        //int pointSize = (int) sqrt(cordsSize); //This is always going to be int
 
         double[] alpha = new double[cordsSize];
 
@@ -379,21 +382,105 @@ public class HurricaneCalc {
             idx++;
         }
 
-        Complex[][] vsFinal = new Complex[pointSize][pointSize];
+        return vSurfRot;
 
-        int cord = 0;
-        for (int col = 0; col < pointSize; col++) {
-            for (int row = 0; row < pointSize; row++) {
-                vsFinal[row][col] = vSurfRot[cord];
-                cord++;
-            }
-        }
-
-        return vsFinal;
+//        Complex[][] vsFinal = new Complex[pointSize][pointSize];
+//
+//        int cord = 0;
+//        for (int col = 0; col < pointSize; col++) {
+//            for (int row = 0; row < pointSize; row++) {
+//                vsFinal[row][col] = vSurfRot[cord];
+//                cord++;
+//            }
+//        }
+//
+//        return vsFinal;
     }
 
 
+    public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, JSONArray radiusM){
 
+
+        try {
+            //TODO: This will change after reduction code works
+            // file path for land polygon
+            String dslvPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_dislvd.shp";
+            // file path for country boundary polygon
+            String sprPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_country.shp";
+
+            SimpleFeatureCollection dslvFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(dslvPolygon);
+            SimpleFeatureCollection sprFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(sprPolygon);
+
+
+            int cord = 0;
+            int pointSize = (int) sqrt(vs.length);
+
+            Complex[][] vsReduced = new Complex[pointSize][pointSize];
+            boolean performReduction = false; // only for testing
+
+
+
+            for (int col = 0; col < pointSize; col++) {
+                double lon = longis.get(col);
+                for (int row = 0; row < pointSize; row++) {
+                    double lat = latis.get(row);
+                    double reductionFactor = 1;
+                    if(performReduction) {
+                        boolean isContained = GeotoolsUtils.isPointInPolygon(dslvFeatures, lat, lon);
+                        //System.out.println(isContained+"--"+lat+","+lon);
+                        int zone = 0;
+
+                        JSONArray ar = new JSONArray();
+
+                        if (isContained) {
+                            // if it is on the land, get the country name
+                            String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sprFeatures, "NAME", lat, lon);
+                            //System.out.println(":::"+name);
+
+                            if (name.equals("united states")) {
+                                ar = (JSONArray) ((JSONObject) radiusM.get(1)).get("usa");
+                            } else if (name.equals("mexico")) {
+                                ar = (JSONArray) ((JSONObject) radiusM.get(0)).get("mexico");
+                            } else if (name.equals("cuba")) {
+                                ar = (JSONArray) ((JSONObject) radiusM.get(2)).get("cuba");
+                            } else if (name.equals("jamaica")) {
+                                ar = (JSONArray) ((JSONObject) radiusM.get(3)).get("jam");
+                            }
+
+                            // get shortest km distance to coastal line
+                            double shortestDist = GeotoolsUtils.FindShortestDistancePointFromFeatures(dslvFeatures, lat, lon);
+
+                            if (shortestDist <= 10) {
+                                zone = 0;
+                            } else if (shortestDist > 10 && shortestDist <= 50) {
+                                zone = 1;
+                            } else if (shortestDist > 50 && shortestDist <= 100) {
+                                zone = 2;
+                            } else if (shortestDist > 100 && shortestDist <= 300) {
+                                zone = 3;
+                            } else {
+                                zone = 4;
+                            }
+
+                            if (ar.size() > 0) {
+                                reductionFactor = (Double) ar.get(zone);
+                            }
+
+                        } else {
+                            //Throw 404? and say not point not in north america? or return 1?
+                        }
+                    }
+                    vsReduced[row][col] = vs[cord].multiply(reductionFactor);
+                    cord++;
+                }
+            }
+            return vsReduced;
+        }catch (Exception ex) {
+            throw new NotFoundException("Shapefile Not found");
+        }
+
+
+    }
 
 
 

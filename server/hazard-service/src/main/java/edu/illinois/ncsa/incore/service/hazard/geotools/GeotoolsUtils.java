@@ -64,7 +64,7 @@ public class GeotoolsUtils {
         SimpleFeatureCollection sfc = null;
         URL fileUrl = new URL("file:" + filePath);
 
-        DataStore dataStore = getShapefileDataStore(fileUrl, false);
+        DataStore dataStore = getShapefileDataStore(fileUrl, true);
         FileDataStore fileDataStore = (FileDataStore) dataStore;
         SimpleFeatureSource sfs = fileDataStore.getFeatureSource();
         sfc = sfs.getFeatures();
@@ -192,18 +192,19 @@ public class GeotoolsUtils {
             }
         }
 
+        String ret = "";
         if (touchedFeature != null) {
             String attribute = (String) touchedFeature.getAttribute(fieldName);
             if (attribute != null) {
                 if(attribute.isEmpty()) {
-                    return outValue;
+                    ret = outValue;
                 } else {
-                    return attribute;
+                    ret = attribute;
                 }
             }
         }
 
-        return outValue;
+        return ret.toLowerCase();
     }
 
 
@@ -261,15 +262,16 @@ public class GeotoolsUtils {
      */
     public static void main(String[] args) throws IOException {
         // file path for land polygon
-        String dslvPolygon = "hazard-service\\src\\main\\data\\hurricane\\tm_north_america_dislvd.shp";
+        String dslvPolygon = "hazard-service/src/main/data/hurricane/tm_north_america_dislvd.shp";
         // file path for country boundary polygon
-        String sprPolygon = "hazard-service\\src\\main\\data\\hurricane\\tm_north_america_country.shp";
+        String sprPolygon = "hazard-service/src/main/data/hurricane/tm_north_america_country.shp";
+
 
         SimpleFeatureCollection dslvFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
         SimpleFeatureCollection sprFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
 
         // lat, lon value
-        double lat = 41.378178;
+        double lat = 21.378178;
         double lon = -87.925500;
 
         // check if the point is on the land
