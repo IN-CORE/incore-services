@@ -13,7 +13,10 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
+import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.referencing.GeodeticCalculator;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
@@ -416,9 +419,17 @@ public class HurricaneCalc {
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
-            boolean performReduction = false; // only for testing
+            boolean performReduction = true; // only for testing
 
+            SpatialIndexFeatureCollection featureIndex;
+            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
+            featureIndex = new SpatialIndexFeatureCollection(dslvFeatures.getSchema());
+            featureIndex.addAll(dslvFeatures);
+            GeodeticCalculator gc = new GeodeticCalculator(crs);
 
+            final double searchDistLimit = featureIndex.getBounds().getSpan(0);
+            // give enough distance for the minimum distance to start
+            double minDist = searchDistLimit + 1.0e-6;
 
             for (int col = 0; col < pointSize; col++) {
                 double lon = longis.get(col);
@@ -426,7 +437,8 @@ public class HurricaneCalc {
                     double lat = latis.get(row);
                     double reductionFactor = 1;
                     if(performReduction) {
-                        boolean isContained = GeotoolsUtils.isPointInPolygon(dslvFeatures, lat, lon);
+                        boolean isContained = true; //removed function as it is taking .3 secs for each call
+                        //boolean isContained = GeotoolsUtils.isPointInPolygon(dslvFeatures, lat, lon);
                         //System.out.println(isContained+"--"+lat+","+lon);
                         int zone = 0;
 
@@ -448,21 +460,22 @@ public class HurricaneCalc {
                             }
 
                             // get shortest km distance to coastal line
-                            double shortestDist = GeotoolsUtils.FindShortestDistancePointFromFeatures(dslvFeatures, lat, lon);
-
-                            if (shortestDist <= 10) {
-                                zone = 0;
-                            } else if (shortestDist > 10 && shortestDist <= 50) {
-                                zone = 1;
-                            } else if (shortestDist > 50 && shortestDist <= 100) {
-                                zone = 2;
-                            } else if (shortestDist > 100 && shortestDist <= 300) {
-                                zone = 3;
-                            } else {
-                                zone = 4;
-                            }
-
+                            //double shortestDist = GeotoolsUtils.FindShortestDistanceFromPointToFeatures(dslvFeatures, lat, lon);
                             if (ar.size() > 0) {
+                                double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(featureIndex,
+                                    lat, lon, gc, crs, searchDistLimit, minDist);
+
+                                if (shortestDist <= 10) {
+                                    zone = 0;
+                                } else if (shortestDist > 10 && shortestDist <= 50) {
+                                    zone = 1;
+                                } else if (shortestDist > 50 && shortestDist <= 100) {
+                                    zone = 2;
+                                } else if (shortestDist > 100 && shortestDist <= 300) {
+                                    zone = 3;
+                                } else {
+                                    zone = 4;
+                                }
                                 reductionFactor = (Double) ar.get(zone);
                             }
 
