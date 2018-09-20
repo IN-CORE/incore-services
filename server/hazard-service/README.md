@@ -131,6 +131,50 @@ http://localhost:8080/hazard/api/earthquakes/{id}/liquefaction/values?geologyDat
 
 http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&demandUnits=g&minX=-90.3099&minY=34.9942&maxX=-89.6231&maxY=35.4129&gridSpacing=0.01696
 
+## Tsunamis
+
+### Create Tsunami Dataset
+
+When creating an tsunami dataset, the files must be included in the POST in the order found in the JSON
+so the correct dataset and metadata are associated.
+
+http://localhost:8080/hazard/api/tsunamis
+
+POST - Create probabilistic tsunami
+{
+  "name": "Seaside Probabilistic Tsunami - 100 yr",
+  "description": "Seaside dataset based probabilistic tsunami hazard",
+  "tsunamiType": "dataset",
+  "hazardDatasets" :  [
+    {
+        "hazardType" : "probabilistic",
+        "demandType" : "Vmax",
+        "demandUnits" : "m/s", 
+        "recurrenceInterval" : "100",
+        "recurrenceUnit" : "years"
+    },
+    {
+        "hazardType" : "probabilistic",
+        "demandType" : "Mmax",
+        "demandUnits" : "m^3/s^2", 
+        "recurrenceInterval" : "100",
+        "recurrenceUnit" : "years"
+    },
+    {
+        "hazardType" : "probabilistic",
+        "demandType" : "Hmax",
+        "demandUnits" : "m", 
+        "recurrenceInterval" : "100",
+        "recurrenceUnit" : "years"
+    }
+   
+  ]
+}
+
+GET /values
+
+http://localhost:8080/hazard/api/tsunamis/{id}/values?demandType=Vmax&demandUnits=m/s&point=long,lat
+
 ## Tornadoes
 
 ### Create Scenario Tornado
