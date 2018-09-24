@@ -17,6 +17,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +32,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class DBHurricaneRepository implements IHurricaneRepository {
+
+public class DBHurricaneRepository implements IHurricaneRepository{
     private String hostUri;
     private String databaseName;
     private int port;
@@ -51,8 +53,6 @@ public class DBHurricaneRepository implements IHurricaneRepository {
         this.port = port;
     }
 
-
-
 //    @Override
 //    public void initialize() {
 //        this.initializeDataStore();
@@ -66,9 +66,10 @@ public class DBHurricaneRepository implements IHurricaneRepository {
         hurricane.setHurricaneModel(model);
 
         try {
-            String path = "/Users/vnarah2/incore-data/Hurricane wind field/mat-to-json/Models/";
+
             String fileName = model+".json";
-            Object obj = parser.parse(new FileReader(path+fileName));
+            URL modelURL = this.getClass().getClassLoader().getResource("/hazard/hurricane/models/" + fileName);
+            Object obj = parser.parse(new FileReader(modelURL.getFile()));
 
             jsonParams =  (JSONObject) obj;
 

@@ -14,6 +14,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.types;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Location;
 import com.vividsolutions.jts.geom.Point;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -38,7 +39,11 @@ public class IncorePoint {
         return location;
     }
 
-    public static IncorePoint fromString(final String latlong) {
+    public IncorePoint fromString(final String latlong) {
         return new IncorePoint(latlong);
+    }
+
+    public String toString() {
+        return  this.location.getY()+", "+this.location.getX();
     }
 }

@@ -46,6 +46,8 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.linearref.LinearLocation;
 import com.vividsolutions.jts.linearref.LocationIndexedLine;
 
+
+
 /**
  * Created by ywkim on 09/17/2018.
  */
@@ -55,15 +57,17 @@ public class GeotoolsUtils {
     private static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
     /**
-     * create SimpleFeatureCollection from file path
+     * create SimpleFeatureCollection from resource name
      *
-     * @param filePath
+     * @param fileName
      * @return
      * @throws IOException
      */
-    public static SimpleFeatureCollection GetSimpleFeatureCollectionFromPath(String filePath) throws IOException{
+    public static SimpleFeatureCollection GetSimpleFeatureCollectionFromPath(String fileName) throws IOException{
         SimpleFeatureCollection sfc = null;
-        URL fileUrl = new URL("file:" + filePath);
+
+        URL fileUrl = GeotoolsUtils.class.getResource("/hazard/hurricane/shapefiles/" + fileName);
+        //URL fileUrl = new URL("file:" + filePath);
 
         DataStore dataStore = getShapefileDataStore(fileUrl, true);
         FileDataStore fileDataStore = (FileDataStore) dataStore;
@@ -258,9 +262,9 @@ public class GeotoolsUtils {
      */
     public static void main(String[] args) throws IOException {
         // file path for land polygon
-        String dslvPolygon = "hazard-service/src/main/data/hurricane/tm_north_america_dislvd.shp";
+        String dslvPolygon = "tm_north_america_dislvd.shp";
         // file path for country boundary polygon
-        String sprPolygon = "hazard-service/src/main/data/hurricane/tm_north_america_country.shp";
+        String sprPolygon = "tm_north_america_country.shp";
 
 
         SimpleFeatureCollection dslvFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
@@ -268,11 +272,12 @@ public class GeotoolsUtils {
 
         // lat, lon value
         double lat = 21.378178;
-        double lon = -87.925500;
+        double lon = 87.925500;
 
         // check if the point is on the land
-        boolean isContained = isPointInPolygon(dslvFeatures, lat, lon);
-        System.out.println(isContained);
+        boolean isContained = true;
+        //boolean isContained = isPointInPolygon(dslvFeatures, lat, lon);
+        //System.out.println(isContained);
 
         if (isContained) {
             // if it is on the land, get the country name

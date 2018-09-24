@@ -54,11 +54,11 @@ public class HurricaneController {
     @Inject
     private IAuthorizer authorizer;
 
+
     private GeometryFactory factory = new GeometryFactory();
 
+
     private DBHurricaneRepository hurricaneRepo = new DBHurricaneRepository();
-
-
 
 
     @GET
@@ -67,7 +67,7 @@ public class HurricaneController {
     public HurricaneSimulationEnsemble getHurricaneByCategory(@HeaderParam("X-Credential-Username") String username,
                                                     @PathParam("coast") String coast,
                                                     @QueryParam("category") int category,
-                                                    @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") String landfallLoc,
+                                                    @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
                                                     @DefaultValue("6") @QueryParam("resolution") int resolution) {
 
         //TODO: Find a way to include exception reason in HTTP Response INCORE-461
@@ -82,14 +82,12 @@ public class HurricaneController {
         else{
             throw new NotFoundException("Error finding a mapping for the coast and category");
         }
-
-
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public HurricaneSimulationEnsemble getHurricane(@HeaderParam("X-Credential-Username") String username,
-                                             @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") String landfallLoc,
+                                             @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
                                              @QueryParam("model") String model,
                                              @DefaultValue("6") @QueryParam("resolution") int resolution) {
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation
@@ -104,7 +102,7 @@ public class HurricaneController {
         long longLandfall = (long)params.get("index_landfall");
 
         int indexLandfall = toIntExact(longLandfall) - 1 ; //Converting mat index to java
-        IncorePoint landfallPoint = new IncorePoint(landfallLoc);
+        //IncorePoint landfallPoint = landfallLoc.getLocation();
         List<Double> timeNewRadii = (List<Double>) params.get("time_radii_new");
 
         ComplexFormat cf = new ComplexFormat("j");
@@ -132,7 +130,7 @@ public class HurricaneController {
             VTsSimu.add(HurricaneUtil.polar(abNew, angle+th));
         }
 
-        List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii ,VTsSimu, landfallPoint, indexLandfall);
+        List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii ,VTsSimu, landfallLoc, indexLandfall);
 
         /* TODO: This code from matlab is not actually setting anything. Bug? Talk to PI
         if ~strcmp(model,'Isabel')&&~strcmp(model,'Frances')
@@ -167,8 +165,8 @@ public class HurricaneController {
             Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores((JSONObject) para.get(i), hgrid, VTsSimu.get(i),
                 (JSONArray) omegaFitted.get(i), (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
 
-            //hsim.setSurfaceVelocity(HurricaneUtil.convert2DComplexArrayToStringList(vsFinal));
-            hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
+            hsim.setSurfaceVelocity(HurricaneUtil.convert2DComplexArrayToStringList(vsFinal));
+            //hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
             hSimulations.add(hsim);
 
             /* Use this to return velcoity of center point.
@@ -184,7 +182,7 @@ public class HurricaneController {
         HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
         hEnsemble.setResolution(resolution);
         hEnsemble.setTransD(transD);
-        hEnsemble.setLandfallLocation(landfallLoc);
+        hEnsemble.setLandfallLocation(landfallLoc.toString());
         hEnsemble.setModelUsed(model);
         hEnsemble.setTimes(times);
         hEnsemble.setHurricaneSimulations(hSimulations);

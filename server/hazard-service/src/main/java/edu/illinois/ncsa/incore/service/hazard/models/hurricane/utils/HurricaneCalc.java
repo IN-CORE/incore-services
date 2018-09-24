@@ -407,9 +407,11 @@ public class HurricaneCalc {
         try {
             //TODO: This will change after reduction code works
             // file path for land polygon
-            String dslvPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_dislvd.shp";
+            //String dslvPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_dislvd.shp";
+            String dslvPolygon = "tm_north_america_dislvd.shp";
             // file path for country boundary polygon
-            String sprPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_country.shp";
+            //String sprPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_country.shp";
+            String sprPolygon = "tm_north_america_country.shp";
 
             SimpleFeatureCollection dslvFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(dslvPolygon);
             SimpleFeatureCollection sprFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(sprPolygon);
@@ -419,7 +421,7 @@ public class HurricaneCalc {
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
-            boolean performReduction = true; // only for testing
+            boolean performReduction = false; // only for testing
 
             SpatialIndexFeatureCollection featureIndex;
             DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
