@@ -132,12 +132,11 @@ public class HurricaneController {
 
         List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii ,VTsSimu, landfallLoc, indexLandfall);
 
-        /* TODO: This code from matlab is not actually setting anything. Bug? Talk to PI
-        if ~strcmp(model,'Isabel')&&~strcmp(model,'Frances')
-            VTs_simu(index_landfall)=[];
-            Track_simu(index_landfall,:)=[];
-        end
-        */
+        if(!model.toLowerCase().equals("isabel") && !model.toLowerCase().equals("frances")){
+            VTsSimu.remove(indexLandfall);
+            track.remove(indexLandfall);
+        }
+
         JSONArray para = (JSONArray) params.get("para");
         JSONArray omegaFitted = (JSONArray) params.get("omega_miss_fitted");
         JSONArray radiusM = (JSONArray) params.get("Rs");
@@ -151,10 +150,12 @@ public class HurricaneController {
         List<String> absTime = new ArrayList<>();
 
         List<HurricaneSimulation> hSimulations = new ArrayList<>();
+        List<String> centers = new ArrayList<>();
+        List<String> centerVel = new ArrayList<>();
 
         for(int i=0; i<paras; i++){
             HurricaneSimulation hsim = new HurricaneSimulation();
-            hsim.setAbsTime(times.get(0));
+            hsim.setAbsTime(times.get(i));
 
 
             HurricaneGrid hgrid = HurricaneUtil.defineGrid(track.get(i), resolution);
@@ -169,14 +170,16 @@ public class HurricaneController {
             //hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
             hSimulations.add(hsim);
 
-            /* Use this to return velcoity of center point.
+
             IncorePoint ctr = hgrid.getCenter();
+            centers.add(ctr.toString());
             int lonPos = hgrid.getLongi().indexOf(ctr.getLocation().getX()); //col
             int latPos = hgrid.getLati().indexOf(ctr.getLocation().getY()); //row
 
-            double centerVelocity = hsim.getSurfaceVelocityAbs().get(latPos).get(lonPos);
-            */
-
+            //Use this is we want to display the velocity at the center point.
+            //double centerVelocity = hsim.getSurfaceVelocityAbs().get(latPos).get(lonPos);
+            String centerVelocity = hsim.getSurfaceVelocity().get(latPos-1).get(lonPos);
+            centerVel.add(centerVelocity);
         }
 
         HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
@@ -185,6 +188,8 @@ public class HurricaneController {
         hEnsemble.setLandfallLocation(landfallLoc.toString());
         hEnsemble.setModelUsed(model);
         hEnsemble.setTimes(times);
+        hEnsemble.setCenters(centers);
+        hEnsemble.setCenterVelocities(centerVel);
         hEnsemble.setHurricaneSimulations(hSimulations);
        return  hEnsemble;
 

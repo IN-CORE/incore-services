@@ -15,6 +15,8 @@ public class HurricaneSimulationEnsemble {
     public String modelUsed;
 
     public List<String> times = new ArrayList();
+    public List<String> centers = new ArrayList();
+    public List<String> centerVelocities = new ArrayList();
 
 
     public final String gridRowType = "latitude";
@@ -73,9 +75,19 @@ public class HurricaneSimulationEnsemble {
         this.hurricaneSimulations = hurricaneSimulations;
     }
 
+    public List<String> getCenters() {
+        return centers;
+    }
 
+    public void setCenters(List<String> centers) {
+        this.centers = centers;
+    }
 
+    public List<String> getCenterVelocities() {
+        return centerVelocities;
+    }
 
-
-
+    public void setCenterVelocities(List<String> centerVelocities) {
+        this.centerVelocities = centerVelocities;
+    }
 }
