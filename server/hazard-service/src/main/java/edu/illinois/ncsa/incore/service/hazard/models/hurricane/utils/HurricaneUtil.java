@@ -255,11 +255,12 @@ public class HurricaneUtil {
      * @param resolution
      * @return
      */
-    public static final HurricaneGrid defineGrid(IncorePoint center, int resolution){
+    public static final HurricaneGrid defineGrid(IncorePoint center, int resolution, int gridPoints){
 
         HurricaneGrid g = new HurricaneGrid();
         double centerLong = center.getLocation().getX();
         double centerLati = center.getLocation().getY();
+        double xMax = resolution * gridPoints; //TODO: Use the class const  X_MAX if this is hardcoded value. Talk to PI
 
 
         List<Double> xsIntermediate = new ArrayList<Double>();
@@ -267,7 +268,7 @@ public class HurricaneUtil {
         List<Double> ys = new ArrayList<Double>();
 
         int i = 0;
-        for(double x= -X_MAX; x <= X_MAX;x= x+resolution){
+        for(double x= -xMax; x <= xMax;x= x+resolution){
             xsIntermediate.add(x);
             i++;
         }

@@ -98,12 +98,6 @@ public class HurricaneCalc {
 
             thetas.add(th);
             r.add(rx);
-
-
-//            if(i == 3000 || i == 18000){
-//                System.out.println("Starting...");
-//                System.out.println(i+":"+th+":"+rx);
-//            }
         }
 
         Map<String,Object> thetaRangeZones = HurricaneUtil.rangeWindSpeedComb(omegaFitted);
@@ -209,9 +203,6 @@ public class HurricaneCalc {
 
             for (Double rElem:
                 rRiList) {
-//                if(index >= 1220){
-//                    System.out.print('5');
-//                }
                 Complex v = rowRmThetaVspOuterRi.get(thetaMinIndices.get(index));
                 Double b = v.abs();
                 List<Complex> tempI;
@@ -424,7 +415,7 @@ public class HurricaneCalc {
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
-            boolean performReduction = false; // only for testing
+            boolean performReduction = true; // only for testing
 
             SpatialIndexFeatureCollection featureIndex;
             DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;

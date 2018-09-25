@@ -68,7 +68,8 @@ public class HurricaneController {
                                                     @PathParam("coast") String coast,
                                                     @QueryParam("category") int category,
                                                     @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
-                                                    @DefaultValue("6") @QueryParam("resolution") int resolution) {
+                                                    @DefaultValue("6") @QueryParam("resolution") int resolution,
+                                                    @DefaultValue("80") @QueryParam("gridPoints") int gridPoints) {
 
         //TODO: Find a way to include exception reason in HTTP Response INCORE-461
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
@@ -77,7 +78,7 @@ public class HurricaneController {
         }
 
         if(HurricaneUtil.categoryMapping.get(coast) != null ){
-            return getHurricane(username, transD, landfallLoc, HurricaneUtil.categoryMapping.get(coast)[category-1], resolution);
+            return getHurricane(username, transD, landfallLoc, HurricaneUtil.categoryMapping.get(coast)[category-1], resolution, gridPoints);
         }
         else{
             throw new NotFoundException("Error finding a mapping for the coast and category");
@@ -89,7 +90,9 @@ public class HurricaneController {
     public HurricaneSimulationEnsemble getHurricane(@HeaderParam("X-Credential-Username") String username,
                                              @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
                                              @QueryParam("model") String model,
-                                             @DefaultValue("6") @QueryParam("resolution") int resolution) {
+                                             @DefaultValue("6") @QueryParam("resolution") int resolution,
+                                            @DefaultValue("80") @QueryParam("gridPoints") int gridPoints) {
+        //TODO: Comeup with a better name for gridPoints
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation
         //This function simulates wind fields for the selected data-driven model
 
@@ -158,7 +161,7 @@ public class HurricaneController {
             hsim.setAbsTime(times.get(i));
 
 
-            HurricaneGrid hgrid = HurricaneUtil.defineGrid(track.get(i), resolution);
+            HurricaneGrid hgrid = HurricaneUtil.defineGrid(track.get(i), resolution, gridPoints);
 
             hsim.setGridLats(hgrid.getLati());
             hsim.setGridLongs(hgrid.getLongi());
@@ -166,8 +169,9 @@ public class HurricaneController {
             Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores((JSONObject) para.get(i), hgrid, VTsSimu.get(i),
                 (JSONArray) omegaFitted.get(i), (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
 
-            hsim.setSurfaceVelocity(HurricaneUtil.convert2DComplexArrayToStringList(vsFinal));
-            //hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
+
+            //hsim.setSurfaceVelocity(HurricaneUtil.convert2DComplexArrayToStringList(vsFinal));
+            hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
             hSimulations.add(hsim);
 
 
@@ -178,8 +182,8 @@ public class HurricaneController {
 
             //Use this is we want to display the velocity at the center point.
             //double centerVelocity = hsim.getSurfaceVelocityAbs().get(latPos).get(lonPos);
-            String centerVelocity = hsim.getSurfaceVelocity().get(latPos-1).get(lonPos);
-            centerVel.add(centerVelocity);
+            //String centerVelocity = hsim.getSurfaceVelocity().get(latPos-1).get(lonPos);
+            //centerVel.add(centerVelocity);
         }
 
         HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();

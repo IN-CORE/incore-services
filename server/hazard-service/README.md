@@ -107,12 +107,12 @@ http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=3
 
 ## Hurricanes - WIP
 
-http://localhost:8080/hazard/api/hurricanes/gulf?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6
+http://localhost:8080/hazard/api/hurricanes/gulf?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&&gridPoints=80
 Category mapping can be found at:
  https://uofi.box.com/s/dasneh1ks4vfc4vpifzwzwq5wo6udynp
 
 
-http://localhost:8080/hazard/api/hurricanes?model=Wilma&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6
+http://localhost:8080/hazard/api/hurricanes?model=Katrina2&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=80
 
 
 The converted json model files are also in box:
