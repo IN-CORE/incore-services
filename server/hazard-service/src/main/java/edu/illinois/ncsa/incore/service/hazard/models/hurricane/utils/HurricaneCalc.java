@@ -334,6 +334,9 @@ public class HurricaneCalc {
 
         Complex[] vsRotated = convertToSurfaceWind(vGsTotal, vTs, rm, r);
         Complex[][] vsReduced = applyReductionFactor(vsRotated, grid.getLati(), grid.getLongi(), radiusM);
+
+
+
         return vsReduced;
     }
 
@@ -371,9 +374,9 @@ public class HurricaneCalc {
                 Complex vSurf = (vGsTotal[idx].multiply(HurricaneUtil.FR)).add(vTs.multiply(fdp[idx]));
                 // Rotate counter-clockwise
                 if (r < rmOuter) {
-                    alpha[idx] = a1 + a2 * (r / (rmOuter - 1)) * (Math.PI / 180);
-                } else if (r >= rmOuter && r < 1.2 * rmOuter) {
                     alpha[idx] = a1 * (r / rmOuter) * (Math.PI / 180);
+                } else if (r >= rmOuter && r < 1.2 * rmOuter) {
+                    alpha[idx] = a1 + a2 * (r / (rmOuter - 1)) * (Math.PI / 180);
                 } else if (r >= 1.2 * rmOuter) { //this could just be else
                     alpha[idx] = a3 * (Math.PI / 180);
                 }
