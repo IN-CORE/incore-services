@@ -3,10 +3,14 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.json.simple.JSONObject;
 
+import javax.xml.bind.annotation.XmlID;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
+@XmlRootElement
 public class Hurricane {
 
+    @XmlID
     private String model;
 
     private Privileges privileges;
