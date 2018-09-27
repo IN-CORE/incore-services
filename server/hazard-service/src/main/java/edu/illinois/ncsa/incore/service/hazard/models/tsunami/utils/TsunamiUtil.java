@@ -38,11 +38,11 @@ public class TsunamiUtil {
         double convertedHazardValue = hazardValue;
         if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
             if (demandType.equalsIgnoreCase(TsunamiConstants.HMAX) || demandType.equalsIgnoreCase(TsunamiConstants.LEGACY_HMAX)) {
-                hazardValue = getCorrectUnitsOfHMAX(hazardValue, originalDemandUnits, requestedDemandUnits);
+                convertedHazardValue = getCorrectUnitsOfHMAX(convertedHazardValue, originalDemandUnits, requestedDemandUnits);
             } else if (demandType.equalsIgnoreCase(TsunamiConstants.VMAX)) {
-                hazardValue = getCorrectUnitsOfVMAX(hazardValue, originalDemandUnits, requestedDemandUnits);
+                convertedHazardValue = getCorrectUnitsOfVMAX(convertedHazardValue, originalDemandUnits, requestedDemandUnits);
             } else if (demandType.equalsIgnoreCase(TsunamiConstants.MMAX) || demandType.equalsIgnoreCase(TsunamiConstants.LEGACY_MMAX)) {
-                hazardValue = getCorrectUnitsOfMMAX(hazardValue, originalDemandUnits, requestedDemandUnits);
+                convertedHazardValue = getCorrectUnitsOfMMAX(convertedHazardValue, originalDemandUnits, requestedDemandUnits);
             } else {
                 throw new UnsupportedOperationException("Cannot convert from " + originalDemandUnits + " to " + requestedDemandUnits);
             }

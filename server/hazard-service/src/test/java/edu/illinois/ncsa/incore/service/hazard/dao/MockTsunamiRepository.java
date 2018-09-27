@@ -7,6 +7,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.FindOptions;
 
 import java.io.IOException;
 import java.net.URL;
@@ -30,8 +31,7 @@ public class MockTsunamiRepository implements ITsunamiRepository {
             });
 
             tsunamis.addAll(tsunamiDatasets);
-
-            Mockito.when(mockDataStore.createQuery(Tsunami.class).limit(Mockito.any(Integer.class)).asList()).thenReturn(this.tsunamis);
+            Mockito.when(mockDataStore.createQuery(Tsunami.class).asList(new FindOptions().limit(Mockito.any(Integer.class)))).thenReturn(this.tsunamis);
         } catch (IOException e) {
             log.error("Error reading tsunamis", e);
         }
