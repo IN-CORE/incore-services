@@ -39,7 +39,11 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import java.util.*;
-
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.complex.ComplexFormat;
@@ -145,7 +149,7 @@ public class HurricaneController {
         JSONArray radiusM = (JSONArray) params.get("Rs");
         JSONArray zonesFitted = (JSONArray) params.get("contouraxis_zones_fitted");
 
-        int paras = para.size();
+        //int paras = para.size();
 
         List<Complex[][]> VsTotal = new ArrayList<>();
         List<List<Double>> gridLatis = new ArrayList<>();
@@ -156,34 +160,11 @@ public class HurricaneController {
         List<String> centers = new ArrayList<>();
         List<String> centerVel = new ArrayList<>();
 
-        for(int i=0; i<paras; i++){
-            HurricaneSimulation hsim = new HurricaneSimulation();
-            hsim.setAbsTime(times.get(i));
-
-
-            HurricaneGrid hgrid = HurricaneUtil.defineGrid(track.get(i), resolution, gridPoints);
-
-            hsim.setGridLats(hgrid.getLati());
-            hsim.setGridLongs(hgrid.getLongi());
-
-            Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores((JSONObject) para.get(i), hgrid, VTsSimu.get(i),
-                (JSONArray) omegaFitted.get(i), (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
-
-
-            //hsim.setSurfaceVelocity(HurricaneUtil.convert2DComplexArrayToStringList(vsFinal));
-            hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
+        for(int i=0; i<para.size(); i++){
+            HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+                track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+                (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
             hSimulations.add(hsim);
-
-
-            IncorePoint ctr = hgrid.getCenter();
-            centers.add(ctr.toString());
-            int lonPos = hgrid.getLongi().indexOf(ctr.getLocation().getX()); //col
-            int latPos = hgrid.getLati().indexOf(ctr.getLocation().getY()); //row
-
-            //Use this is we want to display the velocity at the center point.
-            //double centerVelocity = hsim.getSurfaceVelocityAbs().get(latPos).get(lonPos);
-            //String centerVelocity = hsim.getSurfaceVelocity().get(latPos-1).get(lonPos);
-            //centerVel.add(centerVelocity);
         }
 
         HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
@@ -192,8 +173,8 @@ public class HurricaneController {
         hEnsemble.setLandfallLocation(landfallLoc.toString());
         hEnsemble.setModelUsed(model);
         hEnsemble.setTimes(times);
-        hEnsemble.setCenters(centers);
-        hEnsemble.setCenterVelocities(centerVel);
+        //hEnsemble.setCenters(centers);
+        //hEnsemble.setCenterVelocities(centerVel); //TODO: Would it be useful to have centers and cenVels in ensemble too?
         hEnsemble.setHurricaneSimulations(hSimulations);
        return  hEnsemble;
 

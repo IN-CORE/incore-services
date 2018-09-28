@@ -10,7 +10,9 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
@@ -37,7 +39,39 @@ import static java.lang.Math.*;
 public class HurricaneCalc {
     private static final Logger logger = Logger.getLogger(HurricaneCalc.class);
 
+    public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
+                                                                       int resolution, int gridPoints, Complex VTsSimu,
+                                                                       JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM){
+        HurricaneSimulation hsim = new HurricaneSimulation();
+        hsim.setAbsTime(time);
 
+
+        HurricaneGrid hgrid = HurricaneUtil.defineGrid(center, resolution, gridPoints);
+
+        hsim.setGridLats(hgrid.getLati());
+        hsim.setGridLongs(hgrid.getLongi());
+
+        Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted,  zonesFitted, radiusM);
+
+        List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal);
+        //hsim.setSurfaceVelocity(strList);
+        hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
+
+
+
+        IncorePoint ctr = hgrid.getCenter();
+        hsim.setGridCenter(ctr.toString());
+        int lonPos = hgrid.getLongi().indexOf(ctr.getLocation().getX()); //col
+        int latPos = hgrid.getLati().indexOf(ctr.getLocation().getY()); //row
+
+        //Use this is we want to display the velocity at the center point.
+        double centerVelocityAbs = hsim.getSurfaceVelocityAbs().get(latPos-1).get(lonPos);
+        String centerVelocity = strList.get(latPos-1).get(lonPos);
+        hsim.setCenterVelocity(centerVelocity);
+        hsim.setCenterVelAbs(centerVelocityAbs);
+
+        return hsim;
+    }
 
 
     public static final Complex[][] simulateWindfieldWithCores(JSONObject para, HurricaneGrid grid, Complex vTs,
@@ -380,23 +414,10 @@ public class HurricaneCalc {
         }
 
         return vSurfRot;
-
-//        Complex[][] vsFinal = new Complex[pointSize][pointSize];
-//
-//        int cord = 0;
-//        for (int col = 0; col < pointSize; col++) {
-//            for (int row = 0; row < pointSize; row++) {
-//                vsFinal[row][col] = vSurfRot[cord];
-//                cord++;
-//            }
-//        }
-//
-//        return vsFinal;
     }
 
 
     public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, JSONArray radiusM){
-
 
         try {
             //TODO: This will change after reduction code works
