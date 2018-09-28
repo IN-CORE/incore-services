@@ -164,54 +164,49 @@ public class HurricaneController {
         List<String> centers = new ArrayList<>();
         List<String> centerVel = new ArrayList<>();
 
-        for(int i=0; i<paramCt; i++){
-            HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
-                track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
-                (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
-            hSimulations.add(hsim);
+//        for(int i=0; i<paramCt; i++){
+//            HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+//                track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+//                (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
+//            hSimulations.add(hsim);
+//        }
+
+
+
+        try {
+            int cores = 8;
+            ForkJoinPool forkJoinPool = new ForkJoinPool(cores);
+
+            List<Integer> pList = IntStream.rangeClosed(0, paramCt - 1).boxed().collect(Collectors.toList());
+
+            final Callable<List<HurricaneSimulation>> hurrSims = () -> {
+                pList.parallelStream().forEach(i -> {
+                    hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+                        track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+                        (JSONArray) zonesFitted.get(i), (JSONArray) radiusM.get(i)));
+
+                });
+                return hSimulations;
+            };
+
+            List<HurricaneSimulation> abracadabra = forkJoinPool.submit(hurrSims).get(); // Use it
+            HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
+            hEnsemble.setResolution(resolution);
+            hEnsemble.setTransD(transD);
+            hEnsemble.setLandfallLocation(landfallLoc.toString());
+            hEnsemble.setModelUsed(model);
+            hEnsemble.setTimes(times);
+            //hEnsemble.setCenters(centers);
+            //hEnsemble.setCenterVelocities(centerVel); //TODO: Would it be useful to have centers and cenVels in ensemble too?
+            hEnsemble.setHurricaneSimulations(hSimulations);
+            return  hEnsemble;
+        } catch(Exception e){
+            throw new NotFoundException("dsa");
         }
 
-//        int cores = 8;
-//        ForkJoinPool forkJoinPool = new ForkJoinPool(cores);
-//
-//        List<Integer> pList =   IntStream.rangeClosed(0, paramCt-1).boxed().collect(Collectors.toList());
-//
-//        pList.parallelStream().forEach(i -> {
-//            hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
-//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
-//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i)));
-//        });
-
-        //List<ForkJoinTask> t = new ArrayList<ForkJoinTask>();
-         //forkJoinPool.submit(() -> {
-//            IntStream.range(0, paramCt).parallel().forEach(i -> {
-//                 hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
-//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
-//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i)));
-//            });
-
-//         List<HurricaneSimulation> hurrSims =   IntStream.range(0, paramCt).map(i -> {
-//
-//                 HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
-//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
-//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
-//            }).collect(Collectors.toList());
-       // });
 
 
 
-
-
-        HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
-        hEnsemble.setResolution(resolution);
-        hEnsemble.setTransD(transD);
-        hEnsemble.setLandfallLocation(landfallLoc.toString());
-        hEnsemble.setModelUsed(model);
-        hEnsemble.setTimes(times);
-        //hEnsemble.setCenters(centers);
-        //hEnsemble.setCenterVelocities(centerVel); //TODO: Would it be useful to have centers and cenVels in ensemble too?
-        hEnsemble.setHurricaneSimulations(hSimulations);
-       return  hEnsemble;
 
     }
 
