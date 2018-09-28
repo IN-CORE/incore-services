@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import sun.java2d.pipe.SpanShapeRenderer;
 
 
 import static java.lang.Math.*;
@@ -421,32 +422,12 @@ public class HurricaneCalc {
 
         try {
             //TODO: This will change after reduction code works
-            // file path for land polygon
-            //String dslvPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_dislvd.shp";
-            String dslvPolygon = "tm_north_america_dislvd.shp";
-            // file path for country boundary polygon
-            //String sprPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_country.shp";
-            String sprPolygon = "tm_north_america_country.shp";
-
-            SimpleFeatureCollection dslvFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(dslvPolygon);
-            SimpleFeatureCollection sprFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(sprPolygon);
-
 
             int cord = 0;
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
             boolean performReduction = true; // only for testing
-
-            SpatialIndexFeatureCollection featureIndex;
-            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
-            featureIndex = new SpatialIndexFeatureCollection(dslvFeatures.getSchema());
-            featureIndex.addAll(dslvFeatures);
-            GeodeticCalculator gc = new GeodeticCalculator(crs);
-
-            final double searchDistLimit = featureIndex.getBounds().getSpan(0);
-            // give enough distance for the minimum distance to start
-            double minDist = searchDistLimit + 1.0e-6;
 
             for (int col = 0; col < pointSize; col++) {
                 double lon = longis.get(col);
@@ -463,7 +444,8 @@ public class HurricaneCalc {
 
                         if (isContained) {
                             // if it is on the land, get the country name
-                            String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sprFeatures, "NAME", lat, lon);
+                            SimpleFeatureCollection sfc = GeotoolsUtils.countriesFeatures;
+                            String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
                             //System.out.println(":::"+name);
 
                             if (name.equals("united states")) {
@@ -477,10 +459,10 @@ public class HurricaneCalc {
                             }
 
                             // get shortest km distance to coastal line
-                            //double shortestDist = GeotoolsUtils.FindShortestDistanceFromPointToFeatures(dslvFeatures, lat, lon);
                             if (ar.size() > 0) {
-                                double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(featureIndex,
-                                    lat, lon, gc, crs, searchDistLimit, minDist);
+                                double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.continentFeatureIndex,
+                                    lat, lon, GeotoolsUtils.geodeticCalculator, GeotoolsUtils.crs, GeotoolsUtils.searchDistLimit,
+                                    GeotoolsUtils.minSearchDist);
 
                                 if (shortestDist <= 10) {
                                     zone = 0;
@@ -508,7 +490,6 @@ public class HurricaneCalc {
         }catch (Exception ex) {
             throw new NotFoundException("Shapefile Not found");
         }
-
 
     }
 

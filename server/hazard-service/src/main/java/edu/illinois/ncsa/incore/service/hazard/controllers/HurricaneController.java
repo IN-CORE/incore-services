@@ -44,6 +44,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.concurrent.ForkJoinTask;
 
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.complex.ComplexFormat;
@@ -149,7 +153,7 @@ public class HurricaneController {
         JSONArray radiusM = (JSONArray) params.get("Rs");
         JSONArray zonesFitted = (JSONArray) params.get("contouraxis_zones_fitted");
 
-        //int paras = para.size();
+        int paramCt = para.size();
 
         List<Complex[][]> VsTotal = new ArrayList<>();
         List<List<Double>> gridLatis = new ArrayList<>();
@@ -160,12 +164,43 @@ public class HurricaneController {
         List<String> centers = new ArrayList<>();
         List<String> centerVel = new ArrayList<>();
 
-        for(int i=0; i<para.size(); i++){
+        for(int i=0; i<paramCt; i++){
             HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
                 track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
                 (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
             hSimulations.add(hsim);
         }
+
+//        int cores = 8;
+//        ForkJoinPool forkJoinPool = new ForkJoinPool(cores);
+//
+//        List<Integer> pList =   IntStream.rangeClosed(0, paramCt-1).boxed().collect(Collectors.toList());
+//
+//        pList.parallelStream().forEach(i -> {
+//            hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i)));
+//        });
+
+        //List<ForkJoinTask> t = new ArrayList<ForkJoinTask>();
+         //forkJoinPool.submit(() -> {
+//            IntStream.range(0, paramCt).parallel().forEach(i -> {
+//                 hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i)));
+//            });
+
+//         List<HurricaneSimulation> hurrSims =   IntStream.range(0, paramCt).map(i -> {
+//
+//                 HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
+//            }).collect(Collectors.toList());
+       // });
+
+
+
+
 
         HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
         hEnsemble.setResolution(resolution);
@@ -177,7 +212,6 @@ public class HurricaneController {
         //hEnsemble.setCenterVelocities(centerVel); //TODO: Would it be useful to have centers and cenVels in ensemble too?
         hEnsemble.setHurricaneSimulations(hSimulations);
        return  hEnsemble;
-
 
     }
 
