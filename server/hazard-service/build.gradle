@@ -18,4 +18,5 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.5'
     compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.5'
     compile group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.9'
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.0'
 }
