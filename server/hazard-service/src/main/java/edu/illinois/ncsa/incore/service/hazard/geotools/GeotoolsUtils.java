@@ -72,10 +72,11 @@ public class GeotoolsUtils {
     public static SimpleFeatureCollection continentFeatures;
     public static SimpleFeatureCollection countriesFeatures;
     public static SpatialIndexFeatureCollection continentFeatureIndex;
-    public static DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
+    //public static DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
     public static double searchDistLimit = 0;
     public static double minSearchDist = 0;
 
+    //public static GeodeticCalculator geodeticCalculator;
 
     //Is it a good idea to load them in static context? Affecting Performance when loading per request (each loop)
     static {
@@ -84,15 +85,13 @@ public class GeotoolsUtils {
             countriesFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
             continentFeatureIndex = new SpatialIndexFeatureCollection(continentFeatures.getSchema());
             continentFeatureIndex.addAll(continentFeatures);
+            //geodeticCalculator = new GeodeticCalculator(crs);
             searchDistLimit = continentFeatureIndex.getBounds().getSpan(0);
             minSearchDist = searchDistLimit + 1.0e-6;
         } catch (IOException e) {
-            throw new NotFoundException("Shapefile Not found");
+            throw new NotFoundException("Shapefile Not found. Static init failed");
         }
     }
-
-    public static GeodeticCalculator geodeticCalculator = new GeodeticCalculator(crs);
-
 
 
     /**

@@ -429,6 +429,9 @@ public class HurricaneCalc {
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
             boolean performReduction = true; // only for testing
 
+            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
+            GeodeticCalculator gc = new GeodeticCalculator(crs);
+
             for (int col = 0; col < pointSize; col++) {
                 double lon = longis.get(col);
                 for (int row = 0; row < pointSize; row++) {
@@ -460,8 +463,9 @@ public class HurricaneCalc {
 
                             // get shortest km distance to coastal line
                             if (ar.size() > 0) {
+
                                 double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.continentFeatureIndex,
-                                    lat, lon, GeotoolsUtils.geodeticCalculator, GeotoolsUtils.crs, GeotoolsUtils.searchDistLimit,
+                                    lat, lon, gc, crs, GeotoolsUtils.searchDistLimit,
                                     GeotoolsUtils.minSearchDist);
 
                                 if (shortestDist <= 10) {

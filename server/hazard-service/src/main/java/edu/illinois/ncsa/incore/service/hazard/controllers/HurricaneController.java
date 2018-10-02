@@ -164,17 +164,18 @@ public class HurricaneController {
         List<String> centers = new ArrayList<>();
         List<String> centerVel = new ArrayList<>();
 
-//        for(int i=0; i<paramCt; i++){
-//            HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
-//                track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
-//                (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
-//            hSimulations.add(hsim);
-//        }
-
-
-
         try {
-            int cores = 8;
+//            for(int i=0; i<paramCt; i++){
+//                HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
+//                hSimulations.add(hsim);
+//            }
+
+
+
+
+            int cores = 7;
             ForkJoinPool forkJoinPool = new ForkJoinPool(cores);
 
             List<Integer> pList = IntStream.rangeClosed(0, paramCt - 1).boxed().collect(Collectors.toList());
@@ -198,12 +199,12 @@ public class HurricaneController {
             hEnsemble.setTimes(times);
             //hEnsemble.setCenters(centers);
             //hEnsemble.setCenterVelocities(centerVel); //TODO: Would it be useful to have centers and cenVels in ensemble too?
-            hEnsemble.setHurricaneSimulations(hSimulations);
+            hEnsemble.setHurricaneSimulations(abracadabra); //TODO: Order hsims by absTime
             return  hEnsemble;
         } catch(Exception e){
             throw new NotFoundException("dsa");
         }
-
+        //TODO: Add finally to cleanup all threads
 
 
 
