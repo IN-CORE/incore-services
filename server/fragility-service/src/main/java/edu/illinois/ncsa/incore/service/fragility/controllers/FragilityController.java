@@ -39,7 +39,6 @@ public class FragilityController {
     private IAuthorizer authorizer;
 
     @GET
-    @Path("/")
     @Produces({MediaType.APPLICATION_JSON})
     public List<FragilitySet> getFragilities(@HeaderParam("X-Credential-Username") String username,
                                              @QueryParam("demand") String demandType, @QueryParam("hazard") String hazardType,
