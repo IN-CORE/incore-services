@@ -27,6 +27,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardRe
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
+import io.swagger.annotations.Api;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
@@ -40,6 +41,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+@Api("tornadoes")
 @Path("tornadoes")
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
