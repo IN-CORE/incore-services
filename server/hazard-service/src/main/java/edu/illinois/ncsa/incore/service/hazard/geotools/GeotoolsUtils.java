@@ -12,19 +12,19 @@
 
 package edu.illinois.ncsa.incore.service.hazard.geotools;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
-import org.geotools.data.FileDataStore;
+import org.geotools.data.*;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.simple.*;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -36,6 +36,14 @@ import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.geometry.BoundingBox;
 import org.opengis.referencing.operation.TransformException;
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.FileDataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
@@ -255,8 +263,46 @@ public class GeotoolsUtils {
         return DataStoreFinder.getDataStore(map);
     }
 
+    public static void outToFile(File pathFile, SimpleFeatureType schema, DefaultFeatureCollection collection) throws IOException
+    {
+        ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+
+        Map<String, Serializable> params = new HashMap<String, Serializable>();
+        params.put("url", pathFile.toURI().toURL());
+        params.put("create spatial index", Boolean.TRUE);
+        params.put("enable spatial index", Boolean.TRUE);
+        ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
+        newDataStore.createSchema(schema);
+
+        Transaction transaction = new DefaultTransaction("create");
+
+        String typeName = newDataStore.getTypeNames()[0];
+        SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
+
+        if (featureSource instanceof SimpleFeatureStore) {
+            SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+
+            featureStore.setTransaction(transaction);
+            try {
+                featureStore.addFeatures(collection);
+                transaction.commit();
+
+            } catch (Exception problem) {
+                problem.printStackTrace();
+                transaction.rollback();
+
+            } finally {
+                transaction.close();
+            }
+
+        } else {
+            logger.error(typeName + " does not support read/write access"); //$NON-NLS-1$
+            System.exit(1);
+        }
+    }
+
     /**
-     * main for testing
+     * main for testing to calculate the shortest distance
      * @param args
      * @throws IOException
      */
@@ -277,16 +323,14 @@ public class GeotoolsUtils {
         // check if the point is on the land
         boolean isContained = true;
         //boolean isContained = isPointInPolygon(dslvFeatures, lat, lon);
-        //System.out.println(isContained);
 
         if (isContained) {
             // if it is on the land, get the country name
             String name = getUnderlyingFieldValueFromPoint(sprFeatures, "NAME", lat, lon);
-            System.out.println(name);
 
             // get shortest km distance to coastal line
-            double shortestDist =  FindShortestDistanceFromPointToFeatures(dslvFeatures, lat, lon);
-            System.out.println(shortestDist);
+            double shortestDist = FindShortestDistanceFromPointToFeatures(dslvFeatures, lat, lon);
+            logger.debug(shortestDist);
 
             ////////////////////////////////////////
             // new method for faster iteration
@@ -302,10 +346,8 @@ public class GeotoolsUtils {
             double minDist = searchDistLimit + 1.0e-6;
 
             shortestDist = CalcShortestDistanceFromPointToFeatures(featureIndex, lat, lon, gc, crs, searchDistLimit, minDist);
-            System.out.println(shortestDist);
+            logger.debug(shortestDist);
         }
-
-
     }
 }
 
