@@ -35,18 +35,23 @@ import org.json.simple.parser.ParseException;
 
 /**
  * Created by ywkim on 10/4/2018.
+ *
+ * This creates the geotiff from the given hurricane JSON
+ * This process needs GDAL to be installed in the running platform machine.
+ * TODO the variable cmdGdalGrid should be modified based on the platform machine and system
+ * It first creates the point shapefile with the velocity values
+ * Then, created the geotiff using the IDW method of the points' location and velocity values
+ * The cell size is being calculated by the number of points and given resolution and set to 100m as default
+ * The resolution part might be enhanced by user's input, maybe later?
  */
 public class HurricaneUtils {
     private static final Logger logger = Logger.getLogger(HurricaneUtils.class);
     public static final String TEMP_DIR_PREFIX = "temp_hurricane_";
 
-    // gdal_grid command should be changed based on the system
+    // todo gdal_grid command should be changed based on the system
     public static final String cmdGdalGrid = "cmd /c \"C:\\Program Files\\GDAL\\gdal_grid\" "; // for windows
-
     public static final String cmdZField = "-zfield velocity ";
-    //public static final String cmdLayer = "-l hurricane5 ";
     public static final String cmdAlgo = "-a invdist:power=2.0:smothing=0.0:radius1=0.0:radius2=0.0:angle=0.0:max_points=0:min_points=0:nodata=0.0 ";
-    public static final String cmdSize = "-outsize 3000 3000 ";
     public static final String cmdType = "-of GTiff ";
 
     public static LinkedList convertDoubleJsonArrayToList(JSONArray inArray){
@@ -58,7 +63,21 @@ public class HurricaneUtils {
         return jsonList;
     }
 
-    public static void CreateHurricanePointShapefile(List<Double> lats, List<Double> lons, List vals, String inFile) throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException, IOException, SchemaException {
+    /**
+     * This creates the point shapefile from latitude and longitude lists and put the value list as its attribute
+     *
+     * @param lats
+     * @param lons
+     * @param vals
+     * @param inFile
+     * @throws MismatchedDimensionException
+     * @throws NoSuchAuthorityCodeException
+     * @throws FactoryException
+     * @throws TransformException
+     * @throws IOException
+     * @throws SchemaException
+     */
+    public static void CreateHurricanePointShapefile(List<Double> lats, List<Double> lons, List vals, String inFile) throws MismatchedDimensionException, IOException{
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
@@ -95,9 +114,19 @@ public class HurricaneUtils {
 
         GeotoolsUtils.outToFile(outfile, schema, dfc);
 
-        System.out.println(inFile + " has been created.");
+        logger.debug(inFile + " has been created.");
     }
 
+    /**
+     * Main method for creating hurricane GeoTiff from JSON file
+     *
+     * @param inJsonPath
+     * @throws MismatchedDimensionException
+     * @throws NoSuchAuthorityCodeException
+     * @throws FactoryException
+     * @throws TransformException
+     * @throws SchemaException
+     */
     public static void processHurricaneFromJson(String inJsonPath) throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException, SchemaException {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(inJsonPath))
@@ -110,57 +139,61 @@ public class HurricaneUtils {
             JSONArray times = (JSONArray) hurricaneObj.get("times");
             JSONArray centers = (JSONArray) hurricaneObj.get("centers");
             JSONArray hurricaneSims = (JSONArray) hurricaneObj.get("hurricaneSimulations");
-            JSONObject sampleHurricane = (JSONObject) hurricaneSims.get(0);
-            JSONArray gridLats = (JSONArray) sampleHurricane.get("gridLats");
-            JSONArray gridLongs = (JSONArray) sampleHurricane.get("gridLongs");
-            JSONArray surfaceVeloc = (JSONArray) sampleHurricane.get("surfaceVelocityAbs");
 
-            // create velocity list
-            LinkedList<LinkedList> velList = new LinkedList<LinkedList>();
-            for (int i=0;i<surfaceVeloc.size();i++) {
-                JSONArray tmpArray = (JSONArray) surfaceVeloc.get(i);
-                LinkedList<Double> tmpList = new LinkedList<Double>();
-                for(int j=0;j<tmpArray.size();j++){
-                    tmpList.add((double)tmpArray.get(j));
-                }
-                velList.add(tmpList);
-            }
+            // calculate the cell size.
+            // in here it is set to 100m resolution
+            // TODO it assumes that unit is km, if it is different, the new lines should be added
+            int numGridPoint = ((JSONArray)((JSONObject) hurricaneSims.get(0)).get("gridLats")).size();
+            double totalLength = resolution * (numGridPoint - 1);   // total length in km
+            int cellResolution = (int) totalLength * 10; // multiplied 10 to make it 100m resolution
+            System.out.println(numGridPoint + " " + totalLength);
 
-            // create temp dir and copy files to temp dir
             String tempDir = Files.createTempDirectory(TEMP_DIR_PREFIX).toString();
             logger.debug("Temporay directory " + tempDir + " has been created.");
-            String outShp = tempDir + "/hurricane5.shp";
-            String outTif = tempDir + "/hurricane5.tif";
+
+            for (int k=0; k < hurricaneSims.size(); k++) {
+                JSONObject tempHurricane = (JSONObject) hurricaneSims.get(k);
+                JSONArray gridLats = (JSONArray) tempHurricane.get("gridLats");
+                JSONArray gridLongs = (JSONArray) tempHurricane.get("gridLongs");
+                JSONArray surfaceVeloc = (JSONArray) tempHurricane.get("surfaceVelocityAbs");
+
+                // create velocity list
+                LinkedList<LinkedList> velList = new LinkedList<LinkedList>();
+                for (int i = 0; i < surfaceVeloc.size(); i++) {
+                    JSONArray tmpArray = (JSONArray) surfaceVeloc.get(i);
+                    LinkedList<Double> tmpList = new LinkedList<Double>();
+                    for (int j = 0; j < tmpArray.size(); j++) {
+                        tmpList.add((double) tmpArray.get(j));
+                    }
+                    velList.add(tmpList);
+                }
+
+                String outShp = tempDir + "/hurricane" + k + ".shp";
+                String outTif = tempDir + "/hurricane" + k + ".tif";
 
 
-            List<Double> latList = convertDoubleJsonArrayToList(gridLats);
-            List<Double> lonList = convertDoubleJsonArrayToList(gridLongs);
+                List<Double> latList = convertDoubleJsonArrayToList(gridLats);
+                List<Double> lonList = convertDoubleJsonArrayToList(gridLongs);
 
-            CreateHurricanePointShapefile(latList, lonList, velList, outShp);
+                // create point shapefile
+                CreateHurricanePointShapefile(latList, lonList, velList, outShp);
 
-            String cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + outShp + " " + outTif;
+                // create geotiff from given shapefile
+                String cmdSize = "-outsize " + cellResolution + " " + cellResolution + " ";
+                String cmdStr = "";
+                if (cellResolution > 1) {
+                    cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + cmdSize + outShp + " " + outTif;
+                } else {
+                    cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + outShp + " " + outTif;
+                }
+                logger.debug(cmdStr);
+                performProcess(cmdStr);
 
-            logger.debug(cmdStr);
-            Process p = Runtime.getRuntime().exec(cmdStr);
-            String s = null;
-
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-            // read the output from the command
-            logger.debug("standard output of the command:\n");
-            while ((s = stdInput.readLine()) != null) {
-                logger.debug(s);
             }
 
-            // read any errors from the attempted command
-            System.out.println("standard error of the command (if any):\n");
-            while ((s = stdError.readLine()) != null) {
-                logger.error(s);
-            }
+            //TODO add a method that posts the output hurricane GeoTiffs to hurricane hazard dataset
 
-            System.exit(0);
-
+            //TODO add a method to remove the temp directory
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -170,7 +203,42 @@ public class HurricaneUtils {
         }
     }
 
-    public static void main(String[] args) throws IOException, MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException, SchemaException {
+    /**
+     * perform system process outside the java
+     *
+     * @param cmdStr
+     * @throws IOException
+     */
+    public static void performProcess(String cmdStr) throws IOException{
+        Process p = Runtime.getRuntime().exec(cmdStr);
+        String s = null;
+
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+        // read the output from the command
+        logger.debug("standard output of the command:\n");
+        while ((s = stdInput.readLine()) != null) {
+            System.out.println(s);
+        }
+
+        // read any errors from the attempted command
+        logger.debug("standard error of the command (if any):\n");
+        while ((s = stdError.readLine()) != null) {
+            System.out.println(s);
+        }
+    }
+
+    /**
+     * main method for testing
+     * @param args
+     * @throws IOException
+     * @throws MismatchedDimensionException
+     * @throws FactoryException
+     * @throws TransformException
+     * @throws SchemaException
+     */
+    public static void main(String[] args) throws MismatchedDimensionException, FactoryException, TransformException, SchemaException {
         String inJsonPath = "C:/Users/ywkim/Documents/NIST/Hurricane/hurricanes_RealValue_21by21.json";
         processHurricaneFromJson(inJsonPath);
 
