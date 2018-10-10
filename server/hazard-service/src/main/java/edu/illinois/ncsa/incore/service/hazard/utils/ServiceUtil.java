@@ -10,22 +10,28 @@
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class ServiceUtil {
+
+    private static final Logger logger = Logger.getLogger(ServiceUtil.class);
+
     /**
      * Utility for the hazard service to save files to the dataset repository
      *
@@ -49,12 +55,12 @@ public class ServiceUtil {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
 
-        String requestUrl = dataEndpoint + HazardDataset.DATASETS_ENDPOINT;
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
-        params.addTextBody(HazardDataset.DATASET_PARAMETER, datasetObject.toString());
+        params.addTextBody(HazardConstants.DATASET_PARAMETER, datasetObject.toString());
 
         HttpResponse response = null;
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -68,18 +74,18 @@ public class ServiceUtil {
             JSONObject object = new JSONObject(responseStr);
 
             String datasetId = object.getString("id");
-            requestUrl += "/" + datasetId + "/" + HazardDataset.DATASETS_FILES;
+            requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
 
             params = MultipartEntityBuilder.create();
             params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 
-            for(File file : files) {
-                params.addBinaryBody(HazardDataset.FILE_PARAMETER_, file);
+            for (File file : files) {
+                params.addBinaryBody(HazardConstants.FILE_PARAMETER_, file);
             }
 
             // Attach file
             httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
+            httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);
@@ -91,5 +97,172 @@ public class ServiceUtil {
 
         return null;
 
+    }
+
+    public static File getFileFromDataService(String datasetId, String creator, File incoreWorkDirectory) {
+        String dataEndpoint = "http://localhost:8080/";
+        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
+            dataEndpoint = dataEndpointProp;
+            if (!dataEndpoint.endsWith("/")) {
+                dataEndpoint += "/";
+            }
+        }
+
+        InputStream inputStream = null;
+        try {
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            HttpClient httpclient = builder.build();
+
+            String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId + "/blob";
+            HttpGet httpGet = new HttpGet(requestUrl);
+            httpGet.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+
+            HttpResponse response = null;
+
+            response = httpclient.execute(httpGet);
+            inputStream = response.getEntity().getContent();
+        } catch (IOException e) {
+            // TODO add logging
+            logger.error(e);
+        }
+
+        String filename = "files.zip";
+        File file = new File(incoreWorkDirectory, filename);
+
+        try (BufferedInputStream bis = new BufferedInputStream(inputStream);
+             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))
+        ) {
+
+            int inByte;
+            while ((inByte = bis.read()) != -1) {
+                bos.write(inByte);
+            }
+
+        } catch (IOException e) {
+
+            logger.error(e);
+        }
+
+        return file;
+    }
+
+    public static String getDataServiceEndpoint() {
+        // CMN: we could go through Kong, but then we would need a token
+        String dataEndpoint = "http://localhost:8080/";
+        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
+            dataEndpoint = dataEndpointProp;
+            if (!dataEndpoint.endsWith("/")) {
+                dataEndpoint += "/";
+            }
+        }
+
+        return dataEndpoint;
+    }
+
+    public static String createDataset(String title, String creator, String description, String datasetType) throws IOException {
+        String dataEndpoint = getDataServiceEndpoint();
+        JSONArray spaces = new JSONArray();
+        if (creator != null) {
+            spaces.put(creator);
+        }
+        spaces.put(HazardConstants.ERGO_SPACE);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(HazardConstants.DATA_TYPE, datasetType);
+        jsonObject.put(HazardConstants.TITLE, title);
+        jsonObject.put(HazardConstants.SOURCE_DATASET, "");
+        jsonObject.put(HazardConstants.FORMAT, HazardConstants.RASTER_FORMAT);
+        jsonObject.put(HazardConstants.DESCRIPTION, description);
+        jsonObject.put(HazardConstants.SPACES, spaces);
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
+        HttpPost httpPost = new HttpPost(requestUrl);
+        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+
+        MultipartEntityBuilder params = MultipartEntityBuilder.create();
+        params.addTextBody(HazardConstants.DATASET_PARAMETER, jsonObject.toString());
+
+        HttpResponse response = null;
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseStr = null;
+
+        httpPost.setEntity(params.build());
+        response = httpclient.execute(httpPost);
+        responseStr = responseHandler.handleResponse(response);
+
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            JSONObject object = new JSONObject(responseStr);
+
+            String datasetId = object.getString("id");
+            return datasetId;
+        }
+
+        return null;
+    }
+
+    public static String createRasterDataset(File rasterFile, String title, String creator, String description, String datasetType) throws IOException {
+        String datasetId = createDataset(title, creator, description, datasetType);
+
+        if (datasetId != null) {
+            MultipartEntityBuilder params = MultipartEntityBuilder.create();
+            params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            params.addBinaryBody(HazardConstants.FILE_PARAMETER_, rasterFile);
+
+            attachFileToDataset(datasetId, creator, params);
+        }
+
+        return datasetId;
+    }
+
+    public static String createRasterDataset(String filename, InputStream fis, String title, String creator, String description, String datasetType) throws IOException {
+        String datasetId = createDataset(title, creator, description, datasetType);
+        if (datasetId != null) {
+            MultipartEntityBuilder params = MultipartEntityBuilder.create();
+            params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            params.addBinaryBody(HazardConstants.FILE_PARAMETER_, fis, ContentType.DEFAULT_BINARY, filename);
+
+            attachFileToDataset(datasetId, creator, params);
+        }
+        return datasetId;
+    }
+
+    public static void attachFileToDataset(String datasetId, String creator, MultipartEntityBuilder params) throws IOException {
+        String dataEndpoint = getDataServiceEndpoint();
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
+        requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
+
+        // Attach file
+        HttpPost httpPost = new HttpPost(requestUrl);
+        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setEntity(params.build());
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+        HttpResponse response = httpclient.execute(httpPost);
+
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseStr = responseHandler.handleResponse(response);
+
+        // This could be useful if there is a failure
+        logger.debug("Attach file response " + responseStr);
+    }
+
+    public static File getWorkDirectory() {
+        File incoreWorkDirectory = null;
+        try {
+            incoreWorkDirectory = File.createTempFile("incore", ".dir");
+            incoreWorkDirectory.delete();
+            incoreWorkDirectory.mkdirs();
+
+            return incoreWorkDirectory;
+        } catch (IOException e) {
+            logger.error("Error creating temporary directory.", e);
+        }
+        return incoreWorkDirectory;
     }
 }

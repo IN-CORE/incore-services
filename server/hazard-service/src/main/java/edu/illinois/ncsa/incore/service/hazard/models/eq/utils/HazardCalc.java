@@ -12,17 +12,17 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.EqVisualization;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.ScenarioEarthquake;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.liquefaction.HazusLiquefaction;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.LiquefactionHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.CoverageFactoryFinder;
+import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -32,6 +32,7 @@ import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.geometry.Envelope2D;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.opengis.coverage.PointOutsideCoverageException;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageWriter;
 import org.opengis.feature.simple.SimpleFeature;
@@ -48,29 +49,31 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class HazardCalc {
     private static final Logger logger = Logger.getLogger(HazardCalc.class);
     private static GeometryFactory factory = new GeometryFactory();
 
-    public static LiquefactionHazardResult getLiquefactionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, SimpleFeatureCollection soilGeology, String demandUnits) {
+    public static LiquefactionHazardResult getLiquefactionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, SimpleFeatureCollection soilGeology, String demandUnits, String creator) {
+
+        // TODO fix this for dataset
+        EarthquakeModel eqModel = (EarthquakeModel) earthquake;
         HazusLiquefaction liquefaction = new HazusLiquefaction();
         String susceptibilitity = null;
         double pgaValue = 0.0;
         double groundDeformation = 0.0;
         double[] groundFailureProb = new double[3];
-        double magnitude = earthquake.getEqParameters().getMagnitude();
+        double magnitude = eqModel.getEqParameters().getMagnitude();
         // Assumption from Hazus
         // TODO this should be optionally provided by the user with a ground water depth map
         double groundWaterDepth = 5.0;
         try {
-            SimpleFeature feature = HazardUtil.getPointInPolygon(site.getLocation(), soilGeology);
+            SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), soilGeology);
             if (feature != null) {
                 susceptibilitity = feature.getAttribute("liq_suscep").toString();
-                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "PGA", "PGA", "g", 0, true).getHazardValue();
+                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA", "g", 0, true, creator).getHazardValue();
                 groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, magnitude);
-                double liqProbability = liquefaction.getProbabilityOfLiquefaction(earthquake.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, groundWaterDepth);
+                double liqProbability = liquefaction.getProbabilityOfLiquefaction(eqModel.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, groundWaterDepth);
                 groundFailureProb = liquefaction.getProbabilityOfGroundFailure(susceptibilitity, pgaValue, groundWaterDepth, magnitude);
 
                 // Default units of permanent ground deformation
@@ -92,92 +95,130 @@ public class HazardCalc {
 
     }
 
-    public static SeismicHazardResult getGroundMotionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String hazardType, String demand, String demandUnits, int spectrumOverride, boolean amplifyHazard) throws Exception {
-        Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+    public static SeismicHazardResult getGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String period, String hazardType, String demandUnits, int spectrumOverride, boolean amplifyHazard, String creator) throws Exception {
 
         if (HazardUtil.SD.equalsIgnoreCase(hazardType)) {
             // TODO CMN - I don't see any example that uses this so deferring implementation
             throw new UnsupportedHazardException("Conversion to SD is not yet implemented");
         } else if (HazardUtil.PGV.equalsIgnoreCase(hazardType)) {
             // First, check if it supports the hazard directly from the attenuation models
-            boolean supported = supportsHazard(attenuations, hazardType);
+            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType);
             // If not supported, check if it supports 1.0 Sec SA
             if (!supported) {
-                supported = supportsHazard(attenuations, "1.0 Sa");
+                supported = supportsHazard(earthquake, attenuations, "1.0", "Sa");
 
                 if (!supported) {
                     throw new UnsupportedHazardException(hazardType + " is not supported and cannot be converted to given the scenario earthquake");
                 }
                 logger.debug(hazardType + " is not directly supported by the scenario earthquake, using 1.0 second SA to compute " + hazardType);
 
-                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0", "Sa", spectrumOverride, amplifyHazard);
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0", "Sa", spectrumOverride, amplifyHazard, creator, null);
                 double updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits, HazardUtil.PGV);
-                return new SeismicHazardResult(updatedHazardVal, HazardUtil.PGV, HazardUtil.PGV, demandUnits);
+                return new SeismicHazardResult(updatedHazardVal, "0.0", HazardUtil.PGV, demandUnits);
             }
 
         } else {
-            boolean supported = supportsHazard(attenuations, hazardType);
+            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType);
             if (!supported) {
                 // TODO add spectrum method support so we can infer values
                 logger.warn(hazardType + " is not supported by the given scenario earthquake, defaulting to closest match.");
             }
-            return computeGroundMotionAtSite(earthquake, attenuations, site, hazardType, demand, spectrumOverride, amplifyHazard);
+            return computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
         }
 
         return null;
 
     }
 
-    public static SeismicHazardResult computeGroundMotionAtSite(ScenarioEarthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String hazardType, String demand, int spectrumOverride, boolean amplifyHazard) throws Exception {
+    public static SeismicHazardResult computeGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String period, String demand, int spectrumOverride, boolean amplifyHazard, String creator, String demandUnits) throws Exception {
+
         double hazardValue = 0.0;
-        String closestHazardPeriod = hazardType;
-        Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
-        while (iterator.hasNext()) {
-            BaseAttenuation model = iterator.next();
-            double weight = attenuations.get(model);
-            SeismicHazardResult matchedResult = model.getValueClosestMatch(hazardType, site);
-            hazardValue += (Math.log(matchedResult.getHazardValue()) * weight);
-
-            closestHazardPeriod = matchedResult.getPeriod();
-        }
-
-        hazardValue = Math.exp(hazardValue);
-
-        // TODO check if site class dataset is defined for amplifying hazard
-        int siteClass = HazardUtil.getSiteClassAsInt(earthquake.getDefaultSiteClass());
-
-        SiteAmplification siteAmplification = null;
-        if (amplifyHazard) {
-            // TODO need to add check for if VS already accounted for soil type
-
-            // TODO add check for Rix Fernandez, no need to amplify
-
-            // TODO Add support for other amplification methods besides NEHRP
-
-            if (earthquake.getSiteAmplification().equalsIgnoreCase("NEHRP")) {
-                siteAmplification = new NEHRPSiteAmplification();
-
-                if (closestHazardPeriod.equalsIgnoreCase(HazardUtil.PGV)) {
-                    double pga = computeGroundMotionAtSite(earthquake, attenuations, site, "PGA", demand, spectrumOverride, false).getHazardValue();
-                    hazardValue *= siteAmplification.getSiteAmplification(site, pga, siteClass, closestHazardPeriod);
-                } else {
-                    // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
-                    // and the range for interpretation is in units of g
-                    hazardValue *= siteAmplification.getSiteAmplification(site, hazardValue, siteClass, closestHazardPeriod);
-                }
+        String closestHazardPeriod = period;
+        if (earthquake instanceof EarthquakeModel) {
+            // Handles the case where PGV/PGD/PGA are all at 0.0 so coefficients are stored by demand type
+            // This could be fixed by storing all coefficients in a more verbose way, e.g. 0.0 PGA, 0.0 PGV, 0.2 Sa, etc
+            String hazardType = demand;
+            if(Double.parseDouble(period) != 0.0) {
+                // Sa values are all stored by period 0.2, 0.3, etc
+                hazardType = period;
             }
 
+            EarthquakeModel eqModel = (EarthquakeModel) earthquake;
+            Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+            while (iterator.hasNext()) {
+                BaseAttenuation model = iterator.next();
+                double weight = attenuations.get(model);
+                SeismicHazardResult matchedResult = model.getValueClosestMatch(hazardType, site);
+
+                hazardValue += (Math.log(matchedResult.getHazardValue()) * weight);
+
+                closestHazardPeriod = matchedResult.getPeriod();
+            }
+
+            hazardValue = Math.exp(hazardValue);
+
+            // TODO check if site class dataset is defined for amplifying hazard
+            int siteClass = HazardUtil.getSiteClassAsInt(eqModel.getDefaultSiteClass());
+
+            SiteAmplification siteAmplification = null;
+            if (amplifyHazard) {
+                // TODO need to add check for if VS already accounted for soil type
+
+                // TODO add check for Rix Fernandez, no need to amplify
+
+                // TODO Add support for other amplification methods besides NEHRP
+
+                if (eqModel.getSiteAmplification().equalsIgnoreCase("NEHRP")) {
+                    siteAmplification = new NEHRPSiteAmplification();
+
+                    if (closestHazardPeriod.equalsIgnoreCase(HazardUtil.PGV)) {
+                        double pga = computeGroundMotionAtSite(earthquake, attenuations, site, "PGA", demand, spectrumOverride, false, creator, null).getHazardValue();
+                        hazardValue *= siteAmplification.getSiteAmplification(site, pga, siteClass, closestHazardPeriod);
+                    } else {
+                        // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
+                        // and the range for interpretation is in units of g
+                        hazardValue *= siteAmplification.getSiteAmplification(site, hazardValue, siteClass, closestHazardPeriod);
+                    }
+                }
+
+            }
+
+        } else {
+            EarthquakeDataset eqDataset = (EarthquakeDataset) earthquake;
+            HazardDataset hazardDataset = HazardUtil.findHazard(eqDataset.getHazardDatasets(), demand, period, false);
+
+            // TODO We should consider caching these on the server side, at least temporarily
+            GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
+            try {
+                hazardValue = HazardUtil.findRasterPoint(site.getLocation(), (GridCoverage2D) gc);
+                hazardValue = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(), Double.parseDouble(period), hazardDataset.getDemandType(), demandUnits, demand);
+            } catch (PointOutsideCoverageException e) {
+                logger.debug("Point outside tiff image.");
+            }
+        }
+
+        // A bit of a hack to return PGA/PGD/PGV with period as 0.0 instead of PGA/PGV/PGD which was used to locate the coefficients
+        if(Double.parseDouble(period) == 0.0) {
+            closestHazardPeriod = "0.0";
         }
 
         return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand);
     }
 
-    public static boolean supportsHazard(Map<BaseAttenuation, Double> attenuations, String demandType) {
-        Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+    public static boolean supportsHazard(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, String period, String demandType) {
         boolean canOutputHazard = true;
-        while (iterator.hasNext()) {
-            BaseAttenuation model = iterator.next();
-            if (!model.canOutput(demandType)) {
+        if (earthquake instanceof EarthquakeModel) {
+            String fullDemandType = HazardUtil.getFullDemandType(period, demandType);
+            Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+            while (iterator.hasNext()) {
+                BaseAttenuation model = iterator.next();
+                if (!model.canOutput(fullDemandType)) {
+                    canOutputHazard = false;
+                }
+            }
+        } else {
+            HazardDataset hazardDataset = HazardUtil.findHazard(((EarthquakeDataset) earthquake).getHazardDatasets(), demandType, period, false);
+            if (hazardDataset == null) {
                 canOutputHazard = false;
             }
         }
@@ -185,7 +226,7 @@ public class HazardCalc {
         return canOutputHazard;
     }
 
-    public static GridCoverage getEarthquakeHazardRaster(ScenarioEarthquake scenarioEarthquake, Map<BaseAttenuation, Double> attenuations) throws Exception {
+    public static GridCoverage getEarthquakeHazardRaster(EarthquakeModel scenarioEarthquake, Map<BaseAttenuation, Double> attenuations, String creator) throws Exception {
         EqVisualization visualizationParameters = scenarioEarthquake.getVisualizationParameters();
         boolean amplifyHazard = visualizationParameters.isAmplifyHazard();
         double minX = visualizationParameters.getMinX();
@@ -195,14 +236,15 @@ public class HazardCalc {
         int numPoints = visualizationParameters.getNumPoints();
 
         String demandType = visualizationParameters.getDemandType();
-        String period = demandType;
-        String demand = demandType;
-
-        if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
-            String[] demandSplit = demandType.split(" ");
-            period = demandSplit[0];
-            demand = demandSplit[1];
-        }
+        String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
+//        String period = demandType;
+//        String demand = demandType;
+//
+//        if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
+//            String[] demandSplit = demandType.split(" ");
+//            period = demandSplit[0];
+//            demand = demandSplit[1];
+//        }
 
         int width = 0;
         int height = 0;
@@ -246,14 +288,14 @@ public class HazardCalc {
         WritableRaster raster = RasterFactory.createBandedRaster(DataBuffer.TYPE_FLOAT, width, height, 1, null);
 
         // Get default demand units for the hazard type
-        String demandUnits = BaseAttenuation.getUnits(demand);
+        String demandUnits = BaseAttenuation.getUnits(demandComponents[1]);
         Envelope envelope = new Envelope2D(crs, minX, minY, width * cellsize, height * cellsize);
         for (int y = 0; y < height; y++) {
 
             startX = (float) minX + (cellsize / 2.0f);
             for (int x = 0; x < width; x++) {
                 localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
-                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard).getHazardValue();
+                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations, localSite, demandComponents[0], demandComponents[1], demandUnits, 0, amplifyHazard, creator).getHazardValue();
 
                 raster.setSample(x, y, 0, hazardValue);
 

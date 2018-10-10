@@ -10,48 +10,20 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.hazard.HazardDataset;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.HazardDataset;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.opengis.coverage.PointOutsideCoverageException;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
 
 import java.awt.geom.Point2D;
-import java.io.*;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Misc utility functions for doing conversion of hazard types and units
@@ -119,8 +91,7 @@ public class HazardUtil {
     }
 
     public static double convertHazard(double hazard, String fromUnits, double t, String fromHazardType, String toUnits,
-                                       String toHazardType)
-    {
+                                       String toHazardType) {
         double hazardVal = convertHazardType(hazard, fromUnits, t, fromHazardType, toUnits, toHazardType);
         if (Double.isNaN(hazardVal)) {
             hazardVal = 0.0;
@@ -135,23 +106,15 @@ public class HazardUtil {
     }
 
     /**
-     *
-     * @param hazard
-     *            Hazard Input
-     * @param units0
-     *            Units of the hazard input
-     * @param t
-     *            Period, if applicable to the conversion
-     * @param hazardType0
-     *            Type of hazard input
-     * @param units1
-     *            Units of the required hazard
-     * @param hazardType1
-     *            Type of required hazard
+     * @param hazard      Hazard Input
+     * @param units0      Units of the hazard input
+     * @param t           Period, if applicable to the conversion
+     * @param hazardType0 Type of hazard input
+     * @param units1      Units of the required hazard
+     * @param hazardType1 Type of required hazard
      * @return
      */
-    private static double convertHazardType(double hazard, String units0, double t, String hazardType0, String units1, String hazardType1)
-    {
+    private static double convertHazardType(double hazard, String units0, double t, String hazardType0, String units1, String hazardType1) {
         String concat = hazardType0.concat(hazardType1);
         if (concat.equalsIgnoreCase(sa_pgv)) {
             double pgv_from_sa = convertSAToPGV(hazard, units0, units1);
@@ -177,15 +140,11 @@ public class HazardUtil {
     }
 
     /**
-     *
-     * @param sa_1
-     *            1.0 Second Spectral Acceleration
-     * @param units0
-     *            Units of the SA value
+     * @param sa_1   1.0 Second Spectral Acceleration
+     * @param units0 Units of the SA value
      * @return PGV in cm/sec
      */
-    private static double convertSAToPGV(double sa_1, String units0, String units1)
-    {
+    private static double convertSAToPGV(double sa_1, String units0, String units1) {
         double hazard = sa_1;
         if (units_g.equalsIgnoreCase(units0)) {
 
@@ -197,14 +156,12 @@ public class HazardUtil {
     }
 
     /**
-     *
      * @param pga
      * @param units0
      * @param units1
      * @return
      */
-    private static double convertPGAToPGD(double pga, String units0, String units1)
-    {
+    private static double convertPGAToPGD(double pga, String units0, String units1) {
         // XXX: assuming ground type B here, that's not always true, how do we
         // handle that?
         double hazard = pga;
@@ -219,63 +176,45 @@ public class HazardUtil {
     }
 
     /**
-     *
-     * @param pga
-     *            Peak Ground Acceleration in m/s^2
-     * @param s
-     *            Constant for specific ground type
-     * @param t_c
-     *            Constant for specific ground type
-     * @param t_d
-     *            Constant for specific ground type
+     * @param pga Peak Ground Acceleration in m/s^2
+     * @param s   Constant for specific ground type
+     * @param t_c Constant for specific ground type
+     * @param t_d Constant for specific ground type
      * @return Peak Ground Displacement in meters
      */
-    private static double convertPGAToPGD(double pga, double s, double t_c, double t_d)
-    {
+    private static double convertPGAToPGD(double pga, double s, double t_c, double t_d) {
         return (0.025 * pga * s * t_c * t_d);
     }
 
     /**
-     *
-     * @param sa
-     *            spectral acceleration
-     * @param t
-     *            period
-     * @param units0
-     *            units of Sa
+     * @param sa     spectral acceleration
+     * @param t      period
+     * @param units0 units of Sa
      * @return spectral displacement in cm
      */
-    private static double convertSAToSD(double sa, double t, String units0, String units1)
-    {
+    private static double convertSAToSD(double sa, double t, String units0, String units1) {
         sa = getCorrectUnitsOfSA(sa, units0, units_g);
         return getCorrectUnitsOfSD(sa * 9.78 * Math.pow(t, 2) * 2.54, units_cm, units1);
     }
 
     /**
-     *
-     * @param sa
-     *            spectral acceleration
-     * @param t
-     *            period
-     * @param units0
-     *            units of Sa
+     * @param sa     spectral acceleration
+     * @param t      period
+     * @param units0 units of Sa
      * @return spectral velocity in cm/s
      */
-    private static double convertSAToSV(double sa, double t, String units0)
-    {
+    private static double convertSAToSV(double sa, double t, String units0) {
         sa = getCorrectUnitsOfSA(sa, units0, units_g);
         return sa * 9.8 * t / (2 * Math.PI);
     }
 
     /**
-     *
      * @param pga
      * @param units0
      * @param units1
      * @return
      */
-    public static double getCorrectUnitsOfPGA(double pga, String units0, String units1)
-    {
+    public static double getCorrectUnitsOfPGA(double pga, String units0, String units1) {
         if (units1 != null && units1.equalsIgnoreCase(units0)) {
             return pga;
         } else if (units_g.equalsIgnoreCase(units1) && units_percg.equalsIgnoreCase(units0)) {
@@ -288,14 +227,12 @@ public class HazardUtil {
     }
 
     /**
-     *
      * @param pgd
      * @param units0
      * @param units1
      * @return
      */
-    public static double getCorrectUnitsOfPGD(double pgd, String units0, String units1)
-    {
+    public static double getCorrectUnitsOfPGD(double pgd, String units0, String units1) {
         if (units0 != null && units0.equalsIgnoreCase(units1)) {
             return pgd;
         } else if (units_m.equalsIgnoreCase(units0) || "m".equalsIgnoreCase(units0) && units_ft.equalsIgnoreCase(units1)) {
@@ -310,14 +247,12 @@ public class HazardUtil {
     }
 
     /**
-     *
      * @param sa
      * @param units0
      * @param units1
      * @return
      */
-    public static double getCorrectUnitsOfSA(double sa, String units0, String units1)
-    {
+    public static double getCorrectUnitsOfSA(double sa, String units0, String units1) {
         if (units1 != null && units1.equalsIgnoreCase(units0)) {
             return sa;
         } else if (units_g.equalsIgnoreCase(units1) && units_percg.equalsIgnoreCase(units0)) {
@@ -330,14 +265,12 @@ public class HazardUtil {
     }
 
     /**
-     *
      * @param sd
      * @param units0
      * @param units1
      * @return
      */
-    public static double getCorrectUnitsOfSD(double sd, String units0, String units1)
-    {
+    public static double getCorrectUnitsOfSD(double sd, String units0, String units1) {
         if (units1 != null && units1.equalsIgnoreCase(units0)) {
             return sd;
         } else if (units_in.equalsIgnoreCase(units1) && units_cm.equalsIgnoreCase(units0)) {
@@ -352,14 +285,12 @@ public class HazardUtil {
     }
 
     /**
-     *
      * @param pgv
      * @param units0
      * @param units1
      * @return
      */
-    public static double getCorrectUnitsOfPGV(double pgv, String units0, String units1)
-    {
+    public static double getCorrectUnitsOfPGV(double pgv, String units0, String units1) {
         if (units1 != null && units1.equalsIgnoreCase(units0)) {
             return pgv;
         } else if (units_ins.equalsIgnoreCase(units1) && units_cms.equalsIgnoreCase(units0)) {
@@ -406,8 +337,7 @@ public class HazardUtil {
         hazard = hazard.replaceAll("\\.*", "");
         hazard = hazard.replaceAll("sec", "");
         hazard = hazard.replaceAll(" ", "");
-        if ("".equals(hazard))
-        {
+        if ("".equals(hazard)) {
             hazard = "Sa";
         }
         return hazard;
@@ -461,212 +391,123 @@ public class HazardUtil {
         return dest[0];
     }
 
-    public static String createRasterDataset(File rasterFile, String title, String creator, String description) throws IOException {
-
-        // CMN: we could go through Kong, but then we would need a token
-        String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
-        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
-            dataEndpoint = dataEndpointProp;
-            if (!dataEndpoint.endsWith("/")) {
-                dataEndpoint += "/";
+    /**
+     * @param hazardType0
+     * @param period
+     * @return
+     */
+    public static String[] findHazardConversionTypes(String hazardType0, double period) {
+        if (PGA.equalsIgnoreCase(hazardType0)) {
+            String[] s = {PGA, PGD};
+            return s;
+        } else if (SA.equalsIgnoreCase(hazardType0)) {
+            if (Double.compare(period, 1.0) == 0) {
+                String[] s = {"Sa", "Sd", "Sv", PGV};
+                return s;
+            } else {
+                String[] s = {"Sa", "Sd", "Sv"};
+                return s;
             }
+        } else {
+            String[] s = {hazardType0};
+            return s;
         }
-
-        JSONArray spaces = new JSONArray();
-        if (creator != null) {
-            spaces.put(creator);
-        }
-        spaces.put(HazardDataset.ERGO_SPACE);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardDataset.DATA_TYPE, HazardDataset.DETERMINISTIC_HAZARD_SCHEMA);
-        jsonObject.put(HazardDataset.TITLE, title);
-        jsonObject.put(HazardDataset.SOURCE_DATASET, "");
-        jsonObject.put(HazardDataset.FORMAT, HazardDataset.RASTER_FORMAT);
-        jsonObject.put(HazardDataset.DESCRIPTION, description);
-        jsonObject.put(HazardDataset.SPACES, spaces);
-
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        HttpClient httpclient = builder.build();
-
-        String requestUrl = dataEndpoint + HazardDataset.DATASETS_ENDPOINT;
-        HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
-
-        MultipartEntityBuilder params = MultipartEntityBuilder.create();
-        params.addTextBody(HazardDataset.DATASET_PARAMETER, jsonObject.toString());
-
-        HttpResponse response = null;
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        String responseStr = null;
-
-        httpPost.setEntity(params.build());
-        response = httpclient.execute(httpPost);
-        responseStr = responseHandler.handleResponse(response);
-
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            JSONObject object = new JSONObject(responseStr);
-
-            String datasetId = object.getString("id");
-            requestUrl += "/" + datasetId + "/" + HazardDataset.DATASETS_FILES;
-
-            params = MultipartEntityBuilder.create();
-            params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            params.addBinaryBody(HazardDataset.FILE_PARAMETER_, rasterFile);
-
-            // Attach file
-            httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
-            httpPost.setEntity(params.build());
-
-            response = httpclient.execute(httpPost);
-            responseStr = responseHandler.handleResponse(response);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return datasetId;
-            }
-        }
-
-        return null;
     }
 
-    public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
-
-
-        String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
-        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
-            dataEndpoint = dataEndpointProp;
-            if (!dataEndpoint.endsWith("/")) {
-                dataEndpoint += "/";
-            }
-        }
-
-        InputStream inputStream = null;
-        try {
-            HttpClientBuilder builder = HttpClientBuilder.create();
-            HttpClient httpclient = builder.build();
-
-            String requestUrl = dataEndpoint + HazardDataset.DATASETS_ENDPOINT + "/" + datasetId + "/blob";
-            HttpGet httpGet = new HttpGet(requestUrl);
-            httpGet.setHeader(HazardDataset.X_CREDENTIAL_USERNAME, creator);
-
-            HttpResponse response = null;
-
-            response = httpclient.execute(httpGet);
-            inputStream = response.getEntity().getContent();
-        } catch(IOException e) {
-           // TODO add logging
-           logger.error(e);
-        }
-
-        File incoreWorkDirectory = null;
-        try {
-            incoreWorkDirectory = File.createTempFile("incore", ".dir");
-            incoreWorkDirectory.delete();
-            incoreWorkDirectory.mkdirs();
-        } catch(IOException e) {
-            logger.error("Error creating temporary directory.", e);
-            return null;
-        }
-
-        String filename = "shapefile.zip";
-        File file = new File(incoreWorkDirectory, filename);
-
-        try(BufferedInputStream bis = new BufferedInputStream(inputStream);
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))
-        ) {
-
-            int inByte;
-            while ((inByte = bis.read()) != -1) {
-                bos.write(inByte);
-            }
-
-        } catch(IOException e) {
-
-            logger.error(e);
-        }
-
-
-        URL inSourceFileUrl = null;
-        byte[] buffer = new byte[1024];
-        try(ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
-            ZipEntry zipEntry = zis.getNextEntry();
-            while(zipEntry != null){
-                String fileName = zipEntry.getName();
-                File newFile = new File(incoreWorkDirectory, fileName);
-                FileOutputStream fos = new FileOutputStream(newFile);
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
-                }
-                fos.close();
-
-                String fileExt = FilenameUtils.getExtension(newFile.getName());
-                if (fileExt.equalsIgnoreCase("shp")) {
-                    inSourceFileUrl = newFile.toURI().toURL();
-                }
-                zipEntry = zis.getNextEntry();
-            }
-        } catch(IOException e) {
-           logger.error("Error unzipping shapefile", e);
-           return null;
-        }
-
-        try {
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put("url", inSourceFileUrl);
-
-            DataStore dataStore = DataStoreFinder.getDataStore(map);
-            String typeName = dataStore.getTypeNames()[0];
-
-            FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
-            dataStore.dispose();
-            SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures();
-            return inputFeatures;
-        } catch(IOException e) {
-            logger.error("Error reading shapefile");
-            return null;
-        }
+    public static HazardDataset findHazard(List<HazardDataset> hazardDataset, String demandHazard, String period, boolean exactOnly) {
+        return findHazard(hazardDataset, demandHazard, Double.parseDouble(period), exactOnly);
 
     }
 
-public static SimpleFeature getPointInPolygon(Point point, SimpleFeatureCollection featureCollection)
-    {
-        SimpleFeature feature = null;
-        boolean found = false;
+    public static HazardDataset findHazard(List<HazardDataset> hazardDataset, String demandHazard, double period, boolean exactOnly) {
+        String demandHazardMotion = stripPeriod(demandHazard);
+        List<HazardDataset> matches = new LinkedList<>();
+        for (HazardDataset dataset : hazardDataset) {
+            if (dataset.getDemandType().equalsIgnoreCase(demandHazardMotion)) {
+                matches.add(dataset);
+                // return r;
+            }
+        }
 
-        SimpleFeatureIterator geologyIterator = featureCollection.features();
-        try {
-            while (geologyIterator.hasNext() && !found) {
-                // String featureId = featureIdIterator.next();
-                SimpleFeature f = geologyIterator.next();
+        if (matches.size() == 0) {
+            // Second Attempt, now we look for conversion possibilities
+            for (HazardDataset dataset : hazardDataset) {
 
-                Object polygonObject = f.getAttribute(0);
-                if (polygonObject instanceof Polygon) {
-                    Polygon polygon = (Polygon) polygonObject;
-                    found = polygon.contains(point);
-                    if (found) {
-                        feature = f;
-                    }
-                } else {
-                    MultiPolygon attribute = (MultiPolygon) polygonObject;
-                    for (int i = 0; i < attribute.getNumGeometries(); i++) {
-                        Polygon p = (Polygon) attribute.getGeometryN(i);
+                double rasterPeriod = dataset.getPeriod();
 
-                        found = p.contains(point);
-                        if (found) {
-                            i = attribute.getNumGeometries();
-                            feature = f;
+                String[] conversions = HazardUtil.findHazardConversionTypes(dataset.getDemandType(), rasterPeriod);
+                for (String s : conversions) {
+                    if (s.equalsIgnoreCase(demandHazardMotion)) {
+                        if (!matches.contains(dataset)) {
+                            matches.add(dataset);
                         }
                     }
                 }
             }
-        } finally {
-            geologyIterator.close();
         }
 
-        return feature;
+        // if we're looking for exact period matches only, don't bother with
+        // that stuff later that looks for the closest period...
+
+        if (exactOnly) {
+            for (HazardDataset rasterDataset : matches) {
+                double rasterPeriod = rasterDataset.getPeriod();
+                if (Math.abs(rasterPeriod - period) < .001) {
+                    return rasterDataset;
+                }
+            }
+            return null;
+        }
+
+        if (matches.size() == 0) {
+            logger.debug("Did not find appropriate hazard or a conversion");
+            logger.debug("Fragility curve requires hazard type: " + demandHazard);
+            logger.debug("Here are the hazard types we have: ");
+            for (HazardDataset dataset : hazardDataset) {
+                logger.debug(dataset.getDemandType());
+            }
+            return null;
+        } else if (matches.size() == 1) {
+            return matches.get(0);
+        } else {
+            HazardDataset returnVal = matches.get(0);
+            double period_diff = Math.abs(period - returnVal.getPeriod());
+            for (int i = 1; i < matches.size(); i++) {
+                double tmp = Math.abs(period - matches.get(i).getPeriod());
+                if (tmp < period_diff) {
+                    period_diff = tmp;
+                    returnVal = matches.get(i);
+                }
+            }
+
+            return returnVal;
+        }
+
+    }
+
+    public static String[] getHazardDemandComponents(String fullDemandType) {
+        String[] demandParts = {"0.0", fullDemandType};
+        if (fullDemandType.equalsIgnoreCase(PGA) || fullDemandType.equalsIgnoreCase(PGV) || fullDemandType.equalsIgnoreCase(PGD)) {
+            return demandParts;
+        } else {
+            String[] demandSplit = fullDemandType.split(" ");
+            demandParts[0] = demandSplit[0].trim();
+            demandParts[1] = demandSplit[1].trim();
+
+            return demandParts;
+        }
+    }
+
+    public static String getFullDemandType(String period, String demandType) {
+        return getFullDemandType(Double.parseDouble(period), demandType);
+    }
+
+    public static String getFullDemandType(double period, String demandType) {
+        if (demandType.equalsIgnoreCase(PGA) || demandType.equalsIgnoreCase(PGV) || demandType.equalsIgnoreCase(PGD)) {
+            return demandType;
+        } else {
+            return Double.toString(period) + " " + demandType.trim();
+        }
     }
 
 }
