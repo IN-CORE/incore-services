@@ -135,12 +135,13 @@ http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&deman
 
 ### Create Tsunami Dataset
 
-When creating an tsunami dataset, the files must be included in the POST in the order found in the JSON
-so the correct dataset and metadata are associated.
-
 http://localhost:8080/hazard/api/tsunamis
 
-POST - Create probabilistic tsunami
+#### POST - Create probabilistic tsunami
+
+When creating a tsunami dataset, the files must be included in the POST in the order found in the JSON
+so the correct dataset and metadata are associated.
+
 {
   "name": "Seaside Probabilistic Tsunami - 100 yr",
   "description": "Seaside dataset based probabilistic tsunami hazard",

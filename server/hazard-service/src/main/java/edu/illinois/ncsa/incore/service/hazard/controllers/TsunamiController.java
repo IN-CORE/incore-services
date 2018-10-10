@@ -16,20 +16,23 @@ import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITsunamiRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.tsunami.*;
+import edu.illinois.ncsa.incore.service.hazard.models.tsunami.DeterministicTsunamiHazard;
+import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
+import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiHazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.types.TsunamiHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.utils.TsunamiCalc;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -88,14 +91,11 @@ public class TsunamiController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    public Tsunami createTsunami(@HeaderParam("X-Credential-Username") String username, FormDataMultiPart inputs) {
-
-        // First, get the Tsunami object from the form
-        FormDataBodyPart eq = inputs.getField(TsunamiConstants.TSUNAMI_POST_PARAMETER_NAME);
+    public Tsunami createTsunami(@HeaderParam("X-Credential-Username") String username, @FormDataParam("tsunami") String tsunamiJson, @FormDataParam("file") List<FormDataBodyPart> fileParts) {
         ObjectMapper mapper = new ObjectMapper();
         Tsunami tsunami = null;
         try {
-            tsunami = mapper.readValue(eq.getValue(), Tsunami.class);
+            tsunami = mapper.readValue(tsunamiJson, Tsunami.class);
             tsunami.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // Create temporary working directory
@@ -108,10 +108,8 @@ public class TsunamiController {
 
                 // We assume the input files in the request are in the same order listed in the tsunami dataset object
                 int hazardDatasetIndex = 0;
-                for (int i = 0; i < inputs.getBodyParts().size(); i++) {
-                    String paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get("name");
-                    // We only want the file parts
-                    if (paramName.equals("file")) {
+                if (fileParts != null && !fileParts.isEmpty()) {
+                    for (FormDataBodyPart filePart : fileParts) {
                         TsunamiHazardDataset hazardDataset = tsunamiDataset.getHazardDatasets().get(hazardDatasetIndex);
                         String datasetType = HazardConstants.PROBABILISTIC_TSUNAMI_HAZARD_SCHEMA;
                         String description = "Probabilistic hazard raster";
@@ -123,17 +121,17 @@ public class TsunamiController {
 
                         String demandType = hazardDataset.getDemandType();
                         String datasetName = demandType;
+                        BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
+                        String filename = filePart.getContentDisposition().getFileName();
 
-                        InputStream fis = inputs.getFields("file").get(0).getValueAs(InputStream.class);
-                        String filename = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
-
-                        String datasetId = ServiceUtil.createRasterDataset(filename, fis, tsunamiDataset.getName() + " " + datasetName, username, description, datasetType);
+                        String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(), tsunamiDataset.getName() + " " + datasetName, username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
+                    tsunami = repository.addTsunami(tsunami);
+                    return tsunami;
+                } else {
+                    throw new BadRequestException("Could not create Tsunami, no files were attached with your request.");
                 }
-                tsunami = repository.addTsunami(tsunami);
-
-                return tsunami;
             }
 
         } catch (IOException e) {
