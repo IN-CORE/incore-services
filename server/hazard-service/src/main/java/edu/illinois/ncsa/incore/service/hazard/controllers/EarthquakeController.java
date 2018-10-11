@@ -17,7 +17,6 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
@@ -39,10 +38,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -55,10 +51,12 @@ public class EarthquakeController {
     private IEarthquakeRepository repository;
 
     @Inject
-    private AtkinsonBoore1995 model;
+    private AttenuationProvider attenuationProvider;
 
     @Inject
     private IAuthorizer authorizer;
+
+    // TODO add endpoint to retrieve a list of models
 
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
@@ -83,12 +81,8 @@ public class EarthquakeController {
             if (earthquake != null && earthquake instanceof EarthquakeModel) {
 
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) earthquake;
-                model.setRuptureParameters(scenarioEarthquake.getEqParameters());
 
-                // TODO this should be determined from the scenario earthquake
-                Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
-                attenuations.put(model, 1.0);
-
+                Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(scenarioEarthquake);
                 try {
                     File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
 
@@ -197,11 +191,7 @@ public class EarthquakeController {
                 demand = demandSplit[1];
             }
 
-            model.setRuptureParameters(earthquake.getEqParameters());
-
-            // TODO this should be determined from the scenario earthquake
-            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
-            attenuations.put(model, 1.0);
+            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
 
             int width = 0;
             int height = 0;
@@ -275,11 +265,7 @@ public class EarthquakeController {
             Map<BaseAttenuation, Double> attenuations = null;
             if (eq instanceof EarthquakeModel) {
                 EarthquakeModel earthquake = (EarthquakeModel) eq;
-                model.setRuptureParameters(earthquake.getEqParameters());
-
-                // TODO this should be determined from the scenario earthquake
-                attenuations = new HashMap<BaseAttenuation, Double>();
-                attenuations.put(model, 1.0);
+                attenuations = attenuationProvider.getAttenuations(earthquake);
             }
 
             for (int index = 0; index < points.size(); index += 2) {
@@ -306,37 +292,10 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
+    @Deprecated
     public SeismicHazardResult getScenarioEarthquakeHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
-        Earthquake eq = getEarthquake(earthquakeId, username);
-
-        // TODO Handle earthquake dataset
-        if (eq != null && eq instanceof EarthquakeModel) {
-            EarthquakeModel earthquake = (EarthquakeModel) eq;
-            String period = demandType;
-            String demand = demandType;
-
-            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
-                String[] demandSplit = demandType.split(" ");
-                period = demandSplit[0];
-                demand = demandSplit[1];
-            }
-            Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
-
-            model.setRuptureParameters(earthquake.getEqParameters());
-
-            // TODO this should be determined from the scenario earthquake
-            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
-            attenuations.put(model, 1.0);
-
-            // TODO spectrum override should be part of the endpoint parameters
-            try {
-                return HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard, username);
-            } catch (Exception e) {
-                throw new InternalServerErrorException("Error computing hazard.", e);
-            }
-        } else {
-            throw new NotFoundException("Scenario earthquake with id " + earthquakeId + " was not found.");
-        }
+        List<Double> points = new ArrayList<>(Arrays.asList(siteLat, siteLong));
+        return getScenarioEarthquakeHazardValues(username, earthquakeId, demandType, demandUnits, amplifyHazard, points).get(0);
     }
 
     @GET
@@ -347,11 +306,7 @@ public class EarthquakeController {
         // TODO add logging/error for earthquake dataset that it can't be used
         if (eq != null && eq instanceof EarthquakeModel) {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
-            model.setRuptureParameters(earthquake.getEqParameters());
-
-            // TODO this should be determined from the scenario earthquake
-            Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
-            attenuations.put(model, 1.0);
+            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
 
             List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId, username);
@@ -413,5 +368,11 @@ public class EarthquakeController {
         return Response.ok("Topographic amplification not yet implemented").build();
     }
 
+    @GET
+    @Path("models")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Set<String> getSupportedEarthquakeModels() {
+        return attenuationProvider.getAttenuations().keySet();
+    }
 
 }
