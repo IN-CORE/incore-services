@@ -71,7 +71,7 @@ public class HazardCalc {
             SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), soilGeology);
             if (feature != null) {
                 susceptibilitity = feature.getAttribute("liq_suscep").toString();
-                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "PGA", "PGA", "g", 0, true, creator).getHazardValue();
+                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA", "g", 0, true, creator).getHazardValue();
                 groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, magnitude);
                 double liqProbability = liquefaction.getProbabilityOfLiquefaction(eqModel.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, groundWaterDepth);
                 groundFailureProb = liquefaction.getProbabilityOfGroundFailure(susceptibilitity, pgaValue, groundWaterDepth, magnitude);
@@ -113,9 +113,8 @@ public class HazardCalc {
                 logger.debug(hazardType + " is not directly supported by the scenario earthquake, using 1.0 second SA to compute " + hazardType);
 
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0", "Sa", spectrumOverride, amplifyHazard, creator, null);
-//                double updatedHazardVal = result.getHazardValue();
                 double updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits, HazardUtil.PGV);
-                return new SeismicHazardResult(updatedHazardVal, HazardUtil.PGV, HazardUtil.PGV, demandUnits);
+                return new SeismicHazardResult(updatedHazardVal, "0.0", HazardUtil.PGV, demandUnits);
             }
 
         } else {
@@ -136,12 +135,21 @@ public class HazardCalc {
         double hazardValue = 0.0;
         String closestHazardPeriod = period;
         if (earthquake instanceof EarthquakeModel) {
+            // Handles the case where PGV/PGD/PGA are all at 0.0 so coefficients are stored by demand type
+            // This could be fixed by storing all coefficients in a more verbose way, e.g. 0.0 PGA, 0.0 PGV, 0.2 Sa, etc
+            String hazardType = demand;
+            if(Double.parseDouble(period) != 0.0) {
+                // Sa values are all stored by period 0.2, 0.3, etc
+                hazardType = period;
+            }
+
             EarthquakeModel eqModel = (EarthquakeModel) earthquake;
             Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
             while (iterator.hasNext()) {
                 BaseAttenuation model = iterator.next();
                 double weight = attenuations.get(model);
-                SeismicHazardResult matchedResult = model.getValueClosestMatch(period, site);
+                SeismicHazardResult matchedResult = model.getValueClosestMatch(hazardType, site);
+
                 hazardValue += (Math.log(matchedResult.getHazardValue()) * weight);
 
                 closestHazardPeriod = matchedResult.getPeriod();
@@ -187,6 +195,11 @@ public class HazardCalc {
             } catch (PointOutsideCoverageException e) {
                 logger.debug("Point outside tiff image.");
             }
+        }
+
+        // A bit of a hack to return PGA/PGD/PGV with period as 0.0 instead of PGA/PGV/PGD which was used to locate the coefficients
+        if(Double.parseDouble(period) == 0.0) {
+            closestHazardPeriod = "0.0";
         }
 
         return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand);

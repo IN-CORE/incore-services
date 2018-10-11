@@ -38,10 +38,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -297,32 +294,8 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @Deprecated
     public SeismicHazardResult getScenarioEarthquakeHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
-        // TODO This should be removed as it is redundant with /values
-        Earthquake eq = getEarthquake(earthquakeId, username);
-
-        // TODO Handle earthquake dataset
-        if (eq != null && eq instanceof EarthquakeModel) {
-            EarthquakeModel earthquake = (EarthquakeModel) eq;
-            String period = demandType;
-            String demand = demandType;
-
-            if (Pattern.compile(Pattern.quote(HazardUtil.SA), Pattern.CASE_INSENSITIVE).matcher(demandType).find()) {
-                String[] demandSplit = demandType.split(" ");
-                period = demandSplit[0];
-                demand = demandSplit[1];
-            }
-            Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
-            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
-
-            // TODO spectrum override should be part of the endpoint parameters
-            try {
-                return HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period, demand, demandUnits, 0, amplifyHazard, username);
-            } catch (Exception e) {
-                throw new InternalServerErrorException("Error computing hazard.", e);
-            }
-        } else {
-            throw new NotFoundException("Scenario earthquake with id " + earthquakeId + " was not found.");
-        }
+        List<Double> points = new ArrayList<>(Arrays.asList(siteLat, siteLong));
+        return getScenarioEarthquakeHazardValues(username, earthquakeId, demandType, demandUnits, amplifyHazard, points).get(0);
     }
 
     @GET
