@@ -14,11 +14,17 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 
+import java.net.URL;
 import java.util.List;
 
 public class AtkinsonBoore1995 extends BaseAttenuation {
 
     private static double[] aleatoricUncertainties = {0.620, 0.581, 0.5730878, 0.550};
+
+    public AtkinsonBoore1995() {
+        URL coefficientURL = AtkinsonBoore1995.class.getResource("/hazard/earthquake/coefficients/AtkinsonBoore1995.csv");
+        readCoefficients(coefficientURL);
+    }
 
     @Override
     public double getValue(String period, Site site) throws Exception {
