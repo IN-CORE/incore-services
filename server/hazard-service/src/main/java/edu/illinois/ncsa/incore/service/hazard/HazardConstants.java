@@ -13,6 +13,8 @@ public class HazardConstants {
     // Hazard Raster
     public static final String PROBABILISTIC_HAZARD_SCHEMA = "probabilisticHazardRaster";
     public static final String DETERMINISTIC_HAZARD_SCHEMA = "deterministicHazardRaster";
+    public static final String PROBABILISTIC_TSUNAMI_HAZARD_SCHEMA = "probabilisticTsunamiRaster";
+    public static final String DETERMINISTIC_TSUNAMI_HAZARD_SCHEMA = "deterministicTsunamiRaster";
     public static final String DETERMINISTIC_HAZARD_TYPE = "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.deterministicHazardRaster.v1.0";
     public static final String RASTER_FORMAT = "raster";
     public static final String HAZARD_TIF = "hazard.tif";

@@ -13,10 +13,7 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBEarthquakeRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBTornadoRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.AttenuationProvider;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -39,6 +36,9 @@ public class Application extends ResourceConfig {
         ITornadoRepository tornadoRepository = new MongoDBTornadoRepository(new MongoClientURI(mongodbUri));
         tornadoRepository.initialize();
 
+        ITsunamiRepository tsunamiRepository = new MongoDBTsunamiRepository(new MongoClientURI(mongodbUri));
+        tsunamiRepository.initialize();
+
         IAuthorizer authorizer = Authorizer.getInstance();
         AttenuationProvider attenuationProvider = AttenuationProvider.getInstance();
 
@@ -50,6 +50,7 @@ public class Application extends ResourceConfig {
                 super.bind(earthquakeRepository).to(IEarthquakeRepository.class);
                 super.bind(tornadoRepository).to(ITornadoRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
+                super.bind(tsunamiRepository).to(ITsunamiRepository.class);
             }
         });
         super.register(new CorsFilter());
