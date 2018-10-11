@@ -42,7 +42,8 @@ public class HurricaneCalc {
 
     public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
                                                                        int resolution, int gridPoints, Complex VTsSimu,
-                                                                       JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM){
+                                                                       JSONArray omegaFitted, JSONArray zonesFitted,
+                                                                       JSONArray radiusM, String rfMethod){
         HurricaneSimulation hsim = new HurricaneSimulation();
         hsim.setAbsTime(time);
 
@@ -52,7 +53,8 @@ public class HurricaneCalc {
         hsim.setGridLats(hgrid.getLati());
         hsim.setGridLongs(hgrid.getLongi());
 
-        Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted,  zonesFitted, radiusM);
+        Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted,  zonesFitted,
+            radiusM, rfMethod);
 
         List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal);
         //hsim.setSurfaceVelocity(strList);
@@ -76,7 +78,7 @@ public class HurricaneCalc {
 
 
     public static final Complex[][] simulateWindfieldWithCores(JSONObject para, HurricaneGrid grid, Complex vTs,
-                                                          JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM){
+                                                          JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM, String rfMethod){
 
         ArrayList<Double> thetaRadians = new ArrayList<Double>();
 
@@ -359,7 +361,7 @@ public class HurricaneCalc {
         }
 
         Complex[] vsRotated = convertToSurfaceWind(vGsTotal, vTs, rm, r);
-        Complex[][] vsReduced = applyReductionFactor(vsRotated, grid.getLati(), grid.getLongi(), radiusM);
+        Complex[][] vsReduced = applyReductionFactor(vsRotated, grid.getLati(), grid.getLongi(), radiusM, rfMethod);
 
 
 
@@ -418,7 +420,8 @@ public class HurricaneCalc {
     }
 
 
-    public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, JSONArray radiusM){
+    public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis,
+                                                          JSONArray radiusM, String rfMethod){
 
         try {
             //TODO: This will change after reduction code works
@@ -427,7 +430,7 @@ public class HurricaneCalc {
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
-            boolean performReduction = true; // only for testing
+            boolean performReduction = false; // only for testing
 
             DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
             GeodeticCalculator gc = new GeodeticCalculator(crs);
@@ -440,7 +443,6 @@ public class HurricaneCalc {
                     if(performReduction) {
                         boolean isContained = true; //removed function as it is taking .3 secs for each call
                         //boolean isContained = GeotoolsUtils.isPointInPolygon(dslvFeatures, lat, lon);
-                        //System.out.println(isContained+"--"+lat+","+lon);
                         int zone = 0;
 
                         JSONArray ar = new JSONArray();
@@ -449,7 +451,6 @@ public class HurricaneCalc {
                             // if it is on the land, get the country name
                             SimpleFeatureCollection sfc = GeotoolsUtils.countriesFeatures;
                             String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
-                            //System.out.println(":::"+name);
 
                             if (name.equals("united states")) {
                                 ar = (JSONArray) ((JSONObject) radiusM.get(1)).get("usa");

@@ -77,7 +77,8 @@ public class HurricaneController {
                                                     @QueryParam("category") int category,
                                                     @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
                                                     @DefaultValue("6") @QueryParam("resolution") int resolution,
-                                                    @DefaultValue("80") @QueryParam("gridPoints") int gridPoints) {
+                                                    @DefaultValue("80") @QueryParam("gridPoints") int gridPoints,
+                                                      @DefaultValue("circular") @QueryParam("reductionType") String rfMethod) {
 
         //TODO: Find a way to include exception reason in HTTP Response INCORE-461
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
@@ -86,7 +87,7 @@ public class HurricaneController {
         }
 
         if(HurricaneUtil.categoryMapping.get(coast) != null ){
-            return getHurricane(username, transD, landfallLoc, HurricaneUtil.categoryMapping.get(coast)[category-1], resolution, gridPoints);
+            return getHurricane(username, transD, landfallLoc, HurricaneUtil.categoryMapping.get(coast)[category-1], resolution, gridPoints, rfMethod);
         }
         else{
             throw new NotFoundException("Error finding a mapping for the coast and category");
@@ -99,7 +100,8 @@ public class HurricaneController {
                                              @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
                                              @QueryParam("model") String model,
                                              @DefaultValue("6") @QueryParam("resolution") int resolution,
-                                            @DefaultValue("80") @QueryParam("gridPoints") int gridPoints) {
+                                            @DefaultValue("80") @QueryParam("gridPoints") int gridPoints,
+                                            @DefaultValue("circular") @QueryParam("reductionType") String rfMethod) {
         //TODO: Comeup with a better name for gridPoints
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation
         //This function simulates wind fields for the selected data-driven model
@@ -168,7 +170,7 @@ public class HurricaneController {
 //            for(int i=0; i<paramCt; i++){
 //                HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
 //                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
-//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i));
+//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i), rfMethod);
 //                hSimulations.add(hsim);
 //            }
 
@@ -184,7 +186,7 @@ public class HurricaneController {
                 pList.parallelStream().forEach(i -> {
                     hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
                         track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
-                        (JSONArray) zonesFitted.get(i), (JSONArray) radiusM.get(i)));
+                        (JSONArray) zonesFitted.get(i), (JSONArray) radiusM.get(i), rfMethod));
 
                 });
                 return hSimulations;

@@ -49,7 +49,8 @@ public class HurricaneUtils {
     public static final String TEMP_DIR_PREFIX = "temp_hurricane_";
 
     // todo gdal_grid command should be changed based on the system
-    public static final String cmdGdalGrid = "cmd /c \"C:\\Program Files\\GDAL\\gdal_grid\" "; // for windows
+//    public static final String cmdGdalGrid = "cmd /c \"C:\\Program Files\\GDAL\\gdal_grid\" "; // for windows
+    public static final String cmdGdalGrid = "gdal_grid ";  // for mac/linux
     public static final String cmdZField = "-zfield velocity ";
     public static final String cmdAlgo = "-a invdist:power=2.0:smothing=0.0:radius1=0.0:radius2=0.0:angle=0.0:max_points=0:min_points=0:nodata=0.0 ";
     public static final String cmdType = "-of GTiff ";
@@ -149,6 +150,7 @@ public class HurricaneUtils {
             System.out.println(numGridPoint + " " + totalLength);
 
             String tempDir = Files.createTempDirectory(TEMP_DIR_PREFIX).toString();
+            System.out.println(tempDir);
             logger.debug("Temporay directory " + tempDir + " has been created.");
 
             for (int k=0; k < hurricaneSims.size(); k++) {
@@ -179,6 +181,7 @@ public class HurricaneUtils {
                 CreateHurricanePointShapefile(latList, lonList, velList, outShp);
 
                 // create geotiff from given shapefile
+
                 String cmdSize = "-outsize " + cellResolution + " " + cellResolution + " ";
                 String cmdStr = "";
                 if (cellResolution > 1) {
@@ -239,7 +242,9 @@ public class HurricaneUtils {
      * @throws SchemaException
      */
     public static void main(String[] args) throws MismatchedDimensionException, FactoryException, TransformException, SchemaException {
-        String inJsonPath = "C:/Users/ywkim/Documents/NIST/Hurricane/hurricanes_RealValue_21by21.json";
+        //String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_RealValue_21by21.json";
+        String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_161by161abs.json";
+
         processHurricaneFromJson(inJsonPath);
 
     }
