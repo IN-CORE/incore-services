@@ -19,6 +19,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
 import org.geotools.data.*;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
@@ -54,6 +55,14 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.linearref.LinearLocation;
 import com.vividsolutions.jts.linearref.LocationIndexedLine;
 
+import org.geotools.data.collection.SpatialIndexFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.referencing.GeodeticCalculator;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
+
+import javax.ws.rs.NotFoundException;
+
+import static java.lang.Math.sqrt;
 
 
 /**
@@ -63,6 +72,35 @@ public class GeotoolsUtils {
     static GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
     private static final Logger logger = Logger.getLogger(GeotoolsUtils.class);
     private static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+
+    // file path for land polygon - dissolved
+    public static String dslvPolygon = "tm_north_america_dislvd.shp";
+    // file path for country boundary polygon - separated
+    public static String sprPolygon = "tm_north_america_country.shp";
+    public static SimpleFeatureCollection continentFeatures;
+    public static SimpleFeatureCollection countriesFeatures;
+    public static SpatialIndexFeatureCollection continentFeatureIndex;
+    //public static DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
+    public static double searchDistLimit = 0;
+    public static double minSearchDist = 0;
+
+    //public static GeodeticCalculator geodeticCalculator;
+
+    //Is it a good idea to load them in static context? Affecting Performance when loading per request (each loop)
+    static {
+        try {
+            continentFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
+            countriesFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
+            continentFeatureIndex = new SpatialIndexFeatureCollection(continentFeatures.getSchema());
+            continentFeatureIndex.addAll(continentFeatures);
+            //geodeticCalculator = new GeodeticCalculator(crs);
+            searchDistLimit = continentFeatureIndex.getBounds().getSpan(0);
+            minSearchDist = searchDistLimit + 1.0e-6;
+        } catch (IOException e) {
+            throw new NotFoundException("Shapefile Not found. Static init failed");
+        }
+    }
+
 
     /**
      * create SimpleFeatureCollection from resource name

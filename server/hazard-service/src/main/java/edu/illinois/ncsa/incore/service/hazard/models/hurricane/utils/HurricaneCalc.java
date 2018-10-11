@@ -10,7 +10,9 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
@@ -26,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import sun.java2d.pipe.SpanShapeRenderer;
 
 
 import static java.lang.Math.*;
@@ -37,7 +40,39 @@ import static java.lang.Math.*;
 public class HurricaneCalc {
     private static final Logger logger = Logger.getLogger(HurricaneCalc.class);
 
+    public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
+                                                                       int resolution, int gridPoints, Complex VTsSimu,
+                                                                       JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM){
+        HurricaneSimulation hsim = new HurricaneSimulation();
+        hsim.setAbsTime(time);
 
+
+        HurricaneGrid hgrid = HurricaneUtil.defineGrid(center, resolution, gridPoints);
+
+        hsim.setGridLats(hgrid.getLati());
+        hsim.setGridLongs(hgrid.getLongi());
+
+        Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted,  zonesFitted, radiusM);
+
+        List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal);
+        //hsim.setSurfaceVelocity(strList);
+        hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
+
+
+
+        IncorePoint ctr = hgrid.getCenter();
+        hsim.setGridCenter(ctr.toString());
+        int lonPos = hgrid.getLongi().indexOf(ctr.getLocation().getX()); //col
+        int latPos = hgrid.getLati().indexOf(ctr.getLocation().getY()); //row
+
+        //Use this is we want to display the velocity at the center point.
+        double centerVelocityAbs = hsim.getSurfaceVelocityAbs().get(latPos-1).get(lonPos);
+        String centerVelocity = strList.get(latPos-1).get(lonPos);
+        hsim.setCenterVelocity(centerVelocity);
+        hsim.setCenterVelAbs(centerVelocityAbs);
+
+        return hsim;
+    }
 
 
     public static final Complex[][] simulateWindfieldWithCores(JSONObject para, HurricaneGrid grid, Complex vTs,
@@ -380,36 +415,13 @@ public class HurricaneCalc {
         }
 
         return vSurfRot;
-
-//        Complex[][] vsFinal = new Complex[pointSize][pointSize];
-//
-//        int cord = 0;
-//        for (int col = 0; col < pointSize; col++) {
-//            for (int row = 0; row < pointSize; row++) {
-//                vsFinal[row][col] = vSurfRot[cord];
-//                cord++;
-//            }
-//        }
-//
-//        return vsFinal;
     }
 
 
     public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, JSONArray radiusM){
 
-
         try {
             //TODO: This will change after reduction code works
-            // file path for land polygon
-            //String dslvPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_dislvd.shp";
-            String dslvPolygon = "tm_north_america_dislvd.shp";
-            // file path for country boundary polygon
-            //String sprPolygon = "/Users/vnarah2/IdeaProjects/incorev2/server/hazard-service/src/main/data/hurricane/tm_north_america_country.shp";
-            String sprPolygon = "tm_north_america_country.shp";
-
-            SimpleFeatureCollection dslvFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(dslvPolygon);
-            SimpleFeatureCollection sprFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(sprPolygon);
-
 
             int cord = 0;
             int pointSize = (int) sqrt(vs.length);
@@ -417,15 +429,8 @@ public class HurricaneCalc {
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
             boolean performReduction = true; // only for testing
 
-            SpatialIndexFeatureCollection featureIndex;
             DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
-            featureIndex = new SpatialIndexFeatureCollection(dslvFeatures.getSchema());
-            featureIndex.addAll(dslvFeatures);
             GeodeticCalculator gc = new GeodeticCalculator(crs);
-
-            final double searchDistLimit = featureIndex.getBounds().getSpan(0);
-            // give enough distance for the minimum distance to start
-            double minDist = searchDistLimit + 1.0e-6;
 
             for (int col = 0; col < pointSize; col++) {
                 double lon = longis.get(col);
@@ -442,7 +447,8 @@ public class HurricaneCalc {
 
                         if (isContained) {
                             // if it is on the land, get the country name
-                            String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sprFeatures, "NAME", lat, lon);
+                            SimpleFeatureCollection sfc = GeotoolsUtils.countriesFeatures;
+                            String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
                             //System.out.println(":::"+name);
 
                             if (name.equals("united states")) {
@@ -456,10 +462,11 @@ public class HurricaneCalc {
                             }
 
                             // get shortest km distance to coastal line
-                            //double shortestDist = GeotoolsUtils.FindShortestDistanceFromPointToFeatures(dslvFeatures, lat, lon);
                             if (ar.size() > 0) {
-                                double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(featureIndex,
-                                    lat, lon, gc, crs, searchDistLimit, minDist);
+
+                                double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.continentFeatureIndex,
+                                    lat, lon, gc, crs, GeotoolsUtils.searchDistLimit,
+                                    GeotoolsUtils.minSearchDist);
 
                                 if (shortestDist <= 10) {
                                     zone = 0;
@@ -487,7 +494,6 @@ public class HurricaneCalc {
         }catch (Exception ex) {
             throw new NotFoundException("Shapefile Not found");
         }
-
 
     }
 

@@ -2,6 +2,8 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import org.apache.commons.math3.complex.Complex;
 
 public class HurricaneSimulation {
@@ -11,6 +13,10 @@ public class HurricaneSimulation {
     private List<Double> gridLats = new ArrayList<>();
 
     private List<Double> gridLongs = new ArrayList<>();
+
+    private String gridCenter ="";
+    private double centerVelAbs = 0;
+    private String centerVelocity = "";
 
     private List<List<String>> surfaceVelocity = new ArrayList<>();
 
@@ -56,5 +62,27 @@ public class HurricaneSimulation {
         this.surfaceVelocityAbs = surfaceVelocityAbs;
     }
 
+    public String getGridCenter() {
+        return gridCenter;
+    }
 
+    public void setGridCenter(String gridCenter) {
+        this.gridCenter = gridCenter;
+    }
+
+    public double getCenterVelAbs() {
+        return centerVelAbs;
+    }
+
+    public void setCenterVelAbs(double centerVelAbs) {
+        this.centerVelAbs = centerVelAbs;
+    }
+
+    public String getCenterVelocity() {
+        return centerVelocity;
+    }
+
+    public void setCenterVelocity(String centerVelocity) {
+        this.centerVelocity = centerVelocity;
+    }
 }
