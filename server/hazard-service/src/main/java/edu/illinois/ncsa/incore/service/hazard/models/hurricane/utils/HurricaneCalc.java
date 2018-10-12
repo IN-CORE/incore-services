@@ -456,14 +456,14 @@ public class HurricaneCalc {
                             HashMap<String,List<Polygon>> allCountryCircles = new HashMap<String,List<Polygon>>();
 
                             GeometryFactory gf = new GeometryFactory();
-                            Polygon usaPoly = getPolygonFromFile("usa.txt");
+                            Polygon usaPoly = getPolygonFromFile("cuba.txt");
                             //gf.crea
 
                             double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.usaFeatureIndex,
                                 cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
 
                             //DistanceOp.distance(GeotoolsUtils.usaFeatures.get, center.getLocation());
-
+                            //https://stackoverflow.com/questions/38404095/how-to-calculate-the-distance-in-meters-between-a-geographic-point-and-a-given-p
                             double tangentDistMex = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.mexicoFeatureIndex,
                                 cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
                             double tangentDistCuba = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.cubaFeatureIndex,
@@ -571,17 +571,14 @@ public class HurricaneCalc {
                 double lon = Double.parseDouble(cords[0]);
                 double lat = Double.parseDouble(cords[1]);
 
-                //coordinates.add(new Coordinate(lon,lat));
+                coordinates.add(new Coordinate(lon,lat));
             }
+//
+//            arrCords = coordinates.toArray(arrCords);
 
-            coordinates.add(new Coordinate(-111, 48.1));
-            coordinates.add(new Coordinate(-112, 47.1));
-            coordinates.add(new Coordinate(-113, 46.1));
-            Coordinate[] arrCords =   new Coordinate[coordinates.size()];
+            //p = gf.createPolygon(arrCords);
+            p=gf.createPolygon((Coordinate[]) coordinates.toArray(new Coordinate[] {}));
 
-            arrCords = coordinates.toArray(arrCords);
-
-            p = gf.createPolygon(arrCords);
             return p;
 
         }catch(Exception e){
