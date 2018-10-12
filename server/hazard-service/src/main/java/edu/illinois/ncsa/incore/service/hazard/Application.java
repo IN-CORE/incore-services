@@ -13,16 +13,11 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBEarthquakeRepository;
-import edu.illinois.ncsa.incore.service.hazard.dao.MongoDBTornadoRepository;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.AtkinsonBoore1995;
+import edu.illinois.ncsa.incore.service.hazard.dao.*;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.AttenuationProvider;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-
-import java.net.URL;
 
 public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
@@ -41,26 +36,21 @@ public class Application extends ResourceConfig {
         ITornadoRepository tornadoRepository = new MongoDBTornadoRepository(new MongoClientURI(mongodbUri));
         tornadoRepository.initialize();
 
-        // Bind Atkinson and Boore 1995 model
-        // TODO We need some kind of provider where we can register the hazard models
-
-        String modelId = "AtkinsonBoore1995";
-        String fileName = modelId + ".csv";
-        URL coefficientURL = this.getClass().getClassLoader().getResource("/hazard/earthquake/coefficients/" + fileName);
-
-        AtkinsonBoore1995 model = new AtkinsonBoore1995();
-        model.readCoefficients(coefficientURL);
+        ITsunamiRepository tsunamiRepository = new MongoDBTsunamiRepository(new MongoClientURI(mongodbUri));
+        tsunamiRepository.initialize();
 
         IAuthorizer authorizer = Authorizer.getInstance();
+        AttenuationProvider attenuationProvider = AttenuationProvider.getInstance();
 
         super.register(new AbstractBinder() {
 
             @Override
             protected void configure() {
-                super.bind(model).to(AtkinsonBoore1995.class);
+                super.bind(attenuationProvider).to(AttenuationProvider.class);
                 super.bind(earthquakeRepository).to(IEarthquakeRepository.class);
                 super.bind(tornadoRepository).to(ITornadoRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
+                super.bind(tsunamiRepository).to(ITsunamiRepository.class);
             }
         });
         super.register(new CorsFilter());
