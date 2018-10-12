@@ -51,9 +51,11 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
+
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.linearref.LinearLocation;
 import com.vividsolutions.jts.linearref.LocationIndexedLine;
+
 
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -84,6 +86,28 @@ public class GeotoolsUtils {
     public static double searchDistLimit = 0;
     public static double minSearchDist = 0;
 
+
+    public static String usaPolygon = "usa.shp";
+    public static String mexicoPolygon = "mexico.shp";
+    public static String cubaPolygon = "cuba.shp";
+    public static String jamaicaPolygon = "jamaica.shp";
+
+
+    public static String usaCords = "usa.txt";
+    public static String mexicoCords = "mexico.txt";
+    public static String cubaCords = "cuba.txt";
+    public static String jamaicaCords = "jamaica.txt";
+
+    public static SimpleFeatureCollection usaFeatures;
+    public static SimpleFeatureCollection mexicoFeatures;
+    public static SimpleFeatureCollection cubaFeatures;
+    public static SimpleFeatureCollection jamaicaFeatures;
+
+    public static SpatialIndexFeatureCollection usaFeatureIndex;
+    public static SpatialIndexFeatureCollection mexicoFeatureIndex;
+    public static SpatialIndexFeatureCollection cubaFeatureIndex;
+    public static SpatialIndexFeatureCollection jamaicaFeatureIndex;
+
     //public static GeodeticCalculator geodeticCalculator;
 
     //Is it a good idea to load them in static context? Affecting Performance when loading per request (each loop)
@@ -96,6 +120,14 @@ public class GeotoolsUtils {
             //geodeticCalculator = new GeodeticCalculator(crs);
             searchDistLimit = continentFeatureIndex.getBounds().getSpan(0);
             minSearchDist = searchDistLimit + 1.0e-6;
+
+
+            usaFeatures = GetSimpleFeatureCollectionFromPath(usaPolygon);
+            usaFeatureIndex = new SpatialIndexFeatureCollection(usaFeatures.getSchema());
+            usaFeatureIndex.addAll(usaFeatures);
+
+
+
         } catch (IOException e) {
             throw new NotFoundException("Shapefile Not found. Static init failed");
         }

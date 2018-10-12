@@ -10,6 +10,9 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 
+import com.vividsolutions.jts.geom.*;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
+import com.vividsolutions.jts.util.GeometricShapeFactory;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
@@ -24,11 +27,16 @@ import org.json.simple.JSONObject;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
 import javax.ws.rs.NotFoundException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import sun.java2d.pipe.SpanShapeRenderer;
+
+
 
 
 import static java.lang.Math.*;
@@ -361,7 +369,7 @@ public class HurricaneCalc {
         }
 
         Complex[] vsRotated = convertToSurfaceWind(vGsTotal, vTs, rm, r);
-        Complex[][] vsReduced = applyReductionFactor(vsRotated, grid.getLati(), grid.getLongi(), radiusM, rfMethod);
+        Complex[][] vsReduced = applyReductionFactor(vsRotated, grid.getLati(), grid.getLongi(), grid.getCenter(), radiusM, rfMethod);
 
 
 
@@ -420,7 +428,7 @@ public class HurricaneCalc {
     }
 
 
-    public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis,
+    public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, IncorePoint center,
                                                           JSONArray radiusM, String rfMethod){
 
         try {
@@ -430,7 +438,7 @@ public class HurricaneCalc {
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
-            boolean performReduction = false; // only for testing
+            boolean performReduction = true; // only for testing
 
             DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
             GeodeticCalculator gc = new GeodeticCalculator(crs);
@@ -441,50 +449,56 @@ public class HurricaneCalc {
                     double lat = latis.get(row);
                     double reductionFactor = 1;
                     if(performReduction) {
-                        boolean isContained = true; //removed function as it is taking .3 secs for each call
-                        //boolean isContained = GeotoolsUtils.isPointInPolygon(dslvFeatures, lat, lon);
-                        int zone = 0;
+                        if (rfMethod.equals("circular")) {
+                            double cLat = center.getLocation().getY();
+                            double cLong = center.getLocation().getX();
 
-                        JSONArray ar = new JSONArray();
+                            HashMap<String,List<Polygon>> allCountryCircles = new HashMap<String,List<Polygon>>();
 
-                        if (isContained) {
-                            // if it is on the land, get the country name
-                            SimpleFeatureCollection sfc = GeotoolsUtils.countriesFeatures;
-                            String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
+                            GeometryFactory gf = new GeometryFactory();
+                            Polygon usaPoly = getPolygonFromFile("usa.txt");
+                            //gf.crea
 
-                            if (name.equals("united states")) {
-                                ar = (JSONArray) ((JSONObject) radiusM.get(1)).get("usa");
-                            } else if (name.equals("mexico")) {
-                                ar = (JSONArray) ((JSONObject) radiusM.get(0)).get("mexico");
-                            } else if (name.equals("cuba")) {
-                                ar = (JSONArray) ((JSONObject) radiusM.get(2)).get("cuba");
-                            } else if (name.equals("jamaica")) {
-                                ar = (JSONArray) ((JSONObject) radiusM.get(3)).get("jam");
-                            }
+                            double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.usaFeatureIndex,
+                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
 
-                            // get shortest km distance to coastal line
-                            if (ar.size() > 0) {
+                            //DistanceOp.distance(GeotoolsUtils.usaFeatures.get, center.getLocation());
 
-                                double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.continentFeatureIndex,
-                                    lat, lon, gc, crs, GeotoolsUtils.searchDistLimit,
-                                    GeotoolsUtils.minSearchDist);
+                            double tangentDistMex = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.mexicoFeatureIndex,
+                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                            double tangentDistCuba = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.cubaFeatureIndex,
+                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                            double tangentDistJam = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.jamaicaFeatureIndex,
+                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
 
-                                if (shortestDist <= 10) {
-                                    zone = 0;
-                                } else if (shortestDist > 10 && shortestDist <= 50) {
-                                    zone = 1;
-                                } else if (shortestDist > 50 && shortestDist <= 100) {
-                                    zone = 2;
-                                } else if (shortestDist > 100 && shortestDist <= 300) {
-                                    zone = 3;
-                                } else {
-                                    zone = 4;
+                            allCountryCircles.put("usa", createCircles(cLat, cLong, tangentDistUsa));
+                            allCountryCircles.put("mexico", createCircles(cLat, cLong, tangentDistMex));
+                            allCountryCircles.put("cuba", createCircles(cLat, cLong, tangentDistCuba));
+                            allCountryCircles.put("jamaica", createCircles(cLat, cLong, tangentDistJam));
+
+
+                        }
+                        else {
+                            boolean isContained = true; //removed function as it is taking .3 secs for each call
+                            //boolean isContained = GeotoolsUtils.isPointInPolygon(dslvFeatures, lat, lon);
+                            int zone = 0;
+
+                            if (isContained) {
+                                // if it is on the land, get the country name
+                                SimpleFeatureCollection sfc = GeotoolsUtils.countriesFeatures;
+                                String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
+                                JSONArray ar = getCountryRfMatrix(name, radiusM);
+
+                                // get shortest km distance to coastal line
+                                if (ar.size() > 0) {
+                                    double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.continentFeatureIndex,
+                                        lat, lon, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                                    zone = getZone(shortestDist);
+                                    reductionFactor = (Double) ar.get(zone);
                                 }
-                                reductionFactor = (Double) ar.get(zone);
+                            } else {
+                                //Throw 404? and say not point not in north america? or return 1?
                             }
-
-                        } else {
-                            //Throw 404? and say not point not in north america? or return 1?
                         }
                     }
                     vsReduced[row][col] = vs[cord].multiply(reductionFactor);
@@ -498,8 +512,84 @@ public class HurricaneCalc {
 
     }
 
+    public static List<Polygon> createCircles(double cLat, double cLong, double tangentDist){
+        List<Polygon> circles = new ArrayList<>();
+        List<Integer> distances = Arrays.asList(10, 50, 100, 300);
 
+        for (int dist:
+             distances) {
+            GeometricShapeFactory gsf = new GeometricShapeFactory();
+            gsf.setNumPoints(101);
+            gsf.setCentre(new Coordinate(cLong, cLat));
+            gsf.setSize(2*tangentDist + dist);
+            Polygon geometry = (Polygon)gsf.createCircle();
+            circles.add(geometry);
+        }
+        return  circles;
+    }
 
+    public static int getZone(double shortestDist){
+        if (shortestDist <= 10) {
+            return 0;
+        } else if (shortestDist > 10 && shortestDist <= 50) {
+            return 1;
+        } else if (shortestDist > 50 && shortestDist <= 100) {
+            return 2;
+        } else if (shortestDist > 100 && shortestDist <= 300) {
+            return 3;
+        } else {
+            return 4;
+        }
+    }
+
+    public static JSONArray getCountryRfMatrix(String name, JSONArray radiusM){
+        JSONArray ar = new JSONArray();
+        if (name.equals("united states") || name.equals("usa")) {
+            ar = (JSONArray) ((JSONObject) radiusM.get(1)).get("usa");
+        } else if (name.equals("mexico")) {
+            ar = (JSONArray) ((JSONObject) radiusM.get(0)).get("mexico");
+        } else if (name.equals("cuba")) {
+            ar = (JSONArray) ((JSONObject) radiusM.get(2)).get("cuba");
+        } else if (name.equals("jamaica")) {
+            ar = (JSONArray) ((JSONObject) radiusM.get(3)).get("jam");
+        }
+        return ar;
+    }
+
+    public static Polygon getPolygonFromFile(String fileName){
+
+        GeometryFactory gf = new GeometryFactory();
+        URL fileUrl = GeotoolsUtils.class.getResource("/hazard/hurricane/shapefiles/" + fileName);
+        List<Coordinate> coordinates = new ArrayList<>();
+        Polygon p = null;
+        try{
+            Scanner s = new Scanner(fileUrl.openStream());
+
+            while(s.hasNext()){
+                String line = s.nextLine();
+                String[] cords = line.split("\t");
+                double lon = Double.parseDouble(cords[0]);
+                double lat = Double.parseDouble(cords[1]);
+
+                //coordinates.add(new Coordinate(lon,lat));
+            }
+
+            coordinates.add(new Coordinate(-111, 48.1));
+            coordinates.add(new Coordinate(-112, 47.1));
+            coordinates.add(new Coordinate(-113, 46.1));
+            Coordinate[] arrCords =   new Coordinate[coordinates.size()];
+
+            arrCords = coordinates.toArray(arrCords);
+
+            p = gf.createPolygon(arrCords);
+            return p;
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return p;
+    }
 
 
 
