@@ -44,8 +44,8 @@ import org.json.simple.parser.ParseException;
  * The cell size is being calculated by the number of points and given resolution and set to 100m as default
  * The resolution part might be enhanced by user's input, maybe later?
  */
-public class HurricaneUtils {
-    private static final Logger logger = Logger.getLogger(HurricaneUtils.class);
+public class GISHurricaneUtils {
+    private static final Logger logger = Logger.getLogger(GISHurricaneUtils.class);
     public static final String TEMP_DIR_PREFIX = "temp_hurricane_";
 
     // todo gdal_grid command should be changed based on the system
