@@ -16,9 +16,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+import com.vividsolutions.jts.geom.*;
+import com.vividsolutions.jts.util.GeometricShapeFactory;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
 import org.geotools.data.*;
@@ -46,13 +47,6 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.MultiPolygon;
-
-import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.linearref.LinearLocation;
 import com.vividsolutions.jts.linearref.LocationIndexedLine;
 
@@ -87,26 +81,15 @@ public class GeotoolsUtils {
     public static double minSearchDist = 0;
 
 
-    public static String usaPolygon = "usa.shp";
-    public static String mexicoPolygon = "mexico.shp";
-    public static String cubaPolygon = "cuba.shp";
-    public static String jamaicaPolygon = "jamaica.shp";
-
-
     public static String usaCords = "usa.txt";
     public static String mexicoCords = "mexico.txt";
     public static String cubaCords = "cuba.txt";
     public static String jamaicaCords = "jamaica.txt";
 
-    public static SimpleFeatureCollection usaFeatures;
-    public static SimpleFeatureCollection mexicoFeatures;
-    public static SimpleFeatureCollection cubaFeatures;
-    public static SimpleFeatureCollection jamaicaFeatures;
-
-    public static SpatialIndexFeatureCollection usaFeatureIndex;
-    public static SpatialIndexFeatureCollection mexicoFeatureIndex;
-    public static SpatialIndexFeatureCollection cubaFeatureIndex;
-    public static SpatialIndexFeatureCollection jamaicaFeatureIndex;
+    public static Polygon usaPolygon;
+    public static Polygon mexicoPolygon;
+    public static Polygon cubaPolygon;
+    public static Polygon jamaicaPolygon;
 
     //public static GeodeticCalculator geodeticCalculator;
 
@@ -121,12 +104,10 @@ public class GeotoolsUtils {
             searchDistLimit = continentFeatureIndex.getBounds().getSpan(0);
             minSearchDist = searchDistLimit + 1.0e-6;
 
-
-            usaFeatures = GetSimpleFeatureCollectionFromPath(usaPolygon);
-            usaFeatureIndex = new SpatialIndexFeatureCollection(usaFeatures.getSchema());
-            usaFeatureIndex.addAll(usaFeatures);
-
-
+            usaPolygon = getPolygonFromFile(usaCords);
+            mexicoPolygon = getPolygonFromFile(mexicoCords);
+            cubaPolygon = getPolygonFromFile(cubaCords);
+            jamaicaPolygon = getPolygonFromFile(jamaicaCords);
 
         } catch (IOException e) {
             throw new NotFoundException("Shapefile Not found. Static init failed");
@@ -155,30 +136,48 @@ public class GeotoolsUtils {
         return sfc;
     }
 
-    public static double CalcShortestDistanceFromPointToFeatures(SpatialIndexFeatureCollection featureIndex, double lat, double lon, GeodeticCalculator gc, DefaultGeographicCRS crs, double searchDistLimit, double minDist) {
+    public static double CalcShortestDistanceFromPointToFeatures(Object polyObj, double lat, double lon, GeodeticCalculator gc, DefaultGeographicCRS crs, double searchDistLimit, double minDist) {
         Coordinate minDistCoord = null;
         Coordinate pCoord = new Coordinate(lon, lat);
-        ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
+        if(polyObj instanceof SpatialIndexFeatureCollection) {
+            SpatialIndexFeatureCollection featureIndex = (SpatialIndexFeatureCollection) polyObj;
+            ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
                 featureIndex.getSchema().getCoordinateReferenceSystem());
-        refEnv.expandBy(searchDistLimit);
-        BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
-        SimpleFeatureCollection sfc = featureIndex.subCollection(bbox);
-        SimpleFeatureIterator sfi = sfc.features();
+            refEnv.expandBy(searchDistLimit);
+            BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
+            SimpleFeatureCollection sfc = featureIndex.subCollection(bbox);
+            SimpleFeatureIterator sfi = sfc.features();
 
-        try {
-            while (sfi.hasNext()) {
-                SimpleFeature sf = sfi.next();
-                LocationIndexedLine tempLine = new LocationIndexedLine(((MultiPolygon) sf.getDefaultGeometry()).getBoundary());
-                LinearLocation snapPoint = tempLine.project(pCoord);
-                Coordinate tempCoord = tempLine.extractPoint(snapPoint);
-                double distance = tempCoord.distance(pCoord);
-                if (distance < minDist) {
-                    minDist = distance;
-                    minDistCoord = tempCoord;
+            try {
+                while (sfi.hasNext()) {
+                    SimpleFeature sf = sfi.next();
+                    LocationIndexedLine tempLine = null;
+                    tempLine = new LocationIndexedLine(((MultiPolygon) sf.getDefaultGeometry()).getBoundary());
+
+                    LinearLocation snapPoint = tempLine.project(pCoord);
+                    Coordinate tempCoord = tempLine.extractPoint(snapPoint);
+                    double distance = tempCoord.distance(pCoord);
+                    if (distance < minDist) {
+                        minDist = distance;
+                        minDistCoord = tempCoord;
+                    }
                 }
+            } finally {
+                sfi.close();
             }
-        } finally {
-            sfi.close();
+        }
+        else if(polyObj instanceof Polygon){
+            Polygon poly = (Polygon)polyObj;
+            Coordinate[] polyCords = poly.getCoordinates();
+            LocationIndexedLine tempLine = new LocationIndexedLine(poly.getBoundary());
+
+            LinearLocation snapPoint = tempLine.project(pCoord);
+            Coordinate tempCoord = tempLine.extractPoint(snapPoint);
+            double distance = tempCoord.distance(pCoord);
+            if (distance < minDist) {
+                minDist = distance;
+                minDistCoord = tempCoord;
+            }
         }
 
         Point minTouchedPoint = null;
@@ -370,6 +369,80 @@ public class GeotoolsUtils {
             System.exit(1);
         }
     }
+
+    public static Polygon getPolygonFromFile(String fileName){
+
+        GeometryFactory gf = new GeometryFactory();
+        URL fileUrl = GeotoolsUtils.class.getResource("/hazard/hurricane/shapefiles/" + fileName);
+        List<Coordinate> coordinates = new ArrayList<>();
+        Polygon p = null;
+        try{
+            Scanner s = new Scanner(fileUrl.openStream());
+
+            while(s.hasNext()){
+                String line = s.nextLine();
+                String[] cords = line.split("\t");
+                double lon = Double.parseDouble(cords[0]);
+                double lat = Double.parseDouble(cords[1]);
+
+                coordinates.add(new Coordinate(lon,lat));
+            }
+
+            p=gf.createPolygon((Coordinate[]) coordinates.toArray(new Coordinate[] {}));
+
+            return p;
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return p;
+    }
+
+    public static List<Polygon> createCircles(double cLat, double cLong, double tangentDist){
+        List<Polygon> circles = new ArrayList<>();
+        List<Integer> distances = Arrays.asList(10, 50, 100, 300); // move to constants
+
+        for (int dist: distances) {
+            GeometricShapeFactory gsf = new GeometricShapeFactory();
+            gsf.setNumPoints(101); //PI is making 101 point circle
+            gsf.setCentre(new Coordinate(cLong, cLat));
+            double diameterKm = 2*tangentDist + dist;
+            //gsf.setSize(diameterKm);
+            //Polygon geometry = gsf.createCircle();
+
+            gsf.setWidth(diameterKm/111.320d);
+            // Length in meters of 1° of longitude = 40075 km * cos( latitude ) / 360
+            gsf.setHeight(diameterKm / (40075.000 * Math.cos(Math.toRadians(cLat)) / 360));
+
+            //TODO: This needs to be changed to create a perfect circle so it matches PI's implementation, but how?
+            Polygon geometry = gsf.createEllipse();
+
+
+            circles.add(geometry);
+        }
+        return  circles;
+    }
+
+    public static String getCountryFromNAPolygons(double lat, double lon){
+        Point currPoint = geometryFactory.createPoint(new Coordinate(lon, lat));
+
+        if(GeotoolsUtils.usaPolygon.contains(currPoint)){
+            return "usa";
+        }
+        else if(GeotoolsUtils.mexicoPolygon.contains(currPoint)){
+            return "mexico";
+        }
+        else if(GeotoolsUtils.cubaPolygon.contains(currPoint)){
+            return "cuba";
+        }
+        else if(GeotoolsUtils.jamaicaPolygon.contains(currPoint)){
+            return "jamaica";
+        }
+
+        return "";
+    }
+
 
     /**
      * main for testing to calculate the shortest distance

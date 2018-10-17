@@ -7,16 +7,17 @@ import java.util.ArrayList;
 
 public class HurricaneSimulationEnsemble {
 
-    public int resolution;
+    private int resolution;
     public final String resolutionUnits = "km";
-    public double transD;
+    private double transD;
     public final String transDUnits = "degree";
-    public String landfallLocation;
-    public String modelUsed;
+    private String landfallLocation;
+    private String modelUsed;
+    public final String velocityUnits = "kt";
 
-    public List<String> times = new ArrayList();
-    public List<String> centers = new ArrayList();
-    public List<String> centerVelocities = new ArrayList();
+    private List<String> times = new ArrayList();
+    private List<String> centers = new ArrayList();
+    private List<String> centerVelocities = new ArrayList();
 
 
     public final String gridRowType = "latitude";

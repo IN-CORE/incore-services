@@ -192,6 +192,9 @@ public class GISHurricaneUtils {
                 logger.debug(cmdStr);
                 performProcess(cmdStr);
 
+                //POST to Dataservice
+                //Return HurricaneDataset
+
             }
 
             //TODO add a method that posts the output hurricane GeoTiffs to hurricane hazard dataset
@@ -242,8 +245,8 @@ public class GISHurricaneUtils {
      * @throws SchemaException
      */
     public static void main(String[] args) throws MismatchedDimensionException, FactoryException, TransformException, SchemaException {
-        //String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_RealValue_21by21.json";
-        String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_161by161abs.json";
+        String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_RealValue_21by21.json";
+        //String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_161by161abs.json";
 
         processHurricaneFromJson(inJsonPath);
 

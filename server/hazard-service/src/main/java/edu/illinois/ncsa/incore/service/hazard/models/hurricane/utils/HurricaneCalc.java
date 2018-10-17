@@ -11,6 +11,8 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 
 import com.vividsolutions.jts.geom.*;
+import com.vividsolutions.jts.linearref.LinearLocation;
+import com.vividsolutions.jts.linearref.LocationIndexedLine;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
@@ -22,6 +24,8 @@ import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.geometry.jts.JTS;
+//import org.geotools.geometry;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
@@ -37,8 +41,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import sun.java2d.pipe.SpanShapeRenderer;
 
 
-
-
 import static java.lang.Math.*;
 
 
@@ -51,7 +53,7 @@ public class HurricaneCalc {
     public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
                                                                        int resolution, int gridPoints, Complex VTsSimu,
                                                                        JSONArray omegaFitted, JSONArray zonesFitted,
-                                                                       JSONArray radiusM, String rfMethod){
+                                                                       JSONArray radiusM, String rfMethod) {
         HurricaneSimulation hsim = new HurricaneSimulation();
         hsim.setAbsTime(time);
 
@@ -61,13 +63,12 @@ public class HurricaneCalc {
         hsim.setGridLats(hgrid.getLati());
         hsim.setGridLongs(hgrid.getLongi());
 
-        Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted,  zonesFitted,
+        Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted, zonesFitted,
             radiusM, rfMethod);
 
         List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal);
         //hsim.setSurfaceVelocity(strList);
         hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
-
 
 
         IncorePoint ctr = hgrid.getCenter();
@@ -76,8 +77,8 @@ public class HurricaneCalc {
         int latPos = hgrid.getLati().indexOf(ctr.getLocation().getY()); //row
 
         //Use this is we want to display the velocity at the center point.
-        double centerVelocityAbs = hsim.getSurfaceVelocityAbs().get(latPos-1).get(lonPos);
-        String centerVelocity = strList.get(latPos-1).get(lonPos);
+        double centerVelocityAbs = hsim.getSurfaceVelocityAbs().get(latPos - 1).get(lonPos);
+        String centerVelocity = strList.get(latPos - 1).get(lonPos);
         hsim.setCenterVelocity(centerVelocity);
         hsim.setCenterVelAbs(centerVelocityAbs);
 
@@ -86,35 +87,35 @@ public class HurricaneCalc {
 
 
     public static final Complex[][] simulateWindfieldWithCores(JSONObject para, HurricaneGrid grid, Complex vTs,
-                                                          JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM, String rfMethod){
+                                                               JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM, String rfMethod) {
 
         ArrayList<Double> thetaRadians = new ArrayList<Double>();
 
-        for(double i=0; i <=360; i = i+ 0.1){
-            thetaRadians.add(i*Math.PI/180);
+        for (double i = 0; i <= 360; i = i + 0.1) {
+            thetaRadians.add(i * Math.PI / 180);
         }
 
-        double bInner = (double)para.get("b_inner");
-        double bOuter = (double)para.get("b_outer");
-        double fCorolosis = (double)para.get("f");
+        double bInner = (double) para.get("b_inner");
+        double bOuter = (double) para.get("b_outer");
+        double fCorolosis = (double) para.get("f");
 
         JSONArray arrRmThetaVspInner = (JSONArray) para.get("rm_theta_vsp_inner");
         JSONArray arrRmThetaVspOuter = (JSONArray) para.get("rm_theta_vsp_outer");
 
-        List<List<Complex>>rmThetaVspOuter = HurricaneUtil.convert2DComplexArrayToList(arrRmThetaVspOuter);
-        List<List<Complex>>rmThetaVspInner = HurricaneUtil.convert2DComplexArrayToList(arrRmThetaVspInner);
+        List<List<Complex>> rmThetaVspOuter = HurricaneUtil.convert2DComplexArrayToList(arrRmThetaVspOuter);
+        List<List<Complex>> rmThetaVspInner = HurricaneUtil.convert2DComplexArrayToList(arrRmThetaVspInner);
 
-        double pc = (double)para.get("pc"); //central Pressure
+        double pc = (double) para.get("pc"); //central Pressure
         JSONArray vgInner = (JSONArray) para.get("vg_inner");
         JSONArray vgOuter = (JSONArray) para.get("vg_outer");
 
-        double rm = (double)para.get("rm_outer"); // rm_inner is not being used at all. why?
+        double rm = (double) para.get("rm_outer"); // rm_inner is not being used at all. why?
 
         List<List<Integer>> zonesFittedInts = new ArrayList<>();
 
         //Converting all Longs to Integers
-        for(int i=0; i<zonesFitted.size(); i++){
-            List<Long> tempLong = (ArrayList<Long>)zonesFitted.get(i); // init to each row of the array
+        for (int i = 0; i < zonesFitted.size(); i++) {
+            List<Long> tempLong = (ArrayList<Long>) zonesFitted.get(i); // init to each row of the array
             List<Integer> temp = tempLong.stream().map(Long::intValue).collect(Collectors.toList());
             zonesFittedInts.add(temp);
         }
@@ -133,28 +134,28 @@ public class HurricaneCalc {
         List<Double> thetas = new ArrayList<Double>();
         List<Double> r = new ArrayList<Double>();
 
-        for(int i=0; i< cordSize; i++){
+        for (int i = 0; i < cordSize; i++) {
             double th = atan2(xs.get(i), ys.get(i));
             double rx = hypot(xs.get(i), ys.get(i));
 
-            if(th < 0 && th >= -Math.PI ){
-                th = th + 2* Math.PI;
+            if (th < 0 && th >= -Math.PI) {
+                th = th + 2 * Math.PI;
             }
 
             thetas.add(th);
             r.add(rx);
         }
 
-        Map<String,Object> thetaRangeZones = HurricaneUtil.rangeWindSpeedComb(omegaFitted);
+        Map<String, Object> thetaRangeZones = HurricaneUtil.rangeWindSpeedComb(omegaFitted);
 
-        double[][] thetaRange =  (double[][])thetaRangeZones.get("thetaRange");
+        double[][] thetaRange = (double[][]) thetaRangeZones.get("thetaRange");
         int[] zoneClass = (int[]) thetaRangeZones.get("zoneClass");
 
         int rangeCnt = thetaRange.length;
 
         Complex[] vGsTotal = new Complex[cordSize]; //cordSize same as thetaSize/rSize
 
-        for(int i = 0; i < rangeCnt; i++){
+        for (int i = 0; i < rangeCnt; i++) {
 
             int zoneI = zoneClass[i];
 
@@ -167,11 +168,11 @@ public class HurricaneCalc {
             List<List<Complex>> vGsInner = new ArrayList<List<Complex>>();
             List<List<Complex>> vGsOuter = new ArrayList<List<Complex>>();
 
-            int noOfLoops = zonesFittedInts.get(zoneI -1).get(1);
+            int noOfLoops = zonesFittedInts.get(zoneI - 1).get(1);
 
 //            for (List<Integer> zone:
 //                 zonesFittedInts) {
-            for(int j = 0; j < noOfLoops; j++) {
+            for (int j = 0; j < noOfLoops; j++) {
                 rmThetaVspInnerRi.add((List<Complex>) rmThetaVspInner.get(j)); // Casting to List<Complex> is only casting as list of strings
                 rmThetaVspOuterRi.add((List<Complex>) rmThetaVspOuter.get(j));
                 List<Double> vgI = (List<Double>) vgInner.get(j);
@@ -197,7 +198,7 @@ public class HurricaneCalc {
             int thetaIndex = 0;
             List<Integer> thetaIndices = new ArrayList<>(); //This is same as RiIndices from matlab
             List<Integer> thetaMinIndices = new ArrayList<>();
-            for (double theta:
+            for (double theta :
                 thetas) {
                 if (theta >= thetaRange[i][0] && theta < thetaRange[i][1]) {
 
@@ -230,7 +231,7 @@ public class HurricaneCalc {
                 thetaIndex++;
             }
 
-            List<Complex> rowRmThetaVspOuterRi= rmThetaVspOuterRi.get(nspOuter-1);
+            List<Complex> rowRmThetaVspOuterRi = rmThetaVspOuterRi.get(nspOuter - 1);
 
             // Combine inner and outer wind fields
 
@@ -246,27 +247,26 @@ public class HurricaneCalc {
             List<List<Double>> tempAbsVgsInner = new ArrayList<>();
 
 
-            for (Double rElem:
+            for (Double rElem :
                 rRiList) {
                 Complex v = rowRmThetaVspOuterRi.get(thetaMinIndices.get(index));
                 Double b = v.abs();
                 List<Complex> tempI;
-                if( rElem >= b){
+                if (rElem >= b) {
                     grIndices.add(index);
 
                     tempI = vGsOuter.get(index);
                     tempVgsOuter.add(tempI);
 
-                    List<Double> tempIAbs = tempI.stream().map( compl -> compl.abs() ).collect( Collectors.toList() );
+                    List<Double> tempIAbs = tempI.stream().map(compl -> compl.abs()).collect(Collectors.toList());
                     tempAbsVgsOuter.add(tempIAbs);
-                }
-                else{
+                } else {
                     lsIndices.add(index);
 
                     tempI = vGsInner.get(index);
                     tempVgsInner.add(tempI);
 
-                    List<Double> tempIAbs = tempI.stream().map( compl -> compl.abs() ).collect( Collectors.toList() );
+                    List<Double> tempIAbs = tempI.stream().map(compl -> compl.abs()).collect(Collectors.toList());
                     tempAbsVgsInner.add(tempIAbs);
 
                     tempVgsOuterForInner.add(vGsOuter.get(index));
@@ -283,28 +283,26 @@ public class HurricaneCalc {
             Complex[] combVgsInner = new Complex[absSizeInner];
             Complex[] riVgs = new Complex[thetaMinIndices.size()];
 
-            for(int j=0; j<= nspOuter; j++) {
+            for (int j = 0; j <= nspOuter; j++) {
                 for (int k = 0; k < absSizeOuter; k++) {
-                    if(j == 0) {
+                    if (j == 0) {
                         if (tempAbsVgsOuter.get(k).get(j) < vspGOuter.get(j)) {
                             combVgsOuter[k] = tempVgsOuter.get(k).get(j);
                         }
-                    }
-                    else if(j >=1 && j < nspOuter){
-                        if ((tempAbsVgsOuter.get(k).get(j-1) >= vspGOuter.get(j-1)) &&
+                    } else if (j >= 1 && j < nspOuter) {
+                        if ((tempAbsVgsOuter.get(k).get(j - 1) >= vspGOuter.get(j - 1)) &&
                             (tempAbsVgsOuter.get(k).get(j) < vspGOuter.get(j))) {
                             Double fui = (tempAbsVgsOuter.get(k).get(j - 1)) / vspGOuter.get(j - 1);
                             Double fui1 = (tempAbsVgsOuter.get(k).get(j)) / vspGOuter.get(j);
 
                             Double wi = HurricaneUtil.getWi(fui, fui1, "forward");
-                            Double wi1 = HurricaneUtil. getWi(fui, fui1, "backward");
+                            Double wi1 = HurricaneUtil.getWi(fui, fui1, "backward");
 
                             combVgsOuter[k] = tempVgsOuter.get(k).get(j - 1).multiply(wi).
                                 add(tempVgsOuter.get(k).get(j).multiply(wi1));
                         }
-                    }
-                    else{  // j == nspOuter condition
-                        if (tempAbsVgsOuter.get(k).get(j-1) >= vspGOuter.get(j-1)) {
+                    } else {  // j == nspOuter condition
+                        if (tempAbsVgsOuter.get(k).get(j - 1) >= vspGOuter.get(j - 1)) {
                             combVgsOuter[k] = tempVgsOuter.get(k).get(j - 1);
                         }
                     }
@@ -314,15 +312,14 @@ public class HurricaneCalc {
             //TODO: Try to put these loops into a function
             // There is enough variation (inner needs outers params too) that it might be better to keep them separate
 
-            for(int j=0; j<= nspInner; j++) {
+            for (int j = 0; j <= nspInner; j++) {
                 for (int k = 0; k < absSizeInner; k++) {
-                    if(j == 0) {
+                    if (j == 0) {
                         if (tempAbsVgsInner.get(k).get(j) < vspGInner.get(j)) {
                             combVgsInner[k] = tempVgsInner.get(k).get(j);
                         }
-                    }
-                    else if(j >=1 && j < nspOuter){
-                        if ((tempAbsVgsInner.get(k).get(j-1) >= vspGInner.get(j-1)) &&
+                    } else if (j >= 1 && j < nspOuter) {
+                        if ((tempAbsVgsInner.get(k).get(j - 1) >= vspGInner.get(j - 1)) &&
                             (tempAbsVgsInner.get(k).get(j) < vspGInner.get(j))) {
                             Double fui = (tempAbsVgsInner.get(k).get(j - 1)) / vspGInner.get(j - 1);
                             Double fui1 = (tempAbsVgsInner.get(k).get(j)) / vspGInner.get(j);
@@ -333,10 +330,9 @@ public class HurricaneCalc {
                             combVgsInner[k] = tempVgsInner.get(k).get(j - 1).multiply(wi).
                                 add(tempVgsInner.get(k).get(j).multiply(wi1));
                         }
-                    }
-                    else{  // j == nspInner condition
+                    } else {  // j == nspInner condition
                         //TODO: Matlab has wi calculations here that seems to do nothing. Test later if thats true.
-                        if (tempAbsVgsInner.get(k).get(j-1) >= vspGInner.get(j-1)) {
+                        if (tempAbsVgsInner.get(k).get(j - 1) >= vspGInner.get(j - 1)) {
                             combVgsInner[k] = tempVgsOuterForInner.get(k).get(j - 1);
                             //TODO: Talk to PI why this is done. For me, it seems like this should be Inner
                         }
@@ -345,21 +341,21 @@ public class HurricaneCalc {
             }
 
             int tempIndex = 0;
-            for (int gr:
+            for (int gr :
                 grIndices) {
-                riVgs[gr] =combVgsOuter[tempIndex];
+                riVgs[gr] = combVgsOuter[tempIndex];
                 tempIndex++;
             }
 
             tempIndex = 0;
-            for (int ls:
+            for (int ls :
                 lsIndices) {
-                riVgs[ls] =combVgsInner[tempIndex];
+                riVgs[ls] = combVgsInner[tempIndex];
                 tempIndex++;
             }
 
             int seqCounter = 0;
-            for (int thIndex:
+            for (int thIndex :
                 thetaIndices) {
                 vGsTotal[thIndex] = riVgs[seqCounter];
                 seqCounter++;
@@ -372,20 +368,18 @@ public class HurricaneCalc {
         Complex[][] vsReduced = applyReductionFactor(vsRotated, grid.getLati(), grid.getLongi(), grid.getCenter(), radiusM, rfMethod);
 
 
-
         return vsReduced;
     }
 
 
     /**
-     *
      * @param vGsTotal
      * @param vTs
      * @param rmOuter
      * @param radians
      * @return
      */
-    public  static final Complex[] convertToSurfaceWind(Complex[] vGsTotal, Complex vTs, double rmOuter, List<Double> radians) {
+    public static final Complex[] convertToSurfaceWind(Complex[] vGsTotal, Complex vTs, double rmOuter, List<Double> radians) {
 
         double[] fdp = new double[radians.size()];
 
@@ -428,13 +422,11 @@ public class HurricaneCalc {
     }
 
 
-    public  static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, IncorePoint center,
-                                                          JSONArray radiusM, String rfMethod){
+    public static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, IncorePoint center,
+                                                         JSONArray radiusM, String rfMethod) {
 
         try {
             //TODO: This will change after reduction code works
-
-            int cord = 0;
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
@@ -442,43 +434,84 @@ public class HurricaneCalc {
 
             DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
             GeodeticCalculator gc = new GeodeticCalculator(crs);
+            double reductionFactor = 1;
 
-            for (int col = 0; col < pointSize; col++) {
-                double lon = longis.get(col);
-                for (int row = 0; row < pointSize; row++) {
-                    double lat = latis.get(row);
-                    double reductionFactor = 1;
-                    if(performReduction) {
-                        if (rfMethod.equals("circular")) {
-                            double cLat = center.getLocation().getY();
-                            double cLong = center.getLocation().getX();
+            if (performReduction) {
+                if (rfMethod.equals("circular")) {
+                    Point cPoint = center.getLocation();
+                    double cLat = cPoint.getY();
+                    double cLong = cPoint.getX();
 
-                            HashMap<String,List<Polygon>> allCountryCircles = new HashMap<String,List<Polygon>>();
+                    HashMap<String, List<Polygon>> allCountryCircles = new HashMap<String, List<Polygon>>();
 
-                            GeometryFactory gf = new GeometryFactory();
-                            Polygon usaPoly = getPolygonFromFile("cuba.txt");
-                            //gf.crea
-
-                            double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.usaFeatureIndex,
-                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
-
-                            //DistanceOp.distance(GeotoolsUtils.usaFeatures.get, center.getLocation());
-                            //https://stackoverflow.com/questions/38404095/how-to-calculate-the-distance-in-meters-between-a-geographic-point-and-a-given-p
-                            double tangentDistMex = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.mexicoFeatureIndex,
-                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
-                            double tangentDistCuba = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.cubaFeatureIndex,
-                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
-                            double tangentDistJam = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.jamaicaFeatureIndex,
-                                cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
-
-                            allCountryCircles.put("usa", createCircles(cLat, cLong, tangentDistUsa));
-                            allCountryCircles.put("mexico", createCircles(cLat, cLong, tangentDistMex));
-                            allCountryCircles.put("cuba", createCircles(cLat, cLong, tangentDistCuba));
-                            allCountryCircles.put("jamaica", createCircles(cLat, cLong, tangentDistJam));
+                    GeometryFactory gf = new GeometryFactory();
+                    Coordinate cCord = new Coordinate(cLong, cLat);
+//                            Polygon usaPoly = getPolygonFromFile("usa.txt");
+//
+//                            LocationIndexedLine tempLine = new LocationIndexedLine((usaPoly.getBoundary()));
+//                            LinearLocation snapPoint = tempLine.project(cCord);
+//                            Coordinate tempCoord = tempLine.extractPoint(snapPoint);//
+//                            double tangentDistUsaDirect = usaPoly.distance(center.getLocation());//
+//
+//                            Coordinate[] nearestPoints = DistanceOp.nearestPoints(gf.createPoint(tempCoord), center.getLocation());
+//                            double dist  = DistanceOp.distance(usaPoly, center.getLocation());
 
 
+                    double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.usaPolygon,
+                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                    double tangentDistMex = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.mexicoPolygon,
+                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                    double tangentDistCuba = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.cubaPolygon,
+                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                    double tangentDistJam = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.jamaicaPolygon,
+                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+
+
+                    allCountryCircles.put("usa", GeotoolsUtils.createCircles(cLat, cLong, tangentDistUsa));
+                    allCountryCircles.put("mexico", GeotoolsUtils.createCircles(cLat, cLong, tangentDistMex));
+                    allCountryCircles.put("cuba", GeotoolsUtils.createCircles(cLat, cLong, tangentDistCuba));
+                    allCountryCircles.put("jamaica", GeotoolsUtils.createCircles(cLat, cLong, tangentDistJam));
+
+                    int cord = 0;
+                    for (int col = 0; col < pointSize; col++) {
+                        double lon = longis.get(col);
+                        for (int row = 0; row < pointSize; row++) {
+                            double lat = latis.get(row);
+                            Point currPoint = gf.createPoint(new Coordinate(lon, lat));
+
+                            String countryName = GeotoolsUtils.getCountryFromNAPolygons(lat, lon);
+                            if(!countryName.equals("")){
+                                Polygon c1 = allCountryCircles.get(countryName).get(0);
+                                Polygon c2 = allCountryCircles.get(countryName).get(1);
+                                Polygon c3 = allCountryCircles.get(countryName).get(2);
+                                Polygon c4 = allCountryCircles.get(countryName).get(3);
+
+                                JSONArray rfArr = getCountryRfMatrix(countryName, radiusM);
+
+                                if(c1.contains(currPoint)){
+                                    reductionFactor = (Double)rfArr.get(0);
+                                } else if( c2.contains(currPoint)){
+                                    reductionFactor = (Double)rfArr.get(1);
+                                }else if( c3.contains(currPoint)){
+                                    reductionFactor = (Double)rfArr.get(2);
+                                }else if( c4.contains(currPoint)){
+                                    reductionFactor = (Double)rfArr.get(3);
+                                }else{
+                                    reductionFactor = (Double)rfArr.get(4);
+                                }
+                            }
+                            vsReduced[row][col] = vs[cord].multiply(reductionFactor);
+                            cord++;
                         }
-                        else {
+                    }
+
+                } else {
+                    int cord = 0;
+                    for (int col = 0; col < pointSize; col++) {
+                        double lon = longis.get(col);
+                        for (int row = 0; row < pointSize; row++) {
+                            double lat = latis.get(row);
+
                             boolean isContained = true; //removed function as it is taking .3 secs for each call
                             //boolean isContained = GeotoolsUtils.isPointInPolygon(dslvFeatures, lat, lon);
                             int zone = 0;
@@ -486,8 +519,8 @@ public class HurricaneCalc {
                             if (isContained) {
                                 // if it is on the land, get the country name
                                 SimpleFeatureCollection sfc = GeotoolsUtils.countriesFeatures;
-                                String name = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
-                                JSONArray ar = getCountryRfMatrix(name, radiusM);
+                                String countryName = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
+                                JSONArray ar = getCountryRfMatrix(countryName, radiusM);
 
                                 // get shortest km distance to coastal line
                                 if (ar.size() > 0) {
@@ -499,36 +532,29 @@ public class HurricaneCalc {
                             } else {
                                 //Throw 404? and say not point not in north america? or return 1?
                             }
+
+                            vsReduced[row][col] = vs[cord].multiply(reductionFactor);
+                            cord++;
                         }
                     }
-                    vsReduced[row][col] = vs[cord].multiply(reductionFactor);
-                    cord++;
+                }
+            }
+            else{
+                int cord = 0;
+                for (int col = 0; col < pointSize; col++) {
+                    for (int row = 0; row < pointSize; row++) {
+                        vsReduced[row][col] = vs[cord].multiply(reductionFactor);
+                        cord++;
+                    }
                 }
             }
             return vsReduced;
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             throw new NotFoundException("Shapefile Not found");
         }
-
     }
 
-    public static List<Polygon> createCircles(double cLat, double cLong, double tangentDist){
-        List<Polygon> circles = new ArrayList<>();
-        List<Integer> distances = Arrays.asList(10, 50, 100, 300);
-
-        for (int dist:
-             distances) {
-            GeometricShapeFactory gsf = new GeometricShapeFactory();
-            gsf.setNumPoints(101);
-            gsf.setCentre(new Coordinate(cLong, cLat));
-            gsf.setSize(2*tangentDist + dist);
-            Polygon geometry = (Polygon)gsf.createCircle();
-            circles.add(geometry);
-        }
-        return  circles;
-    }
-
-    public static int getZone(double shortestDist){
+    public static int getZone(double shortestDist) {
         if (shortestDist <= 10) {
             return 0;
         } else if (shortestDist > 10 && shortestDist <= 50) {
@@ -542,7 +568,7 @@ public class HurricaneCalc {
         }
     }
 
-    public static JSONArray getCountryRfMatrix(String name, JSONArray radiusM){
+    public static JSONArray getCountryRfMatrix(String name, JSONArray radiusM) {
         JSONArray ar = new JSONArray();
         if (name.equals("united states") || name.equals("usa")) {
             ar = (JSONArray) ((JSONObject) radiusM.get(1)).get("usa");
@@ -550,45 +576,11 @@ public class HurricaneCalc {
             ar = (JSONArray) ((JSONObject) radiusM.get(0)).get("mexico");
         } else if (name.equals("cuba")) {
             ar = (JSONArray) ((JSONObject) radiusM.get(2)).get("cuba");
-        } else if (name.equals("jamaica")) {
+        } else if (name.equals("jamaica") ) {
             ar = (JSONArray) ((JSONObject) radiusM.get(3)).get("jam");
         }
         return ar;
     }
-
-    public static Polygon getPolygonFromFile(String fileName){
-
-        GeometryFactory gf = new GeometryFactory();
-        URL fileUrl = GeotoolsUtils.class.getResource("/hazard/hurricane/shapefiles/" + fileName);
-        List<Coordinate> coordinates = new ArrayList<>();
-        Polygon p = null;
-        try{
-            Scanner s = new Scanner(fileUrl.openStream());
-
-            while(s.hasNext()){
-                String line = s.nextLine();
-                String[] cords = line.split("\t");
-                double lon = Double.parseDouble(cords[0]);
-                double lat = Double.parseDouble(cords[1]);
-
-                coordinates.add(new Coordinate(lon,lat));
-            }
-//
-//            arrCords = coordinates.toArray(arrCords);
-
-            //p = gf.createPolygon(arrCords);
-            p=gf.createPolygon((Coordinate[]) coordinates.toArray(new Coordinate[] {}));
-
-            return p;
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-        return p;
-    }
-
-
 
 
 }

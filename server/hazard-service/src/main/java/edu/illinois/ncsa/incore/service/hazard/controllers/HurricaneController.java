@@ -28,6 +28,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
+
 import org.apache.log4j.Logger;
 
 import org.json.simple.JSONArray;
@@ -37,6 +38,9 @@ import org.json.simple.JSONObject; //TODO: org.json.* vs org.json.simple.*
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -79,6 +83,33 @@ public class HurricaneController {
                                                     @DefaultValue("6") @QueryParam("resolution") int resolution,
                                                     @DefaultValue("80") @QueryParam("gridPoints") int gridPoints,
                                                       @DefaultValue("circular") @QueryParam("reductionType") String rfMethod) {
+
+        HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneByCategoryRaw(username, coast, category,
+                transD, landfallLoc, resolution, gridPoints, rfMethod);
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String ensemBleString = mapper.writeValueAsString(hurricaneSimulationEnsemble);
+        } catch (JsonGenerationException e) {
+            throw new NotFoundException("Error finding a mapping for the coast and category");
+        } catch (JsonProcessingException e) {
+            throw new NotFoundException("Couldn't process json");
+        }
+
+        return hurricaneSimulationEnsemble;
+
+    }
+
+    @GET
+    @Path("raw/{coast}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public HurricaneSimulationEnsemble getHurricaneByCategoryRaw(@HeaderParam("X-Credential-Username") String username,
+                                                              @PathParam("coast") String coast,
+                                                              @QueryParam("category") int category,
+                                                              @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
+                                                              @DefaultValue("6") @QueryParam("resolution") int resolution,
+                                                              @DefaultValue("80") @QueryParam("gridPoints") int gridPoints,
+                                                              @DefaultValue("circular") @QueryParam("reductionType") String rfMethod) {
 
         //TODO: Find a way to include exception reason in HTTP Response INCORE-461
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
