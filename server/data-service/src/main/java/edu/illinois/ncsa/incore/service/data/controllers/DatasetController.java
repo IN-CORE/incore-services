@@ -575,6 +575,7 @@ public class DatasetController {
             }
         }
 
+        isGeoserver = false;
         if (isGeoserver) {
             if (isJoin) {
                 try {

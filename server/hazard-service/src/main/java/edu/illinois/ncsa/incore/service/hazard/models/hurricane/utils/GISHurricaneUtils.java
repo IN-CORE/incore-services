@@ -1,9 +1,12 @@
-package edu.illinois.ncsa.incore.service.hazard.utils;
+package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,6 +35,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
 
 /**
  * Created by ywkim on 10/4/2018.
@@ -121,19 +127,23 @@ public class GISHurricaneUtils {
     /**
      * Main method for creating hurricane GeoTiff from JSON file
      *
-     * @param inJsonPath
+     * @param strJson
      * @throws MismatchedDimensionException
      * @throws NoSuchAuthorityCodeException
      * @throws FactoryException
      * @throws TransformException
      * @throws SchemaException
      */
-    public static void processHurricaneFromJson(String inJsonPath) throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException, SchemaException {
+    //
+    public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson) throws MismatchedDimensionException {
         JSONParser jsonParser = new JSONParser();
-        try (FileReader reader = new FileReader(inJsonPath))
+        List<HurricaneSimulationDataset> hsDatasets = new ArrayList<>();
+        //try (FileReader reader = new FileReader(inJsonPath))
+        try
         {
             //Read JSON file
-            JSONObject hurricaneObj = (JSONObject)jsonParser.parse(reader);
+            //JSONObject hurricaneObj = (JSONObject)jsonParser.parse(reader);
+            JSONObject hurricaneObj = (JSONObject)jsonParser.parse(strJson);
             Long resolution = (Long) hurricaneObj.get("resolution");
             String resolutionUnits = (String) hurricaneObj.get("resolutionUnits");
             String landfallLocation = (String) hurricaneObj.get("landfallLocation");
@@ -152,6 +162,8 @@ public class GISHurricaneUtils {
             String tempDir = Files.createTempDirectory(TEMP_DIR_PREFIX).toString();
             System.out.println(tempDir);
             logger.debug("Temporay directory " + tempDir + " has been created.");
+
+
 
             for (int k=0; k < hurricaneSims.size(); k++) {
                 JSONObject tempHurricane = (JSONObject) hurricaneSims.get(k);
@@ -192,11 +204,15 @@ public class GISHurricaneUtils {
                 logger.debug(cmdStr);
                 performProcess(cmdStr);
 
-                //POST to Dataservice
-                //Return HurricaneDataset
+                File hazardFile = new File(outTif);
+                String datasetId = ServiceUtil.createRasterDataset(hazardFile, " Hurricane hazard", "vnarah2", "test -change me", "HurricaneDataset");
 
+                HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
+                simDataset.setAbsTime((String) tempHurricane.get("absTime"));
+                simDataset.setHazardDatasetId(datasetId);
+
+                hsDatasets.add(simDataset);
             }
-
             //TODO add a method that posts the output hurricane GeoTiffs to hurricane hazard dataset
 
             //TODO add a method to remove the temp directory
@@ -207,6 +223,7 @@ public class GISHurricaneUtils {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        return hsDatasets;
     }
 
     /**
@@ -248,7 +265,15 @@ public class GISHurricaneUtils {
         String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_RealValue_21by21.json";
         //String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_161by161abs.json";
 
-        processHurricaneFromJson(inJsonPath);
+        try {
+            byte[] readAllBytes = Files.readAllBytes(Paths.get( inJsonPath));
+            String json = new String( readAllBytes );
+
+            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json);
+            int j = 0;
+        } catch(IOException e){
+
+        }
 
     }
 }

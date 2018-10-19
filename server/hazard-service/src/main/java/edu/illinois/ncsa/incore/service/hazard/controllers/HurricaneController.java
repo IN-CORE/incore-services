@@ -9,23 +9,16 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
-import com.mongodb.util.JSON;
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
-import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
 
 //import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 
@@ -44,17 +37,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.concurrent.ForkJoinTask;
 
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.complex.ComplexFormat;
+import org.opengis.geometry.MismatchedDimensionException;
 
 import static java.lang.Math.*;
 
@@ -66,17 +55,18 @@ public class HurricaneController {
     @Inject
     private IAuthorizer authorizer;
 
+    @Inject
+    private IHurricaneRepository repository;
 
     private GeometryFactory factory = new GeometryFactory();
 
-
-    private DBHurricaneRepository hurricaneRepo = new DBHurricaneRepository();
-
+    //TODO Change the name to represent it's historic hurricane repo
+    private DBHurricaneRepository historicHurrRepo = new DBHurricaneRepository();
 
     @GET
     @Path("{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    public HurricaneSimulationEnsemble getHurricaneByCategory(@HeaderParam("X-Credential-Username") String username,
+    public ScenarioHurricane getHurricaneByCategory(@HeaderParam("X-Credential-Username") String username,
                                                     @PathParam("coast") String coast,
                                                     @QueryParam("category") int category,
                                                     @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
@@ -86,17 +76,31 @@ public class HurricaneController {
 
         HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneByCategoryRaw(username, coast, category,
                 transD, landfallLoc, resolution, gridPoints, rfMethod);
-
+        ScenarioHurricane scenarioHurricane = new ScenarioHurricane();
         try {
             ObjectMapper mapper = new ObjectMapper();
             String ensemBleString = mapper.writeValueAsString(hurricaneSimulationEnsemble);
+
+            scenarioHurricane.setCategory(category);
+            scenarioHurricane.setCoast(coast);
+            scenarioHurricane.setResolution(resolution);
+            scenarioHurricane.setTransD(transD);
+            scenarioHurricane.setModelUsed(hurricaneSimulationEnsemble.getModelUsed());
+            scenarioHurricane.setLandfallLocation(landfallLoc.toString());
+            scenarioHurricane.setPrivileges(Privileges.newWithSingleOwner(username));
+            scenarioHurricane.setTimes(hurricaneSimulationEnsemble.getTimes());
+           scenarioHurricane.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString));
+
+           repository.addHurricane(scenarioHurricane);
         } catch (JsonGenerationException e) {
             throw new NotFoundException("Error finding a mapping for the coast and category");
         } catch (JsonProcessingException e) {
             throw new NotFoundException("Couldn't process json");
+        } catch(MismatchedDimensionException e){
+            throw new NotFoundException("Error in geometry dimensions");
         }
 
-        return hurricaneSimulationEnsemble;
+        return scenarioHurricane;
 
     }
 
@@ -137,7 +141,7 @@ public class HurricaneController {
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation
         //This function simulates wind fields for the selected data-driven model
 
-        Hurricane hurricane = hurricaneRepo.getHurricaneByModel(model);
+        Hurricane hurricane = historicHurrRepo.getHurricaneByModel(model);
         JSONObject params = hurricane.getHurricaneParameters();
 
         // May be it's better to use List
@@ -223,7 +227,8 @@ public class HurricaneController {
                 return hSimulations;
             };
 
-            List<HurricaneSimulation> abracadabra = forkJoinPool.submit(hurrSims).get(); // Use it
+            List<HurricaneSimulation> parallelSimResults = forkJoinPool.submit(hurrSims).get();
+            parallelSimResults.sort(HurricaneSimulation::compareTo);
             HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
             hEnsemble.setResolution(resolution);
             hEnsemble.setTransD(transD);
@@ -232,7 +237,7 @@ public class HurricaneController {
             hEnsemble.setTimes(times);
             //hEnsemble.setCenters(centers);
             //hEnsemble.setCenterVelocities(centerVel); //TODO: Would it be useful to have centers and cenVels in ensemble too?
-            hEnsemble.setHurricaneSimulations(abracadabra); //TODO: Order hsims by absTime
+            hEnsemble.setHurricaneSimulations(parallelSimResults); //TODO: Order hsims by absTime
             return  hEnsemble;
         } catch(Exception e){
             throw new NotFoundException("dsa");

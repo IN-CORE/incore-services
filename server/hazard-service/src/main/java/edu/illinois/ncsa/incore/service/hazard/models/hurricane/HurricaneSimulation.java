@@ -1,10 +1,11 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
+import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import org.apache.commons.math3.complex.Complex;
 
 public class HurricaneSimulation {
 
@@ -84,5 +85,19 @@ public class HurricaneSimulation {
 
     public void setCenterVelocity(String centerVelocity) {
         this.centerVelocity = centerVelocity;
+    }
+
+    public int compareTo(HurricaneSimulation sim){
+        SimpleDateFormat sdf = new SimpleDateFormat("mm/dd/yyyy HH:mm"); //10/25/2005 22:00
+        try {
+            Date d = sdf.parse(sim.getAbsTime());
+            Date dCurr = sdf.parse(this.absTime);
+            if(d.after(dCurr)){
+                return -1;
+            }
+        } catch(ParseException e){
+
+        }
+        return 1;
     }
 }

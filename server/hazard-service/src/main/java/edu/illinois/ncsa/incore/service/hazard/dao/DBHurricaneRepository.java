@@ -33,7 +33,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 
-public class DBHurricaneRepository implements IHurricaneRepository{
+public class DBHurricaneRepository {
     private String hostUri;
     private String databaseName;
     private int port;
@@ -58,7 +58,7 @@ public class DBHurricaneRepository implements IHurricaneRepository{
 //        this.initializeDataStore();
 //    }
 
-    @Override
+    //@Override
     public Hurricane getHurricaneByModel(String model) {
         JSONParser parser = new JSONParser();
         Hurricane hurricane = new Hurricane();
