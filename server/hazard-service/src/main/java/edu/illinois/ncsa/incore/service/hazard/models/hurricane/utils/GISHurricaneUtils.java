@@ -39,6 +39,8 @@ import org.json.simple.parser.ParseException;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
 
+import javax.ws.rs.NotFoundException;
+
 /**
  * Created by ywkim on 10/4/2018.
  *
@@ -135,7 +137,7 @@ public class GISHurricaneUtils {
      * @throws SchemaException
      */
     //
-    public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson) throws MismatchedDimensionException {
+    public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson, double rasterResolution) throws MismatchedDimensionException {
         JSONParser jsonParser = new JSONParser();
         List<HurricaneSimulationDataset> hsDatasets = new ArrayList<>();
         //try (FileReader reader = new FileReader(inJsonPath))
@@ -145,7 +147,7 @@ public class GISHurricaneUtils {
             //JSONObject hurricaneObj = (JSONObject)jsonParser.parse(reader);
             JSONObject hurricaneObj = (JSONObject)jsonParser.parse(strJson);
             Long resolution = (Long) hurricaneObj.get("resolution");
-            String resolutionUnits = (String) hurricaneObj.get("resolutionUnits");
+            String resolutionUnits = (String) hurricaneObj.get("gridResolutionUnits");
             String landfallLocation = (String) hurricaneObj.get("landfallLocation");
             JSONArray times = (JSONArray) hurricaneObj.get("times");
             JSONArray centers = (JSONArray) hurricaneObj.get("centers");
@@ -205,7 +207,7 @@ public class GISHurricaneUtils {
                 performProcess(cmdStr);
 
                 File hazardFile = new File(outTif);
-                String datasetId = ServiceUtil.createRasterDataset(hazardFile, " Hurricane hazard", "vnarah2", "test -change me", "HurricaneDataset");
+                String datasetId = ServiceUtil.createRasterDataset(hazardFile, " HistoricHurricane hazard", "vnarah2", "test -change me", "HurricaneDataset");
 
                 HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
                 simDataset.setAbsTime((String) tempHurricane.get("absTime"));
@@ -217,11 +219,11 @@ public class GISHurricaneUtils {
 
             //TODO add a method to remove the temp directory
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            throw new NotFoundException("Input file not found");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new NotFoundException("Error creating the Raster");
         } catch (ParseException e) {
-            e.printStackTrace();
+            throw new NotFoundException("Error parsing the json input");
         }
         return hsDatasets;
     }
@@ -269,7 +271,7 @@ public class GISHurricaneUtils {
             byte[] readAllBytes = Files.readAllBytes(Paths.get( inJsonPath));
             String json = new String( readAllBytes );
 
-            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json);
+            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json, 6);
             int j = 0;
         } catch(IOException e){
 

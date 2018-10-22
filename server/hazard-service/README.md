@@ -224,15 +224,27 @@ value should be between 136 and 165 mph
 
 http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=35.1393&point=-89.9996&point=35.207&point=-89.871
 
-## Hurricanes - WIP
+## Hurricanes 
 
-http://localhost:8080/hazard/api/hurricanes/gulf?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&&gridPoints=80
-Category mapping can be found at:
- https://uofi.box.com/s/dasneh1ks4vfc4vpifzwzwq5wo6udynp
+### Create Hurricane Windfield
 
+POST http://localhost:8080/hazard/api/hurricaneWindfields/
 
-http://localhost:8080/hazard/api/hurricanes?model=Katrina2&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=80
+{
+	"name": "Gulf coast cat-3 hurricane",
+	"description": "Simulated test hurricane",
+	"coast": "florida",
+	"category": 1,
+	"gridResolution": 6,
+	"rasterResolution": 1,
+	"transD": -83,
+	"landfallLocation": "28.08, -80.61",
+	"gridPoints": 10
+}
 
+To GET raw JSON of a simulation
+
+http://localhost:8080/hazard/api/hurricanesWindfields/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
 
 The converted json model files are also in box:
 https://uofi.box.com/s/ycneuzlzyt8rqwuu03gfeq4srbhucpch

@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 @XmlRootElement
-public class Hurricane {
+public class HistoricHurricane {
 
     @XmlID
     private String model;

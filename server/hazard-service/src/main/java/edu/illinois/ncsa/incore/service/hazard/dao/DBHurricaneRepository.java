@@ -9,20 +9,11 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
 
 import java.net.URL;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -59,9 +50,9 @@ public class DBHurricaneRepository {
 //    }
 
     //@Override
-    public Hurricane getHurricaneByModel(String model) {
+    public HistoricHurricane getHurricaneByModel(String model) {
         JSONParser parser = new JSONParser();
-        Hurricane hurricane = new Hurricane();
+        HistoricHurricane hurricane = new HistoricHurricane();
         JSONObject jsonParams = new JSONObject();
         hurricane.setHurricaneModel(model);
 
@@ -85,8 +76,6 @@ public class DBHurricaneRepository {
         hurricane.setHurricaneParameters(jsonParams);
 
         return hurricane;
-
-        //return this.dataStore.get(ScenarioTornado.class, new ObjectId(id));
     }
 
 

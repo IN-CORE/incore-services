@@ -15,10 +15,14 @@ import com.vividsolutions.jts.linearref.LinearLocation;
 import com.vividsolutions.jts.linearref.LocationIndexedLine;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
+import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
 import org.apache.commons.math3.complex.Complex;
+import org.apache.commons.math3.complex.ComplexFormat;
 import org.apache.log4j.Logger;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -30,16 +34,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
-import javax.ws.rs.NotFoundException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.net.URL;
+import javax.ws.rs.*;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import sun.java2d.pipe.SpanShapeRenderer;
-
+import java.util.stream.IntStream;
 
 import static java.lang.Math.*;
 
@@ -50,9 +50,119 @@ import static java.lang.Math.*;
 public class HurricaneCalc {
     private static final Logger logger = Logger.getLogger(HurricaneCalc.class);
 
+
+    public static HurricaneSimulationEnsemble simulateHurricane(String username, double transD, IncorePoint landfallLoc, String model,
+                                                    int resolution, int gridPoints, String rfMethod) {
+        //TODO: Comeup with a better name for gridPoints
+        //TODO: Can resolution be double? It's being hardcoded in Grid calculation
+        //This function simulates wind fields for the selected data-driven model
+
+        DBHurricaneRepository historicHurrRepo = new DBHurricaneRepository();
+        HistoricHurricane historicHurricane = historicHurrRepo.getHurricaneByModel(model);
+        JSONObject params = historicHurricane.getHurricaneParameters();
+
+        // May be it's better to use List
+        List<String> Vt0New = (List<String>) params.get("VTs_o_new");
+        List<String> times = (List<String>) params.get("times");
+        long longLandfall = (long)params.get("index_landfall");
+
+        int indexLandfall = toIntExact(longLandfall) - 1 ; //Converting mat index to java
+        //IncorePoint landfallPoint = landfallLoc.getLocation();
+        List<Double> timeNewRadii = (List<Double>) params.get("time_radii_new");
+
+        ComplexFormat cf = new ComplexFormat("j");
+        Complex vt0 =  cf.parse(Vt0New.get(0));
+
+        double x1 = vt0.getReal();
+        double y1 = vt0.getImaginary();
+
+        double ab = vt0.abs();
+        double si = sin(toRadians(transD));
+        double co = cos(toRadians(transD));
+
+        double x2 = ab*si;
+        double y2 = ab*co;
+
+        double th = atan2(x1*y2-y1*x2,x1*x2+y1*y2);
+
+        List<Complex> VTsSimu = new ArrayList<Complex>();
+
+        for(String s: Vt0New){
+            Complex c1 = cf.parse(s);
+            double abNew = c1.abs();
+            double angle = c1.getArgument();
+
+            VTsSimu.add(HurricaneUtil.polar(abNew, angle+th));
+        }
+
+        List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii ,VTsSimu, landfallLoc, indexLandfall);
+
+        if(!model.toLowerCase().equals("isabel") && !model.toLowerCase().equals("frances")){
+            VTsSimu.remove(indexLandfall);
+            track.remove(indexLandfall);
+        }
+
+        JSONArray para = (JSONArray) params.get("para");
+        JSONArray omegaFitted = (JSONArray) params.get("omega_miss_fitted");
+        JSONArray radiusM = (JSONArray) params.get("Rs");
+        JSONArray zonesFitted = (JSONArray) params.get("contouraxis_zones_fitted");
+
+        int paramCt = para.size();
+
+        List<Complex[][]> VsTotal = new ArrayList<>();
+        List<List<Double>> gridLatis = new ArrayList<>();
+        List<List<Double>> gridLongs = new ArrayList<>();
+        List<String> absTime = new ArrayList<>();
+
+        List<HurricaneSimulation> hSimulations = new ArrayList<>();
+        List<String> centers = new ArrayList<>();
+        List<String> centerVel = new ArrayList<>();
+
+        try {
+//            for(int i=0; i<paramCt; i++){
+//                HurricaneSimulation hsim = HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+//                    track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+//                    (JSONArray) zonesFitted.get(i), (JSONArray)radiusM.get(i), rfMethod);
+//                hSimulations.add(hsim);
+//            }
+
+
+
+
+            int cores = 7; //TODO: Get cores dynamically
+            ForkJoinPool forkJoinPool = new ForkJoinPool(cores);
+
+            List<Integer> pList = IntStream.rangeClosed(0, paramCt - 1).boxed().collect(Collectors.toList());
+
+            final Callable<List<HurricaneSimulation>> hurrSims = () -> {
+                pList.parallelStream().forEach(i -> {
+                    hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+                        track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+                        (JSONArray) zonesFitted.get(i), (JSONArray) radiusM.get(i), rfMethod));
+
+                });
+                return hSimulations;
+            };
+
+            List<HurricaneSimulation> parallelSimResults = forkJoinPool.submit(hurrSims).get();
+            parallelSimResults.sort(HurricaneSimulation::compareTo);
+            HurricaneSimulationEnsemble hEnsemble = new HurricaneSimulationEnsemble();
+            hEnsemble.setResolution(resolution);
+            hEnsemble.setTransD(transD);
+            hEnsemble.setLandfallLocation(landfallLoc.toString());
+            hEnsemble.setModelUsed(model);
+            hEnsemble.setTimes(times);
+            hEnsemble.setHurricaneSimulations(parallelSimResults);
+            return  hEnsemble;
+        } catch(Exception e){
+            throw new NotFoundException("dsa");
+        }
+        //TODO: Add finally to cleanup all threads
+    }
+
     public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
-                                                                       int resolution, int gridPoints, Complex VTsSimu,
-                                                                       JSONArray omegaFitted, JSONArray zonesFitted,
+                                                                       int resolution, int gridPoints,
+                                                                       Complex VTsSimu, JSONArray omegaFitted, JSONArray zonesFitted,
                                                                        JSONArray radiusM, String rfMethod) {
         HurricaneSimulation hsim = new HurricaneSimulation();
         hsim.setAbsTime(time);
@@ -120,8 +230,6 @@ public class HurricaneCalc {
             zonesFittedInts.add(temp);
         }
 
-//        List<List<Integer>> zonesFittedIntsd = zonesFittedInts;
-//        int s = zonesFittedInts.size();
 
         /*
         Convert Cartesian Coordinates to Polar Coordinates
@@ -170,8 +278,6 @@ public class HurricaneCalc {
 
             int noOfLoops = zonesFittedInts.get(zoneI - 1).get(1);
 
-//            for (List<Integer> zone:
-//                 zonesFittedInts) {
             for (int j = 0; j < noOfLoops; j++) {
                 rmThetaVspInnerRi.add((List<Complex>) rmThetaVspInner.get(j)); // Casting to List<Complex> is only casting as list of strings
                 rmThetaVspOuterRi.add((List<Complex>) rmThetaVspOuter.get(j));
@@ -187,7 +293,7 @@ public class HurricaneCalc {
                 vgInnerRi.add(vgI);
                 vgOuterRi.add(vgO);
             }
-//            }
+
 
             int nspOuter = rmThetaVspOuterRi.size(); //this should be same a nspInner
             int nspInner = nspOuter; //Not needed. Only added for clarity
@@ -445,17 +551,6 @@ public class HurricaneCalc {
                     HashMap<String, List<Polygon>> allCountryCircles = new HashMap<String, List<Polygon>>();
 
                     GeometryFactory gf = new GeometryFactory();
-                    Coordinate cCord = new Coordinate(cLong, cLat);
-//                            Polygon usaPoly = getPolygonFromFile("usa.txt");
-//
-//                            LocationIndexedLine tempLine = new LocationIndexedLine((usaPoly.getBoundary()));
-//                            LinearLocation snapPoint = tempLine.project(cCord);
-//                            Coordinate tempCoord = tempLine.extractPoint(snapPoint);//
-//                            double tangentDistUsaDirect = usaPoly.distance(center.getLocation());//
-//
-//                            Coordinate[] nearestPoints = DistanceOp.nearestPoints(gf.createPoint(tempCoord), center.getLocation());
-//                            double dist  = DistanceOp.distance(usaPoly, center.getLocation());
-
 
                     double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.usaPolygon,
                         cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);

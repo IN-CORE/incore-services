@@ -9,22 +9,24 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.ScenarioHurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneWindfields;
 import org.mongodb.morphia.Datastore;
 
+import java.util.Map;
 import java.util.List;
 
 public interface IHurricaneRepository {
     void initialize();
 
-    ScenarioHurricane getHurricaneById(String id);
+    HurricaneWindfields getHurricaneById(String id);
 
-    ScenarioHurricane addHurricane(ScenarioHurricane hurricane);
+    HurricaneWindfields addHurricane(HurricaneWindfields hurricane);
 
-    List<ScenarioHurricane> getHurricanes();
+    List<HurricaneWindfields> getHurricanes();
 
     Datastore getDataStore();
+
+    List<HurricaneWindfields> queryHurricanes(String attributeType, String attributeValue);
+    List<HurricaneWindfields> queryHurricanes(Map<String, String> queryMap);
 
 }
