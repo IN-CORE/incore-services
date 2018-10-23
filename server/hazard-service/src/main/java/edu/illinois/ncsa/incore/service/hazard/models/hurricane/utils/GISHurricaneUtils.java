@@ -210,6 +210,10 @@ public class GISHurricaneUtils {
      */
     //
     public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson, double rasterResolution) throws MismatchedDimensionException {
+        // TODO the rasterResolution input in here is KM, so if the input json unit is not km, this should be changed
+        // TODO also, since this is geographic projection, the resolution is not perfectly matching with the given value
+        // TODO however, since the geotiff is for the visualization purpose only, this should be fine
+        // TODO if this is for the actual velocity value calculation, this also should be changed.
         JSONParser jsonParser = new JSONParser();
         List<HurricaneSimulationDataset> hsDatasets = new ArrayList<>();
         try
@@ -222,10 +226,14 @@ public class GISHurricaneUtils {
             // calculate the cell size.
             // in here it is set to 100m resolution
             // TODO it assumes that unit is km, if it is different, the new lines should be added
-            int numGridPoint = ((JSONArray)((JSONObject) hurricaneSims.get(0)).get("gridLats")).size();
-            double totalLength = resolution * (numGridPoint - 1);   // total length in km
-            int cellResolution = (int) totalLength * 10; // multiplied 10 to make it 100m resolution
-            System.out.println(numGridPoint + " " + totalLength);
+            int numGridLatPoint = ((JSONArray)((JSONObject) hurricaneSims.get(0)).get("gridLats")).size();
+            int numGridLonPoint = ((JSONArray)((JSONObject) hurricaneSims.get(0)).get("gridLongs")).size();
+            double totalXLength = resolution * (numGridLonPoint - 1);   // total length in km
+            double totalYLength = resolution * (numGridLatPoint - 1);   // total length in km
+            int numCellsX = (int) (totalXLength / rasterResolution);
+            int numCellsY = (int) (totalYLength / rasterResolution);
+            int totCells = numCellsX * numCellsY;
+            logger.debug("Number of the cell will be " + totCells);
 
             String tempDir = Files.createTempDirectory(TEMP_DIR_PREFIX).toString();
             System.out.println(tempDir);
@@ -258,9 +266,9 @@ public class GISHurricaneUtils {
                 CreateHurricanePointShapefile(latList, lonList, velList, k, outShp);
 
                 // create geotiff from given shapefile
-                String cmdSize = "-outsize " + cellResolution + " " + cellResolution + " ";
+                String cmdSize = "-outsize " + numCellsX + " " + numCellsY + " ";
                 String cmdStr = "";
-                if (cellResolution > 1) {
+                if (numCellsX > 1) {
                     cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + cmdSize + outShp + " " + outTif;
                 } else {
                     cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + outShp + " " + outTif;
@@ -354,21 +362,49 @@ public class GISHurricaneUtils {
             featureIndex = new SpatialIndexFeatureCollection(inFeatures.getSchema());
             featureIndex.addAll(inFeatures);
 
+            SimpleFeatureIterator inFeatureIter = inFeatures.features();
+            List<SimpleFeature> inFeatureList = new ArrayList<SimpleFeature>();
+            int ifIndex = 0;
+            try {
+                while (inFeatureIter.hasNext()) {
+                    inFeatureList.add((SimpleFeature) inFeatureIter.next());
+                    ifIndex++;
+                    if (ifIndex == 2) {
+                        break;
+                    }
+                }
+            } finally {
+                inFeatureIter.close();
+            }
+
+            SimpleFeature firstFeature = inFeatureList.get(0);
+            SimpleFeature secondFeature = inFeatureList.get(1);
+
+            double firstX = ((Point) firstFeature.getDefaultGeometry()).getCoordinate().x;
+            double secondX = ((Point) secondFeature.getDefaultGeometry()).getCoordinate().x;
+
+
             // TODO calculate limit distance
-            final double searchDistLimit = featureIndex.getBounds().getSpan(0) / 10;
+            final double searchDistLimitByBoundingBox = featureIndex.getBounds().getSpan(0) / 10;
+            final double searchDistLimit = (Math.abs(firstX - secondX)) * 2;
             Coordinate pCoord = startPoint.getCoordinate();
             ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
                     featureIndex.getSchema().getCoordinateReferenceSystem());
             refEnv.expandBy(searchDistLimit);
             BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
             SimpleFeatureCollection sfc = featureIndex.subCollection(bbox);
-            outArr = new double[sfc.size()][2];
+//            outArr = new double[sfc.size()][2];
 
             // give enough distance for the minimum distance to start
             double minDist = searchDistLimit + 1.0e-6;
 
             Coordinate minDistPoint = null;
             SimpleFeatureIterator sfi = sfc.features();
+
+            if (sfc.size() == 0) {
+                logger.debug("Point is out of bounds");
+                return 0.0;
+            }
 
             // create output feature array.
             SimpleFeature[] sfArr = new SimpleFeature[sfc.size()];
@@ -788,28 +824,30 @@ public class GISHurricaneUtils {
      */
     public static void main(String[] args) throws MismatchedDimensionException, FactoryException, TransformException, SchemaException, IOException {
         //String inJsonPath = "C:\\Users\\ywkim\\Downloads\\hurricanes_RealValue_21by21.json";
-        String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_RealValue_21by21.json";
-        String inBigHurricane = "/Users/vnarah2/Downloads/hurricane_all.shp";
+//        String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_RealValue_21by21.json";
+        String inJsonPath = "/Volumes/BOOTCAMP/Users/ywkim/Documents/NIST/hurricanes_RealValue_21by21.json";
+//        String inBigHurricane = "/Users/vnarah2/Downloads/hurricane_all.shp";
+        String inBigHurricane = "/Volumes/BOOTCAMP/Users/ywkim/Documents/NIST/Hurricane/out_big.shp";
         //String inBigHurricane = "C:\\Users\\ywkim\\AppData\\Local\\Temp\\temp_hurricane_7754104894667377752\\hurricane_all.shp";
 
 
-//        try {
-//            byte[] readAllBytes = Files.readAllBytes(Paths.get( inJsonPath));
-//            String json = new String( readAllBytes );
-//
-//            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json, 6);
-//            int j = 0;
-//        } catch(IOException e){
-//
-//        }
+        try {
+            byte[] readAllBytes = Files.readAllBytes(Paths.get( inJsonPath));
+            String json = new String( readAllBytes );
+
+            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json, 6);
+            int j = 0;
+        } catch(IOException e){
+
+        }
 
         //processHurricaneFromJson(inJsonPath, 100);
         double value = 0;
-        value = CalcVelocityFromPoint(inBigHurricane, 28.08, -70.83);
-        System.out.println(value);
-        value = CalcVelocityFromPoint(inBigHurricane, 28.07, -80.85);
-        System.out.println(value);
-        value = CalcVelocityFromPoint(inBigHurricane, 28.683, -82.789);
-        System.out.println(value);
+//        value = CalcVelocityFromPoint(inBigHurricane, 28.08, -70.83);
+//        System.out.println(value);
+//        value = CalcVelocityFromPoint(inBigHurricane, 28.07, -80.85);
+//        System.out.println(value);
+//        value = CalcVelocityFromPoint(inBigHurricane, 28.683, -82.789);
+//        System.out.println(value);
     }
 }
