@@ -552,20 +552,20 @@ public class HurricaneCalc {
 
                     GeometryFactory gf = new GeometryFactory();
 
-                    double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.usaPolygon,
-                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
-                    double tangentDistMex = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.mexicoPolygon,
-                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
-                    double tangentDistCuba = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.cubaPolygon,
-                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
-                    double tangentDistJam = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.jamaicaPolygon,
-                        cLat, cLong, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                    double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.usaPolygon,
+                        cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
+                    double tangentDistMex = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.mexicoPolygon,
+                        cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
+                    double tangentDistCuba = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.cubaPolygon,
+                        cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
+                    double tangentDistJam = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.jamaicaPolygon,
+                        cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
 
 
-                    allCountryCircles.put("usa", GeotoolsUtils.createCircles(cLat, cLong, tangentDistUsa));
-                    allCountryCircles.put("mexico", GeotoolsUtils.createCircles(cLat, cLong, tangentDistMex));
-                    allCountryCircles.put("cuba", GeotoolsUtils.createCircles(cLat, cLong, tangentDistCuba));
-                    allCountryCircles.put("jamaica", GeotoolsUtils.createCircles(cLat, cLong, tangentDistJam));
+                    allCountryCircles.put("usa", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistUsa));
+                    allCountryCircles.put("mexico", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistMex));
+                    allCountryCircles.put("cuba", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistCuba));
+                    allCountryCircles.put("jamaica", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistJam));
 
                     int cord = 0;
                     for (int col = 0; col < pointSize; col++) {
@@ -574,7 +574,7 @@ public class HurricaneCalc {
                             double lat = latis.get(row);
                             Point currPoint = gf.createPoint(new Coordinate(lon, lat));
 
-                            String countryName = GeotoolsUtils.getCountryFromNAPolygons(lat, lon);
+                            String countryName = GISHurricaneUtils.getCountryFromNAPolygons(lat, lon);
                             if(!countryName.equals("")){
                                 Polygon c1 = allCountryCircles.get(countryName).get(0);
                                 Polygon c2 = allCountryCircles.get(countryName).get(1);
@@ -613,14 +613,14 @@ public class HurricaneCalc {
 
                             if (isContained) {
                                 // if it is on the land, get the country name
-                                SimpleFeatureCollection sfc = GeotoolsUtils.countriesFeatures;
+                                SimpleFeatureCollection sfc = GISHurricaneUtils.countriesFeatures;
                                 String countryName = GeotoolsUtils.getUnderlyingFieldValueFromPoint(sfc, "NAME", lat, lon);
                                 JSONArray ar = getCountryRfMatrix(countryName, radiusM);
 
                                 // get shortest km distance to coastal line
                                 if (ar.size() > 0) {
-                                    double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GeotoolsUtils.continentFeatureIndex,
-                                        lat, lon, gc, crs, GeotoolsUtils.searchDistLimit, GeotoolsUtils.minSearchDist);
+                                    double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.continentFeatureIndex,
+                                        lat, lon, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
                                     zone = getZone(shortestDist);
                                     reductionFactor = (Double) ar.get(zone);
                                 }

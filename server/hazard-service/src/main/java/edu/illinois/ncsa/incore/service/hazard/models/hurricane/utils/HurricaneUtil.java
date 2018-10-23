@@ -12,6 +12,8 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.commons.collections4.ListUtils;
 
 import org.apache.commons.math3.complex.Complex;
@@ -22,6 +24,8 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -637,13 +641,33 @@ public class HurricaneUtil {
         return thetaRangeZones;
     }
 
+    public static HurricaneSimulationDataset createHurricaneDataSetFromFile( String filePath, String title,String creator,
+                                                                     String description, String datasetType,
+                                                                     String simulationAbsTime) throws IOException {
+        File file = new File(filePath);
+        String datasetId = ServiceUtil.createRasterDataset(file, title, creator, description, datasetType);
 
 
+        HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
+        simDataset.setAbsTime(simulationAbsTime);
+        simDataset.setHazardDatasetId(datasetId);
+        return simDataset;
+    }
 
+    public static HurricaneSimulationDataset createHurricaneDataSetFromFiles( List<String> filePaths, String title,String creator,
+                                                                             String description, String datasetType,
+                                                                             String simulationAbsTime) throws IOException {
+        List<File> files = new ArrayList();
+        for(String filePath: filePaths){
+            files.add(new File(filePath));
+        }
+        String datasetId = ServiceUtil.createVisualizationDataset(files, title, creator, description, datasetType);
 
-
-
-
+        HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
+        simDataset.setAbsTime(simulationAbsTime);
+        simDataset.setHazardDatasetId(datasetId);
+        return simDataset;
+    }
 
 
 }

@@ -27,6 +27,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.util.List;
 
 public class ServiceUtil {
 
@@ -205,6 +206,7 @@ public class ServiceUtil {
         return null;
     }
 
+    //TODO: Obsolete this and use createVisualizationDataset instead
     public static String createRasterDataset(File rasterFile, String title, String creator, String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType);
 
@@ -214,6 +216,22 @@ public class ServiceUtil {
             params.addBinaryBody(HazardConstants.FILE_PARAMETER_, rasterFile);
 
             attachFileToDataset(datasetId, creator, params);
+        }
+
+        return datasetId;
+    }
+
+    public static String createVisualizationDataset(List<File> vizFiles, String title, String creator, String description, String datasetType) throws IOException {
+        String datasetId = createDataset(title, creator, description, datasetType);
+
+        if (datasetId != null) {
+            for (File vizFile: vizFiles) {
+                MultipartEntityBuilder params = MultipartEntityBuilder.create();
+                params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+                params.addBinaryBody(HazardConstants.FILE_PARAMETER_, vizFile);
+
+                attachFileToDataset(datasetId, creator, params);
+            }
         }
 
         return datasetId;
