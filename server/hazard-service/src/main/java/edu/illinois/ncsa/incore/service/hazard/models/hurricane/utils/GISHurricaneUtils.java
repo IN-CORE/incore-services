@@ -293,7 +293,7 @@ public class GISHurricaneUtils {
 
             HurricaneSimulationDataset simDatasetAll = HurricaneUtil.createHurricaneDataSetFromFiles(outFilePaths,"Hurricane Full Snapshot",
                 "incore", "Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
-                "full time trange");
+                "full time range");
             hsDatasets.add(simDatasetAll);
 
 

@@ -13,9 +13,11 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
+import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneWindfieldResult;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
@@ -39,7 +41,7 @@ import java.util.stream.Collectors;
 
 @Path("hurricaneWindfields")
 public class HurricaneController {
-    private static final Logger logger = Logger.getLogger(HurricaneController.class);
+    private static final Logger log = Logger.getLogger(HurricaneController.class);
 
     @Inject
     private IAuthorizer authorizer;
@@ -51,10 +53,10 @@ public class HurricaneController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<HurricaneWindfields> getScenarioTornadoes(@QueryParam("coast") String coast, @QueryParam("category") int category) {
+    public List<HurricaneWindfields> getHurricaneWindfields(@QueryParam("coast") String coast, @QueryParam("category") int category) {
 
         Map<String, String> queryMap = new HashMap<>();
-        List<HurricaneWindfields> hurricaneWindfields = new ArrayList<>();
+        List<HurricaneWindfields> hurricaneWindfields;
         hurricaneWindfields = repository.getHurricanes();
 
         if (coast != null) {
@@ -71,12 +73,34 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public HurricaneWindfields getScenarioHurricane(@HeaderParam("X-Credential-Username") String username, @PathParam("hurricaneId") String hurricaneId) {
+    public HurricaneWindfields getHurricaneWindfieldsById(@HeaderParam("X-Credential-Username") String username, @PathParam("hurricaneId") String hurricaneId) {
         HurricaneWindfields hurricane = repository.getHurricaneById(hurricaneId);
         if (!authorizer.canRead(username, hurricane.getPrivileges())) {
             throw new ForbiddenException();
         }
         return hurricane;
+    }
+
+    @GET
+    @Path("{hurricaneId}/values")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(@HeaderParam("X-Credential-Username") String username,
+                                                           @PathParam("hurricaneId") String hurricaneId,
+                                                           @DefaultValue("velocity") @QueryParam("demandType") String demandType,
+                                                           @DefaultValue("kt") @QueryParam("demandUnits") String demandUnits,
+                                                           @QueryParam("point") List<IncorePoint> points) {
+        HurricaneWindfields hurricane = getHurricaneWindfieldsById(username, hurricaneId);
+        List<HurricaneWindfieldResult> hurrResults = new ArrayList<>();
+        if(hurricane != null){
+            for (IncorePoint point: points){
+                try {
+                    hurrResults.add(HurricaneCalc.getWindfieldValue(hurricane, demandType, demandUnits, point, username));
+                } catch (UnsupportedHazardException e) {
+                    log.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
+                }
+            }
+        }
+        return hurrResults;
     }
 
     @POST

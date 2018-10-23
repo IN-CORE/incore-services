@@ -70,18 +70,14 @@ public class GISUtil {
         return feature;
     }
 
-    public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
-
-        File incoreWorkDirectory = ServiceUtil.getWorkDirectory();
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, incoreWorkDirectory);
-
+    public static URL unZipShapefiles(File file, File destDirectory){
         URL inSourceFileUrl = null;
         byte[] buffer = new byte[1024];
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
                 String fileName = zipEntry.getName();
-                File newFile = new File(incoreWorkDirectory, fileName);
+                File newFile = new File(destDirectory, fileName);
                 FileOutputStream fos = new FileOutputStream(newFile);
                 int len;
                 while ((len = zis.read(buffer)) > 0) {
@@ -99,6 +95,15 @@ public class GISUtil {
             logger.error("Error unzipping shapefile", e);
             return null;
         }
+        return inSourceFileUrl;
+    }
+
+    public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
+
+        File incoreWorkDirectory = ServiceUtil.getWorkDirectory();
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, incoreWorkDirectory);
+
+        URL inSourceFileUrl = unZipShapefiles(file, incoreWorkDirectory);
 
         try {
             Map<String, Object> map = new HashMap<String, Object>();

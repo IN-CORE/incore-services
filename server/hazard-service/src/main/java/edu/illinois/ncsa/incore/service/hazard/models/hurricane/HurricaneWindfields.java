@@ -156,4 +156,14 @@ public class HurricaneWindfields {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getFullPathDatasetId(){
+        String datasetId = null;
+        for(HurricaneSimulationDataset ds: this.hazardDatasets){
+            if(ds.getAbsTime().contains("full time")){
+                return ds.getHazardDatasetId();
+            }
+        }
+        return datasetId;
+    }
 }

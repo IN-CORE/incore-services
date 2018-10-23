@@ -16,11 +16,13 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
+import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneWindfieldResult;
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.complex.ComplexFormat;
 import org.apache.log4j.Logger;
@@ -35,11 +37,19 @@ import org.json.simple.JSONObject;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
 import javax.ws.rs.*;
+import javax.xml.ws.Service;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static java.lang.Math.*;
 
@@ -675,6 +685,35 @@ public class HurricaneCalc {
             ar = (JSONArray) ((JSONObject) radiusM.get(3)).get("jam");
         }
         return ar;
+    }
+
+    public static HurricaneWindfieldResult getWindfieldValue(HurricaneWindfields hurricane,
+                                                             String demandType, String demandUnits,
+                                                             IncorePoint point, String username) throws UnsupportedHazardException {
+        double windValue = 0;
+        Double lat = point.getLocation().getY();
+        Double lon = point.getLocation().getX();
+
+        HurricaneWindfieldResult res = new HurricaneWindfieldResult(lat, lon , windValue, demandType, demandUnits);
+
+        //Get shapefile datasetid
+        String datasetId = hurricane.getFullPathDatasetId();
+
+        //Unzip shapefiles locally
+        File incoreWorkDir = ServiceUtil.getWorkDirectory();
+        File zipFile = ServiceUtil.getFileFromDataService(datasetId, username, incoreWorkDir);
+        URL shpFileUrl = GISUtil.unZipShapefiles(zipFile, incoreWorkDir);
+
+
+
+        //Get value
+
+
+        //Cleanup
+
+
+        return res;
+
     }
 
 

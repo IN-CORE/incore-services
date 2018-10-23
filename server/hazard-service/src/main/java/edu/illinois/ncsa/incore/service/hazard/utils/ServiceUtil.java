@@ -206,7 +206,7 @@ public class ServiceUtil {
         return null;
     }
 
-    //TODO: Obsolete this and use createVisualizationDataset instead
+    //TODO: Obsolete this and use createVisualizationDataset instead?
     public static String createRasterDataset(File rasterFile, String title, String creator, String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType);
 
