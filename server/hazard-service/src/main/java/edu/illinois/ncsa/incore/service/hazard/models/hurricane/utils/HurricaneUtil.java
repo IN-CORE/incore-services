@@ -41,6 +41,9 @@ public class HurricaneUtil {
     public static final String HAZARD = "hurricane";
 
     public static final String UNITS_M= "m";
+    public static final String UNITS_KT= "kt";
+    public static final String UNITS_MPS= "mps";
+    public static final String UNITS_KMPH= "kmph";
     public static final double R_EARTH =6371*1000; // mean radius of earth, meter
     public static final double PARA = 3.5;
     public static final double X_MAX = 6 * 80;
@@ -48,6 +51,7 @@ public class HurricaneUtil {
     public static final double MB2PA = 100; // unit change from mb to Pa
     public static final double PN = 1013.25*MB2PA; // Pa, ambient pressure, 101.325 kPa, 29.921 inHg, 760 mmHg.
     public static final double KT2MS = 0.514444; // unit change from KT to m/s
+    public static final double KT2KMPH = 0.514444 * 3.6;
     public static final double FR = 0.8; //Conversion parameter
 
     public static final int TOTAL_OMEGAS = 16; //This is 360 degrees divided by 22.5 degrees
@@ -667,6 +671,17 @@ public class HurricaneUtil {
         simDataset.setAbsTime(simulationAbsTime);
         simDataset.setHazardDatasetId(datasetId);
         return simDataset;
+    }
+
+
+    public static double getCorrectUnitsOfVelocity(double hazardValue, String originalDemandUnits, String requestedDemandUnits) {
+        if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPS)) {
+            return hazardValue * KT2MS;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_KMPH)) {
+            return hazardValue * KT2KMPH;
+        }  else {
+            throw new UnsupportedOperationException("Cannot convert Velocity from " + originalDemandUnits + " to " + requestedDemandUnits);
+        }
     }
 
 
