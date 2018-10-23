@@ -76,10 +76,9 @@ public class GeotoolsUtils {
     public static SimpleFeatureCollection continentFeatures;
     public static SimpleFeatureCollection countriesFeatures;
     public static SpatialIndexFeatureCollection continentFeatureIndex;
-    //public static DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
+    public static DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
     public static double searchDistLimit = 0;
     public static double minSearchDist = 0;
-
 
     public static String usaCords = "usa.txt";
     public static String mexicoCords = "mexico.txt";
@@ -91,28 +90,28 @@ public class GeotoolsUtils {
     public static Polygon cubaPolygon;
     public static Polygon jamaicaPolygon;
 
-    //public static GeodeticCalculator geodeticCalculator;
+    public static GeodeticCalculator geodeticCalculator;
 
     //Is it a good idea to load them in static context? Affecting Performance when loading per request (each loop)
-    static {
-        try {
-            continentFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
-            countriesFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
-            continentFeatureIndex = new SpatialIndexFeatureCollection(continentFeatures.getSchema());
-            continentFeatureIndex.addAll(continentFeatures);
-            //geodeticCalculator = new GeodeticCalculator(crs);
-            searchDistLimit = continentFeatureIndex.getBounds().getSpan(0);
-            minSearchDist = searchDistLimit + 1.0e-6;
-
-            usaPolygon = getPolygonFromFile(usaCords);
-            mexicoPolygon = getPolygonFromFile(mexicoCords);
-            cubaPolygon = getPolygonFromFile(cubaCords);
-            jamaicaPolygon = getPolygonFromFile(jamaicaCords);
-
-        } catch (IOException e) {
-            throw new NotFoundException("Shapefile Not found. Static init failed");
-        }
-    }
+//    static {
+//        try {
+//            continentFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
+//            countriesFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
+//            continentFeatureIndex = new SpatialIndexFeatureCollection(continentFeatures.getSchema());
+//            continentFeatureIndex.addAll(continentFeatures);
+//            //geodeticCalculator = new GeodeticCalculator(crs);
+//            searchDistLimit = continentFeatureIndex.getBounds().getSpan(0);
+//            minSearchDist = searchDistLimit + 1.0e-6;
+//
+//            usaPolygon = getPolygonFromFile(usaCords);
+//            mexicoPolygon = getPolygonFromFile(mexicoCords);
+//            cubaPolygon = getPolygonFromFile(cubaCords);
+//            jamaicaPolygon = getPolygonFromFile(jamaicaCords);
+//
+//        } catch (IOException e) {
+//            throw new NotFoundException("Shapefile Not found. Static init failed");
+//        }
+//    }
 
 
     /**
@@ -125,8 +124,8 @@ public class GeotoolsUtils {
     public static SimpleFeatureCollection GetSimpleFeatureCollectionFromPath(String fileName) throws IOException{
         SimpleFeatureCollection sfc = null;
 
-        URL fileUrl = GeotoolsUtils.class.getResource("/hazard/hurricane/shapefiles/" + fileName);
-        //URL fileUrl = new URL("file:" + filePath);
+//        URL fileUrl = GeotoolsUtils.class.getResource("/hazard/hurricane/shapefiles/" + fileName);
+        URL fileUrl = new URL("file:" + fileName);
 
         DataStore dataStore = getShapefileDataStore(fileUrl, true);
         FileDataStore fileDataStore = (FileDataStore) dataStore;
@@ -444,53 +443,53 @@ public class GeotoolsUtils {
     }
 
 
-    /**
-     * main for testing to calculate the shortest distance
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException {
-        // file path for land polygon
-        String dslvPolygon = "tm_north_america_dislvd.shp";
-        // file path for country boundary polygon
-        String sprPolygon = "tm_north_america_country.shp";
-
-
-        SimpleFeatureCollection dslvFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
-        SimpleFeatureCollection sprFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
-
-        // lat, lon value
-        double lat = 21.378178;
-        double lon = 87.925500;
-
-        // check if the point is on the land
-        boolean isContained = true;
-        //boolean isContained = isPointInPolygon(dslvFeatures, lat, lon);
-
-        if (isContained) {
-            // if it is on the land, get the country name
-            String name = getUnderlyingFieldValueFromPoint(sprFeatures, "NAME", lat, lon);
-
-            // get shortest km distance to coastal line
-            double shortestDist = FindShortestDistanceFromPointToFeatures(dslvFeatures, lat, lon);
-            logger.debug(shortestDist);
-
-            ////////////////////////////////////////
-            // new method for faster iteration
-            ////////////////////////////////////////
-            SpatialIndexFeatureCollection featureIndex;
-            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
-            featureIndex = new SpatialIndexFeatureCollection(dslvFeatures.getSchema());
-            featureIndex.addAll(dslvFeatures);
-            GeodeticCalculator gc = new GeodeticCalculator(crs);
-
-            final double searchDistLimit = featureIndex.getBounds().getSpan(0);
-            // give enough distance for the minimum distance to start
-            double minDist = searchDistLimit + 1.0e-6;
-
-            shortestDist = CalcShortestDistanceFromPointToFeatures(featureIndex, lat, lon, gc, crs, searchDistLimit, minDist);
-            logger.debug(shortestDist);
-        }
-    }
+//    /**
+//     * main for testing to calculate the shortest distance
+//     * @param args
+//     * @throws IOException
+//     */
+//    public static void main(String[] args) throws IOException {
+//        // file path for land polygon
+////        String dslvPolygon = "tm_north_america_dislvd.shp";
+//        // file path for country boundary polygon
+////        String sprPolygon = "tm_north_america_country.shp";
+//
+//
+//        SimpleFeatureCollection dslvFeatures = GetSimpleFeatureCollectionFromPath(dslvPolygon);
+//        SimpleFeatureCollection sprFeatures = GetSimpleFeatureCollectionFromPath(sprPolygon);
+//
+//        // lat, lon value
+//        double lat = 21.378178;
+//        double lon = 87.925500;
+//
+//        // check if the point is on the land
+//        boolean isContained = true;
+//        //boolean isContained = isPointInPolygon(dslvFeatures, lat, lon);
+//
+//        if (isContained) {
+//            // if it is on the land, get the country name
+//            String name = getUnderlyingFieldValueFromPoint(sprFeatures, "NAME", lat, lon);
+//
+//            // get shortest km distance to coastal line
+//            double shortestDist = FindShortestDistanceFromPointToFeatures(dslvFeatures, lat, lon);
+//            logger.debug(shortestDist);
+//
+//            ////////////////////////////////////////
+//            // new method for faster iteration
+//            ////////////////////////////////////////
+//            SpatialIndexFeatureCollection featureIndex;
+//            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
+//            featureIndex = new SpatialIndexFeatureCollection(dslvFeatures.getSchema());
+//            featureIndex.addAll(dslvFeatures);
+//            GeodeticCalculator gc = new GeodeticCalculator(crs);
+//
+//            final double searchDistLimit = featureIndex.getBounds().getSpan(0);
+//            // give enough distance for the minimum distance to start
+//            double minDist = searchDistLimit + 1.0e-6;
+//
+//            shortestDist = CalcShortestDistanceFromPointToFeatures(featureIndex, lat, lon, gc, crs, searchDistLimit, minDist);
+//            logger.debug(shortestDist);
+//        }
+//    }
 }
 
