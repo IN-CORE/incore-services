@@ -36,6 +36,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
+import javax.swing.plaf.synth.SynthEditorPaneUI;
 import javax.ws.rs.*;
 import javax.xml.ws.Service;
 import java.io.File;
@@ -136,11 +137,13 @@ public class HurricaneCalc {
 //                hSimulations.add(hsim);
 //            }
 
-
-
-
-            int cores = 7; //TODO: Get cores dynamically
-            ForkJoinPool forkJoinPool = new ForkJoinPool(cores);
+            //int logicalThreads = 7;
+            int logicalThreads = 1;
+            logicalThreads = Runtime.getRuntime().availableProcessors();
+            if(logicalThreads > 3){
+                logicalThreads--;
+            }
+            ForkJoinPool forkJoinPool = new ForkJoinPool(logicalThreads);
 
             List<Integer> pList = IntStream.rangeClosed(0, paramCt - 1).boxed().collect(Collectors.toList());
 
