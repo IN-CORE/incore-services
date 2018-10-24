@@ -139,7 +139,7 @@ public class HurricaneCalc {
 
             //int logicalThreads = 7;
             int logicalThreads = 1;
-            logicalThreads = Runtime.getRuntime().availableProcessors();
+            logicalThreads = Runtime.getRuntime().availableProcessors(); //TODO Logic can be improved?
             if(logicalThreads > 3){
                 logicalThreads--;
             }
