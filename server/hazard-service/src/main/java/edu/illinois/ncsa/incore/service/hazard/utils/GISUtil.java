@@ -20,10 +20,7 @@ import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -119,16 +116,65 @@ public class GISUtil {
     }
 
     public static GridCoverage getGridCoverage(String datasetId, String creator) {
-        File incoreWorkDirectory = ServiceUtil.getWorkDirectory();
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, incoreWorkDirectory);
+
 
         URL inSourceFileUrl = null;
+
+        try {
+            //first see if the cache has the tif file in it
+            File cacheDir = ServiceUtil.getCacheDirectory("dataset-" + datasetId);
+            if (cacheDir.exists()) {
+                String[] tifFiles = cacheDir.list(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.toLowerCase().endsWith(".tif");
+                    }
+                });
+                if (tifFiles != null && tifFiles.length > 0) {
+                    inSourceFileUrl = new File(cacheDir, tifFiles[0]).toURI().toURL();
+                }
+            }
+
+
+            //if not, download the cache it
+            if (inSourceFileUrl == null) {
+                inSourceFileUrl = cacheGridCoverage(datasetId, cacheDir, creator);
+            }
+
+            //if we still don't have it, there's a problem
+            if (inSourceFileUrl == null) {
+                logger.error("Could not locate grid coverage");
+                return null;
+            }
+
+            final AbstractGridFormat format = new GeoTiffFormat();
+            GridCoverage gridCoverage = null;
+            GeoTiffReader reader;
+            try {
+                reader = new GeoTiffReader(inSourceFileUrl, new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE));
+                gridCoverage = reader.read(null);
+            } catch (DataSourceException e) {
+                logger.error("Error creating tiff reader.", e);
+            } catch (IOException e) {
+                logger.error("Error reading grid coverage.", e);
+            }
+            return gridCoverage;
+        } catch (IOException e) {
+            logger.error("Could not read cache directory", e);
+        }
+        return null;
+    }
+
+    private static URL cacheGridCoverage(String datasetId, File cacheDir, String creator) {
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, cacheDir);
+
         byte[] buffer = new byte[1024];
+        URL tifFile = null;
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
                 String fileName = zipEntry.getName();
-                File newFile = new File(incoreWorkDirectory, fileName);
+                File newFile = new File(cacheDir, fileName);
                 FileOutputStream fos = new FileOutputStream(newFile);
                 int len;
                 while ((len = zis.read(buffer)) > 0) {
@@ -138,7 +184,7 @@ public class GISUtil {
 
                 String fileExt = FilenameUtils.getExtension(newFile.getName());
                 if (fileExt.equalsIgnoreCase("tif")) {
-                    inSourceFileUrl = newFile.toURI().toURL();
+                    tifFile = newFile.toURI().toURL();
                 }
                 zipEntry = zis.getNextEntry();
             }
@@ -146,20 +192,8 @@ public class GISUtil {
             logger.error("Error getting tif file from data service", e);
             return null;
         }
-
-        final AbstractGridFormat format = new GeoTiffFormat();
-        GridCoverage gridCoverage = null;
-        GeoTiffReader reader = null;
-        try {
-            reader = new GeoTiffReader(inSourceFileUrl, new Hints(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE));
-            if (reader != null) {
-                gridCoverage = reader.read(null);
-            }
-        } catch (DataSourceException e) {
-            logger.error("Error creating tiff reader.", e);
-        } catch (IOException e) {
-            logger.error("Error reading grid coverage.", e);
-        }
-        return gridCoverage;
+        return tifFile;
     }
+
+
 }

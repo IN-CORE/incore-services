@@ -34,9 +34,6 @@ public class TsunamiCalc {
             TsunamiHazardDataset hazardDataset = findHazard(tsunamiDataset.getHazardDatasets(), demandType);
             double hazardValue = 0.0;
             if (hazardDataset != null) {
-                // TODO We should consider caching these on the server side, at least temporarily
-                // We can create some kind of volatile cache of directory paths, <dataset-id, <abs-path> that is wiped
-                // out on service restart
                 GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
                 try {
                     hazardValue = HazardUtil.findRasterPoint(location.getLocation(), (GridCoverage2D) gc);

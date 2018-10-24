@@ -187,7 +187,6 @@ public class HazardCalc {
             EarthquakeDataset eqDataset = (EarthquakeDataset) earthquake;
             HazardDataset hazardDataset = HazardUtil.findHazard(eqDataset.getHazardDatasets(), demand, period, false);
 
-            // TODO We should consider caching these on the server side, at least temporarily
             GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
             try {
                 hazardValue = HazardUtil.findRasterPoint(site.getLocation(), (GridCoverage2D) gc);
