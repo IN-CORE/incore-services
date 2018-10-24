@@ -209,7 +209,8 @@ public class GISHurricaneUtils {
      * @throws SchemaException
      */
     //
-    public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson, double rasterResolution) throws MismatchedDimensionException {
+    public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson, double rasterResolution,
+    String username) throws MismatchedDimensionException {
         // TODO the rasterResolution input in here is KM, so if the input json unit is not km, this should be changed
         // TODO also, since this is geographic projection, the resolution is not perfectly matching with the given value
         // TODO however, since the geotiff is for the visualization purpose only, this should be fine
@@ -278,7 +279,7 @@ public class GISHurricaneUtils {
 
                 //TODO Get the creator - pass a param?
                 HurricaneSimulationDataset simDataset = HurricaneUtil.createHurricaneDataSetFromFile(outTif,"Hurricane Grid Snapshot",
-                    "incore", "Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                    username, "Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                     (String)tempHurricane.get("absTime"));
                 hsDatasets.add(simDataset);
             }
@@ -292,7 +293,7 @@ public class GISHurricaneUtils {
                 tempDir + "/hurricane_all.dbf", tempDir + "/hurricane_all.fix", tempDir + "/hurricane_all.prj");
 
             HurricaneSimulationDataset simDatasetAll = HurricaneUtil.createHurricaneDataSetFromFiles(outFilePaths,"Hurricane Full Snapshot",
-                "incore", "Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                username, "Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                 "full time range");
             hsDatasets.add(simDatasetAll);
 
@@ -835,7 +836,7 @@ public class GISHurricaneUtils {
             byte[] readAllBytes = Files.readAllBytes(Paths.get( inJsonPath));
             String json = new String( readAllBytes );
 
-            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json, 6);
+            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json, 6, "vnarah2");
             int j = 0;
         } catch(IOException e){
 

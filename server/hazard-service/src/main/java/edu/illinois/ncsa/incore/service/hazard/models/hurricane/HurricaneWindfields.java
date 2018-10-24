@@ -32,10 +32,18 @@ public class HurricaneWindfields {
     private String modelUsed;
     private String coast;
     private int category;
-    public final String velocityUnits = "kt";
+    public String velocityUnits = "kt";
 
     private int gridPoints;
     private String rfMethod = "circular";
+
+    public String getVelocityUnits() {
+        return velocityUnits;
+    }
+
+    public void setVelocityUnits(String velocityUnits) {
+        this.velocityUnits = velocityUnits;
+    }
 
     private List<String> times = new ArrayList();
     private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
@@ -157,13 +165,12 @@ public class HurricaneWindfields {
         this.description = description;
     }
 
-    public String getFullPathDatasetId(){
-        String datasetId = null;
+    public String findFullPathDatasetId(){
         for(HurricaneSimulationDataset ds: this.hazardDatasets){
             if(ds.getAbsTime().contains("full time")){
                 return ds.getHazardDatasetId();
             }
         }
-        return datasetId;
+        return null;
     }
 }

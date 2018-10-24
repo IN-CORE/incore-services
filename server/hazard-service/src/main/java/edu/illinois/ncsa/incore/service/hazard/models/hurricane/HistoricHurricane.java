@@ -15,7 +15,6 @@ public class HistoricHurricane {
 
     private Privileges privileges;
 
-    //TODO: Change to Params class: HurricaneParameters
     private JSONObject parameters;
 
     public String getHurricaneModel() {

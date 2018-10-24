@@ -18,10 +18,13 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneWindfieldResult;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.WindfieldDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.log4j.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -32,6 +35,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.opengis.geometry.MismatchedDimensionException;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,25 +87,51 @@ public class HurricaneController {
         return hurricane;
     }
 
+
     @GET
     @Path("{hurricaneId}/values")
     @Produces({MediaType.APPLICATION_JSON})
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(@HeaderParam("X-Credential-Username") String username,
                                                            @PathParam("hurricaneId") String hurricaneId,
                                                            @DefaultValue("velocity") @QueryParam("demandType") String demandType,
-                                                           @DefaultValue("kt") @QueryParam("demandUnits") String demandUnits,
+                                                           @DefaultValue("kt") @QueryParam("demandUnits") WindfieldDemandUnits demandUnits,
                                                            @QueryParam("point") List<IncorePoint> points) {
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(username, hurricaneId);
         List<HurricaneWindfieldResult> hurrResults = new ArrayList<>();
+
+        //Get shapefile datasetid
+        String datasetId = hurricane.findFullPathDatasetId();
+
+        //Unzip shapefiles locally
+        File incoreWorkDir = ServiceUtil.getWorkDirectory();
+        File zipFile = ServiceUtil.getFileFromDataService(datasetId, username, incoreWorkDir);
+        URL shpFileUrl = GISUtil.unZipShapefiles(zipFile, incoreWorkDir);
+        String hurricaneUnits = hurricane.getVelocityUnits();
+
         if(hurricane != null){
             for (IncorePoint point: points){
+                double windValue = 0;
+                double lat = point.getLocation().getY();
+                double lon = point.getLocation().getX();
                 try {
-                    hurrResults.add(HurricaneCalc.getWindfieldValue(hurricane, demandType, demandUnits, point, username));
-                } catch (UnsupportedHazardException e) {
-                    log.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
+                    //TODO: Take features directly instead of loading from file each time - improves performance
+                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(shpFileUrl.getPath(), lat, lon);
+                    if(!demandUnits.toString().equals(hurricaneUnits)){
+                        windValue = HurricaneUtil.getCorrectUnitsOfVelocity(windValue, hurricaneUnits, demandUnits.toString());
+                    }
+                } catch (IOException e){
+                    log.error("Velocity calculation failed from the shapefile");
                 }
+
+                HurricaneWindfieldResult res = new HurricaneWindfieldResult(lat, lon , windValue, demandType, demandUnits.toString());
+                hurrResults.add(res);
             }
         }
+
+        if(incoreWorkDir.exists()){
+            incoreWorkDir.delete();
+        }
+
         return hurrResults;
     }
 
@@ -118,6 +150,9 @@ public class HurricaneController {
                ObjectMapper mapper = new ObjectMapper();
                String ensemBleString = mapper.writeValueAsString(hurricaneSimulationEnsemble);
 
+               hurricaneWindfields.setName(inputHurricane.getName());
+               hurricaneWindfields.setDescription(inputHurricane.getDescription());
+
                hurricaneWindfields.setCategory(inputHurricane.getCategory());
                hurricaneWindfields.setCoast(inputHurricane.getCoast());
                hurricaneWindfields.setGridResolution(inputHurricane.getGridResolution());
@@ -128,7 +163,9 @@ public class HurricaneController {
                hurricaneWindfields.setTimes(hurricaneSimulationEnsemble.getTimes());
                hurricaneWindfields.setGridPoints(inputHurricane.getGridPoints());
                hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
-                   inputHurricane.getRasterResolution()));
+                   inputHurricane.getRasterResolution(), username));
+
+               hurricaneWindfields.setPrivileges(Privileges.newWithSingleOwner(username));
 
                repository.addHurricane(hurricaneWindfields);
            } catch (JsonGenerationException e) {

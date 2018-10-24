@@ -687,34 +687,5 @@ public class HurricaneCalc {
         return ar;
     }
 
-    public static HurricaneWindfieldResult getWindfieldValue(HurricaneWindfields hurricane,
-                                                             String demandType, String demandUnits,
-                                                             IncorePoint point, String username) throws UnsupportedHazardException {
-        double windValue = 0;
-        Double lat = point.getLocation().getY();
-        Double lon = point.getLocation().getX();
-
-        HurricaneWindfieldResult res = new HurricaneWindfieldResult(lat, lon , windValue, demandType, demandUnits);
-
-        //Get shapefile datasetid
-        String datasetId = hurricane.getFullPathDatasetId();
-
-        //Unzip shapefiles locally
-        File incoreWorkDir = ServiceUtil.getWorkDirectory();
-        File zipFile = ServiceUtil.getFileFromDataService(datasetId, username, incoreWorkDir);
-        URL shpFileUrl = GISUtil.unZipShapefiles(zipFile, incoreWorkDir);
-
-
-
-        //Get value
-
-
-        //Cleanup
-
-
-        return res;
-
-    }
-
 
 }
