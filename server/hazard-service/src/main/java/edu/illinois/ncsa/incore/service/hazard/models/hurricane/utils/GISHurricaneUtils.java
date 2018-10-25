@@ -257,6 +257,7 @@ public class GISHurricaneUtils {
                     velList.add(tmpList);
                 }
 
+                String tifName = "hurricane"+k;
                 String outShp = tempDir + "/hurricane" + k + ".shp";
                 String outTif = tempDir + "/hurricane" + k + ".tif";
 
@@ -268,12 +269,14 @@ public class GISHurricaneUtils {
 
                 // create geotiff from given shapefile
                 String cmdSize = "-outsize " + numCellsX + " " + numCellsY + " ";
+                String layerCmd = "-l "+ tifName+ " ";
                 String cmdStr = "";
                 if (numCellsX > 1) {
-                    cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + cmdSize + outShp + " " + outTif;
+                    cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + layerCmd + cmdSize + outShp + " " + outTif;
                 } else {
-                    cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + outShp + " " + outTif;
+                    cmdStr = cmdGdalGrid + cmdZField + cmdAlgo + cmdType + layerCmd + outShp + " " + outTif;
                 }
+
                 logger.debug(cmdStr);
                 performProcess(cmdStr);
 
