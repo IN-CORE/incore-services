@@ -71,7 +71,7 @@ public class GISHurricaneUtils {
     //public static final String cmdGdalGrid = "cmd /c \"C:\\Program Files\\GDAL\\gdal_grid\" "; // for windows
     public static final String cmdGdalGrid = "gdal_grid ";  // for mac/linux
     public static final String cmdZField = "-zfield velocity ";
-    public static final String cmdAlgo = "-a invdist:power=2.0:smothing=0.0:radius1=0.0:radius2=0.0:angle=0.0:max_points=0:min_points=0:nodata=0.0 ";
+    public static final String cmdAlgo = "-a invdist:power=2.0:smoothing=0.0:radius1=0.0:radius2=0.0:angle=0.0:max_points=0:min_points=0:nodata=0.0 ";
     public static final String cmdType = "-of GTiff ";
 
     // hurrican shapefile field name
