@@ -56,8 +56,8 @@ import java.util.stream.Collectors;
             url = "http://resilience.colostate.edu"
         ),
         license = @License(
-            name = "BSD-3-Clause",
-            url = "https://opensource.org/licenses/BSD-3-Clause"
+            name = "Mozilla Public License 2.0 (MPL 2.0)",
+            url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
     ),
     consumes = {"application/json"},
