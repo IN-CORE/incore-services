@@ -44,19 +44,20 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+// @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
     info = @Info(
-        description = "Incore Hazard Service For Earthquake, Tsunami and Hurricane",
-        version = "v1.0.0",
-        title = "Incore Hazard API",
+        description = "Incore Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
+        version = "v2.0.0",
+        title = "Incore v2 Hazard API",
         contact = @Contact(
-            name = "Jong Lee",
-            email = "jong@incore.com",
-            url = "http://incore.com"
+            name = "Jong S. Lee",
+            email = " jonglee@illinois.edu",
+            url = "http://resilience.colostate.edu"
         ),
         license = @License(
-            name = "Apache 2.0",
-            url = "http://www.apache.org/licenses/LICENSE-2.0"
+            name = "BSD-3-Clause",
+            url = "https://opensource.org/licenses/BSD-3-Clause"
         )
     ),
     consumes = {"application/json"},
