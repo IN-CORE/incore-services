@@ -265,4 +265,14 @@ public class ServiceUtil {
         }
         return incoreWorkDirectory;
     }
+
+    public static File getCacheDirectory(String subdirectory) throws IOException {
+        File cacheDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "incore-cache" + File.separator + subdirectory);
+        if (!cacheDir.exists()) {
+            if (!cacheDir.mkdirs()) {
+                throw new IOException("Could not create temp cache directory: " + cacheDir.getAbsolutePath());
+            }
+        }
+        return cacheDir;
+    }
 }
