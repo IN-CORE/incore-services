@@ -115,7 +115,7 @@ public class GISUtil {
 
     }
 
-    public static GridCoverage getGridCoverage(String datasetId, String creator) {
+    public static synchronized GridCoverage getGridCoverage(String datasetId, String creator) {
 
 
         URL inSourceFileUrl = null;
