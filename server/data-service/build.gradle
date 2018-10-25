@@ -33,5 +33,6 @@ dependencies {
 	compile 'org.jsoup:jsoup:1.10.2'
 	compile 'com.github.lookfirst:sardine:5.1'
 	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.4.0'
+	compile group: 'io.swagger', name: 'swagger-jaxrs', version: '1.5.20'
 
 }

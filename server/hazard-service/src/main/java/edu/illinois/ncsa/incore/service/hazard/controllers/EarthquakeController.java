@@ -25,6 +25,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
+import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -41,6 +42,33 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+// @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
+@SwaggerDefinition(
+    info = @Info(
+        description = "Incore Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
+        version = "v0.2.0",
+        title = "Incore v2 Hazard API",
+        contact = @Contact(
+            name = "Jong S. Lee",
+            email = " jonglee@illinois.edu",
+            url = "http://resilience.colostate.edu"
+        ),
+        license = @License(
+            name = "Mozilla Public License 2.0 (MPL 2.0)",
+            url = "https://www.mozilla.org/en-US/MPL/2.0/"
+        )
+    ),
+    consumes = {"application/json"},
+    produces = {"application/json"},
+    schemes = {SwaggerDefinition.Scheme.HTTP}
+//    ,tags = {
+//        @Tag(name = "Private", description = "Tag used to denote operations as private")
+//    },
+    //externalDocs = @ExternalDocs(value = "FEMA  Hazard Manual", url = "https://www.fema.gov/earthquake")
+)
+
+@Api(value="earthquakes", authorizations = {})
 
 @Path("earthquakes")
 public class EarthquakeController {
@@ -301,7 +329,19 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("geologyDataset") String geologyId, @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points) {
+    @ApiOperation(value = "Gets liquefaction(pgd) value", notes="This needs a valid susceptibility dataset as a shapefile for the earthquake location")
+    @ApiResponses(value = {
+        @ApiResponse(code = 500, message = "Internal Server Error"),
+        @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID or geologyDataset id "),
+        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the point parameter")
+    })
+    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(
+        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Earthquake dataset guid from data service", required = true)  @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Geology dataset from data service", required = true) @QueryParam("geologyDataset") String geologyId,
+        @ApiParam(value = "Ground Water Id that currently doesn't do anything") @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId,
+        @ApiParam(value = "Liquefaction demand unit. PGD", required = true)@QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "List of points provided as lat,long. ex: '28.01,-83.85'", required = true) @QueryParam("point") List<IncorePoint> points) {
         Earthquake eq = getEarthquake(earthquakeId, username);
         // TODO add logging/error for earthquake dataset that it can't be used
         if (eq != null && eq instanceof EarthquakeModel) {

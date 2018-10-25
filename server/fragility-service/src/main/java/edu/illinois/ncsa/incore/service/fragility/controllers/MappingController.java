@@ -20,6 +20,7 @@ import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.FragilityMapper;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
+import io.swagger.annotations.Api;
 import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
 import org.geojson.Feature;
@@ -31,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Api(value="mappings", authorizations = {})
 @Path("mappings")
 public class MappingController {
     private static final Logger logger = Logger.getLogger(MappingController.class);

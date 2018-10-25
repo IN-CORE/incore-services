@@ -14,18 +14,20 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
+import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
+@Api(value="fragilities", authorizations = {})
 @Path("fragilities")
 public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
