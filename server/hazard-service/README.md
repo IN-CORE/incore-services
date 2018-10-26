@@ -223,3 +223,32 @@ http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35
 value should be between 136 and 165 mph
 
 http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=35.1393&point=-89.9996&point=35.207&point=-89.871
+
+## Hurricanes 
+
+### Create Hurricane Windfield
+
+POST http://localhost:8080/hazard/api/hurricaneWindfields/
+
+{
+	"name": "Gulf coast cat-1 hurricane",
+	"description": "Simulated test hurricane",
+	"coast": "florida",
+	"category": 1,
+	"gridResolution": 6,
+	"rasterResolution": 1,
+	"transD": -83,
+	"landfallLocation": "28.08, -80.61",
+	"gridPoints": 10
+}
+
+### GET raw JSON of a hurricane simulation
+
+GET http://localhost:8080/hazard/api/hurricanesWindfields/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
+
+### GET values from hurricane simulation
+
+GET http://localhost:8080/hazard/api/hurricaneWindfields/5bcfe8a82d2ad516bb7ebac3/values?point=28,-81&point=28.1,-81.1&demandUnits=kmph&demandType=velocity
+
+The converted json model files are also in box:
+https://uofi.box.com/s/ycneuzlzyt8rqwuu03gfeq4srbhucpch

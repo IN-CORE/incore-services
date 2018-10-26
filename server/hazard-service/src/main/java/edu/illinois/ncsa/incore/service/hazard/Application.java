@@ -39,6 +39,9 @@ public class Application extends ResourceConfig {
         ITsunamiRepository tsunamiRepository = new MongoDBTsunamiRepository(new MongoClientURI(mongodbUri));
         tsunamiRepository.initialize();
 
+        IHurricaneRepository hurricaneRepository = new MongoDBHurricaneRepository(new MongoClientURI(mongodbUri));
+        hurricaneRepository.initialize();
+
         IAuthorizer authorizer = Authorizer.getInstance();
         AttenuationProvider attenuationProvider = AttenuationProvider.getInstance();
 
@@ -49,6 +52,7 @@ public class Application extends ResourceConfig {
                 super.bind(attenuationProvider).to(AttenuationProvider.class);
                 super.bind(earthquakeRepository).to(IEarthquakeRepository.class);
                 super.bind(tornadoRepository).to(ITornadoRepository.class);
+                super.bind(hurricaneRepository).to(IHurricaneRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
                 super.bind(tsunamiRepository).to(ITsunamiRepository.class);
             }
