@@ -10,7 +10,7 @@ gretty {
 }
 
 dependencies {
-	compile group: 'io.swagger', name: 'swagger-jaxrs', version: '1.5.20'
+	
 }
 
 task wrapper(type: Wrapper) {

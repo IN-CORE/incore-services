@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
         title = "Incore v2 Hazard API",
         contact = @Contact(
             name = "Jong S. Lee",
-            email = " jonglee@illinois.edu",
+            email = "jonglee@illinois.edu",
             url = "http://resilience.colostate.edu"
         ),
         license = @License(
