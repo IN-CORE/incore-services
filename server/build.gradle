@@ -150,6 +150,12 @@ test {
             compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1')
             compile(group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13')
             compile(group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.25.1')
+            
+            //Swagger
+            compile(group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13') {
+                exclude group: 'javax.ws.rs'
+                exclude module: 'javax.ws.rs-api'
+            }
 
             // Libraries for testing jersey controller actions
             testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version: '2.25.1')
