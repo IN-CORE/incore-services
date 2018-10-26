@@ -168,7 +168,7 @@ public class HurricaneWindfields {
     public String findFullPathDatasetId(){
         for(HurricaneSimulationDataset ds: this.hazardDatasets){
             if(ds.getAbsTime().contains("full time")){
-                return ds.getHazardDatasetId();
+                return ds.getDatasetId();
             }
         }
         return null;

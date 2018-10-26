@@ -654,7 +654,7 @@ public class HurricaneUtil {
 
         HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
         simDataset.setAbsTime(simulationAbsTime);
-        simDataset.setHazardDatasetId(datasetId);
+        simDataset.setDatasetId(datasetId);
         return simDataset;
     }
 
@@ -669,7 +669,7 @@ public class HurricaneUtil {
 
         HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
         simDataset.setAbsTime(simulationAbsTime);
-        simDataset.setHazardDatasetId(datasetId);
+        simDataset.setDatasetId(datasetId);
         return simDataset;
     }
 

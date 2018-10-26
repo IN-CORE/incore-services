@@ -231,7 +231,7 @@ http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=3
 POST http://localhost:8080/hazard/api/hurricaneWindfields/
 
 {
-	"name": "Gulf coast cat-3 hurricane",
+	"name": "Gulf coast cat-1 hurricane",
 	"description": "Simulated test hurricane",
 	"coast": "florida",
 	"category": 1,
@@ -242,9 +242,13 @@ POST http://localhost:8080/hazard/api/hurricaneWindfields/
 	"gridPoints": 10
 }
 
-To GET raw JSON of a simulation
+### GET raw JSON of a hurricane simulation
 
-http://localhost:8080/hazard/api/hurricanesWindfields/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
+GET http://localhost:8080/hazard/api/hurricanesWindfields/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
+
+### GET values from hurricane simulation
+
+GET http://localhost:8080/hazard/api/hurricaneWindfields/5bcfe8a82d2ad516bb7ebac3/values?point=28,-81&point=28.1,-81.1&demandUnits=kmph&demandType=velocity
 
 The converted json model files are also in box:
 https://uofi.box.com/s/ycneuzlzyt8rqwuu03gfeq4srbhucpch

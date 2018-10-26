@@ -3,7 +3,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 public class HurricaneSimulationDataset {
 
     private String absTime;
-    private String hazardDatasetId;
+    private String datasetId;
     //Include demandType and units?
 
 
@@ -15,11 +15,11 @@ public class HurricaneSimulationDataset {
         this.absTime = absTime;
     }
 
-    public String getHazardDatasetId() {
-        return hazardDatasetId;
+    public String getDatasetId() {
+        return datasetId;
     }
 
-    public void setHazardDatasetId(String hazardDatasetId) {
-        this.hazardDatasetId = hazardDatasetId;
+    public void setDatasetId(String datasetId) {
+        this.datasetId = datasetId;
     }
 }
