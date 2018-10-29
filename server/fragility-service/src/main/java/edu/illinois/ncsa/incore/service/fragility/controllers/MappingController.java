@@ -21,6 +21,7 @@ import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.FragilityMapper;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.*;
 import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
 import org.geojson.Feature;
@@ -47,12 +48,13 @@ public class MappingController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Gets list of fragility mappings", notes="Apply filters to get the desired set of fragility mappings")
     public List<MappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
-                                        @QueryParam("hazard") String hazardType,
-                                        @QueryParam("inventory") String inventoryType,
-                                        @QueryParam("creator") String creator,
-                                        @QueryParam("skip") int offset,
-                                        @DefaultValue("100") @QueryParam("limit") int limit) {
+                                        @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
+                                        @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
+                                        @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
+                                        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -88,7 +90,9 @@ public class MappingController {
     @GET
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username, @PathParam("mappingSetId") String id) {
+    @ApiOperation(value = "Gets a fragility mapping set by Id", notes="Get a particular fragility mapping set based on the id provided")
+    public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
+                                        @ApiParam(value="hexadecimal fragility mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
@@ -106,7 +110,9 @@ public class MappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username, MappingSet mappingSet) {
+    @ApiOperation(value = "Create a fragility Mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
+    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
+                                    @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
         mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         mappingSet.setCreator(username);
         this.mappingDAO.saveMappingSet(mappingSet);
@@ -117,6 +123,8 @@ public class MappingController {
     @Path("{mappingSetId}/matched")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Map each inventory to a fragility set Id based on the input mapping Id",
+        notes="Returns a json where key is the inventory id that is mapped to a fragility set id based on the input mapping id")
     public MappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
                                           @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
