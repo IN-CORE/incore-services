@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.fragility.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import io.swagger.annotations.*;
@@ -47,7 +46,6 @@ import java.util.stream.Collectors;
         )
     ),
 
-    host = "localhost:8080",
     consumes = {"application/json"},
     produces = {"application/json"},
     schemes = {SwaggerDefinition.Scheme.HTTP}
