@@ -14,6 +14,8 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Space;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -29,6 +31,9 @@ import java.util.List;
  * Created by ywkim on 7/26/2017.
  */
 
+//TODO: Not enabling swagger docs because this controller is out of date with using X-Credential-Username
+//@Api(value="spaces", authorizations = {})
+
 @Path("spaces")
 public class SpaceController {
     private Logger logger = Logger.getLogger(SpaceController.class);
@@ -42,6 +47,7 @@ public class SpaceController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gets the list of all available INCORE Dataset spaces", notes = "")
     public List<Space> getSpaceList() {
         List<Space> spaces = repository.getAllSpaces();
 

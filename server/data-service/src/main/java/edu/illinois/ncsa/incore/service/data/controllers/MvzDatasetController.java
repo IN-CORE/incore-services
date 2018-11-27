@@ -14,6 +14,8 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -24,6 +26,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
+//TODO: Not enabling swagger docs because this controller is out of date with using X-Credential-Username
+//@Api(value="mvzdatasets", authorizations = {})
+
 @Path("mvzdatasets")
 public class MvzDatasetController {
     private Logger logger = Logger.getLogger(MvzDatasetController.class);
@@ -31,13 +36,10 @@ public class MvzDatasetController {
     @Inject
     private IRepository repository;
 
-    //http://localhost:8080/data/api/spaces
-    /**
-     * return list of spaces in the database
-     * @return list of spaces
-     */
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gets the list of all MVZ Datasets", notes = "")
     public List<MvzDataset> getMvzDatasetList() {
         List<MvzDataset> mvzDatasets = repository.getAllMvzDatasets();
         if (mvzDatasets == null) {

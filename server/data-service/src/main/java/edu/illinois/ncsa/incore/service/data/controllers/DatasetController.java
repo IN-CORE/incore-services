@@ -24,6 +24,7 @@ import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
+import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -48,6 +49,29 @@ import java.util.stream.Collectors;
  * Created by ywkim on 7/26/2017.
  */
 
+@SwaggerDefinition(
+    info = @Info(
+        description = "Data Services for INCORE to inject and access datasets",
+        version = "v0.2.0",
+        title = "Incore v2 Data Services API",
+        contact = @Contact(
+            name = "Jong S. Lee",
+            email = "jonglee@illinois.edu",
+            url = "http://resilience.colostate.edu"
+        ),
+        license = @License(
+            name = "Mozilla Public License 2.0 (MPL 2.0)",
+            url = "https://www.mozilla.org/en-US/MPL/2.0/"
+        )
+    ),
+    consumes = {"application/json"},
+    produces = {"application/json"},
+    schemes = {SwaggerDefinition.Scheme.HTTP}
+
+)
+
+@Api(value="datasets", authorizations = {})
+
 @Path("datasets")
 public class DatasetController {
     private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
@@ -68,16 +92,12 @@ public class DatasetController {
     private IAuthorizer authorizer;
 
 
-    /**
-     * Returns a list of datasets in the Dataset collection
-     *
-     * @param datasetId dataset id for querying the dataset content from datase
-     * @return dataset object
-     */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Dataset getDatasetFromRepo(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
+    @ApiOperation(value = "Gets a dataset from the Dataset collection", notes="")
+    public Dataset getDatasetbyId(@HeaderParam("X-Credential-Username") String username,
+                                      @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
@@ -91,20 +111,15 @@ public class DatasetController {
         return dataset;
     }
 
-    /**
-     * query dataset by using either title or type or both
-     *
-     * @param typeStr
-     * @param titleStr
-     * @return
-     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gets a list of datasets", notes="Can filter by type, title, creator etc.")
     public List<Dataset> getDatasets(@HeaderParam("X-Credential-Username") String username,
-                                     @QueryParam("type") String typeStr,
-                                     @QueryParam("title") String titleStr,
-                                     @QueryParam("creator") String creator,
-                                     @QueryParam("space") String space
+                                     @ApiParam(value = "DataType of INCORE datasets. Can filter by partial datatype strings. ex: ergo:buildingInventoryVer5, ergo:census",
+                                         required = false) @QueryParam("type") String typeStr,
+                                     @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
+                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
+                                     @ApiParam(value = "INCORE space the datasets belong to. ex: ergo, incore etc.", required = false) @QueryParam("space") String space
                                      ) {
         List<Dataset> datasets = null;
         if (typeStr != null && titleStr == null) {  // query only for the type
@@ -129,16 +144,12 @@ public class DatasetController {
             .collect(Collectors.toList());
     }
 
-    /**
-     * Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset
-     *
-     * @param datasetId id of the Dataset in mongodb
-     * @return
-     */
     @GET
     @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
+    @ApiOperation(value = "Returns a zip file that contains all the files attached to a dataset specified by {id}", notes="")
+    public Response getFileByDataset(@HeaderParam("X-Credential-Username") String username,
+                                     @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         File outFile = null;
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
@@ -169,16 +180,14 @@ public class DatasetController {
         }
     }
 
-    /**
-     * provide list of FileDescriptor by dataset id
-     *
-     * @param datasetId
-     * @return
-     */
+
     @GET
     @Path("{id}/files")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<FileDescriptor> getDatasets(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
+    @ApiOperation(value = "Gets the list of files associated with the dataset and their metadata", notes = "")
+
+    public List<FileDescriptor> getDatasetsFiles(@HeaderParam("X-Credential-Username") String username,
+                                            @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
@@ -197,17 +206,14 @@ public class DatasetController {
         return fds;
     }
 
-    /**
-     * Returns a file that is attached to a FileDescriptor specified by dataset and fileDescriptor id
-     *
-     * @param id
-     * @param fileId
-     * @return
-     */
+
     @GET
     @Path("{id}/files/{file_id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByFileDescriptor(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String id, @PathParam("file_id") String fileId) {
+    @ApiOperation(value = "Returns a file that is attached to a FileDescriptor of a dataset", notes="")
+    public Response getFileByFileDescriptor(@HeaderParam("X-Credential-Username") String username,
+                                            @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
+                                            @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
         File outFile = null;
         Dataset dataset = repository.getDatasetById(id);
         if (dataset == null) {
@@ -251,17 +257,14 @@ public class DatasetController {
         }
     }
 
-    /**
-     * get file descriptor by datasetid and file descriptor id
-     *
-     * @param id
-     * @param fileId
-     * @return
-     */
+
     @GET
     @Path("{id}/files/{file_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public FileDescriptor getFileByDatasetIdFileDescriptor(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String id, @PathParam("file_id") String fileId) {
+    @ApiOperation(value = "Gets metadata of a file associated to a dataset", notes="")
+    public FileDescriptor getFileByDatasetIdFileDescriptor(@HeaderParam("X-Credential-Username") String username,
+                                                           @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
+                                                           @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
         Dataset dataset = repository.getDatasetById(id);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + id);
@@ -292,17 +295,12 @@ public class DatasetController {
         return fileDescriptor;
     }
 
-    /**
-     * ingest dataset object using json
-     *
-     * @param username
-     * @param inDatasetJson
-     * @return
-     */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Dataset ingestDataset(@HeaderParam("X-Credential-Username") String username, @FormDataParam("dataset") String inDatasetJson) {
+    @ApiOperation(value = "Ingest dataset object as json", notes="Files have to uploaded to the dataset separately using {id}/files endpoint")
+    public Dataset ingestDataset(@HeaderParam("X-Credential-Username") String username,
+                                 @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("dataset") String inDatasetJson) {
         if (username == null) {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
@@ -386,18 +384,14 @@ public class DatasetController {
         return dataset;
     }
 
-    /**
-     * delete dataset from database and attached information like files and geoserver layer
-     *
-     * @param username
-     * @param datasetId
-     * @return
-     */
+
     @DELETE
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    public Dataset deleteDataset(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId) {
+    @ApiOperation(value = "Deletes a dataset", notes="Also deletes attached information like files and geoserver layer")
+    public Dataset deleteDataset(@HeaderParam("X-Credential-Username") String username,
+                                 @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         if (username == null) {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
@@ -458,18 +452,16 @@ public class DatasetController {
         return dataset;
     }
 
-    /**
-     * upload file(s) to attach to a dataset by FileDescriptor
-     *
-     * @param datasetId
-     * @param inputs
-     * @return
-     */
+
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/files")
-    public Dataset uploadFiles(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId, FormDataMultiPart inputs) {
+    @ApiOperation(value = "Upload file(s) to attach to a dataset", notes="GIS files like shp, tif etc. are also uploaded to INCORE geoserver")
+    public Dataset uploadFiles(@HeaderParam("X-Credential-Username") String username,
+                               @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
+                               @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'", required = true)
+                                       FormDataMultiPart inputs) {
 
         if (username == null) {
             logger.error("Credential user name should be provided.");
@@ -603,18 +595,15 @@ public class DatasetController {
         return dataset;
     }
 
-    /**
-     * file(s) to upload to attach to a dataset by FileDescriptor
-     *
-     * @param datasetId
-     * @param inDatasetJson
-     * @return
-     */
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    public Object updateObject(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId, @FormDataParam("update") String inDatasetJson) {
+    @ApiOperation(value = "Updates the dataset's JSON associated with a dataset id", notes="This will not upload file content of the dataset to the server, " +
+        "they should be done separately using {id}/files endpoint")
+    public Object updateObject(@HeaderParam("X-Credential-Username") String username,
+                               @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
+                               @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
             logger.error("Posted json is not a valid json.");
