@@ -1,19 +1,17 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.linearref.LinearLocation;
-import com.vividsolutions.jts.linearref.LocationIndexedLine;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
-import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
+import java.util.stream.Collectors;
+import static java.lang.Math.*;
+
 import org.apache.log4j.Logger;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -44,7 +42,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
 
 import javax.ws.rs.NotFoundException;
@@ -100,7 +97,7 @@ public class GISHurricaneUtils {
     public static Polygon cubaPolygon;
     public static Polygon jamaicaPolygon;
 
-    public static final List<Integer> CIRCULAR_ZONE_DISTS = Arrays.asList(10, 50, 100, 300);
+    public static final List<Integer> CIRCULAR_ZONE_DISTS = Arrays.asList(10000, 50000, 100000, 300000); //meters from coast
 
     //public static GeodeticCalculator geodeticCalculator;
 
@@ -815,6 +812,49 @@ public class GISHurricaneUtils {
         return  circles;
     }
 
+    public static List<Double> createRegionRadii(double tangentDist){
+        List<Double> regionRadii = new ArrayList<>();
+
+        for (int dist: CIRCULAR_ZONE_DISTS) {
+            regionRadii.add(dist + tangentDist);
+        }
+        return regionRadii;
+    }
+
+    /**
+     * Gets distance between two points on earth
+     * @param p1
+     * @param p2
+     * @param method
+     * @return
+     */
+    public static double getGeogDistance(Point p1, Point p2, String method){
+        double distance = 0;
+
+        double lamda1=p1.getX()*Math.PI/180;
+        double lamda2=p2.getX()*Math.PI/180;
+        double phi1=p1.getY()*Math.PI/180;
+        double phi2=p2.getY()*Math.PI/180;
+
+        double deltaPhi=phi1-phi2;
+        double deltaLamda=lamda1-lamda2;
+
+        if(method == "hwind"){
+            double a = pow(sin(deltaPhi/2), 2);
+            double c = 2*atan2(sqrt(a),sqrt(1-a));
+
+            double deltaY = HurricaneUtil.R_EARTH * c * signum(deltaPhi);
+
+            double a1=pow(cos(HurricaneUtil.PARA/180*PI), 2) * pow(sin(deltaLamda/2),2);
+
+            double c1=2*atan2(sqrt(a1),sqrt(1-a1));
+
+            double deltaX=HurricaneUtil.R_EARTH*c1*signum(deltaLamda);
+
+            distance =sqrt(pow(deltaY, 2) + pow(deltaX,2));
+        }
+        return distance;
+    }
 
     /**
      * main method for testing
@@ -840,7 +880,13 @@ public class GISHurricaneUtils {
             String json = new String( readAllBytes );
 
             List<HurricaneSimulationDataset> l = processHurricaneFromJson(json, 6, "vnarah2");
-            int j = 0;
+
+            Point p1 = geometryFactory.createPoint(new Coordinate(-80.58398121668098, 28.077842354237724));
+            Point p2 = geometryFactory.createPoint(new Coordinate(-82.20277561165092, 26.45906346358401));
+
+            double dist = getGeogDistance(p1, p2, "hwind");
+            System.out.println(dist);
+
         } catch(IOException e){
 
         }

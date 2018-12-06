@@ -11,47 +11,25 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 
 import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.linearref.LinearLocation;
-import com.vividsolutions.jts.linearref.LocationIndexedLine;
-import com.vividsolutions.jts.operation.distance.DistanceOp;
-import com.vividsolutions.jts.util.GeometricShapeFactory;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
-import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneWindfieldResult;
-import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
-import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.complex.ComplexFormat;
 import org.apache.log4j.Logger;
-import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.geometry.jts.JTS;
-//import org.geotools.geometry;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
-import javax.swing.plaf.synth.SynthEditorPaneUI;
 import javax.ws.rs.*;
-import javax.xml.ws.Service;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
 import static java.lang.Math.*;
 
 
@@ -81,8 +59,8 @@ public class HurricaneCalc {
         //IncorePoint landfallPoint = landfallLoc.getLocation();
         List<Double> timeNewRadii = (List<Double>) params.get("time_radii_new");
 
-        ComplexFormat cf = new ComplexFormat("j");
-        Complex vt0 =  cf.parse(Vt0New.get(0));
+        Complex vt0 = HurricaneUtil.parseComplexString(Vt0New.get(0), 'j');
+
 
         double x1 = vt0.getReal();
         double y1 = vt0.getImaginary();
@@ -99,14 +77,14 @@ public class HurricaneCalc {
         List<Complex> VTsSimu = new ArrayList<Complex>();
 
         for(String s: Vt0New){
-            Complex c1 = cf.parse(s);
+            Complex c1 = HurricaneUtil.parseComplexString(s, 'j');
             double abNew = c1.abs();
             double angle = c1.getArgument();
 
-            VTsSimu.add(HurricaneUtil.polar(abNew, angle+th));
+            VTsSimu.add(HurricaneUtil.convertToPolar(abNew, angle+th));
         }
 
-        List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii ,VTsSimu, landfallLoc, indexLandfall);
+            List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii ,VTsSimu, landfallLoc, indexLandfall);
 
         if(!model.toLowerCase().equals("isabel") && !model.toLowerCase().equals("frances")){
             VTsSimu.remove(indexLandfall);
@@ -170,7 +148,7 @@ public class HurricaneCalc {
         } catch(Exception e){
             throw new NotFoundException("dsa");
         }
-        //TODO: Add finally to cleanup all threads
+        //TODO: Add finally to cleanup all threads. Is it even needed?
     }
 
     public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
@@ -190,7 +168,7 @@ public class HurricaneCalc {
             radiusM, rfMethod);
 
         List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal);
-        //hsim.setSurfaceVelocity(strList);
+        //hsim.setSurfaceVelocity(strList); //Uncomment to see complex values too
         hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
 
 
@@ -396,8 +374,6 @@ public class HurricaneCalc {
             int absSizeOuter = tempAbsVgsOuter.size();
             int absSizeInner = tempAbsVgsInner.size();
 
-            //List<List<Integer>> condsO = new ArrayList<>();
-            //boolean[][] condsO = new boolean[absSizeOuter][nspOuter+1]; //TODO: condsO can be removed?
             Complex[] combVgsOuter = new Complex[absSizeOuter];
             Complex[] combVgsInner = new Complex[absSizeInner];
             Complex[] riVgs = new Complex[thetaMinIndices.size()];
@@ -428,9 +404,7 @@ public class HurricaneCalc {
                 }
             }
 
-            //TODO: Try to put these loops into a function
             // There is enough variation (inner needs outers params too) that it might be better to keep them separate
-
             for (int j = 0; j <= nspInner; j++) {
                 for (int k = 0; k < absSizeInner; k++) {
                     if (j == 0) {
@@ -453,7 +427,6 @@ public class HurricaneCalc {
                         //TODO: Matlab has wi calculations here that seems to do nothing. Test later if thats true.
                         if (tempAbsVgsInner.get(k).get(j - 1) >= vspGInner.get(j - 1)) {
                             combVgsInner[k] = tempVgsOuterForInner.get(k).get(j - 1);
-                            //TODO: Talk to PI why this is done. For me, it seems like this should be Inner
                         }
                     }
                 }
@@ -543,9 +516,7 @@ public class HurricaneCalc {
 
     public static final Complex[][] applyReductionFactor(Complex[] vs, List<Double> latis, List<Double> longis, IncorePoint center,
                                                          JSONArray radiusM, String rfMethod) {
-
         try {
-            //TODO: This will change after reduction code works
             int pointSize = (int) sqrt(vs.length);
 
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
@@ -561,24 +532,29 @@ public class HurricaneCalc {
                     double cLat = cPoint.getY();
                     double cLong = cPoint.getX();
 
-                    HashMap<String, List<Polygon>> allCountryCircles = new HashMap<String, List<Polygon>>();
+                    HashMap<String, List<Double>> allCountryRadii = new HashMap<String, List<Double>>();
 
                     GeometryFactory gf = new GeometryFactory();
 
-                    double tangentDistUsa = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.usaPolygon,
+                    Point tangentPointUsa = GeotoolsUtils.CalcTangentPointToFeatures(GISHurricaneUtils.usaPolygon,
                         cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
-                    double tangentDistMex = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.mexicoPolygon,
+                    Point tangentPointMex = GeotoolsUtils.CalcTangentPointToFeatures(GISHurricaneUtils.mexicoPolygon,
                         cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
-                    double tangentDistCuba = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.cubaPolygon,
+                    Point tangentPointCuba = GeotoolsUtils.CalcTangentPointToFeatures(GISHurricaneUtils.cubaPolygon,
                         cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
-                    double tangentDistJam = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.jamaicaPolygon,
+                    Point tangentPointJam = GeotoolsUtils.CalcTangentPointToFeatures(GISHurricaneUtils.jamaicaPolygon,
                         cLat, cLong, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
 
 
-                    allCountryCircles.put("usa", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistUsa));
-                    allCountryCircles.put("mexico", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistMex));
-                    allCountryCircles.put("cuba", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistCuba));
-                    allCountryCircles.put("jamaica", GISHurricaneUtils.createCircles(cLat, cLong, tangentDistJam));
+                    double tangentDistUsa = GISHurricaneUtils.getGeogDistance(center.getLocation(), tangentPointUsa, "hwind");
+                    double tangentDistMex = GISHurricaneUtils.getGeogDistance(center.getLocation(), tangentPointMex, "hwind");
+                    double tangentDistCuba = GISHurricaneUtils.getGeogDistance(center.getLocation(), tangentPointCuba, "hwind");
+                    double tangentDistJam = GISHurricaneUtils.getGeogDistance(center.getLocation(), tangentPointJam, "hwind");
+
+                    allCountryRadii.put("usa", GISHurricaneUtils.createRegionRadii(tangentDistUsa));
+                    allCountryRadii.put("mexico", GISHurricaneUtils.createRegionRadii(tangentDistMex));
+                    allCountryRadii.put("cuba", GISHurricaneUtils.createRegionRadii(tangentDistCuba));
+                    allCountryRadii.put("jamaica", GISHurricaneUtils.createRegionRadii(tangentDistJam));
 
                     int cord = 0;
                     for (int col = 0; col < pointSize; col++) {
@@ -587,22 +563,22 @@ public class HurricaneCalc {
                             double lat = latis.get(row);
                             Point currPoint = gf.createPoint(new Coordinate(lon, lat));
 
-                            String countryName = GISHurricaneUtils.getCountryFromNAPolygons(lat, lon);
-                            if(!countryName.equals("")){
-                                Polygon c1 = allCountryCircles.get(countryName).get(0);
-                                Polygon c2 = allCountryCircles.get(countryName).get(1);
-                                Polygon c3 = allCountryCircles.get(countryName).get(2);
-                                Polygon c4 = allCountryCircles.get(countryName).get(3);
+                            Double currPointDistance = GISHurricaneUtils.getGeogDistance(currPoint, center.getLocation(), "hwind");
 
+                            String countryName = GISHurricaneUtils.getCountryFromNAPolygons(lat, lon);
+                            reductionFactor = 1;
+
+                            if(!countryName.equals("")){
+                                List<Double> regionsRadii = allCountryRadii.get(countryName);
                                 JSONArray rfArr = getCountryRfMatrix(countryName, radiusM);
 
-                                if(c1.contains(currPoint)){
+                                if(currPointDistance <= regionsRadii.get(0)){
                                     reductionFactor = (Double)rfArr.get(0);
-                                } else if( c2.contains(currPoint)){
+                                } else if(currPointDistance > regionsRadii.get(0) && currPointDistance <= regionsRadii.get(1)){
                                     reductionFactor = (Double)rfArr.get(1);
-                                }else if( c3.contains(currPoint)){
+                                }else if(currPointDistance > regionsRadii.get(1) && currPointDistance <= regionsRadii.get(2)){
                                     reductionFactor = (Double)rfArr.get(2);
-                                }else if( c4.contains(currPoint)){
+                                }else if(currPointDistance > regionsRadii.get(2) && currPointDistance <= regionsRadii.get(3)){
                                     reductionFactor = (Double)rfArr.get(3);
                                 }else{
                                     reductionFactor = (Double)rfArr.get(4);

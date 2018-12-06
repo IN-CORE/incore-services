@@ -89,7 +89,7 @@ public class GeotoolsUtils {
         return sfc;
     }
 
-    public static double CalcShortestDistanceFromPointToFeatures(Object polyObj, double lat, double lon, GeodeticCalculator gc,
+    public static Point CalcTangentPointToFeatures(Object polyObj, double lat, double lon, GeodeticCalculator gc,
                                                                  DefaultGeographicCRS crs, double searchDistLimit, double minDist) {
         Coordinate minDistCoord = null;
         Coordinate pCoord = new Coordinate(lon, lat);
@@ -142,6 +142,15 @@ public class GeotoolsUtils {
             minTouchedPoint = geometryFactory.createPoint(minDistCoord);
         }
 
+        return minTouchedPoint;
+    }
+
+
+    public static double CalcShortestDistanceFromPointToFeatures(Object polyObj, double lat, double lon, GeodeticCalculator gc,
+                                                                 DefaultGeographicCRS crs, double searchDistLimit, double minDist) {
+        Coordinate pCoord = new Coordinate(lon, lat);
+
+        Point minTouchedPoint = CalcTangentPointToFeatures(polyObj, lat, lon, gc, crs, searchDistLimit, minDist);
 
         if (!minTouchedPoint.isEmpty()) {
             // calculation distance between the minTouchedPoint and input point

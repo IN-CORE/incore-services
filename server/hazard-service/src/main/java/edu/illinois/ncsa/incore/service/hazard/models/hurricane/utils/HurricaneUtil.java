@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
-
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
@@ -17,16 +16,15 @@ import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.commons.collections4.ListUtils;
 
 import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.complex.ComplexFormat;
-
 import org.apache.log4j.Logger;
-
 import org.json.simple.JSONArray;
-
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -71,6 +69,48 @@ public class HurricaneUtil {
         });
     }
 
+    /**
+     * Returns a complex number from a string.
+     * @param strComplex String representation of the complex number. ex: "2+i", "-2.1 - 3i", " -7i", "3.4", "1.7e4+340.9i"
+     * @param imgChar imaginary character in the string like i, j etc.
+     * @return Complex number object with real and imaginary values set
+     */
+    public static Complex parseComplexString(String strComplex, char imgChar){
+        String rgxPattern = "^(?=["+imgChar+".\\d+-])([+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?" +
+            "(?!["+imgChar+".\\d]))?([+-]?(?:(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?)?["+imgChar+"])?$";
+
+        Pattern pattern = Pattern.compile(rgxPattern);
+        Matcher matcher = pattern.matcher(strComplex.replace(" ", "")); // Eliminate spaces in the string
+
+        String strImg = "";
+        double real, img;
+        real = img = 0;
+        DecimalFormat df = new DecimalFormat();
+
+        try {
+            while (matcher.find()) {
+                if (matcher.group(1) != null) {
+                    real = df.parse(matcher.group(1)).doubleValue();
+                }
+
+                if (matcher.group(2) != null) {
+                    strImg = matcher.group(2);
+                    if(strImg.trim().charAt(0) == imgChar){  // if imag part is just "i" return 1
+                        img = 1;
+                    }
+                    else{ //repalce i from imaginary Part of the input
+                        img = df.parse(strImg.replaceAll("["+imgChar+"+]","")).doubleValue();
+                    }
+                }
+            }
+        }
+        catch (java.text.ParseException e){
+            System.out.println("Parse Error: "+ strComplex);
+        }
+
+        return new Complex(real, img);
+    }
+
 
     /**
      *
@@ -82,8 +122,6 @@ public class HurricaneUtil {
         List<List<Complex>> retList = new ArrayList<>();
 
         int rows = arr.size();
-        ComplexFormat cf = new ComplexFormat("j");
-
 
         for(int i=0;i < rows; i++){
             List<Complex> rowList = new ArrayList<>();
@@ -93,7 +131,7 @@ public class HurricaneUtil {
                 Object col = row.get(j);
 
                 if(col instanceof String){
-                    rowList.add(cf.parse((String)col));
+                    rowList.add(parseComplexString((String)col, 'j'));
                 }
                 else if(col instanceof Double){
                     rowList.add( new Complex((Double)col, 0));
@@ -178,11 +216,8 @@ public class HurricaneUtil {
         double deltaLong = 0;
         double longi = 0;
 
-        // TODO:Precision difference of .001 in mat lab vs java calculation. Due to default rounding that was applied.
-        //Only in long calculation.
-        //Ex. -79.2014 from matlab is calculated as -79.202741231313
         if(method == "hwind"){
-            deltaLong = 2 * asin(sqrt(a1/(cos(PARA/(Math.PI*180))))) / Math.PI*180;
+            deltaLong = 2 * asin(sqrt(a1/pow(cos(PARA/180*Math.PI),2))) / Math.PI*180;
             longi = centerLong + deltaLong*signum(x);
         }
         else if(method == "real"){ //Migrate these if needed in future calculations.
@@ -216,7 +251,7 @@ public class HurricaneUtil {
      * @param theta
      * @return
      */
-    public static final Complex polar(double rho, double theta) {
+    public static final Complex convertToPolar(double rho, double theta) {
         return (new Complex(rho * Math.cos(theta), rho * Math.sin(theta)));
     }
 
@@ -356,8 +391,6 @@ public class HurricaneUtil {
      */
     public static final Complex HollandGradientWind(Double r, Double theta, Double b, Double fCorolosis,
                                                     Complex rmThetaVsp, Double pc){
-        //TODO: Remove rho and pn from paramters and use global variables.
-
         Complex expImg = (rmThetaVsp.divide(r)).pow(b).negate().exp();
 
         Complex sqrtImg = rmThetaVsp.divide(r).pow(b);
@@ -483,7 +516,6 @@ public class HurricaneUtil {
                         rangeList.add(p);
                     }
                 }
-                //TODO: Test this case with something that is not {16,1}. {14,2} should return {14, 15, 16, 1, 2}
             }
             thetaRangesAll.add(rangeList);
         }
@@ -564,7 +596,7 @@ public class HurricaneUtil {
 
         for (int e:
             fullRange) {
-            List<Integer> tempTheta = thetaRangesAll.get(e-1); //TODO: Test if this will ever be indexoutofbound
+            List<Integer> tempTheta = thetaRangesAll.get(e-1);
             for(int i=0; i<noClass; i++){
                 List<Integer> riCurr = riS.get(i);
                 if(riCurr.containsAll(tempTheta)){
