@@ -231,7 +231,7 @@ http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=3
 POST http://localhost:8080/hazard/api/hurricaneWindfields/
 
 {
-	"name": "Gulf coast cat-1 hurricane",
+	"name": "Florida coast cat-1 hurricane",
 	"description": "Simulated test hurricane",
 	"coast": "florida",
 	"category": 1,
