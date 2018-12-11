@@ -271,7 +271,6 @@ public class EarthquakeController {
             results = new SeismicHazardResults(hazardValue.getPeriod(), hazardValue.getDemand(), hazardResults);
             return results;
         }
-
         return null;
     }
 
