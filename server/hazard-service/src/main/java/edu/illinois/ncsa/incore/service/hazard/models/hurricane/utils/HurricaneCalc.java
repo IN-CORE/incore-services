@@ -10,26 +10,31 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 
-import com.vividsolutions.jts.geom.*;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
+import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 
-import javax.ws.rs.*;
+import javax.ws.rs.NotFoundException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import static java.lang.Math.*;
 
 
@@ -41,7 +46,7 @@ public class HurricaneCalc {
 
 
     public static HurricaneSimulationEnsemble simulateHurricane(String username, double transD, IncorePoint landfallLoc, String model,
-                                                    int resolution, int gridPoints, String rfMethod) {
+                                                                int resolution, int gridPoints, String rfMethod) {
         //TODO: Comeup with a better name for gridPoints
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation
         //This function simulates wind fields for the selected data-driven model
@@ -53,9 +58,9 @@ public class HurricaneCalc {
         // May be it's better to use List
         List<String> Vt0New = (List<String>) params.get("VTs_o_new");
         List<String> times = (List<String>) params.get("times");
-        long longLandfall = (long)params.get("index_landfall");
+        long longLandfall = (long) params.get("index_landfall");
 
-        int indexLandfall = toIntExact(longLandfall) - 1 ; //Converting mat index to java
+        int indexLandfall = toIntExact(longLandfall) - 1; //Converting mat index to java
         //IncorePoint landfallPoint = landfallLoc.getLocation();
         List<Double> timeNewRadii = (List<Double>) params.get("time_radii_new");
 
@@ -69,24 +74,24 @@ public class HurricaneCalc {
         double si = sin(toRadians(transD));
         double co = cos(toRadians(transD));
 
-        double x2 = ab*si;
-        double y2 = ab*co;
+        double x2 = ab * si;
+        double y2 = ab * co;
 
-        double th = atan2(x1*y2-y1*x2,x1*x2+y1*y2);
+        double th = atan2(x1 * y2 - y1 * x2, x1 * x2 + y1 * y2);
 
         List<Complex> VTsSimu = new ArrayList<Complex>();
 
-        for(String s: Vt0New){
+        for (String s : Vt0New) {
             Complex c1 = HurricaneUtil.parseComplexString(s, 'j');
             double abNew = c1.abs();
             double angle = c1.getArgument();
 
-            VTsSimu.add(HurricaneUtil.convertToPolar(abNew, angle+th));
+            VTsSimu.add(HurricaneUtil.convertToPolar(abNew, angle + th));
         }
 
-            List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii ,VTsSimu, landfallLoc, indexLandfall);
+        List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii, VTsSimu, landfallLoc, indexLandfall);
 
-        if(!model.toLowerCase().equals("isabel") && !model.toLowerCase().equals("frances")){
+        if (!model.toLowerCase().equals("isabel") && !model.toLowerCase().equals("frances")) {
             VTsSimu.remove(indexLandfall);
             track.remove(indexLandfall);
         }
@@ -118,7 +123,7 @@ public class HurricaneCalc {
             //int logicalThreads = 7;
             int logicalThreads = 1;
             logicalThreads = Runtime.getRuntime().availableProcessors(); //TODO Logic can be improved?
-            if(logicalThreads > 3){
+            if (logicalThreads > 3) {
                 logicalThreads--;
             }
             ForkJoinPool forkJoinPool = new ForkJoinPool(logicalThreads);
@@ -144,9 +149,9 @@ public class HurricaneCalc {
             hEnsemble.setModelUsed(model);
             hEnsemble.setTimes(times);
             hEnsemble.setHurricaneSimulations(parallelSimResults);
-            return  hEnsemble;
-        } catch(Exception e){
-            throw new NotFoundException("dsa");
+            return hEnsemble;
+        } catch (Exception e) {
+            throw new NotFoundException("Failed Creating the Hurricane");
         }
         //TODO: Add finally to cleanup all threads. Is it even needed?
     }
@@ -568,20 +573,20 @@ public class HurricaneCalc {
                             String countryName = GISHurricaneUtils.getCountryFromNAPolygons(lat, lon);
                             reductionFactor = 1;
 
-                            if(!countryName.equals("")){
+                            if (!countryName.equals("")) {
                                 List<Double> regionsRadii = allCountryRadii.get(countryName);
                                 JSONArray rfArr = getCountryRfMatrix(countryName, radiusM);
 
-                                if(currPointDistance <= regionsRadii.get(0)){
-                                    reductionFactor = (Double)rfArr.get(0);
-                                } else if(currPointDistance > regionsRadii.get(0) && currPointDistance <= regionsRadii.get(1)){
-                                    reductionFactor = (Double)rfArr.get(1);
-                                }else if(currPointDistance > regionsRadii.get(1) && currPointDistance <= regionsRadii.get(2)){
-                                    reductionFactor = (Double)rfArr.get(2);
-                                }else if(currPointDistance > regionsRadii.get(2) && currPointDistance <= regionsRadii.get(3)){
-                                    reductionFactor = (Double)rfArr.get(3);
-                                }else{
-                                    reductionFactor = (Double)rfArr.get(4);
+                                if (currPointDistance <= regionsRadii.get(0)) {
+                                    reductionFactor = (Double) rfArr.get(0);
+                                } else if (currPointDistance > regionsRadii.get(0) && currPointDistance <= regionsRadii.get(1)) {
+                                    reductionFactor = (Double) rfArr.get(1);
+                                } else if (currPointDistance > regionsRadii.get(1) && currPointDistance <= regionsRadii.get(2)) {
+                                    reductionFactor = (Double) rfArr.get(2);
+                                } else if (currPointDistance > regionsRadii.get(2) && currPointDistance <= regionsRadii.get(3)) {
+                                    reductionFactor = (Double) rfArr.get(3);
+                                } else {
+                                    reductionFactor = (Double) rfArr.get(4);
                                 }
                             }
                             vsReduced[row][col] = vs[cord].multiply(reductionFactor);
@@ -622,8 +627,7 @@ public class HurricaneCalc {
                         }
                     }
                 }
-            }
-            else{
+            } else {
                 int cord = 0;
                 for (int col = 0; col < pointSize; col++) {
                     for (int row = 0; row < pointSize; row++) {
@@ -660,7 +664,7 @@ public class HurricaneCalc {
             ar = (JSONArray) ((JSONObject) radiusM.get(0)).get("mexico");
         } else if (name.equals("cuba")) {
             ar = (JSONArray) ((JSONObject) radiusM.get(2)).get("cuba");
-        } else if (name.equals("jamaica") ) {
+        } else if (name.equals("jamaica")) {
             ar = (JSONArray) ((JSONObject) radiusM.get(3)).get("jam");
         }
         return ar;

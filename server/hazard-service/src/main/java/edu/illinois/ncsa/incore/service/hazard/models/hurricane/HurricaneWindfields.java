@@ -12,30 +12,27 @@ import java.util.List;
 @XmlRootElement
 public class HurricaneWindfields {
 
+    public final String gridResolutionUnits = "km";
+    public final String rasterResolutionUnits = "km";
+    public final String transDUnits = "degrees";
+    public String velocityUnits = "kt";
     @Id
     @Property("_id")
     private ObjectId id;
-
     private Privileges privileges;
-
     private String name;
     private String description;
-
     private int gridResolution;
-    public final String gridResolutionUnits = "km";
     private double rasterResolution;
-
-    public final String rasterResolutionUnits = "km";
     private double transD;
-    public final String transDUnits = "degrees";
     private String landfallLocation;
     private String modelUsed;
     private String coast;
     private int category;
-    public String velocityUnits = "kt";
-
     private int gridPoints;
     private String rfMethod = "circular";
+    private List<String> times = new ArrayList();
+    private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
 
     public String getVelocityUnits() {
         return velocityUnits;
@@ -44,9 +41,6 @@ public class HurricaneWindfields {
     public void setVelocityUnits(String velocityUnits) {
         this.velocityUnits = velocityUnits;
     }
-
-    private List<String> times = new ArrayList();
-    private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
 
     public String getId() {
         return id.toString();
@@ -165,9 +159,9 @@ public class HurricaneWindfields {
         this.description = description;
     }
 
-    public String findFullPathDatasetId(){
-        for(HurricaneSimulationDataset ds: this.hazardDatasets){
-            if(ds.getAbsTime().contains("full time")){
+    public String findFullPathDatasetId() {
+        for (HurricaneSimulationDataset ds : this.hazardDatasets) {
+            if (ds.getAbsTime().contains("full time")) {
                 return ds.getDatasetId();
             }
         }
