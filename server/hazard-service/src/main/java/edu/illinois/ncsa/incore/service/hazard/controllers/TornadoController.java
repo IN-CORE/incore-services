@@ -128,6 +128,24 @@ public class TornadoController {
     }
 
     @GET
+    @Path("{tornado-id}/value")
+    @Produces({MediaType.APPLICATION_JSON})
+    public WindHazardResult getScenarioTornadoHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+        ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
+        if (tornado != null) {
+            Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
+
+            try {
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation);
+            } catch (Exception e) {
+                throw new InternalServerErrorException("Error computing hazard.", e);
+            }
+        } else {
+            throw new NotFoundException("Tornado with id " + tornadoId + " was not found.");
+        }
+    }
+
+    @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     public List<WindHazardResult> getScenarioTornadoHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
