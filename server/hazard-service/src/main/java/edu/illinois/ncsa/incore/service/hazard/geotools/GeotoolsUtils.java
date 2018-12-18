@@ -140,7 +140,7 @@ public class GeotoolsUtils {
                 gc.setStartingPosition(JTS.toDirectPosition(minTouchedPoint.getCoordinate(), crs));
                 gc.setDestinationPosition(JTS.toDirectPosition(pCoord, crs));
             } catch (TransformException e) {
-                e.printStackTrace();
+                logger.error("touching point does not exist: " + e);
             }
 
             double distance = gc.getOrthodromicDistance();
@@ -308,7 +308,7 @@ public class GeotoolsUtils {
             }
 
         } else {
-            logger.error(typeName + " does not support read/write access"); //$NON-NLS-1$
+            logger.error(typeName + " does not support read/write access");
             System.exit(1);
         }
     }
@@ -343,7 +343,7 @@ public class GeotoolsUtils {
             return p;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to open file: " + e);
         }
 
         return p;
