@@ -112,9 +112,6 @@ POST - Create probabilistic earthquake
 
 GET value from a scenario earthquake
 
-http://localhost:8080/hazard/api/earthquakes/{id}/value?demandType=0.2+SA&demandUnits=g&siteLat=35.07899&siteLong=-90.0178
-Value: 0.3502
-
 Site Amplification
 http://localhost:8080/hazard/api/earthquakes/soil/amplification?method=NEHRP&demandType=0.2+SA&siteLat=35.07899&siteLong=-90.0178&hazard=0.3502&defaultSiteClass=D
 1.51984
