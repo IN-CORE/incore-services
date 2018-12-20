@@ -271,20 +271,15 @@ public class EarthquakeController {
             results = new SeismicHazardResults(hazardValue.getPeriod(), hazardValue.getDemand(), hazardResults);
             return results;
         }
-
         return null;
     }
 
     @GET
     @Path("{earthquake-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<SeismicHazardResult> getScenarioEarthquakeHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard, @QueryParam("point") List<Double> points) {
+    public List<SeismicHazardResult> getScenarioEarthquakeHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard, @QueryParam("point") List<IncorePoint> points) {
 
         Earthquake eq = getEarthquake(earthquakeId, username);
-        if (points.size() % 2 != 0) {
-            logger.error("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
-            throw new BadRequestException("List of points to obtain earthquake hazard values must contain pairs of latitude and longitude values.");
-        }
 
         String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
 
@@ -295,14 +290,9 @@ public class EarthquakeController {
                 EarthquakeModel earthquake = (EarthquakeModel) eq;
                 attenuations = attenuationProvider.getAttenuations(earthquake);
             }
+            for (IncorePoint point : points) {
+                Site localSite = new Site(point.getLocation());
 
-            for (int index = 0; index < points.size(); index += 2) {
-                double siteLat = points.get(index);
-                double siteLong = points.get(index + 1);
-
-                Site localSite = new Site(factory.createPoint(new Coordinate(siteLong, siteLat)));
-
-                // TODO spectrum override should be part of the endpoint parameters
                 try {
                     hazardResults.add(HazardCalc.getGroundMotionAtSite(eq, attenuations, localSite, demandComponents[0], demandComponents[1], demandUnits, 0, amplifyHazard, username));
                 } catch (Exception e) {
@@ -315,15 +305,6 @@ public class EarthquakeController {
             logger.error("Could not find scenario earthquake with id " + earthquakeId);
             throw new NotFoundException("Could not find scenario earthquake with id " + earthquakeId);
         }
-    }
-
-    @GET
-    @Path("{earthquake-id}/value")
-    @Produces({MediaType.APPLICATION_JSON})
-    @Deprecated
-    public SeismicHazardResult getScenarioEarthquakeHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("earthquake-id") String earthquakeId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
-        List<Double> points = new ArrayList<>(Arrays.asList(siteLat, siteLong));
-        return getScenarioEarthquakeHazardValues(username, earthquakeId, demandType, demandUnits, amplifyHazard, points).get(0);
     }
 
     @GET

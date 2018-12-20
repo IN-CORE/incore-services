@@ -16,6 +16,8 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomAngleTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanLengthWidthAngleTornado;
@@ -146,21 +148,18 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<WindHazardResult> getScenarioTornadoHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<Double> points, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
-        if (points.size() % 2 != 0) {
-            logger.error("List of points to obtain tornado hazard values must contain pairs of latitude and longitude values.");
-            throw new BadRequestException("List of points to obtain tornado hazard values must contain pairs of latitude and longitude values.");
-        }
+    public List<WindHazardResult> getScenarioTornadoHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
 
         ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
+        List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
         if (tornado != null) {
-            List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
-            for (int index = 0; index < points.size(); index += 2) {
-                double siteLat = points.get(index);
-                double siteLong = points.get(index + 1);
-                Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
-
-                hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation));
+            for (IncorePoint point : points) {
+                try {
+                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation));
+                } catch (UnsupportedHazardException e) {
+                    logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are supported", e);
+                    // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
+                }
             }
 
             return hazardResults;
