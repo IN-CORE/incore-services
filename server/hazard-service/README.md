@@ -120,12 +120,12 @@ http://localhost:8080/hazard/api/earthquakes/soil/amplification?method=NEHRP&dem
 1.51984
 
 GET values from a scenario earthquake, all values must be for the same demand type and period, order of points should be latitude then longitude
-http://localhost:8080/hazard/api/earthquakes/{id}/values?demandType=0.2+SA&demandUnits=g&point=35.07899&point=-90.0178&point=35.17899&point=-90.0178&point=35.07899&point=-90.1178
+http://localhost:8080/hazard/api/earthquakes/{id}/values?demandType=0.2+SA&demandUnits=g&point=35.07899,-90.0178&point=35.17899,-90.0178&point=35.07899,-90.1178
 
 ### Get Liquefaction Values
 
 GET
-http://localhost:8080/hazard/api/earthquakes/{id}/liquefaction/values?geologyDataset=5b0f05a5c6a4925f6fa3be72&demandUnits=in&point=35.07899&point=-90.0178&point=35.17899&point=-90.0178
+http://localhost:8080/hazard/api/earthquakes/{id}/liquefaction/values?geologyDataset=5b0f05a5c6a4925f6fa3be72&demandUnits=in&point=35.07899,-90.0178&point=35.17899,-90.0178
 
 ### Generate Raster
 
@@ -172,9 +172,12 @@ so the correct dataset and metadata are associated.
   ]
 }
 
+### Get Value from Tsunami
+
 GET /values
 
 http://localhost:8080/hazard/api/tsunamis/{id}/values?demandType=Vmax&demandUnits=m/s&point=long,lat
+http://localhost:8080/hazard/api/tsunamis/{id}/values?demandType=hmax&demandUnits=m&point=46.006,-123.935&point=46.007,-123.969
 
 ## Tornadoes
 
@@ -222,7 +225,7 @@ value should be between 65 and 85 mph
 http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35.2286&siteLong=-97.4770
 value should be between 136 and 165 mph
 
-http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=35.1393&point=-89.9996&point=35.207&point=-89.871
+http://localhost:8080/hazard/api/tornadoes/{id}/values?demandUnits=m&point=35.027,-90.131&point=35.16,-88.88
 
 ## Hurricanes 
 
