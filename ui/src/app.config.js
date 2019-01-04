@@ -25,11 +25,12 @@ const prodConfig = {
 const config = getConfig();
 
 function getConfig() {
-	if (process.env.NODE_ENV === "production") {
-		return prodConfig;
-	} else {
-		return devConfig;
-	}
+	// if (process.env.NODE_ENV === "production") {
+	// 	return prodConfig;
+	// } else {
+	// 	return devConfig;
+	// }
+	return prodConfig;
 }
 
 export default config;
