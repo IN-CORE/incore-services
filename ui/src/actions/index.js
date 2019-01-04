@@ -29,13 +29,12 @@ export function receiveAnalysis(api: string, json:Analysis) {
 }
 
 export const RECEIVE_DATASETS = "RECEIVE_DATASETS";
-
-export function receiveDatasets(json: Dataset) {
+export function receiveDatasets(type: string, json: Dataset) {
 	return(dispatch: Dispatch) => {
 		dispatch({
-			type: RECEIVE_DATASETS,
+			type: type,
 			datasets: json,
-			receivedAt: Date.now()
+			receivedAt: Date.now(),
 		});
 	};
 }
@@ -72,17 +71,25 @@ export function getAnalysisById(id: String) {
 
 export function fetchDatasets() {
 	const endpoint = config.dataService;
-
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint, {
-			headers: getHeader()
-		})
-			.then(response => response.json())
-			.then(json =>
-				dispatch(receiveDatasets(json))
-			);
+		return fetch(endpoint, { mode:"cors", headers: getHeader() })
+			.then(response =>
+				Promise.all([response.status, response.json()])
+			)
+			.then(([status, json]) =>{
+				if (status === 200 ){
+					dispatch(receiveDatasets(RECEIVE_DATASETS, json));
+				}
+				else if (status === 403){
+					dispatch(receiveDatasets(LOGIN_ERROR, {}));
+				}
+				else{
+					dispatch(receiveDatasets(RECEIVE_DATASETS, {}));
+				}
+			});
 	};
 }
+
 
 export async function loginHelper(username, password) {
 	const endpoint = config.authService;
@@ -102,9 +109,7 @@ export async function loginHelper(username, password) {
 export const LOGIN_ERROR = "LOGIN_ERROR";
 export const SET_USER = "SET_USER";
 export function login(username, password) {
-
 	return async(dispatch: Dispatch) => {
-
 		const json = await loginHelper(username, password);
 		if(typeof(Storage) !== "undefined" && json["auth-token"] !== undefined ) {
 			sessionStorage.setItem("auth", json["auth-token"]);
@@ -121,6 +126,25 @@ export function login(username, password) {
 		}
 
 	};
+}
+
+export function readCredentials(tokens){
+	// if there's token passed in, reset the sessionStorage to save that token
+	if(typeof(Storage) !== "undefined" && tokens["auth-token"] !== undefined && tokens["user"] !== undefined) {
+		sessionStorage.setItem("auth", tokens["auth-token"]);
+		sessionStorage.setItem("user", tokens["user"]);
+	}
+
+	// if not token passed in, as well as no token in the session storage
+	else if (sessionStorage.length === 0) {
+		sessionStorage.setItem("auth", "");
+		sessionStorage.setItem("user", "");
+		console.log("Fail to read credentials from url, and set it to empty string.getting the credentials from sessionStorage instead.");
+	}
+
+	else{
+		console.log("Fail to read credentials from url, and getting the credentials from sessionStorage instead.");
+	}
 }
 
 export const LOGOUT = "LOGOUT";

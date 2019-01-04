@@ -17,6 +17,7 @@ class App extends Component {
 		this.props.logout();
 		browserHistory.push("/");
 	}
+
 	render() {
 
 		let contents = (<div>
@@ -26,13 +27,13 @@ class App extends Component {
 
 		if(this.props.user !== "" && this.props.user !== undefined) {
 			contents = <div>
-					{/*<FlatButton style={{color: "white"}} label="Home"  containerElement={<IndexLink to="/" />} />*/}
-					<FlatButton style={{color: "white"}} label="Fragility Explorer" containerElement={<Link to="/FragilityViewer" />} />
-					<FlatButton style={{color: "white"}} label="Data Explorer" containerElement={<Link to="/DataViewer" />} />
-					<FlatButton style={{color: "white"}} label="Analysis" containerElement={<Link to="/Execute" />} />
-					<FlatButton style={{color: "white"}} label="Help" containerElement={<Link to="/Help" />} />
-					<FlatButton style={{color: "white"}} label="Logout" containerElement={<Link to="/"/>} onClick={this.logout} />
-				</div>;
+				{/*<FlatButton style={{color: "white"}} label="Home"  containerElement={<IndexLink to="/" />} />*/}
+				<FlatButton style={{color: "white"}} label="Fragility Explorer" containerElement={<Link to="/FragilityViewer" />} />
+				<FlatButton style={{color: "white"}} label="Data Explorer" containerElement={<Link to="/DataViewer" />} />
+				<FlatButton style={{color: "white"}} label="Analysis" containerElement={<Link to="/Execute" />} />
+				<FlatButton style={{color: "white"}} label="Help" containerElement={<Link to="/Help" />} />
+				<FlatButton style={{color: "white"}} label="Logout" containerElement={<Link to="/"/>} onClick={this.logout} />
+			</div>;
 		}
 		return (
 			<div>
@@ -46,6 +47,7 @@ class App extends Component {
 			</div>
 		);
 	}
+
 }
 
 App.propTypes = {
