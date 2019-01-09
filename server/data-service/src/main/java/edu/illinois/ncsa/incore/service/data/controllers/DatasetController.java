@@ -51,9 +51,9 @@ import java.util.stream.Collectors;
 
 @SwaggerDefinition(
     info = @Info(
-        description = "Data Services for INCORE to inject and access datasets",
+        description = "IN-CORE Data Service for creating and accessing datasets",
         version = "v0.2.0",
-        title = "Incore v2 Data Services API",
+        title = "IN-CORE v2 Data Services API",
         contact = @Contact(
             name = "Jong S. Lee",
             email = "jonglee@illinois.edu",
@@ -115,12 +115,12 @@ public class DatasetController {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets a list of datasets", notes="Can filter by type, title, creator etc.")
     public List<Dataset> getDatasets(@HeaderParam("X-Credential-Username") String username,
-                                     @ApiParam(value = "DataType of INCORE datasets. Can filter by partial datatype strings. ex: ergo:buildingInventoryVer5, ergo:census",
+                                     @ApiParam(value = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: ergo:buildingInventoryVer5, ergo:census",
                                          required = false) @QueryParam("type") String typeStr,
                                      @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
                                      @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
-                                     @ApiParam(value = "INCORE space the datasets belong to. ex: ergo, incore etc.", required = false) @QueryParam("space") String space
-                                     ) {
+                                     @ApiParam(value = "IN-CORE space the datasets belong to. ex: ergo, incore etc.", required = false) @QueryParam("space") String space
+                                     ){
         List<Dataset> datasets = null;
         if (typeStr != null && titleStr == null) {  // query only for the type
             datasets = repository.getDatasetByType(typeStr);
@@ -457,7 +457,7 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/files")
-    @ApiOperation(value = "Upload file(s) to attach to a dataset", notes="GIS files like shp, tif etc. are also uploaded to INCORE geoserver")
+    @ApiOperation(value = "Upload file(s) to attach to a dataset", notes="GIS files like shp, tif etc. are also uploaded to IN-CORE geoserver")
     public Dataset uploadFiles(@HeaderParam("X-Credential-Username") String username,
                                @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'", required = true)
