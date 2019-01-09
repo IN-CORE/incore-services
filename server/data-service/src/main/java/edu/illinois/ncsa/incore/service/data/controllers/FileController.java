@@ -15,6 +15,9 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -26,6 +29,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+//TODO: Not enabling swagger docs because this controller is out of date with using X-Credential-Username
+//@Api(value="files", authorizations = {})
 
 @Path("files")
 public class FileController {
@@ -34,13 +39,9 @@ public class FileController {
     @Inject
     private IRepository repository;
 
-    /**
-     * get the list of file descriptors
-     *
-     * @return
-     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gets the list of all files' metadata", notes = "")
     public List<FileDescriptor> getFileDescriptorList() {
         List<FileDescriptor> fds = repository.getAllFileDescriptors();
         if (fds == null) {
@@ -50,16 +51,12 @@ public class FileController {
         return fds;
     }
 
-    /**
-     * get file descriptor by file descriptor id
-     *
-     * @param id
-     * @return
-     */
+
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public FileDescriptor getFileDescriptorById(@PathParam("id") String id) {
+    @ApiOperation(value = "Gets metadata of a file's metadata", notes = "")
+    public FileDescriptor getFileDescriptorById(@ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("id") String id) {
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {
             logger.error("Error finding dataset.");
@@ -95,7 +92,8 @@ public class FileController {
     @GET
     @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFileByFileDescriptorId(@PathParam("id") String id) {
+    @ApiOperation(value = "Returns a file linked to the FileDescriptor Object", notes="")
+    public Response getFileByFileDescriptorId(@ApiParam(value = "FileDescriptor Object Id") @PathParam("id") String id) {
         File outFile = null;
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {
