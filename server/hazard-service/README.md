@@ -226,7 +226,7 @@ http://localhost:8080/hazard/api/earthquakes/{id}/values?demandUnits=mph&point=3
 
 ## Hurricanes 
 
-### Create Hurricane Windfield
+### Create Hurricane Windfield (Creates shapefiles of windfield grids in data service)
 
 POST http://localhost:8080/hazard/api/hurricaneWindfields/
 
@@ -242,9 +242,11 @@ POST http://localhost:8080/hazard/api/hurricaneWindfields/
 	"gridPoints": 10
 }
 
-### GET raw JSON of a hurricane simulation
+### Simulate a Hurricane Windfield by returning the result as JSON 
 
-GET http://localhost:8080/hazard/api/hurricanesWindfields/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
+GET http://localhost:8080/hazard/api/hurricaneWindfields/json/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
+
+This API does not store shapefiles in data service and is porbably not needed in production environment
 
 ### GET values from hurricane simulation
 
