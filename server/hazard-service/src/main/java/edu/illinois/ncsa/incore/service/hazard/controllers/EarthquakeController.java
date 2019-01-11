@@ -71,7 +71,6 @@ import java.util.stream.Collectors;
 @Api(value="earthquakes", authorizations = {})
 
 @Path("earthquakes")
-@ApiOperation(value = "Get all earthquakes.")
 @ApiResponses(value = {
     @ApiResponse(code = 500, message = "Internal Server Error")
 })
@@ -192,7 +191,13 @@ public class EarthquakeController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<Earthquake> getEarthquakes(@HeaderParam("X-Credential-Username") String username) {
+    @ApiOperation(value = "Get all earthquakes.")
+    @ApiResponses(value = {
+        @ApiResponse(code = 500, message = "Internal Server Error.")
+    })
+    public List<Earthquake> getEarthquakes(
+        @HeaderParam("X-Credential-Username") String username) {
+
         return repository.getEarthquakes().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
