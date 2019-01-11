@@ -246,7 +246,7 @@ POST http://localhost:8080/hazard/api/hurricaneWindfields/
 
 GET http://localhost:8080/hazard/api/hurricaneWindfields/json/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
 
-This API does not store shapefiles in data service and is porbably not needed in production environment
+This API does not store shapefiles in data service and is probably not needed in production environment
 
 ### GET values from hurricane simulation
 
