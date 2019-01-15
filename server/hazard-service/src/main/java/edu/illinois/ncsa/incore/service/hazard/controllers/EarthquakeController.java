@@ -212,7 +212,7 @@ public class EarthquakeController {
         @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID.")
     })
     public Earthquake getEarthquake(
-        @ApiParam(value = "Earthquake dataset guid from data service", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @HeaderParam("X-Credential-Username") String username) {
 
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
@@ -237,11 +237,11 @@ public class EarthquakeController {
     public SeismicHazardResults getScenarioEarthquakeHazardForBox(
         @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
-        @ApiParam(value = "Liquefaction demand type. g.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Liquefaction demand unit. PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "Bounding box of a raster. min X.", required = true) @QueryParam("minX") double minX,
-        @ApiParam(value = "Bounding box of a raster. min Y.", required = true) @QueryParam("minY") double minY,
-        @ApiParam(value = "Bounding box of a raster. max X.", required = true) @QueryParam("maxX") double maxX,
+        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Bounding box of a raster. Min X.", required = true) @QueryParam("minX") double minX,
+        @ApiParam(value = "Bounding box of a raster. Min Y.", required = true) @QueryParam("minY") double minY,
+        @ApiParam(value = "Bounding box of a raster. Max X.", required = true) @QueryParam("maxX") double maxX,
         @ApiParam(value = "Bounding box of a raster. max Y.", required = true) @QueryParam("maxY") double maxY,
         @ApiParam(value = "Grid spacing.", required = true) @QueryParam("gridSpacing") double gridSpacing,
         @ApiParam(value = "Amplify hazard.", required = false) @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
@@ -326,10 +326,10 @@ public class EarthquakeController {
     public List<SeismicHazardResult> getScenarioEarthquakeHazardValues(
         @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
-        @ApiParam(value = "Liquefaction demand type. ex: g.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Liquefaction demand unit. ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "Amplify hazard.", required = false) @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard,
-        @ApiParam(value = "List of points provided as lat,long. ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
+        @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
         Earthquake eq = getEarthquake(earthquakeId, username);
 
@@ -362,7 +362,7 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets liquefaction(pgd) value", notes="This needs a valid susceptibility dataset as a shapefile for the earthquake location")
+    @ApiOperation(value = "Gets liquefaction(pgd) value.", notes="This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID or geologyDataset id."),
@@ -370,11 +370,11 @@ public class EarthquakeController {
     })
     public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(
         @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service", required = true)  @PathParam("earthquake-id") String earthquakeId,
-        @ApiParam(value = "Geology dataset from data service", required = true) @QueryParam("geologyDataset") String geologyId,
-        @ApiParam(value = "Ground Water Id that currently doesn't do anything") @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId,
-        @ApiParam(value = "Liquefaction demand unit. PGD", required = true)@QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "List of points provided as lat,long. ex: '28.01,-83.85'", required = true) @QueryParam("point") List<IncorePoint> points) {
+        @ApiParam(value = "Earthquake dataset guid from data service.", required = true)  @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Geology dataset from data service.", required = true) @QueryParam("geologyDataset") String geologyId,
+        @ApiParam(value = "Ground Water Id that currently doesn't do anything.") @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId,
+        @ApiParam(value = "Liquefaction demand unit. Ex: PGD", required = true)@QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'", required = true) @QueryParam("point") List<IncorePoint> points) {
         Earthquake eq = getEarthquake(earthquakeId, username);
         // TODO add logging/error for earthquake dataset that it can't be used
         if (eq != null && eq instanceof EarthquakeModel) {
@@ -411,9 +411,9 @@ public class EarthquakeController {
         @ApiParam(value = "Dataset from data service.", required = true) @QueryParam("datasetId") @DefaultValue("") String datasetId,
         @ApiParam(value = "Latitude coordinate of the site.", required = true) @QueryParam("siteLat") double siteLat,
         @ApiParam(value = "Longitude coordinate of the site.", required = true) @QueryParam("siteLong") double siteLong,
-        @ApiParam(value = "Liquefaction demand type. ex: g", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
         @ApiParam(value = "Hazard value.", required = true) @QueryParam("hazard") double hazard,
-        @ApiParam(value = "Default site classification, expected  A, B, C, D, E or F.") @QueryParam("defaultSiteClass") String defaultSiteClass) {
+        @ApiParam(value = "Default site classification. Expected  A, B, C, D, E or F.") @QueryParam("defaultSiteClass") String defaultSiteClass) {
 
         int localSiteClass = HazardUtil.getSiteClassAsInt(defaultSiteClass);
         if (localSiteClass == -1) {
