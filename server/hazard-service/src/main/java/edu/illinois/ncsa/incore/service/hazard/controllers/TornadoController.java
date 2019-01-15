@@ -74,7 +74,7 @@ public class TornadoController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create and post a tornado.")
+    @ApiOperation(value = "Creates a scenario tornado and returns the newly created scenario tornado.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error.")
     })
@@ -135,7 +135,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all information about a tornado.")
+    @ApiOperation(value = "Returns the scenario tornado matching the given id.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID.")
@@ -154,7 +154,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets hazard value.")
+    @ApiOperation(value = "Returns the wind speed at the given location using the specified scenario tornado.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID."),
@@ -185,7 +185,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets hazard value.")
+    @ApiOperation(value = "Returns the wind speed at the given location using the specified scenario tornado.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID."),
@@ -219,7 +219,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/dataset")
     @Produces({MediaType.TEXT_PLAIN})
-    @ApiOperation(value = "Gets a shapefile representing scenario tornado.")
+    @ApiOperation(value = "Gets a shapefile representing scenario tornado. Returns the shapefile zip file with given id.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error.")
     })

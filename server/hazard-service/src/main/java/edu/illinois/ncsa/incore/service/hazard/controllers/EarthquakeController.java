@@ -92,7 +92,9 @@ public class EarthquakeController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create and post an earthquake.")
+    @ApiOperation(value = "Creates a new scenario earthquake and returns the newly created scenario earthquake.",
+        notes="Additionally, a geotiff (raster) is created by default and publish it to data repository. " +
+        "User can create both scenario earthquake (with attenuation) and prob earthquake (with geotiff file upload).")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
@@ -191,7 +193,7 @@ public class EarthquakeController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all earthquakes.")
+    @ApiOperation(value = "Returns all scenario earthquakes.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error.")
     })
@@ -206,7 +208,7 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all information about an earthquake.")
+    @ApiOperation(value = "Returns the scenario earthquake matching the id.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID.")
@@ -228,7 +230,9 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/raster")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets earthquake raster.")
+    @ApiOperation(value = "Returns SeismicHazardResults for the given earthquake id, demand type, demand unit, " +
+        "min/max X/Y, and grid spacing. SeismicHazardResults contains the metadata about the raster data along " +
+        "with a list of HazardResults. Each HazardResult is a lat, long and hazard value.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID."),
@@ -317,7 +321,8 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets hazard value.")
+    @ApiOperation(value = "Gets hazard value. Returns the requested ground shaking parameter (PGA, SA, etc) " +
+        "for a lat/long location using the scenario earthquake specified.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID."),
@@ -362,7 +367,8 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets liquefaction(pgd) value.", notes="This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
+    @ApiOperation(value = "Gets liquefaction (PGD) value.", notes="This needs a valid susceptibility dataset " +
+        "as a shapefile for the earthquake location.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID or geologyDataset id."),
@@ -400,7 +406,9 @@ public class EarthquakeController {
     @GET
     @Path("/soil/amplification")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets earthquake site hazard amplification.")
+    @ApiOperation(value = "Gets earthquake site hazard amplification. Returns the amplified hazard given " +
+        "a methodology (e.g. NEHRP), soil map dataset id (optional), latitude, longitude, ground shaking " +
+        "parameter (PGA, Sa, etc), hazard value, and default site class to use.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid Dataset id."),
@@ -450,7 +458,8 @@ public class EarthquakeController {
     @GET
     @Path("/slope/amplification")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets earthquake slope amplification.")
+    @ApiOperation(value = "Gets earthquake slope amplification. Returns the amplified hazard given " +
+        "latitude, longitude.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 406, message = "Unsupported Format - Possibly the coordinate parameter.")
@@ -465,7 +474,8 @@ public class EarthquakeController {
     @GET
     @Path("models")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets attenuation models.")
+    @ApiOperation(value = "Gets attenuation models. Returns the requested ground shaking parameter " +
+        "(PGA, SA, etc) for a lat/long location using the attenuation model specified.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error.")
     })

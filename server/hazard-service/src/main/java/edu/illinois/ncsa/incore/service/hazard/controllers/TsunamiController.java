@@ -70,7 +70,7 @@ public class TsunamiController {
     @GET
     @Path("{tsunami-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all information about a tsunami.")
+    @ApiOperation(value = "Returns the scenario tsunami matching the given id.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid tsunami ID.")
@@ -92,7 +92,7 @@ public class TsunamiController {
     @GET
     @Path("{tsunami-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets hazard value.")
+    @ApiOperation(value = "Returns the tsunami results using the specified scenario tsunami.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid tsunami ID."),
@@ -123,7 +123,7 @@ public class TsunamiController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create and post a tsunami.")
+    @ApiOperation(value = "Creates a scenario tsunami and returns the newly created scenario tsunami.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error.")
     })

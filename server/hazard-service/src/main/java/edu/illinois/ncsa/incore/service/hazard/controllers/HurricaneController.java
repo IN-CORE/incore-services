@@ -90,7 +90,7 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all information about a hurricane.")
+    @ApiOperation(value = "Returns the scenario hurricane matching the given id.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid hurricane ID.")
@@ -109,7 +109,7 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all information about a hurricane.")
+    @ApiOperation(value = "Returns the hurricane valuesn using the specified scenario hurricane.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error."),
         @ApiResponse(code = 404, message = "Not Found - Invalid hurricane ID.")
@@ -163,7 +163,7 @@ public class HurricaneController {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create and post a hurricane.")
+    @ApiOperation(value = "Creates a scenario hurricane and returns the newly created scenario hurricane.")
     @ApiResponses(value = {
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
