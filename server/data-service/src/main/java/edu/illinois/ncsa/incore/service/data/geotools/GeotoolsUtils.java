@@ -13,6 +13,7 @@
 package edu.illinois.ncsa.incore.service.data.geotools;
 
 import com.opencsv.CSVReader;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
@@ -89,6 +90,56 @@ public class GeotoolsUtils {
         return outTif;
     }
 
+    public static double[] getBboxFromShp(List<File> shpfiles) throws IOException{
+        // create temp dir and copy files to temp dir
+        double[] bbox = new double[4];
+        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        List<File> copiedFileList = null;
+        copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "");
+
+        SimpleFeatureCollection sfc = getSimpleFeatureCollectionFromFileList(copiedFileList);
+        Envelope env = sfc.getBounds();
+        double minx = env.getMinX();
+        double miny = env.getMinY();
+        double maxx = env.getMaxX();
+        double maxy = env.getMaxY();
+
+        bbox[0] = minx;
+        bbox[1] = miny;
+        bbox[2] = maxx;
+        bbox[3] = maxy;
+
+        return bbox;
+    }
+
+    public static SimpleFeatureCollection getSimpleFeatureCollectionFromFileList(List<File> fileList) throws IOException {
+        URL inSourceFileUrl = null;
+        for (File copiedFile : fileList) {
+            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
+            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                inSourceFileUrl = copiedFile.toURI().toURL();
+            }
+        }
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("url", inSourceFileUrl);
+
+        DataStore dataStore = DataStoreFinder.getDataStore(map);
+        String typeName = dataStore.getTypeNames()[0];
+
+        FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
+
+        Filter filter = Filter.INCLUDE;
+        dataStore.dispose();
+        SimpleFeatureCollection sfc = (SimpleFeatureCollection) source.getFeatures(filter);
+
+        return sfc;
+    }
+//
+//    public static String getBboxFromTif(File tif) {
+//
+//    }
+
     /**
      * join csv file to shapefile and create a new shapefile
      *
@@ -129,25 +180,8 @@ public class GeotoolsUtils {
         } else {
             copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "");
         }
-        URL inSourceFileUrl = null;
-        for (File copiedFile : copiedFileList) {
-            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
-            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                inSourceFileUrl = copiedFile.toURI().toURL();
-            }
-        }
 
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("url", inSourceFileUrl);
-
-        DataStore dataStore = DataStoreFinder.getDataStore(map);
-        String typeName = dataStore.getTypeNames()[0];
-
-        FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
-
-        Filter filter = Filter.INCLUDE;
-        dataStore.dispose();
-        SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures(filter);
+        SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFileList(copiedFileList);
 
         SimpleFeatureType sft = inputFeatures.getSchema();
 

@@ -469,7 +469,7 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/files")
-    public Dataset uploadFiles(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId, FormDataMultiPart inputs) {
+    public Dataset uploadFiles(@HeaderParam("X-Credential-Username") String username, @PathParam("id") String datasetId, FormDataMultiPart inputs) throws IOException {
 
         if (username == null) {
             logger.error("Credential user name should be provided.");
@@ -573,6 +573,11 @@ public class DatasetController {
                 logger.error("Error creating temp directory in guid creation process ", e);
                 throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
             }
+
+            // get bounding box information
+            double[] bbox = GeotoolsUtils.getBboxFromShp(files);
+            dataset.setBoundingBox(bbox);
+            repository.addDataset(dataset);
         }
 
         if (isGeoserver) {
