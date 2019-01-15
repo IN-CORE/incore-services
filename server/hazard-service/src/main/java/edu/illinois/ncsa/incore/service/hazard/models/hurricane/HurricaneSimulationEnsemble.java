@@ -1,32 +1,25 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HurricaneSimulationEnsemble {
 
-    private int resolution;
     public final String resolutionUnits = "km";
-    private double transD;
     public final String transDUnits = "degree";
+    public final String velocityUnits = "kt";
+    public final String gridRowType = "latitude";
+    public final String gridColumnType = "longitude";
+    public final String description = "Surface Windfield is simulated for the provided times. A simulated grid that " +
+        "represents the affected area for each time is also returned ";
+    public List<HurricaneSimulation> hurricaneSimulations = new ArrayList();
+    private int resolution;
+    private double transD;
     private String landfallLocation;
     private String modelUsed;
-    public final String velocityUnits = "kt";
-
     private List<String> times = new ArrayList();
     private List<String> centers = new ArrayList();
     private List<String> centerVelocities = new ArrayList();
-
-
-    public final String gridRowType = "latitude";
-    public final String gridColumnType = "longitude";
-
-    public final String description = "Surface Windfield is simulated for the provided times. A simulated grid that " +
-        "represents the affected area for each time is also returned ";
-
-    public List<HurricaneSimulation> hurricaneSimulations = new ArrayList();
 
     public int getResolution() {
         return resolution;
