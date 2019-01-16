@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Api("tornadoes")
 @Path("tornadoes")
@@ -58,14 +59,16 @@ public class TornadoController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<ScenarioTornado> getScenarioTornadoes() {
-        return repository.getScenarioTornadoes();
+    public List<ScenarioTornado> getScenarioTornadoes(@HeaderParam("X-Credential-Username") String username) {
+        return repository.getScenarioTornadoes().stream()
+            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioTornado createScenarioTornado(ScenarioTornado scenarioTornado, @HeaderParam("X-Credential-Username") String username) throws Exception {
+    public ScenarioTornado createScenarioTornado(@HeaderParam("X-Credential-Username") String username, ScenarioTornado scenarioTornado) throws Exception {
         if (scenarioTornado != null) {
             Tornado tornado = null;
 
