@@ -221,9 +221,13 @@ public class TornadoController {
     @Produces({MediaType.TEXT_PLAIN})
     @ApiOperation(value = "Gets a shapefile representing scenario tornado. Returns the shapefile zip file with given id.")
     @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
+        @ApiResponse(code = 500, message = "Internal Server Error."),
+        @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID.")
     })
-    public Response getFile() {
+    public Response getFile(
+        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
+
         // TODO implement this and change MediaType to Octet Stream
         return Response.ok("Shapefile representing scenario tornado not yet implemented.").build();
     }

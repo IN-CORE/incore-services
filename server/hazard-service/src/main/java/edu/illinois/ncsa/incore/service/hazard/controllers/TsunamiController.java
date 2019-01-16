@@ -123,14 +123,14 @@ public class TsunamiController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a scenario tsunami and returns the newly created scenario tsunami.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "tsunami", value = "Tsunami json.", required = true, dataType = "string", paramType = "form"),
+        @ApiImplicitParam(name = "file", value = "Tsunami files.", required = true, dataType = "string", paramType = "form")
     })
     public Tsunami createTsunami(
         @HeaderParam("X-Credential-Username") String username,
-        @FormDataParam("tsunami") String tsunamiJson,
-        @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+        @ApiParam(hidden = true) @FormDataParam("tsunami") String tsunamiJson,
+        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
         ObjectMapper mapper = new ObjectMapper();
         Tsunami tsunami = null;
