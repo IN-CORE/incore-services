@@ -65,11 +65,8 @@ public class HurricaneController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get all hurricanes.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
-    })
     public List<HurricaneWindfields> getHurricaneWindfields(
-        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.") @QueryParam("coast") String coast,
+        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category) {
 
         Map<String, String> queryMap = new HashMap<>();
@@ -91,12 +88,8 @@ public class HurricaneController {
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the scenario hurricane matching the given id.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid hurricane ID.")
-    })
     public HurricaneWindfields getHurricaneWindfieldsById(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
 
         HurricaneWindfields hurricane = repository.getHurricaneById(hurricaneId);
@@ -110,16 +103,12 @@ public class HurricaneController {
     @Path("{hurricaneId}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the hurricane valuesn using the specified scenario hurricane.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid hurricane ID.")
-    })
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
         @ApiParam(value = "Hurricane demand type. Ex. 'velocity'.") @QueryParam("demandType") @DefaultValue("velocity") String demandType,
         @ApiParam(value = "Hurricane demand unit. Ex: 'kT'.") @QueryParam("demandUnits") @DefaultValue("kt") WindfieldDemandUnits demandUnits,
-        @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
+        @ApiParam(value = "List of points provided as lat,long. Ex: '28.09,-80.62'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(username, hurricaneId);
         List<HurricaneWindfieldResult> hurrResults = new ArrayList<>();
@@ -164,11 +153,8 @@ public class HurricaneController {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a scenario hurricane and returns the newly created scenario hurricane.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error")
-    })
     public HurricaneWindfields createHurricaneWindfields(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         HurricaneWindfields inputHurricane) {
 
        HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
@@ -215,16 +201,12 @@ public class HurricaneController {
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Simulate a hurricane.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid hurricane ID.")
-    })
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
-        @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.") @PathParam("coast") String coast,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @PathParam("coast") String coast,
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
         @ApiParam(value = "Huricane landfall direction angle. Ex: 30.5.", required = true) @QueryParam("TransD") double transD,
-        @ApiParam(value = "Huricane landfall location. Ex: '28.01,-83.85'.", required = true) @QueryParam("LandfallLoc") IncorePoint landfallLoc,
+        @ApiParam(value = "Huricane landfall location. Ex: '28.09,-80.62'.", required = true) @QueryParam("LandfallLoc") IncorePoint landfallLoc,
         @ApiParam(value = "Resolution. Ex: 6.", required = true) @QueryParam("resolution") @DefaultValue("6") int resolution,
         @ApiParam(value = "Number of grid points. Ex: 80.", required = true) @QueryParam("gridPoints") @DefaultValue("80") int gridPoints,
         @ApiParam(value = "Reduction type. Ex: 'circular'.", required = true) @QueryParam("reductionType") @DefaultValue("circular") String rfMethod) {

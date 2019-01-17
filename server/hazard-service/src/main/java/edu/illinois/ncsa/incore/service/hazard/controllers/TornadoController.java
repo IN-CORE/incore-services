@@ -63,9 +63,6 @@ public class TornadoController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get all tornadoes.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
-    })
     public List<ScenarioTornado> getScenarioTornadoes() {
         return repository.getScenarioTornadoes();
     }
@@ -75,12 +72,9 @@ public class TornadoController {
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a scenario tornado and returns the newly created scenario tornado.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
-    })
     public ScenarioTornado createScenarioTornado(
         ScenarioTornado scenarioTornado,
-        @HeaderParam("X-Credential-Username") String username) throws Exception {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) throws Exception {
 
         if (scenarioTornado != null) {
             Tornado tornado = null;
@@ -136,12 +130,8 @@ public class TornadoController {
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the scenario tornado matching the given id.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID.")
-    })
     public ScenarioTornado getScenarioTornado(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         ScenarioTornado tornado = repository.getScenarioTornadoById(tornadoId);
@@ -155,17 +145,12 @@ public class TornadoController {
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the wind speed at the given location using the specified scenario tornado.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the point parameter.")
-    })
     public WindHazardResult getScenarioTornadoHazard(
         @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
-        @ApiParam(value = "Tornado demand unit. Ex: 'X'.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "Latitude of a site. Ex: 28.01.", required = true) @QueryParam("siteLat") double siteLat,
-        @ApiParam(value = "Longitude of a site. Ex: -83.85.", required = true) @QueryParam("siteLong") double siteLong,
+        @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Latitude of a site. Ex: 35.027.", required = true) @QueryParam("siteLat") double siteLat,
+        @ApiParam(value = "Longitude of a site. Ex: -90.131.", required = true) @QueryParam("siteLong") double siteLong,
         @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
 
         ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
@@ -186,16 +171,11 @@ public class TornadoController {
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the wind speed at the given location using the specified scenario tornado.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the point parameter.")
-    })
     public List<WindHazardResult> getScenarioTornadoHazardValues(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
-        @ApiParam(value = "Tornado demand unit. Ex: 'X'.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points,
+        @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "List of points provided as lat,long. Ex: '35.027,-90.131'.", required = true) @QueryParam("point") List<IncorePoint> points,
         @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
 
         ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
@@ -220,12 +200,8 @@ public class TornadoController {
     @Path("{tornado-id}/dataset")
     @Produces({MediaType.TEXT_PLAIN})
     @ApiOperation(value = "Gets a shapefile representing scenario tornado. Returns the shapefile zip file with given id.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid tornado ID.")
-    })
     public Response getFile(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         // TODO implement this and change MediaType to Octet Stream

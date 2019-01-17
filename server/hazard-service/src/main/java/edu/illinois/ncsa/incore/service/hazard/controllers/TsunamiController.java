@@ -56,11 +56,8 @@ public class TsunamiController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get all tsunamis.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
-    })
     public List<Tsunami> getTsunamis(
-        @HeaderParam("X-Credential-Username") String username) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
 
         return repository.getTsunamis().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
@@ -71,12 +68,8 @@ public class TsunamiController {
     @Path("{tsunami-id}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the scenario tsunami matching the given id.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid tsunami ID.")
-    })
     public Tsunami getTsunami(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
 
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
@@ -93,17 +86,12 @@ public class TsunamiController {
     @Path("{tsunami-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the tsunami results using the specified scenario tsunami.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid tsunami ID."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the point parameter.")
-    })
     public List<TsunamiHazardResult> getTsunamiHazardValues(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId,
-        @ApiParam(value = "Tsunami demand type. Ex: 'X'.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Tsunami demand unit. Ex: 'X'.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
+        @ApiParam(value = "Tsunami demand type. Ex: 'hmax'.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Tsunami demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "List of points provided as lat,long. Ex: '46.01,-123.94'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
         Tsunami tsunami = getTsunami(username, tsunamiId);
         List<TsunamiHazardResult> tsunamiResults = new LinkedList<>();

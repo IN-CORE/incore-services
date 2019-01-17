@@ -95,11 +95,8 @@ public class EarthquakeController {
     @ApiOperation(value = "Creates a new scenario earthquake and returns the newly created scenario earthquake.",
         notes="Additionally, a geotiff (raster) is created by default and publish it to data repository. " +
         "User can create both scenario earthquake (with attenuation) and prob earthquake (with geotiff file upload).")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error")
-    })
     public Earthquake createEarthquake(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         FormDataMultiPart inputs) {
 
         // TODO finish adding log statements
@@ -194,11 +191,8 @@ public class EarthquakeController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns all scenario earthquakes.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
-    })
     public List<Earthquake> getEarthquakes(
-        @HeaderParam("X-Credential-Username") String username) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
 
         return repository.getEarthquakes().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
@@ -209,13 +203,9 @@ public class EarthquakeController {
     @Path("{earthquake-id}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the scenario earthquake matching the id.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID.")
-    })
     public Earthquake getEarthquake(
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
-        @HeaderParam("X-Credential-Username") String username) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
 
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
         if (earthquake == null) {
@@ -233,13 +223,8 @@ public class EarthquakeController {
     @ApiOperation(value = "Returns SeismicHazardResults for the given earthquake id, demand type, demand unit, " +
         "min/max X/Y, and grid spacing. SeismicHazardResults contains the metadata about the raster data along " +
         "with a list of HazardResults. Each HazardResult is a lat, long and hazard value.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the bounding box parameter.")
-    })
     public SeismicHazardResults getScenarioEarthquakeHazardForBox(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
         @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
@@ -323,13 +308,8 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets hazard value. Returns the requested ground shaking parameter (PGA, SA, etc) " +
         "for a lat/long location using the scenario earthquake specified.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the point parameter.")
-    })
     public List<SeismicHazardResult> getScenarioEarthquakeHazardValues(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
         @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
@@ -369,13 +349,8 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets liquefaction (PGD) value.", notes="This needs a valid susceptibility dataset " +
         "as a shapefile for the earthquake location.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid earthquake ID or geologyDataset id."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the point parameter.")
-    })
     public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(
-        @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true)  @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Geology dataset from data service.", required = true) @QueryParam("geologyDataset") String geologyId,
         @ApiParam(value = "Ground Water Id that currently doesn't do anything.") @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId,
@@ -409,11 +384,6 @@ public class EarthquakeController {
     @ApiOperation(value = "Gets earthquake site hazard amplification. Returns the amplified hazard given " +
         "a methodology (e.g. NEHRP), soil map dataset id (optional), latitude, longitude, ground shaking " +
         "parameter (PGA, Sa, etc), hazard value, and default site class to use.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 404, message = "Not Found - Invalid Dataset id."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the coordinate parameter.")
-    })
     public Response getEarthquakeSiteAmplification(
         @ApiParam(value = "Method to get hazard amplification.", required = true) @QueryParam("method") String method,
         @ApiParam(value = "Dataset from data service.", required = true) @QueryParam("datasetId") @DefaultValue("") String datasetId,
@@ -460,10 +430,6 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets earthquake slope amplification. Returns the amplified hazard given " +
         "latitude, longitude.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error."),
-        @ApiResponse(code = 406, message = "Unsupported Format - Possibly the coordinate parameter.")
-    })
     public Response getEarthquakeSlopeAmplification(
         @ApiParam(value = "Latitude coordinate of the site.") @QueryParam("siteLat") double siteLat,
         @ApiParam(value = "Longitude coordinate of the site.") @QueryParam("siteLong") double siteLong) {
@@ -476,9 +442,6 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets attenuation models. Returns the requested ground shaking parameter " +
         "(PGA, SA, etc) for a lat/long location using the attenuation model specified.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 500, message = "Internal Server Error.")
-    })
     public Set<String> getSupportedEarthquakeModels() {
         return attenuationProvider.getAttenuations().keySet();
     }
