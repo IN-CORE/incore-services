@@ -83,7 +83,7 @@ public class TsunamiController {
     }
 
     @GET
-    @Path("{tsunami-id}/value")
+    @Path("{tsunami-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the tsunami results using the specified scenario tsunami.")
     public List<TsunamiHazardResult> getTsunamiHazardValues(
