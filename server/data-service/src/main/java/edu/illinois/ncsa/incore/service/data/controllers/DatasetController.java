@@ -219,7 +219,6 @@ public class DatasetController {
             throw new ForbiddenException();
         }
 
-
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         String dataUrl = DATA_REPO_FOLDER;
         String fdId = "";
