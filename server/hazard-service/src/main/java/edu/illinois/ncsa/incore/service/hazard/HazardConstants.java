@@ -9,6 +9,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class HazardConstants {
     // Hazard Raster
     public static final String PROBABILISTIC_HAZARD_SCHEMA = "probabilisticHazardRaster";
@@ -37,4 +40,6 @@ public class HazardConstants {
     // Dataset API
     public static final String DATASETS_ENDPOINT = "data/api/datasets";
     public static final String DATASETS_FILES = "files";
+
+    public static List<String> EQ_DATASET_TYPES_ALLOWED = Arrays.asList("tif");
 }

@@ -144,7 +144,8 @@ public class EarthquakeController {
 
                 // We assume the input files in the request are in the same order listed in the earthquake dataset object
                 int hazardDatasetIndex = 0;
-                if (fileParts != null && !fileParts.isEmpty() && (eqDataset.getHazardDatasets().size() == fileParts.size())) {
+                if (fileParts != null && !fileParts.isEmpty() && HazardUtil.validateEqDatasetTypes(fileParts) &&
+                    (eqDataset.getHazardDatasets().size() == fileParts.size())) {
                     for (FormDataBodyPart filePart : fileParts) {
                         HazardDataset hazardDataset = eqDataset.getHazardDatasets().get(hazardDatasetIndex);
                         String description = "Deterministic hazard raster";
@@ -175,7 +176,7 @@ public class EarthquakeController {
                     return earthquake;
                 }
                 else {
-                    throw new BadRequestException("Could not create Earthquake, enough files were not attached with your request.");
+                    throw new BadRequestException("Could not create Earthquake. Enough files of the allowable file extensions were not provided");
                 }
             }
 
