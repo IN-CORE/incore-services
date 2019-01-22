@@ -36,10 +36,8 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -223,6 +221,10 @@ public class DatasetController {
         String dataUrl = DATA_REPO_FOLDER;
         String fdId = "";
         String fileName = "";
+
+        if(!dataUrl.endsWith("/")){
+            dataUrl += "/";
+        }
 
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
