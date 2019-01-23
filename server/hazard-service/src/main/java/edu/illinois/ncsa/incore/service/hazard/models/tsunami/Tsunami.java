@@ -11,12 +11,15 @@ package edu.illinois.ncsa.incore.service.hazard.models.tsunami;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Date;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tsunamiType")
 @JsonSubTypes({@JsonSubTypes.Type(value = TsunamiDataset.class, name = "dataset")})
@@ -28,6 +31,7 @@ public abstract class Tsunami {
     // Friendly name of Tsunami
     private String name;
     private String description;
+    private Date date = new Date();
 
     private Privileges privileges;
 
@@ -57,6 +61,15 @@ public abstract class Tsunami {
 
     public String getName() {
         return this.name;
+    }
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 
 }

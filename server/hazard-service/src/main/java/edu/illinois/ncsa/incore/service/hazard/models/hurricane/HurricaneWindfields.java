@@ -4,24 +4,30 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
 public class HurricaneWindfields {
 
+    @Id
+    @Property("_id")
+    private ObjectId id;
+    private String name;
+    private String description;
+    private Date date = new Date();
+    private Privileges privileges;
+
     public final String gridResolutionUnits = "km";
     public final String rasterResolutionUnits = "km";
     public final String transDUnits = "degrees";
     public String velocityUnits = "kt";
-    @Id
-    @Property("_id")
-    private ObjectId id;
-    private Privileges privileges;
-    private String name;
-    private String description;
+
     private int gridResolution;
     private double rasterResolution;
     private double transD;
@@ -166,5 +172,14 @@ public class HurricaneWindfields {
             }
         }
         return null;
+    }
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }
