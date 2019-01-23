@@ -18,12 +18,7 @@ package edu.illinois.ncsa.incore.service.data.models;
  * This is from NCSA's DataWolf
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
@@ -31,6 +26,9 @@ import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @XmlRootElement
 public class Dataset {
@@ -105,7 +103,6 @@ public class Dataset {
      * List of spaces to the artifact.
      */
     private List<String> spaces = null;
-
 
 
     /**
@@ -273,7 +270,7 @@ public class Dataset {
      * Sets the string that represents the type of the artifact.
      *
      * @param dataType sets the string that represents the type of the
-     *             artifact.
+     *                 artifact.
      */
     public void setDataType(String dataType) {
         this.dataType = dataType;
@@ -302,7 +299,7 @@ public class Dataset {
      * Sets the string that represents the type of the artifact.
      *
      * @param storedUrl sets the string that represents the stored url of the
-     *                      artifact.
+     *                  artifact.
      */
     public void setStoredUrl(String storedUrl) {
         this.storedUrl = storedUrl;
@@ -453,7 +450,7 @@ public class Dataset {
      */
     @Override
     public int hashCode() {
-        if (getId()!= null) {
+        if (getId() != null) {
             return getId().hashCode();
         } else {
             return super.hashCode();
