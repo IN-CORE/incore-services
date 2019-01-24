@@ -41,5 +41,5 @@ public class HazardConstants {
     public static final String DATASETS_ENDPOINT = "data/api/datasets";
     public static final String DATASETS_FILES = "files";
 
-    public static List<String> EQ_DATASET_TYPES_ALLOWED = Arrays.asList("tif");
+    public static List<String> EQ_DATASET_TYPES_ALLOWED = Arrays.asList("tif", "tiff");
 }
