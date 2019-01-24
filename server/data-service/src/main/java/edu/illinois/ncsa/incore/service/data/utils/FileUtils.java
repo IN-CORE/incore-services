@@ -43,6 +43,7 @@ import java.util.zip.ZipOutputStream;
  * Created by ywkim on 6/8/2017.
  */
 public class FileUtils {
+    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
     public static final String REPO_SERVER_URL = Config.getConfigProperties().getProperty("data.repo.webdav.server.url");
     public static final String REPO_PROP_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.prop.dir");
     public static final String REPO_DS_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.ds.dir");
@@ -444,16 +445,16 @@ public class FileUtils {
         File outFile = null;
 
         if (fds.size() > 0) {
-            File tmpFile = new File(fds.get(0).getDataURL());
+            File tmpFile = new File(DATA_REPO_FOLDER + fds.get(0).getDataURL());
             fileBaseName = FilenameUtils.getBaseName(tmpFile.getName());
 
             List<String> fileNameList = new LinkedList<String>();
             for (FileDescriptor fd : fds) {
                 // do not put the mvz file
-                String dataUrl = fd.getDataURL();
+                String dataUrl = DATA_REPO_FOLDER + fd.getDataURL();
                 String ext = FilenameUtils.getExtension(dataUrl);
                 if (!ext.equalsIgnoreCase(EXTENSION_META)) {
-                    fileList.add(new File(new URI(dataUrl)));
+                    fileList.add(new File(dataUrl));
                     fileNameList.add(FilenameUtils.getName(dataUrl));
                 }
             }

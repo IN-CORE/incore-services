@@ -37,10 +37,8 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -225,28 +223,26 @@ public class DatasetController {
             throw new ForbiddenException();
         }
 
-
         List<FileDescriptor> fds = dataset.getFileDescriptors();
-        String dataUrl = "";
+        String dataUrl = DATA_REPO_FOLDER;
         String fdId = "";
         String fileName = "";
+
+        if(!dataUrl.endsWith("/")){
+            dataUrl += "/";
+        }
 
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
             if (fdId.equals(fileId)) {
-                dataUrl = fd.getDataURL();
+                dataUrl = dataUrl + fd.getDataURL();
                 fileName = fd.getFilename();
             }
         }
 
-        try {
-            if (!dataUrl.equals("")) {
-                outFile = new File(new URI(dataUrl));
+        if (!dataUrl.equals("")) {
+                outFile = new File(dataUrl);
                 outFile.renameTo(new File(outFile.getParentFile(), fileName));
-            }
-        } catch (URISyntaxException e) {
-            logger.error("Error creating file with dataset's location url ", e);
-            throw new InternalServerErrorException("Error creating file with dataset's location url ", e);
         }
 
         if (outFile != null) {
@@ -421,19 +417,11 @@ public class DatasetController {
                     List<FileDescriptor> fds = dataset.getFileDescriptors();
                     if (fds.size() > 0) {
                         for (FileDescriptor fd : fds) {
-                            try {
-                                File file = new File((new URL(fd.getDataURL())).toURI());
-                                FileUtils.deleteTmpDir(file);
-                            } catch (MalformedURLException e) {
-                                logger.error("Error creating URL using dataset location ", e);
-                                throw new InternalServerErrorException("Error creating URL using dataset location ", e);
-                            } catch (URISyntaxException e) {
-                                logger.error("Error converting data url to uri ", e);
-                                throw new InternalServerErrorException("Error converting data url to uri ", e);
-                            }
+                            File file = new File(DATA_REPO_FOLDER + fd.getDataURL());
+                            FileUtils.deleteTmpDir(file);
+
                         }
                     }
-
                     // remove geoserver layer
                     boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
 
@@ -553,7 +541,7 @@ public class DatasetController {
                     }
                 }
             } catch (URISyntaxException e) {
-                logger.error("Error creating file from dataset locatoin ", e);
+                logger.error("Error creating file from dataset location ", e);
                 throw new InternalServerErrorException("Error creating file from dataset location ", e);
             }
             try {
