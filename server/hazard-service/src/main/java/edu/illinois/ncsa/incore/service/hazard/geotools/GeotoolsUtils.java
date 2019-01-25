@@ -12,63 +12,46 @@
 
 package edu.illinois.ncsa.incore.service.hazard.geotools;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
-
 import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.util.GeometricShapeFactory;
-import org.apache.commons.math3.complex.Complex;
+import com.vividsolutions.jts.linearref.LinearLocation;
+import com.vividsolutions.jts.linearref.LocationIndexedLine;
 import org.apache.log4j.Logger;
 import org.geotools.data.*;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.data.simple.*;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.spatial.BBOX;
 import org.opengis.geometry.BoundingBox;
 import org.opengis.referencing.operation.TransformException;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
-import org.geotools.data.FileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.feature.DefaultFeatureCollection;
-import org.opengis.feature.simple.SimpleFeatureType;
 
-import com.vividsolutions.jts.linearref.LinearLocation;
-import com.vividsolutions.jts.linearref.LocationIndexedLine;
-
-
-import org.geotools.data.collection.SpatialIndexFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.referencing.GeodeticCalculator;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
-
-import javax.ws.rs.NotFoundException;
-
-import static java.lang.Math.sqrt;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URL;
+import java.util.*;
 
 
 /**
  * Created by ywkim on 09/17/2018.
  */
 public class GeotoolsUtils {
-    static GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
     private static final Logger logger = Logger.getLogger(GeotoolsUtils.class);
     private static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+    static GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 
     /**
      * create SimpleFeatureCollection from resource name
@@ -77,7 +60,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static SimpleFeatureCollection GetSimpleFeatureCollectionFromPath(String filePath) throws IOException{
+    public static SimpleFeatureCollection GetSimpleFeatureCollectionFromPath(String filePath) throws IOException {
         SimpleFeatureCollection sfc = null;
         URL fileUrl = new URL("file:" + filePath);
 
@@ -89,11 +72,11 @@ public class GeotoolsUtils {
         return sfc;
     }
 
-    public static double CalcShortestDistanceFromPointToFeatures(Object polyObj, double lat, double lon, GeodeticCalculator gc,
-                                                                 DefaultGeographicCRS crs, double searchDistLimit, double minDist) {
+    public static Point CalcTangentPointToFeatures(Object polyObj, double lat, double lon, GeodeticCalculator gc,
+                                                   DefaultGeographicCRS crs, double searchDistLimit, double minDist) {
         Coordinate minDistCoord = null;
         Coordinate pCoord = new Coordinate(lon, lat);
-        if(polyObj instanceof SpatialIndexFeatureCollection) {
+        if (polyObj instanceof SpatialIndexFeatureCollection) {
             SpatialIndexFeatureCollection featureIndex = (SpatialIndexFeatureCollection) polyObj;
             ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
                 featureIndex.getSchema().getCoordinateReferenceSystem());
@@ -119,9 +102,8 @@ public class GeotoolsUtils {
             } finally {
                 sfi.close();
             }
-        }
-        else if(polyObj instanceof Polygon){
-            Polygon poly = (Polygon)polyObj;
+        } else if (polyObj instanceof Polygon) {
+            Polygon poly = (Polygon) polyObj;
             Coordinate[] polyCords = poly.getCoordinates();
             LocationIndexedLine tempLine = new LocationIndexedLine(poly.getBoundary());
 
@@ -142,6 +124,15 @@ public class GeotoolsUtils {
             minTouchedPoint = geometryFactory.createPoint(minDistCoord);
         }
 
+        return minTouchedPoint;
+    }
+
+
+    public static double CalcShortestDistanceFromPointToFeatures(Object polyObj, double lat, double lon, GeodeticCalculator gc,
+                                                                 DefaultGeographicCRS crs, double searchDistLimit, double minDist) {
+        Coordinate pCoord = new Coordinate(lon, lat);
+
+        Point minTouchedPoint = CalcTangentPointToFeatures(polyObj, lat, lon, gc, crs, searchDistLimit, minDist);
 
         if (!minTouchedPoint.isEmpty()) {
             // calculation distance between the minTouchedPoint and input point
@@ -149,7 +140,7 @@ public class GeotoolsUtils {
                 gc.setStartingPosition(JTS.toDirectPosition(minTouchedPoint.getCoordinate(), crs));
                 gc.setDestinationPosition(JTS.toDirectPosition(pCoord, crs));
             } catch (TransformException e) {
-                e.printStackTrace();
+                logger.error("touching point does not exist: " + e);
             }
 
             double distance = gc.getOrthodromicDistance();
@@ -202,7 +193,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static String getUnderlyingFieldValueFromPoint(SimpleFeatureCollection inFeatures, String fieldName, double lat, double lon) throws IOException{
+    public static String getUnderlyingFieldValueFromPoint(SimpleFeatureCollection inFeatures, String fieldName, double lat, double lon) throws IOException {
         SimpleFeature touchedFeature = null;
         Coordinate coord = new Coordinate(lon, lat);
         Point point = geometryFactory.createPoint(coord);
@@ -211,7 +202,7 @@ public class GeotoolsUtils {
         if (inFeatures != null) {
             SimpleFeatureIterator sfi = inFeatures.features();
             try {
-                while(sfi.hasNext()) {
+                while (sfi.hasNext()) {
                     SimpleFeature feature = sfi.next();
                     Geometry geom = (Geometry) feature.getDefaultGeometry();
                     if (geom.contains(point)) {
@@ -227,7 +218,7 @@ public class GeotoolsUtils {
         if (touchedFeature != null) {
             String attribute = (String) touchedFeature.getAttribute(fieldName);
             if (attribute != null) {
-                if(attribute.isEmpty()) {
+                if (attribute.isEmpty()) {
                     ret = outValue;
                 } else {
                     ret = attribute;
@@ -248,14 +239,14 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static boolean isPointInPolygon(SimpleFeatureCollection inFeatures, double lat, double lon) throws IOException{
+    public static boolean isPointInPolygon(SimpleFeatureCollection inFeatures, double lat, double lon) throws IOException {
         boolean isContained = false;
         if (inFeatures != null) {
             Coordinate coord = new Coordinate(lon, lat);
             Point point = geometryFactory.createPoint(coord);
             SimpleFeatureIterator sfi = inFeatures.features();
             try {
-                while(sfi.hasNext()) {
+                while (sfi.hasNext()) {
                     SimpleFeature feature = sfi.next();
                     Geometry geom = (Geometry) feature.getDefaultGeometry();
                     isContained = geom.contains(point);
@@ -276,8 +267,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static DataStore getShapefileDataStore(URL shpUrl, Boolean spatialIndex) throws IOException
-    {
+    public static DataStore getShapefileDataStore(URL shpUrl, Boolean spatialIndex) throws IOException {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("url", shpUrl);
         map.put("create spatial index", spatialIndex);
@@ -286,8 +276,7 @@ public class GeotoolsUtils {
         return DataStoreFinder.getDataStore(map);
     }
 
-    public static void outToFile(File pathFile, SimpleFeatureType schema, DefaultFeatureCollection collection) throws IOException
-    {
+    public static void outToFile(File pathFile, SimpleFeatureType schema, DefaultFeatureCollection collection) throws IOException {
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
         Map<String, Serializable> params = new HashMap<String, Serializable>();
@@ -319,41 +308,42 @@ public class GeotoolsUtils {
             }
 
         } else {
-            logger.error(typeName + " does not support read/write access"); //$NON-NLS-1$
+            logger.error(typeName + " does not support read/write access");
             System.exit(1);
         }
     }
 
     /**
      * Creates a polygon from a file that contains lon,lat per line
+     *
      * @param filePath
      * @return
      * @throws IOException
      */
-    public static Polygon getPolygonFromFile(String filePath) throws IOException{
+    public static Polygon getPolygonFromFile(String filePath) throws IOException {
 
         GeometryFactory gf = new GeometryFactory();
         URL fileUrl = new URL("file:" + filePath);
         List<Coordinate> coordinates = new ArrayList<>();
         Polygon p = null;
-        try{
+        try {
             Scanner s = new Scanner(fileUrl.openStream());
 
-            while(s.hasNext()){
+            while (s.hasNext()) {
                 String line = s.nextLine();
                 String[] cords = line.split("\t");
                 double lon = Double.parseDouble(cords[0]);
                 double lat = Double.parseDouble(cords[1]);
 
-                coordinates.add(new Coordinate(lon,lat));
+                coordinates.add(new Coordinate(lon, lat));
             }
 
-            p=gf.createPolygon(coordinates.toArray(new Coordinate[] {}));
+            p = gf.createPolygon(coordinates.toArray(new Coordinate[]{}));
 
             return p;
 
-        }catch(Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("Failed to open file: " + e);
         }
 
         return p;
