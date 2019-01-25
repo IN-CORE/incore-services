@@ -1,0 +1,17 @@
+Mechanism,Dimension,a,b
+Strike-Slip,Length,-2.57,0.62
+Reverse,Length,-2.42,0.58
+Normal,Length,-1.88,0.5
+All,Length,-2.44,0.59
+Strike-Slip,Width,-0.76,0.27
+Reverse,Width,-1.61,0.41
+Normal,Width,-1.14,0.35
+All,Width,-1.01,0.32
+Strike-Slip,Area,-3.42,0.90
+Reverse,Area,-3.99,0.98
+Normal,Area,-2.87,0.82
+All,Area,-3.49,0.91
+Strike-Slip,surfaceLength,-3.55,0.74
+Reverse,surfaceLength,-2.86,0.63
+Normal,surfaceLength,-2.01,0.5
+All,surfaceLength,-3.22,0.69

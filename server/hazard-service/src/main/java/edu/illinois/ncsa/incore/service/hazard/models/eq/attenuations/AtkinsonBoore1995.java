@@ -104,4 +104,120 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
 
     }
 
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isFaultTypeRequired()
+    {
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isGeologyRequired()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isDipAngleRequired()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isAzimuthAngleRequired()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isCoseismicRuptureDepthRequired()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isShearWaveDepthRequired()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isShearWaveDepth10Required()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isRakeAngleRequired()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public boolean isSeismogenicDepthRequired()
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isSoilMapRequired()
+    {
+        return true;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isSoilTypeRequired()
+    {
+        return true;
+    }
+
 }
