@@ -35,14 +35,13 @@ public class ChiouYoungs2014 extends BaseAttenuation {
         readCoefficients(coefficientURL);
     }
 
-    public double getValue(String period, Site site) throws Exception
-    {
+    public double getValue(String period, Site site) throws Exception {
         double y = calculateCYAttenuation(period, site);
         if (NumberUtils.isNumber(period)) {
             double T = Double.parseDouble(period);
 
             if (T <= 0.3) {
-                double pga = calculateCYAttenuation("PGA", site); 
+                double pga = calculateCYAttenuation("PGA", site);
                 if (y <= pga) {
                     return pga;
                 }
@@ -52,8 +51,7 @@ public class ChiouYoungs2014 extends BaseAttenuation {
         return y;
     }
 
-    public double calculateCYAttenuation(String period, Site site)
-    {
+    public double calculateCYAttenuation(String period, Site site) {
         // Load coefficients into local variables
         loadCoefficients(period);
         region = ruptureParameters.getRegion();
@@ -113,9 +111,9 @@ public class ChiouYoungs2014 extends BaseAttenuation {
 
         double Z1p0Regional;
         if (region.equalsIgnoreCase("Japan")) {
-            Z1p0Regional = calculateZ1p0RegionalJapan(Z1p0, Vs30);
+            Z1p0Regional = calculateZ1p0RegionalJapan(Vs30);
         } else {
-            Z1p0Regional = calculateZ1p0RegionalCalifornia(Z1p0, Vs30);
+            Z1p0Regional = calculateZ1p0RegionalCalifornia(Vs30);
         }
 
         double deltaZ1p0 = Z1p0 - Z1p0Regional;
@@ -153,25 +151,25 @@ public class ChiouYoungs2014 extends BaseAttenuation {
         List<Double> periodCoefficients = getCoefficients(period);
 
         c[2] = periodCoefficients.get(0);
-        c[4] = periodCoefficients.get(1); 
-        c4a = periodCoefficients.get(2); 
-        cRB = periodCoefficients.get(3); 
-        c[8] = periodCoefficients.get(4); 
-        c8a = periodCoefficients.get(5); 
+        c[4] = periodCoefficients.get(1);
+        c4a = periodCoefficients.get(2);
+        cRB = periodCoefficients.get(3);
+        c[8] = periodCoefficients.get(4);
+        c8a = periodCoefficients.get(5);
         c[1] = periodCoefficients.get(6);
         c1a = periodCoefficients.get(7);
-        c1b = periodCoefficients.get(8); 
-        c1c = periodCoefficients.get(9); 
-        c1d = periodCoefficients.get(10); 
-        cn = periodCoefficients.get(11); 
-        cM = periodCoefficients.get(12); 
-        c[3] = periodCoefficients.get(13); 
-        c[5] = periodCoefficients.get(14); 
-        cHM = periodCoefficients.get(15); 
-        c[6] = periodCoefficients.get(16); 
-        c[7] = periodCoefficients.get(17); 
-        c7b = periodCoefficients.get(18); 
-        c8b = periodCoefficients.get(19); 
+        c1b = periodCoefficients.get(8);
+        c1c = periodCoefficients.get(9);
+        c1d = periodCoefficients.get(10);
+        cn = periodCoefficients.get(11);
+        cM = periodCoefficients.get(12);
+        c[3] = periodCoefficients.get(13);
+        c[5] = periodCoefficients.get(14);
+        cHM = periodCoefficients.get(15);
+        c[6] = periodCoefficients.get(16);
+        c[7] = periodCoefficients.get(17);
+        c7b = periodCoefficients.get(18);
+        c8b = periodCoefficients.get(19);
         c[9] = periodCoefficients.get(20);
         c9a = periodCoefficients.get(21);
         c9b = periodCoefficients.get(22);
@@ -204,45 +202,38 @@ public class ChiouYoungs2014 extends BaseAttenuation {
     }
 
     // Style of Faulting Term
-    private double fFlt_1(double M, double Frv)
-    {
+    private double fFlt_1(double M, double Frv) {
         return (c1a + (c1c / Math.cosh(2 * Math.max(M - 4.5, 0.0)))) * Frv;
     }
 
     // Style of Faulting Term
-    private double fFlt_2(double M, double Fnm)
-    {
+    private double fFlt_2(double M, double Fnm) {
         return (c1b + (c1d / Math.cosh(2 * Math.max(M - 4.5, 0.0)))) * Fnm;
     }
 
     // Ztor Term
-    private double fTor(double M, double deltaZtor)
-    {
+    private double fTor(double M, double deltaZtor) {
         return (c[7] + (c7b / Math.cosh(2 * Math.max(M - 4.5, 0.0)))) * deltaZtor;
     }
 
     // Dip Term
-    private double fDip(double M, double dip)
-    {
+    private double fDip(double M, double dip) {
         return (c[11] + (c11b / Math.cosh(2 * Math.max(M - 4.5, 0.0)))) * Math.pow(Math.cos(Math.toRadians(dip)), 2);
     }
 
     // Magnitude Scaling Term
-    private double fMag(double M)
-    {
+    private double fMag(double M) {
         return c[2] * (M - 6) + ((c[2] - c[3]) / cn) * Math.log(1 + (Math.exp(cn * (cM - M))));
     }
 
     // Distance Attentuation Term
-    private double fDis(double M, double Rrup)
-    {
+    private double fDis(double M, double Rrup) {
         return c[4] * Math.log(Rrup + c[5] * Math.cosh(c[6] * Math.max(M - cHM, 0)))
             + (c4a - c[4]) * Math.log(Math.sqrt(square(Rrup) + square(cRB)));
     }
 
     // Distance Attentuation Term
-    private double fAtn(double M, double Rrup)
-    {
+    private double fAtn(double M, double Rrup) {
         double fAtn = (cg1 + (cg2 / (Math.cosh(Math.max(M - cg3, 0))))) * Rrup;
 
         if (region.equalsIgnoreCase("Japan") || region.equalsIgnoreCase("Italy")) {  //$NON-NLS-2$
@@ -251,7 +242,7 @@ public class ChiouYoungs2014 extends BaseAttenuation {
             }
         }
 
-        if (region.equalsIgnoreCase("China")) { 
+        if (region.equalsIgnoreCase("China")) {
             fAtn = gamma_Wn * fAtn;
         }
 
@@ -259,43 +250,37 @@ public class ChiouYoungs2014 extends BaseAttenuation {
     }
 
     // Directivity Term
-    private double fDir(double M, double Rrup, double deltaDPP)
-    {
+    private double fDir(double M, double Rrup, double deltaDPP) {
         return c[8] * Math.max(1 - (Math.max(Rrup - 40, 0) / 30.0), 0) * Math.min(Math.max(M - 5.5, 0) / 0.8, 1)
             * Math.exp(-c8a * square(M - c8b)) * deltaDPP;
     }
 
     // Hanging Wall Term
-    private double fHng(double Fhw, double dip, double Rx, double Rjb, double Ztor, double Rrup)
-    {
+    private double fHng(double Fhw, double dip, double Rx, double Rjb, double Ztor, double Rrup) {
         return c[9] * Fhw * Math.cos(Math.toRadians(dip)) * (c9a + (1 - c9a) * Math.tanh(Rx / c9b))
             * (1 - (Math.sqrt(square(Rjb) + square(Ztor)) / (Rrup + 1)));
     }
 
-    private double calculateZ1p0RegionalCalifornia(double Z1p0, double Vs30)
-    {
+    private double calculateZ1p0RegionalCalifornia(double Vs30) {
         return Math.exp((-7.15 / 4.0) * Math.log((Math.pow(Vs30, 4) + Math.pow(571, 4)) / Math.pow(1360, 4) + Math.pow(571, 4)));
     }
 
-    private double calculateZ1p0RegionalJapan(double z1p0, double Vs30)
-    {
+    private double calculateZ1p0RegionalJapan(double Vs30) {
         return Math.exp((-5.23 / 2.0) * Math.log((Math.pow(Vs30, 2) + Math.pow(412, 2)) / Math.pow(1360, 2) + Math.pow(412, 2)));
     }
 
-    public double square(double x)
-    {
+    public double square(double x) {
         return Math.pow(x, 2);
     }
 
     @Override
-    public double getStandardDeviation(double median_hazard, String period, Site site) throws Exception
-    {
+    public double getStandardDeviation(double median_hazard, String period, Site site) throws Exception {
         // TODO add option to GUI if needed
         double Finferred = 1;
         double Fmeasured = 0;
 
         double sigma2;
-        if (region.equalsIgnoreCase("Japan")) { 
+        if (region.equalsIgnoreCase("Japan")) {
             sigma2 = sigma2_JP;
         } else {
             sigma2 = s2;
@@ -312,91 +297,76 @@ public class ChiouYoungs2014 extends BaseAttenuation {
         return sigma;
     }
 
-    public double getAleatoricStdDev(String period, Site site) throws Exception
-    {
+    public double getAleatoricStdDev(String period, Site site) throws Exception {
         return 0;
     }
 
-    public boolean canProduceStandardDeviation()
-    {
+    public boolean canProduceStandardDeviation() {
         return true;
     }
 
     @Override
-    public String[] getRegions()
-    {
-        return new String[] { "California", "Japan", "China", "Turkey", "Italy" };  //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-    };
+    public String[] getRegions() {
+        return new String[]{"California", "Japan", "China", "Turkey", "Italy"};  //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+    }
 
     @Override
-    public boolean isRegionRequired()
-    {
+    public boolean isRegionRequired() {
         return true;
     }
 
     @Override
-    public boolean isFaultTypeRequired()
-    {
+    public boolean isFaultTypeRequired() {
         return true;
     }
 
     @Override
-    public boolean isGeologyRequired()
-    {
+    public boolean isGeologyRequired() {
         return false;
     }
 
     @Override
-    public boolean isDipAngleRequired()
-    {
+    public boolean isDipAngleRequired() {
         return true;
     }
 
     @Override
-    public boolean isAzimuthAngleRequired()
-    {
+    public boolean isAzimuthAngleRequired() {
         return true;
     }
 
     @Override
-    public boolean isCoseismicRuptureDepthRequired()
-    {
+    public boolean isCoseismicRuptureDepthRequired() {
         return true;
     }
 
     @Override
-    public boolean isShearWaveDepthRequired()
-    {
+    public boolean isShearWaveDepthRequired() {
         return false;
     }
 
     @Override
-    public boolean isShearWaveDepth10Required()
-    {
+    public boolean isShearWaveDepth10Required() {
         return true;
     }
 
     @Override
-    public boolean isRakeAngleRequired()
-    {
+    public boolean isRakeAngleRequired() {
         return true;
     }
 
     @Override
-    public boolean isSeismogenicDepthRequired()
-    {
+    public boolean isSeismogenicDepthRequired() {
         return false;
     }
 
     @Override
-    public boolean isSoilMapRequired()
-    {
+    public boolean isSoilMapRequired() {
         return false;
     }
 
     @Override
-    public boolean isSoilTypeRequired()
-    {
+    public boolean isSoilTypeRequired() {
         return true;
     }
 
