@@ -4,7 +4,8 @@ import {fetchDatasets} from "../actions";
 
 const mapStateToProps = (state, ownProps) => {
 	return {
-		datasets: state.data.datasets
+		datasets: state.data.datasets,
+		authError: state.user.loginError
 	};
 };
 

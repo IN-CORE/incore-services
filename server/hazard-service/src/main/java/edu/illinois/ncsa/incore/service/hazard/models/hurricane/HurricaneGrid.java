@@ -1,7 +1,6 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import io.swagger.models.auth.In;
 
 import java.util.ArrayList;
 import java.util.List;
