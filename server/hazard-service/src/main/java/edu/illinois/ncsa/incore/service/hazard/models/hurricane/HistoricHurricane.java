@@ -5,7 +5,6 @@ import org.json.simple.JSONObject;
 
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.List;
 
 @XmlRootElement
 public class HistoricHurricane {

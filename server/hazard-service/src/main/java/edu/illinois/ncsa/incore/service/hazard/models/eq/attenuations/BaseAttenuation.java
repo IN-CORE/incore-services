@@ -328,4 +328,32 @@ public abstract class BaseAttenuation {
     {
         return new String[] { "Global" };
     }
+
+    public boolean isRegionRequired()
+    {
+        return false;
+    }
+
+    public abstract boolean isFaultTypeRequired();
+
+    public abstract boolean isGeologyRequired();
+
+    public abstract boolean isDipAngleRequired();
+
+    public abstract boolean isAzimuthAngleRequired();
+
+    public abstract boolean isCoseismicRuptureDepthRequired();
+
+    public abstract boolean isShearWaveDepthRequired();
+
+    public abstract boolean isShearWaveDepth10Required();
+
+    public abstract boolean isRakeAngleRequired();
+
+    public abstract boolean isSeismogenicDepthRequired();
+
+    public abstract boolean isSoilMapRequired();
+
+    public abstract boolean isSoilTypeRequired();
+
 }

@@ -11,12 +11,16 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.HazardDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.opengis.coverage.PointOutsideCoverageException;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
@@ -508,6 +512,42 @@ public class HazardUtil {
         } else {
             return Double.toString(period) + " " + demandType.trim();
         }
+    }
+
+    /**
+     *
+     * @param site
+     * @param sourceSite
+     * @return
+     */
+    public static double[] computeOriginalDistance(Site site, Site sourceSite) {
+        double[] originalDistance = new double[3];
+        double longitudeSite = site.getLocation().getX();
+        double latitudeSite = site.getLocation().getY();
+        double longitudeSource = sourceSite.getLocation().getX();
+        double latitudeSource = sourceSite.getLocation().getY();
+        double hypocentralDepth = sourceSite.getDepth();
+
+        originalDistance[0] = (longitudeSite - longitudeSource) * Math.PI * R_EARTH / 180.0;
+        originalDistance[1] = (latitudeSite - latitudeSource) * Math.PI * R_EARTH / 180.0;
+        originalDistance[2] = hypocentralDepth;
+
+        return originalDistance;
+    }
+
+    /***
+     * Checks if the file types match the list of allowable file extensions.
+     * @param fileParts
+     * @return
+     */
+    public static boolean validateEqDatasetTypes(List<FormDataBodyPart> fileParts){
+        for (FormDataBodyPart filePart:fileParts) {
+            String fileExt = FilenameUtils.getExtension(filePart.getContentDisposition().getFileName());
+            if(!HazardConstants.EQ_DATASET_TYPES_ALLOWED.contains(fileExt)){
+                return false;
+            }
+        }
+        return true;
     }
 
 }
