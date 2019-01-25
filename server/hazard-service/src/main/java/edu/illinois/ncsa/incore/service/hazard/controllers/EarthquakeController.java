@@ -176,8 +176,8 @@ public class EarthquakeController {
                     return earthquake;
                 }
                 else {
-                    throw new BadRequestException("Could not create Earthquake. Enough files of the allowable file extensions were not provided");
-                }
+                    logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
+                    throw new BadRequestException("Could not create Earthquake. Check your file extensions and the number of files in the request.");                }
             }
 
         } catch (IOException e) {
