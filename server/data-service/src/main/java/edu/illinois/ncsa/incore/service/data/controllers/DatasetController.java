@@ -545,10 +545,7 @@ public class DatasetController {
                 if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                     isShpfile = true;
                 }
-            } catch (URISyntaxException e) {
-                logger.error("Error creating file from dataset location ", e);
-                throw new InternalServerErrorException("Error creating file from dataset location ", e);
-            }
+            } 
         } catch (URISyntaxException e) {
             logger.error("Error creating file from dataset locatoin ", e);
             throw new InternalServerErrorException("Error creating file from dataset location ", e);
