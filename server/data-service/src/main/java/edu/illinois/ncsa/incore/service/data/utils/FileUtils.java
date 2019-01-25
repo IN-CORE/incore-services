@@ -616,7 +616,7 @@ public class FileUtils {
             }
 
             if (isShpfile) {
-                zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename, repository);
+                zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
             }
         }
 

@@ -214,7 +214,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename, IRepository repository) throws IOException {
+    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException {
         // set geometry factory
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
         String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
@@ -253,16 +253,6 @@ public class GeotoolsUtils {
 
         SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
         sftBuilder.init(sft);
-
-        // update bounding box information
-        Envelope env = inputFeatures.getBounds();
-        double[] bbox = new double[4];
-        bbox[0] = env.getMinX();
-        bbox[1] = env.getMinY();
-        bbox[2] = env.getMaxX();
-        bbox[3] = env.getMaxY();
-        dataset.setBoundingBox(bbox);
-        repository.addDataset(dataset);
 
         for (int i = 0; i < csvHeaders.length; i++) {
             if (i != csvIdLoc) {

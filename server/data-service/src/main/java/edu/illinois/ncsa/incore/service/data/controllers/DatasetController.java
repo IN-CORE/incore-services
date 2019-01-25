@@ -581,15 +581,6 @@ public class DatasetController {
                 logger.error("Error creating temp directory in guid creation process ", e);
                 throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
             }
-
-            // get bounding box information
-//            if (isShp) {
-//                double[] bbox = GeotoolsUtils.getBboxFromShp(files);
-//                dataset.setBoundingBox(bbox);
-//            }
-//        } else if (format.equalsIgnoreCase("raster")) {
-//            double[] bbox = GeotoolsUtils.getBboxFromTif(files);
-//            dataset.setBoundingBox(bbox);
         }
         repository.addDataset(dataset);
 
