@@ -6,11 +6,14 @@ After starting the service, you should be able to create scenario earthquakes an
 
 ## Earthquake
 
-### Create Scenario Earthquake
+### Create Scenario Earthquake based on Attenuation Model
 
-http://localhost:8080/hazard/api/earthquakes
+POST http://localhost:8080/hazard/api/earthquakes
 
-POST - Create scenario earthquake
+Content-Type: multipart/form-data
+
+###### Form Parameter: "earthquake" should hold the JSON. 
+
 {
   "name": "Memphis EQ Model",
   "description": "Memphis model based hazard",
@@ -34,60 +37,61 @@ POST - Create scenario earthquake
     "numPoints" : "1025",
     "amplifyHazard": "true"
   }
-
 }
 
 ### Create Earthquake Dataset
 
+POST http://localhost:8080/hazard/api/earthquakes
+
+Content-Type: multipart/form-data
+
+###### Form Parameter: "earthquake" should hold the earthquake JSON
+###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
+
 When creating an earthquake dataset, the files must be included in the POST in the order found in the JSON
-so the correct dataset and metadata are associated.
+so the correct dataset and metadata are associated. Currently only supports `.tif` files 
 
-http://localhost:8080/hazard/api/earthquakes
+##### Sample JSON to create Probabilistic Earthquake
 
-POST - Create deterministic earthquake
 {
   "name": "Memphis Deterministic EQ",
   "description": "Memphis dataset based deterministic hazard",
   "eqType": "dataset",
   "hazardDatasets" :  [ 
     {
-
-	"hazardType" : "deterministic",
-	"demandType" : "SA",
+        "hazardType" : "deterministic",
+        "demandType" : "SA",
         "demandUnits" : "g",
         "period" : "0.2",
-	"eqParameters" : {
+        "eqParameters" : {
 	    "srcLatitude" : "35.927",
 	    "srcLongitude" : "-89.919",
 	    "magnitude" : "7.9",
 	    "depth" : "10.0"
-	}
+	    }
     },
-    {
-	
+    {	
         "hazardType" : "deterministic",
-	"demandType" : "PGA",
-	"demandUnits" : "g",
-	"period" : "0.0",
+        "demandType" : "PGA",
+        "demandUnits" : "g",
+        "period" : "0.0",
         "eqParameters" : {
             "srcLatitude" : "35.927",
             "srcLongitude" : "-89.919",
             "magnitude" : "7.9",
             "depth" : "10.0"
         }
-    }
-    
+    }    
   ]
 }
 
-POST - Create probabilistic earthquake
+##### Sample JSON to create Probabilistic Earthquake
 { 
   "name": "Memphis Probabilistic EQ",
   "description": "Memphis dataset based probabilistic hazard",
   "eqType": "dataset",
   "hazardDatasets" :  [
-    {
-        
+    {        
         "hazardType" : "probabilistic",
         "demandType" : "SA",
         "demandUnits" : "g",
@@ -95,16 +99,14 @@ POST - Create probabilistic earthquake
 	"recurrenceUnit" : "years",
         "period" : "0.2"
     },
-    {
-        
+    {        
         "hazardType" : "probabilistic",
         "demandType" : "PGA",
         "demandUnits" : "g",
-	"recurrenceInterval" : "50",
+	    "recurrenceInterval" : "50",
         "recurrenceUnit" : "years",
         "period" : "0.0"
-    }
-   
+    }   
   ]
 }
 
@@ -132,13 +134,19 @@ http://localhost:8080/hazard/api/earthquakes/{id}/raster?demandType=0.2+SA&deman
 
 ### Create Tsunami Dataset
 
-http://localhost:8080/hazard/api/tsunamis
+POST http://localhost:8080/hazard/api/tsunamis
 
-#### POST - Create probabilistic tsunami
+Content-Type: multipart/form-data
+
+#### Create probabilistic tsunami
+
+###### Form Parameter: "tsunami" should hold the Tsunami JSON
+###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
 
 When creating a tsunami dataset, the files must be included in the POST in the order found in the JSON
 so the correct dataset and metadata are associated.
 
+##### Sample Tsunami Json
 {
   "name": "Seaside Probabilistic Tsunami - 100 yr",
   "description": "Seaside dataset based probabilistic tsunami hazard",
@@ -179,15 +187,17 @@ http://localhost:8080/hazard/api/tsunamis/{id}/values?demandType=hmax&demandUnit
 ## Tornadoes
 
 ### Create Scenario Tornado
+POST http://localhost:8080/hazard/api/tornadoes
+
+Content-Type: application/json
+
 Supported tornado models are:
 * MeanWidthTornado
 * RandomWidthTornado
 
 For the example below, replace the tornadoModel with the model you want to create and if applicable, update the number of simulations for how many tornadoes to create.
 
-http://localhost:8080/hazard/api/tornadoes
-
-POST - Create mean width scenario tornado
+##### Sample JSON to create mean width scenario tornado
 
 {
   "tornadoModel" : "MeanWidthTornado",
@@ -202,8 +212,6 @@ POST - Create mean width scenario tornado
     "numSimulations" : "1"
   }
 }
-
-
 
 * tornadoModel (required) - specify tornado model (Mean width will create a tornado using the mean width from historical
 data for the EF rating)
@@ -229,6 +237,8 @@ http://localhost:8080/hazard/api/tornadoes/{id}/values?demandUnits=m&point=35.02
 ### Create Hurricane Windfield (Creates shapefiles of windfield grids in data service)
 
 POST http://localhost:8080/hazard/api/hurricaneWindfields/
+
+Content-Type: application/json
 
 {
 	"name": "Florida coast cat-1 hurricane",
