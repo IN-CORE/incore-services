@@ -62,8 +62,7 @@ public class HurricaneController {
 
         Map<String, String> queryMap = new HashMap<>();
 
-        List<HurricaneWindfields> hurricaneWindfields;
-        hurricaneWindfields = repository.getHurricanes().stream()
+        List<HurricaneWindfields> hurricaneWindfields = repository.getHurricanes().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
 
@@ -185,7 +184,7 @@ public class HurricaneController {
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value="Simulates a hurricane by retuning the result as json", notes= "Implemented to match MATLAB model output " +
+    @ApiOperation(value="Simulates a hurricane by returning the result as json", notes= "Implemented to match MATLAB model output " +
         "and need not be exposed to external users", hidden = true)
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(@HeaderParam("X-Credential-Username") String username,
                                                                   @PathParam("coast") String coast,
