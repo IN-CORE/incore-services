@@ -1,7 +1,8 @@
 // @flow
 
-import type {Dispatch, AnalysesMetadata, Analysis, Dataset, GetState} from "../utils.flowtype";
+import type {Dispatch, AnalysesMetadata, Analysis, Dataset, GetState, Hazard} from "../utils.flowtype";
 import config from "../app.config";
+import type {Hazards} from "../utils/flowtype";
 
 export const GET_ANALYSES = "GET_ANALYSES";
 
@@ -35,6 +36,17 @@ export function receiveDatasets(type: string, json: Dataset) {
 			type: type,
 			datasets: json,
 			receivedAt: Date.now(),
+		});
+	};
+}
+
+export const RECEIVE_HAZARDS = "RECEIVE_HAZARDS";
+export function receiveHazards(type:string, json:Hazards){
+	return(dispatch: Dispatch) =>{
+		dispatch({
+			type: type,
+			hazards: json,
+			recievedAt: Date.now(),
 		});
 	};
 }
@@ -85,6 +97,27 @@ export function fetchDatasets() {
 				}
 				else{
 					dispatch(receiveDatasets(RECEIVE_DATASETS, {}));
+				}
+			});
+	};
+}
+
+export function fetchHazards(hazard_type:string){
+	const endpoint = `${config.hazardServiceBase}${hazard_type}/`;
+	return (dispatch: Dispatch) => {
+		return fetch(endpoint, { mode:"cors", headers: getHeader() })
+			.then(response =>
+				Promise.all([response.status, response.json()])
+			)
+			.then(([status, json]) =>{
+				if (status === 200 ){
+					dispatch(receiveHazards(RECEIVE_HAZARDS, json));
+				}
+				else if (status === 403){
+					dispatch(receiveHazards(LOGIN_ERROR, {}));
+				}
+				else{
+					dispatch(receiveHazards(RECEIVE_HAZARDS, {}));
 				}
 			});
 	};
