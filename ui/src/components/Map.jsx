@@ -2,16 +2,32 @@ import React, {Component} from "react";
 let ol = require("openlayers");
 require("openlayers/css/ol.css");
 
+async function fetchExtent(name:string){
+
+	let parser = new ol.format.WMSCapabilities();
+
+	try{
+		const extentRequest = await fetch("http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms?SERVICE=WMS&REQUEST=GetCapabilities",
+			{method: "GET", mode:"cors"});
+		const text = await extentRequest.text();
+		let result = parser.read(text);
+		let extent = result.Capability.Layer.Layer.find(l => l.Name === name).EX_GeographicBoundingBox;
+
+		return extent;
+
+	}catch(err){
+		console.log(err);
+		return err;
+	}
+}
+
 class Map extends Component {
 
 	constructor(props) {
 		super(props);
 		this.state = {
 			map: new ol.Map({
-				view: new ol.View({
-					center: [0, 0],
-					zoom: 1
-				}),
+				view: new ol.View(),
 				layers: [
 					new ol.layer.Tile({
 						source: new ol.source.OSM()
@@ -26,30 +42,33 @@ class Map extends Component {
 
 		return (
 			<div>
-				<div id="map" className="root"/>
+				<div id="map" style={{width:"100%", height:"100%", position:"absolute", className:"root"}}/>
 			</div>
 		);
 
 	}
 
-	componentDidUpdate() {
+	async componentDidUpdate() {
 		const theMap = this.state.map;
 		theMap.setLayerGroup(new ol.layer.Group());
 
-		let layerTiled = new ol.layer.Tile({
-			source: new ol.source.TileWMS({
-				visible: false,
-				url: "https://incore2-geoserver.ncsa.illinois.edu/geoserver/incore/wms",
-				params: {"FORMAT": "image/png",
-					"VERSION": "1.1.1",
-					tiled: true,
-					name: "tiledLayer",
-					STYLES: "",
-					LAYERS: `incore:${this.props.datasetId}`,
-					tilesOrigin: `${-90.07376669874641  },${  35.03298062856903}` //TODO: How are we going to get this center
-				}
-			})
+		let sourceTiled = new ol.source.TileWMS({
+			visible: false,
+			url: "https://incore2-geoserver.ncsa.illinois.edu/geoserver/incore/wms",
+			params: {"FORMAT": "image/png",
+				"VERSION": "1.1.1",
+				tiled: true,
+				name: "tiledLayer",
+				STYLES: "",
+				LAYERS: `incore:${this.props.datasetId}`
+			}
 		});
+
+		let layerTiled = new ol.layer.Tile({
+			source: sourceTiled,
+			opacity: 0.7
+		});
+
 		let mapTile = new ol.layer.Tile({
 			source: new ol.source.XYZ({
 				attribution: [new ol.Attribution({
@@ -63,22 +82,29 @@ class Map extends Component {
 		theMap.addLayer(mapTile);
 		theMap.addLayer(layerTiled);
 
+		// snap the map to the hazard bounding box
+		let extent = await fetchExtent(this.props.datasetId);
+		theMap.getView().fit(extent, theMap.getSize());
+
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
+		let sourceTiled = new ol.source.TileWMS({
+			visible: false,
+			url: "http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms",
+			params: {
+				FORMAT: "image/png",
+				VERSION: "1.1.1",
+				tiled: true,
+				name: "tiledLayer",
+				STYLES: "",
+				LAYERS: `incore:${this.props.datasetId}`
+			}
+		});
+
 		let layerTiled = new ol.layer.Tile({
-			source: new ol.source.TileWMS({
-				visible: false,
-				url: "http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms",
-				params: {"FORMAT": "image/png",
-					"VERSION": "1.1.1",
-					tiled: true,
-					name: "tiledLayer",
-					STYLES: "",
-					LAYERS: `incore:${this.props.datasetId}`,
-					tilesOrigin: `${-90.07376669874641  },${  35.03298062856903}` //TODO: How are we going to get this center
-				}
-			})
+			source: sourceTiled,
+			opacity: 0.7
 		});
 
 		let mapTile = new ol.layer.Tile({
@@ -88,7 +114,7 @@ class Map extends Component {
 					"rest/services/NatGeo_World_Map/MapServer\">ArcGIS</a> &mdash; National Geographic, Esri, DeLorme, NAVTEQ, " +
 					"UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
 				})],
-				url: "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
+				url: "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}",
 			})
 		});
 
@@ -105,11 +131,11 @@ class Map extends Component {
 			global: true
 		});
 
+
+
 		const view = new ol.View({
 			projection: projection,
-			center:  [-90.07376669874641, 35.03298062856903],
-			zoom: 10,
-			minZoom: 5.5,
+			minZoom: 3,
 			maxZoom: 12
 		});
 
@@ -124,6 +150,10 @@ class Map extends Component {
 				})
 			})
 		});
+
+		// snap the map to the hazard bounding box
+		let extent = await fetchExtent(this.props.datasetId);
+		theMap.getView().fit(extent, theMap.getSize());
 
 		this.setState({map: theMap});
 	}
