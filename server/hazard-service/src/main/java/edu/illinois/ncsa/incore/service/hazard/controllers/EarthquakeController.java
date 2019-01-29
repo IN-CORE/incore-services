@@ -94,9 +94,18 @@ public class EarthquakeController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    public Earthquake createEarthquake(@HeaderParam("X-Credential-Username") String username,
-                                       @FormDataParam("earthquake") String eqJson,
-                                       @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+    @ApiOperation(value = "Creates a new scenario earthquake and returns the newly created scenario earthquake.",
+        notes="Additionally, a geotiff (raster) is created by default and publish it to data repository. " +
+            "User can create both scenario earthquake (with attenuation) and prob earthquake (with geotiff file upload).")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "earthquake", value = "Earthquake json.", required = true, dataType = "string", paramType = "form"),
+        @ApiImplicitParam(name = "file", value = "Earthquake files.", required = true, dataType = "string", paramType = "form")
+    })
+    public Earthquake createEarthquake(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(hidden = true) @FormDataParam("earthquake") String eqJson,
+        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+
         // TODO finish adding log statements
         // First, get the Earthquake object from the form
         // TODO what should be done if a user sends multiple earthquake objects?
