@@ -187,7 +187,9 @@ public class FileStorageDisk implements FileStorage {
 
         fd.setMimeType(new MimetypesFileTypeMap().getContentType(output));
 
-        fd.setDataURL(output.toURI().toURL().toString());
+        //set relative path to file descriptor's data url
+        fd.setDataURL(path);
+
         if (md5 != null) {
             fd.setMd5sum(md5.digest());
         }

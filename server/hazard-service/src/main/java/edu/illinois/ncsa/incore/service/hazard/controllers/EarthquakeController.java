@@ -28,8 +28,10 @@ import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.opengis.coverage.grid.GridCoverage;
 
 import javax.inject.Inject;
@@ -92,21 +94,16 @@ public class EarthquakeController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a new scenario earthquake and returns the newly created scenario earthquake.",
-        notes="Additionally, a geotiff (raster) is created by default and publish it to data repository. " +
-        "User can create both scenario earthquake (with attenuation) and prob earthquake (with geotiff file upload).")
-    public Earthquake createEarthquake(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        FormDataMultiPart inputs) {
-
+    public Earthquake createEarthquake(@HeaderParam("X-Credential-Username") String username,
+                                       @FormDataParam("earthquake") String eqJson,
+                                       @FormDataParam("file") List<FormDataBodyPart> fileParts) {
         // TODO finish adding log statements
         // First, get the Earthquake object from the form
         // TODO what should be done if a user sends multiple earthquake objects?
-        FormDataBodyPart eq = inputs.getField("earthquake");
         ObjectMapper mapper = new ObjectMapper();
         Earthquake earthquake = null;
         try {
-            earthquake = mapper.readValue(eq.getValue(), Earthquake.class);
+            earthquake = mapper.readValue(eqJson, Earthquake.class);
             earthquake.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // Create temporary working directory
@@ -150,10 +147,9 @@ public class EarthquakeController {
 
                 // We assume the input files in the request are in the same order listed in the earthquake dataset object
                 int hazardDatasetIndex = 0;
-                for (int i = 0; i < inputs.getBodyParts().size(); i++) {
-                    String paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get("name");
-                    // We only want the file parts
-                    if (paramName.equals("file")) {
+                if (fileParts != null && !fileParts.isEmpty() && HazardUtil.validateEqDatasetTypes(fileParts) &&
+                    (eqDataset.getHazardDatasets().size() == fileParts.size())) {
+                    for (FormDataBodyPart filePart : fileParts) {
                         HazardDataset hazardDataset = eqDataset.getHazardDatasets().get(hazardDatasetIndex);
                         String description = "Deterministic hazard raster";
                         String datasetType = HazardConstants.DETERMINISTIC_HAZARD_SCHEMA;
@@ -168,18 +164,23 @@ public class EarthquakeController {
                         String datasetName = demandType;
 
                         if (period > 0.0) {
-                            datasetName = Double.toString(period) + " " + demandType;
+                            datasetName = period + " " + demandType;
                         }
-                        InputStream fis = inputs.getFields("file").get(0).getValueAs(InputStream.class);
-                        String filename = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
+
+                        String filename = filePart.getContentDisposition().getFileName();
+                        BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
+                        InputStream fis = bodyPartEntity.getInputStream();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName, username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
+                    // Save changes to earthquake
+                    earthquake = repository.addEarthquake(earthquake);
+                    return earthquake;
                 }
-                // Save changes to earthquake
-                earthquake = repository.addEarthquake(earthquake);
-                return earthquake;
+                else {
+                    logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
+                    throw new BadRequestException("Could not create Earthquake. Check your file extensions and the number of files in the request.");                }
             }
 
         } catch (IOException e) {
