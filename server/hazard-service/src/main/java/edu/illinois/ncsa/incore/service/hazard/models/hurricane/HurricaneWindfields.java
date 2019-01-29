@@ -8,13 +8,14 @@ import org.mongodb.morphia.annotations.Property;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 
 @XmlRootElement
 public class HurricaneWindfields {
 
-    public final String gridResolutionUnits = "km";
-    public final String rasterResolutionUnits = "km";
-    public final String transDUnits = "degrees";
+    public final String gridResolutionUnits = HurricaneUtil.GRID_RESOLUTION_UNITS;
+    public final String rasterResolutionUnits = HurricaneUtil.RASTER_RESOLUTION_UNITS;
+    public final String transDUnits = HurricaneUtil.TRANSD_UNITS;
     public String velocityUnits = "kt";
     @Id
     @Property("_id")
