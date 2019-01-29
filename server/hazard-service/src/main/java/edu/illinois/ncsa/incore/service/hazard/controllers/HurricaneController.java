@@ -26,6 +26,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneC
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
+import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
 import org.opengis.geometry.MismatchedDimensionException;
 
@@ -56,11 +57,14 @@ public class HurricaneController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<HurricaneWindfields> getHurricaneWindfields(@QueryParam("coast") String coast, @QueryParam("category") int category) {
+    public List<HurricaneWindfields> getHurricaneWindfields(@HeaderParam("X-Credential-Username") String username,
+                                                            @QueryParam("coast") String coast, @QueryParam("category") int category) {
 
         Map<String, String> queryMap = new HashMap<>();
-        List<HurricaneWindfields> hurricaneWindfields;
-        hurricaneWindfields = repository.getHurricanes();
+
+        List<HurricaneWindfields> hurricaneWindfields = repository.getHurricanes().stream()
+            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .collect(Collectors.toList());
 
         if (coast != null) {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCoast().equals(coast)).collect(Collectors.toList());
@@ -180,6 +184,8 @@ public class HurricaneController {
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value="Simulates a hurricane by returning the result as json", notes= "Implemented to match MATLAB model output " +
+        "and need not be exposed to external users", hidden = true)
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(@HeaderParam("X-Credential-Username") String username,
                                                                   @PathParam("coast") String coast,
                                                                   @QueryParam("category") int category,
@@ -187,8 +193,6 @@ public class HurricaneController {
                                                                   @DefaultValue("6") @QueryParam("resolution") int resolution,
                                                                   @DefaultValue("80") @QueryParam("gridPoints") int gridPoints,
                                                                   @DefaultValue("circular") @QueryParam("reductionType") String rfMethod) {
-
-        //TODO: Find a way to include exception reason in HTTP Response INCORE-461
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
         if (coast == null || category <= 0 || category > 5) {
             throw new NotFoundException("Coast needs to be gulf, florida or east. Category should be between 1 to 5");
