@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.*;
@@ -445,13 +444,13 @@ public class FileUtils {
         File outFile = null;
 
         if (fds.size() > 0) {
-            File tmpFile = new File(DATA_REPO_FOLDER + fds.get(0).getDataURL());
+            File tmpFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fds.get(0).getDataURL()));
             fileBaseName = FilenameUtils.getBaseName(tmpFile.getName());
 
             List<String> fileNameList = new LinkedList<String>();
             for (FileDescriptor fd : fds) {
                 // do not put the mvz file
-                String dataUrl = DATA_REPO_FOLDER + fd.getDataURL();
+                String dataUrl = FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL());
                 String ext = FilenameUtils.getExtension(dataUrl);
                 if (!ext.equalsIgnoreCase(EXTENSION_META)) {
                     fileList.add(new File(dataUrl));
@@ -587,8 +586,8 @@ public class FileUtils {
 
         for (int i = 0; i < csvFDs.size(); i++) {
             FileDescriptor csvFd = csvFDs.get(i);
-            String csvLoc = csvFd.getDataURL();
-            csvFile = new File(new URI(csvLoc));
+            String csvLoc = FilenameUtils.concat(DATA_REPO_FOLDER, csvFd.getDataURL());
+            csvFile = new File(csvLoc);
         }
 
         Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
@@ -603,8 +602,8 @@ public class FileUtils {
             if (!(sourceType.equalsIgnoreCase(FORMAT_SHAPEFILE))) {
                 for (int i = 0; i < sourceFDs.size(); i++) {
                     FileDescriptor sfd = sourceFDs.get(i);
-                    String shpLoc = sfd.getDataURL();
-                    File shpFile = new File(new URI(shpLoc));
+                    String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
+                    File shpFile = new File(shpLoc);
                     shpfiles.add(shpFile);
                     //get file, if the file is in remote, use http downloader
                     String fileExt = FilenameUtils.getExtension(shpLoc);
