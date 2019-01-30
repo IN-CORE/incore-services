@@ -12,12 +12,14 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
@@ -35,6 +37,7 @@ import java.util.List;
 @Path("files")
 public class FileController {
     private Logger logger = Logger.getLogger(edu.illinois.ncsa.incore.service.data.controllers.FileController.class);
+    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
 
     @Inject
     private IRepository repository;
@@ -109,7 +112,7 @@ public class FileController {
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
             if (fdId.equals(id)) {
-                dataUrl = fd.getDataURL();
+                dataUrl = FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL());
                 fileName = fd.getFilename();
                 break;
             }
