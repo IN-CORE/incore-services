@@ -61,7 +61,7 @@ public class HurricaneController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all hurricanes.")
+    @ApiOperation(value = "API call returns all hurricanes.")
     public List<HurricaneWindfields> getHurricaneWindfields(
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category) {
@@ -84,7 +84,7 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the scenario hurricane matching the given id.")
+    @ApiOperation(value = "API call returns the hurricane with matching id.")
     public HurricaneWindfields getHurricaneWindfieldsById(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
@@ -99,12 +99,12 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the hurricane valuesn using the specified scenario hurricane.")
+    @ApiOperation(value = "API call returns the hurricane values using the specified scenario hurricane.")
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
         @ApiParam(value = "Hurricane demand type. Ex. 'velocity'.") @QueryParam("demandType") @DefaultValue("velocity") String demandType,
-        @ApiParam(value = "Hurricane demand unit. Ex: 'kT'.") @QueryParam("demandUnits") @DefaultValue("kt") WindfieldDemandUnits demandUnits,
+        @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue("kt") WindfieldDemandUnits demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.09,-80.62'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(username, hurricaneId);
@@ -148,7 +148,9 @@ public class HurricaneController {
 
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a scenario hurricane and returns the newly created scenario hurricane.")
+    @ApiOperation(value = "API call creates a new hurricane, simulation of hurricane windfields is returned.",
+        notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
+            "windfield's raster.")
     public HurricaneWindfields createHurricaneWindfields(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         HurricaneWindfields inputHurricane) {
@@ -196,7 +198,8 @@ public class HurricaneController {
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Simulate a hurricane.")
+    @ApiOperation(value = "API call returns raw data of a hurricane simulation.",
+        notes = "It is only used to compare the results with original matlab model")
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @PathParam("coast") String coast,

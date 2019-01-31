@@ -71,7 +71,7 @@ public class TornadoController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a scenario tornado and returns the newly created scenario tornado.")
+    @ApiOperation(value = "API call creates a new tornado, the newly created tornado is returned.")
     public ScenarioTornado createScenarioTornado(
         ScenarioTornado scenarioTornado,
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) throws Exception {
@@ -129,7 +129,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the scenario tornado matching the given id.")
+    @ApiOperation(value = "API call returns the scenario tornado with matching id.")
     public ScenarioTornado getScenarioTornado(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
@@ -144,7 +144,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the wind speed at the given location using the specified scenario tornado.")
+    @ApiOperation(value = "API call returns the wind speed at given location using the specified scenario tornado.")
     public WindHazardResult getScenarioTornadoHazard(
         @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
@@ -170,7 +170,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the wind speed at the given location using the specified scenario tornado.")
+    @ApiOperation(value = "API call returns the wind speed at given location using the specified scenario tornado.")
     public List<WindHazardResult> getScenarioTornadoHazardValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
@@ -199,7 +199,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/dataset")
     @Produces({MediaType.TEXT_PLAIN})
-    @ApiOperation(value = "Gets a shapefile representing scenario tornado. Returns the shapefile zip file with given id.")
+    @ApiOperation(value = "API call returns a zip shapefile representing tornado defined by given id.")
     public Response getFile(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
