@@ -3,6 +3,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
@@ -23,9 +24,10 @@ public class HurricaneWindfields {
     private Date date = new Date();
     private Privileges privileges;
 
-    public final String gridResolutionUnits = "km";
-    public final String rasterResolutionUnits = "km";
-    public final String transDUnits = "degrees";
+    public final String gridResolutionUnits = HurricaneUtil.GRID_RESOLUTION_UNITS;
+    public final String rasterResolutionUnits = HurricaneUtil.RASTER_RESOLUTION_UNITS;
+    public final String transDUnits = HurricaneUtil.TRANSD_UNITS;
+
     public String velocityUnits = "kt";
 
     private int gridResolution;
