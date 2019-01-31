@@ -119,13 +119,8 @@ public class FileController {
         }
 
         if (!dataUrl.equals("")) {
-            try {
-                outFile = new File(new URI(dataUrl));
-                outFile.renameTo(new File(outFile.getParentFile(), fileName));
-            } catch (URISyntaxException e) {
-                logger.error("Error making file using file id ", e);
-                throw new InternalServerErrorException("Error making file using file id ", e);
-            }
+            outFile = new File(dataUrl);
+            outFile.renameTo(new File(outFile.getParentFile(), fileName));
         }
 
         if (outFile != null) {
