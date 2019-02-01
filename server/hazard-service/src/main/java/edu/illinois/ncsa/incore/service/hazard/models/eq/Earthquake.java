@@ -2,12 +2,15 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Date;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "eqType")
 @JsonSubTypes({@JsonSubTypes.Type(value = EarthquakeDataset.class, name = "dataset"), @JsonSubTypes.Type(value = EarthquakeModel.class, name = "model")})
@@ -25,6 +28,8 @@ public abstract class Earthquake {
     // Friendly name of defined earthquake
     private String name;
     private String description;
+
+    private Date date = new Date();
 
     public String getDescription() {
         return description;
@@ -49,4 +54,14 @@ public abstract class Earthquake {
     public String getName() {
         return this.name;
     }
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
 }
