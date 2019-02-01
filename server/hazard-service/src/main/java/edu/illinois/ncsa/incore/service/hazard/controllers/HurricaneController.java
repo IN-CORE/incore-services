@@ -63,12 +63,15 @@ public class HurricaneController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "API call returns all hurricanes.")
     public List<HurricaneWindfields> getHurricaneWindfields(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category) {
 
         Map<String, String> queryMap = new HashMap<>();
-        List<HurricaneWindfields> hurricaneWindfields;
-        hurricaneWindfields = repository.getHurricanes();
+
+        List<HurricaneWindfields> hurricaneWindfields = repository.getHurricanes().stream()
+            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .collect(Collectors.toList());
 
         if (coast != null) {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCoast().equals(coast)).collect(Collectors.toList());
@@ -198,8 +201,8 @@ public class HurricaneController {
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns raw data of a hurricane simulation.",
-        notes = "It is only used to compare the results with original matlab model")
+    @ApiOperation(hidden = true value = "API call simulates a hurricane by returning the result as json.",
+        notes = "It is implemented to match MATLAB output and need not be exposed to external users")
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @PathParam("coast") String coast,
@@ -210,7 +213,6 @@ public class HurricaneController {
         @ApiParam(value = "Number of grid points. Ex: 80.", required = true) @QueryParam("gridPoints") @DefaultValue("80") int gridPoints,
         @ApiParam(value = "Reduction type. Ex: 'circular'.", required = true) @QueryParam("reductionType") @DefaultValue("circular") String rfMethod) {
 
-        //TODO: Find a way to include exception reason in HTTP Response INCORE-461
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
         if (coast == null || category <= 0 || category > 5) {
             throw new NotFoundException("Coast needs to be gulf, florida or east. Category should be between 1 to 5");

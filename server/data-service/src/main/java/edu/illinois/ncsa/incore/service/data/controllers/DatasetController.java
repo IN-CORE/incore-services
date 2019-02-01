@@ -37,7 +37,6 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -224,18 +223,14 @@ public class DatasetController {
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
-        String dataUrl = DATA_REPO_FOLDER;
+        String dataUrl = "";
         String fdId = "";
         String fileName = "";
-
-        if(!dataUrl.endsWith("/")){
-            dataUrl += "/";
-        }
 
         for (FileDescriptor fd : fds) {
             fdId = fd.getId();
             if (fdId.equals(fileId)) {
-                dataUrl = dataUrl + fd.getDataURL();
+                dataUrl = FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL());
                 fileName = fd.getFilename();
             }
         }
@@ -417,7 +412,7 @@ public class DatasetController {
                     List<FileDescriptor> fds = dataset.getFileDescriptors();
                     if (fds.size() > 0) {
                         for (FileDescriptor fd : fds) {
-                            File file = new File(DATA_REPO_FOLDER + fd.getDataURL());
+                            File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
                             FileUtils.deleteTmpDir(file);
 
                         }
@@ -528,21 +523,16 @@ public class DatasetController {
         boolean isShpfile = false;
 
         if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE)) {
-            try {
-                for (int i = 0; i < shpFDs.size(); i++) {
-                    FileDescriptor sfd = shpFDs.get(i);
-                    String shpLoc = sfd.getDataURL();
-                    File shpFile = new File(new URI(shpLoc));
-                    files.add(shpFile);
-                    //get file, if the file is in remote, use http downloader
-                    String fileExt = FilenameUtils.getExtension(shpLoc);
-                    if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                        isShpfile = true;
-                    }
+            for (int i = 0; i < shpFDs.size(); i++) {
+                FileDescriptor sfd = shpFDs.get(i);
+                String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
+                File shpFile = new File(shpLoc);
+                files.add(shpFile);
+                //get file, if the file is in remote, use http downloader
+                String fileExt = FilenameUtils.getExtension(shpLoc);
+                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                    isShpfile = true;
                 }
-            } catch (URISyntaxException e) {
-                logger.error("Error creating file from dataset location ", e);
-                throw new InternalServerErrorException("Error creating file from dataset location ", e);
             }
             try {
                 boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);

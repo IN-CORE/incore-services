@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Api(value="tornadoes", authorizations = {})
 
@@ -62,20 +63,21 @@ public class TornadoController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all tornadoes.")
-    public List<ScenarioTornado> getScenarioTornadoes() {
-        return repository.getScenarioTornadoes();
+    @ApiOperation(value = "API call returns all tornadoes.")
+    public List<ScenarioTornado> getScenarioTornadoes(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
+        return repository.getScenarioTornadoes().stream()
+            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .collect(Collectors.toList());
     }
 
 
     @POST
-    @Consumes({MediaType.MULTIPART_FORM_DATA})
-    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "API call creates a new tornado, the newly created tornado is returned.")
     public ScenarioTornado createScenarioTornado(
-        ScenarioTornado scenarioTornado,
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) throws Exception {
-
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username, ScenarioTornado scenarioTornado) throws Exception {
         if (scenarioTornado != null) {
             Tornado tornado = null;
 
