@@ -201,7 +201,7 @@ public class HurricaneController {
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true value = "API call simulates a hurricane by returning the result as json.",
+    @ApiOperation(hidden = true, value = "API call simulates a hurricane by returning the result as json.",
         notes = "It is implemented to match MATLAB output and need not be exposed to external users")
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
