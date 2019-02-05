@@ -51,6 +51,9 @@ public class HurricaneUtil {
     public static final Map<String, String[]> categoryMapping;
     private static final Logger logger = Logger.getLogger(HurricaneUtil.class);
     public static List<Integer> OMEGAS_ALL = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+    public static final String GRID_RESOLUTION_UNITS = "km";
+    public static final String RASTER_RESOLUTION_UNITS = "km";
+    public static final String TRANSD_UNITS = "degrees";
 
     static {
         categoryMapping = new HashMap<String, String[]>();
