@@ -461,7 +461,7 @@ public class FileUtils {
             // create temp dir and copy files to temp dir
             String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
             // copiedFileList below is not used but the method is needed to copy files
-            List<File> copieFileList = GeotoolsUtils.performCopyFiles(fileList, tempDir, datasetId, isGeoserver, inExt);
+            List<File> copieFileList = GeotoolsUtils.copyFilesToTmpDir(fileList, tempDir, datasetId, isGeoserver, inExt);
 
             if (isGeoserver) {
                 // this is basically a renaming of the files to have dataset id as their name
@@ -583,7 +583,6 @@ public class FileUtils {
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
         File zipFile = null;
-        File shapefile = null;
 
         for (int i = 0; i < csvFDs.size(); i++) {
             FileDescriptor csvFd = csvFDs.get(i);
@@ -609,12 +608,10 @@ public class FileUtils {
                     //get file, if the file is in remote, use http downloader
                     String fileExt = FilenameUtils.getExtension(shpLoc);
                     if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                        shapefile = shpFile;
                         isShpfile = true;
                     }
                 }
             }
-
             if (isShpfile) {
                 zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
             }

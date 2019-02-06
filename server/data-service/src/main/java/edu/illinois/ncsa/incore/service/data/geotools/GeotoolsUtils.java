@@ -13,17 +13,13 @@
 package edu.illinois.ncsa.incore.service.data.geotools;
 
 import com.opencsv.CSVReader;
-import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
-import org.geotools.coverage.grid.io.GridCoverage2DReader;
-import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -31,7 +27,6 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
-import org.geotools.factory.Hints;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -39,19 +34,15 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.gce.arcgrid.ArcGridReader;
 import org.geotools.gce.geotiff.GeoTiffFormat;
-import org.geotools.gce.geotiff.GeoTiffReader;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.opengis.coverage.grid.GridCoverage;
-import org.opengis.coverage.grid.GridCoverageReader;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.io.*;
 import java.net.URL;
@@ -99,114 +90,6 @@ public class GeotoolsUtils {
     }
 
     /**
-     * get bounding box information from tif
-     *
-     * @param file
-     * @return
-     */
-    public static double[] getBboxFromGrid(File file) throws IOException {
-        double[] bbox = new double[4];
-        // create temp dir and copy files to temp dir
-//        List<File> copiedFileList = copyFilesToTempDir(file);
-//        File file = copiedFileList.get(0);
-        GridCoverage coverage = getGridCoverage(file);
-        org.opengis.geometry.Envelope env = coverage.getEnvelope();
-
-        bbox[0] = env.getLowerCorner().getCoordinate()[0];
-        bbox[1] = env.getLowerCorner().getCoordinate()[1];
-        bbox[2] = env.getUpperCorner().getCoordinate()[0];
-        bbox[3] = env.getUpperCorner().getCoordinate()[1];
-
-        return bbox;
-    }
-
-    /**
-     * create temp dir and copy files to temp dir
-     * @param files
-     * @return
-     * @throws IOException
-     */
-    public static List<File> copyFilesToTempDir(List<File> files) throws IOException {
-        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> copiedFileList = null;
-        copiedFileList = performCopyFiles(files, tempDir, "",false,"");
-
-        return copiedFileList;
-    }
-
-    public static GridCoverage getGridCoverage(File file) throws IOException {
-        AbstractGridFormat format = GridFormatFinder.findFormat( file );
-        GridCoverageReader reader = format.getReader( file );
-        GridCoverage coverage = reader.read(null);
-        reader.dispose();
-
-        return coverage;
-    }
-
-    /**
-     * get bounding box information from shapefile
-     * @param file
-     * @return
-     * @throws IOException
-     */
-    public static double[] getBboxFromShp(File file) throws IOException{
-        // create temp dir and copy files to temp dir
-        double[] bbox = new double[4];
-//        List<File> copiedFileList = copyFilesToTempDir(shpfiles);
-
-        SimpleFeatureCollection sfc = getSimpleFeatureCollectionFromFile(file);
-        Envelope env = sfc.getBounds();
-        double minx = env.getMinX();
-        double miny = env.getMinY();
-        double maxx = env.getMaxX();
-        double maxy = env.getMaxY();
-
-        bbox[0] = minx;
-        bbox[1] = miny;
-        bbox[2] = maxx;
-        bbox[3] = maxy;
-
-        return bbox;
-    }
-
-    /**
-     * get SimpleFeatureCollection from list of shapefile components
-     * @param fileList
-     * @return
-     * @throws IOException
-     */
-    public static SimpleFeatureCollection getSimpleFeatureCollectionFromFileList(List<File> fileList) throws IOException {
-        File inSourceFile = null;
-        for (File copiedFile : fileList) {
-            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
-            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                inSourceFile = copiedFile;
-            }
-        }
-        SimpleFeatureCollection sfc = getSimpleFeatureCollectionFromFile(inSourceFile);
-
-        return sfc;
-    }
-
-    public static SimpleFeatureCollection getSimpleFeatureCollectionFromFile(File file) throws IOException {
-        URL inSourceFileUrl = file.toURI().toURL();
-
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("url", inSourceFileUrl);
-
-        DataStore dataStore = DataStoreFinder.getDataStore(map);
-        String typeName = dataStore.getTypeNames()[0];
-
-        FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
-
-        Filter filter = Filter.INCLUDE;
-        dataStore.dispose();
-        SimpleFeatureCollection sfc = (SimpleFeatureCollection) source.getFeatures(filter);
-
-        return sfc;
-    }
-
-    /**
      * join csv file to shapefile and create a new shapefile
      *
      * @param shpfiles
@@ -242,12 +125,29 @@ public class GeotoolsUtils {
         List<File> copiedFileList = null;
         if (isRename) { // this will only get the files for geoserver
             outFileName = dataset.getId() + "." + FileUtils.EXTENSION_SHP;
-            copiedFileList = performCopyFiles(shpfiles, tempDir, dataset.getId(), true, "shp");
+            copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, dataset.getId(), true, "shp");
         } else {
-            copiedFileList = performCopyFiles(shpfiles, tempDir, "", false, "");
+            copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "");
+        }
+        URL inSourceFileUrl = null;
+        for (File copiedFile : copiedFileList) {
+            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
+            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                inSourceFileUrl = copiedFile.toURI().toURL();
+            }
         }
 
-        SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFileList(copiedFileList);
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("url", inSourceFileUrl);
+
+        DataStore dataStore = DataStoreFinder.getDataStore(map);
+        String typeName = dataStore.getTypeNames()[0];
+
+        FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore.getFeatureSource(typeName);
+
+        Filter filter = Filter.INCLUDE;
+        dataStore.dispose();
+        SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures(filter);
 
         SimpleFeatureType sft = inputFeatures.getSchema();
 
@@ -321,7 +221,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static List<File> performCopyFiles(List<File> fileList, String tempDir, String datasetId, boolean isGeoserver, String inExt) throws IOException {
+    public static List<File> copyFilesToTmpDir(List<File> fileList, String tempDir, String datasetId, boolean isGeoserver, String inExt) throws IOException {
         List<File> outList = new ArrayList<File>();
         for (int i = 0; i < fileList.size(); i++) {
             File sourceFile = fileList.get(i);
@@ -499,10 +399,29 @@ public class GeotoolsUtils {
 
         // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> copiedFileList = performCopyFiles(shpfiles, tempDir, "", false, "shp");
+        List<File> copiedFileList = copyFilesToTmpDir(shpfiles, tempDir, "", false, "shp");
+        URL inSourceFileUrl = null;
         boolean isGuid = false;
 
-        SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFileList(copiedFileList);
+        for (File copiedFile : copiedFileList) {
+            String fileExt = FilenameUtils.getExtension(copiedFile.getName());
+            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                inSourceFileUrl = copiedFile.toURI().toURL();
+            }
+        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("url", inSourceFileUrl);
+
+        DataStore dataStore = DataStoreFinder.getDataStore(map);
+        String typeName = dataStore.getTypeNames()[0];
+
+        FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore
+                .getFeatureSource(typeName);
+
+        Filter filter = Filter.INCLUDE;
+        dataStore.dispose();
+        SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures(filter);
+//        FeatureCollection<SimpleFeatureType, SimpleFeature> inputFeatures = source.getFeatures(filter);
 
         // check if there is guid exists
         isGuid = isGuidExist(inputFeatures);
