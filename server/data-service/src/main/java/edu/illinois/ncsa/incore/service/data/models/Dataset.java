@@ -104,10 +104,6 @@ public class Dataset {
      */
     private List<String> spaces = null;
 
-    /**
-     * Bounding box array
-     */
-    private double[] boundingBox = null;
 
     /**
      * Privileges associated with this dataset
@@ -259,20 +255,6 @@ public class Dataset {
         // if (fileDescriptors != null) {
         // getFileDescriptors().addAll(fileDescriptors);
         // }
-    }
-
-    /**
-     * get bounding box information
-     * @return
-     */
-    public double[] getBoundingBox() { return boundingBox; }
-
-    /**
-     * set bounding box information
-     * @param boundingBox
-     */
-    public void setBoundingBox(double[] boundingBox) {
-        this.boundingBox = boundingBox;
     }
 
     /**
