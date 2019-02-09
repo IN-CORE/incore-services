@@ -42,4 +42,5 @@ public class HazardConstants {
     public static final String DATASETS_FILES = "files";
 
     public static List<String> EQ_DATASET_TYPES_ALLOWED = Arrays.asList("tif", "tiff");
+    public static List<String> TORNADO_DATASET_TYPES_ALLOWED = Arrays.asList("shp");
 }

@@ -9,7 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import org.mongodb.morphia.Datastore;
 
 import java.util.List;
@@ -17,11 +17,11 @@ import java.util.List;
 public interface ITornadoRepository {
     void initialize();
 
-    ScenarioTornado getScenarioTornadoById(String id);
+    Tornado getTornadoById(String id);
 
-    ScenarioTornado addScenarioTornado(ScenarioTornado scenarioTornado);
+    Tornado addTornado(Tornado tornado);
 
-    List<ScenarioTornado> getScenarioTornadoes();
+    List<Tornado> getTornadoes();
 
     Datastore getDataStore();
 }

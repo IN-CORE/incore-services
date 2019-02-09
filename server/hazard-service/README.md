@@ -186,20 +186,26 @@ http://localhost:8080/hazard/api/tsunamis/{id}/values?demandType=hmax&demandUnit
 
 ## Tornadoes
 
-### Create Scenario Tornado
+### Create Tornado based on Tornado Model
 POST http://localhost:8080/hazard/api/tornadoes
 
-Content-Type: application/json
+Content-Type: multipart/form-data
 
 Supported tornado models are:
 * MeanWidthTornado
 * RandomWidthTornado
+* MeanLengthWidthAngleTornado
+* RandomLengthWidthAngleTornado
+* RandomAngleTornado
 
 For the example below, replace the tornadoModel with the model you want to create and if applicable, update the number of simulations for how many tornadoes to create.
 
-##### Sample JSON to create mean width scenario tornado
+##### Form Parameter: "tornado" should hold the JSON, see example for creating mean width tornado model
 
 {
+  "name": "Centerville Tornado",
+  "description": "Centerville mean width tornado hazard",
+  "tornadoType": "model",
   "tornadoModel" : "MeanWidthTornado",
   "tornadoParameters" : {
     "efRating" : "EF5",
@@ -222,7 +228,26 @@ models (e.g. mean length width, and angle) calcuate endLat and endLon, others (e
 * windSpeedMethod(optional) - for computing wind speed within an EF boundary, 0 indicates using linear interpolation, 1
 indicates uniform random distribution. Default is Uniform random distribution.
 
-### Get Values from Scenario Tornado
+### Create Tornado Dataset
+
+POST http://localhost:8080/hazard/api/tornadoes
+
+Content-Type: multipart/form-data
+
+###### Form Parameter: "tornado" should hold the tornado JSON
+###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
+
+When creating a tornado dataset, the only file type currently supported are shapefiles.
+
+##### Sample JSON to create Tornado Dataset
+
+{
+  "name": "Joplin Tornado",
+  "description": "Joplin tornado hazard",
+  "tornadoType": "dataset"
+}
+
+### Get Values from Tornado
 
 http://localhost:8080/hazard/api/tornadoes/{id}/value?demandUnits=mph&siteLat=35.2265&siteLong=-97.4788
 value should be between 65 and 85 mph

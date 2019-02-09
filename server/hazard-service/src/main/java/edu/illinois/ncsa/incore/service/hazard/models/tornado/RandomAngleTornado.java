@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class RandomAngleTornado extends Tornado {
+public class RandomAngleTornado extends BaseTornado {
 
     @Override
     public boolean requiresEndPoint(){

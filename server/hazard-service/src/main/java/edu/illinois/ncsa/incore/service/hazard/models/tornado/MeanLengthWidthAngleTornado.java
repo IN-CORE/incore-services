@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils
 import java.util.ArrayList;
 import java.util.List;
 
-public class MeanLengthWidthAngleTornado extends Tornado{
+public class MeanLengthWidthAngleTornado extends BaseTornado{
 
     public void createTornado(TornadoParameters tornadoParameters) {
 

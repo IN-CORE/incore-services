@@ -23,6 +23,8 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.BodyPartEntity;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -32,6 +34,74 @@ import java.util.List;
 public class ServiceUtil {
 
     private static final Logger logger = Logger.getLogger(ServiceUtil.class);
+
+    /**
+     * Utility for the hazard service to save files to the dataset repository
+     *
+     * @param datasetObject
+     * @param creator
+     * @param fileParts
+     * @return
+     * @throws IOException
+     */
+    public static String createDataset(JSONObject datasetObject, String creator, List<FormDataBodyPart> fileParts) throws IOException {
+        // TODO cleanup duplicate code
+        // CMN: we could go through Kong, but then we would need a token
+        String dataEndpoint = "http://localhost:8080/";
+        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
+            dataEndpoint = dataEndpointProp;
+            if (!dataEndpoint.endsWith("/")) {
+                dataEndpoint += "/";
+            }
+        }
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
+        HttpPost httpPost = new HttpPost(requestUrl);
+        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+
+        MultipartEntityBuilder params = MultipartEntityBuilder.create();
+        params.addTextBody(HazardConstants.DATASET_PARAMETER, datasetObject.toString());
+
+        HttpResponse response = null;
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseStr = null;
+
+        httpPost.setEntity(params.build());
+        response = httpclient.execute(httpPost);
+        responseStr = responseHandler.handleResponse(response);
+
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            JSONObject object = new JSONObject(responseStr);
+
+            String datasetId = object.getString("id");
+            requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
+
+            params = MultipartEntityBuilder.create();
+            params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+            for (FormDataBodyPart filePart : fileParts) {
+                BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
+                params.addBinaryBody(HazardConstants.FILE_PARAMETER_, bodyPartEntity.getInputStream(), ContentType.DEFAULT_BINARY, filePart.getContentDisposition().getFileName());
+            }
+
+            // Attach file
+            httpPost = new HttpPost(requestUrl);
+            httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpPost.setEntity(params.build());
+
+            response = httpclient.execute(httpPost);
+            responseStr = responseHandler.handleResponse(response);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                return datasetId;
+            }
+        }
+
+        return null;
+    }
 
     /**
      * Utility for the hazard service to save files to the dataset repository
@@ -225,7 +295,7 @@ public class ServiceUtil {
         String datasetId = createDataset(title, creator, description, datasetType);
 
         if (datasetId != null) {
-            for (File vizFile: vizFiles) {
+            for (File vizFile : vizFiles) {
                 MultipartEntityBuilder params = MultipartEntityBuilder.create();
                 params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
                 params.addBinaryBody(HazardConstants.FILE_PARAMETER_, vizFile);
