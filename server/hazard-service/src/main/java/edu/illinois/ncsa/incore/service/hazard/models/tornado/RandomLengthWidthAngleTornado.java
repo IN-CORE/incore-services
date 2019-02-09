@@ -17,7 +17,7 @@ import java.util.Random;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RandomLengthWidthAngleTornado extends Tornado {
+public class RandomLengthWidthAngleTornado extends BaseTornado {
 
     private static double[] maxWidth = { 2500.0, 3000.0, 3520.0, 3872.0, 4400.0, 3000.0 }; // Maximum width for EF0 - EF5
 

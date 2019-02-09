@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
@@ -16,15 +17,8 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanWidthTornado;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomAngleTornado;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.MeanLengthWidthAngleTornado;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.RandomLengthWidthAngleTornado;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoRandomWidth;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
@@ -33,6 +27,8 @@ import io.swagger.annotations.Api;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONObject;
 
 import javax.inject.Inject;
@@ -40,6 +36,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,71 +56,88 @@ public class TornadoController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<ScenarioTornado> getScenarioTornadoes(@HeaderParam("X-Credential-Username") String username) {
-        return repository.getScenarioTornadoes().stream()
+    public List<Tornado> getTornadoes(@HeaderParam("X-Credential-Username") String username) {
+        return repository.getTornadoes().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
     }
 
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public ScenarioTornado createScenarioTornado(@HeaderParam("X-Credential-Username") String username, ScenarioTornado scenarioTornado) throws Exception {
-        if (scenarioTornado != null) {
-            Tornado tornado = null;
+    @Consumes({MediaType.MULTIPART_FORM_DATA})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Tornado createTornado(@HeaderParam("X-Credential-Username") String username, @FormDataParam("tornado") String tornadoJson, @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+        ObjectMapper mapper = new ObjectMapper();
+        Tornado tornado = null;
+        try {
+            tornado = mapper.readValue(tornadoJson, Tornado.class);
+            tornado.setPrivileges(Privileges.newWithSingleOwner(username));
 
-            if (scenarioTornado.getTornadoModel().equals("MeanWidthTornado")) {
-                 tornado = new MeanWidthTornado();
+            // TODO verify that parameters like title are not null
+
+            if (tornado != null && tornado instanceof TornadoModel) {
+                TornadoModel tornadoModel = (TornadoModel) tornado;
+                BaseTornado newTornado = null;
+
+                if (tornadoModel.getTornadoModel().equals("MeanWidthTornado")) {
+                    newTornado = new MeanWidthTornado();
+                } else if (tornadoModel.getTornadoModel().equals("MeanLengthWidthAngleTornado")) {
+                    newTornado = new MeanLengthWidthAngleTornado();
+                } else if (tornadoModel.getTornadoModel().equals("RandomLengthWidthAngleTornado")) {
+                    newTornado = new RandomLengthWidthAngleTornado();
+                } else if (tornadoModel.getTornadoModel().equals("RandomWidthTornado")) {
+                    newTornado = new TornadoRandomWidth();
+                } else if (tornadoModel.getTornadoModel().equals("RandomAngleTornado")) {
+                    newTornado = new RandomAngleTornado();
+                } else {
+                    logger.error("Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
+                    throw new BadRequestException("Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
+                }
+
+                // Run the model
+                newTornado.createTornado(tornadoModel.getTornadoParameters());
+
+                // Set the resulting tornado generated by the model
+                tornadoModel.setTornadoWidth(newTornado.getTornadoWidths());
+                tornadoModel.setEfBoxes(newTornado.getEFBoxes());
+
+                SimpleFeatureCollection collection = TornadoUtils.createTornadoGeometry(tornadoModel);
+                // Create the files from feature collection
+                File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection) collection);
+
+                // Create dataset object representation for storing shapefile
+                JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
+
+                // Store the dataset
+                String datasetId = ServiceUtil.createDataset(datasetObject, username, files);
+                tornadoModel.setDatasetId(datasetId);
+
+                return repository.addTornado(tornado);
+            } else if (tornado != null && tornado instanceof TornadoDataset) {
+                TornadoDataset tornadoDataset = (TornadoDataset) tornado;
+                if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
+                    // Create dataset object representation for storing shapefile
+                    JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
+                    // Store the dataset
+                    String datasetId = ServiceUtil.createDataset(datasetObject, username, fileParts);
+                    ((TornadoDataset) tornado).setDatasetId(datasetId);
+
+                    return repository.addTornado(tornado);
+                } else {
+                    logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
+                    throw new BadRequestException("Could not create Tornado. Check your file extensions and the number of files in the request.");
+                }
             }
-            else if(scenarioTornado.getTornadoModel().equals("MeanLengthWidthAngleTornado")) {
-                tornado = new MeanLengthWidthAngleTornado();
-            }
-            else if(scenarioTornado.getTornadoModel().equals("RandomLengthWidthAngleTornado")) {
-                tornado = new RandomLengthWidthAngleTornado();
-            }
-            else if (scenarioTornado.getTornadoModel().equals("RandomWidthTornado")) {
-                tornado = new TornadoRandomWidth();
-            }
-            else if(scenarioTornado.getTornadoModel().equals("RandomAngleTornado")) {
-                tornado = new RandomAngleTornado();
-            }
-            else {
-                logger.error("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
-                throw new UnsupportedHazardException("Requested tornado model, " + scenarioTornado.getTornadoModel() + " is not yet implemented.");
-            }
-
-            // Run the model
-            tornado.createTornado(scenarioTornado.getTornadoParameters());
-
-            // Set the resulting tornado generated by the model
-            scenarioTornado.setTornadoWidth(tornado.getTornadoWidths());
-            scenarioTornado.setEfBoxes(tornado.getEFBoxes());
-
-            SimpleFeatureCollection collection = TornadoUtils.createTornadoGeometry(scenarioTornado);
-            // Create the files from feature collection
-            File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection) collection);
-            // Create dataset object representation for storing shapefile
-            JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
-            // Store the dataset
-            String datasetId = ServiceUtil.createDataset(datasetObject, username, files);
-            scenarioTornado.setTornadoDatasetId(datasetId);
-
-            scenarioTornado.setPrivileges(Privileges.newWithSingleOwner(username));
-
-            return repository.addScenarioTornado(scenarioTornado);
-
-        } else {
-            logger.warn("scenario tornado is null");
+        } catch (IOException e) {
+            logger.error("Error mapping the request to a supported Tornado type.", e);
         }
-        logger.error("Scenario tornado was null.");
-        throw new InternalServerErrorException("Tornado was null");
+        throw new BadRequestException("Could not create Tornado, check the format of your request.");
     }
 
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public ScenarioTornado getScenarioTornado(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId) {
-        ScenarioTornado tornado = repository.getScenarioTornadoById(tornadoId);
+    public Tornado getTornado(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId) {
+        Tornado tornado = repository.getTornadoById(tornadoId);
         if (!authorizer.canRead(username, tornado.getPrivileges())) {
             throw new ForbiddenException();
         }
@@ -133,13 +147,13 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    public WindHazardResult getScenarioTornadoHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
-        ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
+    public WindHazardResult getTornadoHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+        Tornado tornado = getTornado(username, tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, username);
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }
@@ -151,14 +165,14 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<WindHazardResult> getScenarioTornadoHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+    public List<WindHazardResult> getTornadoHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
 
-        ScenarioTornado tornado = getScenarioTornado(username, tornadoId);
+        Tornado tornado = getTornado(username, tornadoId);
         List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
         if (tornado != null) {
             for (IncorePoint point : points) {
                 try {
-                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation));
+                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, username));
                 } catch (UnsupportedHazardException e) {
                     logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are supported", e);
                     // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
@@ -178,4 +192,5 @@ public class TornadoController {
         // TODO implement this and change MediaType to Octet Stream
         return Response.ok("Shapefile representing scenario tornado not yet implemented.").build();
     }
+
 }

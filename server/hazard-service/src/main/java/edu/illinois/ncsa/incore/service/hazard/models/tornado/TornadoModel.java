@@ -17,23 +17,13 @@ import org.mongodb.morphia.annotations.Property;
 
 import java.util.List;
 
-public class ScenarioTornado {
-    @Id
-    @Property("_id")
-    private ObjectId id;
-
+public class TornadoModel extends Tornado {
     private String tornadoModel;
 
     private TornadoParameters tornadoParameters;
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;
-    private String tornadoDatasetId;
-
-    private Privileges privileges;
-
-    public String getId() {
-        return id.toString();
-    }
+    private String datasetId;
 
     public List<Double> getTornadoWidth() {
         return tornadoWidth;
@@ -68,19 +58,11 @@ public class ScenarioTornado {
         this.tornadoModel = tornadoModel;
     }
 
-    public String getTornadoDatasetId() {
-        return tornadoDatasetId;
+    public String getDatasetId() {
+        return datasetId;
     }
 
-    public void setTornadoDatasetId(String tornadoDatasetId) {
-        this.tornadoDatasetId = tornadoDatasetId;
-    }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
+    public void setDatasetId(String datasetId) {
+        this.datasetId = datasetId;
     }
 }

@@ -18,6 +18,8 @@ import edu.illinois.ncsa.incore.service.hazard.dao.MockTornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.MockTsunamiRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 public class MockApplication extends ResourceConfig {
@@ -32,7 +34,10 @@ public class MockApplication extends ResourceConfig {
 
         IAuthorizer authorizer = new MockAuthorizer(true, true);
 
+        super.register(MultiPart.class);
+        super.register(MultiPartFeature.class);
         super.register(clazz);
+
         super.register(new AbstractBinder() {
 
             @Override
@@ -42,5 +47,6 @@ public class MockApplication extends ResourceConfig {
                 super.bind(authorizer).to(IAuthorizer.class);
             }
         });
+
     }
 }

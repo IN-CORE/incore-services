@@ -33,9 +33,9 @@ public class MeanWidthTornadoTest extends CustomJerseyTest {
 
     @Override
     public ResourceConfig configure() {
+        forceSet(TestProperties.CONTAINER_PORT, "0");
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, "0");
 
         return new MockApplication(TornadoController.class);
     }
@@ -43,7 +43,7 @@ public class MeanWidthTornadoTest extends CustomJerseyTest {
     @Test
     public void testMeanWidthTornadoValues() throws Exception {
         String id = "5a7385645a52284c6a7d273a";
-        ScenarioTornado tornado = target("tornadoes/" + id).request().accept(MediaType.APPLICATION_JSON).get(ScenarioTornado.class);
+        Tornado tornado = target("tornadoes/" + id).request().accept(MediaType.APPLICATION_JSON).get(Tornado.class);
 
         double siteLong = -97.4788;
         double siteLat = 35.2265;
@@ -51,7 +51,7 @@ public class MeanWidthTornadoTest extends CustomJerseyTest {
         String demandUnits = "mph";
         int simulation = 0;
 
-        WindHazardResult result = TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation);
+        WindHazardResult result = TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, "incrtest");
         assertTrue(result.getHazardValue() >= 65.0);
         assertTrue(result.getHazardValue() < 86.0);
     }
@@ -59,7 +59,7 @@ public class MeanWidthTornadoTest extends CustomJerseyTest {
     @Test
     public void testMeanWidthTornadoValuesMetersPerSecond() throws Exception {
         String id = "5a7385645a52284c6a7d273a";
-        ScenarioTornado tornado = target("tornadoes/" + id).request().accept(MediaType.APPLICATION_JSON).get(ScenarioTornado.class);
+        Tornado tornado = target("tornadoes/" + id).request().accept(MediaType.APPLICATION_JSON).get(Tornado.class);
 
         double siteLong = -97.4788;
         double siteLat = 35.2265;
@@ -67,7 +67,7 @@ public class MeanWidthTornadoTest extends CustomJerseyTest {
         String demandUnits = "mps";
         int simulation = 0;
 
-        WindHazardResult result = TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation);
+        WindHazardResult result = TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, "incrtest");
         assertTrue(result.getHazardValue() >= 29.0576);
         assertTrue(result.getHazardValue() < 38.44544);
     }

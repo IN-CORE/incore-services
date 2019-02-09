@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils
 
 import java.util.ArrayList;
 
-public class TornadoRandomWidth extends Tornado {
+public class TornadoRandomWidth extends BaseTornado {
 
     private static double[] maxWidth = { 2500.0, 3000.0, 3520.0, 3872.0, 4400.0, 3000.0 }; // Maximum width for EF0 - EF5
 
