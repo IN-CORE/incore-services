@@ -237,8 +237,8 @@ public class DatasetController {
         }
 
         if (!dataUrl.equals("")) {
-                outFile = new File(dataUrl);
-                outFile.renameTo(new File(outFile.getParentFile(), fileName));
+            outFile = new File(dataUrl);
+            outFile.renameTo(new File(outFile.getParentFile(), fileName));
         }
 
         if (outFile != null) {
@@ -297,7 +297,7 @@ public class DatasetController {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
         }
-        
+
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
             logger.error("Posted json is not a valid json.");
@@ -554,28 +554,28 @@ public class DatasetController {
         repository.addDataset(dataset);
 
         if (enableGeoserver && isGeoserver) {
-                if (isJoin) {
-                    try {
-                        zipFile = FileUtils.joinShpTable(dataset, repository, true);
-                        GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
-                    } catch (IOException e) {
-                        logger.error("Error making temp directory in joining process ", e);
-                        throw new InternalServerErrorException("Error making temp directory in joining process ", e);
-                    } catch (URISyntaxException e) {
-                        logger.error("Error making file using dataset's location url in table join process ", e);
-                        throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
-                    }
-                } else {
-                    try {
-                        GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
-                    } catch (IOException e) {
-                        logger.error("Error uploading dataset to geoserver ", e);
-                        throw new InternalServerErrorException("Error uploading dataset to geoserver ", e);
-                    } catch (URISyntaxException e) {
-                        logger.error("Error making file using dataset's location url ", e);
-                        throw new InternalServerErrorException("Error making file using dataset's location uri ", e);
-                    }
+            if (isJoin) {
+                try {
+                    zipFile = FileUtils.joinShpTable(dataset, repository, true);
+                    GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+                } catch (IOException e) {
+                    logger.error("Error making temp directory in joining process ", e);
+                    throw new InternalServerErrorException("Error making temp directory in joining process ", e);
+                } catch (URISyntaxException e) {
+                    logger.error("Error making file using dataset's location url in table join process ", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri in table join process ", e);
                 }
+            } else {
+                try {
+                    GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                } catch (IOException e) {
+                    logger.error("Error uploading dataset to geoserver ", e);
+                    throw new InternalServerErrorException("Error uploading dataset to geoserver ", e);
+                } catch (URISyntaxException e) {
+                    logger.error("Error making file using dataset's location url ", e);
+                    throw new InternalServerErrorException("Error making file using dataset's location uri ", e);
+                }
+            }
         }
 
         return dataset;
