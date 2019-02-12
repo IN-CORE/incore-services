@@ -12,7 +12,6 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import com.google.common.graph.Network;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
@@ -80,11 +79,15 @@ public class DatasetController {
     private static final String GEOSERVER_ENABLE = Config.getConfigProperties().getProperty("geoserver.enable");
     private static final String POST_PARAMENTER_NAME = "name";
     private static final String POST_PARAMENTER_FILE = "file";
+    private static final String POST_PARAMENTER_FILE_LINK = "link-file";
+    private static final String POST_PARAMENTER_FILE_NODE = "node-file";
+    private static final String POST_PARAMENTER_FILE_GRAPH = "graph-file";
     private static final String POST_PARAMENTER_META = "parentdataset";
     private static final String POST_PARAMETER_DATASET_ID = "datasetId";
     private static final String UPDATE_OBJECT_NAME = "property name";
     private static final String UPDATE_OBJECT_VALUE = "property value";
     private static final String WEBDAV_SPACE_NAME = "ergo";
+    private static final String NETWORK_FORMAT = "shp-network";
     private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
@@ -321,12 +324,6 @@ public class DatasetController {
         String format = "";
         String fileName = "";
         String description = "";
-        String componentStr = "";
-        String nodeStr = "";
-        String linkStr = "";
-        String graphStr = "";
-        String linkType = "";
-        String nodeType = "";
         List<String> spaces = null;
 
         // create DataWolf POJO object
@@ -353,27 +350,9 @@ public class DatasetController {
             dataset.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // add network information in the dataset
-            if (format.equalsIgnoreCase("shp-network")) {
-                Component component = new Component();
-                Link link = new Link();
-                Node node = new Node();
-                Graph graph = new Graph();
-                componentStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_COMPONENT, inDatasetJson);
-                linkStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK, componentStr);
-                linkType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK_TYPE, linkStr);
-                nodeStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK, componentStr);
-                nodeType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK_TYPE, nodeStr);
-                link.setType(linkType);
-                node.setType(nodeType);
-                component.setLink(link);
-                component.setNode(node);
+            if (format.equalsIgnoreCase(NETWORK_FORMAT)) {
+                Component component = JsonUtils.createNetworkComponent(inDatasetJson);
                 dataset.setComponent(component);
-                System.out.println(componentStr);
-//                ntNode = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE, inDatasetJson);
-//                ntGraph = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH, inDatasetJson);
-//                Component component = new Component();
-//                component.setLink(ntLink);
-//                component.
             }
 
             dataset = repository.addDataset(dataset);
@@ -507,6 +486,9 @@ public class DatasetController {
             throw new ForbiddenException();
         }
 
+        // get data format to see if it is a network dataset
+        String format = dataset.getFormat();
+
         boolean isJsonValid = false;
         boolean isGeoserver = false;
         boolean isAsc = false;
@@ -514,10 +496,14 @@ public class DatasetController {
         boolean isTif = false;
         boolean isJoin = false;
 
-        int j = 0;
+        int file_counter = 0;
+        int link_counter = 0;
+        int node_counter = 0;
+        int graph_counter = 0;
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
-            if (paramName.equals(POST_PARAMENTER_FILE)) {
+            if (paramName.equals(POST_PARAMENTER_FILE) || paramName.equals(POST_PARAMENTER_FILE_LINK) ||
+                paramName.equals(POST_PARAMENTER_FILE_NODE) || paramName.equals(POST_PARAMENTER_FILE_GRAPH)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                 String fileExt = FilenameUtils.getExtension(fileName);
                 if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||
@@ -531,27 +517,43 @@ public class DatasetController {
                         isShp = true;
                     }
                 }
-                InputStream is = (InputStream) inputs.getFields(POST_PARAMENTER_FILE).get(j).getValueAs(InputStream.class);
-                FileDescriptor fd = new FileDescriptor();
-                FileStorageDisk fsDisk = new FileStorageDisk();
-
-                fsDisk.setFolder(DATA_REPO_FOLDER);
-                try {
-                    fd = fsDisk.storeFile(fileName, is);
-                    fd.setFilename(fileName);
-                } catch (IOException e) {
-                    logger.error("Error storing files of the dataset with the id of " + datasetId);
-                    throw new NotFoundException("Error string files of the dataset with the id of " + datasetId);
+                InputStream is = null;
+                if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE)) {
+                    is = (InputStream) inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
+                    file_counter++;
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_LINK)) {
+                    is = (InputStream) inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
+                    link_counter++;
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_NODE)) {
+                    is = (InputStream) inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
+                    node_counter++;
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_GRAPH)) {
+                    is = (InputStream) inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
+                    graph_counter++;
                 }
-                dataset.addFileDescriptor(fd);
-                j++;
+
+                if (is != null) {
+                    FileDescriptor fd = new FileDescriptor();
+                    FileStorageDisk fsDisk = new FileStorageDisk();
+
+                    fsDisk.setFolder(DATA_REPO_FOLDER);
+                    try {
+                        fd = fsDisk.storeFile(fileName, is);
+                        fd.setFilename(fileName);
+                    } catch (IOException e) {
+                        logger.error("Error storing files of the dataset with the id of " + datasetId);
+                        throw new NotFoundException("Error string files of the dataset with the id of " + datasetId);
+                    }
+                    dataset.addFileDescriptor(fd);
+                }
             }
         }
+
         repository.addDataset(dataset);
 
         // check if there is a source dataset, if so it will be joined to source dataset
-        String format = dataset.getFormat();
         String sourceDataset = dataset.getSourceDataset();
+
         // join it if it is a table dataset with source dataset existed
         if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
             isJoin = true;

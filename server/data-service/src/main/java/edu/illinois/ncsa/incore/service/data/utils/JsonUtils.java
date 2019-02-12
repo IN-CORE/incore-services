@@ -19,6 +19,10 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
+import edu.illinois.ncsa.incore.service.data.models.Network.Component;
+import edu.illinois.ncsa.incore.service.data.models.Network.Graph;
+import edu.illinois.ncsa.incore.service.data.models.Network.Link;
+import edu.illinois.ncsa.incore.service.data.models.Network.Node;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -186,6 +190,35 @@ public class JsonUtils {
             return "";
         }
     }
+
+    public static Component createNetworkComponent(String inJson) {
+        Component component = new Component();
+
+        String componentStr = "";
+        String nodeStr = "";
+        String linkStr = "";
+        String graphStr = "";
+        String linkType = "";
+        String nodeType = "";
+
+        Link link = new Link();
+        Node node = new Node();
+        Graph graph = new Graph();
+
+        componentStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_COMPONENT, inJson);
+        linkStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK, componentStr);
+        linkType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK_TYPE, linkStr);
+        nodeStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE, componentStr);
+        nodeType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE_TYPE, nodeStr);
+
+        link.setType(linkType);
+        node.setType(nodeType);
+        component.setLink(link);
+        component.setNode(node);
+
+        return component;
+    }
+
 
     public static List<String> extractValueListFromJsonString(String inId, String inJson) {
         JSONObject jsonObj = new JSONObject(inJson);
