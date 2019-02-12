@@ -67,12 +67,19 @@ public class FileUtils {
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FILE_ZIP_EXTENSION = "zip";
     public static final String FORMAT_SHAPEFILE = "shapefile";
+    public static final String NETWORK_COMPONENT = "component";
+    public static final String NETWORK_LINK = "link";
+    public static final String NETWORK_NODE = "node";
+    public static final String NETWORK_GRAPH = "graph";
+    public static final String NETWORK_LINK_TYPE = "linkType";
+    public static final String NETWORK_NODE_TYPE = "nodeType";
 
     public static final Logger logger = Logger.getLogger(FileUtils.class);
 
 
     /**
      * delete temporary directory
+     *
      * @param inFile
      */
     public static void deleteTmpDir(File inFile) {
@@ -85,6 +92,7 @@ public class FileUtils {
 
     /**
      * delete temporary directory created for temporary file processing
+     *
      * @param metadataFile
      * @param fileExt
      */
@@ -105,6 +113,7 @@ public class FileUtils {
 
     /**
      * delete temporary directory created for temporary file processing
+     *
      * @param delFiles
      */
     public static void deleteTmpDir(List<File> delFiles) {
@@ -120,6 +129,7 @@ public class FileUtils {
 
     /**
      * delete temporary directory created for temporary file processing
+     *
      * @param shapefile
      * @param fileExts
      */
@@ -141,6 +151,7 @@ public class FileUtils {
 
     /**
      * delete temporary file created for temporary file processing
+     *
      * @param delFile
      */
     public static void deleteFiles(File delFile) {
@@ -150,6 +161,7 @@ public class FileUtils {
 
     /**
      * delete temporary files created for temporary file processing
+     *
      * @param delFile
      * @param delFileName
      */
@@ -167,6 +179,7 @@ public class FileUtils {
 
     /**
      * load file name from the data repository
+     *
      * @param inId
      * @param extStr
      * @param repoUrl
@@ -181,6 +194,7 @@ public class FileUtils {
 
     /**
      * load file name from the data repository
+     *
      * @param datasetUrl
      * @param extStr
      * @return
@@ -218,6 +232,7 @@ public class FileUtils {
 
     /**
      * find type id by using the dataset id
+     *
      * @param datasetId
      * @param fileExt
      * @return
@@ -251,6 +266,7 @@ public class FileUtils {
 
     /**
      * create a list of files in from the url
+     *
      * @param inUrl
      * @return
      */
@@ -263,6 +279,7 @@ public class FileUtils {
 
     /**
      * create a list of directory content from given url
+     *
      * @param inUrl
      * @return
      */
@@ -289,6 +306,7 @@ public class FileUtils {
 
     /**
      * create a url of the webdav that embed the folder 'converted' in the correct position
+     *
      * @param inUrl
      * @return
      */
@@ -302,6 +320,7 @@ public class FileUtils {
 
     /**
      * check what kind of file format is in the repository web site.
+     *
      * @param inId
      * @param repoUrl
      * @return
@@ -345,6 +364,7 @@ public class FileUtils {
 
     /**
      * create an html of the directory list
+     *
      * @return
      */
     public static String loadDirectoryList() {
@@ -354,6 +374,7 @@ public class FileUtils {
 
     /**
      * create directory list from the dataset id
+     *
      * @param inId
      * @return
      */
@@ -364,6 +385,7 @@ public class FileUtils {
 
     /**
      * create a html of the directory list
+     *
      * @param inId
      * @return
      */
@@ -395,6 +417,7 @@ public class FileUtils {
 
     /**
      * create a list of directory content from gibven url and dataset id
+     *
      * @param inUrl
      * @param inId
      * @return
@@ -428,6 +451,7 @@ public class FileUtils {
 
     /**
      * load file from the data repository service using dataset id
+     *
      * @param dataset
      * @param repository
      * @param isGeoserver
@@ -502,6 +526,7 @@ public class FileUtils {
 
     /**
      * change the extension string from the file name string
+     *
      * @param inFileName
      * @param inExt
      * @return
@@ -518,6 +543,7 @@ public class FileUtils {
 
     /**
      * laod metadata from the data repository by using dataset id
+     *
      * @param inId
      * @return
      * @throws IOException
@@ -550,6 +576,7 @@ public class FileUtils {
 
     /**
      * create a zip file of the dataset file content from the data service by using dataset id
+     *
      * @param inId
      * @return
      * @throws IOException
@@ -573,6 +600,7 @@ public class FileUtils {
 
     /**
      * join csv table and shapefile and create a zip file
+     *
      * @param dataset
      * @param repository
      * @return
@@ -625,6 +653,7 @@ public class FileUtils {
 
     /**
      * craeate a zip file from given file list
+     *
      * @param fileList
      * @param tempDir
      * @param baseName
@@ -659,6 +688,7 @@ public class FileUtils {
 
     /**
      * get directory list in the root directory and crate one big json file using mvz files located under each directory
+     *
      * @return
      */
     private String loadDirectoryListJsonString() {
@@ -695,6 +725,7 @@ public class FileUtils {
 
     /**
      * switch dbf files in the repository
+     *
      * @param inFile
      * @param shpfiles
      * @throws IOException
@@ -712,7 +743,7 @@ public class FileUtils {
         File outShxFile = null;
         File outDbfFile = null;
         File outPrjFIle = null;
-        for (File tmpFile: shpfiles) {
+        for (File tmpFile : shpfiles) {
             String extStr = FilenameUtils.getExtension(tmpFile.getName());
             if (extStr.equalsIgnoreCase("shp")) {
                 outShpFile = tmpFile;

@@ -12,6 +12,7 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import com.google.common.graph.Network;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
@@ -20,6 +21,10 @@ import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
 import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.Network.Component;
+import edu.illinois.ncsa.incore.service.data.models.Network.Graph;
+import edu.illinois.ncsa.incore.service.data.models.Network.Link;
+import edu.illinois.ncsa.incore.service.data.models.Network.Node;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
@@ -316,6 +321,12 @@ public class DatasetController {
         String format = "";
         String fileName = "";
         String description = "";
+        String componentStr = "";
+        String nodeStr = "";
+        String linkStr = "";
+        String graphStr = "";
+        String linkType = "";
+        String nodeType = "";
         List<String> spaces = null;
 
         // create DataWolf POJO object
@@ -340,6 +351,30 @@ public class DatasetController {
             dataset.setFormat(format);
             dataset.setSpaces(spaces);
             dataset.setPrivileges(Privileges.newWithSingleOwner(username));
+
+            // add network information in the dataset
+            if (format.equalsIgnoreCase("shp-network")) {
+                Component component = new Component();
+                Link link = new Link();
+                Node node = new Node();
+                Graph graph = new Graph();
+                componentStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_COMPONENT, inDatasetJson);
+                linkStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK, componentStr);
+                linkType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK_TYPE, linkStr);
+                nodeStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK, componentStr);
+                nodeType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK_TYPE, nodeStr);
+                link.setType(linkType);
+                node.setType(nodeType);
+                component.setLink(link);
+                component.setNode(node);
+                dataset.setComponent(component);
+                System.out.println(componentStr);
+//                ntNode = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE, inDatasetJson);
+//                ntGraph = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH, inDatasetJson);
+//                Component component = new Component();
+//                component.setLink(ntLink);
+//                component.
+            }
 
             dataset = repository.addDataset(dataset);
             if (dataset == null) {

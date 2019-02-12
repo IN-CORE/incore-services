@@ -21,6 +21,7 @@ package edu.illinois.ncsa.incore.service.data.models;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+import edu.illinois.ncsa.incore.service.data.models.Network.Component;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
@@ -108,6 +109,11 @@ public class Dataset {
      * Bounding box array
      */
     private double[] boundingBox = null;
+
+    /**
+     * Component component
+     */
+    private Component component = null;
 
     /**
      * Privileges associated with this dataset
@@ -274,6 +280,16 @@ public class Dataset {
     public void setBoundingBox(double[] boundingBox) {
         this.boundingBox = boundingBox;
     }
+
+    /**
+     * get network component information
+     */
+    public Component getComponent() {return component; }
+
+    /**
+     * set network component information
+     */
+    public void setComponent(Component component) {this.component = component;}
 
     /**
      * Return the string that is the type of the artifact
