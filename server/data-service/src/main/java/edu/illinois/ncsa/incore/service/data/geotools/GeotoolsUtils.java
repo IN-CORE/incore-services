@@ -122,6 +122,7 @@ public class GeotoolsUtils {
 
     /**
      * create temp dir and copy files to temp dir
+     *
      * @param files
      * @return
      * @throws IOException
@@ -129,14 +130,14 @@ public class GeotoolsUtils {
     public static List<File> copyFilesToTempDir(List<File> files) throws IOException {
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
         List<File> copiedFileList = null;
-        copiedFileList = performCopyFiles(files, tempDir, "",false,"");
+        copiedFileList = performCopyFiles(files, tempDir, "", false, "");
 
         return copiedFileList;
     }
 
     public static GridCoverage getGridCoverage(File file) throws IOException {
-        AbstractGridFormat format = GridFormatFinder.findFormat( file );
-        GridCoverageReader reader = format.getReader( file );
+        AbstractGridFormat format = GridFormatFinder.findFormat(file);
+        GridCoverageReader reader = format.getReader(file);
         GridCoverage coverage = reader.read(null);
         reader.dispose();
 
@@ -145,11 +146,12 @@ public class GeotoolsUtils {
 
     /**
      * get bounding box information from shapefile
+     *
      * @param file
      * @return
      * @throws IOException
      */
-    public static double[] getBboxFromShp(File file) throws IOException{
+    public static double[] getBboxFromShp(File file) throws IOException {
         // create temp dir and copy files to temp dir
         double[] bbox = new double[4];
 //        List<File> copiedFileList = copyFilesToTempDir(shpfiles);
@@ -171,6 +173,7 @@ public class GeotoolsUtils {
 
     /**
      * get SimpleFeatureCollection from list of shapefile components
+     *
      * @param fileList
      * @return
      * @throws IOException
@@ -336,7 +339,7 @@ public class GeotoolsUtils {
             if (isGeoserver) {
                 if (inExt.equalsIgnoreCase("shp")) {
                     if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("dbf") ||
-                            fileExt.equalsIgnoreCase("shx") || fileExt.equalsIgnoreCase("prj")) {
+                        fileExt.equalsIgnoreCase("shx") || fileExt.equalsIgnoreCase("prj")) {
                         outList.add(destFile);
                     }
                 } else if (inExt.equalsIgnoreCase("tif")) {
@@ -345,6 +348,48 @@ public class GeotoolsUtils {
                     }
                 } else if (inExt.equalsIgnoreCase("asc")) {
                     if (fileExt.equalsIgnoreCase(inExt)) {
+                        outList.add(destFile);
+                    }
+                }
+            } else {
+                outList.add(destFile);
+            }
+
+            org.apache.commons.io.FileUtils.copyFile(sourceFile, destFile);
+            //in here I am simply copy and paste the files to temp direcotry.
+            // However, if the source file is in different server, use httpdownloader
+            // HttpDownloader.downloadFile(inSourceFileUrlTwo.getFile(), tempDir);
+        }
+
+        return outList;
+    }
+
+    public static List<File> performCopyNetworkFiles(Dataset dataset, List<File> fileList, String tempDir, String datasetId, boolean isGeoserver, String inExt) throws IOException {
+        List<File> outList = new ArrayList<File>();
+        String linkName = FilenameUtils.removeExtension(dataset.getComponent().getLink().getFileName());
+        String nodeName = FilenameUtils.removeExtension(dataset.getComponent().getNode().getFileName());
+
+        for (int i = 0; i < fileList.size(); i++) {
+            File sourceFile = fileList.get(i);
+            String fileName = FilenameUtils.getName(sourceFile.getName());
+            String fileNameNoExt = FilenameUtils.removeExtension(fileName);
+            String fileExt = "";
+            if (isGeoserver) {
+                fileExt = FilenameUtils.getExtension(sourceFile.getName());
+                File newFile = null;
+                if (fileNameNoExt.equalsIgnoreCase(linkName)) {
+                    newFile = new File(sourceFile.getParent() + File.separator + datasetId + "_link." + fileExt);
+                    fileName = FilenameUtils.getName(newFile.getName());
+                } else if (fileNameNoExt.equalsIgnoreCase(nodeName)) {
+                    newFile = new File(sourceFile.getParent() + File.separator + datasetId + "_node." + fileExt);
+                    fileName = FilenameUtils.getName(newFile.getName());
+                }
+            }
+            File destFile = new File(tempDir + File.separator + fileName);
+            if (isGeoserver) {
+                if (inExt.equalsIgnoreCase("shp")) {
+                    if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("dbf") ||
+                        fileExt.equalsIgnoreCase("shx") || fileExt.equalsIgnoreCase("prj")) {
                         outList.add(destFile);
                     }
                 }
@@ -371,7 +416,7 @@ public class GeotoolsUtils {
      * @throws IOException
      */
     public static File outToFile(File pathFile, SimpleFeatureType schema, DefaultFeatureCollection collection)
-            throws IOException {
+        throws IOException {
         ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
         Map<String, Serializable> params = new HashMap<String, Serializable>();
@@ -486,7 +531,31 @@ public class GeotoolsUtils {
     }
 
     /**
+     * create GUID filed in network dataset
+     * @param dataset
+     * @param shpfiles
+     * @param fileName
+     * @return
+     * @throws IOException
+     */
+    public static boolean createGUIDinShpfile(Dataset dataset, List<File> shpfiles, String fileName) throws IOException {
+        // create file list for file
+        List<File> files = new LinkedList<>();
+        String fileNameNoExt = FilenameUtils.removeExtension(fileName);
+        for (File infile : shpfiles) {
+            String tmpFileName = FilenameUtils.removeExtension(FilenameUtils.getName(infile.getName()));
+            if (tmpFileName.equalsIgnoreCase(fileNameNoExt)) {
+                files.add(infile);
+            }
+        }
+        boolean isLink = createGUIDinShpfile(dataset, files);
+
+        return isLink;
+    }
+
+    /**
      * create GUID field in the shapefile
+     *
      * @param dataset
      * @param shpfiles
      * @return
@@ -508,7 +577,7 @@ public class GeotoolsUtils {
         isGuid = isGuidExist(inputFeatures);
         // creaste new dbf in the temp dir and move it to data repo directory
         if (isGuid != true) {
-            logger.debug("Creating GUID field in the dataset for " +  outFileName);
+            logger.debug("Creating GUID field in the dataset for " + outFileName);
             SimpleFeatureType sft = inputFeatures.getSchema();
 
             SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
@@ -536,7 +605,7 @@ public class GeotoolsUtils {
                     newCollection.add(newFeature);
                 }
 
-                File outFile =  outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
+                File outFile = outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
                 FileUtils.switchDbfFile(outFile, shpfiles);
             } finally {
                 inputFeatureIterator.close();

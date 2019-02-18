@@ -67,12 +67,14 @@ public class FileUtils {
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FILE_ZIP_EXTENSION = "zip";
     public static final String FORMAT_SHAPEFILE = "shapefile";
+    public static final String FORMAT_NETWORK = "shp-network";
     public static final String NETWORK_COMPONENT = "component";
     public static final String NETWORK_LINK = "link";
     public static final String NETWORK_NODE = "node";
     public static final String NETWORK_GRAPH = "graph";
     public static final String NETWORK_LINK_TYPE = "linkType";
     public static final String NETWORK_NODE_TYPE = "nodeType";
+    public static final String NETWORK_GRAPH_TYPE = "graphType";
 
     public static final Logger logger = Logger.getLogger(FileUtils.class);
 
@@ -485,7 +487,8 @@ public class FileUtils {
             // create temp dir and copy files to temp dir
             String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
             // copiedFileList below is not used but the method is needed to copy files
-            List<File> copieFileList = GeotoolsUtils.performCopyFiles(fileList, tempDir, datasetId, isGeoserver, inExt);
+            List<File> copieFileList = null;
+            copieFileList = GeotoolsUtils.performCopyFiles(fileList, tempDir, datasetId, isGeoserver, inExt);
 
             if (isGeoserver) {
                 // this is basically a renaming of the files to have dataset id as their name
@@ -522,6 +525,84 @@ public class FileUtils {
             }
         }
         return outFile;
+    }
+
+    public static File[] loadNetworkFileFromService(Dataset dataset, IRepository repository, boolean isGeoserver, String inExt) throws IOException, URISyntaxException {
+        File outFiles[] = new File[2];
+        String datasetId = dataset.getId();
+        List<FileDescriptor> fds = dataset.getFileDescriptors();
+        List<File> fileList = new ArrayList<File>();
+        List<File> linkFileList = new ArrayList<File>();
+        List<File> nodeFileList = new ArrayList<File>();
+        String fileBaseName = "";
+        String linkFileBaseName = "";
+        String nodeFileBaseName = "";
+        File outFile = null;
+
+        if (fds.size() > 0) {
+            File tmpFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fds.get(0).getDataURL()));
+            fileBaseName = FilenameUtils.getBaseName(tmpFile.getName());
+
+            List<String> fileNameList = new LinkedList<String>();
+            List<String> linkFileNameList = new LinkedList<String>();
+            List<String> nodeFileNameList = new LinkedList<String>();
+
+            for (FileDescriptor fd : fds) {
+                // do not put the mvz file
+                String dataUrl = FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL());
+                String ext = FilenameUtils.getExtension(dataUrl);
+                if (!ext.equalsIgnoreCase(EXTENSION_META)) {
+                    fileList.add(new File(dataUrl));
+                    fileNameList.add(FilenameUtils.getName(dataUrl));
+                }
+            }
+
+            // create temp dir and copy files to temp dir
+            String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
+            // copiedFileList below is not used but the method is needed to copy files
+            List<File> copieFileList = null;
+            copieFileList = GeotoolsUtils.performCopyNetworkFiles(dataset, fileList, tempDir, datasetId, isGeoserver, inExt);
+
+            String linkName = FilenameUtils.removeExtension(dataset.getComponent().getLink().getFileName());
+            String nodeName = FilenameUtils.removeExtension(dataset.getComponent().getNode().getFileName());
+
+            if (isGeoserver) {
+                // this is basically a renaming of the files to have dataset id as their name
+                // create link file output zip file
+                linkName = datasetId + "_link";
+                nodeName = datasetId + "_node";
+            }
+
+            linkFileNameList = new LinkedList<String>();
+            nodeFileNameList = new LinkedList<String>();
+
+            for (File file : copieFileList) {
+                String tmpName = FilenameUtils.removeExtension(file.getName());
+                if (tmpName.equalsIgnoreCase(linkName)) {
+                    linkFileNameList.add(file.getName());
+                } else if (tmpName.equalsIgnoreCase(nodeName)) {
+                    nodeFileNameList.add(file.getName());
+                }
+            }
+            outFiles[0] = FileUtils.createZipFile(linkFileNameList, tempDir, linkName);
+            outFiles[1] = FileUtils.createZipFile(nodeFileNameList, tempDir, nodeName);
+//            } else {
+//                linkFileNameList = new LinkedList<String>();
+//                nodeFileNameList = new LinkedList<String>();
+//
+//                for (File file : copieFileList) {
+//                    String tmpName = FilenameUtils.removeExtension(file.getName());
+//                    if (tmpName.equalsIgnoreCase(linkName)) {
+//                        linkFileNameList.add(file.getName());
+//                    } else if (tmpName.equalsIgnoreCase(nodeName)) {
+//                        linkFileNameList.add(file.getName());
+//                    }
+//                }
+//                outFiles[0] = FileUtils.createZipFile(linkFileNameList, tempDir, linkName);
+//                outFiles[1] = FileUtils.createZipFile(nodeFileNameList, tempDir, nodeName);
+//            }
+        }
+        return outFiles;
     }
 
     /**

@@ -200,6 +200,7 @@ public class JsonUtils {
         String graphStr = "";
         String linkType = "";
         String nodeType = "";
+        String graphType = "";
 
         Link link = new Link();
         Node node = new Node();
@@ -210,11 +211,15 @@ public class JsonUtils {
         linkType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK_TYPE, linkStr);
         nodeStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE, componentStr);
         nodeType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE_TYPE, nodeStr);
+        graphStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH, componentStr);
+        graphType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH_TYPE, graphStr);
 
         link.setType(linkType);
         node.setType(nodeType);
+        graph.setType(graphType);
         component.setLink(link);
         component.setNode(node);
+        component.setGraph(graph);
 
         return component;
     }
