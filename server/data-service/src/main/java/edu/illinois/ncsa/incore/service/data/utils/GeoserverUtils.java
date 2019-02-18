@@ -10,13 +10,11 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.geoserver;
+package edu.illinois.ncsa.incore.service.data.utils;
 
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import org.apache.commons.io.FilenameUtils;
 

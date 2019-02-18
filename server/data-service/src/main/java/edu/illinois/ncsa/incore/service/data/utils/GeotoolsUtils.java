@@ -10,19 +10,16 @@
  *  ******************************************************************************
  */
 
-package edu.illinois.ncsa.incore.service.data.geotools;
+package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
-import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -31,7 +28,6 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
-import org.geotools.factory.Hints;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -39,7 +35,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.gce.arcgrid.ArcGridReader;
 import org.geotools.gce.geotiff.GeoTiffFormat;
-import org.geotools.gce.geotiff.GeoTiffReader;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -51,7 +46,6 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.io.*;
 import java.net.URL;
@@ -532,6 +526,7 @@ public class GeotoolsUtils {
 
     /**
      * create GUID filed in network dataset
+     *
      * @param dataset
      * @param shpfiles
      * @param fileName

@@ -18,7 +18,6 @@ import com.github.sardine.SardineFactory;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
