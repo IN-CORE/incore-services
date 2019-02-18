@@ -86,7 +86,7 @@ public class DatasetController {
     private static final String POST_PARAMETER_DATASET_ID = "datasetId";
     private static final String UPDATE_OBJECT_NAME = "property name";
     private static final String UPDATE_OBJECT_VALUE = "property value";
-    private static final String WEBDAV_SPACE_NAME = "ergo";
+    private static final String WEBDAV_SPACE_NAME = "incore";
     private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
