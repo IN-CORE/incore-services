@@ -115,10 +115,20 @@ public class Authorizer implements IAuthorizer {
                 return admin;
             }
 
-            return spec.groupPrivileges.keySet().stream()
+
+            Set <PrivilegeLevel> privs = spec.groupPrivileges.keySet().stream()
                 .filter(userGroups::contains)
                 .map(key -> spec.groupPrivileges.get(key))
                 .collect(Collectors.toSet());
+
+            //if the user is in the magic view-all group, give them read access
+            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.viewall"))) {
+                privs.add(PrivilegeLevel.READ);
+            }
+
+            return privs;
+
+
         } catch (Exception e) {
             logger.error(e);
         }
