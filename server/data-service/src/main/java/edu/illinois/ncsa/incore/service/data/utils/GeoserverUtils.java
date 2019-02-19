@@ -130,8 +130,8 @@ public class GeoserverUtils {
 
         if (datasetId != null && datasetId.length() > 0) {
             // get file name for node and link
-            String linkName = dataset.getComponent().getLink().getFileName();
-            String nodeName = dataset.getComponent().getLink().getFileName();
+            String linkName = dataset.getNetworkComponent().getLink().getFileName();
+            String nodeName = dataset.getNetworkComponent().getLink().getFileName();
 
             // get zip file
             inExt = "shp";

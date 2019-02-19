@@ -16,11 +16,11 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.models.Network.NetworkComponent;
 import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
 import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.Network.Component;
 import edu.illinois.ncsa.incore.service.data.models.Network.Graph;
 import edu.illinois.ncsa.incore.service.data.models.Network.Link;
 import edu.illinois.ncsa.incore.service.data.models.Network.Node;
@@ -350,8 +350,8 @@ public class DatasetController {
 
             // add network information in the dataset
             if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                Component component = JsonUtils.createNetworkComponent(inDatasetJson);
-                dataset.setComponent(component);
+                NetworkComponent networkComponent = JsonUtils.createNetworkComponent(inDatasetJson);
+                dataset.setNetworkComponent(networkComponent);
             }
 
             dataset = repository.addDataset(dataset);
@@ -593,17 +593,17 @@ public class DatasetController {
 
         // add link, node, graph file name to dataset
         if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-            Component component = dataset.getComponent();
-            Link link = component.getLink();
-            Node node = component.getNode();
-            Graph graph = component.getGraph();
+            NetworkComponent networkComponent = dataset.getNetworkComponent();
+            Link link = networkComponent.getLink();
+            Node node = networkComponent.getNode();
+            Graph graph = networkComponent.getGraph();
             link.setFileName(linkFileName);
             node.setFileName(nodeFileName);
             graph.setFileName(graphFileName);
-            component.setLink(link);
-            component.setNode(node);
-            component.setGraph(graph);
-            dataset.setComponent(component);
+            networkComponent.setLink(link);
+            networkComponent.setNode(node);
+            networkComponent.setGraph(graph);
+            dataset.setNetworkComponent(networkComponent);
         }
 
         repository.addDataset(dataset);

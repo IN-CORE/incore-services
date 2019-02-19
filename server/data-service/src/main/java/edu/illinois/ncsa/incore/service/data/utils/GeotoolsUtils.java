@@ -360,8 +360,8 @@ public class GeotoolsUtils {
 
     public static List<File> performCopyNetworkFiles(Dataset dataset, List<File> fileList, String tempDir, String datasetId, boolean isGeoserver, String inExt) throws IOException {
         List<File> outList = new ArrayList<File>();
-        String linkName = FilenameUtils.removeExtension(dataset.getComponent().getLink().getFileName());
-        String nodeName = FilenameUtils.removeExtension(dataset.getComponent().getNode().getFileName());
+        String linkName = FilenameUtils.removeExtension(dataset.getNetworkComponent().getLink().getFileName());
+        String nodeName = FilenameUtils.removeExtension(dataset.getNetworkComponent().getNode().getFileName());
 
         for (int i = 0; i < fileList.size(); i++) {
             File sourceFile = fileList.get(i);

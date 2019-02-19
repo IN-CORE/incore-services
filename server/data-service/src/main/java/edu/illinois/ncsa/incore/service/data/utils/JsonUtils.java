@@ -19,7 +19,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
-import edu.illinois.ncsa.incore.service.data.models.Network.Component;
+import edu.illinois.ncsa.incore.service.data.models.Network.NetworkComponent;
 import edu.illinois.ncsa.incore.service.data.models.Network.Graph;
 import edu.illinois.ncsa.incore.service.data.models.Network.Link;
 import edu.illinois.ncsa.incore.service.data.models.Network.Node;
@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -191,8 +190,8 @@ public class JsonUtils {
         }
     }
 
-    public static Component createNetworkComponent(String inJson) {
-        Component component = new Component();
+    public static NetworkComponent createNetworkComponent(String inJson) {
+        NetworkComponent networkComponent = new NetworkComponent();
 
         String componentStr = "";
         String nodeStr = "";
@@ -217,11 +216,11 @@ public class JsonUtils {
         link.setType(linkType);
         node.setType(nodeType);
         graph.setType(graphType);
-        component.setLink(link);
-        component.setNode(node);
-        component.setGraph(graph);
+        networkComponent.setLink(link);
+        networkComponent.setNode(node);
+        networkComponent.setGraph(graph);
 
-        return component;
+        return networkComponent;
     }
 
 

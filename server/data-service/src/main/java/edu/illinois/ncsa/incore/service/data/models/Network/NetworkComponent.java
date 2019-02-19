@@ -23,7 +23,7 @@ import java.util.List;
  * Created by ywkim on 10/2/2017.
  */
 
-public class Component {
+public class NetworkComponent {
     private Link link = null;
 
     private Node node = null;

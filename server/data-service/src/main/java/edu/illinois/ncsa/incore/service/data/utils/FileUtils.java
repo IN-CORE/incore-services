@@ -67,7 +67,7 @@ public class FileUtils {
     public static final String FILE_ZIP_EXTENSION = "zip";
     public static final String FORMAT_SHAPEFILE = "shapefile";
     public static final String FORMAT_NETWORK = "shp-network";
-    public static final String NETWORK_COMPONENT = "component";
+    public static final String NETWORK_COMPONENT = "networkComponent";
     public static final String NETWORK_LINK = "link";
     public static final String NETWORK_NODE = "node";
     public static final String NETWORK_GRAPH = "graph";
@@ -562,8 +562,8 @@ public class FileUtils {
             List<File> copieFileList = null;
             copieFileList = GeotoolsUtils.performCopyNetworkFiles(dataset, fileList, tempDir, datasetId, isGeoserver, inExt);
 
-            String linkName = FilenameUtils.removeExtension(dataset.getComponent().getLink().getFileName());
-            String nodeName = FilenameUtils.removeExtension(dataset.getComponent().getNode().getFileName());
+            String linkName = FilenameUtils.removeExtension(dataset.getNetworkComponent().getLink().getFileName());
+            String nodeName = FilenameUtils.removeExtension(dataset.getNetworkComponent().getNode().getFileName());
 
             if (isGeoserver) {
                 // this is basically a renaming of the files to have dataset id as their name
