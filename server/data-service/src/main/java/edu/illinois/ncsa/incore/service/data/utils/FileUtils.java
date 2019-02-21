@@ -1,15 +1,12 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
-
+ ********************************************************************************/
 package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.github.sardine.DavResource;
@@ -461,7 +458,7 @@ public class FileUtils {
             // create temp dir and copy files to temp dir
             String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
             // copiedFileList below is not used but the method is needed to copy files
-            List<File> copieFileList = GeotoolsUtils.copyFilesToTmpDir(fileList, tempDir, datasetId, isGeoserver, inExt);
+            List<File> copieFileList = GeotoolsUtils.performCopyFiles(fileList, tempDir, datasetId, isGeoserver, inExt);
 
             if (isGeoserver) {
                 // this is basically a renaming of the files to have dataset id as their name
@@ -583,6 +580,7 @@ public class FileUtils {
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
         File zipFile = null;
+        File shapefile = null;
 
         for (int i = 0; i < csvFDs.size(); i++) {
             FileDescriptor csvFd = csvFDs.get(i);
@@ -608,10 +606,12 @@ public class FileUtils {
                     //get file, if the file is in remote, use http downloader
                     String fileExt = FilenameUtils.getExtension(shpLoc);
                     if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                        shapefile = shpFile;
                         isShpfile = true;
                     }
                 }
             }
+
             if (isShpfile) {
                 zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
             }

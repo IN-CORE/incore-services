@@ -1,13 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2018 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-
 package edu.illinois.ncsa.incore.service.hazard;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -18,6 +17,8 @@ import edu.illinois.ncsa.incore.service.hazard.dao.MockTornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.MockTsunamiRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 public class MockApplication extends ResourceConfig {
@@ -32,7 +33,10 @@ public class MockApplication extends ResourceConfig {
 
         IAuthorizer authorizer = new MockAuthorizer(true, true);
 
+        super.register(MultiPart.class);
+        super.register(MultiPartFeature.class);
         super.register(clazz);
+
         super.register(new AbstractBinder() {
 
             @Override
@@ -42,5 +46,6 @@ public class MockApplication extends ResourceConfig {
                 super.bind(authorizer).to(IAuthorizer.class);
             }
         });
+
     }
 }

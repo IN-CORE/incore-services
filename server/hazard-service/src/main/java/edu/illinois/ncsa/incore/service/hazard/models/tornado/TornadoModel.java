@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -17,23 +17,13 @@ import org.mongodb.morphia.annotations.Property;
 
 import java.util.List;
 
-public class ScenarioTornado {
-    @Id
-    @Property("_id")
-    private ObjectId id;
-
+public class TornadoModel extends Tornado {
     private String tornadoModel;
 
     private TornadoParameters tornadoParameters;
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;
-    private String tornadoDatasetId;
-
-    private Privileges privileges;
-
-    public String getId() {
-        return id.toString();
-    }
+    private String datasetId;
 
     public List<Double> getTornadoWidth() {
         return tornadoWidth;
@@ -68,19 +58,11 @@ public class ScenarioTornado {
         this.tornadoModel = tornadoModel;
     }
 
-    public String getTornadoDatasetId() {
-        return tornadoDatasetId;
+    public String getDatasetId() {
+        return datasetId;
     }
 
-    public void setTornadoDatasetId(String tornadoDatasetId) {
-        this.tornadoDatasetId = tornadoDatasetId;
-    }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
+    public void setDatasetId(String datasetId) {
+        this.datasetId = datasetId;
     }
 }

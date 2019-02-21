@@ -1,19 +1,18 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.data.geoserver;
 
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
@@ -96,15 +95,23 @@ public class GeoserverUtils {
                 // get zip file
                 inExt = "shp";
                 outFile = FileUtils.loadFileFromService(dataset, repository, true, inExt);
-                String fileName = outFile.getName();
+                // replace extension from zip to shp
+                String tmpName = FilenameUtils.removeExtension(outFile.getAbsolutePath());
+                String fileName = tmpName + "." + inExt;
+                double[] bbox = GeotoolsUtils.getBboxFromShp(new File(fileName));
+                dataset.setBoundingBox(bbox);
+                repository.addDataset(dataset);
                 published = uploadToGeoserver(datasetId, outFile, inExt);
-            } else if (isTif) {
-                inExt = "tif";
+            } else if (isTif == true || isAsc == true) {
+                if (isTif) {
+                    inExt = "tif";
+                } else {
+                    inExt = "asc";
+                }
                 outFile = FileUtils.loadFileFromService(dataset, repository, true, inExt);
-                published = uploadToGeoserver(datasetId, outFile, inExt);
-            } else if (isAsc) {
-                inExt = "asc";
-                outFile = FileUtils.loadFileFromService(dataset, repository, true, inExt);
+                double[] bbox = GeotoolsUtils.getBboxFromGrid(outFile);
+                dataset.setBoundingBox(bbox);
+                repository.addDataset(dataset);
                 published = uploadToGeoserver(datasetId, outFile, inExt);
             }
         }

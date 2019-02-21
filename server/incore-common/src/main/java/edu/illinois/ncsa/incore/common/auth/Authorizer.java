@@ -1,14 +1,12 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Nathan Tolbert
- *  ******************************************************************************
- */
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.common.auth;
 
@@ -115,10 +113,20 @@ public class Authorizer implements IAuthorizer {
                 return admin;
             }
 
-            return spec.groupPrivileges.keySet().stream()
+
+            Set <PrivilegeLevel> privs = spec.groupPrivileges.keySet().stream()
                 .filter(userGroups::contains)
                 .map(key -> spec.groupPrivileges.get(key))
                 .collect(Collectors.toSet());
+
+            //if the user is in the magic view-all group, give them read access
+            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.viewall"))) {
+                privs.add(PrivilegeLevel.READ);
+            }
+
+            return privs;
+
+
         } catch (Exception e) {
             logger.error(e);
         }

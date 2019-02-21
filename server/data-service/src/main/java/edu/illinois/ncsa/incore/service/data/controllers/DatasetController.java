@@ -1,14 +1,13 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
+ *   Diego Calderon (NCSA)
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
@@ -72,6 +71,7 @@ import java.util.stream.Collectors;
 @Path("datasets")
 public class DatasetController {
     private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
+    private static final String GEOSERVER_ENABLE = Config.getConfigProperties().getProperty("geoserver.enable");
     private static final String POST_PARAMENTER_NAME = "name";
     private static final String POST_PARAMENTER_FILE = "file";
     private static final String POST_PARAMENTER_META = "parentdataset";
@@ -236,8 +236,8 @@ public class DatasetController {
         }
 
         if (!dataUrl.equals("")) {
-                outFile = new File(dataUrl);
-                outFile.renameTo(new File(outFile.getParentFile(), fileName));
+            outFile = new File(dataUrl);
+            outFile.renameTo(new File(outFile.getParentFile(), fileName));
         }
 
         if (outFile != null) {
@@ -296,7 +296,6 @@ public class DatasetController {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
         }
-
 
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
@@ -451,6 +450,13 @@ public class DatasetController {
             throw new BadRequestException("Credential user name should be provided.");
         }
 
+        // adding geoserver flag
+        // if this flas is false, the data will not be uploaded to geoserver
+        boolean enableGeoserver = false;
+        if (GEOSERVER_ENABLE.equalsIgnoreCase("true")) {
+            enableGeoserver = true;
+        }
+
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
         String inJson = "";
@@ -516,15 +522,14 @@ public class DatasetController {
             isGeoserver = true;
         }
 
-        // create GUID if there is no GUID in the table
-        List<FileDescriptor> shpFDs = dataset.getFileDescriptors();
+        List<FileDescriptor> dataFDs = dataset.getFileDescriptors();
         List<File> files = new ArrayList<File>();
         File zipFile = null;
         boolean isShpfile = false;
 
         if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE)) {
-            for (int i = 0; i < shpFDs.size(); i++) {
-                FileDescriptor sfd = shpFDs.get(i);
+            for (int i = 0; i < dataFDs.size(); i++) {
+                FileDescriptor sfd = dataFDs.get(i);
                 String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
                 File shpFile = new File(shpLoc);
                 files.add(shpFile);
@@ -535,6 +540,7 @@ public class DatasetController {
                 }
             }
             try {
+                // create GUID if there is no GUID in the table
                 boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
                 if (isGuid) {
                     logger.debug("The shapefile already has guid field");
@@ -544,8 +550,9 @@ public class DatasetController {
                 throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
             }
         }
+        repository.addDataset(dataset);
 
-        if (isGeoserver) {
+        if (enableGeoserver && isGeoserver) {
             if (isJoin) {
                 try {
                     zipFile = FileUtils.joinShpTable(dataset, repository, true);

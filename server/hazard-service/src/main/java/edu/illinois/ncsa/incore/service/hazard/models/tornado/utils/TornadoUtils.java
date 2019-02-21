@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -13,10 +13,11 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.operation.buffer.BufferOp;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.ScenarioTornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoHazard;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.DataStore;
 import org.geotools.data.Transaction;
@@ -28,6 +29,7 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.opengis.feature.simple.SimpleFeature;
@@ -92,33 +94,26 @@ public class TornadoUtils {
     /**
      * Given a start point, initial bearing and distance, will calculate the final latitude & longitude
      *
-     * @param startCoordinate
-     *            Starting Longitude and Latitude
-     * @param angle
-     *            Azimuth angle in degrees from the meridian
-     * @param distance
-     *            Distance in miles
+     * @param startCoordinate Starting Longitude and Latitude
+     * @param angle           Azimuth angle in degrees from the meridian
+     * @param distance        Distance in miles
      * @return The final destination latitude and longitude
      */
-    public static Coordinate calculateDestination(Coordinate startCoordinate, double angle, double distance){
+    public static Coordinate calculateDestination(Coordinate startCoordinate, double angle, double distance) {
         return calculateDestination(startCoordinate.y, startCoordinate.x, angle, distance);
     }
 
     /**
      * Given a start point, initial bearing and distance, will calculate the final latitude & longitude
      *
-     * @param startLatitude
-     *            Starting Latitude
-     * @param startLongitude
-     *            Starting Longitude
-     * @param angle
-     *            Azimuth angle in degrees
-     * @param distance
-     *            Distance in miles
+     * @param startLatitude  Starting Latitude
+     * @param startLongitude Starting Longitude
+     * @param angle          Azimuth angle in degrees
+     * @param distance       Distance in miles
      * @return The final destination latitude and longitude
      */
     public static Coordinate calculateDestination(double startLatitude, double startLongitude, double angle, double distance) {
-        double angularDist = (TornadoHazard.MILES_TO_KILOMETERS * distance) /6371.0;
+        double angularDist = (TornadoHazard.MILES_TO_KILOMETERS * distance) / 6371.0;
         double lat1 = Math.toRadians(startLatitude);
         double long1 = Math.toRadians(startLongitude);
         double bearing = Math.toRadians(angle);
@@ -127,20 +122,16 @@ public class TornadoUtils {
         double long2 = long1 + Math.atan2(Math.sin(bearing) * Math.sin(angularDist) * Math.cos(lat1),
             Math.cos(angularDist) - Math.sin(lat1) * Math.sin(lat2));
 
-        return new Coordinate((((Math.toDegrees(long2) + 540) % 360) -180), Math.toDegrees(lat2));
+        return new Coordinate((((Math.toDegrees(long2) + 540) % 360) - 180), Math.toDegrees(lat2));
     }
 
     /**
      * Computes azimuth angle between start and end location
      *
-     * @param startLatitude
-     *            Start Latitude
-     * @param startLongitude
-     *            Start Longitude
-     * @param endLatitude
-     *            End Latitude
-     * @param endLongitude
-     *            End Longitude
+     * @param startLatitude  Start Latitude
+     * @param startLongitude Start Longitude
+     * @param endLatitude    End Latitude
+     * @param endLongitude   End Longitude
      * @return Angle in degrees between Start and End location
      */
     private static double computeAngle(double startLatitude, double startLongitude, double endLatitude, double endLongitude) {
@@ -161,11 +152,10 @@ public class TornadoUtils {
     /**
      * Computes the standard deviation of the tornado directions for a specified EF rating
      *
-     * @param efRating
-     *            Enhanced Fujita scale of the Tornado (0-5)
+     * @param efRating Enhanced Fujita scale of the Tornado (0-5)
      * @return The directional standard deviation (in degrees) of the angles for a specific EF rating
      */
-    public static double computeAngleStandardDeviation(String efRating){
+    public static double computeAngleStandardDeviation(String efRating) {
         int efRatingValue = TornadoUtils.getEFRating(efRating);
         try (BufferedReader input = new BufferedReader(new InputStreamReader(TornadoUtils.class.getClassLoader()
             .getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))) {
@@ -178,18 +168,18 @@ public class TornadoUtils {
 
             int count = 1;
 
-            while ((line = input.readLine()) != null){
+            while ((line = input.readLine()) != null) {
                 String[] values = line.split("\t");
                 intensity = Integer.parseInt(values[3]);
 
-                if (intensity == efRatingValue){
+                if (intensity == efRatingValue) {
                     double startLatitude = Double.parseDouble(values[6]);
                     double startLongitude = Double.parseDouble(values[7]);
                     double endLatitude = Double.parseDouble(values[8]);
                     double endLongtide = Double.parseDouble(values[9]);
 
-                    if ((startLatitude !=0 && startLongitude !=0 && endLatitude !=0 && endLongtide != 0)
-                        && (startLatitude != endLatitude && startLongitude != endLongtide)){
+                    if ((startLatitude != 0 && startLongitude != 0 && endLatitude != 0 && endLongtide != 0)
+                        && (startLatitude != endLatitude && startLongitude != endLongtide)) {
                         angle = computeAngle(startLatitude, startLongitude, endLatitude, endLongtide);
 
                         x += Math.cos(Math.toRadians(angle));
@@ -255,11 +245,11 @@ public class TornadoUtils {
         return 0;
     }
 
-    public static double computeMeanAngle(String efRating){
+    public static double computeMeanAngle(String efRating) {
         int efRatingValue = TornadoUtils.getEFRating(efRating);
 
         try (BufferedReader input = new BufferedReader(new InputStreamReader(TornadoUtils.class.getClassLoader()
-            .getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))){
+            .getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))) {
 
             String line = null;
             int intensity = 0;
@@ -268,11 +258,11 @@ public class TornadoUtils {
             double x = 0.0;
             double y = 0.0;
 
-            while((line = input.readLine()) != null){
+            while ((line = input.readLine()) != null) {
                 String[] values = line.split("\t");
                 intensity = Integer.parseInt(values[3]);
 
-                if (intensity == efRatingValue){
+                if (intensity == efRatingValue) {
                     double startLatitude = Double.parseDouble(values[6]);
                     double startLongitude = Double.parseDouble(values[7]);
                     double endLatitude = Double.parseDouble(values[8]);
@@ -293,18 +283,18 @@ public class TornadoUtils {
             double meanSphericalAngle = (Math.toDegrees(efAngle) + 360) % 360;
 
             return meanSphericalAngle;
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         return 0;
     }
 
-    public static double computeMeanLength(String efRating){
+    public static double computeMeanLength(String efRating) {
         int efRatingValue = TornadoUtils.getEFRating(efRating);
 
         try (BufferedReader input = new BufferedReader(new InputStreamReader(TornadoUtils.class.getClassLoader()
-            .getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))){
+            .getResourceAsStream("/hazard/tornado/73-2012_torn_edit.txt")))) {
 
             String line = null;
             int ratingCount = 0;
@@ -331,7 +321,7 @@ public class TornadoUtils {
 
             return meanLength;
 
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -426,7 +416,7 @@ public class TornadoUtils {
         Coordinate startPtCoordinate = new Coordinate(tornadoParameters.getStartLongitude(), tornadoParameters.getStartLatitude());
 
         Coordinate endPtCoordinate = null;
-        if(tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()) {
+        if (tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()) {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
         } else {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(0), tornadoParameters.getEndLatitude().get(0));
@@ -436,7 +426,7 @@ public class TornadoUtils {
         return geometryFactory.createLineString(coords);
     }
 
-    public static SimpleFeatureCollection createTornadoGeometry(ScenarioTornado scenarioTornado) {
+    public static SimpleFeatureCollection createTornadoGeometry(TornadoModel scenarioTornado) {
 
         DefaultFeatureCollection collection = new DefaultFeatureCollection();
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
@@ -463,8 +453,7 @@ public class TornadoUtils {
             EFBox efbox = null;
             if (scenarioTornado.getEfBoxes().size() == scenarioTornado.getTornadoParameters().getNumSimulations()) {
                 efbox = scenarioTornado.getEfBoxes().get(simulation);
-            }
-            else{
+            } else {
                 efbox = scenarioTornado.getEfBoxes().get(0);
             }
 
@@ -543,7 +532,7 @@ public class TornadoUtils {
             featureStore.addFeatures(featureCollection);
 
         } finally {
-            if(transaction != null) {
+            if (transaction != null) {
                 transaction.commit();
                 transaction.close();
 
@@ -569,6 +558,17 @@ public class TornadoUtils {
         jsonObject.put(HazardConstants.SPACES, spaces);
 
         return jsonObject;
+    }
+
+    public static boolean validateDatasetTypes(List<FormDataBodyPart> fileParts) {
+        for (FormDataBodyPart filePart : fileParts) {
+            String fileExt = FilenameUtils.getExtension(filePart.getContentDisposition().getFileName());
+            if (HazardConstants.TORNADO_DATASET_TYPES_ALLOWED.contains(fileExt)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
