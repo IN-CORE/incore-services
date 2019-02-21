@@ -152,7 +152,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the scenario tornado with matching id.")
+    @ApiOperation(value = "API call returns the tornado with matching id.")
     public Tornado getTornado(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
@@ -168,7 +168,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the wind speed at given location using the specified scenario tornado.")
+    @ApiOperation(value = "API call returns the wind speed at given location using the specified tornado.")
     public WindHazardResult getTornadoHazard(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
@@ -194,7 +194,7 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the wind speed at given location using the specified scenario tornado.")
+    @ApiOperation(value = "API call returns the wind speed at given location using the specified tornado.")
     public List<WindHazardResult> getTornadoHazardValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
@@ -229,7 +229,7 @@ public class TornadoController {
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         // TODO implement this and change MediaType to Octet Stream
-        return Response.ok("Shapefile representing scenario tornado not yet implemented.").build();
+        return Response.ok("Shapefile representing tornado not yet implemented.").build();
     }
 
 }
