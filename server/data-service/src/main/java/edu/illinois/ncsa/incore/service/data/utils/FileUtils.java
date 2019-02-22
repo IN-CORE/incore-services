@@ -18,9 +18,9 @@ import com.github.sardine.SardineFactory;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -41,7 +41,6 @@ import java.util.zip.ZipOutputStream;
  * Created by ywkim on 6/8/2017.
  */
 public class FileUtils {
-    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
     public static final String REPO_SERVER_URL = Config.getConfigProperties().getProperty("data.repo.webdav.server.url");
     public static final String REPO_PROP_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.prop.dir");
     public static final String REPO_DS_DIR = Config.getConfigProperties().getProperty("data.repo.webdav.ds.dir");
@@ -67,16 +66,15 @@ public class FileUtils {
     public static final String FILE_ZIP_EXTENSION = "zip";
     public static final String FORMAT_SHAPEFILE = "shapefile";
     public static final String FORMAT_NETWORK = "shp-network";
-    public static final String NETWORK_COMPONENT = "networkComponent";
+    public static final String NETWORK_COMPONENT = "networkDataset";
     public static final String NETWORK_LINK = "link";
     public static final String NETWORK_NODE = "node";
     public static final String NETWORK_GRAPH = "graph";
     public static final String NETWORK_LINK_TYPE = "linkType";
     public static final String NETWORK_NODE_TYPE = "nodeType";
     public static final String NETWORK_GRAPH_TYPE = "graphType";
-
     public static final Logger logger = Logger.getLogger(FileUtils.class);
-
+    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
 
     /**
      * delete temporary directory
@@ -562,8 +560,8 @@ public class FileUtils {
             List<File> copieFileList = null;
             copieFileList = GeotoolsUtils.performCopyNetworkFiles(dataset, fileList, tempDir, datasetId, isGeoserver, inExt);
 
-            String linkName = FilenameUtils.removeExtension(dataset.getNetworkComponent().getLink().getFileName());
-            String nodeName = FilenameUtils.removeExtension(dataset.getNetworkComponent().getNode().getFileName());
+            String linkName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getLink().getLinkFileName());
+            String nodeName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getNode().getNodeFileName());
 
             if (isGeoserver) {
                 // this is basically a renaming of the files to have dataset id as their name
@@ -767,43 +765,6 @@ public class FileUtils {
     }
 
     /**
-     * get directory list in the root directory and crate one big json file using mvz files located under each directory
-     *
-     * @return
-     */
-    private String loadDirectoryListJsonString() {
-        String outStr = "[\n";
-        String tmpRepoUrl = REPO_PROP_URL;
-
-        List<String> resHref = getDirectoryContent(tmpRepoUrl, "");
-
-        for (String tmpUrl : resHref) {
-            String metaDirUrl = REPO_PROP_URL + tmpUrl;
-            List<String> metaHref = getDirectoryContent(metaDirUrl, "");
-            for (String metaFileName : metaHref) {
-                String fileExtStr = FilenameUtils.getExtension(metaFileName);
-                // get only the mvz file
-                if (fileExtStr.equals(EXTENSION_META)) {
-                    String combinedId = tmpUrl + "/" + metaFileName;
-                    File metadataFile = null;
-                    try {
-                        metadataFile = loadMetadataFromRepository(combinedId);
-                        String jsonStr = MvzLoader.formatMetadataAsJson(metadataFile, combinedId);
-                        outStr = outStr + jsonStr + ",\n";
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        outStr = outStr.substring(0, outStr.length() - 2);
-        outStr = outStr + "\n]";
-
-        return outStr;
-    }
-
-    /**
      * switch dbf files in the repository
      *
      * @param inFile
@@ -842,5 +803,42 @@ public class FileUtils {
                 org.apache.commons.io.FileUtils.copyFile(inPrjFile, outPrjFIle);
             }
         }
+    }
+
+    /**
+     * get directory list in the root directory and crate one big json file using mvz files located under each directory
+     *
+     * @return
+     */
+    private String loadDirectoryListJsonString() {
+        String outStr = "[\n";
+        String tmpRepoUrl = REPO_PROP_URL;
+
+        List<String> resHref = getDirectoryContent(tmpRepoUrl, "");
+
+        for (String tmpUrl : resHref) {
+            String metaDirUrl = REPO_PROP_URL + tmpUrl;
+            List<String> metaHref = getDirectoryContent(metaDirUrl, "");
+            for (String metaFileName : metaHref) {
+                String fileExtStr = FilenameUtils.getExtension(metaFileName);
+                // get only the mvz file
+                if (fileExtStr.equals(EXTENSION_META)) {
+                    String combinedId = tmpUrl + "/" + metaFileName;
+                    File metadataFile = null;
+                    try {
+                        metadataFile = loadMetadataFromRepository(combinedId);
+                        String jsonStr = MvzLoader.formatMetadataAsJson(metadataFile, combinedId);
+                        outStr = outStr + jsonStr + ",\n";
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        outStr = outStr.substring(0, outStr.length() - 2);
+        outStr = outStr + "\n]";
+
+        return outStr;
     }
 }

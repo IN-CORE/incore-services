@@ -16,17 +16,15 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.models.Network.NetworkComponent;
-import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
-import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.Network.Graph;
-import edu.illinois.ncsa.incore.service.data.models.Network.Link;
-import edu.illinois.ncsa.incore.service.data.models.Network.Node;
+import edu.illinois.ncsa.incore.service.data.models.Network.NetworkData;
+import edu.illinois.ncsa.incore.service.data.models.Network.NetworkDataset;
 import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
+import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
+import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
@@ -350,8 +348,8 @@ public class DatasetController {
 
             // add network information in the dataset
             if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                NetworkComponent networkComponent = JsonUtils.createNetworkComponent(inDatasetJson);
-                dataset.setNetworkComponent(networkComponent);
+                NetworkDataset networkDataset = JsonUtils.createNetworkDataset(inDatasetJson);
+                dataset.setNetworkDataset(networkDataset);
             }
 
             dataset = repository.addDataset(dataset);
@@ -413,6 +411,8 @@ public class DatasetController {
             throw new ForbiddenException();
         }
 
+        // get data format to see if it is a network dataset
+        String format = dataset.getFormat();
         String creator = dataset.getCreator();
         List<String> spaces = dataset.getSpaces();
 
@@ -431,7 +431,15 @@ public class DatasetController {
                         }
                     }
                     // remove geoserver layer
-                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                        // remove network dataset
+                        boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
+                        boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
+                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
+                    } else {
+                        boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                    }
+
 
                     // remove id from space
                     for (String spaceStr : spaces) {
@@ -481,9 +489,9 @@ public class DatasetController {
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
-//        if (!authorizer.canWrite(username, dataset.getPrivileges())) {
-//            throw new ForbiddenException();
-//        }
+        if (!authorizer.canWrite(username, dataset.getPrivileges())) {
+            throw new ForbiddenException();
+        }
 
         // get data format to see if it is a network dataset
         String format = dataset.getFormat();
@@ -593,17 +601,17 @@ public class DatasetController {
 
         // add link, node, graph file name to dataset
         if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-            NetworkComponent networkComponent = dataset.getNetworkComponent();
-            Link link = networkComponent.getLink();
-            Node node = networkComponent.getNode();
-            Graph graph = networkComponent.getGraph();
-            link.setFileName(linkFileName);
-            node.setFileName(nodeFileName);
-            graph.setFileName(graphFileName);
-            networkComponent.setLink(link);
-            networkComponent.setNode(node);
-            networkComponent.setGraph(graph);
-            dataset.setNetworkComponent(networkComponent);
+            NetworkDataset networkDataset = dataset.getNetworkDataset();
+            NetworkData link = networkDataset.getLink();
+            NetworkData node = networkDataset.getNode();
+            NetworkData graph = networkDataset.getGraph();
+            link.setLinkFileName(linkFileName);
+            node.setNodeFileName(nodeFileName);
+            graph.setGraphFileName(graphFileName);
+            networkDataset.setLink(link);
+            networkDataset.setNode(node);
+            networkDataset.setGraph(graph);
+            dataset.setNetworkDataset(networkDataset);
         }
 
         repository.addDataset(dataset);

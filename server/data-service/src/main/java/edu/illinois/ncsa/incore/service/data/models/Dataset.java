@@ -18,10 +18,11 @@ package edu.illinois.ncsa.incore.service.data.models;
  * This is from NCSA's DataWolf
  */
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
-import edu.illinois.ncsa.incore.service.data.models.Network.NetworkComponent;
+import edu.illinois.ncsa.incore.service.data.models.Network.NetworkDataset;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
@@ -32,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
+@JsonSubTypes({@JsonSubTypes.Type(value = NetworkDataset.class, name = "networkDataset")})
 public class Dataset {
     /**
      * Used for serialization of object
@@ -111,9 +113,9 @@ public class Dataset {
     private double[] boundingBox = null;
 
     /**
-     * NetworkComponent networkComponent
+     * NetworkDataset networkDataset
      */
-    private NetworkComponent networkComponent = null;
+    private NetworkDataset networkDataset = null;
 
     /**
      * Privileges associated with this dataset
@@ -269,12 +271,16 @@ public class Dataset {
 
     /**
      * get bounding box information
+     *
      * @return
      */
-    public double[] getBoundingBox() { return boundingBox; }
+    public double[] getBoundingBox() {
+        return boundingBox;
+    }
 
     /**
      * set bounding box information
+     *
      * @param boundingBox
      */
     public void setBoundingBox(double[] boundingBox) {
@@ -282,14 +288,18 @@ public class Dataset {
     }
 
     /**
-     * get network networkComponent information
+     * get network networkDataset information
      */
-    public NetworkComponent getNetworkComponent() {return networkComponent; }
+    public NetworkDataset getNetworkDataset() {
+        return networkDataset;
+    }
 
     /**
-     * set network networkComponent information
+     * set network networkDataset information
      */
-    public void setNetworkComponent(NetworkComponent networkComponent) {this.networkComponent = networkComponent;}
+    public void setNetworkDataset(NetworkDataset networkDataset) {
+        this.networkDataset = networkDataset;
+    }
 
     /**
      * Return the string that is the type of the artifact
@@ -330,6 +340,15 @@ public class Dataset {
     }
 
     /**
+     * Return the string that is the source dataset of the artifact
+     *
+     * @return storedUrl that represents the url of the stored file of the artifact
+     */
+    public String getStoredUrl() {
+        return storedUrl;
+    }
+
+    /**
      * Sets the string that represents the type of the artifact.
      *
      * @param storedUrl sets the string that represents the stored url of the
@@ -337,15 +356,6 @@ public class Dataset {
      */
     public void setStoredUrl(String storedUrl) {
         this.storedUrl = storedUrl;
-    }
-
-    /**
-     * Return the string that is the source dataset of the artifact
-     *
-     * @return storedUrl that represents the url of the stored file of the artifact
-     */
-    public String getStoredUrl() {
-        return storedUrl;
     }
 
     /**

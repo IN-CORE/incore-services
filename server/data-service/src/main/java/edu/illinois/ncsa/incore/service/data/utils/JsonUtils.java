@@ -19,10 +19,8 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
-import edu.illinois.ncsa.incore.service.data.models.Network.NetworkComponent;
-import edu.illinois.ncsa.incore.service.data.models.Network.Graph;
-import edu.illinois.ncsa.incore.service.data.models.Network.Link;
-import edu.illinois.ncsa.incore.service.data.models.Network.Node;
+import edu.illinois.ncsa.incore.service.data.models.Network.NetworkData;
+import edu.illinois.ncsa.incore.service.data.models.Network.NetworkDataset;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -46,19 +44,20 @@ import java.util.stream.Collectors;
  */
 public class JsonUtils {
     public static final Logger logger = Logger.getLogger(JsonUtils.class);
+
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
         String combinedId = typeId + "/" + datasetId + "/converted/";
         String outJson = "";
         String fileName = "";
-        try{
+        try {
             fileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_CSV, repoUrl);
             if (fileName.length() > 0) {
                 dataset = new File(fileName);
                 outJson = formatCsvAsJson(dataset, combinedId);
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
 //            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
@@ -72,7 +71,7 @@ public class JsonUtils {
         String datasetUrl = repoUrl + typeId + "/";
         String outJson = "";
         String fileName = "";
-        try{
+        try {
             String tempDir = Files.createTempDirectory("repo_download_").toString();
             HttpDownloader.downloadFile(datasetUrl + datasetId + "." + FileUtils.EXTENSION_META, tempDir);
             fileName = tempDir + File.separator + datasetId + "." + FileUtils.EXTENSION_META;
@@ -80,7 +79,7 @@ public class JsonUtils {
                 dataset = new File(fileName);
                 outJson = MvzLoader.formatMetadataAsJson(dataset, combinedId);
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
 //            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
@@ -93,13 +92,13 @@ public class JsonUtils {
         String combinedId = typeId + "/" + datasetId + "/converted/";
         String outJson = "";
         String fileName = "";
-        try{
+        try {
             fileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_SHP, repoUrl);
             if (fileName.length() > 0) {
                 dataset = new File(fileName);
                 outJson = formatDatasetAsGeoJson(dataset);
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
 //            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
@@ -190,8 +189,8 @@ public class JsonUtils {
         }
     }
 
-    public static NetworkComponent createNetworkComponent(String inJson) {
-        NetworkComponent networkComponent = new NetworkComponent();
+    public static NetworkDataset createNetworkDataset(String inJson) {
+        NetworkDataset networkDataset = new NetworkDataset();
 
         String componentStr = "";
         String nodeStr = "";
@@ -201,9 +200,9 @@ public class JsonUtils {
         String nodeType = "";
         String graphType = "";
 
-        Link link = new Link();
-        Node node = new Node();
-        Graph graph = new Graph();
+        NetworkData link = new NetworkData();
+        NetworkData node = new NetworkData();
+        NetworkData graph = new NetworkData();
 
         componentStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_COMPONENT, inJson);
         linkStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK, componentStr);
@@ -213,14 +212,14 @@ public class JsonUtils {
         graphStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH, componentStr);
         graphType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH_TYPE, graphStr);
 
-        link.setType(linkType);
-        node.setType(nodeType);
-        graph.setType(graphType);
-        networkComponent.setLink(link);
-        networkComponent.setNode(node);
-        networkComponent.setGraph(graph);
+        link.setLinkType(linkType);
+        node.setNodeType(nodeType);
+        graph.setGraphType(graphType);
+        networkDataset.setLink(link);
+        networkDataset.setNode(node);
+        networkDataset.setGraph(graph);
 
-        return networkComponent;
+        return networkDataset;
     }
 
 
@@ -230,7 +229,7 @@ public class JsonUtils {
         if (jsonObj.has(inId)) {
             try {
                 JSONArray inArray = (JSONArray) jsonObj.get(inId);
-                for (Object jObj: inArray) {
+                for (Object jObj : inArray) {
                     outList.add(jObj.toString());
                 }
                 return outList;
@@ -266,7 +265,7 @@ public class JsonUtils {
         CsvMapper csvMapper = new CsvMapper();
         MappingIterator<Map<?, ?>> mappingIterator = csvMapper.reader(Map.class).with(csvSchema).readValues(inCsv);
 
-        List<Map<?, ?>> data =  mappingIterator.readAll();
+        List<Map<?, ?>> data = mappingIterator.readAll();
         ObjectMapper mapper = new ObjectMapper();
         String outStr = mapper.writeValueAsString(data);
 
@@ -278,7 +277,7 @@ public class JsonUtils {
     public static String getJsonByDatasetId(String datasetId) {
         List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");
 
-        for (String typeUrl: resHref) {
+        for (String typeUrl : resHref) {
             String fileDirUrl = FileUtils.REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";
             List<String> fileHref = FileUtils.getDirectoryContent(fileDirUrl, "");
             if (fileHref.size() > 1) {

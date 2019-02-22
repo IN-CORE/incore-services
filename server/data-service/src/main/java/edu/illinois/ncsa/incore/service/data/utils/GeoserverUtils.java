@@ -130,8 +130,8 @@ public class GeoserverUtils {
 
         if (datasetId != null && datasetId.length() > 0) {
             // get file name for node and link
-            String linkName = dataset.getNetworkComponent().getLink().getFileName();
-            String nodeName = dataset.getNetworkComponent().getLink().getFileName();
+            String linkName = dataset.getNetworkDataset().getLink().getLinkFileName();
+            String nodeName = dataset.getNetworkDataset().getNode().getNodeFileName();
 
             // get zip file
             inExt = "shp";
@@ -160,9 +160,15 @@ public class GeoserverUtils {
         return publisher.removeLayer(GEOSERVER_WORKSPACE, id);
     }
 
+    public static boolean removeLayerFromGeoserver(String id, String surfix) {
+        GeoServerRESTPublisher publisher = createPublisher();
+        return publisher.removeLayer(GEOSERVER_WORKSPACE, id + surfix);
+    }
+
     public static boolean removeStoreFromGeoserver(String id) {
         GeoServerRESTPublisher publisher = createPublisher();
-        return publisher.removeCoverageStore(GEOSERVER_WORKSPACE, id, false);
+        boolean isRemoved = publisher.removeCoverageStore(GEOSERVER_WORKSPACE, id, false, GeoServerRESTPublisher.Purge.ALL);
+        return isRemoved;
     }
 
     public static GeoServerRESTPublisher createPublisher() {

@@ -45,7 +45,7 @@ To start the service
     | | | input json example when it is a result dataset example (parameter name : dataset, item type: text) |
     | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["incore", "ergo"] } |
     | | | input json example when it is a parent network dataset (parameter name: dataset, item type: text) |
-        | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shp-network", networkComponent:{link:{linkType:  "pipeline"}, node:{nodeType: "water facility"}, graph:{graphType: "table"}}, spaces: ["incore", "ergo"] } |
+        | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shp-network", networkDataset:{link:{linkType:  "pipeline"}, node:{nodeType: "water facility"}, graph:{graphType: "table"}}, spaces: ["incore", "ergo"] } |
     | | | output: Dataset |
     | /{id}/files | POST | upload file(s) to attach to a dataset by FileDescriptor |
     | | | headers: Form |
