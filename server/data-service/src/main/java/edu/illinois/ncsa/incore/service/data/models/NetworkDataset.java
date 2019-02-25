@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.data.models.Network;
+package edu.illinois.ncsa.incore.service.data.models;
 
 public class NetworkDataset {
     private NetworkData link;

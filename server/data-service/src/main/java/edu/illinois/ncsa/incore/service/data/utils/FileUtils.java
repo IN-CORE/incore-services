@@ -560,8 +560,8 @@ public class FileUtils {
             List<File> copieFileList = null;
             copieFileList = GeotoolsUtils.performCopyNetworkFiles(dataset, fileList, tempDir, datasetId, isGeoserver, inExt);
 
-            String linkName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getLink().getLinkFileName());
-            String nodeName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getNode().getNodeFileName());
+            String linkName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getLink().getFileName());
+            String nodeName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getNode().getFileName());
 
             if (isGeoserver) {
                 // this is basically a renaming of the files to have dataset id as their name

@@ -19,8 +19,8 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
-import edu.illinois.ncsa.incore.service.data.models.Network.NetworkData;
-import edu.illinois.ncsa.incore.service.data.models.Network.NetworkDataset;
+import edu.illinois.ncsa.incore.service.data.models.NetworkData;
+import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -212,9 +212,9 @@ public class JsonUtils {
         graphStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH, componentStr);
         graphType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH_TYPE, graphStr);
 
-        link.setLinkType(linkType);
-        node.setNodeType(nodeType);
-        graph.setGraphType(graphType);
+        link.setNetworkType(linkType);
+        node.setNetworkType(nodeType);
+        graph.setNetworkType(graphType);
         networkDataset.setLink(link);
         networkDataset.setNode(node);
         networkDataset.setGraph(graph);
