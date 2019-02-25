@@ -94,10 +94,10 @@ public class EarthquakeController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call creates a new earthquake, the newly created earthquake is returned.",
+    @ApiOperation(value = "Creates a new earthquake, the newly created earthquake is returned.",
         notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
-            "User can create both model earthquake (with attenuation) and dataset-based earthquake " +
-            "(with GeoTiff files upload).")
+            "User can create both model earthquakes (with attenuation) and dataset-based earthquakes " +
+            "with GeoTiff files uploaded.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "earthquake", value = "Earthquake json.", required = true, dataType = "string", paramType = "form"),
         @ApiImplicitParam(name = "file", value = "Earthquake files.", required = true, dataType = "string", paramType = "form")
@@ -134,7 +134,7 @@ public class EarthquakeController {
 
                     String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
                     String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
-                    String description = "scenario earthquake visualization";
+                    String description = "Earthquake visualization";
                     String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", username, description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
 
                     DeterministicHazardDataset rasterDataset = new DeterministicHazardDataset();
@@ -201,7 +201,7 @@ public class EarthquakeController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns all earthquakes.")
+    @ApiOperation(value = "Returns all earthquakes.")
     public List<Earthquake> getEarthquakes(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
 
@@ -213,7 +213,7 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the earthquake with matching id.")
+    @ApiOperation(value = "Returns the earthquake with matching id.")
     public Earthquake getEarthquake(
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
@@ -231,10 +231,10 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/raster")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns SeismicHazardResults for the given earthquake id, demand type and unit, " +
+    @ApiOperation(value = "Returns SeismicHazardResults for a given attenuation model-based earthquake id, demand type and unit, " +
         "coordinates and grid spacing.", notes = " SeismicHazardResults contains the metadata about the raster " +
         "data along with a list of HazardResults. Each HazardResult is a lat, long and hazard value.")
-    public SeismicHazardResults getScenarioEarthquakeHazardForBox(
+    public SeismicHazardResults getEarthquakeHazardForBox(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
@@ -317,9 +317,9 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns hazard values for the given earthquake id.",
+    @ApiOperation(value = "Returns hazard values for the given earthquake id.",
         notes = "The results contain ground shaking parameter (PGA, SA, etc) for specific locations.")
-    public List<SeismicHazardResult> getScenarioEarthquakeHazardValues(
+    public List<SeismicHazardResult> getEarthquakeHazardValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
@@ -350,17 +350,17 @@ public class EarthquakeController {
 
             return hazardResults;
         } else {
-            logger.error("Could not find scenario earthquake with id " + earthquakeId);
-            throw new NotFoundException("Could not find scenario earthquake with id " + earthquakeId);
+            logger.error("Could not find  earthquake with id " + earthquakeId);
+            throw new NotFoundException("Could not find earthquake with id " + earthquakeId);
         }
     }
 
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns liquefaction (PGD) values.",
+    @ApiOperation(value = "Returns liquefaction (PGD) values.",
         notes="This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
-    public List<LiquefactionHazardResult> getScenarioEarthquakeLiquefaction(
+    public List<LiquefactionHazardResult> getEarthquakeLiquefaction(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Earthquake dataset guid from data service.", required = true)  @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Geology dataset from data service.", required = true) @QueryParam("geologyDataset") String geologyId,
@@ -384,15 +384,15 @@ public class EarthquakeController {
 
             return hazardResults;
         } else {
-            logger.error("Could not find scenario earthquake with id " + earthquakeId);
-            throw new NotFoundException("Could not find scenario earthquake with id " + earthquakeId);
+            logger.error("Could not find earthquake with id " + earthquakeId);
+            throw new NotFoundException("Could not find earthquake with id " + earthquakeId);
         }
     }
 
     @GET
     @Path("/soil/amplification")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns earthquake site hazard amplification.", notes=" It returns the amplified " +
+    @ApiOperation(value = "Returns earthquake site hazard amplification.", notes=" This returns the amplified " +
         "hazard given a methodology (e.g. NEHRP), soil map dataset id (optional), latitude, longitude, ground shaking " +
         "parameter (PGA, Sa, etc), hazard value, and default site class to use.")
     public Response getEarthquakeSiteAmplification(
@@ -439,7 +439,7 @@ public class EarthquakeController {
     @GET
     @Path("/slope/amplification")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true, value = "API call returns earthquake slope amplification.")
+    @ApiOperation(hidden = true, value = "Returns earthquake slope amplification.")
     public Response getEarthquakeSlopeAmplification(
         @ApiParam(hidden = true, value = "Latitude coordinate of the site.") @QueryParam("siteLat") double siteLat,
         @ApiParam(hidden = true, value = "Longitude coordinate of the site.") @QueryParam("siteLong") double siteLong) {
@@ -450,7 +450,7 @@ public class EarthquakeController {
     @GET
     @Path("models")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true, value = "API call returns attenuation models.", notes="It returns the requested " +
+    @ApiOperation(hidden = true, value = "Returns attenuation models.", notes="This returns the requested " +
         "ground shaking parameter (PGA, SA, etc) for a lat/long location using the attenuation model specified.")
     public Set<String> getSupportedEarthquakeModels() {
         return attenuationProvider.getAttenuations().keySet();

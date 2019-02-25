@@ -61,7 +61,7 @@ public class HurricaneController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns all hurricanes.")
+    @ApiOperation(value = "Returns all hurricanes.")
     public List<HurricaneWindfields> getHurricaneWindfields(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
@@ -87,7 +87,7 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the hurricane with matching id.")
+    @ApiOperation(value = "Returns the hurricane with matching id.")
     public HurricaneWindfields getHurricaneWindfieldsById(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
@@ -102,7 +102,7 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the hurricane values using the specified scenario hurricane.")
+    @ApiOperation(value = "Returns the hurricane wind field values.")
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
@@ -151,7 +151,7 @@ public class HurricaneController {
 
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call creates a new hurricane, simulation of hurricane windfields is returned.",
+    @ApiOperation(value = "Creates a new hurricane, simulation of hurricane windfields is returned.",
         notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
             "windfield's raster.")
     public HurricaneWindfields createHurricaneWindfields(
@@ -201,7 +201,7 @@ public class HurricaneController {
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true, value = "API call simulates a hurricane by returning the result as json.",
+    @ApiOperation(hidden = true, value = "Simulates a hurricane by returning the result as json.",
         notes = "It is implemented to match MATLAB output and need not be exposed to external users")
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,

@@ -55,7 +55,7 @@ public class TsunamiController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns all tsunamis.")
+    @ApiOperation(value = "Returns all tsunamis.")
     public List<Tsunami> getTsunamis(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
 
@@ -67,7 +67,7 @@ public class TsunamiController {
     @GET
     @Path("{tsunami-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the scenario tsunami matching the given id.")
+    @ApiOperation(value = "Returns the scenario tsunami matching the given id.")
     public Tsunami getTsunami(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
@@ -85,7 +85,7 @@ public class TsunamiController {
     @GET
     @Path("{tsunami-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call returns the specified tsunami values.")
+    @ApiOperation(value = "Returns the specified tsunami values.")
     public List<TsunamiHazardResult> getTsunamiHazardValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId,
@@ -111,7 +111,9 @@ public class TsunamiController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "API call creates a new tsunami, the newly created tsunami is returned.")
+    @ApiOperation(value = "Creates a new tsunami, the newly created tsunami is returned.",
+        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+            "User can create dataset-based tsunamis only.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "tsunami", value = "Tsunami json.", required = true, dataType = "string", paramType = "form"),
         @ApiImplicitParam(name = "file", value = "Tsunami files.", required = true, dataType = "string", paramType = "form")
