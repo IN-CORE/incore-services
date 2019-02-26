@@ -26,7 +26,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneC
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.opengis.geometry.MismatchedDimensionException;
 
@@ -42,8 +42,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Api(value="hurricaneWindfields", authorizations = {})
 
 @Path("hurricaneWindfields")
+@ApiResponses(value = {
+    @ApiResponse(code = 500, message = "Internal Server Error")
+})
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
 
@@ -57,8 +61,11 @@ public class HurricaneController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<HurricaneWindfields> getHurricaneWindfields(@HeaderParam("X-Credential-Username") String username,
-                                                            @QueryParam("coast") String coast, @QueryParam("category") int category) {
+    @ApiOperation(value = "Returns all hurricanes.")
+    public List<HurricaneWindfields> getHurricaneWindfields(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
+        @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -80,7 +87,11 @@ public class HurricaneController {
     @GET
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public HurricaneWindfields getHurricaneWindfieldsById(@HeaderParam("X-Credential-Username") String username, @PathParam("hurricaneId") String hurricaneId) {
+    @ApiOperation(value = "Returns the hurricane with matching id.")
+    public HurricaneWindfields getHurricaneWindfieldsById(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
+
         HurricaneWindfields hurricane = repository.getHurricaneById(hurricaneId);
         if (!authorizer.canRead(username, hurricane.getPrivileges())) {
             throw new ForbiddenException();
@@ -88,15 +99,17 @@ public class HurricaneController {
         return hurricane;
     }
 
-
     @GET
     @Path("{hurricaneId}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(@HeaderParam("X-Credential-Username") String username,
-                                                                      @PathParam("hurricaneId") String hurricaneId,
-                                                                      @DefaultValue("velocity") @QueryParam("demandType") String demandType,
-                                                                      @DefaultValue("kt") @QueryParam("demandUnits") WindfieldDemandUnits demandUnits,
-                                                                      @QueryParam("point") List<IncorePoint> points) {
+    @ApiOperation(value = "Returns the hurricane wind field values.")
+    public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
+        @ApiParam(value = "Hurricane demand type. Ex. 'velocity'.") @QueryParam("demandType") @DefaultValue("velocity") String demandType,
+        @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue("kt") WindfieldDemandUnits demandUnits,
+        @ApiParam(value = "List of points provided as lat,long. Ex: '28.09,-80.62'.", required = true) @QueryParam("point") List<IncorePoint> points) {
+
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(username, hurricaneId);
         List<HurricaneWindfieldResult> hurrResults = new ArrayList<>();
 
@@ -138,8 +151,13 @@ public class HurricaneController {
 
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
-    public HurricaneWindfields createHurricaneWindfields(@HeaderParam("X-Credential-Username") String username, HurricaneWindfields inputHurricane) {
+    @ApiOperation(value = "Creates a new hurricane, simulation of hurricane windfields is returned.",
+        notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
+            "windfield's raster.")
+    public HurricaneWindfields createHurricaneWindfields(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        HurricaneWindfields inputHurricane) {
+
         HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
         if (inputHurricane != null) {
             HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(username,
@@ -180,19 +198,21 @@ public class HurricaneController {
         return hurricaneWindfields;
     }
 
-
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value="Simulates a hurricane by returning the result as json", notes= "Implemented to match MATLAB model output " +
-        "and need not be exposed to external users", hidden = true)
-    public HurricaneSimulationEnsemble getHurricaneJsonByCategory(@HeaderParam("X-Credential-Username") String username,
-                                                                  @PathParam("coast") String coast,
-                                                                  @QueryParam("category") int category,
-                                                                  @QueryParam("TransD") double transD, @QueryParam("LandfallLoc") IncorePoint landfallLoc,
-                                                                  @DefaultValue("6") @QueryParam("resolution") int resolution,
-                                                                  @DefaultValue("80") @QueryParam("gridPoints") int gridPoints,
-                                                                  @DefaultValue("circular") @QueryParam("reductionType") String rfMethod) {
+    @ApiOperation(hidden = true, value = "Simulates a hurricane by returning the result as json.",
+        notes = "It is implemented to match MATLAB output and need not be exposed to external users")
+    public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @PathParam("coast") String coast,
+        @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
+        @ApiParam(value = "Huricane landfall direction angle. Ex: 30.5.", required = true) @QueryParam("TransD") double transD,
+        @ApiParam(value = "Huricane landfall location. Ex: '28.09,-80.62'.", required = true) @QueryParam("LandfallLoc") IncorePoint landfallLoc,
+        @ApiParam(value = "Resolution. Ex: 6.", required = true) @QueryParam("resolution") @DefaultValue("6") int resolution,
+        @ApiParam(value = "Number of grid points. Ex: 80.", required = true) @QueryParam("gridPoints") @DefaultValue("80") int gridPoints,
+        @ApiParam(value = "Reduction type. Ex: 'circular'.", required = true) @QueryParam("reductionType") @DefaultValue("circular") String rfMethod) {
+
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
         if (coast == null || category <= 0 || category > 5) {
             throw new NotFoundException("Coast needs to be gulf, florida or east. Category should be between 1 to 5");

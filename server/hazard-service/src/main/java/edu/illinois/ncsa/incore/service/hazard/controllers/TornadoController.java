@@ -23,7 +23,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardRe
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.annotations.Api;
+import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
@@ -41,8 +41,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Api("tornadoes")
+@Api(value="tornadoes", authorizations = {})
+
 @Path("tornadoes")
+@ApiResponses(value = {
+    @ApiResponse(code = 500, message = "Internal Server Error.")
+})
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
 
@@ -56,16 +60,30 @@ public class TornadoController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<Tornado> getTornadoes(@HeaderParam("X-Credential-Username") String username) {
+    @ApiOperation(value = "Returns all tornadoes.")
+    public List<Tornado> getTornadoes(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
         return repository.getTornadoes().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
     }
 
+
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    public Tornado createTornado(@HeaderParam("X-Credential-Username") String username, @FormDataParam("tornado") String tornadoJson, @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+    @ApiOperation(value = "Creates a new tornado, the newly created tornado is returned.",
+        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+            "User can create both model tornadoes and dataset-based tornadoes with GeoTiff files uploaded.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "tornado", value = "Tornado json.", required = true, dataType = "string", paramType = "form"),
+        @ApiImplicitParam(name = "file", value = "Tornado files.", required = true, dataType = "string", paramType = "form")
+    })
+    public Tornado createTornado(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(hidden = true) @FormDataParam("tornado") String tornadoJson,
+        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+
         ObjectMapper mapper = new ObjectMapper();
         Tornado tornado = null;
         try {
@@ -136,8 +154,13 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Tornado getTornado(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId) {
+    @ApiOperation(value = "Returns the tornado with matching id.")
+    public Tornado getTornado(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
+
         Tornado tornado = repository.getTornadoById(tornadoId);
+
         if (!authorizer.canRead(username, tornado.getPrivileges())) {
             throw new ForbiddenException();
         }
@@ -147,7 +170,15 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    public WindHazardResult getTornadoHazard(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("siteLat") double siteLat, @QueryParam("siteLong") double siteLong, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+    @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
+    public WindHazardResult getTornadoHazard(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
+        @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Latitude of a site. Ex: 35.027.", required = true) @QueryParam("siteLat") double siteLat,
+        @ApiParam(value = "Longitude of a site. Ex: -90.131.", required = true) @QueryParam("siteLong") double siteLong,
+        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+
         Tornado tornado = getTornado(username, tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
@@ -165,7 +196,13 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<WindHazardResult> getTornadoHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tornado-id") String tornadoId, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points, @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+    @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
+    public List<WindHazardResult> getTornadoHazardValues(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
+        @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "List of points provided as lat,long. Ex: '35.027,-90.131'.", required = true) @QueryParam("point") List<IncorePoint> points,
+        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
 
         Tornado tornado = getTornado(username, tornadoId);
         List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
@@ -188,9 +225,13 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/dataset")
     @Produces({MediaType.TEXT_PLAIN})
-    public Response getFile() {
+    @ApiOperation(value = "Returns a zip shapefile representing tornado defined by given id.")
+    public Response getFile(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
+
         // TODO implement this and change MediaType to Octet Stream
-        return Response.ok("Shapefile representing scenario tornado not yet implemented.").build();
+        return Response.ok("Shapefile representing tornado not yet implemented.").build();
     }
 
 }

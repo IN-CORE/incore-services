@@ -23,6 +23,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiHazardDatas
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.types.TsunamiHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.utils.TsunamiCalc;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
+import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -37,7 +38,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Api(value="tsunamis", authorizations = {})
+
 @Path("tsunamis")
+@ApiResponses(value = {
+    @ApiResponse(code = 500, message = "Internal Server Error.")
+})
 public class TsunamiController {
     private static final Logger log = Logger.getLogger(TsunamiController.class);
 
@@ -49,7 +55,10 @@ public class TsunamiController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<Tsunami> getTsunamis(@HeaderParam("X-Credential-Username") String username) {
+    @ApiOperation(value = "Returns all tsunamis.")
+    public List<Tsunami> getTsunamis(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
+
         return repository.getTsunamis().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
@@ -58,7 +67,11 @@ public class TsunamiController {
     @GET
     @Path("{tsunami-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Tsunami getTsunami(@HeaderParam("X-Credential-Username") String username, @PathParam("tsunami-id") String tsunamiId) {
+    @ApiOperation(value = "Returns the scenario tsunami matching the given id.")
+    public Tsunami getTsunami(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
+
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
         if (tsunami == null) {
             throw new NotFoundException();
@@ -72,7 +85,14 @@ public class TsunamiController {
     @GET
     @Path("{tsunami-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<TsunamiHazardResult> getTsunamiHazardValues(@HeaderParam("X-Credential-Username") String username, @PathParam("tsunami-id") String tsunamiId, @QueryParam("demandType") String demandType, @QueryParam("demandUnits") String demandUnits, @QueryParam("point") List<IncorePoint> points) {
+    @ApiOperation(value = "Returns the specified tsunami values.")
+    public List<TsunamiHazardResult> getTsunamiHazardValues(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId,
+        @ApiParam(value = "Tsunami demand type. Ex: 'Hmax, Vmax, Mmax'.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Tsunami demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "List of points provided as lat,long. Ex: '46.01,-123.94'.", required = true) @QueryParam("point") List<IncorePoint> points) {
+
         Tsunami tsunami = getTsunami(username, tsunamiId);
         List<TsunamiHazardResult> tsunamiResults = new LinkedList<>();
         if (tsunami != null) {
@@ -91,7 +111,18 @@ public class TsunamiController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    public Tsunami createTsunami(@HeaderParam("X-Credential-Username") String username, @FormDataParam("tsunami") String tsunamiJson, @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+    @ApiOperation(value = "Creates a new tsunami, the newly created tsunami is returned.",
+        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+            "User can create dataset-based tsunamis only.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "tsunami", value = "Tsunami json.", required = true, dataType = "string", paramType = "form"),
+        @ApiImplicitParam(name = "file", value = "Tsunami files.", required = true, dataType = "string", paramType = "form")
+    })
+    public Tsunami createTsunami(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(hidden = true) @FormDataParam("tsunami") String tsunamiJson,
+        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+
         ObjectMapper mapper = new ObjectMapper();
         Tsunami tsunami = null;
         try {
