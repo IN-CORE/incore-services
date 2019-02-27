@@ -59,7 +59,6 @@ public class FileUtils {
     public static final String DATASET_TYPE = "dataType";
     public static final String DATASET_SOURCE_DATASET = "sourceDataset";
     public static final String DATASET_FORMAT = "format";
-    public static final String DATASET_SPACES = "spaces";
     public static final String DATASET_DESCRIPTION = "description";
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FILE_ZIP_EXTENSION = "zip";

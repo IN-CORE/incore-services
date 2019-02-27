@@ -10,25 +10,38 @@
 
 package edu.illinois.ncsa.incore.service.data.models;
 
+import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
 
 /**
  * Created by ywkim on 10/2/2017.
  */
 
-@XmlRootElement
+    @XmlRootElement
 public class Space {
     @Id
     @Property("_id")
     private ObjectId id = new ObjectId();
 
-    private String name = null;
-    private List<String> datasetIds = null;
+    private HashMap<String, Object> metadata;
+
+    private Privileges privileges = new Privileges();
+
+    private List<String> members = null;
+
+    public Space(){
+        this.metadata = new HashMap<>();
+        this.members = new ArrayList<>();
+    }
 
     public String getId() {
         return id.toString();
@@ -39,30 +52,55 @@ public class Space {
     }
 
     public String getName() {
-        return name;
+        return this.metadata.get("name").toString();
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Privileges getPrivileges(){
+        return privileges;
     }
 
-    public List<String> getDatasetIds() {
-        return datasetIds;
+    public void setPrivileges(Privileges privileges){
+        this.privileges = privileges;
     }
 
-    public void setDatasetIds(List<String> datasetIds) {
-        this.datasetIds = datasetIds;
+    public List<String> getMembers() {
+        return members;
     }
 
-    public void addDatasetId(String id) {
-        if (id != null) {
-            getDatasetIds().add(id);
+    public void setMembers(List<String> members) {
+        this.members = members;
+    }
+
+    public void addMember(String id) {
+        if (this.members == null) {
+            this.members = new ArrayList<>();
+        }
+        if (id != null && !hasMember(id)) {
+            members.add(id);
         }
     }
 
-    public void removeDatasetId(String id) {
+    public boolean hasMember(String id){
+        if(this.members == null) return false;
+        for(String datasetId : this.members){
+            if (datasetId.equals(id))
+                return true;
+        }
+        return false;
+    }
+
+    public void removeMember(String id) {
         if (id != null) {
-            getDatasetIds().remove(id);
+            getMembers().remove(id);
         }
     }
+
+    public void setMetadata(String metadata){
+        this.metadata = JsonUtils.extractMapFromJsonString(metadata);
+    }
+
+    public HashMap<String, Object> getMetadata(){
+        return this.metadata;
+    }
+
 }

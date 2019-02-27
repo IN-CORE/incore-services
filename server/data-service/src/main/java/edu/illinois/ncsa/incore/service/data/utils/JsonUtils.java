@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -131,7 +130,6 @@ public class JsonUtils {
                 return false;
             }
         }
-
         return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
 
 
@@ -199,6 +197,14 @@ public class JsonUtils {
             }
         } else {
             return outList;
+        }
+    }
+
+    public static HashMap<String, Object> extractMapFromJsonString(String inJson){
+        try {
+            return new ObjectMapper().readValue(inJson, HashMap.class);
+        } catch (IOException e){
+            return null;
         }
     }
 

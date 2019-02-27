@@ -34,10 +34,10 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class MongoDBRepository implements IRepository {
     private final String DATASET_COLLECTION_NAME = "Dataset";
-    private final String DATASET_FIELD_NAME = "name";
     private final String DATASET_FIELD_TYPE = "dataType";
     private final String DATASET_FIELD_TITLE = "title";
     private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";
+    private final String SPACE_FIELD_METADATA_NAME = "metadata.name";
     private String hostUri;
     private String databaseName;
     private int port;
@@ -129,19 +129,25 @@ public class MongoDBRepository implements IRepository {
 
     public Space getSpaceByName(String name) {
         Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field(DATASET_FIELD_NAME).equal(name);
+        spaceQuery.field(SPACE_FIELD_METADATA_NAME).equal(name);
         Space foundSpace = spaceQuery.get();
 
         return foundSpace;
     }
 
     public Space addSpace(Space space) {
-        String id = this.dataStore.save(space).getId().toString();
+        String id = (this.dataStore.save(space)).getId().toString();
         return getSpaceById(id);
     }
 
+    public Space deleteSpace(String id){
+        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
+        spaceQuery.field("_id").equal(new ObjectId(id));
+        return this.dataStore.findAndDelete(spaceQuery);
+    }
+
     public Space removeIdFromSpace(Space space, String id) {
-        space.removeDatasetId(id);
+        space.removeMember(id);
         return space;
     }
 
