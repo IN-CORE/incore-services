@@ -55,4 +55,21 @@ public class Privileges {
         return privileges;
     }
 
+    public void addUserPrivileges(String owner, PrivilegeLevel privilegeLevel){
+        if(userPrivileges != null){
+            this.userPrivileges.put(owner, privilegeLevel);
+        }
+        else{
+            throw new NullPointerException("userPrivileges was not instantiated");
+        }
+    }
+
+    public void addGroupPrivileges(String owner, PrivilegeLevel privilegeLevel){
+        if(userPrivileges != null){
+            this.groupPrivileges.put(owner, privilegeLevel);
+        }else{
+            throw new NullPointerException("groupPrivileges was not instantiated");
+        }
+    }
+
 }

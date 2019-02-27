@@ -9,6 +9,7 @@
  *   Diego Calderon (NCSA)
  *******************************************************************************/
 
+
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
 
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Data Service for creating and accessing datasets",
+        description = "IN-CORE Data Service for creating and accessing spaces",
         version = "v0.2.0",
         title = "IN-CORE v2 Data Services API",
         contact = @Contact(
@@ -325,7 +326,6 @@ public class DatasetController {
             sourceDataset = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
             format = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FORMAT, inDatasetJson);
             fileName = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FILE_NAME, inDatasetJson);
-            spaces = JsonUtils.extractValueListFromJsonString(FileUtils.DATASET_SPACES, inDatasetJson);
             if (!spaces.contains(username)) {
                 spaces.add(username);
             }
@@ -352,18 +352,14 @@ public class DatasetController {
             for (String spaceName : spaces) {
                 Space foundSpace = repository.getSpaceByName(spaceName);
                 if (foundSpace == null) {   // new space: insert the data
-                    Space space = new Space();
-                    space.setName(spaceName);
                     List<String> datasetIds = new ArrayList<String>();
                     datasetIds.add(id);
-                    space.setDatasetIds(datasetIds);
-                    repository.addSpace(space);
                 } else {    // the space with space name exists
                     // get dataset ids
-                    List<String> datasetIds = foundSpace.getDatasetIds();
+                    List<String> datasetIds = foundSpace.getMembers();
 
                     if (!datasetIds.contains(id)) {
-                        foundSpace.addDatasetId(id);
+                        foundSpace.addMember(id);
                         // this will update it since the objectId is identical
                         repository.addSpace(foundSpace);
                     }
@@ -610,4 +606,6 @@ public class DatasetController {
 
         return dataset;
     }
+
+
 }

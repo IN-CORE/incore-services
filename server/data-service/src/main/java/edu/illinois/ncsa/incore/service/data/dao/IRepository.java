@@ -34,6 +34,7 @@ public interface IRepository {
     Space addSpace(Space space);
     Space getSpaceById(String id);
     Space getSpaceByName(String name);
+    Space deleteSpace(String id);
     Space removeIdFromSpace(Space space, String id);
     List<FileDescriptor> getAllFileDescriptors();
     List<MvzDataset> getAllMvzDatasets();

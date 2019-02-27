@@ -371,6 +371,15 @@ public class Dataset {
     }
 
     /**
+     * Remove the space from the set of spaces of the dataset.
+     *
+     * @param space the space to be removed.
+     */
+    public void removeSpace(String space) {
+        getSpaces().remove(space);
+    }
+
+    /**
      * Add the file descriptor to the set of file descriptors to the dataset.
      *
      * @param fileDescriptor the file descriptors to be added.
