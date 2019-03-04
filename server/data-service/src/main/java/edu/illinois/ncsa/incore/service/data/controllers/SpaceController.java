@@ -89,7 +89,7 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Ingest space object as json")
     public Space ingestSpace(@HeaderParam("X-Credential-Username") String username,
-                                 @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("dataset") String spaceJson) {
+                                 @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
         if (username == null || !JsonUtils.isJSONValid(spaceJson)) {
             throw new BadRequestException("User must provide a valid json and username");
         }
@@ -182,7 +182,7 @@ public class SpaceController {
     @ApiOperation(value = "Updates a space from the Dataset collection")
     public Space updateSpace(@HeaderParam("X-Credential-Username") String username,
                                 @ApiParam(value = "Space Id from data service", required = true) @PathParam("id") String spaceId,
-                                @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("dataset") String spaceJson) {
+                                @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
         if (username == null) {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
@@ -261,7 +261,7 @@ public class SpaceController {
     @ApiOperation(value = "Grants new privileges to a space")
     public Space grantPrivilegesToSpace(@HeaderParam("X-Credential-Username") String username,
                               @ApiParam(value = "Space Id from data service", required = true) @PathParam("id") String spaceId,
-                              @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("dataset") String privilegesJson) {
+                              @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
         if (username == null) {
             throw new BadRequestException("User must provide a valid json and username");
         }

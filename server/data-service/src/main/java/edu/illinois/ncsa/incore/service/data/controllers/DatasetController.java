@@ -116,8 +116,7 @@ public class DatasetController {
                                      @ApiParam(value = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: ergo:buildingInventoryVer5, ergo:census",
                                          required = false) @QueryParam("type") String typeStr,
                                      @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
-                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
-                                     @ApiParam(value = "IN-CORE space the datasets belong to. ex: ergo, incore etc.", required = false) @QueryParam("space") String space
+                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator
     ) {
         List<Dataset> datasets = null;
         if (typeStr != null && titleStr == null) {  // query only for the type
@@ -137,7 +136,6 @@ public class DatasetController {
 
         return datasets.stream()
             .filter(d -> (creator == null || "".equals(creator.trim()) || creator.trim().equals(d.getCreator())))
-            .filter(d -> (space == null || "".equals(space.trim()) || d.getSpaces().contains(space)))
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
             .collect(Collectors.toList());
     }
@@ -316,7 +314,6 @@ public class DatasetController {
         String format = "";
         String fileName = "";
         String description = "";
-        List<String> spaces = null;
 
         // create DataWolf POJO object
         Dataset dataset = new Dataset();
@@ -326,9 +323,6 @@ public class DatasetController {
             sourceDataset = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_SOURCE_DATASET, inDatasetJson);
             format = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FORMAT, inDatasetJson);
             fileName = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_FILE_NAME, inDatasetJson);
-            if (!spaces.contains(username)) {
-                spaces.add(username);
-            }
             description = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_DESCRIPTION, inDatasetJson);
 
             dataset.setTitle(title);
@@ -337,7 +331,6 @@ public class DatasetController {
             dataset.setDescription(description);
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
-            dataset.setSpaces(spaces);
             dataset.setPrivileges(Privileges.newWithSingleOwner(username));
 
             dataset = repository.addDataset(dataset);
@@ -348,23 +341,17 @@ public class DatasetController {
 
             String id = dataset.getId();
 
-            // insert/update space
-            for (String spaceName : spaces) {
-                Space foundSpace = repository.getSpaceByName(spaceName);
-                if (foundSpace == null) {   // new space: insert the data
-                    List<String> datasetIds = new ArrayList<String>();
-                    datasetIds.add(id);
-                } else {    // the space with space name exists
-                    // get dataset ids
-                    List<String> datasetIds = foundSpace.getMembers();
-
-                    if (!datasetIds.contains(id)) {
-                        foundSpace.addMember(id);
-                        // this will update it since the objectId is identical
-                        repository.addSpace(foundSpace);
-                    }
-                }
+            Space space = repository.getSpaceByName(username);
+            if(space == null){
+                space = new Space(username);
+                space.addMember(id);
+                space.setPrivileges(Privileges.newWithSingleOwner(username));
+                repository.addSpace(space);
+            } else {
+                space.addMember(id);
+                repository.addSpace(space);
             }
+
         }
 
         return dataset;
@@ -396,7 +383,6 @@ public class DatasetController {
         }
 
         String creator = dataset.getCreator();
-        List<String> spaces = dataset.getSpaces();
 
         if (creator != null) {
             if (creator.equals(username)) {
@@ -415,11 +401,13 @@ public class DatasetController {
                     // remove geoserver layer
                     boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
 
-                    // remove id from space
-                    for (String spaceStr : spaces) {
-                        Space space = repository.getSpaceByName(spaceStr);
-                        repository.removeIdFromSpace(space, datasetId);
-                        repository.addSpace(space);
+                    // remove id from spaces
+                    List<Space> spaces = repository.getAllSpaces();
+                    for(Space space : spaces){
+                        if(space.hasMember(datasetId)){
+                            space.removeMember(datasetId);
+                            repository.addSpace(space);
+                        }
                     }
                 }
             } else {

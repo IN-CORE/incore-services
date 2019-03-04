@@ -43,6 +43,13 @@ public class Space {
         this.members = new ArrayList<>();
     }
 
+    public Space(String name){
+        this.metadata = new HashMap<>();
+        this.members = new ArrayList<>();
+
+        this.metadata.put("name", name);
+    }
+
     public String getId() {
         return id.toString();
     }
