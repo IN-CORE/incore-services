@@ -93,7 +93,6 @@ class DatasetControllerTest extends CustomJerseyTest{
 
         assertNotNull(output.getId());
         assertNotNull(output.getTitle());
-        assertEquals(3, output.getSpaces().size());
     }
 
     @Test

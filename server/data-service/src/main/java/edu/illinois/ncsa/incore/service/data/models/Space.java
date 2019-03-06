@@ -10,15 +10,15 @@
 
 package edu.illinois.ncsa.incore.service.data.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
+import edu.illinois.ncsa.incore.service.data.models.spaces.Metadata;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -26,28 +26,27 @@ import java.util.List;
  * Created by ywkim on 10/2/2017.
  */
 
-    @XmlRootElement
+@XmlRootElement
 public class Space {
     @Id
     @Property("_id")
     private ObjectId id = new ObjectId();
 
-    private HashMap<String, Object> metadata;
+    @JsonProperty("metadata")
+    private Metadata metadata;
 
     private Privileges privileges = new Privileges();
 
     private List<String> members = null;
 
     public Space(){
-        this.metadata = new HashMap<>();
+        this.metadata = new Metadata("");
         this.members = new ArrayList<>();
     }
 
     public Space(String name){
-        this.metadata = new HashMap<>();
+        this.metadata = new Metadata(name);
         this.members = new ArrayList<>();
-
-        this.metadata.put("name", name);
     }
 
     public String getId() {
@@ -59,7 +58,7 @@ public class Space {
     }
 
     public String getName() {
-        return this.metadata.get("name").toString();
+        return this.metadata.getName();
     }
 
     public Privileges getPrivileges(){
@@ -102,11 +101,11 @@ public class Space {
         }
     }
 
-    public void setMetadata(String metadata){
-        this.metadata = JsonUtils.extractMapFromJsonString(metadata);
+    public void setMetadata(Metadata metadata){
+        this.metadata = metadata;
     }
 
-    public HashMap<String, Object> getMetadata(){
+    public Metadata getMetadata(){
         return this.metadata;
     }
 

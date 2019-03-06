@@ -20,6 +20,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import javax.ws.rs.core.MediaType;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -40,14 +41,18 @@ class SpaceControllerTest extends CustomJerseyTest{
 
     @Test
     public void testGetSpaceList() {
-        String output = target("/spaces").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output = target("/spaces").request().header("X-Credential-Username", "test").accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(4, parsedObject.length());
 
         JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
         assertNotNull(firstObject.get("id").toString());
-        assertNotNull(firstObject.get("name").toString());
-        assertNotEquals(223, firstObject.get("datasetIds").toString().length());
+        assertNotNull(firstObject.get("metadata").toString());
+        assertNotEquals(223, firstObject.get("members").toString().length());
     }
+
+
+
+
 }

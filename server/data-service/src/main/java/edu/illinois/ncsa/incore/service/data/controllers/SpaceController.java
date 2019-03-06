@@ -17,6 +17,7 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Space;
+import edu.illinois.ncsa.incore.service.data.models.spaces.Metadata;
 import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
@@ -111,7 +112,7 @@ public class SpaceController {
         if (foundSpace == null) {
             Space space = new Space();
 
-            space.setMetadata(metadata);
+            space.setMetadata(new Metadata(name));
             space.setMembers(members);
             space.setPrivileges(Privileges.newWithSingleOwner(username));
 
@@ -151,7 +152,7 @@ public class SpaceController {
             }
         }
 
-        if(filteredSpaces.size() == 0){
+        if(filteredSpaces.size() == 0 && datasetId != null){
             throw new NotFoundException("No spaces have the dataset " + datasetId);
         }
         return filteredSpaces;
@@ -207,14 +208,14 @@ public class SpaceController {
         if(metadata.equals("") && members.size() == 0){
             throw new BadRequestException("Invalid identifiers");
         }
-        //TODO: will need more work when metadata contains more than just the name
+        //TODO: will need more work when metadata contains more than just the name. Move on to using ObjectMappers.
         if (!metadata.equals("")) {
             String name = JsonUtils.extractValueFromJsonString(SPACE_METADATA_NAME, metadata);
             if(name.equals("")){
                 throw new BadRequestException("Invalid identifier in metadata");
             }
             if(repository.getSpaceByName(name) == null) {
-                space.setMetadata(metadata);
+                space.setMetadata(new Metadata(name));
             } else {
                 throw new BadRequestException("New name of space already exists");
             }
