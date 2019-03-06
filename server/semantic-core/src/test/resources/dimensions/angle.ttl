@@ -1,0 +1,10 @@
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+dim:angle
+      a       def:Dimensionless ;
+      rdfs:label "Angle"@en ;
+      def:symbol "1" ;
+      def:utf_symbol "1" .

@@ -18,10 +18,14 @@
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>
-                edu.illinois.ncsa.incore.service,
+                edu.illinois.ncsa.incore.service.hazard.controllers,
                 io.swagger.jaxrs.listing,
                 org.codehaus.jackson.jaxrs
             </param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>org.glassfish.jersey.jackson.JacksonFeature;org.glassfish.jersey.media.multipart.MultiPartFeature</param-value>
         </init-param>
 
         <load-on-startup>1</load-on-startup>
@@ -30,4 +34,18 @@
         <servlet-name>hazard</servlet-name>
         <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Jersey2Config</servlet-name>
+        <servlet-class>io.swagger.jersey.config.JerseyJaxrsConfig</servlet-class>
+        <init-param>
+            <param-name>api.version</param-name>
+            <param-value>1.0.0</param-value>
+        </init-param>
+        <init-param>
+            <param-name>swagger.api.basepath</param-name>
+            <param-value>/hazard/api</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
 </web-app>

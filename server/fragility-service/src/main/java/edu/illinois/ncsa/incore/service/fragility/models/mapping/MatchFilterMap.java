@@ -1,17 +1,8 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
- *
- * Contributors:
- * Omar Elabd, Nathan Tolbert
- */
-
 /*******************************************************************************
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  *     Shawn Hampton, Jong Lee, Chris Navarro, Nathan Tolbert (NCSA) - initial API and implementation and/or initial documentation
@@ -32,61 +23,55 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * @author 
- *
- *        TODO add class documentation and license header
+ * @author TODO add class documentation and license header
  */
-public class MatchFilterMap implements UserFacing
-{
-	public final static String TAG_SELF = "match-filter-map"; //$NON-NLS-1$
+public class MatchFilterMap implements UserFacing {
+    public final static String TAG_SELF = "match-filter-map"; //$NON-NLS-1$
 
-	private List<PropertyMatch> matches = new LinkedList<>();
+    private List<PropertyMatch> matches = new LinkedList<>();
 
-	public MatchFilterMap()
-	{
-	}
+    public MatchFilterMap() {
+    }
 
-	public MatchFilterMap(Element element)
-	{
-		initializeFromElement(element);
-	}
+    public MatchFilterMap(List<PropertyMatch> matches) {
+	    this.matches = matches;
+    }
 
-	public List<PropertyMatch> getPropertyMatches()
-	{
-		return matches;
-	}
+    public MatchFilterMap(Element element) {
+        initializeFromElement(element);
+    }
 
-	public void addPropertyMatch(PropertyMatch match)
-	{
-		matches.add(match);
-	}
+    public List<PropertyMatch> getPropertyMatches() {
+        return matches;
+    }
 
-	public void addPropertyMatch(String key, MatchFilter matchFilter)
-	{
-		matches.add(new PropertyMatch(key, matchFilter));
-	}
+    public void addPropertyMatch(PropertyMatch match) {
+        matches.add(match);
+    }
 
-	public Element asElement()
-	{
-		Element element = new DefaultElement(TAG_SELF);
+    public void addPropertyMatch(String key, MatchFilter matchFilter) {
+        matches.add(new PropertyMatch(key, matchFilter));
+    }
 
-		for (PropertyMatch match : matches) {
-			element.add(match.asElement());
-		}
+    public Element asElement() {
+        Element element = new DefaultElement(TAG_SELF);
 
-		return element;
-	}
+        for (PropertyMatch match : matches) {
+            element.add(match.asElement());
+        }
 
-	public void initializeFromElement(Element element)
-	{
-		matches.clear();
+        return element;
+    }
 
-		Iterator<?> iterator = element.elementIterator(PropertyMatch.TAG_SELF);
+    public void initializeFromElement(Element element) {
+        matches.clear();
 
-		while (iterator.hasNext()) {
-			matches.add(new PropertyMatch((Element) iterator.next()));
-		}
-	}
+        Iterator<?> iterator = element.elementIterator(PropertyMatch.TAG_SELF);
+
+        while (iterator.hasNext()) {
+            matches.add(new PropertyMatch((Element) iterator.next()));
+        }
+    }
 
     public static MatchFilterMap loadMatchFilterMapFromUrl(String mappingUrl) throws DeserializationException {
         try {

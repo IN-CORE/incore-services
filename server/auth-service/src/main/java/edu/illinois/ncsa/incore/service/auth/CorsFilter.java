@@ -1,20 +1,18 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
- *
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  * Contributors:
  * Omar Elabd, Nathan Tolbert
- */
-
+ ********************************************************************************/
 package edu.illinois.ncsa.incore.service.auth;
 
-    import javax.ws.rs.container.ContainerRequestContext;
-    import javax.ws.rs.container.ContainerResponseContext;
-    import javax.ws.rs.container.ContainerResponseFilter;
-    import javax.ws.rs.core.MultivaluedMap;
-    import java.io.IOException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 
 public class CorsFilter implements ContainerResponseFilter {
     @Override
@@ -22,9 +20,8 @@ public class CorsFilter implements ContainerResponseFilter {
         MultivaluedMap<String, Object> headers = responseContext.getHeaders();
 
         headers.add("Access-Control-Allow-Origin", "*");
-        headers.add("Access-Control-Allow-Methods", "GET");
+        headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
 
-        headers.add("Access-Control-Allow-Headers", "Authorization, auth_user, auth_token");
-
+        headers.add("Access-Control-Allow-Headers", "Authorization, auth-user, auth-token,X-Credential-Username");
     }
 }

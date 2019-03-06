@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
@@ -21,7 +21,7 @@ public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        String mongodbUri = "mongodb://localhost:27017/maestrodb";
+        String mongodbUri = "mongodb://localhost:27017/maestrodb2";
 
         String mongodbUriProp = Config.getConfigProperties().getProperty("maestro.mongodbURI");
         if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {

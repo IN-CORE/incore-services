@@ -1,14 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
+import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
@@ -72,7 +73,7 @@ public abstract class BaseAttenuation {
         return epistemicVariance;
     }
 
-    public void readCoeffients(URL fileURL) {
+    public void readCoefficients(URL fileURL) {
         hazardOutputTypes = new LinkedList<String>();
         coefficients = new HashMap<String, List<Double>>();
 
@@ -253,7 +254,7 @@ public abstract class BaseAttenuation {
 
         // will get here if the ground motion types never match...
         if (closest == null) {
-            throw new Exception("Unsupported hazard");
+            throw new UnsupportedHazardException("Unsupported hazard "+hazardType);
         }
 
         return new SeismicHazardResult(getValue(closest, site), closest);
@@ -327,4 +328,32 @@ public abstract class BaseAttenuation {
     {
         return new String[] { "Global" };
     }
+
+    public boolean isRegionRequired()
+    {
+        return false;
+    }
+
+    public abstract boolean isFaultTypeRequired();
+
+    public abstract boolean isGeologyRequired();
+
+    public abstract boolean isDipAngleRequired();
+
+    public abstract boolean isAzimuthAngleRequired();
+
+    public abstract boolean isCoseismicRuptureDepthRequired();
+
+    public abstract boolean isShearWaveDepthRequired();
+
+    public abstract boolean isShearWaveDepth10Required();
+
+    public abstract boolean isRakeAngleRequired();
+
+    public abstract boolean isSeismogenicDepthRequired();
+
+    public abstract boolean isSoilMapRequired();
+
+    public abstract boolean isSoilTypeRequired();
+
 }

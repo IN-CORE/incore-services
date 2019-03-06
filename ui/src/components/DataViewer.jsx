@@ -1,12 +1,13 @@
 import React, {Component} from "react";
 import Table from "./Table";
 import Map from "./Map";
+import Notification from "../components/Notification";
 import {GridList, GridTile, SelectField, MenuItem, List,
 	ListItem, Divider, TextField, IconButton} from "material-ui";
 import ActionSearch from "material-ui/svg-icons/action/search";
 import csv from "csv";
 import config from "../app.config";
-import {getHeader} from "../actions";
+import {getHeader, readCredentials} from "../actions";
 
 String.prototype.capitalize = function() {
 	return this.charAt(0).toUpperCase() + this.slice(1);
@@ -22,7 +23,8 @@ class DataViewer extends Component {
 			selectedDatasetFormat: "",
 			fileData: "",
 			fileExtension: "",
-			space: ""
+			space: "",
+			authError: false,
 		};
 		this.changeDatasetType = this.changeDatasetType.bind(this);
 		this.onClickDataset = this.onClickDataset.bind(this);
@@ -33,7 +35,19 @@ class DataViewer extends Component {
 	}
 
 	componentWillMount() {
+		// parse the credential (query parameters in the url) and save auth to local storage
+		let { query } = this.props.location;
+		if (Object.keys(query).length > 0 ){
+			readCredentials(query);
+			this.props.router.push(window.location.pathname);
+		}
+
+		// fetch datasets
 		this.props.getAllDatasets();
+	}
+
+	componentWillReceiveProps(nextProps) {
+		this.setState({"authError": nextProps.authError});
 	}
 
 	changeDatasetType(event, index, value) {
@@ -64,52 +78,79 @@ class DataViewer extends Component {
 	}
 
 	async onClickFileDescriptor(selected_dataset_id, file_descriptor_id, file_name) {
-		const url = `${config.dataService}/files/${  file_descriptor_id  }/file`;
-		await fetch(url, {method: "GET", mode: "CORS", headers: getHeader()}).then((response) => {
-			return response.text();
-		}).then((text) => {
-			this.setState({fileData: text.split("\n"), fileExtension: file_name.split(".").slice(-1).pop()});
-		});
+		const url = `${config.dataServiceBase }data/api/files/${  file_descriptor_id  }/blob`;
 
+		let response = await fetch(url, {method: "GET", mode: "cors", headers: getHeader()});
+
+		if (response.ok) {
+			let text = await response.text();
+			this.setState({
+				fileData: text.split("\n"),
+				fileExtension: file_name.split(".").slice(-1).pop(),
+				authError: false,
+			});
+
+		}
+		else if (response.status === 403){
+			this.setState({
+				fileData: [],
+				fileExtension: null,
+				authError: true
+			});
+		}
+		else{
+			this.setState({
+				fileData: [],
+				fileExtension: null,
+				authError: false
+			});
+		}
 	}
 
 
 	render() {
+		let unique_types = [];
+		if (this.props.datasets.length > 0){
+			const dataset_all_types = this.props.datasets.map(dataset =>
+				dataset.dataType
+			);
+			unique_types = Array.from(new Set(dataset_all_types));
+		}
+
 		let dataset_types = "";
-		const dataset_all_types = this.props.datasets.map(dataset =>
-			dataset.type
-		);
-		const unique_types = Array.from(new Set(dataset_all_types));
 		if(unique_types.length > 0) {
 			const type_menu_items = unique_types.map((type, index) =>
 				<MenuItem value={index} primaryText={type} key={type}/>
 			);
 			dataset_types = (<SelectField fullWidth={true}
-			floatingLabelText="Dataset Type"
-			value={this.state.type}
-			onChange={this.changeDatasetType}
+										  floatingLabelText="Dataset Type"
+										  value={this.state.type}
+										  onChange={this.changeDatasetType}
 			>
 				{type_menu_items}
-				</SelectField>);
+			</SelectField>);
+		}
+
+		let unique_spaces = [];
+		if (this.props.datasets.length > 0){
+			const spaces = this.props.datasets.map(dataset => dataset.spaces);
+			unique_spaces = Array.from(new Set([].concat.apply([], spaces)));
 		}
 
 		let space_filter = "";
-		const spaces = this.props.datasets.map(dataset => dataset.spaces);
-		const unique_spaces = Array.from(new Set( [].concat.apply([], spaces)));
-
 		if(unique_spaces.length > 0){
 			const space_menu_items = unique_spaces.map((space, index) =>
 				<MenuItem value={index} primaryText={space} key={space}/>
 			);
 
 			space_filter = (<SelectField fullWidth={true}
-			                               floatingLabelText="Space"
-			                               value={this.state.space}
-			                               onChange={this.changeSpace}
-			>
-				{space_menu_items}
+										 floatingLabelText="Space"
+										 value={this.state.space}
+										 onChange={this.changeSpace}
+				>
+					{space_menu_items}
 				</SelectField>
-				);
+			);
 		}
 
 		let datasets_to_display = this.props.datasets;
@@ -124,13 +165,16 @@ class DataViewer extends Component {
 		}
 
 
-
-		const list_items = datasets_to_display.map(dataset =>
-			<div key={dataset.id}>
-				<ListItem onClick={() => this.onClickDataset(dataset.id)} key={dataset.id} primaryText={`${dataset.title  } - ${  dataset.creator.capitalize()}`}/>
-				<Divider/>
-			</div>
-		);
+		let list_items = "";
+		if (datasets_to_display.length > 0) {
+			list_items = datasets_to_display.map(dataset =>
+				<div key={dataset.id}>
+					<ListItem onClick={() => this.onClickDataset(dataset.id)} key={dataset.id}
+							  primaryText={`${dataset.title  } - ${  dataset.creator.capitalize()}`}/>
+					<Divider/>
+				</div>
+			);
+		}
 
 		const filtered_datasets = (<div>
 			<h2> Datasets </h2><List style={{"overflowY": "auto", height: "800px"}}>
@@ -148,7 +192,7 @@ class DataViewer extends Component {
 						<Divider/>
 					</div>
 
-			);
+				);
 		}
 		let file_contents = this.state.fileData;
 		if(this.state.fileExtension && this.state.fileData  && this.state.fileExtension === "csv") {
@@ -173,6 +217,7 @@ class DataViewer extends Component {
 
 		return (
 			<div style={{padding: "20px"}}>
+				<Notification show={this.state.authError}/>
 				<div style={{display:"flex"}}>
 					<h2>Data Viewer</h2>
 				</div>

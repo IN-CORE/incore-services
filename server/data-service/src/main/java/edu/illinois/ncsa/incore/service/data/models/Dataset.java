@@ -1,16 +1,13 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Chris Navarro (NCSA) - initial API and implementation
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
-
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.data.models;
 
 /**
@@ -18,29 +15,46 @@ package edu.illinois.ncsa.incore.service.data.models;
  * This is from NCSA's DataWolf
  */
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
+
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import edu.illinois.ncsa.incore.service.data.models.jackson.JsonDateSerializer;
-
-public class Dataset extends AbstractBean {
+@XmlRootElement
+public class Dataset {
     /**
      * Used for serialization of object
      */
     private static final long serialVersionUID = 1L;
 
     /**
+     * Unique identifier for this bean, used by persistence layer
+     */
+    @Id
+    @Property("_id")
+    private ObjectId id = new ObjectId();
+
+    /**
+     * Should the bean be assumed to be deleted and not be returned
+     */
+    private boolean deleted = false;
+
+    /**
      * Title of the artifact
      */
-    private String title = ""; //$NON-NLS-1$
+    private String title = "";
 
     /**
      * Description of the artifact
      */
-    private String description = ""; //$NON-NLS-1$
+    private String description = "";
 
     /**
      * Date the artifact is created
@@ -65,7 +79,7 @@ public class Dataset extends AbstractBean {
     /**
      * type of the artifact
      */
-    private String type = "";
+    private String dataType = "";
 
     /**
      * stored url of the artifact
@@ -75,17 +89,27 @@ public class Dataset extends AbstractBean {
     /**
      * format of the artifact
      */
-    private String format = "";  //$NON-NLS-1$
+    private String format = "";
 
     /**
      * source dataset of the artifact
      */
-    private String sourceDataset = "";  //$NON-NLS-1$
+    private String sourceDataset = "";
 
     /**
      * List of spaces to the artifact.
      */
     private List<String> spaces = null;
+
+    /**
+     * Bounding box array
+     */
+    private double[] boundingBox = null;
+
+    /**
+     * Privileges associated with this dataset
+     */
+    private Privileges privileges = new Privileges();
 
     public Dataset() {
     }
@@ -220,6 +244,7 @@ public class Dataset extends AbstractBean {
         return fileDescriptors;
     }
 
+
     /**
      * Set the set of file descriptors associated with the dataset.
      *
@@ -234,22 +259,36 @@ public class Dataset extends AbstractBean {
     }
 
     /**
+     * get bounding box information
+     * @return
+     */
+    public double[] getBoundingBox() { return boundingBox; }
+
+    /**
+     * set bounding box information
+     * @param boundingBox
+     */
+    public void setBoundingBox(double[] boundingBox) {
+        this.boundingBox = boundingBox;
+    }
+
+    /**
      * Return the string that is the type of the artifact
      *
      * @return type that represents the type of the artifact
      */
-    public String getType() {
-        return type;
+    public String getDataType() {
+        return dataType;
     }
 
     /**
      * Sets the string that represents the type of the artifact.
      *
-     * @param type sets the string that represents the type of the
-     *             artifact.
+     * @param dataType sets the string that represents the type of the
+     *                 artifact.
      */
-    public void setType(String type) {
-        this.type = type;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     /**
@@ -275,7 +314,7 @@ public class Dataset extends AbstractBean {
      * Sets the string that represents the type of the artifact.
      *
      * @param storedUrl sets the string that represents the stored url of the
-     *                      artifact.
+     *                  artifact.
      */
     public void setStoredUrl(String storedUrl) {
         this.storedUrl = storedUrl;
@@ -315,6 +354,9 @@ public class Dataset extends AbstractBean {
      * @return source dataset that represents the source dataset of the artifact
      */
     public List<String> getSpaces() {
+        if (spaces == null) {
+            spaces = new ArrayList<String>();
+        }
         return spaces;
     }
 
@@ -326,6 +368,15 @@ public class Dataset extends AbstractBean {
      */
     public void setSpaces(List<String> spaces) {
         this.spaces = spaces;
+    }
+
+    /**
+     * Remove the space from the set of spaces of the dataset.
+     *
+     * @param space the space to be removed.
+     */
+    public void removeSpace(String space) {
+        getSpaces().remove(space);
     }
 
     /**
@@ -350,5 +401,83 @@ public class Dataset extends AbstractBean {
 
     public String toString() {
         return title;
+    }
+
+    /**
+     * Return the id of the bean.
+     *
+     * @return id of the bean
+     */
+    public final String getId() {
+        return id.toString();
+    }
+
+    /**
+     * Sets the id of the bean. This has to be a unique id since it is used as
+     * the key in the database.
+     *
+     * @param id the id of the object.
+     */
+    public void setId(String id) {
+        this.id = new ObjectId(id);
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     *
+     * @return true if the bean is deleted, false otherwise.
+     */
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     *
+     * @param deleted true if the bean is deleted, false otherwise.
+     */
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+
+    public Privileges getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Privileges privileges) {
+        this.privileges = privileges;
+    }
+
+    /**
+     * Compares two objects with each other. If the object is an AbstractBean it
+     * will compare id's, otherwise it will return false.
+     *
+     * @param obj the object that should be compared to this AbstractBean
+     * @return true if the two beans are the same (i.e. the id's are the same),
+     * false otherwise.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AbstractBean) {
+            return ((AbstractBean) obj).getId().equals(getId());
+        }
+        return false;
+    }
+
+    /**
+     * Returns the hashcode of this object, which is the hashcode of the id.
+     *
+     * @return hashcode based on the id of the bean.
+     */
+    @Override
+    public int hashCode() {
+        if (getId() != null) {
+            return getId().hashCode();
+        } else {
+            return super.hashCode();
+        }
     }
 }

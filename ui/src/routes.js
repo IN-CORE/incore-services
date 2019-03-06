@@ -7,6 +7,7 @@ import ExecuteAnalysis from "./containers/ExecuteAnalysis";
 import ResultsPage from "./containers/ResultsPage";
 import DataViewer from "./containers/DataViewer";
 import FragilityExplorerPage from "./components/FragilityExplorerPage";
+import HazardViewer from "./containers/HazardViewer";
 
 import config from "./app.config";
 
@@ -18,5 +19,7 @@ export default (
 		<Route path="DataViewer" component={DataViewer} />
 		<Route path="FragilityViewer" component={FragilityExplorerPage} />
 		<Route path="FragilityViewer/:id" component={FragilityExplorerPage} />
+		<Route path="HazardViewer" component={HazardViewer} />
 	</Route>
 );
+

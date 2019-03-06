@@ -1,28 +1,27 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Omar Elabd, Nathan Tolbert
- */
-
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.fragility.models;
 
+import edu.illinois.ncsa.incore.common.auth.Privileges;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.ArrayList;
 import java.util.List;
 
-@XmlRootElement
+@Entity("FragilitySet")
 public class FragilitySet {
     @Id
-    @Property("_id")
-    private String id;
+    private ObjectId id;
 
     @XmlTransient
     private String legacyId;
@@ -41,6 +40,8 @@ public class FragilitySet {
     private String inventoryType;
 
     private List<FragilityCurve> fragilityCurves;
+    private Privileges privileges;
+    private String creator;
 
     public FragilitySet() { }
 
@@ -62,7 +63,11 @@ public class FragilitySet {
 
     // region Getters
     public String getId() {
-        return id;
+        if (id == null) {
+            return null;
+        } else {
+            return id.toHexString();
+        }
     }
 
     public String getLegacyId() {
@@ -107,6 +112,22 @@ public class FragilitySet {
 
     public List<FragilityCurve> getFragilityCurves() {
         return fragilityCurves;
+    }
+
+    public Privileges getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Privileges privileges) {
+        this.privileges = privileges;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getCreator() {
+        return creator;
     }
     // endregion
 }

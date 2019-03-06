@@ -1,17 +1,8 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
- *
- * Contributors:
- * Omar Elabd, Nathan Tolbert
- */
-
 /*******************************************************************************
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  *     Shawn Hampton, Jong Lee, Chris Navarro, Nathan Tolbert (NCSA) - initial API and implementation and/or initial documentation
@@ -53,6 +44,13 @@ public class PropertyMatch implements UserFacing {
     public PropertyMatch(String key, MatchFilter matchFilter) {
         super();
         this.key = key;
+        this.matchFilter = matchFilter;
+    }
+
+    public PropertyMatch(Map<String, String> map, MatchFilter matchFilter) {
+        super();
+        this.key = null;
+        this.map = map;
         this.matchFilter = matchFilter;
     }
 

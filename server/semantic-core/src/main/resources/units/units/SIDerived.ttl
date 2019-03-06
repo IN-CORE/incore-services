@@ -1,0 +1,894 @@
+@prefix unit:    <http://incore.ncsa.illinois.edu/semantic/elements/units/> .
+@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix prefix:  <http://incore.ncsa.illinois.edu/semantic/elements/prefixes/> .
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+
+unit:ohm
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "ohm"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:electrical_resistance ;
+      def:plural "ohms"@en ;
+      def:symbol "ohms" ;
+      def:unit_system "SI" ;
+      def:utf_plural "ohms"@en ;
+      def:utf_symbol "ω" .
+
+unit:tesla
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "tesla"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:magnetic_flux_density ;
+      def:plural "teslas"@en ;
+      def:symbol "T" ;
+      def:unit_system "SI" ;
+      def:utf_plural "teslas"@en ;
+      def:utf_symbol "T" .
+
+unit:metre_per_quartic_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "metre per quartic second"@en ;
+      def:dimension_type dim:jounce ;
+      def:left_operand unit:metre ;
+      def:plural "metres per quartic second"@en ;
+      def:right_operand unit:quartic_second ;
+      def:symbol "m/s^4" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres per quartic second"@en ;
+      def:utf_symbol "m/s⁴" .
+
+unit:pascal
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "pascal"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:pressure ;
+      def:plural "pascals"@en ;
+      def:symbol "Pa" ;
+      def:unit_system "SI" ;
+      def:utf_plural "pascals"@en ;
+      def:utf_symbol "Pa" .
+
+unit:farad
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "farad"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:capacitance ;
+      def:plural "fards"@en ;
+      def:symbol "F" ;
+      def:unit_system "SI" ;
+      def:utf_plural "fards"@en ;
+      def:utf_symbol "F" .
+
+unit:radian_per_square_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "radian per square second"@en ;
+      def:dimension_type dim:angular_acceleration ;
+      def:left_operand unit:radian ;
+      def:plural "radians per square second"@en ;
+      def:right_operand unit:square_second ;
+      def:symbol "rad/s^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "radians per square second"@en ;
+      def:utf_symbol "rad/s²" .
+
+unit:newton
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "newton"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:force ;
+      def:plural "newtons"@en ;
+      def:symbol "N" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newtons"@en ;
+      def:utf_symbol "N" .
+
+unit:watt_per_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "watt per metre"@en ;
+      def:dimension_type dim:spectral_power ;
+      def:left_operand unit:watt ;
+      def:plural "watts per metre"@en ;
+      def:right_operand unit:metre ;
+      def:symbol "W/m" ;
+      def:unit_system "SI" ;
+      def:utf_plural "watts per metre"@en ;
+      def:utf_symbol "W/m" .
+
+unit:weber_metre
+      a       def:ProductDerivedUnit ;
+      rdfs:label "weber metre"@en ;
+      def:dimension_type dim:magnetic_moment ;
+      def:left_operand unit:weber ;
+      def:plural "weber metres"@en ;
+      def:right_operand unit:metre ;
+      def:symbol "Wb m" ;
+      def:unit_system "SI" ;
+      def:utf_plural "weber metres"@en ;
+      def:utf_symbol "Wb⋅m" .
+
+unit:coulomb
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "coulomb"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:electric_charge ;
+      def:plural "coulombs"@en ;
+      def:symbol "C" ;
+      def:unit_system "SI" ;
+      def:utf_plural "coulombs"@en ;
+      def:utf_symbol "C" .
+
+unit:newton_per_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "newton per second"@en ;
+      def:dimension_type dim:yank ;
+      def:left_operand unit:newton ;
+      def:plural "newtons per second"@en ;
+      def:right_operand unit:second ;
+      def:symbol "N/s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newtons per second"@en ;
+      def:utf_symbol "N/s" .
+
+unit:kelvin_joule_per_kilogram
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "kelvin joule per kilogram"@en ;
+      def:dimension_type dim:heat_capacity ;
+      def:left_operand unit:joule_per_kelvin ;
+      def:plural "kelvin joules per kilogram"@en ;
+      def:right_operand unit:kilogram ;
+      def:symbol "K J/kg" ;
+      def:unit_system "SI" ;
+      def:utf_plural "kelvin joules per kilogram"@en ;
+      def:utf_symbol "K⋅J/kg" .
+
+unit:katal
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "katal"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:catalytic_activity ;
+      def:plural "katals"@en ;
+      def:symbol "kat" ;
+      def:unit_system "SI" ;
+      def:utf_plural "katals"@en ;
+      def:utf_symbol "kat" .
+
+unit:newton_per_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "newton per metre"@en ;
+      def:dimension_type dim:stiffness ;
+      def:left_operand unit:newton ;
+      def:plural "newtons per metre"@en ;
+      def:right_operand unit:metre ;
+      def:symbol "N/m" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newtons per metre"@en ;
+      def:utf_symbol "N/m" .
+
+unit:joule_per_mole
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "joule per mole"@en ;
+      def:dimension_type dim:molar_energy ;
+      def:left_operand unit:joule ;
+      def:plural "joules per mole"@en ;
+      def:right_operand unit:mole ;
+      def:symbol "J/mol" ;
+      def:unit_system "SI" ;
+      def:utf_plural "joules per mole"@en ;
+      def:utf_symbol "J/mol" .
+
+unit:watt_per_steradian
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "watt per steradian"@en ;
+      def:dimension_type dim:radiant_intensity ;
+      def:left_operand unit:watt ;
+      def:plural "watts per steradian"@en ;
+      def:right_operand unit:steradian ;
+      def:symbol "W/sr" ;
+      def:unit_system "SI" ;
+      def:utf_plural "watts per steradian"@en ;
+      def:utf_symbol "W/sr" .
+
+unit:cubic_second
+      a       def:PowerDerivedUnit ;
+      rdfs:label "cubic second"@en ;
+      def:dimension_type dim: ;
+      def:operand unit:second ;
+      def:plural "seconds cubed"@en ;
+      def:power "3"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "s^3" ;
+      def:unit_system "SI" ;
+      def:utf_plural "seconds cubed"@en ;
+      def:utf_symbol "s³" .
+
+unit:cubic_metre
+      a       def:PowerDerivedUnit ;
+      rdfs:label "cubic metre"@en ;
+      def:dimension_type dim:volume ;
+      def:operand unit:metre ;
+      def:plural "metres cubed"@en ;
+      def:power "3"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "m^3" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres cubed"@en ;
+      def:utf_symbol "m³" .
+
+unit:hertz_per_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "hertz per second"@en ;
+      def:dimension_type dim:frequency_drift ;
+      def:left_operand unit:hertz ;
+      def:plural "hertz per second"@en ;
+      def:right_operand unit:second ;
+      def:symbol "Hz/s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "hertz per second"@en ;
+      def:utf_symbol "Hz/s" .
+
+unit:newton_second
+      a       def:ProductDerivedUnit ;
+      rdfs:label "newton second"@en ;
+      def:dimension_type dim:momentum ;
+      def:left_operand unit:newton ;
+      def:plural "newton seconds"@en ;
+      def:right_operand unit:second ;
+      def:symbol "N s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newton seconds"@en ;
+      def:utf_symbol "N⋅s" .
+
+unit:radian_ampere
+      a       def:ProductDerivedUnit ;
+      rdfs:label "radian ampere"@en ;
+      def:dimension_type dim:magnetomotive_force ;
+      def:left_operand unit:ampere ;
+      def:plural "radian amperes"@en ;
+      def:right_operand unit:radian ;
+      def:symbol "rad A" ;
+      def:unit_system "SI" ;
+      def:utf_plural "radian amperes"@en ;
+      def:utf_symbol "rad⋅A" .
+
+unit:square_metre_kilogram
+      a       def:ProductDerivedUnit ;
+      rdfs:label "square metre kilogram"@en ;
+      def:dimension_type dim:moment_of_inertia ;
+      def:left_operand unit:kilogram ;
+      def:plural "square metre kilograms"@en ;
+      def:right_operand unit:square_metre ;
+      def:symbol "m^2 kg" ;
+      def:unit_system "SI" ;
+      def:utf_plural "square metre kilograms"@en ;
+      def:utf_symbol "m²⋅kg" .
+
+unit:lumen_per_watt
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "lumen per watt"@en ;
+      def:dimension_type dim:luminous_efficacy ;
+      def:left_operand unit:lumen ;
+      def:plural "lumens per watt"@en ;
+      def:right_operand unit:watt ;
+      def:symbol "lm/W" ;
+      def:unit_system "SI" ;
+      def:utf_plural "lumens per watt"@en ;
+      def:utf_symbol "lm/W" .
+
+unit:cubic_metre_per_mole
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "cubic metre per mole"@en ;
+      def:dimension_type dim:molar_volume ;
+      def:left_operand unit:cubic_metre ;
+      def:plural "metres cubed per mole"@en ;
+      def:right_operand unit:mole ;
+      def:symbol "m^3/mol" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres cubed per mole"@en ;
+      def:utf_symbol "m³/mol" .
+
+unit:pascal_second
+      a       def:ProductDerivedUnit ;
+      rdfs:label "pascal second"@en ;
+      def:dimension_type dim:dynamic_viscosity ;
+      def:left_operand unit:pascal ;
+      def:plural "pascal seconds"@en ;
+      def:right_operand unit:second ;
+      def:symbol "Pa s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "pascal seconds"@en ;
+      def:utf_symbol "Pa⋅s" .
+
+unit:steradian
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "steradian"@en ;
+      def:applicable_prefixes
+              () ;
+      def:dimension_type dim:solid_angle ;
+      def:plural "steradians"@en ;
+      def:symbol "sr" ;
+      def:unit_system "SI" ;
+      def:utf_plural "steradians"@en ;
+      def:utf_symbol "sr" .
+
+unit:radian
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "radian"@en ;
+      def:applicable_prefixes
+              (prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:angle ;
+      def:plural "radians"@en ;
+      def:symbol "rad" ;
+      def:unit_system "SI" ;
+      def:utf_plural "radians"@en ;
+      def:utf_symbol "rad" .
+
+unit:joule_second
+      a       def:ProductDerivedUnit ;
+      rdfs:label "joule second"@en ;
+      def:dimension_type dim:action ;
+      def:left_operand unit:joule ;
+      def:plural "joule seconds"@en ;
+      def:right_operand unit:second ;
+      def:symbol "J s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "joule seconds"@en ;
+      def:utf_symbol "J⋅s" .
+
+unit:joule
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "joule"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:energy ;
+      def:plural "joules"@en ;
+      def:symbol "J" ;
+      def:unit_system "SI" ;
+      def:utf_plural "joules"@en ;
+      def:utf_symbol "J" .
+
+unit:newton_metre
+      a       def:ProductDerivedUnit ;
+      rdfs:label "newton metre"@en ;
+      def:dimension_type dim:torque ;
+      def:left_operand unit:newton ;
+      def:plural "newton metres"@en ;
+      def:right_operand unit:metre ;
+      def:symbol "N m" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newton metres"@en ;
+      def:utf_symbol "N⋅m" .
+
+unit:kilogram_per_square_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "kilogram per square metre"@en ;
+      def:dimension_type dim:area_density ;
+      def:left_operand unit:kilogram ;
+      def:plural "kilograms per square metre"@en ;
+      def:right_operand unit:square_metre ;
+      def:symbol "kg/m^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "kilograms per square metre"@en ;
+      def:utf_symbol "kg/m²" .
+
+unit:metre_per_cubic_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "metre per cubic second"@en ;
+      def:dimension_type dim:jerk ;
+      def:left_operand unit:metre ;
+      def:plural "metres per cubic second"@en ;
+      def:right_operand unit:cubic_second ;
+      def:symbol "m/s^3" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres per cubic second"@en ;
+      def:utf_symbol "m/s³" .
+
+unit:reciprocal_kelvin
+      a       def:ReciprocalDerivedUnit ;
+      rdfs:label "reciprocal kelvin"@en ;
+      def:dimension_type dim: ;
+      def:operand unit:kelvin ;
+      def:plural "reciprocal kelvin"@en ;
+      def:power "-1"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "K^-1" ;
+      def:unit_system "SI" ;
+      def:utf_plural "reciprocal kelvin"@en ;
+      def:utf_symbol "K⁻¹" .
+
+unit:mole_second
+      a       def:ProductDerivedUnit ;
+      rdfs:label "mole second"@en ;
+      def:dimension_type dim: ;
+      def:left_operand unit:mole ;
+      def:plural "mole seconds"@en ;
+      def:right_operand unit:second ;
+      def:symbol "mol s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "mole seconds"@en ;
+      def:utf_symbol "mol⋅s" .
+
+unit:mole_per_cubic_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "mole per cubic metre"@en ;
+      def:dimension_type dim:molarity ;
+      def:left_operand unit:mole ;
+      def:plural "moles per cubic metre"@en ;
+      def:right_operand unit:cubic_metre ;
+      def:symbol "mol/m^3" ;
+      def:unit_system "SI" ;
+      def:utf_plural "moles per cubic metre"@en ;
+      def:utf_symbol "mol/m³" .
+
+unit:joule_per_kelvin
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "joule per kelvin"@en ;
+      def:dimension_type dim:entropy ;
+      def:left_operand unit:joule ;
+      def:plural "joules per kelvin"@en ;
+      def:right_operand unit:kelvin ;
+      def:symbol "J/K" ;
+      def:unit_system "SI" ;
+      def:utf_plural "joules per kelvin"@en ;
+      def:utf_symbol "J/K" .
+
+unit:cubic_metre_per_kilogram
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "cubic metre per kilogram"@en ;
+      def:dimension_type dim:specific_volume ;
+      def:left_operand unit:cubic_metre ;
+      def:plural "metres cubed per kilogram"@en ;
+      def:right_operand unit:kilogram ;
+      def:symbol "m^3/kg" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres cubed per kilogram"@en ;
+      def:utf_symbol "m³/kg" .
+
+unit:siemens
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "siemens"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:electrical_conductance ;
+      def:plural "siemens"@en ;
+      def:symbol "S" ;
+      def:unit_system "SI" ;
+      def:utf_plural "siemens"@en ;
+      def:utf_symbol "S" .
+
+unit:mole_joule_per_kelvin
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "mole joule per kelvin"@en ;
+      def:dimension_type dim:molar_entropy ;
+      def:left_operand unit:joule_per_kelvin ;
+      def:plural "mole joules per kelvin"@en ;
+      def:right_operand unit:mole ;
+      def:symbol "mol J/K" ;
+      def:unit_system "SI" ;
+      def:utf_plural "mole joules per kelvin"@en ;
+      def:utf_symbol "mol⋅J/K" .
+
+unit:metre_tesla
+      a       def:ProductDerivedUnit ;
+      rdfs:label "metre tesla"@en ;
+      def:dimension_type dim:magnetic_rigidity ;
+      def:left_operand unit:tesla ;
+      def:plural "metre teslas"@en ;
+      def:right_operand unit:metre ;
+      def:symbol "m T" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metre teslas"@en ;
+      def:utf_symbol "m⋅T" .
+
+unit:watt_steradian_per_cubic_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "watt steradian per cubic metre"@en ;
+      def:dimension_type dim:spectral_radiance ;
+      def:left_operand unit:watt_per_steradian ;
+      def:plural "watt steradians per cubic metre"@en ;
+      def:right_operand unit:cubic_metre ;
+      def:symbol "W sr/m^3" ;
+      def:unit_system "SI" ;
+      def:utf_plural "watt steradians per cubic metre"@en ;
+      def:utf_symbol "W⋅sr/m³" .
+
+unit:radian_per_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "radian per second"@en ;
+      def:dimension_type dim:angular_velocity ;
+      def:left_operand unit:radian ;
+      def:plural "radians per second"@en ;
+      def:right_operand unit:second ;
+      def:symbol "rad/s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "radians per second"@en ;
+      def:utf_symbol "rad/s" .
+
+unit:joule_per_cubic_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "joule per cubic metre"@en ;
+      def:dimension_type dim:energy_density ;
+      def:left_operand unit:joule ;
+      def:plural "joules per cubic metre"@en ;
+      def:right_operand unit:cubic_metre ;
+      def:symbol "J/m^3" ;
+      def:unit_system "SI" ;
+      def:utf_plural "joules per cubic metre"@en ;
+      def:utf_symbol "J/m³" .
+
+unit:reciprocal_second
+      a       def:ReciprocalDerivedUnit ;
+      rdfs:label "reciprocal second"@en ;
+      def:dimension_type dim: ;
+      def:operand unit:second ;
+      def:plural "reciprocal seconds"@en ;
+      def:power "-1"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "s^-1" ;
+      def:unit_system "SI" ;
+      def:utf_plural "reciprocal seconds"@en ;
+      def:utf_symbol "s⁻¹" .
+
+unit:weber
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "weber"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:magnetic_flux ;
+      def:plural "webers"@en ;
+      def:symbol "Wb" ;
+      def:unit_system "SI" ;
+      def:utf_plural "webers"@en ;
+      def:utf_symbol "Wb" .
+
+unit:joule_per_kilogram
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "joule per kilogram"@en ;
+      def:dimension_type dim:specific_energy ;
+      def:left_operand unit:joule ;
+      def:plural "joules per kilogram"@en ;
+      def:right_operand unit:kilogram ;
+      def:symbol "J/kg" ;
+      def:unit_system "SI" ;
+      def:utf_plural "joules per kilogram"@en ;
+      def:utf_symbol "J/kg" .
+
+unit:watt_steradian_per_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "watt steradian per metre"@en ;
+      def:dimension_type dim:spectral_intensity ;
+      def:left_operand unit:watt_per_steradian ;
+      def:plural "watt steradians per metre"@en ;
+      def:right_operand unit:metre ;
+      def:symbol "W sr/m" ;
+      def:unit_system "SI" ;
+      def:utf_plural "watt steradians per metre"@en ;
+      def:utf_symbol "W⋅sr/m" .
+
+unit:quartic_second
+      a       def:PowerDerivedUnit ;
+      rdfs:label "quartic second"@en ;
+      def:dimension_type dim: ;
+      def:operand unit:second ;
+      def:plural "seconds to the power 4"@en ;
+      def:power "4"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "s^4" ;
+      def:unit_system "SI" ;
+      def:utf_plural "seconds to the power 4"@en ;
+      def:utf_symbol "s⁴" .
+
+unit:reciprocal_pascal
+      a       def:ReciprocalDerivedUnit ;
+      rdfs:label "reciprocal pascal"@en ;
+      def:dimension_type dim:compressibility ;
+      def:operand unit:pascal ;
+      def:plural "reciprocal pascals"@en ;
+      def:power "-1"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "Pa^-1" ;
+      def:unit_system "SI" ;
+      def:utf_plural "reciprocal pascals"@en ;
+      def:utf_symbol "Pa⁻¹" .
+
+unit:cubic_metre_per_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "cubic metre per second"@en ;
+      def:dimension_type dim:volumetric_flow ;
+      def:left_operand unit:cubic_metre ;
+      def:plural "metres cubed per second"@en ;
+      def:right_operand unit:second ;
+      def:symbol "m^3/s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres cubed per second"@en ;
+      def:utf_symbol "m³/s" .
+
+unit:joule_per_square_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "joule per square metre"@en ;
+      def:dimension_type dim:radiant_exposure ;
+      def:left_operand unit:joule ;
+      def:plural "joules per square metre"@en ;
+      def:right_operand unit:square_metre ;
+      def:symbol "J/m^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "joules per square metre"@en ;
+      def:utf_symbol "J/m²" .
+
+unit:metre_per_square_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "metre per square second"@en ;
+      def:dimension_type dim:acceleration ;
+      def:left_operand unit:metre ;
+      def:plural "metres per square second"@en ;
+      def:right_operand unit:square_second ;
+      def:symbol "m/s^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres per square second"@en ;
+      def:utf_symbol "m/s²" .
+
+unit:reciprocal_metre
+      a       def:ReciprocalDerivedUnit ;
+      rdfs:label "reciprocal metre"@en ;
+      def:dimension_type dim: ;
+      def:operand unit:metre ;
+      def:plural "reciprocal metres"@en ;
+      def:power "-1"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "m^-1" ;
+      def:unit_system "SI" ;
+      def:utf_plural "reciprocal metres"@en ;
+      def:utf_symbol "m⁻¹" .
+
+unit:sievert
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "sievert"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:dose_equivalent ;
+      def:plural "sieverts"@en ;
+      def:symbol "Sv" ;
+      def:unit_system "SI" ;
+      def:utf_plural "sieverts"@en ;
+      def:utf_symbol "Sv" .
+
+unit:watt_steradian_per_square_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "watt steradian per square metre"@en ;
+      def:dimension_type dim:radiance ;
+      def:left_operand unit:watt_per_steradian ;
+      def:plural "watt steradians per square metre"@en ;
+      def:right_operand unit:square_metre ;
+      def:symbol "W sr/m^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "watt steradians per square metre"@en ;
+      def:utf_symbol "W⋅sr/m²" .
+
+unit:hertz
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "hertz"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:frequency ;
+      def:plural "hertz"@en ;
+      def:symbol "Hz" ;
+      def:unit_system "SI" ;
+      def:utf_plural "hertz"@en ;
+      def:utf_symbol "Hz" .
+
+unit:watt
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "watt"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:power ;
+      def:plural "watts"@en ;
+      def:symbol "W" ;
+      def:unit_system "SI" ;
+      def:utf_plural "watts"@en ;
+      def:utf_symbol "W" .
+
+unit:lux
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "lux"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:illuminance ;
+      def:plural "lux"@en ;
+      def:symbol "lx" ;
+      def:unit_system "SI" ;
+      def:utf_plural "lux"@en ;
+      def:utf_symbol "lx" .
+
+unit:reciprocal_henry
+      a       def:ReciprocalDerivedUnit ;
+      rdfs:label "reciprocal henry"@en ;
+      def:dimension_type dim:magnetic_reluctance ;
+      def:operand unit:henry ;
+      def:plural "reciprocal henries"@en ;
+      def:power "-1"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "H^-1" ;
+      def:unit_system "SI" ;
+      def:utf_plural "reciprocal henries"@en ;
+      def:utf_symbol "H⁻¹" .
+
+unit:lumen
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "lumen"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:luminous_flux ;
+      def:plural "lumens"@en ;
+      def:symbol "lm" ;
+      def:unit_system "SI" ;
+      def:utf_plural "lumens"@en ;
+      def:utf_symbol "lm" .
+
+unit:volt
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "volt"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:electric_potential ;
+      def:plural "volts"@en ;
+      def:symbol "V" ;
+      def:unit_system "SI" ;
+      def:utf_plural "volts"@en ;
+      def:utf_symbol "V" .
+
+unit:kilogram_per_cubic_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "kilogram per cubic metre"@en ;
+      def:dimension_type dim:density ;
+      def:left_operand unit:kilogram ;
+      def:plural "kilograms per cubic metre"@en ;
+      def:right_operand unit:cubic_metre ;
+      def:symbol "kg/m^3" ;
+      def:unit_system "SI" ;
+      def:utf_plural "kilograms per cubic metre"@en ;
+      def:utf_symbol "kg/m³" .
+
+unit:weber_per_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "weber per metre"@en ;
+      def:dimension_type dim:magnetic_vector_potential ;
+      def:left_operand unit:weber ;
+      def:plural "webers per metre"@en ;
+      def:right_operand unit:metre ;
+      def:symbol "Wb/m" ;
+      def:unit_system "SI" ;
+      def:utf_plural "webers per metre"@en ;
+      def:utf_symbol "Wb/m" .
+
+unit:metre_per_henry
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "metre per henry"@en ;
+      def:dimension_type dim:magnetic_susceptibility ;
+      def:left_operand unit:metre ;
+      def:plural "metres per henry"@en ;
+      def:right_operand unit:henry ;
+      def:symbol "m/H" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres per henry"@en ;
+      def:utf_symbol "m/H" .
+
+unit:square_metre
+      a       def:PowerDerivedUnit ;
+      rdfs:label "square metre"@en ;
+      def:dimension_type dim:area ;
+      def:operand unit:metre ;
+      def:plural "metres squared"@en ;
+      def:power "2"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "m^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres squared"@en ;
+      def:utf_symbol "m²" .
+
+unit:newton_metre_second_per_kilogram
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "newton metre second per kilogram"@en ;
+      def:dimension_type dim:specific_angular_momentum ;
+      def:left_operand unit:newton_metre_second ;
+      def:plural "newton metre seconds per kilogram"@en ;
+      def:right_operand unit:kilogram ;
+      def:symbol "N m s/kg" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newton metre seconds per kilogram"@en ;
+      def:utf_symbol "N⋅m⋅s/kg" .
+
+unit:cubic_metre_second_per_mole
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "cubic metre second per mole"@en ;
+      def:dimension_type dim:catalytic_efficiency ;
+      def:left_operand unit:cubic_metre ;
+      def:plural "cubic metre seconds per mole"@en ;
+      def:right_operand unit:mole_second ;
+      def:symbol "m^3 s/mol" ;
+      def:unit_system "SI" ;
+      def:utf_plural "cubic metre seconds per mole"@en ;
+      def:utf_symbol "m³⋅s/mol" .
+
+unit:watt_per_square_metre
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "watt per square metre"@en ;
+      def:dimension_type dim:irradiance ;
+      def:left_operand unit:watt ;
+      def:plural "watts per square metre"@en ;
+      def:right_operand unit:square_metre ;
+      def:symbol "W/m^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "watts per square metre"@en ;
+      def:utf_symbol "W/m²" .
+
+unit:metre_per_second
+      a       def:DivisionDerivedUnit ;
+      rdfs:label "metre per second"@en ;
+      def:dimension_type dim:velocity ;
+      def:left_operand unit:metre ;
+      def:plural "metres per second"@en ;
+      def:right_operand unit:second ;
+      def:symbol "m/s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "metres per second"@en ;
+      def:utf_symbol "m/s" .
+
+unit:gray
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "gray"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:absorbed_dose ;
+      def:plural "grays"@en ;
+      def:symbol "Gy" ;
+      def:unit_system "SI" ;
+      def:utf_plural "grays"@en ;
+      def:utf_symbol "Gy" .
+
+unit:becquerel
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "becquerel"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:radioactivity ;
+      def:plural "becquerel"@en ;
+      def:symbol "Bq" ;
+      def:unit_system "SI" ;
+      def:utf_plural "becquerel"@en ;
+      def:utf_symbol "Bq" .
+
+unit:newton_metre_second
+      a       def:ProductDerivedUnit ;
+      rdfs:label "newton metre second"@en ;
+      def:dimension_type dim:angular_momentum ;
+      def:left_operand unit:newton_metre ;
+      def:plural "newton metre seconds"@en ;
+      def:right_operand unit:second ;
+      def:symbol "N m s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newton metre seconds"@en ;
+      def:utf_symbol "N⋅m⋅s" .
+
+unit:henry
+      a       def:CoherentDerivedUnit ;
+      rdfs:label "henry"@en ;
+      def:applicable_prefixes
+              (prefix:yotta prefix:zetta prefix:exa prefix:peta prefix:tera prefix:giga prefix:mega prefix:kilo prefix:hecto prefix:deka prefix:yocto prefix:zepto prefix:atto prefix:femto prefix:pico prefix:nano prefix:micro prefix:milli prefix:centi prefix:deci) ;
+      def:dimension_type dim:inductance ;
+      def:plural "henries"@en ;
+      def:symbol "H" ;
+      def:unit_system "SI" ;
+      def:utf_plural "henries"@en ;
+      def:utf_symbol "H" .
+
+unit:square_second
+      a       def:PowerDerivedUnit ;
+      rdfs:label "square second"@en ;
+      def:dimension_type dim: ;
+      def:operand unit:second ;
+      def:plural "seconds squared"@en ;
+      def:power "2"^^<http://www.w3.org/2001/XMLSchema#int> ;
+      def:symbol "s^2" ;
+      def:unit_system "SI" ;
+      def:utf_plural "seconds squared"@en ;
+      def:utf_symbol "s²" .

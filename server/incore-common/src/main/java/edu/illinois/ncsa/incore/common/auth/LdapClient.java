@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Nathan Tolbert (NCSA) - initial API and implementation
@@ -17,10 +17,7 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -33,6 +30,8 @@ public class LdapClient {
     public static String ldapUri = Config.getConfigProperties().getProperty("auth.ldap.url");
     public static String userDn = Config.getConfigProperties().getProperty("auth.ldap.userDn");
 
+    public Map<String,Set<String>> userGroupCache = new HashMap<>();
+
     private DirContext getContext() throws NamingException {
 
         Hashtable env = new Hashtable();
@@ -43,6 +42,10 @@ public class LdapClient {
     }
 
     public Set<String> getUserGroups(String user) {
+
+        if (userGroupCache.containsKey(user)) {
+            return userGroupCache.get(user);
+        }
 
         Set<String> result = new HashSet<>();
         try {
@@ -74,6 +77,7 @@ public class LdapClient {
         } catch (NamingException e) {
             log.error("Could not find groups for user " + user, e);
         }
+        userGroupCache.put(user, result);
         return result;
     }
 

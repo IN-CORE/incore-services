@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -34,11 +40,7 @@ public class AtkinsonBoore1995Test {
         ruptureParameters.setSrcLatitude(latitude);
         ruptureParameters.setSrcLongitude(longitude);
 
-        String modelId = "AtkinsonBoore1995";
-        String fileName = modelId + ".csv";
-        URL coefficientURL = this.getClass().getResource("/hazard/earthquake/coefficients/" + fileName);
         attenuation = new AtkinsonBoore1995();
-        attenuation.readCoeffients(coefficientURL);
         attenuation.setRuptureParameters(ruptureParameters);
     }
 

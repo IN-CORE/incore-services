@@ -1,0 +1,19 @@
+[Unit]
+Description= kong service
+After=syslog.target network.target
+ 
+ 
+[Service]
+User=root
+Group=root
+Type=forking
+LimitAS=infinity
+LimitRSS=infinity
+LimitCORE=infinity
+LimitNOFILE=4096
+ExecStart=/usr/local/bin/kong start -c /vagrant/server/kong/kong.conf
+ExecReload=/usr/local/bin/kong reload -c /vagrant/server/kong/kong.conf
+ExecStop=/usr/local/bin/kong stop -c /vagrant/server/kong/kong.conf
+ 
+[Install]
+WantedBy=multi-user.target

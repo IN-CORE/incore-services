@@ -1,6 +1,7 @@
 import React from "react";
 import GroupList from "../components/GroupList";
 import LineChart from "../components/LineChart";
+import Notification from "../components/Notification";
 import ThreeDimensionalPlot from "../components/ThreeDimensionalPlot";
 import "whatwg-fetch";
 
@@ -27,7 +28,7 @@ import chartConfig from "../components/config/ChartConfig";
 import config from "../app.config";
 import DistributionTable from "./DistributionTable";
 import CustomExpressionTable from "./CustomExpressionTable";
-import {getHeader} from "../actions";
+import { getHeader, readCredentials } from "../actions";
 
 class FragilityExplorerPage extends React.Component {
 	constructor(props) {
@@ -42,7 +43,8 @@ class FragilityExplorerPage extends React.Component {
 			data: [],
 			chartConfig: chartConfig.FragilityConfig,
 			plotData3d: [],
-			is3dPlot: false
+			is3dPlot: false,
+			authError: false,
 		};
 
 		this.clickFragility = this.clickFragility.bind(this);
@@ -55,6 +57,15 @@ class FragilityExplorerPage extends React.Component {
 		this.searchFragilities = this.searchFragilities.bind(this);
 
 		this.exportJson = this.exportJson.bind(this);
+	}
+
+	async componentWillMount(){
+		// parse the credential (query parameters in the url) and save auth to local storage
+		let { query } = this.props.location;
+		if (Object.keys(query).length > 0 ){
+			readCredentials(query);
+			this.props.router.push(window.location.pathname);
+		}
 	}
 
 	async componentDidMount() {
@@ -79,12 +90,23 @@ class FragilityExplorerPage extends React.Component {
 			}
 
 			this.setState({
-				data: fragilities
+				data: fragilities,
+				authError: false
 			});
-		} else {
+		}
+		else if (response.status === 403){
+			// if get 403 forbidden error, means token missing or expired
 			this.setState({
 				fragility: null,
-				data: []
+				data: [],
+				authError: true,
+			});
+		}
+		else {
+			this.setState({
+				fragility: null,
+				data: [],
+				authError: false
 			});
 		}
 	}
@@ -137,13 +159,23 @@ class FragilityExplorerPage extends React.Component {
 			} else {
 				this.setState({
 					data: [],
-					fragility: null
+					fragility: null,
+					authError: false
 				});
 			}
-		} else {
+		} else if (response.status === 403){
+			// if get 403 forbidden error, means token missing or expired
 			this.setState({
+				fragility: null,
 				data: [],
-				fragility: null
+				authError: true,
+			});
+		}
+		else {
+			this.setState({
+				fragility: null,
+				data: [],
+				authError: false
 			});
 		}
 	}
@@ -154,11 +186,11 @@ class FragilityExplorerPage extends React.Component {
 		let url = "";
 
 		if (this.state.selectedInventory !== null && this.state.selectedHazard !== null) {
-			url = `${host}/query?inventory=${this.state.selectedInventory}&hazard=${this.state.selectedHazard}`;
+			url = `${host}?inventory=${this.state.selectedInventory}&hazard=${this.state.selectedHazard}`;
 		} else if (this.state.selectedInventory !== null) {
-			url = `${host}/query?inventory=${this.state.selectedInventory}`;
+			url = `${host}?inventory=${this.state.selectedInventory}`;
 		} else if (this.state.selectedHazard !== null) {
-			url = `${host}/query?hazard=${this.state.selectedHazard}`;
+			url = `${host}?hazard=${this.state.selectedHazard}`;
 		} else {
 			url = `${host}`;
 		}
@@ -192,6 +224,7 @@ class FragilityExplorerPage extends React.Component {
 	render() {
 		return (
 			<div style={{padding: "20px"}}>
+				<Notification show={this.state.authError}/>
 				<div style={{display: "flex"}}>
 					<h2>Fragility Function Viewer</h2>
 					<div style={{marginLeft: "auto"}}>

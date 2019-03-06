@@ -1,0 +1,26 @@
+apply plugin: 'java'
+apply plugin: 'war'
+
+repositories {
+    mavenCentral()
+}
+
+gretty {
+    contextPath '/semantic/'
+}
+
+dependencies {
+    compile group: 'javax.ws.rs', name: 'javax.ws.rs-api', version: '2.0.1'
+
+    compile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: '2.25.1'
+    compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet', version: '2.25.1'
+    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25.1'
+
+    compile group: 'org.apache.jena', name: 'jena-core', version: '3.1.1'
+
+    compile project(':semantic-core')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.2'
+}

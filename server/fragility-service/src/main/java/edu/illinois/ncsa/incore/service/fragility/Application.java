@@ -1,8 +1,8 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Omar Elabd, Nathan Tolbert
@@ -10,17 +10,18 @@
 
 package edu.illinois.ncsa.incore.service.fragility;
 
+import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
+import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBFragilityDAO;
-import ncsa.tools.common.exceptions.DeserializationException;
+import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBMappingDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-
-import java.net.URL;
 
 public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
@@ -29,33 +30,27 @@ public class Application extends ResourceConfig {
         String mongodbUri = "mongodb://localhost:27017/fragilitydb";
 
         String mongodbUriProp = Config.getConfigProperties().getProperty("fragility.mongodbURI");
-        if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
+        if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
 
-        IFragilityDAO mongoRepository =new MongoDBFragilityDAO(new MongoClientURI(mongodbUri));
-        mongoRepository.initialize();
+        // use same instance of mongo client
+        MongoClientURI mongoClientUri = new MongoClientURI(mongodbUri);
+        IFragilityDAO fragilityDAO = new MongoDBFragilityDAO(mongoClientUri);
+        fragilityDAO.initialize();
+        IMappingDAO mappingDAO = new MongoDBMappingDAO(mongoClientUri);
+        mappingDAO.initialize();
 
-        MatchFilterMap loadedMappings = null;
 
-        try {
-            URL mappingUrl = this.getClass().getClassLoader().getResource("mappings/buildings.xml");
-            loadedMappings = MatchFilterMap.loadMatchFilterMapFromUrl(mappingUrl);
-        } catch (DeserializationException ex) {
-            log.error("Could not load match filter map", ex);
-        }
 
-        MatchFilterMap matchFilterMap = loadedMappings;
+        IAuthorizer authorizer = Authorizer.getInstance();
 
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                super.bind(mongoRepository).to(IFragilityDAO.class);
-                if (matchFilterMap != null) {
-                    super.bind(matchFilterMap).to(MatchFilterMap.class);
-                } else {
-                    log.error("Could not set null match filter map");
-                }
+                super.bind(fragilityDAO).to(IFragilityDAO.class);
+                super.bind(mappingDAO).to(IMappingDAO.class);
+                super.bind(authorizer).to(IAuthorizer.class);
             }
         });
 

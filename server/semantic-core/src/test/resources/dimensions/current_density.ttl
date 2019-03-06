@@ -1,0 +1,10 @@
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+dim:current_density
+      a       def:DerivedDimension ;
+      rdfs:label "Current density"@en ;
+      def:symbol "L^-2 I" ;
+      def:utf_symbol "L⁻²⋅I" .

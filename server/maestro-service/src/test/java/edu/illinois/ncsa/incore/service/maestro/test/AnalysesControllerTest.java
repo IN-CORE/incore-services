@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
@@ -25,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.net.URL;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,6 +37,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
 
     @Override
     public ResourceConfig configure() {
+        forceSet(TestProperties.CONTAINER_PORT, "0");
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
@@ -47,25 +49,105 @@ class AnalysesControllerTest extends CustomJerseyTest{
     @Test
     public void testListAnalysis() {
 
-       String output = target("/analyses").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+       String output = target("/analyses").queryParam("full", "true").request().accept(MediaType.APPLICATION_JSON).get(String.class);
        JSONArray parsedObject = new JSONArray(output);
 
        assertEquals(4, parsedObject.length());
        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
 
        assertNotEquals(0, firstObject.get("datasets").toString().length());
-        assertNotEquals(0, firstObject.get("parameters").toString().length());
+       assertNotEquals(0, firstObject.get("parameters").toString().length());
        assertNotEquals(0, firstObject.get("outputs").toString().length());
+
+       output = target("/analyses").queryParam("full", "false").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+       parsedObject = new JSONArray(output);
+
+       assertEquals(4, parsedObject.length());
+       firstObject = new JSONObject(parsedObject.get(0).toString());
+        assertFalse(firstObject.has("datasets"));
+        assertFalse(firstObject.has("parameters"));
+        assertFalse(firstObject.has("outputs"));
+
     }
 
     @Test
-    public void testListAnalysisMetadata() {
-
-        String output = target("/analyses/metadata").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+    public void testListAnalysis2(){
+        String output = target("/analyses").queryParam("full", "true")
+            .queryParam("category", "hazard").request().accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
-        assertEquals(4, parsedObject.length());
+        assertEquals(1, parsedObject.length());
+        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
+
+        assertNotEquals(0, firstObject.get("datasets").toString().length());
+        assertNotEquals(0, firstObject.get("parameters").toString().length());
+        assertNotEquals(0, firstObject.get("outputs").toString().length());
+
+        output = target("/analyses").queryParam("full", "false")
+            .queryParam("category", "Building").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        parsedObject = new JSONArray(output);
+
+        assertEquals(2, parsedObject.length());
+        firstObject = new JSONObject(parsedObject.get(0).toString());
+
+        assertFalse(firstObject.has("datasets"));
+        assertFalse(firstObject.has("parameters"));
+        assertFalse(firstObject.has("outputs"));
+
     }
+
+    @Test
+    public void testListAnalysis3(){
+        String output = target("/analyses").queryParam("full", "true")
+            .queryParam("name", "Electric Power Network Damage, Tornado")
+            .request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        JSONArray parsedObject = new JSONArray(output);
+
+        assertEquals(1, parsedObject.length());
+        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
+
+        assertNotEquals(0, firstObject.get("datasets").toString().length());
+        assertNotEquals(0, firstObject.get("parameters").toString().length());
+        assertNotEquals(0, firstObject.get("outputs").toString().length());
+
+        output = target("/analyses").queryParam("full", "false")
+            .queryParam("name", "Electric Power Network Damage, Tornado")
+            .request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        parsedObject = new JSONArray(output);
+
+        assertEquals(1, parsedObject.length());
+        firstObject = new JSONObject(parsedObject.get(0).toString());
+
+        assertFalse(firstObject.has("datasets"));
+        assertFalse(firstObject.has("parameters"));
+        assertFalse(firstObject.has("outputs"));
+    }
+
+    @Test
+    public void testListAnalysis4(){
+        String output = target("/analyses").queryParam("full", "true")
+            .queryParam("category", "Building")
+            .queryParam("name", "Electric Power Network Damage, Tornado")
+            .request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        JSONArray parsedObject = new JSONArray(output);
+
+        assertEquals(0, parsedObject.length());
+
+
+        output = target("/analyses").queryParam("full", "false")
+            .queryParam("category", "Building")
+            .queryParam("name", "Building Structural Damage")
+            .request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        parsedObject = new JSONArray(output);
+
+        assertEquals(1, parsedObject.length());
+        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
+
+        assertFalse(firstObject.has("datasets"));
+        assertFalse(firstObject.has("parameters"));
+        assertFalse(firstObject.has("outputs"));
+    }
+
 
     @Test
     public void testGetAnalysisById() {

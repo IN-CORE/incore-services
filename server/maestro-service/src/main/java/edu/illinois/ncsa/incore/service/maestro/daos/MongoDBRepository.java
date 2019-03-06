@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
@@ -12,12 +12,15 @@ package edu.illinois.ncsa.incore.service.maestro.daos;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
+import edu.illinois.ncsa.incore.service.maestro.models.AnalysisMetadata;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MongoDBRepository implements IRepository {
@@ -55,6 +58,19 @@ public class MongoDBRepository implements IRepository {
     public List<Analysis> getAllAnalyses(){
         this.loadServices();
         return this.analyses;
+    }
+
+    @Override
+    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit){
+        Query<Analysis> query = this.dataStore.createQuery(Analysis.class);
+
+        for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
+            query.filter(queryEntry.getKey(), queryEntry.getValue());
+        }
+
+        List <Analysis> analyses = query.offset(offset).limit(limit).asList();
+
+        return analyses;
     }
 
     @Override

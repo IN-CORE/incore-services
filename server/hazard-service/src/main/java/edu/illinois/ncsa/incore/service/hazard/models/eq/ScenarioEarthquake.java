@@ -1,14 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
@@ -27,13 +28,19 @@ public class ScenarioEarthquake {
     // Earthquake parameters (e.g. epicenter location, depth, etc
     private EqParameters eqParameters;
 
+    private EqVisualization visualizationParameters;
+
     // ID of the site class dataset
     private String siteClassDataset;
+
+    private Privileges privileges;
 
     // Default site class
     private String defaultSiteClass;
 
     private String siteAmplification;
+
+    private String rasterDatasetId;
 
     public ScenarioEarthquake() {
         defaultSiteClass = NEHRPSoilType.D;
@@ -63,4 +70,30 @@ public class ScenarioEarthquake {
     public String getSiteAmplification() {
         return siteAmplification;
     }
+
+    public String getRasterDatasetId() {
+        return rasterDatasetId;
+    }
+
+    public void setRasterDatasetId(String rasterDatasetId) {
+        this.rasterDatasetId = rasterDatasetId;
+    }
+
+    public EqVisualization getVisualizationParameters() {
+        return visualizationParameters;
+    }
+
+    public void setVisualizationParameters(EqVisualization visualizationParameters) {
+        this.visualizationParameters = visualizationParameters;
+    }
+    public Privileges getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Privileges privileges) {
+        this.privileges = privileges;
+    }
+
+
+
 }

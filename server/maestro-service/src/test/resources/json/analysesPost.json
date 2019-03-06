@@ -1,7 +1,7 @@
 {
   "id": "59dfd0c12b156c0bebe9d6ef",
   "description": "Computes the structural damage for a building.",
-  "name": "Building Structural Damage",
+  "name": "Building Non-Structural Damage",
   "url": "edu.illinois.ncsa.ergo.eq.buildings.BuildingDamageAnalysis",
   "category": "Building",
   "helpContext": "edu.illinois.ncsa.ergo.eq.ui.building_damage",
@@ -67,13 +67,5 @@
       "type": "buildingDamagev4",
       "description": null
     }
-  ],
-  "metadata": {
-    "id": "59dfd0c12b156c0bebe9d6ef",
-    "description": "Computes the structural damage for a building.",
-    "name": "Building Structural Damage",
-    "url": "edu.illinois.ncsa.ergo.eq.buildings.BuildingDamageAnalysis",
-    "category": "Building",
-    "helpContext": "edu.illinois.ncsa.ergo.eq.ui.building_damage"
-  }
+  ]
 }

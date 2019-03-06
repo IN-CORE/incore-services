@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Indira Gutierrez (NCSA) - initial API and implementation
@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class MockRepository implements IRepository {
     private Datastore mockDataStore;
@@ -71,5 +73,27 @@ public class MockRepository implements IRepository {
         return this.analyses.get(this.analyses.size() - 1);
     }
 
+    @Override
+    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit){
+        List<Analysis> analyses = this.analyses;
+        List<Analysis> output = new ArrayList<>();
+        for(int i =0; i < analyses.size(); i++){
+            boolean include = true;
+            Set<String> keys = queryMap.keySet();
+            for(int j = 0; j < keys.size(); j++) {
+                if(keys.contains("name") && !analyses.get(i).getName().equals(queryMap.get("name"))) {
+                    include = false;
+                }
+                if(keys.contains("category") && !analyses.get(i).getCategory().equals(queryMap.get("category"))) {
+                    include = false;
+                }
+            }
+            if(include) {
+                output.add(analyses.get(i));
+            }
+        }
+
+        return output;
+    }
 
 }

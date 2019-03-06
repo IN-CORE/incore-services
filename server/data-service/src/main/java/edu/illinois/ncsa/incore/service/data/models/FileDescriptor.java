@@ -1,15 +1,13 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Chris Navarro (NCSA) - initial API and implementation
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.data.models;
 
@@ -18,18 +16,102 @@ package edu.illinois.ncsa.incore.service.data.models;
  * This is from NCSA's DataWolf
  */
 
-import java.math.BigInteger;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.illinois.ncsa.incore.service.data.models.AbstractBean;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
 
-public class FileDescriptor extends AbstractBean {
+import javax.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
+
+@XmlRootElement
+public class FileDescriptor {
     /**
      * Used for serialization of object
      */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Unique identifier for this bean, used by persistence layer
+     */
+    @Id
+    @Property("_id")
+    private ObjectId id = new ObjectId();
+
+    /**
+     * Should the bean be assumed to be deleted and not be returned
+     */
+    private boolean deleted = false;
+
+    /**
+     * Return the id of the bean.
+     *
+     * @return id of the bean
+     */
+    public final String getId() {
+        return id.toString();
+    }
+
+    /**
+     * Sets the id of the bean. This has to be a unique id since it is used as
+     * the key in the database.
+     *
+     * @param id the id of the object.
+     */
+    public void setId(String id) {
+        this.id = new ObjectId(id);
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     *
+     * @return true if the bean is deleted, false otherwise.
+     */
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     *
+     * @param deleted true if the bean is deleted, false otherwise.
+     */
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    /**
+     * Compares two objects with each other. If the object is an AbstractBean it
+     * will compare id's, otherwise it will return false.
+     *
+     * @param obj the object that should be compared to this AbstractBean
+     * @return true if the two beans are the same (i.e. the id's are the same),
+     * false otherwise.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AbstractBean) {
+            return ((AbstractBean) obj).getId().equals(getId());
+        }
+        return false;
+    }
+
+    /**
+     * Returns the hashcode of this object, which is the hashcode of the id.
+     *
+     * @return hashcode based on the id of the bean.
+     */
+    @Override
+    public int hashCode() {
+        if (getId()!= null) {
+            return getId().hashCode();
+        } else {
+            return super.hashCode();
+        }
+    }
     /**
      * Original filename
      */
@@ -38,7 +120,7 @@ public class FileDescriptor extends AbstractBean {
     /**
      * Mime type of the dataset data
      */
-    private String mimeType = "";  //$NON-NLS-1$
+    private String mimeType = "";
 
     /**
      * size of the blob associated

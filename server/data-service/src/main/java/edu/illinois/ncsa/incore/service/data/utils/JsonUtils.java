@@ -1,15 +1,12 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
-
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -17,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -31,10 +29,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by ywkim on 9/27/2017.
@@ -44,7 +42,7 @@ public class JsonUtils {
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
+        String combinedId = typeId + "/" + datasetId + "/converted/";
         String outJson = "";
         String fileName = "";
         try{
@@ -68,7 +66,7 @@ public class JsonUtils {
         String outJson = "";
         String fileName = "";
         try{
-            String tempDir = Files.createTempDirectory("repo_download_").toString();    //$NON-NLS-1$
+            String tempDir = Files.createTempDirectory("repo_download_").toString();
             HttpDownloader.downloadFile(datasetUrl + datasetId + "." + FileUtils.EXTENSION_META, tempDir);
             fileName = tempDir + File.separator + datasetId + "." + FileUtils.EXTENSION_META;
             if (fileName.length() > 0) {
@@ -77,7 +75,7 @@ public class JsonUtils {
             }
         }catch (IOException e) {
             e.printStackTrace();
-//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
+//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
         return outJson;
     }
@@ -85,7 +83,7 @@ public class JsonUtils {
     // create geoJson from the shapefile url
     public static String getGeoJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
-        String combinedId = typeId + "/" + datasetId + "/converted/";   //$NON-NLS-1$
+        String combinedId = typeId + "/" + datasetId + "/converted/";
         String outJson = "";
         String fileName = "";
         try{
@@ -96,7 +94,7 @@ public class JsonUtils {
             }
         }catch (IOException e) {
             e.printStackTrace();
-//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";   //$NON-NLS-1$
+//            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
         return outJson;
     }
@@ -115,13 +113,72 @@ public class JsonUtils {
         return true;
     }
 
+    public static boolean isDatasetParameterValid(String inJson) {
+        Field[] allFields = Dataset.class.getDeclaredFields();
+        List<String> datasetParams = Arrays.stream(allFields).map(Field::getName).collect(Collectors.toList());
+
+        Object json = null;
+        Set<String> jsonKeys = null;
+        try {
+            json = new JSONObject(inJson);
+            jsonKeys = ((JSONObject) json).keySet();
+        } catch (JSONException ex) {
+            try {
+                json = new JSONArray(inJson);
+                jsonKeys = ((JSONObject) json).keySet();
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
+
+
+//        Field[] allFields = Dataset.class.getDeclaredFields();
+//        for (Field field: allFields) {
+//            datasetParams.add(field.getName().toString());
+//        }
+//
+//        Object json = null;
+//        Set<String> keys = null;
+//        try {
+//            json = new JSONObject(inJson);
+//            keys = ((JSONObject) json).keySet();
+//        } catch (JSONException ex) {
+//            try {
+//                json = new JSONArray(inJson);
+//                keys = ((JSONObject) json).keySet();
+//            } catch (JSONException ex1) {
+//                return false;
+//            }
+//        }
+//        for (String key: keys) {
+//            inJsonKeys.add(key);
+//        }
+//
+//        // check if the json key is in the dataset parameters
+//        for (String key: inJsonKeys) {
+//            int matchingCounter = 0;
+//            for (String param: datasetParams) {
+//                if (key.equals(param)) {
+//                    matchingCounter += 1;
+//                    break;
+//                }
+//            }
+//            if (matchingCounter == 0) {
+//                isValid = false;
+//            }
+//        }
+//
+//        return isValid;
+    }
+
     public static String extractValueFromJsonString(String inId, String inJson) {
         JSONObject jsonObj = new JSONObject(inJson);
         if (jsonObj.has(inId)) {
             Object output = jsonObj.get(inId);
             return output.toString();
         } else {
-            return "";  //$NON-NLS-1$
+            return "";
         }
     }
 
@@ -140,6 +197,14 @@ public class JsonUtils {
             }
         } else {
             return outList;
+        }
+    }
+
+    public static HashMap<String, Object> extractMapFromJsonString(String inJson){
+        try {
+            return new ObjectMapper().readValue(inJson, HashMap.class);
+        } catch (IOException e){
+            return null;
         }
     }
 
@@ -180,22 +245,22 @@ public class JsonUtils {
         List<String> resHref = FileUtils.getDirectoryContent(FileUtils.REPO_PROP_URL, "");
 
         for (String typeUrl: resHref) {
-            String fileDirUrl = FileUtils.REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";    //$NON-NLS-1$
+            String fileDirUrl = FileUtils.REPO_DS_URL + typeUrl + "/" + datasetId + "/converted/";
             List<String> fileHref = FileUtils.getDirectoryContent(fileDirUrl, "");
             if (fileHref.size() > 1) {
                 for (String fileNameInDir : fileHref) {
                     String fileExtStr = FilenameUtils.getExtension(fileNameInDir);
                     String fileName = FilenameUtils.getName(fileNameInDir);
-                    String outJson = "";    //$NON-NLS-1$
+                    String outJson = "";
                     try {
                         if (fileExtStr.equals(FileUtils.EXTENSION_SHP)) {
-                            String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
                             String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_SHP, FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatDatasetAsGeoJson(dataset);
                             return outJson;
                         } else if (fileExtStr.equals(FileUtils.EXTENSION_CSV)) {
-                            String combinedId = typeUrl + "/" + datasetId + "/converted/";  //$NON-NLS-1$
+                            String combinedId = typeUrl + "/" + datasetId + "/converted/";
                             String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_CSV, FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatCsvAsJson(dataset, datasetId);
@@ -203,12 +268,12 @@ public class JsonUtils {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                        return "";  //$NON-NLS-1$
+                        return "";
                     }
                 }
             }
 
         }
-        return "";  //$NON-NLS-1$
+        return "";
     }
 }

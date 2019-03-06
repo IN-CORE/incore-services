@@ -1,0 +1,17 @@
+@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix unit:    <http://incore.ncsa.illinois.edu/semantic/elements/units/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+unit:newton_metre_second
+      a       def:ProductDerivedUnit ;
+      rdfs:label "newton metre second"@en ;
+      def:dimension_type dim:angular_momentum ;
+      def:left_operand unit:newton_metre ;
+      def:plural "newton metre seconds"@en ;
+      def:right_operand unit:second ;
+      def:symbol "N m s" ;
+      def:unit_system "SI" ;
+      def:utf_plural "newton metre seconds"@en ;
+      def:utf_symbol "N⋅m⋅s" .

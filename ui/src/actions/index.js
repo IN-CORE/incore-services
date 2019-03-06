@@ -1,7 +1,8 @@
 // @flow
 
-import type {Dispatch, AnalysesMetadata, Analysis, Dataset, GetState} from "../utils.flowtype";
+import type {Dispatch, AnalysesMetadata, Analysis, Dataset, GetState, Hazard} from "../utils.flowtype";
 import config from "../app.config";
+import type {Hazards} from "../utils/flowtype";
 
 export const GET_ANALYSES = "GET_ANALYSES";
 
@@ -29,19 +30,29 @@ export function receiveAnalysis(api: string, json:Analysis) {
 }
 
 export const RECEIVE_DATASETS = "RECEIVE_DATASETS";
-
-export function receiveDatasets(json: Dataset) {
+export function receiveDatasets(type: string, json: Dataset) {
 	return(dispatch: Dispatch) => {
 		dispatch({
-			type: RECEIVE_DATASETS,
+			type: type,
 			datasets: json,
-			receivedAt: Date.now()
+			receivedAt: Date.now(),
+		});
+	};
+}
+
+export const RECEIVE_HAZARDS = "RECEIVE_HAZARDS";
+export function receiveHazards(type:string, json:Hazards){
+	return(dispatch: Dispatch) =>{
+		dispatch({
+			type: type,
+			hazards: json,
+			recievedAt: Date.now(),
 		});
 	};
 }
 
 export function fetchAnalyses() {
-	const endpoint = `${config.maestroService  }/api/analyses/metadata`;
+	const endpoint = `${ config.maestroService }/api/analyses?full=false`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, {
@@ -56,7 +67,7 @@ export function fetchAnalyses() {
 
 export function getAnalysisById(id: String) {
 	//TODO: Move to a configuration file
-	const endpoint = `${config.maestroService  }/api/analyses/${  id}`;
+	const endpoint = `${ config.maestroService }/api/analyses/${ id }`;
 
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, {
@@ -72,17 +83,46 @@ export function getAnalysisById(id: String) {
 
 export function fetchDatasets() {
 	const endpoint = config.dataService;
-
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint, {
-			headers: getHeader()
-		})
-			.then(response => response.json())
-			.then(json =>
-				dispatch(receiveDatasets(json))
-			);
+		return fetch(endpoint, { mode:"cors", headers: getHeader() })
+			.then(response =>
+				Promise.all([response.status, response.json()])
+			)
+			.then(([status, json]) =>{
+				if (status === 200 ){
+					dispatch(receiveDatasets(RECEIVE_DATASETS, json));
+				}
+				else if (status === 403){
+					dispatch(receiveDatasets(LOGIN_ERROR, {}));
+				}
+				else{
+					dispatch(receiveDatasets(RECEIVE_DATASETS, {}));
+				}
+			});
 	};
 }
+
+export function fetchHazards(hazard_type:string){
+	const endpoint = `${config.hazardServiceBase}${hazard_type}/`;
+	return (dispatch: Dispatch) => {
+		return fetch(endpoint, { mode:"cors", headers: getHeader() })
+			.then(response =>
+				Promise.all([response.status, response.json()])
+			)
+			.then(([status, json]) =>{
+				if (status === 200 ){
+					dispatch(receiveHazards(RECEIVE_HAZARDS, json));
+				}
+				else if (status === 403){
+					dispatch(receiveHazards(LOGIN_ERROR, {}));
+				}
+				else{
+					dispatch(receiveHazards(RECEIVE_HAZARDS, {}));
+				}
+			});
+	};
+}
+
 
 export async function loginHelper(username, password) {
 	const endpoint = config.authService;
@@ -90,7 +130,7 @@ export async function loginHelper(username, password) {
 	const userRequest =  await fetch(endpoint, {
 		method: "GET",
 		headers: {
-			"Authorization": `LDAP ${window.btoa(`${username }:${ password}`)}`
+			"Authorization": `LDAP ${ window.btoa(`${username }:${ password}`) }`
 		}
 	});
 
@@ -102,9 +142,7 @@ export async function loginHelper(username, password) {
 export const LOGIN_ERROR = "LOGIN_ERROR";
 export const SET_USER = "SET_USER";
 export function login(username, password) {
-
 	return async(dispatch: Dispatch) => {
-
 		const json = await loginHelper(username, password);
 		if(typeof(Storage) !== "undefined" && json["auth-token"] !== undefined ) {
 			sessionStorage.setItem("auth", json["auth-token"]);
@@ -121,6 +159,25 @@ export function login(username, password) {
 		}
 
 	};
+}
+
+export function readCredentials(tokens){
+	// if there's token passed in, reset the sessionStorage to save that token
+	if(typeof(Storage) !== "undefined" && tokens["auth-token"] !== undefined && tokens["user"] !== undefined) {
+		sessionStorage.setItem("auth", tokens["auth-token"]);
+		sessionStorage.setItem("user", tokens["user"]);
+	}
+
+	// if not token passed in, as well as no token in the session storage
+	else if (sessionStorage.length === 0) {
+		sessionStorage.setItem("auth", "");
+		sessionStorage.setItem("user", "");
+		console.log("Fail to read credentials from url, and set it to empty string.getting the credentials from sessionStorage instead.");
+	}
+
+	else{
+		console.log("Fail to read credentials from url, and getting the credentials from sessionStorage instead.");
+	}
 }
 
 export const LOGOUT = "LOGOUT";
@@ -155,7 +212,7 @@ export function receiveDatawolfResponse(json) {
 }
 
 async function getOutputDatasetHelper(executionId: String) {
-	const datawolfUrl = `${config.dataWolf  }executions/${executionId}`;
+	const datawolfUrl = `${ config.dataWolf }executions/${ executionId }`;
 	const headers = getDatawolfHeader();
 	const datawolf_execution_fetch = await fetch(datawolfUrl, {
 		method: "GET",
@@ -165,7 +222,7 @@ async function getOutputDatasetHelper(executionId: String) {
 	const datawolfExecution  = await datawolf_execution_fetch.json();
 
 	const output_dataset_id =datawolfExecution.datasets["7774de32-481f-48dd-8223-d9cdf16eaec1"];
-	const endpoint = `${config.dataService   }/${output_dataset_id}` ;
+	const endpoint = `${ config.dataService }/${ output_dataset_id }` ;
 	const output_dataset = await fetch(endpoint, {
 		headers: getHeader()
 	});
@@ -173,7 +230,7 @@ async function getOutputDatasetHelper(executionId: String) {
 	const outputDataset = await output_dataset.json();
 	const fileId = outputDataset.fileDescriptors[0].id;
 
-	const fileDownloadUrl = `${config.dataService }/files/${  fileId  }/file`;
+	const fileDownloadUrl = `${ config.dataServiceBase }data/api/files/${ fileId }/blob`;
 	const fileBlob = await fetch(fileDownloadUrl, {method: "GET", mode: "CORS", headers: getHeader()});
 
 	const fileText = await fileBlob.text();
@@ -196,7 +253,7 @@ export function getOutputDataset(executionId: String) {
 }
 
 export async function executeDatawolfWorkflowHelper(workflowid, creatorid, title, description, parameters, datasets) {
-	const datawolfUrl = `${config.dataWolf  }executions`;
+	const datawolfUrl = `${ config.dataWolf }executions`;
 	const dataToSubmit = {
 		"title": title,
 		"parameters": parameters,
@@ -236,7 +293,7 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 
 export function getHeader() {
 	const headers = new Headers({
-		"Authorization": `LDAP ${  sessionStorage.auth}`,
+		"Authorization": `LDAP ${ sessionStorage.auth }`,
 		"auth-user": sessionStorage.user,
 		"auth-token": sessionStorage.auth
 	});

@@ -1,14 +1,12 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Chris Navarro (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.data.models;
 
@@ -28,17 +26,17 @@ public class Person extends AbstractBean {
     /**
      * First Name of the person.
      */
-    private String firstName = ""; //$NON-NLS-1$
+    private String firstName = "";
 
     /**
      * First Name of the person.
      */
-    private String lastName = ""; //$NON-NLS-1$
+    private String lastName = "";
 
     /**
      * email of the person.
      */
-    private String email = ""; //$NON-NLS-1$
+    private String email = "";
 
     /**
      * Creates a person given first name, last name and email. This will result
