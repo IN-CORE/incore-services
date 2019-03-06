@@ -205,4 +205,9 @@ public class MockRepository implements IRepository {
         return null;
     }
 
+    @Override
+    public Space deleteSpace(String id){
+        return null;
+    }
+
 }
