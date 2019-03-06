@@ -11,6 +11,9 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import mocks.MockApplication;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.internal.MultiPartWriter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
 import org.json.JSONArray;
@@ -18,8 +21,13 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,15 +52,46 @@ class SpaceControllerTest extends CustomJerseyTest{
         String output = target("/spaces").request().header("X-Credential-Username", "test").accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
-        assertEquals(4, parsedObject.length());
-
-        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
-        assertNotNull(firstObject.get("id").toString());
-        assertNotNull(firstObject.get("metadata").toString());
-        assertNotEquals(223, firstObject.get("members").toString().length());
+        for(int i = 0; i < parsedObject.length(); i++){
+            JSONObject space = new JSONObject(parsedObject.get(i).toString());
+            assertNotNull(space.get("id").toString());
+            assertNotNull(space.get("metadata").toString());
+            assertNotEquals(223, space.get("members").toString().length());
+        }
     }
 
+    @Test
+    public void testIngestSpace() throws IOException {
+        URL jsonURL = this.getClass().getClassLoader().getResource("json/spacePost.json");
+        InputStream inputStream = jsonURL.openStream();
+        String jsontext = IOUtils.toString(inputStream);
+        final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("space", jsontext);
 
+        Response response = target("/spaces").register(MultiPartWriter.class).request().header("X-Credential-Username", "testers").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
 
+        String output = response.readEntity(String.class);
+        JSONObject parsedObject = new JSONObject(output);
+
+        assertNotNull(parsedObject.get("id").toString());
+        assertNotNull(parsedObject.get("metadata").toString());
+    }
+
+    @Test
+    public void testGrantPrivileges()throws IOException {
+        String id = "5a25853ebeefaa1a583212b7";
+
+        URL jsonURL = this.getClass().getClassLoader().getResource("json/privileges.json");
+        InputStream inputStream = jsonURL.openStream();
+        String jsontext = IOUtils.toString(inputStream);
+        final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("grant", jsontext);
+
+        Response response = target("/spaces/" + id + "/grant").register(MultiPartWriter.class).request().header("X-Credential-Username", "test").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+
+        String output = response.readEntity(String.class);
+        JSONObject parsedObject = new JSONObject(output);
+
+        assertNotNull(parsedObject.get("id").toString());
+        assertNotNull(parsedObject.get("privileges").toString());
+    }
 
 }
