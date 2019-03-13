@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.data.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.data.models.spaces.Metadata;
 import org.bson.types.ObjectId;
@@ -35,25 +36,29 @@ public class Space {
     @JsonProperty("metadata")
     private Metadata metadata;
 
-    private Privileges privileges = new Privileges();
+    private Privileges privileges;
 
-    private List<String> members = null;
+    private List<String> members;
 
     public Space(){
         this.metadata = new Metadata("");
         this.members = new ArrayList<>();
+        this.privileges  = new Privileges();
     }
 
     public Space(String name){
         this.metadata = new Metadata(name);
         this.members = new ArrayList<>();
+        this.privileges = new Privileges();
     }
 
     public String getId() {
+
         return id.toString();
     }
 
     public void setId(String id) {
+
         this.id = new ObjectId(id);
     }
 
@@ -61,12 +66,21 @@ public class Space {
         return this.metadata.getName();
     }
 
-    public Privileges getPrivileges(){
+    public Privileges getPrivileges() {
         return privileges;
     }
 
-    public void setPrivileges(Privileges privileges){
+    public void setPrivileges(Privileges privileges) {
         this.privileges = privileges;
+    }
+
+    public void addPrivileges(Privileges privileges) {
+        this.privileges.addUserPrivilegesMap(privileges.getUserPrivileges());
+        this.privileges.addGroupPrivilegesMap(privileges.getGroupPrivileges());
+    }
+
+    public void addUserPrivileges(String username, PrivilegeLevel privilegeLevel){
+        this.privileges.addUserPrivileges(username, privilegeLevel);
     }
 
     public List<String> getMembers() {
@@ -105,7 +119,7 @@ public class Space {
         this.metadata = metadata;
     }
 
-    public Metadata getMetadata(){
+    public Metadata getMetadata() {
         return this.metadata;
     }
 
