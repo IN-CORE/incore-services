@@ -4,6 +4,7 @@ import {
 	TextField, GridTile, GridList, RaisedButton, Card, CardText, CardTitle, CardHeader, Paper,
 	Divider
 } from "material-ui";
+import config from "../app.config";
 
 type Props = {
 	name: string
@@ -58,7 +59,7 @@ class HomePage extends Component {
 	async login(event: Object) {
 		await this.props.login(this.state.username, this.state.password);
 		if(!this.props.loginError) {
-			browserHistory.push("/FragilityViewer");
+			browserHistory.push(`${config.urlPrefix}/FragilityViewer`);
 		}
 
 	}

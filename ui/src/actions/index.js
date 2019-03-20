@@ -1,6 +1,6 @@
 // @flow
 
-import type {Dispatch, AnalysesMetadata, Analysis, Dataset, GetState, Hazard} from "../utils.flowtype";
+import type {Dispatch, AnalysesMetadata, Analysis, Dataset} from "../utils.flowtype";
 import config from "../app.config";
 import type {Hazards} from "../utils/flowtype";
 
@@ -19,7 +19,6 @@ export function receiveAnalyses(api:string, json:AnalysesMetadata) {
 
 export const RECEIVE_ANALYSIS = "RECEIVE_ANALYSIS";
 export function receiveAnalysis(api: string, json:Analysis) {
-	console.log(json);
 	return(dispatch: Dispatch) => {
 		dispatch({
 			type: RECEIVE_ANALYSIS,
@@ -172,11 +171,6 @@ export function readCredentials(tokens){
 	else if (sessionStorage.length === 0) {
 		sessionStorage.setItem("auth", "");
 		sessionStorage.setItem("user", "");
-		console.log("Fail to read credentials from url, and set it to empty string.getting the credentials from sessionStorage instead.");
-	}
-
-	else{
-		console.log("Fail to read credentials from url, and getting the credentials from sessionStorage instead.");
 	}
 }
 
