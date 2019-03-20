@@ -6,11 +6,8 @@ import WebpackMd5Hash from "webpack-md5-hash";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import autoprefixer from "autoprefixer";
 import path from "path";
+import UglifyJsPlugin from "uglifyjs-webpack-plugin";
 
-const GLOBALS = {
-	"process.env.NODE_ENV": JSON.stringify("production"),
-	__DEV__: false
-};
 
 export default {
 	resolve: {
@@ -25,7 +22,7 @@ export default {
 	target: "web", // necessary per https://webpack.github.io/docs/testing.html#compile-and-test
 	output: {
 		path: path.resolve(__dirname, "dist"),
-		publicPath: "/",
+		publicPath: "",
 		filename: "[name].[chunkhash].js"
 	},
 	plugins: [
@@ -36,7 +33,13 @@ export default {
 		new webpack.optimize.OccurrenceOrderPlugin(),
 
 		// Tells React to build in prod mode. https://facebook.github.io/react/downloads.html
-		new webpack.DefinePlugin(GLOBALS),
+		new webpack.DefinePlugin({
+			"process.env": {
+				"NODE_ENV": JSON.stringify("production"),
+				"basePath": JSON.stringify("/incore")
+			},
+			__DEV__: false
+		}),
 
 		// Generate an external css file with a hash in the filename
 		new ExtractTextPlugin("[name].[contenthash].css"),
@@ -63,10 +66,19 @@ export default {
 		}),
 
 		// Eliminate duplicate packages when generating bundle
-		new webpack.optimize.DedupePlugin(),
+		// new webpack.optimize.DedupePlugin(),
 
 		// Minify JS
-		new webpack.optimize.UglifyJsPlugin(),
+		new UglifyJsPlugin({
+			sourceMap: true,
+			uglifyOptions: {
+				ecma:8,
+				compress: {
+					warnings: false
+				}
+			}
+		}),
+
 		new webpack.LoaderOptionsPlugin({
 			debug: true,
 			options: {

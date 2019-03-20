@@ -18,12 +18,15 @@ export default {
 	target: "web",
 	output: {
 		path: path.resolve(__dirname, "dist"),
-		publicPath: "/",
+		publicPath: "",
 		filename: "bundle.js"
 	},
 	plugins: [
 		new webpack.DefinePlugin({
-			"process.env.NODE_ENV": JSON.stringify("development"),
+			"process.env": {
+				"NODE_ENV": JSON.stringify("development"),
+				"basePath": JSON.stringify("/")
+			},
 			__DEV__: true
 		}),
 		new webpack.HotModuleReplacementPlugin(),

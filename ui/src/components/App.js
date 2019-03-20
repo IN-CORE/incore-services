@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Link, IndexLink } from "react-router";
 import { AppBar, FlatButton, MuiThemeProvider } from "material-ui";
 import { browserHistory } from "react-router";
+import config from "../app.config";
 
 global.__base = `${__dirname  }/`;
 
@@ -15,26 +16,23 @@ class App extends Component {
 
 	logout () {
 		this.props.logout();
-		browserHistory.push("/");
+		browserHistory.push(config.baseUrl);
 	}
 
 	render() {
-
 		let contents = (<div>
-			<FlatButton style={{color: "white"}} label="Home"  containerElement={<IndexLink to="/" />} />
+			<FlatButton style={{color: "white"}} label="Home"  containerElement={<IndexLink to={`${config.baseUrl}`}/>} />
 		</div>);
 
-
 		if(this.props.user !== "" && this.props.user !== undefined) {
-			contents = <div>
-				{/*<FlatButton style={{color: "white"}} label="Home"  containerElement={<IndexLink to="/" />} />*/}
-				<FlatButton style={{color: "white"}} label="Fragility Explorer" containerElement={<Link to="/FragilityViewer" />} />
-				<FlatButton style={{color: "white"}} label="Data Explorer" containerElement={<Link to="/DataViewer" />} />
-				<FlatButton style={{color: "white"}} label="Hazard Explorer" containerElement={<Link to="/HazardViewer" />} />
-				<FlatButton style={{color: "white"}} label="Analysis" containerElement={<Link to="/Execute" />} />
-				<FlatButton style={{color: "white"}} label="Help" containerElement={<Link to="/Help" />} />
-				<FlatButton style={{color: "white"}} label="Logout" containerElement={<Link to="/"/>} onClick={this.logout} />
-			</div>;
+			contents = (<div>
+				<FlatButton style={{color: "white"}} label="Fragility Explorer" containerElement={<Link to={`${config.urlPrefix}/FragilityViewer`} />} />
+				<FlatButton style={{color: "white"}} label="Data Explorer" containerElement={<Link to={`${config.urlPrefix}/DataViewer`} />} />
+				<FlatButton style={{color: "white"}} label="Hazard Explorer" containerElement={<Link to={`${config.urlPrefix}/HazardViewer`} />} />
+				<FlatButton style={{color: "white"}} label="Analysis" containerElement={<Link to={`${config.urlPrefix}/Execute`} />} />
+				<FlatButton style={{color: "white"}} label="Help" containerElement={<Link to={`${config.urlPrefix}/Help`} />} />
+				<FlatButton style={{color: "white"}} label="Logout" containerElement={<Link to={`${config.baseUrl}`} />} onClick={this.logout} />
+			</div>);
 		}
 		return (
 			<div>
@@ -52,7 +50,9 @@ class App extends Component {
 }
 
 App.propTypes = {
-	children: PropTypes.element
+	children: PropTypes.element,
+	logout: PropTypes.func,
+	user: PropTypes.string
 };
 
 export default App;

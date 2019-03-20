@@ -3,7 +3,7 @@ import {fetchAnalyses, executeDatawolfWorkflow, fetchDatasets} from "../actions/
 import ExecuteAnalysisComponent from "../components/ExecuteAnalysis";
 import type { Dispatch } from "../utils/flowtype";
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state) => {
 	return {
 		analysis: state.analyses.selectedAnalysis,
 		datasets: state.data.datasets,

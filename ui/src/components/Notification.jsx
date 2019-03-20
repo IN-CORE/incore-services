@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Dialog, RaisedButton } from "material-ui";
+import config from "../app.config";
 
 class Notification extends Component {
 
@@ -29,7 +30,7 @@ class Notification extends Component {
 						<li>Close the current open explorers</li>
 						<li>Open new explorers from Jupyterhub INCORE app dropdowns</li>
 					</ol>
-					<h4> Or login clicking <a href="/">HERE</a></h4>
+					<h4> Or login clicking <a href={config.baseUrl}>HERE</a></h4>
 				</div>
 			</Dialog>
 		);

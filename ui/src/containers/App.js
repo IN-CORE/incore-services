@@ -2,13 +2,13 @@ import {connect} from "react-redux";
 import AppComponent from "../components/App";
 import {logout} from "../actions";
 
-const mapStateToProps = (state,ownProps) => {
+const mapStateToProps = () => {
 	return{
 		user: sessionStorage.user
 	};
 };
 
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch) => {
 	return {
 		logout: () => {
 			dispatch(logout());

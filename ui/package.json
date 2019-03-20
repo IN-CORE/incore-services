@@ -114,6 +114,7 @@
     "sass-loader": "4.1.0",
     "sinon": "2.0.0-pre.5",
     "style-loader": "0.13.1",
+    "uglifyjs-webpack-plugin": "1.1.6",
     "url-loader": "0.5.7",
     "wallaby-webpack": "0.0.32",
     "webpack": "3.10.0",
