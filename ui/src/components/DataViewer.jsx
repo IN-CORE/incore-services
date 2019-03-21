@@ -2,14 +2,17 @@ import React, {Component} from "react";
 import Table from "./Table";
 import Map from "./Map";
 import Notification from "../components/Notification";
-import {GridList, GridTile, SelectField, MenuItem, List,
-	ListItem, Divider, TextField, IconButton} from "material-ui";
+import {
+	GridList, GridTile, SelectField, MenuItem, List,
+	ListItem, Divider, TextField, IconButton
+} from "material-ui";
 import ActionSearch from "material-ui/svg-icons/action/search";
 import csv from "csv";
 import config from "../app.config";
-import {getHeader, readCredentials} from "../actions";
+import {getHeader} from "../actions";
+import {browserHistory} from "react-router";
 
-String.prototype.capitalize = function() {
+String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
@@ -25,6 +28,7 @@ class DataViewer extends Component {
 			fileExtension: "",
 			space: "",
 			authError: false,
+			authLocationFrom: null
 		};
 		this.changeDatasetType = this.changeDatasetType.bind(this);
 		this.onClickDataset = this.onClickDataset.bind(this);
@@ -35,32 +39,71 @@ class DataViewer extends Component {
 	}
 
 	componentWillMount() {
-		// parse the credential (query parameters in the url) and save auth to local storage
-		let { query } = this.props.location;
-		if (Object.keys(query).length > 0 ){
-			readCredentials(query);
-			this.props.router.push(window.location.pathname);
+
+		// check if logged in
+		let user = sessionStorage.getItem("user");
+		let auth = sessionStorage.getItem("auth");
+		let location = sessionStorage.getItem("locationFrom");
+
+		// logged in
+		if (user !== undefined && user !== "" && user !== null
+			&& auth !== undefined && auth !== "" && auth !== null) {
+
+			this.setState({
+				authError: false
+			});
+
+			// fetch datasets
+			this.props.getAllDatasets();
 		}
 
-		// fetch datasets
-		this.props.getAllDatasets();
+		// not logged in
+		else {
+			this.setState({
+				authError: true,
+				authLocationFrom: location
+			});
+		}
+
 	}
 
 	componentWillReceiveProps(nextProps) {
-		this.setState({"authError": nextProps.authError});
+		this.setState({
+			authError: nextProps.authError,
+			authLocationFrom: nextProps.locationFrom
+		});
 	}
 
 	changeDatasetType(event, index, value) {
-		this.setState({type: value, space: "", selectedDataset: "", fileData: "", fileExtension: "", selectedDatasetFormat: ""});
+		this.setState({
+			type: value,
+			space: "",
+			selectedDataset: "",
+			fileData: "",
+			fileExtension: "",
+			selectedDatasetFormat: ""
+		});
 	}
 
 	changeSpace(event, index, value) {
-		this.setState({space: value, type:"", selectedDataset: "", fileData: "", fileExtension: "", selectedDatasetFormat: ""});
+		this.setState({
+			space: value,
+			type: "",
+			selectedDataset: "",
+			fileData: "",
+			fileExtension: "",
+			selectedDatasetFormat: ""
+		});
 	}
 
 	onClickDataset(datasetId) {
 		const dataset = this.props.datasets.find(dataset => dataset.id === datasetId);
-		this.setState({selectedDataset: datasetId, selectedDatasetFormat: dataset.format, fileData: "", fileExtension: ""});
+		this.setState({
+			selectedDataset: datasetId,
+			selectedDatasetFormat: dataset.format,
+			fileData: "",
+			fileExtension: ""
+		});
 
 	}
 
@@ -91,14 +134,14 @@ class DataViewer extends Component {
 			});
 
 		}
-		else if (response.status === 403){
+		else if (response.status === 403) {
 			this.setState({
 				fileData: [],
 				fileExtension: null,
 				authError: true
 			});
 		}
-		else{
+		else {
 			this.setState({
 				fileData: [],
 				fileExtension: null,
@@ -110,7 +153,7 @@ class DataViewer extends Component {
 
 	render() {
 		let unique_types = [];
-		if (this.props.datasets.length > 0){
+		if (this.props.datasets.length > 0) {
 			const dataset_all_types = this.props.datasets.map(dataset =>
 				dataset.dataType
 			);
@@ -118,7 +161,7 @@ class DataViewer extends Component {
 		}
 
 		let dataset_types = "";
-		if(unique_types.length > 0) {
+		if (unique_types.length > 0) {
 			const type_menu_items = unique_types.map((type, index) =>
 				<MenuItem value={index} primaryText={type} key={type}/>
 			);
@@ -132,13 +175,13 @@ class DataViewer extends Component {
 		}
 
 		let unique_spaces = [];
-		if (this.props.datasets.length > 0){
+		if (this.props.datasets.length > 0) {
 			const spaces = this.props.datasets.map(dataset => dataset.spaces);
 			unique_spaces = Array.from(new Set([].concat.apply([], spaces)));
 		}
 
 		let space_filter = "";
-		if(unique_spaces.length > 0){
+		if (unique_spaces.length > 0) {
 			const space_menu_items = unique_spaces.map((space, index) =>
 				<MenuItem value={index} primaryText={space} key={space}/>
 			);
@@ -154,13 +197,13 @@ class DataViewer extends Component {
 		}
 
 		let datasets_to_display = this.props.datasets;
-		if(this.state.type) {
+		if (this.state.type) {
 			datasets_to_display = this.props.datasets.filter(dataset => dataset.type === unique_types[this.state.type]);
 		}
-		if(this.state.space){
+		if (this.state.space) {
 			datasets_to_display = datasets_to_display.filter(dataset => dataset.spaces.indexOf(unique_spaces[this.state.space]) > -1);
 		}
-		if(this.state.searchText){
+		if (this.state.searchText) {
 			datasets_to_display = datasets_to_display.filter(dataset => dataset.title.indexOf(this.state.searchText) > -1);
 		}
 
@@ -182,26 +225,28 @@ class DataViewer extends Component {
 		</List>
 		</div>);
 
-		let file_descriptors ="";
-		if(this.state.selectedDataset){
+		let file_descriptors = "";
+		if (this.state.selectedDataset) {
 			const selected_dataset = this.props.datasets.find(dataset => dataset.id === this.state.selectedDataset);
 			file_descriptors =
 				selected_dataset.fileDescriptors.map(file_descriptor =>
 					<div key={file_descriptor.id}>
-						<ListItem onClick={() => this.onClickFileDescriptor(selected_dataset.id, file_descriptor.id, file_descriptor.filename)} primaryText={file_descriptor.filename} key={file_descriptor.id}/>
+						<ListItem
+							onClick={() => this.onClickFileDescriptor(selected_dataset.id, file_descriptor.id, file_descriptor.filename)}
+							primaryText={file_descriptor.filename} key={file_descriptor.id}/>
 						<Divider/>
 					</div>
-
 				);
 		}
 		let file_contents = this.state.fileData;
-		if(this.state.fileExtension && this.state.fileData  && this.state.fileExtension === "csv") {
+		if (this.state.fileExtension && this.state.fileData && this.state.fileExtension === "csv") {
 			let data = this.state.fileData.map((data) => data.split(","));
-			file_contents = <Table height={750} container = "data_container" data={data.slice(2)} colHeaders={data[0]} rowHeaders={false}/>;
+			file_contents = <Table height={750} container="data_container" data={data.slice(2)} colHeaders={data[0]}
+								   rowHeaders={false}/>;
 		}
 
-		let right_column =  "";
-		if(this.state.selectedDatasetFormat === "shapefile") {
+		let right_column = "";
+		if (this.state.selectedDatasetFormat === "shapefile") {
 			right_column =
 				(<div>
 					<Map datasetId={this.state.selectedDataset}/>
@@ -215,38 +260,50 @@ class DataViewer extends Component {
 			</div>);
 		}
 
-		return (
-			<div style={{padding: "20px"}}>
-				<Notification show={this.state.authError}/>
-				<div style={{display:"flex"}}>
-					<h2>Data Viewer</h2>
+		if (this.state.authError) {
+			if (this.state.authLocationFrom !== undefined
+				&& this.state.authLocationFrom !== null
+				&& this.state.authLocationFrom.length > 0){
+				return (<Notification/>);
+			}
+			else {
+				browserHistory.push(`${config.baseUrl}`);
+				return null;
+			}
+		}
+		else {
+			return (
+				<div style={{padding: "20px"}}>
+					<div style={{display: "flex"}}>
+						<h2>Data Viewer</h2>
+					</div>
+					<GridList cols={12} cellHeight="auto">
+						<GridTile cols={4}>
+							{dataset_types}
+						</GridTile>
+						<GridTile cols={4}>
+							{space_filter}
+						</GridTile>
+						<GridTile cols={4} style={{float: "right"}}>
+							<TextField ref="searchBox" hintText="Search Datasets" onKeyPress={this.handleKeyPressed}/>
+							<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
+										onClick={this.searchDatasets}>
+								<ActionSearch/>
+							</IconButton>
+						</GridTile>
+					</GridList>
+					<GridList cols={12} style={{paddingTop: "10px"}} cellHeight="auto">
+						<GridTile cols={6}>
+							{filtered_datasets}
+						</GridTile>
+						<GridTile cols={6}>
+							{right_column}
+							{file_contents}
+						</GridTile>
+					</GridList>
 				</div>
-				<GridList cols={12} cellHeight="auto">
-					<GridTile cols={4}>
-						{dataset_types}
-					</GridTile>
-					<GridTile cols={4}>
-						{space_filter}
-					</GridTile>
-					<GridTile cols={4} style={{float: "right"}}>
-						<TextField ref="searchBox" hintText="Search Datasets" onKeyPress={this.handleKeyPressed} />
-						<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
-						            onClick={this.searchDatasets}>
-							<ActionSearch />
-						</IconButton>
-					</GridTile>
-				</GridList>
-				<GridList cols={12} style={{paddingTop: "10px"}} cellHeight="auto">
-					<GridTile cols={6}>
-						{filtered_datasets}
-					</GridTile>
-					<GridTile cols={6}>
-						{right_column}
-						{file_contents}
-					</GridTile>
-				</GridList>
-			</div>
-		);
+			);
+		}
 	}
 
 }

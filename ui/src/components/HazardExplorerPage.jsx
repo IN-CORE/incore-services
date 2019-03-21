@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {readCredentials} from "../actions";
+import {browserHistory} from "react-router";
 import {GridList, GridTile, List,
 	ListItem, Divider, TextField, IconButton,
 	SelectField, MenuItem, RaisedButton } from "material-ui";
@@ -7,6 +7,7 @@ import ActionSearch from "material-ui/svg-icons/action/search";
 import Map from "./Map";
 import Notification from "./Notification";
 import HazardInfoTable from "./HazardInfoTable";
+import config from "../app.config";
 
 const subtype_list = {
 	earthquakes: ["All", "Model", "Dataset"],
@@ -28,6 +29,7 @@ class HazardExplorerPage extends Component {
 			selectedSubtype: "",
 			searchText:"",
 			authError:false,
+			authLocationFrom: null,
 		};
 		this.changeHazardType = this.changeHazardType.bind(this);
 		this.onClickHazard = this.onClickHazard.bind(this);
@@ -38,22 +40,41 @@ class HazardExplorerPage extends Component {
 	}
 
 	componentWillMount() {
-		// parse the credential (query parameters in the url) and save auth to local storage
-		let { query } = this.props.location;
-		if (Object.keys(query).length > 0 ){
-			readCredentials(query);
-			this.props.router.push(window.location.pathname);
+		// check if logged in
+		let user = sessionStorage.getItem("user");
+		let auth = sessionStorage.getItem("auth");
+		let location = sessionStorage.getItem("locationFrom");
+
+		// logged in
+		if (user !== undefined && user !== "" && user !== null
+			&& auth !== undefined && auth !== "" && auth !== null) {
+
+			this.setState({
+				authError: false
+			});
+
+			// fetch datasets
+			this.props.getAllHazards(this.state.type);
+
+			// subtype default to the first one within that type
+			this.setState({selectedSubtype: subtype_list[this.state.type][0]});
+
 		}
 
-		// fetch datasets
-		this.props.getAllHazards(this.state.type);
-
-		// subtype default to the first one within that type
-		this.setState({selectedSubtype: subtype_list[this.state.type][0]});
+		// not logged in
+		else {
+			this.setState({
+				authError: true,
+				authLocationFrom: location
+			});
+		}
 	}
 
 	componentWillReceiveProps(nextProps) {
-		this.setState({"authError": nextProps.authError});
+		this.setState({
+			authError: nextProps.authError,
+			authLocationFrom:nextProps.locationFrom
+		});
 	}
 
 	changeHazardType(event, index, value) {
@@ -194,69 +215,81 @@ class HazardExplorerPage extends Component {
 			}
 		}
 
-		return (
-			<div style={{padding: "20px"}}>
-				<Notification show={this.state.authError}/>
-				<div style={{display:"flex"}}>
-					<h2>Hazard Viewer</h2>
+		if (this.state.authError){
+			if (this.state.authLocationFrom !== undefined
+				&& this.state.authLocationFrom !== null
+				&& this.state.authLocationFrom.length > 0){
+				return (<Notification/>);
+			}
+			else{
+				browserHistory.push(`${config.baseUrl}`);
+				return null;
+			}
+		}
+		else{
+			return 	(
+				<div style={{padding: "20px"}}>
+					<div style={{display:"flex"}}>
+						<h2>Hazard Viewer</h2>
+					</div>
+
+					<GridList cols={12} cellHeight="auto">
+						{/* select hazard type */}
+						<GridTile cols={3}>
+							<SelectField fullWidth={true} floatingLabelText="Hazard Type"
+										 value={this.state.type}
+										 onChange={this.changeHazardType}
+							>
+								<MenuItem value="earthquakes" primaryText="Earthquake" key="earthquakes"/>
+								<MenuItem value="tornadoes" primaryText="Tornado" key="tornadoes"/>
+								<MenuItem value="hurricaneWindfields" primaryText="Hurricane" key="hurricaneWindfields"/>
+								<MenuItem value="tsunamis" primaryText="Tsunami" key="tsunamis"/>
+							</SelectField>
+						</GridTile>
+
+						{/* select subtype within each hazard */}
+						<GridTile cols={3}>
+							<SelectField fullWidth={true} floatingLabelText="Hazard SubType"
+										 value={this.state.selectedSubtype}
+										 onChange={this.changeHazardSubType}
+							>
+								{
+									subtype_list[this.state.type].map((item) => {
+										return (<MenuItem value={item} primaryText={item} key={item}/>);
+									})
+								}
+							</SelectField>
+						</GridTile>
+
+						{/* search hazard based on name or description */}
+						<GridTile cols={6} style={{float: "right"}}>
+							<TextField ref="searchBox" hintText="Search Hazard"
+									   onKeyUp={this.handleKeyPressed}/>
+							<IconButton iconStyle={{position: "absolute", left: 0, bottom: 0, width: 30, height: 30}}>
+								<ActionSearch />
+							</IconButton>
+						</GridTile>
+					</GridList>
+
+					<GridList cols={12} style={{paddingTop: "12px"}} cellHeight="auto">
+						<GridTile cols={5}>
+							<h2>Hazards</h2>
+							<div style={{overflow: "auto", height:"200px", margin:"0 20px"}}>
+								{hazards_list_display}
+							</div>
+							<h2>Details</h2>
+							<div style={{overflow: "auto", height:"300px", margin:"0 20px"}}>
+								{right_column}
+							</div>
+						</GridTile>
+						<GridTile cols={7} style={{overflow: "auto", height:"600px"}}>
+							<h2>Preview</h2>
+							{map}
+						</GridTile>
+					</GridList>
 				</div>
-
-				<GridList cols={12} cellHeight="auto">
-					{/* select hazard type */}
-					<GridTile cols={3}>
-						<SelectField fullWidth={true} floatingLabelText="Hazard Type"
-									 value={this.state.type}
-									 onChange={this.changeHazardType}
-						>
-							<MenuItem value="earthquakes" primaryText="Earthquake" key="earthquakes"/>
-							<MenuItem value="tornadoes" primaryText="Tornado" key="tornadoes"/>
-							<MenuItem value="hurricaneWindfields" primaryText="Hurricane" key="hurricaneWindfields"/>
-							<MenuItem value="tsunamis" primaryText="Tsunami" key="tsunamis"/>
-						</SelectField>
-					</GridTile>
-
-					{/* select subtype within each hazard */}
-					<GridTile cols={3}>
-						<SelectField fullWidth={true} floatingLabelText="Hazard SubType"
-									 value={this.state.selectedSubtype}
-									 onChange={this.changeHazardSubType}
-						>
-							{
-								subtype_list[this.state.type].map((item) => {
-									return (<MenuItem value={item} primaryText={item} key={item}/>);
-								})
-							}
-						</SelectField>
-					</GridTile>
-
-					{/* search hazard based on name or description */}
-					<GridTile cols={6} style={{float: "right"}}>
-						<TextField ref="searchBox" hintText="Search Hazard"
-								   onKeyUp={this.handleKeyPressed}/>
-						<IconButton iconStyle={{position: "absolute", left: 0, bottom: 0, width: 30, height: 30}}>
-							<ActionSearch />
-						</IconButton>
-					</GridTile>
-				</GridList>
-
-				<GridList cols={12} style={{paddingTop: "12px"}} cellHeight="auto">
-					<GridTile cols={5}>
-						<h2>Hazards</h2>
-						<div style={{overflow: "auto", height:"200px", margin:"0 20px"}}>
-							{hazards_list_display}
-						</div>
-						<h2>Details</h2>
-						<div style={{overflow: "auto", height:"300px", margin:"0 20px"}}>
-							{right_column}
-						</div>
-					</GridTile>
-					<GridTile cols={7} style={{overflow: "auto", height:"600px"}}>
-						<h2>Preview</h2>
-						{map}
-					</GridTile>
-				</GridList>
-			</div>
-		);
+			);
+		}
 	}
 }
 

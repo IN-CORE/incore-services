@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Link, IndexLink } from "react-router";
 import { AppBar, FlatButton, MuiThemeProvider } from "material-ui";
 import { browserHistory } from "react-router";
+import {readCredentials} from "../actions";
 import config from "../app.config";
 
 global.__base = `${__dirname  }/`;
@@ -11,7 +12,19 @@ class App extends Component {
 
 	constructor(props)  {
 		super(props);
+		this.state = {
+			authError:false,
+			authLocationFrom: null,
+		};
 		this.logout = this.logout.bind(this);
+	}
+
+	componentWillMount() {
+		let {query} = this.props.location;
+		if (Object.keys(query).length > 0) {
+			readCredentials(query);
+			this.props.router.push(window.location.pathname);
+		}
 	}
 
 	logout () {
@@ -34,6 +47,7 @@ class App extends Component {
 				<FlatButton style={{color: "white"}} label="Logout" containerElement={<Link to={`${config.baseUrl}`} />} onClick={this.logout} />
 			</div>);
 		}
+
 		return (
 			<div>
 				<MuiThemeProvider>
