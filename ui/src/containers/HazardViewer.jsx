@@ -5,7 +5,8 @@ import {fetchHazards} from "../actions";
 const mapStateToProps = (state, ownProps) => {
 	return {
 		hazards: state.hazard.hazards,
-		authError: state.user.loginError
+		authError: state.user.loginError,
+		locationFrom: state.user.locationFrom
 	};
 };
 

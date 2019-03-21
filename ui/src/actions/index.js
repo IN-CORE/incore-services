@@ -122,7 +122,6 @@ export function fetchHazards(hazard_type:string){
 	};
 }
 
-
 export async function loginHelper(username, password) {
 	const endpoint = config.authService;
 	// Currently CORS error due to the header
@@ -161,18 +160,16 @@ export function login(username, password) {
 }
 
 export function readCredentials(tokens){
+	// reading credentials from tokens passed in URL and stored in sessionStorage
 	// if there's token passed in, reset the sessionStorage to save that token
-	if(typeof(Storage) !== "undefined" && tokens["auth-token"] !== undefined && tokens["user"] !== undefined) {
+	if(typeof(Storage) !== "undefined") {
 		sessionStorage.setItem("auth", tokens["auth-token"]);
 		sessionStorage.setItem("user", tokens["user"]);
-	}
 
-	// if not token passed in, as well as no token in the session storage
-	else if (sessionStorage.length === 0) {
-		sessionStorage.setItem("auth", "");
-		sessionStorage.setItem("user", "");
+		if (tokens["location"] !== undefined) sessionStorage.setItem("locationFrom", tokens["location"]);
 	}
 }
+
 
 export const LOGOUT = "LOGOUT";
 export function logout() {
@@ -180,6 +177,7 @@ export function logout() {
 		if(typeof(Storage) !== "undefined") {
 			sessionStorage.removeItem("auth");
 			sessionStorage.removeItem("user");
+			sessionStorage.removeItem("locationFrom");
 		}
 		return dispatch({
 			type: LOGOUT
@@ -287,7 +285,7 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 
 export function getHeader() {
 	const headers = new Headers({
-		"Authorization": `LDAP ${ sessionStorage.auth }`,
+		"Authorization": "LDAP token",
 		"auth-user": sessionStorage.user,
 		"auth-token": sessionStorage.auth
 	});

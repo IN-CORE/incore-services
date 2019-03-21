@@ -9,6 +9,7 @@ const config = {
 	dataServiceBase: "https://incore2-services.ncsa.illinois.edu/",
 	dataService: "https://incore2-services.ncsa.illinois.edu/data/api/datasets",
 	dataWolf: "https://incore2-datawolf.ncsa.illinois.edu/datawolf/",
+	incoreLab: "https://incore-jupyter.ncsa.illinois.edu/",
 	baseUrl: process.env.basePath,
 	urlPrefix: prefix
 };
