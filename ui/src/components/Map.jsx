@@ -2,10 +2,9 @@ import React, {Component} from "react";
 let ol = require("openlayers");
 require("openlayers/css/ol.css");
 
-async function fetchExtent(name:string){
+async function fetchExtent(name:string, boundingBox){
 
 	let parser = new ol.format.WMSCapabilities();
-
 	try{
 		const extentRequest = await fetch("http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms?SERVICE=WMS&REQUEST=GetCapabilities",
 			{method: "GET", mode:"cors"});
@@ -83,9 +82,21 @@ class Map extends Component {
 		theMap.addLayer(layerTiled);
 
 		// snap the map to the hazard bounding box
-		let extent = await fetchExtent(this.props.datasetId);
-		theMap.getView().fit(extent, theMap.getSize());
-
+		// default using the bounding box within dataset
+		// if absent, then query geoserver
+		if (this.props.boundingBox !== undefined
+			&& this.props.boundingBox !== null
+			&& this.props.boundingBox.length === 4
+			&& this.props.boundingBox[2] > this.props.boundingBox[0]
+			&& this.props.boundingBox[3] > this.props.boundingBox[1]
+		){
+			let extent = this.props.boundingBox;
+			theMap.getView().fit(extent, theMap.getSize());
+		}
+		else{
+			let extent = await fetchExtent(this.props.datasetId);
+			theMap.getView().fit(extent, theMap.getSize());
+		}
 	}
 
 	async componentDidMount() {
@@ -152,8 +163,21 @@ class Map extends Component {
 		});
 
 		// snap the map to the hazard bounding box
-		let extent = await fetchExtent(this.props.datasetId);
-		theMap.getView().fit(extent, theMap.getSize());
+		// default using the bounding box within dataset
+		// if absent, then query geoserver
+		if (this.props.boundingBox !== undefined
+			&& this.props.boundingBox !== null
+			&& this.props.boundingBox.length === 4
+			&& this.props.boundingBox[2] > this.props.boundingBox[0]
+			&& this.props.boundingBox[3] > this.props.boundingBox[1]
+		){
+			let extent = this.props.boundingBox;
+			theMap.getView().fit(extent, theMap.getSize());
+		}
+		else{
+			let extent = await fetchExtent(this.props.datasetId);
+			theMap.getView().fit(extent, theMap.getSize());
+		}
 
 		this.setState({map: theMap});
 	}

@@ -283,6 +283,10 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 
 }
 
+export function getUsername(){
+	return sessionStorage.user;
+}
+
 export function getHeader() {
 	const headers = new Headers({
 		"Authorization": "LDAP token",

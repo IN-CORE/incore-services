@@ -1,20 +1,23 @@
 import React, {Component} from "react";
+import {getHeader} from "../actions";
 import {browserHistory} from "react-router";
-import {GridList, GridTile, List,
+import {
+	GridList, GridTile, List,
 	ListItem, Divider, TextField, IconButton,
-	SelectField, MenuItem, RaisedButton } from "material-ui";
+	SelectField, MenuItem, RaisedButton
+} from "material-ui";
 import ActionSearch from "material-ui/svg-icons/action/search";
 import Map from "./Map";
 import Notification from "./Notification";
-import HazardInfoTable from "./HazardInfoTable";
+import NestedInfoTable from "./NestedInfoTable";
 import config from "../app.config";
 
 const subtype_list = {
 	earthquakes: ["All", "Model", "Dataset"],
 	tornadoes: ["All", "Mean Width Tornado", "Mean Length Width Angle Tornado", "Random Length Width Angle Tornado",
 		"Random Width Tornado", "Random Angle Tornado"],
-	hurricaneWindfields:["All"],
-	tsunamis:["All", "Model", "Dataset"]
+	hurricaneWindfields: ["All"],
+	tsunamis: ["All", "Model", "Dataset"]
 };
 
 const redundant_prop = ["description", "privileges"];
@@ -24,15 +27,19 @@ class HazardExplorerPage extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			type:"earthquakes",
-			selectedHazard:"",
+			type: "earthquakes",
+			selectedHazard: "",
+			selectedHazardDatasetId: "",
+			boundingBox: [],
 			selectedSubtype: "",
-			searchText:"",
-			authError:false,
+			searchText: "",
+			authError: false,
 			authLocationFrom: null,
+			expanded: true
 		};
 		this.changeHazardType = this.changeHazardType.bind(this);
 		this.onClickHazard = this.onClickHazard.bind(this);
+		this.onClickHazardDataset = this.onClickHazardDataset.bind(this);
 		this.changeHazardSubType = this.changeHazardSubType.bind(this);
 		this.searchHazards = this.searchHazards.bind(this);
 		this.handleKeyPressed = this.handleKeyPressed.bind(this);
@@ -73,30 +80,82 @@ class HazardExplorerPage extends Component {
 	componentWillReceiveProps(nextProps) {
 		this.setState({
 			authError: nextProps.authError,
-			authLocationFrom:nextProps.locationFrom
+			authLocationFrom: nextProps.locationFrom
 		});
 	}
 
 	changeHazardType(event, index, value) {
-		this.setState({type: value, selectedSubtype: subtype_list[value][0], selectedHazard: ""});
+		this.setState({
+			type: value, selectedSubtype: subtype_list[value][0],
+			selectedHazard: "", selectedHazardDatasetId: "", searchText: ""
+		});
 		this.props.getAllHazards(value);
 	}
 
-	changeHazardSubType(event, index, value){
-		this.setState({selectedSubtype: value, selectedHazard: ""});
+	changeHazardSubType(event, index, value) {
+		this.setState({
+			selectedSubtype: value, selectedHazard: "",
+			selectedHazardDatasetId: "", searchText: ""
+		});
 	}
 
-	onClickHazard(hazardId){
-		this.setState({selectedHazard: hazardId});
+	onClickHazard(hazardId) {
+		this.setState({selectedHazard: hazardId, selectedHazardDatasetId: ""});
+	}
+
+	async onClickHazardDataset(hazardDatasetId) {
+		// query data services to:
+		// 1. verify that dataset exists
+		// 2. get the bounding box information
+
+		// check if the same hazard dataset has been clicked
+		// toggle
+		if (this.state.selectedHazardDatasetId === hazardDatasetId){
+			this.setState (state =>({
+				expanded: !state.expanded
+			}));
+		}
+		// else always expand details
+		else{
+			this.setState({expanded: true});
+
+			const url = `${config.dataServiceBase}data/api/datasets/${hazardDatasetId}`;
+			let response = await fetch(url, {method: "GET", mode: "cors", headers: getHeader()});
+			if (response.ok) {
+				let selectedHazardDataset = await response.json();
+				this.setState( state => ({
+					selectedHazardDatasetId: selectedHazardDataset.id,
+					boundingBox: selectedHazardDataset.boundingBox,
+					authError: false,
+				}));
+			}
+			else if (response.status === 403) {
+				this.setState({
+					selectedHazardDatasetId: "",
+					boundingBox: [],
+					authError: true
+				});
+			}
+			else {
+				this.setState({
+					selectedHazardDatasetId: "",
+					boundingBox: [],
+					authError: false
+				});
+			}
+		}
 	}
 
 	async searchHazards() {
 		let searchText = this.refs.searchBox.getValue();
-		this.setState({searchText: searchText, selectedHazard:""});
+		this.setState({searchText: searchText, selectedHazard: "", selectedHazardDatasetId: ""});
 	}
 
-	async handleKeyPressed() {
-		await this.searchHazards();
+	async handleKeyPressed(event) {
+		if (event.charCode === 13) { // enter
+			event.preventDefault();
+			await this.searchHazards();
+		}
 	}
 
 	exportJson() {
@@ -126,11 +185,11 @@ class HazardExplorerPage extends Component {
 
 		//filter hazards based on their subtype
 		let filtered_hazards_list = [];
-		if (this.state.selectedSubtype.toLowerCase() === "all"){
+		if (this.state.selectedSubtype.toLowerCase() === "all") {
 			filtered_hazards_list = hazards_list;
 		}
-		else{
-			if (this.state.type === "earthquakes"){
+		else {
+			if (this.state.type === "earthquakes") {
 				filtered_hazards_list = hazards_list.filter((hazard) => {
 					return hazard.eqType.toLowerCase() === this.state.selectedSubtype.toLowerCase();
 				});
@@ -141,20 +200,23 @@ class HazardExplorerPage extends Component {
 					return hazard.tornadoModel.toLowerCase() === this.state.selectedSubtype.toLowerCase().replace(/\s+/g, "");
 				});
 			}
-			else if (this.state.type === "tsunamis"){
+			else if (this.state.type === "tsunamis") {
 				filtered_hazards_list = hazards_list.filter((hazard) => {
 					return hazard.tsunamiType.toLowerCase() === this.state.selectedSubtype.toLowerCase();
 				});
 			}
-			else if (this.state.type === "hurricane"){
+			else if (this.state.type === "hurricane") {
 				filtered_hazards_list = hazards_list;
 			}
 		}
 
 		// search throught the filtered hazards list
-		let searched_hazards_list = ( filtered_hazards_list.length > 0 && "description" in filtered_hazards_list[0]) ?
-			filtered_hazards_list.filter( hazard => hazard.description.toLowerCase()
-				.indexOf(this.state.searchText.toLowerCase()) > -1) : filtered_hazards_list;
+		let searched_hazards_list = (filtered_hazards_list.length > 0
+			&& "description" in filtered_hazards_list[0] && "name" in filtered_hazards_list[0]) ?
+			filtered_hazards_list.filter(hazard => hazard.description.toLowerCase()
+					.indexOf(this.state.searchText.toLowerCase()) > -1
+				|| hazard.name.toLowerCase().indexOf(this.state.searchText.toLowerCase()) > -1)
+			: filtered_hazards_list;
 
 		if (searched_hazards_list.length > 0) {
 
@@ -163,16 +225,17 @@ class HazardExplorerPage extends Component {
 				<List style={{"overflowY": "auto"}}>
 					{
 						searched_hazards_list.map((hazard) => {
+							// work around to highlight (disabled) the selected item; selected for some reason doesn't work
 							return (
 								<div key={hazard.id}>
 									<ListItem onClick={() => this.onClickHazard(hazard.id)} key={hazard.id}
-											  primaryText={(hazard.name) ? `${hazard.name }` : `${hazard.id}`}/>
+											  primaryText={(hazard.name) ? `${hazard.name }` : `${hazard.id}`}
+											  disabled={hazard.id === this.state.selectedHazard}/>
 									<Divider/>
-								</div>
-							);
+								</div>);
 						})
 					}
-					</List>);
+				</List>);
 
 			// rendering description
 			if (this.state.selectedHazard !== "") {
@@ -180,19 +243,24 @@ class HazardExplorerPage extends Component {
 
 				// do not render redundant props to save space
 				let selected_hazard_detail = {};
-				for (let item in selected_hazard){
-					if (redundant_prop.indexOf(item) === -1){
+				for (let item in selected_hazard) {
+					if (redundant_prop.indexOf(item) === -1) {
 						selected_hazard_detail[item] = selected_hazard[item];
 					}
 				}
 
-				let table = (<HazardInfoTable selected_hazard_detail={selected_hazard_detail}/>);
+				// info table
+				let table = (<NestedInfoTable data={selected_hazard_detail}
+											  selectedHazardDataset={this.state.selectedHazardDatasetId}
+											  expanded={this.state.expanded}
+											  onClick={this.onClickHazardDataset}/>);
 
+				// right column
 				right_column = (
 					<div>
-						<RaisedButton primary={true} style={{display: "inline-block"}} label="Export to JSON"
-									  onClick={this.exportJson} />
-						<List style={{"overflowY": "auto"}}>
+						<RaisedButton primary={true} style={{display: "inline-block"}} label="Download Metadata"
+									  onClick={this.exportJson}/>
+						<List style={{overflow: "auto", height: "300px", margin: "20px 20px"}}>
 							<div key={`${selected_hazard.id} - "description"`}>
 								<h4>{selected_hazard.description}</h4>
 								{table}
@@ -200,36 +268,27 @@ class HazardExplorerPage extends Component {
 						</List>
 					</div>);
 
-				if ("hazardDatasets" in selected_hazard
-					&& selected_hazard.hazardDatasets.length > 0
-					&& selected_hazard.hazardDatasets.slice(-1)[0].datasetId) {
-
-					// display the last dataset
-					map = (<Map datasetId={selected_hazard.hazardDatasets.slice(-1)[0].datasetId}/>);
-
-				}
-				// tornado is special
-				else if ("tornadoDatasetId" in selected_hazard && selected_hazard.tornadoDatasetId){
-					map = (<Map datasetId={selected_hazard.tornadoDatasetId}/>);
-				}
+				// rendering map previews
+				if (this.state.selectedHazardDatasetId !== "") map = (
+					<Map datasetId={this.state.selectedHazardDatasetId} boundingBox={this.state.boundingBox}/>);
 			}
 		}
 
-		if (this.state.authError){
+		if (this.state.authError) {
 			if (this.state.authLocationFrom !== undefined
 				&& this.state.authLocationFrom !== null
-				&& this.state.authLocationFrom.length > 0){
+				&& this.state.authLocationFrom.length > 0) {
 				return (<Notification/>);
 			}
-			else{
+			else {
 				browserHistory.push(`${config.baseUrl}`);
 				return null;
 			}
 		}
-		else{
-			return 	(
+		else {
+			return (
 				<div style={{padding: "20px"}}>
-					<div style={{display:"flex"}}>
+					<div style={{display: "flex"}}>
 						<h2>Hazard Viewer</h2>
 					</div>
 
@@ -242,7 +301,8 @@ class HazardExplorerPage extends Component {
 							>
 								<MenuItem value="earthquakes" primaryText="Earthquake" key="earthquakes"/>
 								<MenuItem value="tornadoes" primaryText="Tornado" key="tornadoes"/>
-								<MenuItem value="hurricaneWindfields" primaryText="Hurricane" key="hurricaneWindfields"/>
+								<MenuItem value="hurricaneWindfields" primaryText="Hurricane"
+										  key="hurricaneWindfields"/>
 								<MenuItem value="tsunamis" primaryText="Tsunami" key="tsunamis"/>
 							</SelectField>
 						</GridTile>
@@ -264,9 +324,10 @@ class HazardExplorerPage extends Component {
 						{/* search hazard based on name or description */}
 						<GridTile cols={6} style={{float: "right"}}>
 							<TextField ref="searchBox" hintText="Search Hazard"
-									   onKeyUp={this.handleKeyPressed}/>
-							<IconButton iconStyle={{position: "absolute", left: 0, bottom: 0, width: 30, height: 30}}>
-								<ActionSearch />
+									   onKeyPress={this.handleKeyPressed}/>
+							<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
+										onClick={this.searchHazards}>
+								<ActionSearch/>
 							</IconButton>
 						</GridTile>
 					</GridList>
@@ -274,15 +335,15 @@ class HazardExplorerPage extends Component {
 					<GridList cols={12} style={{paddingTop: "12px"}} cellHeight="auto">
 						<GridTile cols={5}>
 							<h2>Hazards</h2>
-							<div style={{overflow: "auto", height:"200px", margin:"0 20px"}}>
+							<div style={{overflow: "auto", height: "200px", margin: "0 20px"}}>
 								{hazards_list_display}
 							</div>
 							<h2>Details</h2>
-							<div style={{overflow: "auto", height:"300px", margin:"0 20px"}}>
+							<div>
 								{right_column}
 							</div>
 						</GridTile>
-						<GridTile cols={7} style={{overflow: "auto", height:"600px"}}>
+						<GridTile cols={7} style={{overflow: "auto", height: "600px"}}>
 							<h2>Preview</h2>
 							{map}
 						</GridTile>

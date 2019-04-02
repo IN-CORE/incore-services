@@ -28,14 +28,17 @@ class ThreeDimensionalPlot extends React.Component {
 			width: this.props.width,
 			height: this.props.height,
 			style: this.props.style,
-			showPerspective: true,
+			showPerspective: false,
 			showGrid: true,
 			showShadow: false,
-			keepAspectRatio: true,
+			keepAspectRatio: false,
 			xLabel: this.props.xLabel,
 			yLabel: this.props.yLabel,
 			zLabel: this.props.zLabel,
-			verticalRatio: 0.5
+			verticalRatio: 0.5,
+			cameraPosition:{
+				distance:3.5
+			}
 		};
 
 		// Instantiate our graph object.

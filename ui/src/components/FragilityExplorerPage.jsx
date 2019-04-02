@@ -36,15 +36,15 @@ class FragilityExplorerPage extends React.Component {
 		super(props);
 
 		this.state = {
-			selectedInventory: null,
-			selectedHazard: null,
+			selectedInventory: "building",
+			selectedHazard: "earthquake",
 			selectedDemand: null,
 			selectedAuthor: null,
+			searchText: "",
 			fragility: null,
 			data: [],
 			chartConfig: chartConfig.FragilityConfig,
-			plotData3d: [],
-			is3dPlot: false,
+			plotData3d: {},
 			authError: false,
 			authLocationFrom: sessionStorage.getItem("locationFrom")
 		};
@@ -99,15 +99,22 @@ class FragilityExplorerPage extends React.Component {
 		if (response.ok) {
 			let fragilities = await response.json();
 
+			let fragilitiesWithInfo = [];
+			await fragilities.map((fragility) => {
+				let is3dPlot = this.is3dFragility(fragility);
+				fragility["is3dPlot"] = is3dPlot;
+				fragilitiesWithInfo.push(fragility);
+			});
+
 			// By default select the first returned in the list of fragilities
-			if (fragilities.length > 0) {
-				await this.clickFragility(fragilities[0]);
+			if (fragilitiesWithInfo.length > 0) {
+				await this.clickFragility(fragilitiesWithInfo[0]);
 			} else {
-				await this.clickFragility(fragilities); // only one fragility (get by id called)
+				await this.clickFragility(fragilitiesWithInfo); // only one fragility (get by id called)
 			}
 
-			this.setState({
-				data: fragilities,
+			await this.setState({
+				data: fragilitiesWithInfo,
 				authError: false
 			});
 		}
@@ -168,16 +175,29 @@ class FragilityExplorerPage extends React.Component {
 			let fragilities = await response.json();
 
 			if (fragilities.length > 0) {
-				// By default select the first returned in the list of fragilities
-				await this.clickFragility(fragilities[0]);
-				this.setState({
-					data: fragilities
+
+				let fragilitiesWithInfo = [];
+
+				await fragilities.map((fragility) => {
+					let is3dPlot = this.is3dFragility(fragility);
+					fragility["is3dPlot"] = is3dPlot;
+					fragilitiesWithInfo.push(fragility);
 				});
+
+				await this.setState({
+					data: fragilitiesWithInfo
+				});
+
+				// By default select the first returned in the list of fragilities
+				if (fragilitiesWithInfo.length > 0) {
+					await this.clickFragility(fragilitiesWithInfo[0]);
+				} else {
+					await this.clickFragility(fragilitiesWithInfo);
+				}
 			} else {
 				this.setState({
 					data: [],
-					fragility: null,
-					authError: false
+					fragility: null
 				});
 			}
 		} else if (response.status === 403) {
@@ -191,8 +211,7 @@ class FragilityExplorerPage extends React.Component {
 		else {
 			this.setState({
 				fragility: null,
-				data: [],
-				authError: false
+				data: []
 			});
 		}
 	}
@@ -218,19 +237,43 @@ class FragilityExplorerPage extends React.Component {
 			let fragilities = await response.json();
 
 			if (fragilities.length > 0) {
-				// By default select the first returned in the list of fragilities
-				await this.clickFragility(fragilities[0]);
 
-				this.setState({
-					data: fragilities
+				let fragilitiesWithInfo = [];
+
+				await fragilities.map((fragility) => {
+					let is3dPlot = this.is3dFragility(fragility);
+					fragility["is3dPlot"] = is3dPlot;
+					fragilitiesWithInfo.push(fragility);
 				});
-			} else {
+
+				await this.setState({
+					data: fragilitiesWithInfo
+				});
+
+				// By default select the first returned in the list of fragilities
+				if (fragilitiesWithInfo.length > 1) {
+					await this.clickFragility(fragilitiesWithInfo[0]);
+				} else {
+					await this.clickFragility(fragilitiesWithInfo);
+				}
+			}
+
+			else {
 				this.setState({
 					data: [],
 					fragility: null
 				});
 			}
-		} else {
+		}
+		else if (response.status === 403) {
+			// if get 403 forbidden error, means token missing or expired
+			this.setState({
+				fragility: null,
+				data: [],
+				authError: true,
+			});
+		}
+		else {
 			this.setState({
 				data: [],
 				fragility: null
@@ -239,11 +282,10 @@ class FragilityExplorerPage extends React.Component {
 	}
 
 	render() {
-
 		if (this.state.authError) {
 			if (this.state.authLocationFrom !== undefined
 				&& this.state.authLocationFrom !== null
-				&& this.state.authLocationFrom.length > 0){
+				&& this.state.authLocationFrom.length > 0) {
 				return (<Notification/>);
 			}
 			else {
@@ -256,40 +298,41 @@ class FragilityExplorerPage extends React.Component {
 				<div style={{padding: "20px"}}>
 					<div style={{display: "flex"}}>
 						<h2>Fragility Function Viewer</h2>
-						<div style={{marginLeft: "auto"}}>
-							<RaisedButton primary={true} style={{display: "inline-block"}} label="Export to JSON"
-										  onClick={this.exportJson}/>
-						</div>
 					</div>
+
 					<GridList cols={12} cellHeight="auto">
-						{/* Inventory Type */}
-						<GridTile cols={2}>
-							<SelectField hintText="Inventory Type" value={this.state.selectedInventory}
-										 onChange={this.handleInventorySelection}>
-								<MenuItem primaryText="Building" value="Building"/>
-								<MenuItem primaryText="Bridge" value="Bridge"/>
-								<Divider/>
-								<MenuItem primaryText="Roadway" value="Roadway"/>
-								<MenuItem primaryText="Railway" value="Railway"/>
-								<Divider/>
-								<MenuItem primaryText="Electric Power Network" value="Electrical Facility"/>
-								<MenuItem primaryText="Potable Water Network" value="Buried Pipeline"/>
-							</SelectField>
-						</GridTile>
-
 						{/* Hazard Type */}
-						<GridTile cols={2}>
-							<SelectField hintText="Hazard Type" value={this.state.selectedHazard}
+						<GridTile cols={3}>
+							<SelectField fullWidth={true} floatingLabelText="Hazard Type"
+										 hintText="Hazard Type" value={this.state.selectedHazard}
 										 onChange={this.handleHazardSelection}>
-								<MenuItem primaryText="Earthquake" value="Seismic"/>
-								<MenuItem primaryText="Tornado" value="Tornado"/>
-								<MenuItem primaryText="Tsunami" value="Tsunami"/>
+								<MenuItem primaryText="Earthquake" value="earthquake"/>
+								<MenuItem primaryText="Tornado" value="tornado"/>
+								<MenuItem primaryText="Tsunami" value="tsunami"/>
 							</SelectField>
 						</GridTile>
 
-						<GridTile cols={8} style={{float: "right"}}>
-							<TextField ref="searchBox" hintText="Search Fragilities"
-									   onKeyPress={this.handleKeyPressed}/>
+						{/* Inventory Type */}
+						<GridTile cols={3}>
+							<SelectField fullWidth={true} floatingLabelText="Inventory Type"
+										 hintText="Inventory Type" value={this.state.selectedInventory}
+										 onChange={this.handleInventorySelection}>
+								<MenuItem primaryText="Building" value="building"/>
+								<MenuItem primaryText="Bridge" value="bridge"/>
+								<Divider/>
+								<MenuItem primaryText="Roadway" value="roadway"/>
+								<Divider/>
+								<MenuItem primaryText="Electric Power Facility" value="electric_facility"/>
+								<MenuItem primaryText="Eletric Power Line" value="electric_power_line"/>
+								<MenuItem primaryText="Water Facility" value="water_facility"/>
+								<MenuItem primaryText="Water Pipeline" value="buried_pipeline"/>
+								<MenuItem primaryText="Gas Facility" value="gas_facility"/>
+							</SelectField>
+						</GridTile>
+
+						{/* Search Box */}
+						<GridTile cols={6} style={{float: "right"}}>
+							<TextField ref="searchBox" hintText="Search Fragilities" onKeyPress={this.handleKeyPressed}/>
 							<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
 										onClick={this.searchFragilities}>
 								<ActionSearch/>
@@ -297,34 +340,51 @@ class FragilityExplorerPage extends React.Component {
 						</GridTile>
 					</GridList>
 
-					<GridList cols={12} style={{paddingTop: "10px"}} cellHeight="auto">
-						<GridTile cols={6}>
-							<GroupList id="fragility-list" onClick={this.clickFragility} height="800px"
-									   data={this.state.data} displayField="author"/>
+					<GridList cols={12} style={{paddingTop: "12px"}} cellHeight="auto">
+						<GridTile cols={5}>
+							<h2>Fragilities</h2>
+							<div style={{overflow: "auto", height: "600px", margin: "0 20px"}}>
+								<GroupList id="fragility-list"
+										   onClick={this.clickFragility}
+										   data={this.state.data} displayField="author"
+										   selectedFragility={this.state.fragility}/>
+							</div>
 						</GridTile>
 
-						{/* TODO replace with new panel component, should take in fragility parameter, replace click with state */}
-						<GridTile cols={6} rows={2}>
-							{this.state.fragility !== null ?
-								<div>
+						{/* Charts */}
+						{this.state.fragility ?
+							<GridTile cols={7}>
+								<h2>Preview</h2>
+								<div style={{overflow: "auto", height: "600px", margin: "0 20px"}}>
+									<div style={{marginLeft: "auto", marginBottom: "20px"}}>
+										<RaisedButton primary={true} style={{display: "inline-block"}}
+													  label="Download Metadata"
+													  onClick={this.exportJson}/>
+									</div>
 									<Card>
-										{this.state.is3dPlot ?
-											<ThreeDimensionalPlot plotId="3dplot" data={this.state.plotData3d}
-																  xLabel={this.state.fragility.demandType} yLabel="Y"
-																  zLabel={this.state.fragility.fragilityCurves[0].description}
-																  width="100%" height="400px" style="surface"/>
+										{this.state.fragility.is3dPlot ?
+											<div>
+												<h3 style={{textAlign: "center"}}>{this.state.plotData3d.title}</h3>
+												<ThreeDimensionalPlot plotId="3dplot" data={this.state.plotData3d.data}
+																	  xLabel={this.state.fragility.demandType}
+																	  yLabel="Y"
+																	  zLabel={this.state.fragility.fragilityCurves[0].description}
+																	  width="100%" height="350px" style="surface"/>
+											</div>
 											:
 											<LineChart chartId="chart" configuration={this.state.chartConfig}/>}
 									</Card>
+
 									{this.state.fragility.fragilityCurves[0].className.includes("CustomExpressionFragilityCurve") ?
 										<CustomExpressionTable fragility={this.state.fragility}/>
 										:
 										<DistributionTable fragility={this.state.fragility}/>}
 								</div>
-								:
-								<div></div>
-							}
-						</GridTile>
+							</GridTile>
+							:
+							<div></div>
+						}
+
 					</GridList>
 				</div>
 			);
@@ -346,7 +406,6 @@ class FragilityExplorerPage extends React.Component {
 		this.setState({
 			chartConfig: plotConfig2d,
 			plotData3d: plotData3d,
-			is3dPlot: is3dPlot,
 			fragility: fragility
 		});
 	}
@@ -384,11 +443,11 @@ class FragilityExplorerPage extends React.Component {
 					plotData = chartSampler.sampleLogNormalAlternate(0, 0.999, 1000, curve.median, curve.beta);
 				}
 			} else if (curve.className.includes("periodStandardFragilityCurve")) {
-
+				console.log("not implemented");
 			} else if (curve.className.includes("buildingPeriodStandardFragilityCurve")) {
-
+				console.log("not implemented");
 			} else {
-
+				console.log("not implemented");
 			}
 
 			let series = {
@@ -404,10 +463,13 @@ class FragilityExplorerPage extends React.Component {
 
 	async generate3dPlotData(fragility) {
 		let curve = fragility.fragilityCurves[0];
-
 		let plotData = await chartSampler.computeExpressionSamples3d(0.001, 1.0, 50, 0.001, 1.0, 50, curve.expression);
 
-		return plotData;
+		let description = fragility.description !== null ? fragility.description : "";
+		let authors = fragility.authors.join(", ");
+		let title = `${description} [${authors}]`;
+
+		return {"data": plotData, "title": title};
 	}
 
 	is3dFragility(fragility) {

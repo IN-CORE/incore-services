@@ -48,7 +48,10 @@
     "shapefile": "0.6.2",
     "vis": "4.18.1",
     "whatwg-fetch": "2.0.2",
-    "xml2js": "0.4.17"
+    "xml2js": "0.4.17",
+    "@fortawesome/fontawesome": "1.1.5",
+    "@fortawesome/react-fontawesome": "0.0.18",
+    "@fortawesome/fontawesome-free-solid": "5.0.10"
   },
   "devDependencies": {
     "autoprefixer": "6.5.4",
