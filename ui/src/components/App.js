@@ -42,8 +42,6 @@ class App extends Component {
 				<FlatButton style={{color: "white"}} label="Fragility Explorer" containerElement={<Link to={`${config.urlPrefix}/FragilityViewer`} />} />
 				<FlatButton style={{color: "white"}} label="Data Explorer" containerElement={<Link to={`${config.urlPrefix}/DataViewer`} />} />
 				<FlatButton style={{color: "white"}} label="Hazard Explorer" containerElement={<Link to={`${config.urlPrefix}/HazardViewer`} />} />
-				<FlatButton style={{color: "white"}} label="Analysis" containerElement={<Link to={`${config.urlPrefix}/Execute`} />} />
-				<FlatButton style={{color: "white"}} label="Help" containerElement={<Link to={`${config.urlPrefix}/Help`} />} />
 				<FlatButton style={{color: "white"}} label="Logout" containerElement={<Link to={`${config.baseUrl}`} />} onClick={this.logout} />
 			</div>);
 		}
