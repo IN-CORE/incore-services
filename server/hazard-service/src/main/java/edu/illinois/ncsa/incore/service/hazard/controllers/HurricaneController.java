@@ -176,6 +176,7 @@ public class HurricaneController {
                 hurricaneWindfields.setCategory(inputHurricane.getCategory());
                 hurricaneWindfields.setCoast(inputHurricane.getCoast());
                 hurricaneWindfields.setGridResolution(inputHurricane.getGridResolution());
+                hurricaneWindfields.setRasterResolution(inputHurricane.getRasterResolution());
                 hurricaneWindfields.setTransD(inputHurricane.getTransD());
                 hurricaneWindfields.setModelUsed(hurricaneSimulationEnsemble.getModelUsed());
                 hurricaneWindfields.setLandfallLocation(inputHurricane.getLandfallLocation());
