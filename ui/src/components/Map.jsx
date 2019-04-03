@@ -1,22 +1,40 @@
 import React, {Component} from "react";
+import config from "../app.config";
+import {getHeader} from "../actions";
+
 let ol = require("openlayers");
 require("openlayers/css/ol.css");
 
-async function fetchExtent(name:string, boundingBox){
+let tileAttribution = "Tiles © <a href=\"https://services.arcgisonline.com/ArcGIS/" +
+	"rest/services/NatGeo_World_Map/MapServer\">ArcGIS</a> &mdash; National Geographic, Esri, DeLorme, NAVTEQ, " +
+	"UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC";
+
+async function fetchExtent(name: string) {
 
 	let parser = new ol.format.WMSCapabilities();
-	try{
-		const extentRequest = await fetch("http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms?SERVICE=WMS&REQUEST=GetCapabilities",
-			{method: "GET", mode:"cors"});
+	try {
+		const extentRequest = await fetch(`${config.geoServer}?SERVICE=WMS&REQUEST=GetCapabilities`,
+			{method: "GET", mode: "cors", headers: getHeader()});
 		const text = await extentRequest.text();
 		let result = parser.read(text);
 		let extent = result.Capability.Layer.Layer.find(l => l.Name === name).EX_GeographicBoundingBox;
 
 		return extent;
 
-	}catch(err){
+	} catch (err) {
 		console.log(err);
 		return err;
+	}
+}
+
+async function customLoader(tile, src) {
+
+	let response = await fetch(src, {method: "GET", mode: "cors", headers: getHeader()});
+	if (response.ok) {
+		let blob = await response.blob();
+		let urlCreator = window.URL || window.webkitURL;
+		let imageUrl = urlCreator.createObjectURL(blob);
+		tile.getImage().src = imageUrl;
 	}
 }
 
@@ -41,7 +59,7 @@ class Map extends Component {
 
 		return (
 			<div>
-				<div id="map" style={{width:"100%", height:"100%", position:"absolute", className:"root"}}/>
+				<div id="map" style={{width: "100%", height: "100%", position: "absolute", className: "root"}}/>
 			</div>
 		);
 
@@ -53,8 +71,10 @@ class Map extends Component {
 
 		let sourceTiled = new ol.source.TileWMS({
 			visible: false,
-			url: "https://incore2-geoserver.ncsa.illinois.edu/geoserver/incore/wms",
-			params: {"FORMAT": "image/png",
+			url: config.geoServer,
+			tileLoadFunction: customLoader,
+			params: {
+				"FORMAT": "image/png",
 				"VERSION": "1.1.1",
 				tiled: true,
 				name: "tiledLayer",
@@ -70,11 +90,7 @@ class Map extends Component {
 
 		let mapTile = new ol.layer.Tile({
 			source: new ol.source.XYZ({
-				attribution: [new ol.Attribution({
-					html: "Tiles © <a href=\"https://services.arcgisonline.com/ArcGIS/" +
-					"rest/services/NatGeo_World_Map/MapServer\">ArcGIS</a> &mdash; National Geographic, Esri, DeLorme, NAVTEQ, " +
-					"UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
-				})],
+				attribution: tileAttribution,
 				url: "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
 			})
 		});
@@ -89,11 +105,11 @@ class Map extends Component {
 			&& this.props.boundingBox.length === 4
 			&& this.props.boundingBox[2] > this.props.boundingBox[0]
 			&& this.props.boundingBox[3] > this.props.boundingBox[1]
-		){
+		) {
 			let extent = this.props.boundingBox;
 			theMap.getView().fit(extent, theMap.getSize());
 		}
-		else{
+		else {
 			let extent = await fetchExtent(this.props.datasetId);
 			theMap.getView().fit(extent, theMap.getSize());
 		}
@@ -102,7 +118,8 @@ class Map extends Component {
 	async componentDidMount() {
 		let sourceTiled = new ol.source.TileWMS({
 			visible: false,
-			url: "http://incore2-geoserver.ncsa.illinois.edu:9999/geoserver/incore/wms",
+			url: config.geoServer,
+			tileLoadFunction: customLoader,
 			params: {
 				FORMAT: "image/png",
 				VERSION: "1.1.1",
@@ -120,11 +137,7 @@ class Map extends Component {
 
 		let mapTile = new ol.layer.Tile({
 			source: new ol.source.XYZ({
-				attribution: [new ol.Attribution({
-					html: "Tiles © <a href=\"https://services.arcgisonline.com/ArcGIS/" +
-					"rest/services/NatGeo_World_Map/MapServer\">ArcGIS</a> &mdash; National Geographic, Esri, DeLorme, NAVTEQ, " +
-					"UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
-				})],
+				attribution: tileAttribution,
 				url: "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}",
 			})
 		});
@@ -141,7 +154,6 @@ class Map extends Component {
 			axisOrientation: "neu",
 			global: true
 		});
-
 
 
 		const view = new ol.View({
@@ -170,11 +182,11 @@ class Map extends Component {
 			&& this.props.boundingBox.length === 4
 			&& this.props.boundingBox[2] > this.props.boundingBox[0]
 			&& this.props.boundingBox[3] > this.props.boundingBox[1]
-		){
+		) {
 			let extent = this.props.boundingBox;
 			theMap.getView().fit(extent, theMap.getSize());
 		}
-		else{
+		else {
 			let extent = await fetchExtent(this.props.datasetId);
 			theMap.getView().fit(extent, theMap.getSize());
 		}
