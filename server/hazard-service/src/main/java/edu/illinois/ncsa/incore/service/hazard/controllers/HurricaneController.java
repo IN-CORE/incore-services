@@ -151,6 +151,7 @@ public class HurricaneController {
 
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new hurricane, simulation of hurricane windfields is returned.",
         notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
             "windfield's raster.")
@@ -175,6 +176,7 @@ public class HurricaneController {
                 hurricaneWindfields.setCategory(inputHurricane.getCategory());
                 hurricaneWindfields.setCoast(inputHurricane.getCoast());
                 hurricaneWindfields.setGridResolution(inputHurricane.getGridResolution());
+                hurricaneWindfields.setRasterResolution(inputHurricane.getRasterResolution());
                 hurricaneWindfields.setTransD(inputHurricane.getTransD());
                 hurricaneWindfields.setModelUsed(hurricaneSimulationEnsemble.getModelUsed());
                 hurricaneWindfields.setLandfallLocation(inputHurricane.getLandfallLocation());

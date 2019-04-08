@@ -33,8 +33,7 @@ public class HurricaneWindfields {
     public final String gridResolutionUnits = HurricaneUtil.GRID_RESOLUTION_UNITS;
     public final String rasterResolutionUnits = HurricaneUtil.RASTER_RESOLUTION_UNITS;
     public final String transDUnits = HurricaneUtil.TRANSD_UNITS;
-
-    public String velocityUnits = "kt";
+    private String velocityUnits = HurricaneUtil.UNITS_KT;
 
     private int gridResolution;
     private double rasterResolution;
@@ -51,7 +50,6 @@ public class HurricaneWindfields {
     public String getVelocityUnits() {
         return velocityUnits;
     }
-
     public void setVelocityUnits(String velocityUnits) {
         this.velocityUnits = velocityUnits;
     }
