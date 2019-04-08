@@ -65,7 +65,9 @@ public class HurricaneController {
     public List<HurricaneWindfields> getHurricaneWindfields(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
-        @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category) {
+        @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
+        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -81,7 +83,10 @@ public class HurricaneController {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCategory() == category).collect(Collectors.toList());
         }
 
-        return hurricaneWindfields;
+        return hurricaneWindfields.stream()
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
     }
 
     @GET

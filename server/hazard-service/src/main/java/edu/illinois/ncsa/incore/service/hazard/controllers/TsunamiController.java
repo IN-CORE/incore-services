@@ -57,10 +57,14 @@ public class TsunamiController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns all tsunamis.")
     public List<Tsunami> getTsunamis(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         return repository.getTsunamis().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
     }
 

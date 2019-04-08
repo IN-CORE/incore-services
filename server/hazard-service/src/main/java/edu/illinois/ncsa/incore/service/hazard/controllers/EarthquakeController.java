@@ -202,10 +202,14 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns all earthquakes.")
     public List<Earthquake> getEarthquakes(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         return repository.getEarthquakes().stream()
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
     }
 
