@@ -116,7 +116,9 @@ public class DatasetController {
                                      @ApiParam(value = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: ergo:buildingInventoryVer5, ergo:census",
                                          required = false) @QueryParam("type") String typeStr,
                                      @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
-                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator
+                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
+                                     @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                     @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit
     ) {
         List<Dataset> datasets = null;
         if (typeStr != null && titleStr == null) {  // query only for the type
@@ -137,6 +139,8 @@ public class DatasetController {
         return datasets.stream()
             .filter(d -> (creator == null || "".equals(creator.trim()) || creator.trim().equals(d.getCreator())))
             .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
     }
 
