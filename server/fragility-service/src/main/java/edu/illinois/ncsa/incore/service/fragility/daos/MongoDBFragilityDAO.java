@@ -79,7 +79,7 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
                  query.criteria("inventoryType").containsIgnoreCase(text),
                  query.criteria("authors").containsIgnoreCase(text));
 
-        List<FragilitySet> sets = query.limit(100).asList();
+        List<FragilitySet> sets = query.asList();
 
         return sets;
     }
@@ -88,21 +88,20 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.dataStore.createQuery(FragilitySet.class)
                                                 .filter(attributeType, attributeValue)
-                                                .limit(100)
                                                 .asList();
 
         return sets;
     }
 
     @Override
-    public List<FragilitySet> queryFragilities(Map<String, String> queryMap, int offset, int limit) {
+    public List<FragilitySet> queryFragilities(Map<String, String> queryMap) {
         Query<FragilitySet> query = this.dataStore.createQuery(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<FragilitySet> sets = query.offset(offset).limit(limit).asList();
+        List<FragilitySet> sets = query.asList();
 
         return sets;
     }

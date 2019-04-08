@@ -106,19 +106,15 @@ public class FragilityController {
         List<FragilitySet> fragilitySets;
 
         if (queryMap.isEmpty()) {
-            // return top 100
-            fragilitySets = this.fragilityDAO.getCachedFragilities()
-                .stream()
-                .skip(offset)
-                .limit(limit)
-                .collect(Collectors.toList());
+            fragilitySets = this.fragilityDAO.getCachedFragilities();
         } else {
-            // return query
-            fragilitySets = this.fragilityDAO.queryFragilities(queryMap, offset, limit);
+            fragilitySets = this.fragilityDAO.queryFragilities(queryMap);
         }
 
         return fragilitySets.stream()
             .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
     }
 
