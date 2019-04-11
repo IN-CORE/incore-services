@@ -115,14 +115,14 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public List<FragilitySet> queryFragilities(Map<String, String> queryMap, int offset, int limit) {
+    public List<FragilitySet> queryFragilities(Map<String, String> queryMap) {
         Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<FragilitySet> sets = query.offset(offset).limit(limit).asList();
+        List<FragilitySet> sets = query.asList();
 
         return sets;
     }

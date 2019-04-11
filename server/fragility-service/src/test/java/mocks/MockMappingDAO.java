@@ -45,7 +45,7 @@ public class MockMappingDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> queryMappingSets(Map<String, String> queryMap, int offset, int limit) {
+    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
         return null;
     }
 
@@ -53,4 +53,6 @@ public class MockMappingDAO implements IMappingDAO {
     public void saveMappingSet(MappingSet mappingSet) {
         this.mappingSets.add(mappingSet);
     }
+
+
 }
