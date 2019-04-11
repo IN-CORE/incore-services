@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,19 +105,15 @@ public class FragilityController {
         List<FragilitySet> fragilitySets;
 
         if (queryMap.isEmpty()) {
-            // return top 100
-            fragilitySets = this.fragilityDAO.getCachedFragilities()
-                .stream()
-                .skip(offset)
-                .limit(limit)
-                .collect(Collectors.toList());
+            fragilitySets = this.fragilityDAO.getCachedFragilities();
         } else {
-            // return query
-            fragilitySets = this.fragilityDAO.queryFragilities(queryMap, offset, limit);
+            fragilitySets = this.fragilityDAO.queryFragilities(queryMap);
         }
 
         return fragilitySets.stream()
             .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
     }
 
@@ -161,15 +156,15 @@ public class FragilityController {
         @ApiResponse(code = 404, message = "No fragilities found with the searched text")
     })
     public List<FragilitySet> findFragilities(@HeaderParam("X-Credential-Username") String username,
-                                              @ApiParam(value="Text to search by", example = "steel") @QueryParam("text") String text) {
+                                              @ApiParam(value="Text to search by", example = "steel") @QueryParam("text") String text,
+                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<FragilitySet> sets = this.fragilityDAO.searchFragilities(text);
 
-        if (sets == null || sets.size() == 0) {
-            throw new NotFoundException();
-        } else {
-            return sets.stream()
-                .filter(b -> authorizer.canRead(username, b.getPrivileges()))
-                .collect(Collectors.toList());
-        }
+        return sets.stream()
+            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
     }
 }

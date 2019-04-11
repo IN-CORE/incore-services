@@ -73,17 +73,15 @@ public class MappingController {
         List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
-            mappingSets = this.mappingDAO.getMappingSets()
-                .stream()
-                .skip(offset)
-                .limit(limit)
-                .collect(Collectors.toList());
+            mappingSets = this.mappingDAO.getMappingSets();
         } else {
-            mappingSets = this.mappingDAO.queryMappingSets(queryMap, offset, limit);
+            mappingSets = this.mappingDAO.queryMappingSets(queryMap);
         }
 
         return mappingSets.stream()
             .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
     }
 

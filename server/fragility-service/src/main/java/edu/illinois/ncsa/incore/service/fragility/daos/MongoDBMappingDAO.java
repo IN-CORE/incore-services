@@ -59,14 +59,14 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> queryMappingSets(Map<String, String> queryMap, int offset, int limit) {
+    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
         Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<MappingSet> mappingSets = query.offset(offset).limit(limit).asList();
+        List<MappingSet> mappingSets = query.asList();
 
         return mappingSets;
     }
