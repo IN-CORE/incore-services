@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
     //externalDocs = @ExternalDocs(value = "FEMA  Hazard Manual", url = "https://www.fema.gov/earthquake")
 )
 
-@Api(value="earthquakes", authorizations = {})
+@Api(value = "earthquakes", authorizations = {})
 
 @Path("earthquakes")
 @ApiResponses(value = {
@@ -85,6 +85,9 @@ public class EarthquakeController {
     @Inject
     private AttenuationProvider attenuationProvider;
 
+//    @Inject
+//    private BaseAttenuation model;
+
     @Inject
     private IAuthorizer authorizer;
 
@@ -94,7 +97,7 @@ public class EarthquakeController {
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new earthquake, the newly created earthquake is returned.",
-        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create both model earthquakes (with attenuation) and dataset-based earthquakes " +
             "with GeoTiff files uploaded.")
     @ApiImplicitParams({
@@ -177,7 +180,7 @@ public class EarthquakeController {
                         }
 
                         String filename = filePart.getContentDisposition().getFileName();
-                        BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
+                        BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
                         InputStream fis = bodyPartEntity.getInputStream();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName, username, description, datasetType);
@@ -186,10 +189,10 @@ public class EarthquakeController {
                     // Save changes to earthquake
                     earthquake = repository.addEarthquake(earthquake);
                     return earthquake;
-                }
-                else {
+                } else {
                     logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
-                    throw new BadRequestException("Could not create Earthquake. Check your file extensions and the number of files in the request.");                }
+                    throw new BadRequestException("Could not create Earthquake. Check your file extensions and the number of files in the request.");
+                }
             }
 
         } catch (IOException e) {
@@ -354,17 +357,163 @@ public class EarthquakeController {
         }
     }
 
+
+    @GET
+    @Path("{earthquake-id}/aleatoryuncertainty")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns aleatory uncertainties for a model based earthquake")
+    public Map<String, Double> getEarthquakeAleatoricUncertainties(@ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+                                                                   @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
+                                                                   @ApiParam(value = "Demand Type. Ex: PGA.", required = true) @QueryParam("demandType") String demandType) {
+        Earthquake eq = getEarthquake(earthquakeId, username);
+        if (eq != null && eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
+            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+
+            Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+            Map<String, Double> cumulativeAleatoryUncertainties = new HashMap<>();
+
+            while (iterator.hasNext()) {
+                BaseAttenuation model = iterator.next();
+                Double weight = attenuations.get(model);
+                Map<String, Double> aleatoryUncertainties = model.getAleatoricUncertainties();
+
+                if (aleatoryUncertainties != null) {
+                    //This logic adopted from the paper, assumes all models will have
+                    // the same set of demand types defined for their respective aleatory uncertainties
+                    aleatoryUncertainties.forEach((key, value) -> {
+                        if (cumulativeAleatoryUncertainties.containsKey(key)) {
+                            Double curVal = cumulativeAleatoryUncertainties.get(key);
+                            cumulativeAleatoryUncertainties.put(key, curVal + (weight * Math.pow(value, 2)));
+                        } else {
+                            cumulativeAleatoryUncertainties.put(key, (weight * Math.pow(value, 2)));
+                        }
+                    });
+                }
+            }
+
+            for (Map.Entry<String, Double> element : cumulativeAleatoryUncertainties.entrySet()) {
+                cumulativeAleatoryUncertainties.put(element.getKey(), Math.sqrt(element.getValue()));
+            }
+
+            if (cumulativeAleatoryUncertainties.size() > 0) {
+                if (demandType != null && demandType.trim() != "") {
+                    if (cumulativeAleatoryUncertainties.containsKey(demandType.trim().toUpperCase())) {
+                        return new HashMap<String, Double>() {
+                            {
+                                put(demandType, cumulativeAleatoryUncertainties.get(demandType.trim().toUpperCase()));
+                            }
+                        };
+                    }
+                }
+            }
+            return cumulativeAleatoryUncertainties;
+        } else {
+            logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " is not attenuation model based");
+        }
+    }
+
+    @GET
+    @Path("{earthquake-id}/variance/{variance-type}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns total and epistemic variance for a model based earthquake",
+        notes = "Only functional for total variance of ChiouYoungs2014 model based earthquakes")
+    public List<VarianceResult> getEarthquakeVariance(@ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+                                                      @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
+                                                      @ApiParam(value = "Type of Variance. epistemic or total", required = true) @PathParam("variance-type") String varianceType,
+                                                      @ApiParam(value = "Demand Type. Ex: PGA.", required = true) @QueryParam("demandType") String demandType,
+                                                      @ApiParam(value = "Demand unit. Ex: g.", required = true) @QueryParam("demandUnits") String demandUnits,
+                                                      @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
+
+        Earthquake eq = getEarthquake(earthquakeId, username);
+        List<VarianceResult> varianceResults = new ArrayList<>();
+        if (eq != null && eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
+            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+            List<SeismicHazardResult> seismicHazardResults = getEarthquakeHazardValues(username, earthquakeId, demandType, demandUnits,
+                false, points);
+            Map<String, Double> aleatoricUncertainties = getEarthquakeAleatoricUncertainties(username, earthquakeId, demandType);
+
+            // single attenuation model with weight 1
+            boolean hasSingleModel = (attenuations.size() == 1);
+            BaseAttenuation singleModel = null;
+
+            int i = 0;
+            for (IncorePoint point : points) {
+                Site localSite = new Site(point.getLocation());
+                Double hazardVal = seismicHazardResults.get(i).getHazardValue();
+                Double cumulativeEpistemicVariance = 0.0;
+                Double cumulativeTotalVariance = 0.0;
+
+                for (Map.Entry<BaseAttenuation, Double> element : attenuations.entrySet()) {
+                    BaseAttenuation model = element.getKey();
+                    Double weight = element.getValue();
+                    if (i == 0) {
+                        singleModel = model;
+                    }
+                    try {
+                        Double epistemicVariance = model.getEpistemicVariance(hazardVal, demandType, localSite);
+                        cumulativeEpistemicVariance += weight * Math.pow(epistemicVariance, 2);
+                    } catch (Exception e) {
+                        logger.error("Error fetching epistemic variance for earthquake id " + earthquakeId, e);
+                    }
+                }
+
+                cumulativeEpistemicVariance = Math.sqrt(cumulativeEpistemicVariance);
+
+                if (varianceType.equalsIgnoreCase("total")) {
+                    if (hasSingleModel) {
+                        // This is for ChiouYoungs2014 that does not have aleatory uncertainty set and uses a custom stddev method
+                        // NOTE that ChiouYoungs2014 will not work together with other models to share weights.
+                        try {
+                            cumulativeTotalVariance = singleModel.getStandardDeviation(hazardVal, demandType, localSite);
+                        } catch (Exception e) {
+                            logger.error("Error fetching standard deviation for earthquake id " + earthquakeId, e);
+                        }
+                    } else {
+                        if (aleatoricUncertainties != null && aleatoricUncertainties.containsKey(demandType.trim().toUpperCase())) {
+                            Double aleatoricUncertainty = aleatoricUncertainties.get(demandType.trim().toUpperCase());
+                            cumulativeTotalVariance = Math.sqrt(Math.pow(aleatoricUncertainty, 2) + Math.pow(cumulativeEpistemicVariance, 2));
+
+                        } else {
+                            logger.error("Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
+                            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
+                        }
+                    }
+                    varianceResults.add(new VarianceResult(localSite.getLocation().getY(), localSite.getLocation().getX(),
+                        demandType, demandUnits, cumulativeTotalVariance));
+                } else if (varianceType.equalsIgnoreCase("epistemic")) {
+                    varianceResults.add(new VarianceResult(localSite.getLocation().getY(), localSite.getLocation().getX(),
+                        demandType, demandUnits, cumulativeEpistemicVariance));
+
+                } else {
+                    logger.error("Input variance type " + varianceType + " is not implemented");
+                    throw new InternalServerErrorException("Input variance type " + varianceType + " is not implemented");
+                }
+            }
+
+        } else {
+            logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " is not attenuation model based");
+        }
+
+        return varianceResults;
+
+    }
+
+
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns liquefaction (PGD) values.",
-        notes="This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
+        notes = "This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
     public List<LiquefactionHazardResult> getEarthquakeLiquefaction(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true)  @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Geology dataset from data service.", required = true) @QueryParam("geologyDataset") String geologyId,
         @ApiParam(value = "Ground Water Id that currently doesn't do anything.") @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId,
-        @ApiParam(value = "Liquefaction demand unit. Ex: PGD", required = true)@QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Liquefaction demand unit. Ex: PGD", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'", required = true) @QueryParam("point") List<IncorePoint> points) {
         Earthquake eq = getEarthquake(earthquakeId, username);
         // TODO add logging/error for earthquake dataset that it can't be used
@@ -391,7 +540,7 @@ public class EarthquakeController {
     @GET
     @Path("/soil/amplification")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns earthquake site hazard amplification.", notes=" This returns the amplified " +
+    @ApiOperation(value = "Returns earthquake site hazard amplification.", notes = " This returns the amplified " +
         "hazard given a methodology (e.g. NEHRP), soil map dataset id (optional), latitude, longitude, ground shaking " +
         "parameter (PGA, Sa, etc), hazard value, and default site class to use.")
     public Response getEarthquakeSiteAmplification(
@@ -449,7 +598,7 @@ public class EarthquakeController {
     @GET
     @Path("models")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true, value = "Returns attenuation models.", notes="This returns the requested " +
+    @ApiOperation(hidden = true, value = "Returns attenuation models.", notes = "This returns the requested " +
         "ground shaking parameter (PGA, SA, etc) for a lat/long location using the attenuation model specified.")
     public Set<String> getSupportedEarthquakeModels() {
         return attenuationProvider.getAttenuations().keySet();
