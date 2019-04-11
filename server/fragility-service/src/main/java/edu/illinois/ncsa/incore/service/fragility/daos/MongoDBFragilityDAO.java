@@ -77,6 +77,7 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
                  query.criteria("legacyId").containsIgnoreCase(text),
                  query.criteria("hazardType").containsIgnoreCase(text),
                  query.criteria("inventoryType").containsIgnoreCase(text),
+                 query.criteria("description").containsIgnoreCase(text),
                  query.criteria("authors").containsIgnoreCase(text));
 
         List<FragilitySet> sets = query.asList();
