@@ -7,6 +7,7 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
 
 public enum WindfieldDemandUnits {
+    mph,
     kt,
     mps,
     kmph;
