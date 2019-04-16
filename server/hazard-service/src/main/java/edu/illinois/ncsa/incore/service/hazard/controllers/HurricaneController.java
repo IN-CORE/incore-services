@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
@@ -56,8 +55,6 @@ public class HurricaneController {
 
     @Inject
     private IHurricaneRepository repository;
-
-    private GeometryFactory factory = new GeometryFactory();
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
@@ -111,8 +108,10 @@ public class HurricaneController {
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
-        @ApiParam(value = "Hurricane demand type. Ex. 'velocity'.") @QueryParam("demandType") @DefaultValue("velocity") String demandType,
-        @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue("kt") WindfieldDemandUnits demandUnits,
+        @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.") @QueryParam("demandType") @DefaultValue(HurricaneUtil.WIND_VELOCITY_3SECS) String demandType,
+        @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue(HurricaneUtil.UNITS_MPH) WindfieldDemandUnits demandUnits,
+        @ApiParam(value = "Elevation in meters at which wind speed has to be calculated.") @QueryParam("elevation") @DefaultValue("10.0") double elevation,
+        @ApiParam(value = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @QueryParam("roughness") @DefaultValue("0.03") double roughness,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.09,-80.62'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(username, hurricaneId);
@@ -125,18 +124,29 @@ public class HurricaneController {
         File incoreWorkDir = ServiceUtil.getWorkDirectory();
         File zipFile = ServiceUtil.getFileFromDataService(datasetId, username, incoreWorkDir);
         URL shpFileUrl = GISUtil.unZipShapefiles(zipFile, incoreWorkDir);
-        String hurricaneUnits = hurricane.getVelocityUnits();
+        String hurrDemandType = hurricane.getDemandType();
+        String hurrDemandUnits  = hurricane.getDemandUnits().toString();
 
         if (hurricane != null) {
+
+            if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
+                log.error("Unsupported hurricane demandType provided to GET values : "+ demandType);
+                throw new NotFoundException("Unsupported hurricane demandType. Please use 3s or 60s.");
+            }
+
             for (IncorePoint point : points) {
                 double windValue = 0;
                 double lat = point.getLocation().getY();
                 double lon = point.getLocation().getX();
                 try {
                     //TODO: Take features directly instead of loading from file each time - improves performance
-                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(shpFileUrl.getPath(), lat, lon);
-                    if (!demandUnits.toString().equals(hurricaneUnits)) {
-                        windValue = HurricaneUtil.getCorrectUnitsOfVelocity(windValue, hurricaneUnits, demandUnits.toString());
+                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(shpFileUrl.getPath(), lat, lon); // 3s gust at 10m elevation
+
+                    HashMap <String, Double> convertedWf = HurricaneUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
+                    windValue = convertedWf.get(demandType);
+
+                    if (!demandUnits.toString().equals(hurrDemandUnits)) {
+                        windValue = HurricaneUtil.getCorrectUnitsOfVelocity(windValue, hurrDemandUnits, demandUnits.toString());
                     }
                 } catch (IOException e) {
                     log.error("Velocity calculation failed from the shapefile");
@@ -159,16 +169,22 @@ public class HurricaneController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new hurricane, simulation of hurricane windfields is returned.",
         notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
-            "windfield's raster.")
+            "windfield's raster. Each cell represents the windspeed at 10m elevation and 3-sec wind gust by default")
     public HurricaneWindfields createHurricaneWindfields(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         HurricaneWindfields inputHurricane) {
 
         HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
         if (inputHurricane != null) {
+            String demandType = inputHurricane.getDemandType().trim();
+
+            if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
+                log.error("Unsupported hurricane demandType provided in POST JSON : "+ demandType);
+                throw new NotFoundException("Unsupported hurricane demandType. Please use 3s or 60s");
+            }
             HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(username,
                 inputHurricane.getCoast(), inputHurricane.getCategory(), inputHurricane.getTransD(),
-                new IncorePoint(inputHurricane.getLandfallLocation()),
+                new IncorePoint(inputHurricane.getLandfallLocation()), demandType, inputHurricane.getDemandUnits().toString().trim(),
                 inputHurricane.getGridResolution(), inputHurricane.getGridPoints(), inputHurricane.getRfMethod());
 
             try {
@@ -188,6 +204,10 @@ public class HurricaneController {
                 hurricaneWindfields.setPrivileges(Privileges.newWithSingleOwner(username));
                 hurricaneWindfields.setTimes(hurricaneSimulationEnsemble.getTimes());
                 hurricaneWindfields.setGridPoints(inputHurricane.getGridPoints());
+
+                hurricaneWindfields.setDemandType(inputHurricane.getDemandType());
+                hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
+
                 hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
                     inputHurricane.getRasterResolution(), username));
 
@@ -216,6 +236,8 @@ public class HurricaneController {
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
         @ApiParam(value = "Huricane landfall direction angle. Ex: 30.5.", required = true) @QueryParam("TransD") double transD,
         @ApiParam(value = "Huricane landfall location. Ex: '28.09,-80.62'.", required = true) @QueryParam("LandfallLoc") IncorePoint landfallLoc,
+        @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Hurricane demand unit.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "Resolution. Ex: 6.", required = true) @QueryParam("resolution") @DefaultValue("6") int resolution,
         @ApiParam(value = "Number of grid points. Ex: 80.", required = true) @QueryParam("gridPoints") @DefaultValue("80") int gridPoints,
         @ApiParam(value = "Reduction type. Ex: 'circular'.", required = true) @QueryParam("reductionType") @DefaultValue("circular") String rfMethod) {
@@ -227,7 +249,7 @@ public class HurricaneController {
 
         if (HurricaneUtil.categoryMapping.get(coast) != null) {
             return HurricaneCalc.simulateHurricane(username, transD, landfallLoc,
-                HurricaneUtil.categoryMapping.get(coast)[category - 1], resolution, gridPoints, rfMethod);
+                HurricaneUtil.categoryMapping.get(coast)[category - 1], demandType, demandUnits, resolution, gridPoints, rfMethod);
         } else {
             throw new NotFoundException("Error finding a mapping for the coast and category");
         }

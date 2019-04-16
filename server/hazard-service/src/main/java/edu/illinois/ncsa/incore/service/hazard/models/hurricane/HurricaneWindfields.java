@@ -9,6 +9,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.WindfieldDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
@@ -33,7 +34,8 @@ public class HurricaneWindfields {
     public final String gridResolutionUnits = HurricaneUtil.GRID_RESOLUTION_UNITS;
     public final String rasterResolutionUnits = HurricaneUtil.RASTER_RESOLUTION_UNITS;
     public final String transDUnits = HurricaneUtil.TRANSD_UNITS;
-    private String velocityUnits = HurricaneUtil.UNITS_KT;
+    private String demandType = HurricaneUtil.WIND_VELOCITY_3SECS;
+    private WindfieldDemandUnits demandUnits = WindfieldDemandUnits.fromString(HurricaneUtil.UNITS_MPH);
 
     private int gridResolution;
     private double rasterResolution;
@@ -47,11 +49,14 @@ public class HurricaneWindfields {
     private List<String> times = new ArrayList();
     private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
 
-    public String getVelocityUnits() {
-        return velocityUnits;
+    public String getDemandType() { return demandType; }
+    public void setDemandType(String demandType) { this.demandType = demandType; }
+
+    public WindfieldDemandUnits getDemandUnits() {
+        return demandUnits;
     }
-    public void setVelocityUnits(String velocityUnits) {
-        this.velocityUnits = velocityUnits;
+    public void setDemandUnits(WindfieldDemandUnits demandUnits) {
+        this.demandUnits = demandUnits;
     }
 
     public String getId() {

@@ -270,6 +270,8 @@ Content-Type: application/json
 	"description": "Simulated test hurricane",
 	"coast": "florida",
 	"category": 1,
+    "demandType": "3s",
+    "demandUnits": "mph",
 	"gridResolution": 6,
 	"rasterResolution": 1,
 	"transD": -83,
@@ -279,13 +281,13 @@ Content-Type: application/json
 
 ### Simulate a Hurricane Windfield by returning the result as JSON 
 
-GET http://localhost:8080/hazard/api/hurricaneWindfields/json/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10
+GET http://localhost:8080/hazard/api/hurricaneWindfields/json/florida?category=1&TransD=-83&LandfallLoc=28.08,-80.61&resolution=6&gridPoints=10&demandType=3s&demandUnits=mph
 
 This API does not store shapefiles in data service and is probably not needed in production environment
 
 ### GET values from hurricane simulation
 
-GET http://localhost:8080/hazard/api/hurricaneWindfields/5bcfe8a82d2ad516bb7ebac3/values?point=28,-81&point=28.1,-81.1&demandUnits=kmph&demandType=velocity
+GET http://localhost:8080/hazard/api/hurricaneWindfields/5bcfe8a82d2ad516bb7ebac3/values?point=28.01,-81.01&demandType=60s&elevation=32.1&roughness=2.2&demandUnits=mps
 
 The converted json model files are also in box:
 https://uofi.box.com/s/ycneuzlzyt8rqwuu03gfeq4srbhucpch
