@@ -4,7 +4,6 @@ import LineChart from "../components/LineChart";
 import Notification from "../components/Notification";
 import ThreeDimensionalPlot from "../components/ThreeDimensionalPlot";
 import "whatwg-fetch";
-
 import {
 	SelectField,
 	GridList,
@@ -30,8 +29,11 @@ import DistributionTable from "./DistributionTable";
 import CustomExpressionTable from "./CustomExpressionTable";
 import {getHeader} from "../actions";
 import {browserHistory} from "react-router";
+import FontAwesomeIcon from "@fortawesome/react-fontawesome";
+import {faChevronLeft, faChevronRight} from "@fortawesome/fontawesome-free-solid";
 
 class FragilityExplorerPage extends React.Component {
+
 	constructor(props) {
 		super(props);
 
@@ -41,24 +43,33 @@ class FragilityExplorerPage extends React.Component {
 			selectedDemand: null,
 			selectedAuthor: null,
 			searchText: "",
+			searching: false,
 			fragility: null,
 			data: [],
 			chartConfig: chartConfig.FragilityConfig,
 			plotData3d: {},
 			authError: false,
-			authLocationFrom: sessionStorage.getItem("locationFrom")
+			authLocationFrom: sessionStorage.getItem("locationFrom"),
+			offset: 0,
+			pageNumber: 1,
+			dataPerPage: 15
 		};
 
 		this.clickFragility = this.clickFragility.bind(this);
-		this.handleAuthorSelection = this.handleAuthorSelection.bind(this);
 		this.handleInventorySelection = this.handleInventorySelection.bind(this);
 		this.handleHazardSelection = this.handleHazardSelection.bind(this);
-		this.handleDemandSelection = this.handleDemandSelection.bind(this);
+		this.handleSearch = this.handleSearch.bind(this);
 
 		this.handleKeyPressed = this.handleKeyPressed.bind(this);
 		this.searchFragilities = this.searchFragilities.bind(this);
+		this.queryFragilities = this.queryFragilities.bind(this);
 
 		this.exportJson = this.exportJson.bind(this);
+		this.previous = this.previous.bind(this);
+		this.next = this.next.bind(this);
+
+		this.changeDataPerPage = this.changeDataPerPage.bind(this);
+
 	}
 
 	async componentWillMount() {
@@ -89,7 +100,7 @@ class FragilityExplorerPage extends React.Component {
 		let host = config.fragilityService;
 		let fragilityId = this.props.params.id;
 
-		let url = host;
+		let url = `${host}?limit=${this.state.dataPerPage}&skip=${this.state.offset}`;
 		if (fragilityId !== undefined) {
 			url = `${host}/${fragilityId}`;
 		}
@@ -113,6 +124,7 @@ class FragilityExplorerPage extends React.Component {
 				await this.clickFragility(fragilitiesWithInfo); // only one fragility (get by id called)
 			}
 
+
 			await this.setState({
 				data: fragilitiesWithInfo,
 				authError: false
@@ -135,31 +147,52 @@ class FragilityExplorerPage extends React.Component {
 		}
 	}
 
-	async handleInventorySelection(event, index, value) {
-		await this.setState({selectedInventory: value});
-		await this.queryFragilities();
+	handleInventorySelection(event, index, value) {
+		this.setState({
+			searching: false,
+			searchText: "",
+			selectedInventory: value,
+			pageNumber: 1,
+			offset: 0
+		},
+			async function () {
+				await this.queryFragilities();
+			}
+		);
 	}
 
-	async handleHazardSelection(event, index, value) {
-		await this.setState({selectedHazard: value});
-		await this.queryFragilities();
+	handleHazardSelection(event, index, value) {
+		this.setState({
+			searching: false,
+			searchText: "",
+			selectedHazard: value,
+			pageNumber: 1,
+			offset: 0
+		},
+			async function () {
+				await this.queryFragilities();
+			}
+		);
 	}
 
-	async handleDemandSelection(event, index, value) {
-		await this.setState({selectedDemand: value});
-		await this.queryFragilities();
-	}
-
-	async handleAuthorSelection(event, index, value) {
-		await this.setState({selectedAuthor: value});
-		await this.queryFragilities();
-	}
-
-	async handleKeyPressed(event) {
+	handleKeyPressed(event) {
 		if (event.charCode === 13) { // enter
 			event.preventDefault();
-			await this.searchFragilities();
+			this.handleSearch();
 		}
+	}
+
+	handleSearch() {
+		this.setState({
+			searchText: this.refs.searchBox.getValue(),
+			searching: true,
+			pageNumber: 1,
+			offset: 0
+		},
+			async function () {
+				await this.queryFragilities();
+			}
+		);
 	}
 
 	async searchFragilities() {
@@ -167,7 +200,7 @@ class FragilityExplorerPage extends React.Component {
 
 		let host = config.fragilityService;
 
-		let url = `${host}/search?text=${searchText}`;
+		let url = `${host}/search?text=${searchText}&limit=${this.state.dataPerPage}&skip=${this.state.offset}`;
 
 		let response = await fetch(url, {method: "GET", mode: "cors", headers: getHeader()});
 
@@ -184,9 +217,10 @@ class FragilityExplorerPage extends React.Component {
 					fragilitiesWithInfo.push(fragility);
 				});
 
-				await this.setState({
-					data: fragilitiesWithInfo
-				});
+				await this.setState(prevState => ({
+					data: fragilitiesWithInfo,
+					pageNumber: prevState.searching ? this.state.pageNumber : 1
+				}));
 
 				// By default select the first returned in the list of fragilities
 				if (fragilitiesWithInfo.length > 0) {
@@ -217,18 +251,24 @@ class FragilityExplorerPage extends React.Component {
 	}
 
 	async queryFragilities() {
-		let host = config.fragilityService;
+		if (this.state.searchText && this.state.searching) {
+			await this.searchFragilities();
+			return;
+		}
 
+		this.setState({searching: false});
+
+		let host = config.fragilityService;
 		let url = "";
 
 		if (this.state.selectedInventory !== null && this.state.selectedHazard !== null) {
-			url = `${host}?inventory=${this.state.selectedInventory}&hazard=${this.state.selectedHazard}`;
+			url = `${host}?inventory=${this.state.selectedInventory}&hazard=${this.state.selectedHazard}&limit=${this.state.dataPerPage}&skip=${this.state.offset}`;
 		} else if (this.state.selectedInventory !== null) {
-			url = `${host}?inventory=${this.state.selectedInventory}`;
+			url = `${host}?inventory=${this.state.selectedInventory}&limit=${this.state.dataPerPage}&skip=${this.state.offset}`;
 		} else if (this.state.selectedHazard !== null) {
-			url = `${host}?hazard=${this.state.selectedHazard}`;
+			url = `${host}?hazard=${this.state.selectedHazard}&limit=${this.state.dataPerPage}&skip=${this.state.offset}`;
 		} else {
-			url = `${host}`;
+			url = `${host}?limit=${this.state.dataPerPage}&skip=${this.state.offset}`;
 		}
 
 		let response = await fetch(url, {method: "GET", mode: "cors", headers: getHeader()});
@@ -281,6 +321,38 @@ class FragilityExplorerPage extends React.Component {
 		}
 	}
 
+	previous() {
+		this.setState({
+			offset: (this.state.pageNumber - 2) * this.state.dataPerPage,
+			pageNumber: this.state.pageNumber - 1},
+			async function () {
+				await this.queryFragilities();
+			}
+		);
+	}
+
+	next() {
+		this.setState({
+			offset: (this.state.pageNumber) * this.state.dataPerPage,
+			pageNumber: this.state.pageNumber + 1},
+			async function () {
+				await this.queryFragilities();
+			}
+		);
+
+	}
+
+	changeDataPerPage(event, index, value) {
+		this.setState({
+			pageNumber: 1,
+			offset: 0,
+			dataPerPage: value},
+			async function () {
+				await this.queryFragilities();
+			}
+		);
+	}
+
 	render() {
 		if (this.state.authError) {
 			if (this.state.authLocationFrom !== undefined
@@ -294,8 +366,17 @@ class FragilityExplorerPage extends React.Component {
 			}
 		}
 		else {
+			const data_per_page = (<SelectField floatingLabelText="Results per page"
+											  value={this.state.dataPerPage}
+											  onChange={this.changeDataPerPage} style={{maxWidth:"200px"}}>
+				<MenuItem primaryText="15" value={15}/>
+				<MenuItem primaryText="30" value={30}/>
+				<MenuItem primaryText="50" value={50}/>
+				<MenuItem primaryText="75" value={75}/>
+				<MenuItem primaryText="100" value={100}/>
+			</SelectField>);
 			return (
-				<div style={{padding: "20px"}}>
+				<div style={{padding: "20px", height: "100%"}}>
 					<div style={{display: "flex"}}>
 						<h2>Fragility Function Viewer</h2>
 					</div>
@@ -303,9 +384,9 @@ class FragilityExplorerPage extends React.Component {
 					<GridList cols={12} cellHeight="auto">
 						{/* Hazard Type */}
 						<GridTile cols={3}>
-							<SelectField fullWidth={true} floatingLabelText="Hazard Type"
+							<SelectField floatingLabelText="Hazard Type"
 										 hintText="Hazard Type" value={this.state.selectedHazard}
-										 onChange={this.handleHazardSelection}>
+										 onChange={this.handleHazardSelection} style={{maxWidth:"200px"}}>
 								<MenuItem primaryText="Earthquake" value="earthquake"/>
 								<MenuItem primaryText="Tornado" value="tornado"/>
 								<MenuItem primaryText="Tsunami" value="tsunami"/>
@@ -314,9 +395,9 @@ class FragilityExplorerPage extends React.Component {
 
 						{/* Inventory Type */}
 						<GridTile cols={3}>
-							<SelectField fullWidth={true} floatingLabelText="Inventory Type"
+							<SelectField floatingLabelText="Inventory Type"
 										 hintText="Inventory Type" value={this.state.selectedInventory}
-										 onChange={this.handleInventorySelection}>
+										 onChange={this.handleInventorySelection} style={{maxWidth:"200px"}}>
 								<MenuItem primaryText="Building" value="building"/>
 								<MenuItem primaryText="Bridge" value="bridge"/>
 								<Divider/>
@@ -330,24 +411,42 @@ class FragilityExplorerPage extends React.Component {
 							</SelectField>
 						</GridTile>
 
+						{/*Data per page */}
+						<GridTile cols={3} style={{float: "left"}}>
+							{data_per_page}
+						</GridTile>
+
 						{/* Search Box */}
-						<GridTile cols={6} style={{float: "right"}}>
-							<TextField ref="searchBox" hintText="Search Fragilities" onKeyPress={this.handleKeyPressed}/>
+						<GridTile cols={3} style={{float: "right"}}>
+							<TextField ref="searchBox" hintText="Search Fragilities"
+									   onKeyPress={this.handleKeyPressed}
+									   value={this.state.searchText}
+									   onChange={e=> {this.setState({searchText:e.target.value});}}/>
 							<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
-										onClick={this.searchFragilities}>
-								<ActionSearch/>
+										onClick={this.handleSearch}>
+								<ActionSearch />
 							</IconButton>
 						</GridTile>
+
 					</GridList>
 
 					<GridList cols={12} style={{paddingTop: "12px"}} cellHeight="auto">
 						<GridTile cols={5}>
 							<h2>Fragilities</h2>
-							<div style={{overflow: "auto", height: "600px", margin: "0 20px"}}>
+							<div style={{overflow: "auto", height: "45vh", margin: "0 20px"}}>
 								<GroupList id="fragility-list"
 										   onClick={this.clickFragility}
 										   data={this.state.data} displayField="author"
 										   selectedFragility={this.state.fragility}/>
+							</div>
+							<div>
+								<GridTile cols={6} style={{paddingTop: "5x", textAlign:"center"}} cellHeight="auto" >
+									<button disabled={this.state.pageNumber === 1} onClick={this.previous}>
+										<FontAwesomeIcon icon={faChevronLeft}  transform="grow-4" /> Prev </button>
+									<button disabled={true}>{this.state.pageNumber}</button>
+									<button disabled={this.state.data.length < this.state.dataPerPage} onClick={this.next}>
+										Next <FontAwesomeIcon icon={faChevronRight} transform="grow-4"/> </button>
+								</GridTile>
 							</div>
 						</GridTile>
 
@@ -355,7 +454,7 @@ class FragilityExplorerPage extends React.Component {
 						{this.state.fragility ?
 							<GridTile cols={7}>
 								<h2>Preview</h2>
-								<div style={{overflow: "auto", height: "600px", margin: "0 20px"}}>
+								<div style={{overflow: "auto", height: "45vh", margin: "0 20px 20px"}}>
 									<div style={{marginLeft: "auto", marginBottom: "20px"}}>
 										<RaisedButton primary={true} style={{display: "inline-block"}}
 													  label="Download Metadata"

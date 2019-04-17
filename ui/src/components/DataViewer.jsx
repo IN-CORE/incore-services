@@ -48,7 +48,7 @@ class DataViewer extends Component {
 			fileExtension: "",
 			currentUser: "",
 			authError: false,
-			authLocationFrom: null,
+			authLocationFrom: null
 		};
 		this.changeDatasetType = this.changeDatasetType.bind(this);
 		this.onClickDataset = this.onClickDataset.bind(this);
@@ -263,7 +263,6 @@ class DataViewer extends Component {
 				{type_menu_items}
 			</SelectField>);
 		}
-
 		let datasets_to_display = this.props.datasets;
 		if (this.state.typeIndex) {
 			datasets_to_display = this.props.datasets.filter(dataset => dataset.dataType === unique_types[this.state.typeIndex]);
