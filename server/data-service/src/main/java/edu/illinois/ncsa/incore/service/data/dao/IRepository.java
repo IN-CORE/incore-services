@@ -26,6 +26,7 @@ public interface IRepository {
     List<Dataset> getDatasetByType(String type);
     List<Dataset> getDatasetByTitle(String title);
     List<Dataset> getDatasetByTypeAndTitle(String type, String title);
+    List<Dataset> searchDatasets(String text);
     Dataset addDataset(Dataset dataset);
     Dataset updateDataset(String datasetId, String propName, String propValue);
     Dataset getDatasetByFileDescriptorId(String id);

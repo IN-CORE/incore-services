@@ -58,4 +58,15 @@ public class MockTsunamiRepository implements ITsunamiRepository {
         return this.tsunamis;
     }
 
+    @Override
+    public List<Tsunami> searchTsunamis(String text) {
+        List<Tsunami> outList = new ArrayList<>();
+        for(int i = 0; i <this.tsunamis.size(); i++) {
+            if(this.tsunamis.get(i).getDescription().contains(text)) {
+                outList.add(tsunamis.get(i));
+            }
+        }
+        return outList;
+    }
+
 }

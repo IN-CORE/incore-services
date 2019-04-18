@@ -599,5 +599,23 @@ public class DatasetController {
         return dataset;
     }
 
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all datasets", notes="Gets all datasets that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(code = 404, message = "No datasets found with the searched text")
+    })
+    public List<Dataset> findDatasets(@HeaderParam("X-Credential-Username") String username,
+                                              @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Dataset> datasets = this.repository.searchDatasets(text);
 
+        return datasets.stream()
+            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+    }
 }

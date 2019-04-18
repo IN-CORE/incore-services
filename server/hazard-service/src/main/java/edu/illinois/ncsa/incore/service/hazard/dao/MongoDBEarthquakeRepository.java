@@ -17,11 +17,9 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeModel;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     private String hostUri;
@@ -90,6 +88,25 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
 
         earthquakes.addAll(earthquakes1);
         earthquakes.addAll(earthquakes2);
+
+        return earthquakes;
+    }
+
+    @Override
+    public List<Earthquake> searchEarthquakes(String text) {
+        Query<EarthquakeDataset> query = this.dataStore.createQuery(EarthquakeDataset.class);
+
+        query.or(query.criteria("name").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text));
+
+        Query<EarthquakeModel> modelQuery = this.dataStore.createQuery(EarthquakeModel.class);
+
+        modelQuery.or(modelQuery.criteria("name").containsIgnoreCase(text),
+            modelQuery.criteria("description").containsIgnoreCase(text));
+
+        List<Earthquake> earthquakes = new ArrayList<>();
+        earthquakes.addAll(query.asList());
+        earthquakes.addAll(modelQuery.asList());
 
         return earthquakes;
     }

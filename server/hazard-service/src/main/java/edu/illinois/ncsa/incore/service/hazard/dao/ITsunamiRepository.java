@@ -21,4 +21,6 @@ public interface ITsunamiRepository {
     Tsunami addTsunami(Tsunami tsunami);
 
     List<Tsunami> getTsunamis();
+
+    List<Tsunami> searchTsunamis(String text);
 }
