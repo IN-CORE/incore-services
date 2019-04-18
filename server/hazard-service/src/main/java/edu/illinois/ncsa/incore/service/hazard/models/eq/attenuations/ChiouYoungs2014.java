@@ -1,7 +1,5 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqRupture;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.DistanceUtil;
@@ -62,10 +60,7 @@ public class ChiouYoungs2014 extends BaseAttenuation {
         loadCoefficients(period);
         region = ruptureParameters.getRegion();
 
-        double srcLatitude = ruptureParameters.getSrcLatitude();
-        double srcLongitude = ruptureParameters.getSrcLongitude();
-        double depth = ruptureParameters.getDepth();
-        Site sourceSite = new Site(new GeometryFactory().createPoint(new Coordinate(srcLongitude, srcLatitude)), depth);
+        Site sourceSite = HazardUtil.getSourceSite(ruptureParameters);
 
         EqRupture rupture = EqRupture.getInstance();
         double azimuthAngle = ruptureParameters.getAzimuthAngle();
