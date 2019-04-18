@@ -44,6 +44,9 @@ public class MockRepository implements IEarthquakeRepository {
     }
 
     @Override
+    public List<Earthquake> searchEarthquakes(String text) {return null;}
+
+    @Override
     public Datastore getDataStore() {
         return this.mockDataStore;
     }

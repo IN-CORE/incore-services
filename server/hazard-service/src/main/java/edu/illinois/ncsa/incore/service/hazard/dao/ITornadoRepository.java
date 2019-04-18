@@ -23,5 +23,7 @@ public interface ITornadoRepository {
 
     List<Tornado> getTornadoes();
 
+    List<Tornado> searchTornadoes(String text);
+
     Datastore getDataStore();
 }

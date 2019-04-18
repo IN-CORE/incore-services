@@ -67,6 +67,17 @@ public class MockRepository implements IRepository {
     }
 
     @Override
+    public List<Dataset> searchDatasets(String text) {
+        List<Dataset> outList = new ArrayList<>();
+        for(int i = 0; i <this.datasets.size(); i++) {
+            if(this.datasets.get(i).getDescription().contains(text)) {
+                outList.add(datasets.get(i));
+            }
+        }
+        return outList;
+    }
+
+    @Override
     public List<Space> getAllSpaces() {
         return this.spaces;
     }

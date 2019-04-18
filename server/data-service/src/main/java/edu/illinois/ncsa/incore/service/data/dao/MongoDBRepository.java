@@ -193,4 +193,19 @@ public class MongoDBRepository implements IRepository {
         collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));
         return getDatasetById(datasetId);
     }
+
+    @Override
+    public List<Dataset> searchDatasets(String text) {
+        Query<Dataset> query = this.dataStore.createQuery(Dataset.class);
+
+        query.or(query.criteria("title").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text),
+            query.criteria("creator").containsIgnoreCase(text),
+            query.criteria("fileDescriptors.filename").containsIgnoreCase(text),
+            query.criteria("dataType").containsIgnoreCase(text));
+
+        List<Dataset> datasets = query.asList();
+
+        return datasets;
+    }
 }
