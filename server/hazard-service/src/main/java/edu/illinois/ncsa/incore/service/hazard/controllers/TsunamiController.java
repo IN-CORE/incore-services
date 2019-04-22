@@ -11,7 +11,10 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITsunamiRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -36,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Api(value="tsunamis", authorizations = {})
@@ -51,6 +55,9 @@ public class TsunamiController {
     private ITsunamiRepository repository;
 
     @Inject
+    private ISpaceRepository spaceRepository;
+
+    @Inject
     private IAuthorizer authorizer;
 
     @GET
@@ -58,14 +65,44 @@ public class TsunamiController {
     @ApiOperation(value = "Returns all tsunamis.")
     public List<Tsunami> getTsunamis(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Space name") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new NotFoundException();
+            }
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+            List<Tsunami> tsunamis = repository.getTsunamis();
+            tsunamis = tsunamis.stream()
+                .filter(tsunami -> spaceMembers.contains(tsunami.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+            if (tsunamis.size() == 0) {
+                throw new NotFoundException("No tsunamis were found in space " + spaceName);
+            }
+            return tsunamis;
+        }
+        List<Tsunami> tsunamis = repository.getTsunamis();
 
-        return repository.getTsunamis().stream()
-            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+
+        List<Tsunami> accessibleTsunamis = tsunamis.stream()
+            .filter(tsunami -> membersSet.contains(tsunami.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+
+        if (accessibleTsunamis.size() == 0) {
+            throw new ForbiddenException();
+        } else {
+            return accessibleTsunamis;
+        }
     }
 
     @GET
@@ -75,15 +112,17 @@ public class TsunamiController {
     public Tsunami getTsunami(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
-
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
         if (tsunami == null) {
             throw new NotFoundException();
         }
-        if (!authorizer.canRead(username, tsunami.getPrivileges())) {
-            throw new ForbiddenException();
+
+        if (authorizer.canUserReadMember(username, tsunamiId, spaceRepository.getAllSpaces())) {
+            return tsunami;
         }
-        return tsunami;
+
+        throw new ForbiddenException();
+
     }
 
     @GET
@@ -162,6 +201,15 @@ public class TsunamiController {
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(), tsunamiDataset.getName() + " " + datasetName, username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
+
+                    Space space = spaceRepository.getSpaceByName(username);
+                    if(space == null) {
+                        space = new Space(username);
+                        space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+                    }
+                    space.addMember(tsunami.getId());
+                    spaceRepository.addSpace(space);
+
                     tsunami = repository.addTsunami(tsunami);
                     return tsunami;
                 } else {
@@ -174,4 +222,34 @@ public class TsunamiController {
         }
         throw new BadRequestException("Could not create Tsunami, check the format of your request.");
     }
+
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all tsunamis", notes="Gets all tsunamis that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(code = 404, message = "No tsunamis found with the searched text")
+    })
+    public List<Tsunami> findTsunamis(@HeaderParam("X-Credential-Username") String username,
+                                       @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                       @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Tsunami> tsunamis = this.repository.searchTsunamis(text);
+        if (tsunamis.size() == 0) {
+            throw new NotFoundException();
+        }
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+
+        tsunamis = tsunamis.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+        if (tsunamis.size() == 0) {
+            throw new NotAuthorizedException(username + " is not authorized to read the tsunamis that meet the search criteria");
+        }
+        return tsunamis;
+    }
+
 }

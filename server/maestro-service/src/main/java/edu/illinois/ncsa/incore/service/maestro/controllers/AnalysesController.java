@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.controllers;
 
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import edu.illinois.ncsa.incore.service.maestro.models.AnalysisMetadata;
 import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;

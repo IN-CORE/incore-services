@@ -41,7 +41,7 @@ public class MvzDatasetController {
     public List<MvzDataset> getMvzDatasetList() {
         List<MvzDataset> mvzDatasets = repository.getAllMvzDatasets();
         if (mvzDatasets == null) {
-            throw new NotFoundException("There is no Space in the repository.");
+            throw new NotFoundException("There is no SpaceOld in the repository.");
         }
         return mvzDatasets;
     }

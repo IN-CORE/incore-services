@@ -76,16 +76,23 @@ public class Privileges {
         this.userPrivileges.putAll(userPrivilegesMap);
     }
 
-    public void addGroupPrivileges(String owner, PrivilegeLevel privilegeLevel){
-        if(userPrivileges != null){
-            this.groupPrivileges.put(owner, privilegeLevel);
-        }else{
-            throw new NullPointerException("groupPrivileges was not instantiated");
-        }
-    }
-
     public void addGroupPrivilegesMap(Map<String, PrivilegeLevel> groupPrivilegesMap) {
         this.groupPrivileges.putAll(groupPrivilegesMap);
     }
+
+    public PrivilegeLevel getUserPrivilegeLevel(String username) {
+        if (userPrivileges.containsKey(username)) {
+            return userPrivileges.get(username);
+        }
+        return null;
+    }
+
+    public PrivilegeLevel getGroupPrivilegeLevel(String groupName) {
+        if (groupPrivileges.containsKey(groupName)) {
+            return groupPrivileges.get(groupName);
+        }
+        return null;
+    }
+
 
 }

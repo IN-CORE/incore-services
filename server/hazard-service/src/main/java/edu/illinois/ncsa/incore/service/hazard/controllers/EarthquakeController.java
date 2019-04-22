@@ -13,7 +13,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
@@ -83,6 +86,9 @@ public class EarthquakeController {
     private IEarthquakeRepository repository;
 
     @Inject
+    private ISpaceRepository spaceRepository;
+
+    @Inject
     private AttenuationProvider attenuationProvider;
 
 //    @Inject
@@ -148,6 +154,9 @@ public class EarthquakeController {
 
                     scenarioEarthquake.setHazardDataset(rasterDataset);
                     earthquake = repository.addEarthquake(earthquake);
+
+                    addEarthquakeToSpace(earthquake, username);
+
                     return earthquake;
                 } catch (IOException e) {
                     logger.error("Error creating raster dataset", e);
@@ -182,12 +191,16 @@ public class EarthquakeController {
                         String filename = filePart.getContentDisposition().getFileName();
                         BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
                         InputStream fis = bodyPartEntity.getInputStream();
-
+                        //TODO: we should check that we successfully created a raster dataset
                         String datasetId = ServiceUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName, username, description, datasetType);
+
                         hazardDataset.setDatasetId(datasetId);
                     }
                     // Save changes to earthquake
                     earthquake = repository.addEarthquake(earthquake);
+
+                    addEarthquakeToSpace(earthquake, username);
+
                     return earthquake;
                 } else {
                     logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
@@ -206,14 +219,44 @@ public class EarthquakeController {
     @ApiOperation(value = "Returns all earthquakes.")
     public List<Earthquake> getEarthquakes(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @ApiParam(value = "Name of the space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Skip the first n results.") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit no of results to return.") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Earthquake> earthquakes = repository.getEarthquakes();
 
-        return repository.getEarthquakes().stream()
-            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new NotFoundException();
+            }
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+
+            earthquakes = earthquakes.stream()
+                .filter(earthquake -> spaceMembers.contains(earthquake.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+            if (earthquakes.size() == 0) {
+                throw new NotFoundException("No earthquakes were found in space " + spaceName);
+            }
+            return earthquakes;
+        }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        List<Earthquake> accessibleEarthquakes = earthquakes.stream()
+            .filter(earthquake -> membersSet.contains(earthquake.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+
+        if(accessibleEarthquakes.size() == 0) {
+            throw new ForbiddenException();
+        }
+
+        return accessibleEarthquakes;
     }
 
     @GET
@@ -221,17 +264,23 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the earthquake with matching id.")
     public Earthquake getEarthquake(
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Id of the earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
-
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
         if (earthquake == null) {
             throw new NotFoundException();
         }
-        if (!authorizer.canRead(username, earthquake.getPrivileges())) {
-            throw new ForbiddenException();
+        //feeling lucky
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space != null && space.hasMember(earthquakeId)) {
+            return earthquake;
         }
-        return earthquake;
+
+        if (authorizer.canUserReadMember(username, earthquakeId, spaceRepository.getAllSpaces())) {
+            return earthquake;
+        }
+
+        throw new ForbiddenException();
     }
 
     @GET
@@ -606,6 +655,51 @@ public class EarthquakeController {
         "ground shaking parameter (PGA, SA, etc) for a lat/long location using the attenuation model specified.")
     public Set<String> getSupportedEarthquakeModels() {
         return attenuationProvider.getAttenuations().keySet();
+    }
+
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all earthquakes", notes="Gets all earthquakes that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(code = 404, message = "No earthquakes found with the searched text")
+    })
+    public List<Earthquake> findEarthquakes(@HeaderParam("X-Credential-Username") String username,
+                                    @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+                                    @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                    @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Earthquake> earthquakes = this.repository.searchEarthquakes(text);
+        if (earthquakes.size() == 0) {
+            throw new NotFoundException();
+        }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        earthquakes = earthquakes.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+        if (earthquakes.size() == 0) {
+            throw new NotAuthorizedException(username + " is not authorized to read the earthquakes that meet the search criteria");
+        }
+        return earthquakes;
+    }
+
+    // Helper functions
+
+    //For adding earthquake id to user's space
+    private void addEarthquakeToSpace(Earthquake earthquake, String username) {
+        Space space = spaceRepository.getSpaceByName(username);
+        if(space != null) {
+            space.addMember(earthquake.getId());
+            spaceRepository.addSpace(space);
+        } else {
+            space = new Space(username);
+            space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+            space.addMember(earthquake.getId());
+            spaceRepository.addSpace(space);
+        }
     }
 
 }

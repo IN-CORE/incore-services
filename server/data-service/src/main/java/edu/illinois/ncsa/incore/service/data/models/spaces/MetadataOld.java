@@ -5,15 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class Metadata {
+public class MetadataOld {
     @JsonProperty("name")
     private String name;
 
-    public Metadata(){
+    public MetadataOld(){
         this.name = "";
     }
 
-    public Metadata(String name){
+    public MetadataOld(String name){
         this.name = name;
     }
 

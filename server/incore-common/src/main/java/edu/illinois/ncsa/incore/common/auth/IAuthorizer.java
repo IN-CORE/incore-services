@@ -10,6 +10,9 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
+import edu.illinois.ncsa.incore.common.models.Space;
+
+import java.util.List;
 import java.util.Set;
 
 public interface IAuthorizer {
@@ -24,4 +27,11 @@ public interface IAuthorizer {
     boolean canWrite(String user, Privileges privileges);
 
     boolean canWrite(String user, String privilegeSpecJson);
+
+    List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces);
+
+    Set<String> getAllMembersUserHasAccessTo(String username, List<Space> spaces);
+
+    boolean canUserReadMember(String username, String memberId, List<Space> spaces);
+
 }

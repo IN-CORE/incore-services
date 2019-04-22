@@ -66,7 +66,7 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public void saveFragility(FragilitySet fragilitySet) {
+    public String saveFragility(FragilitySet fragilitySet) {
         // mutate fragilitySet object with this id
         try {
             Field field = FragilitySet.class.getDeclaredField("id");
@@ -74,12 +74,14 @@ public class MockFragilityDAO implements IFragilityDAO {
 
             try {
                 field.set(fragilitySet, new ObjectId());
+                return fragilitySet.getId();
             } catch (IllegalAccessException e) {
                 // do nothing
             }
         } catch (NoSuchFieldException e) {
             // do nothing
         }
+        return null;
     }
 
 
