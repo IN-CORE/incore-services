@@ -80,8 +80,32 @@ export function getAnalysisById(id: String) {
 
 }
 
-export function fetchDatasets() {
-	const endpoint = config.dataService;
+export function searchDatasets(limit, offset, keyword) {
+	let endpoint = `${config.dataService}/search?limit=${limit}&skip=${offset}&text=${keyword}`;
+	return (dispatch: Dispatch) =>{
+		return fetch(endpoint, { mode:"cors", headers: getHeader() })
+			.then(response =>
+				Promise.all([response.status, response.json()])
+			)
+			.then(([status, json]) =>{
+				if (status === 200 ){
+					dispatch(receiveDatasets(RECEIVE_DATASETS, json));
+				}
+				else if (status === 403){
+					dispatch(receiveDatasets(LOGIN_ERROR, {}));
+				}
+				else{
+					dispatch(receiveDatasets(RECEIVE_DATASETS, {}));
+				}
+			});
+	};
+}
+
+export function fetchDatasets(limit, offset, dataType) {
+	let endpoint = `${config.dataService}?limit=${limit}&skip=${offset}`;
+	if (dataType !== "All"){
+		endpoint = `${endpoint}&type=${dataType}`;
+	}
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, { mode:"cors", headers: getHeader() })
 			.then(response =>
