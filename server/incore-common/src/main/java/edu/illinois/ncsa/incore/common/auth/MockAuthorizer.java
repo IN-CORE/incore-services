@@ -10,7 +10,10 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
+import edu.illinois.ncsa.incore.common.models.Space;
+
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MockAuthorizer implements IAuthorizer{
@@ -66,4 +69,14 @@ public class MockAuthorizer implements IAuthorizer{
     public boolean canWrite(String user, String privilegeSpecJson) {
         return canWrite;
     }
+
+    @Override
+    public Set<String> getAllMembersUserHasAccessTo(String username, List<Space> spaces) {return null;}
+
+    @Override
+    public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {return false;}
+
+    @Override
+    public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {return null;}
+
 }

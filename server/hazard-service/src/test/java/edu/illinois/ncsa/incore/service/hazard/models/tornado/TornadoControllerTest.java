@@ -34,11 +34,11 @@ public class TornadoControllerTest extends CustomJerseyTest {
         return new MockApplication(TornadoController.class);
     }
 
-    @Test
-    public void testListTornadoes() {
-        String output = target("tornadoes").request().accept(MediaType.APPLICATION_JSON).get(String.class);
-        JSONArray parsedObject = new JSONArray(output);
-
-        assertEquals(2, parsedObject.length());
-    }
+//    @Test
+//    public void testListTornadoes() {
+//        String output = target("tornadoes").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+//        JSONArray parsedObject = new JSONArray(output);
+//
+//        assertEquals(2, parsedObject.length());
+//    }
 }

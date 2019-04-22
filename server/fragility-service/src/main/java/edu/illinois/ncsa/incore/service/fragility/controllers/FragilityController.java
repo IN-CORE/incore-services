@@ -10,8 +10,10 @@
 
 package edu.illinois.ncsa.incore.service.fragility.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import io.swagger.annotations.*;
@@ -23,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -61,7 +64,9 @@ public class FragilityController {
     private IFragilityDAO fragilityDAO;
 
     @Inject
-    private IAuthorizer authorizer;
+    private ISpaceRepository spaceRepository;
+
+    @Inject IAuthorizer authorizer;
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
@@ -73,6 +78,7 @@ public class FragilityController {
                                              @ApiParam(value = "not implemented", hidden = true) @QueryParam("author") String author,
                                              @ApiParam(value = "Legacy fragility Id from v1") @QueryParam("legacy_id") String legacyId,
                                              @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
+                                             @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
@@ -98,10 +104,6 @@ public class FragilityController {
             queryMap.put("creator", creator);
         }
 
-        if (author != null) {
-
-        }
-
         List<FragilitySet> fragilitySets;
 
         if (queryMap.isEmpty()) {
@@ -110,11 +112,39 @@ public class FragilityController {
             fragilitySets = this.fragilityDAO.queryFragilities(queryMap);
         }
 
-        return fragilitySets.stream()
-            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new NotFoundException();
+            }
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+
+            fragilitySets = fragilitySets.stream()
+                .filter(fragility -> spaceMembers.contains(fragility.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+            if (fragilitySets.size() == 0) {
+                throw new NotFoundException("No fragilities were found in space " + spaceName);
+            }
+            return fragilitySets;
+        }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+
+        List<FragilitySet> accessibleFragilities = fragilitySets.stream()
+            .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        if (accessibleFragilities.size() > 0) {
+            return accessibleFragilities;
+        }
+
+        throw new NotAuthorizedException(username + " has no access to fragilities.");
     }
 
     @POST
@@ -125,7 +155,16 @@ public class FragilityController {
                                            @ApiParam(value="json representing the fragility set") FragilitySet fragilitySet) {
         fragilitySet.setPrivileges(Privileges.newWithSingleOwner(username));
         fragilitySet.setCreator(username);
-        this.fragilityDAO.saveFragility(fragilitySet);
+        String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
+
+        Space space = spaceRepository.getSpaceByName(username);
+        if(space == null) {
+            space = new Space(username);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
+        }
+        space.addMember(fragilityId);
+        spaceRepository.addSpace(space);
+
         return fragilitySet;
     }
 
@@ -138,14 +177,12 @@ public class FragilityController {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
         if (fragilitySet.isPresent()) {
-            FragilitySet frag = fragilitySet.get();
-            if (authorizer.canRead(username, frag.getPrivileges())) {
-                return frag;
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+                return fragilitySet.get();
             }
-            throw new ForbiddenException();
-        } else {
-            throw new NotFoundException();
         }
+
+        throw new NotFoundException();
     }
 
     @GET
@@ -159,12 +196,21 @@ public class FragilityController {
                                               @ApiParam(value="Text to search by", example = "steel") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<FragilitySet> sets = this.fragilityDAO.searchFragilities(text);
 
-        return sets.stream()
-            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+        List<FragilitySet> sets = this.fragilityDAO.searchFragilities(text);
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+
+        List<FragilitySet> accessibleFragilities = sets.stream()
+            .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+
+        if(accessibleFragilities.size() == 0) {
+            throw new ForbiddenException();
+        }
+
+        return accessibleFragilities;
     }
+
 }

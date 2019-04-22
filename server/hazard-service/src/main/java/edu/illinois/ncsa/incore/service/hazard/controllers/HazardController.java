@@ -81,9 +81,9 @@ public class HazardController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all datasets", notes="Gets all datasets that contain a specific text")
+    @ApiOperation(value = "Search for a text in all hazards", notes="Gets all hazards that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No datasets found with the searched text")
+        @ApiResponse(code = 404, message = "No hazards found with the searched text")
     })
     public List<Object> findHazards(@HeaderParam("X-Credential-Username") String username,
                                       @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
@@ -113,10 +113,20 @@ public class HazardController {
         datasets.addAll(tornadoes);
         datasets.addAll(tsunamis);
 
-        return datasets.stream()
+        if (datasets.size() == 0) {
+            throw new NotFoundException();
+        }
+
+        datasets = datasets.stream()
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+
+        if (datasets.size() == 0) {
+            throw new NotAuthorizedException(username + " is not authorized to access the hazards that match the search criteria.");
+        }
+
+        return datasets;
     }
 
 }

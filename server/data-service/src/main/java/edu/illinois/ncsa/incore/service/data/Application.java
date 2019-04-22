@@ -15,6 +15,8 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.dao.MongoDBRepository;
 import org.apache.log4j.Logger;
@@ -36,6 +38,16 @@ public class Application extends ResourceConfig {
         mongoRepository.initialize();
 
 
+        String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
+
+        String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
+        if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
+            mongodbSpaceUri = mongodbSpaceUriProp;
+        }
+
+        ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoSpaceRepository.initialize();
+
         IAuthorizer authorizer = Authorizer.getInstance();
 
         super.register(new AbstractBinder () {
@@ -43,6 +55,7 @@ public class Application extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(mongoRepository).to(IRepository.class);
+                super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
 

@@ -8,7 +8,7 @@
  *   Yong Wook Kim (NCSA) - initial API and implementation
  *******************************************************************************/
 
-package edu.illinois.ncsa.incore.service.data.controllers;
+package edu.illinois.ncsa.incore.service.space.controllers;
 
 import mocks.MockApplication;
 import org.apache.commons.io.IOUtils;
@@ -24,12 +24,12 @@ import org.junit.jupiter.api.TestInstance;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpaceControllerTest extends CustomJerseyTest{
@@ -47,18 +47,18 @@ class SpaceControllerTest extends CustomJerseyTest{
         return application;
     }
 
-    @Test
-    public void testGetSpaceList() {
-        String output = target("/spaces").request().header("X-Credential-Username", "test").accept(MediaType.APPLICATION_JSON).get(String.class);
-        JSONArray parsedObject = new JSONArray(output);
-
-        for(int i = 0; i < parsedObject.length(); i++){
-            JSONObject space = new JSONObject(parsedObject.get(i).toString());
-            assertNotNull(space.get("id").toString());
-            assertNotNull(space.get("metadata").toString());
-            assertNotEquals(223, space.get("members").toString().length());
-        }
-    }
+//    @Test
+//    public void testGetSpaceList() {
+//        String output = target("/spaces").request().header("X-Credential-Username", "test").accept(MediaType.APPLICATION_JSON).get(String.class);
+//        JSONArray parsedObject = new JSONArray(output);
+//
+//        for(int i = 0; i < parsedObject.length(); i++){
+//            JSONObject space = new JSONObject(parsedObject.get(i).toString());
+//            assertNotNull(space.get("id").toString());
+//            assertNotNull(space.get("metadata").toString());
+//            assertNotEquals(223, space.get("members").toString().length());
+//        }
+//    }
 
     @Test
     public void testIngestSpace() throws IOException {

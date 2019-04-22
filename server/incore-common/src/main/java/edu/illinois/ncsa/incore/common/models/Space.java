@@ -8,12 +8,11 @@
  *   Yong Wook Kim (NCSA) - initial API and implementation
  *******************************************************************************/
 
-package edu.illinois.ncsa.incore.service.data.models;
+package edu.illinois.ncsa.incore.common.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.service.data.models.spaces.Metadata;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
@@ -34,20 +33,20 @@ public class Space {
     private ObjectId id = new ObjectId();
 
     @JsonProperty("metadata")
-    private Metadata metadata;
+    private SpaceMetadata metadata;
 
     private Privileges privileges;
 
     private List<String> members;
 
     public Space(){
-        this.metadata = new Metadata("");
+        this.metadata = new SpaceMetadata("");
         this.members = new ArrayList<>();
         this.privileges  = new Privileges();
     }
 
     public Space(String name){
-        this.metadata = new Metadata(name);
+        this.metadata = new SpaceMetadata(name);
         this.members = new ArrayList<>();
         this.privileges = new Privileges();
     }
@@ -115,12 +114,16 @@ public class Space {
         }
     }
 
-    public void setMetadata(Metadata metadata){
+    public void setMetadata(SpaceMetadata metadata){
         this.metadata = metadata;
     }
 
-    public Metadata getMetadata() {
+    public SpaceMetadata getMetadata() {
         return this.metadata;
     }
+
+    public PrivilegeLevel getUserPrivilegeLevel(String username) { return this.privileges.getUserPrivilegeLevel(username); }
+
+    public PrivilegeLevel getGroupPrivilegeLevel(String username) { return this.privileges.getGroupPrivilegeLevel(username); }
 
 }

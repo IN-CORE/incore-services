@@ -17,7 +17,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -37,7 +36,6 @@ public class MongoDBRepository implements IRepository {
     private final String DATASET_FIELD_TYPE = "dataType";
     private final String DATASET_FIELD_TITLE = "title";
     private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";
-    private final String SPACE_FIELD_METADATA_NAME = "metadata.name";
     private String hostUri;
     private String databaseName;
     private int port;
@@ -68,10 +66,6 @@ public class MongoDBRepository implements IRepository {
 
     public List<Dataset> getAllDatasets() {
         return this.dataStore.createQuery(Dataset.class).asList();
-    }
-
-    public List<Space> getAllSpaces() {
-        return this.dataStore.createQuery(Space.class).asList();
     }
 
     public List<MvzDataset> getAllMvzDatasets() {
@@ -120,35 +114,6 @@ public class MongoDBRepository implements IRepository {
         Query<Dataset> query = this.dataStore.createQuery(Dataset.class);
         query.field("_id").equal(new ObjectId(id));
         return this.dataStore.findAndDelete(query);
-    }
-
-
-    public Space getSpaceById(String id) {
-        return this.dataStore.get(Space.class, new ObjectId(id));
-    }
-
-    public Space getSpaceByName(String name) {
-        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field(SPACE_FIELD_METADATA_NAME).equal(name);
-        Space foundSpace = spaceQuery.get();
-
-        return foundSpace;
-    }
-
-    public Space addSpace(Space space) {
-        String id = (this.dataStore.save(space)).getId().toString();
-        return getSpaceById(id);
-    }
-
-    public Space deleteSpace(String id){
-        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field("_id").equal(new ObjectId(id));
-        return this.dataStore.findAndDelete(spaceQuery);
-    }
-
-    public Space removeIdFromSpace(Space space, String id) {
-        space.removeMember(id);
-        return space;
     }
 
     public MvzDataset addMvzDataset(MvzDataset mvzDataset) {

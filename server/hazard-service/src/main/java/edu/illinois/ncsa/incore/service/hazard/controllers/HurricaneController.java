@@ -13,6 +13,9 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
@@ -35,10 +38,7 @@ import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Api(value="hurricaneWindfields", authorizations = {})
@@ -51,10 +51,13 @@ public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
 
     @Inject
-    private IAuthorizer authorizer;
+    private IHurricaneRepository repository;
 
     @Inject
-    private IHurricaneRepository repository;
+    private ISpaceRepository spaceRepository;
+
+    @Inject
+    private IAuthorizer authorizer;
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
@@ -63,14 +66,29 @@ public class HurricaneController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
+        @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-
-        Map<String, String> queryMap = new HashMap<>();
-
-        List<HurricaneWindfields> hurricaneWindfields = repository.getHurricanes().stream()
-            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
-            .collect(Collectors.toList());
+        List<HurricaneWindfields> hurricaneWindfields = repository.getHurricanes();
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new NotFoundException();
+            }
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+            hurricaneWindfields = hurricaneWindfields.stream()
+                .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+            if (hurricaneWindfields.size() == 0) {
+                throw new NotFoundException("No hurricanes were found in space " + spaceName);
+            }
+            return hurricaneWindfields;
+        }
 
         if (coast != null) {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCoast().equals(coast)).collect(Collectors.toList());
@@ -80,10 +98,19 @@ public class HurricaneController {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCategory() == category).collect(Collectors.toList());
         }
 
-        return hurricaneWindfields.stream()
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+
+        List<HurricaneWindfields> accesibbleHurricaneWindfields = hurricaneWindfields.stream()
+            .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+
+        if (accesibbleHurricaneWindfields.size() != 0) {
+            return accesibbleHurricaneWindfields;
+        } else {
+            throw new ForbiddenException();
+        }
     }
 
     @GET
@@ -93,12 +120,16 @@ public class HurricaneController {
     public HurricaneWindfields getHurricaneWindfieldsById(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
-
         HurricaneWindfields hurricane = repository.getHurricaneById(hurricaneId);
-        if (!authorizer.canRead(username, hurricane.getPrivileges())) {
-            throw new ForbiddenException();
+        if (hurricane == null) {
+            throw new NotFoundException();
         }
-        return hurricane;
+
+        if (authorizer.canUserReadMember(username, hurricaneId, spaceRepository.getAllSpaces())) {
+            return hurricane;
+        }
+
+        throw new ForbiddenException();
     }
 
     @GET
@@ -213,7 +244,20 @@ public class HurricaneController {
 
                 hurricaneWindfields.setPrivileges(Privileges.newWithSingleOwner(username));
 
+                //add hurricane to the user's space
+                Space space = spaceRepository.getSpaceByName(username);
+                if(space != null) {
+                    space.addMember(hurricaneWindfields.getId());
+                    spaceRepository.addSpace(space);
+                } else {
+                    space = new Space(username);
+                    space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+                    space.addMember(hurricaneWindfields.getId());
+                    spaceRepository.addSpace(space);
+                }
+
                 repository.addHurricane(hurricaneWindfields);
+
             } catch (JsonGenerationException e) {
                 throw new NotFoundException("Error finding a mapping for the coast and category");
             } catch (JsonProcessingException e) {
@@ -255,5 +299,34 @@ public class HurricaneController {
         }
     }
 
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all hurricanes", notes="Gets all hurricanes that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(code = 404, message = "No hurricanes found with the searched text")
+    })
+    public List<HurricaneWindfields> findHurricanes(@HeaderParam("X-Credential-Username") String username,
+                                            @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+                                            @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                            @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<HurricaneWindfields> hurricanes = this.repository.searchHurricanes(text);
+        if (hurricanes.size() == 0) {
+            throw new NotFoundException();
+        }
+        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+
+        hurricanes = hurricanes.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+
+        if (hurricanes.size() == 0) {
+            throw new NotAuthorizedException(username + " is not authorized to read the hurricanes that meet the search criteria");
+        }
+        return hurricanes;
+    }
 
 }

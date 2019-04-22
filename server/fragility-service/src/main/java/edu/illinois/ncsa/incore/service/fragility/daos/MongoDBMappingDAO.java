@@ -54,8 +54,9 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public void saveMappingSet(MappingSet mappingSet) {
-        this.dataStore.save(mappingSet);
+    public String saveMappingSet(MappingSet mappingSet) {
+        String id = this.dataStore.save(mappingSet).getId().toString();
+        return id;
     }
 
     @Override

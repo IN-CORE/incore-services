@@ -50,8 +50,9 @@ public class MockMappingDAO implements IMappingDAO {
     }
 
     @Override
-    public void saveMappingSet(MappingSet mappingSet) {
+    public String saveMappingSet(MappingSet mappingSet) {
         this.mappingSets.add(mappingSet);
+        return this.mappingSets.get(0).getId();
     }
 
 
