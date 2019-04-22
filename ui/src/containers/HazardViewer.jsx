@@ -1,6 +1,6 @@
 import {connect} from "react-redux";
 import HazardExplorer from "../components/HazardExplorerPage";
-import {fetchHazards} from "../actions";
+import {fetchHazards, searchHazards} from "../actions";
 
 const mapStateToProps = (state, ownProps) => {
 	return {
@@ -12,8 +12,11 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
 	return {
-		getAllHazards: (hazard_type) => {
-			dispatch(fetchHazards(hazard_type));
+		getAllHazards: (hazard_type, limit, offset) => {
+			dispatch(fetchHazards(hazard_type, limit, offset));
+		},
+		searchAllHazards: (limit, offset, keyword) => {
+			dispatch(searchHazards(limit, offset, keyword));
 		}
 	};
 };

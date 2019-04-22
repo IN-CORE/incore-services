@@ -125,8 +125,29 @@ export function fetchDatasets(limit, offset, dataType) {
 	};
 }
 
-export function fetchHazards(hazard_type:string){
-	const endpoint = `${config.hazardServiceBase}${hazard_type}/`;
+export function searchHazards(limit, offset, keyword){
+	let endpoint = `${config.hazardServiceBase}hazards/search?limit=${limit}&skip=${offset}&text=${keyword}`;
+	return (dispatch: Dispatch) => {
+		return fetch(endpoint, { mode:"cors", headers: getHeader() })
+			.then(response =>
+				Promise.all([response.status, response.json()])
+			)
+			.then(([status, json]) =>{
+				if (status === 200 ){
+					dispatch(receiveHazards(RECEIVE_HAZARDS, json));
+				}
+				else if (status === 403){
+					dispatch(receiveHazards(LOGIN_ERROR, {}));
+				}
+				else{
+					dispatch(receiveHazards(RECEIVE_HAZARDS, {}));
+				}
+			});
+	};
+}
+
+export function fetchHazards(hazard_type:string, limit, offset){
+	const endpoint = `${config.hazardServiceBase}${hazard_type}?limit=${limit}&skip=${offset}`;
 	return (dispatch: Dispatch) => {
 		return fetch(endpoint, { mode:"cors", headers: getHeader() })
 			.then(response =>
