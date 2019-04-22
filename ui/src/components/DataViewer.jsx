@@ -3,34 +3,33 @@ import Table from "./Table";
 import Map from "./Map";
 import Notification from "../components/Notification";
 import {
+	Divider,
 	GridList,
 	GridTile,
-	SelectField,
-	MenuItem,
+	IconButton,
 	List,
 	ListItem,
-	Divider,
-	TextField,
-	IconButton,
+	MenuItem,
 	RaisedButton,
-	Checkbox
+	SelectField,
+	TextField,
 } from "material-ui";
 import FontAwesomeIcon from "@fortawesome/react-fontawesome";
 import {
-	faTable,
+	faChartArea,
+	faChevronLeft,
+	faChevronRight,
+	faExchangeAlt,
 	faFileAlt,
 	faMap,
-	faExchangeAlt,
-	faChartArea,
+	faQuestionCircle,
 	faShareAlt,
-	faQuestionCircle
+	faTable,
 } from "@fortawesome/fontawesome-free-solid";
 import ActionSearch from "material-ui/svg-icons/action/search";
-import csv from "csv";
-import config from "../app.config";
-import {getHeader, getUsername} from "../actions";
+import config, { uniqueDataType } from "../app.config";
+import {getHeader} from "../actions";
 import {browserHistory} from "react-router";
-import loaderGif from "../public/loader.gif";
 
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
@@ -41,23 +40,30 @@ class DataViewer extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			typeIndex: 0,
+			dataType: "All",
 			selectedDataset: "",
 			selectedDatasetFormat: "",
 			fileData: "",
 			fileExtension: "",
-			currentUser: "",
+			searchText: "",
+			registeredSearchText:"",
+			searching: false,
 			authError: false,
-			authLocationFrom: null
+			authLocationFrom: null,
+			offset: 0,
+			pageNumber: 1,
+			dataPerPage: 50,
 		};
 		this.changeDatasetType = this.changeDatasetType.bind(this);
 		this.onClickDataset = this.onClickDataset.bind(this);
 		this.searchDatasets = this.searchDatasets.bind(this);
 		this.handleKeyPressed = this.handleKeyPressed.bind(this);
 		this.onClickFileDescriptor = this.onClickFileDescriptor.bind(this);
-		this.updateCheckCreatorFilter = this.updateCheckCreatorFilter.bind(this);
 		this.exportJson = this.exportJson.bind(this);
 		this.downloadDataset = this.downloadDataset.bind(this);
+		this.previous = this.previous.bind(this);
+		this.next = this.next.bind(this);
+		this.changeDataPerPage = this.changeDataPerPage.bind(this);
 	}
 
 	componentWillMount() {
@@ -73,10 +79,9 @@ class DataViewer extends Component {
 
 			this.setState({
 				authError: false
+			}, function () {
+				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
 			});
-
-			// fetch datasets
-			this.props.getAllDatasets();
 		}
 
 		// not logged in
@@ -98,12 +103,18 @@ class DataViewer extends Component {
 
 	changeDatasetType(event, index, value) {
 		this.setState({
-			typeIndex: value,
+			dataType: value,
+			pageNumber: 1,
+			offset: 0,
 			selectedDataset: "",
+			selectedDatasetFormat: "",
 			fileData: "",
 			fileExtension: "",
-			selectedDatasetFormat: "",
-			searchText: ""
+			searchText: "",
+			registeredSearchText: "",
+			searching: false,
+		}, function () {
+			this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
 		});
 	}
 
@@ -119,13 +130,17 @@ class DataViewer extends Component {
 	}
 
 	async searchDatasets() {
-		let searchText = this.refs.searchBox.getValue();
 		this.setState({
-			searchText: searchText,
+			registeredSearchText: this.refs.searchBox.getValue(),
+			searching: true,
 			selectedDataset: "",
 			fileData: "",
 			fileExtension: "",
-			selectedDatasetFormat: ""
+			selectedDatasetFormat: "",
+			pageNumber: 1,
+			offset: 0
+		}, function () {
+			this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
 		});
 	}
 
@@ -218,67 +233,83 @@ class DataViewer extends Component {
 		}
 	}
 
-	async updateCheckCreatorFilter(event) {
-		let currentUser = getUsername();
-		if (event.target.checked) {
-			this.setState({
-				currentUser: currentUser,
-				selectedDataset: "",
-				fileData: "",
-				fileExtension: "",
-				selectedDatasetFormat: ""
-			});
-		}
-		else {
-			this.setState({
-				currentUser: "",
-				selectedDataset: "",
-				fileData: "",
-				fileExtension: "",
-				selectedDatasetFormat: ""
-			});
-		}
+	previous() {
+		this.setState({
+			offset: (this.state.pageNumber - 2) * this.state.dataPerPage,
+			pageNumber: this.state.pageNumber - 1,
+			selectedDataset: "",
+			selectedDatasetFormat: "",
+			fileData: "",
+			fileExtension: "",
+		}, function () {
+			if (this.state.registeredSearchText !== "" && this.state.searching){
+				// change page on searchAllDatasets
+				this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+			}
+			else{
+				// change page on getAllDatasets
+				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+			}
+		});
+	}
+
+	next() {
+		this.setState({
+			offset: (this.state.pageNumber) * this.state.dataPerPage,
+			pageNumber: this.state.pageNumber + 1,
+			selectedDataset: "",
+			selectedDatasetFormat: "",
+			fileData: "",
+			fileExtension: "",
+		}, function () {
+			if (this.state.registeredSearchText !== "" && this.state.searching){
+				// change page on searchAllDatasets
+				this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+			}
+			else{
+				// change page on getAllDatasets
+				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+			}
+		});
+	}
+
+	changeDataPerPage(event, index, value) {
+		this.setState({
+			pageNumber: 1,
+			offset: 0,
+			dataPerPage: value,
+			selectedDataset: "",
+			selectedDatasetFormat: "",
+			fileData: "",
+			fileExtension: "",
+		}, function () {
+			if (this.state.registeredSearchText !== "" && this.state.searching){
+				// change page on searchAllDatasets
+				this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+			}
+			else{
+				// change page on getAllDatasets
+				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+			}
+		});
 	}
 
 	render() {
-		let unique_types = [];
-		if (this.props.datasets.length > 0) {
-			const dataset_all_types = this.props.datasets.map(dataset =>
-				dataset.dataType
-			);
-			unique_types = Array.from(new Set(dataset_all_types));
-			unique_types.splice(0, 0, "All");
-		}
-
-		let dataset_types = "";
-		if (unique_types.length > 0) {
-			const type_menu_items = unique_types.map((type, index) =>
-				<MenuItem value={index} primaryText={type} key={type}/>
-			);
-			dataset_types = (<SelectField fullWidth={true}
-										  floatingLabelText="Dataset Type"
-										  value={this.state.typeIndex}
-										  onChange={this.changeDatasetType}
-			>
-				{type_menu_items}
-			</SelectField>);
-		}
-		let datasets_to_display = this.props.datasets;
-		if (this.state.typeIndex) {
-			datasets_to_display = this.props.datasets.filter(dataset => dataset.dataType === unique_types[this.state.typeIndex]);
-		}
-		if (this.state.currentUser) {
-			datasets_to_display = datasets_to_display.filter(dataset => dataset.spaces.indexOf(this.state.currentUser) > -1);
-		}
-		if (this.state.searchText) {
-			datasets_to_display = datasets_to_display.filter(dataset => dataset.title.toLowerCase()
-				.indexOf(this.state.searchText.toLowerCase()) > -1);
-		}
+		const type_menu_items = uniqueDataType.map((type) =>
+			<MenuItem value={type} primaryText={type} key={type}/>
+		);
+		let dataset_types = (<SelectField
+			floatingLabelText="Dataset Type"
+			value={this.state.dataType}
+			onChange={this.changeDatasetType}
+			style={{maxWidth: "200px"}}>
+			{type_menu_items}
+		</SelectField>);
 
 		// list items
 		let list_items = "";
-		if (datasets_to_display.length > 0) {
-			list_items = datasets_to_display.map((dataset) => {
+		if (this.props.datasets.length > 0) {
+			list_items = this.props.datasets.map((dataset) => {
 				if (dataset.format === "table") {
 					return (<div key={dataset.id}>
 						<ListItem onClick={() => this.onClickDataset(dataset.id)}
@@ -360,7 +391,7 @@ class DataViewer extends Component {
 				}
 			});
 		}
-		const filtered_datasets = (<div style={{overflow: "auto", height: "600px", margin: "0 20px"}}>
+		const filtered_datasets = (<div style={{overflow: "auto", height: "45vh", margin: "0 20px"}}>
 			<List style={{"overflowY": "auto"}}>
 				{list_items}
 			</List>
@@ -429,7 +460,7 @@ class DataViewer extends Component {
 						<h2>File Descriptors</h2>
 						{downloads}
 						{/*list of files*/}
-						<List style={{"overflowY": "auto", height: "200px"}}>
+						<List style={{"overflowY": "auto", height: "100px"}}>
 							{file_descriptors}
 						</List>
 					</div>
@@ -449,40 +480,67 @@ class DataViewer extends Component {
 			}
 		}
 		else {
+			const data_per_page = (<SelectField floatingLabelText="Results per page"
+												value={this.state.dataPerPage}
+												onChange={this.changeDataPerPage}
+												style={{maxWidth: "200px"}}
+			>
+				<MenuItem primaryText="15" value={15}/>
+				<MenuItem primaryText="30" value={30}/>
+				<MenuItem primaryText="50" value={50}/>
+				<MenuItem primaryText="75" value={75}/>
+				<MenuItem primaryText="100" value={100}/>
+			</SelectField>);
+
 			return (
 				<div style={{padding: "20px"}}>
 					<div style={{display: "flex"}}>
 						<h2>Data Viewer</h2>
 					</div>
 					<GridList cols={12} cellHeight="auto">
+						{/*dataset types*/}
 						<GridTile cols={3}>
 							{dataset_types}
 						</GridTile>
-						<GridTile cols={3}>
-							<Checkbox
-								label="Show Only My Datasets"
-								onCheck={this.updateCheckCreatorFilter}
-								style={{top: "37px", marginLeft: "20px"}}
-							/>
+
+						{/*per page*/}
+						<GridTile cols={3} style={{float: "left"}}>
+							{data_per_page}
 						</GridTile>
+
+						{/*search box*/}
 						<GridTile cols={6} style={{float: "right"}}>
-							<TextField ref="searchBox" hintText="Search Datasets" onKeyPress={this.handleKeyPressed}/>
+							<TextField ref="searchBox"
+									   hintText="Search All Datasets"
+									   onKeyPress={this.handleKeyPressed}
+									   value={this.state.searchText}
+									   onChange={e => {
+										   this.setState({searchText: e.target.value});
+									   }}
+							/>
 							<IconButton iconStyle={{position: "absolute", left: 0, bottom: 5, width: 30, height: 30}}
 										onClick={this.searchDatasets}>
 								<ActionSearch/>
 							</IconButton>
 						</GridTile>
+
 					</GridList>
 					<GridList cols={12} style={{paddingTop: "10px"}} cellHeight="auto">
 						<GridTile cols={5}>
 							<h2> Datasets </h2>
-							{
-								this.props.datasets.length === 0 ?
-									<img src={loaderGif} style={{margin: "80px auto", display: "block"}}/>
-									:
-									null
-							}
 							{filtered_datasets}
+							<div>
+								<GridTile cols={6} style={{paddingTop: "5x", textAlign: "center"}} cellHeight="auto">
+									<button disabled={this.state.pageNumber === 1} onClick={this.previous}>
+										<FontAwesomeIcon icon={faChevronLeft} transform="grow-4"/> Prev
+									</button>
+									<button disabled={true}>{this.state.pageNumber}</button>
+									<button disabled={this.props.datasets.length < this.state.dataPerPage}
+											onClick={this.next}>
+										Next <FontAwesomeIcon icon={faChevronRight} transform="grow-4"/></button>
+								</GridTile>
+							</div>
+
 						</GridTile>
 						<GridTile cols={7}>
 							{right_column}
