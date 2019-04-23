@@ -1,13 +1,14 @@
 // @flow
 
-import type {Dispatch, AnalysesMetadata, Analysis, Dataset} from "../utils.flowtype";
+import type {AnalysesMetadata, Analysis, Dataset, Dispatch} from "../utils.flowtype";
 import config from "../app.config";
 import type {Hazards} from "../utils/flowtype";
 
 export const GET_ANALYSES = "GET_ANALYSES";
 
-export const  RECEIVE_ANALYSES = "RECEIVE_ANALYSES";
-export function receiveAnalyses(api:string, json:AnalysesMetadata) {
+export const RECEIVE_ANALYSES = "RECEIVE_ANALYSES";
+
+export function receiveAnalyses(api: string, json: AnalysesMetadata) {
 	return (dispatch: Dispatch) => {
 		dispatch({
 			type: RECEIVE_ANALYSES,
@@ -18,8 +19,9 @@ export function receiveAnalyses(api:string, json:AnalysesMetadata) {
 }
 
 export const RECEIVE_ANALYSIS = "RECEIVE_ANALYSIS";
-export function receiveAnalysis(api: string, json:Analysis) {
-	return(dispatch: Dispatch) => {
+
+export function receiveAnalysis(api: string, json: Analysis) {
+	return (dispatch: Dispatch) => {
 		dispatch({
 			type: RECEIVE_ANALYSIS,
 			analysis: json,
@@ -29,8 +31,9 @@ export function receiveAnalysis(api: string, json:Analysis) {
 }
 
 export const RECEIVE_DATASETS = "RECEIVE_DATASETS";
+
 export function receiveDatasets(type: string, json: Dataset) {
-	return(dispatch: Dispatch) => {
+	return (dispatch: Dispatch) => {
 		dispatch({
 			type: type,
 			datasets: json,
@@ -40,12 +43,25 @@ export function receiveDatasets(type: string, json: Dataset) {
 }
 
 export const RECEIVE_HAZARDS = "RECEIVE_HAZARDS";
-export function receiveHazards(type:string, json:Hazards){
-	return(dispatch: Dispatch) =>{
+
+export function receiveHazards(type: string, json: Hazards) {
+	return (dispatch: Dispatch) => {
 		dispatch({
 			type: type,
 			hazards: json,
 			recievedAt: Date.now(),
+		});
+	};
+}
+
+export const RECEIVE_SPACES = "RECEIVE_SPACES";
+
+export function receiveSpaces(type: string, json) {
+	return (dispatch: Dispatch) => {
+		dispatch({
+			type: type,
+			spaces: json,
+			receivedAt: Date.now(),
 		});
 	};
 }
@@ -80,88 +96,110 @@ export function getAnalysisById(id: String) {
 
 }
 
-export function searchDatasets(limit, offset, keyword) {
+export function searchDatasets(keyword, limit, offset) {
 	let endpoint = `${config.dataService}/search?limit=${limit}&skip=${offset}&text=${keyword}`;
-	return (dispatch: Dispatch) =>{
-		return fetch(endpoint, { mode:"cors", headers: getHeader() })
-			.then(response =>
-				Promise.all([response.status, response.json()])
-			)
-			.then(([status, json]) =>{
-				if (status === 200 ){
-					dispatch(receiveDatasets(RECEIVE_DATASETS, json));
+	return (dispatch: Dispatch) => {
+		return fetch(endpoint, {mode: "cors", headers: getHeader()})
+			.then(response =>{
+				if (response.status === 200){
+					response.json().then(json =>{
+						dispatch(receiveDatasets(RECEIVE_DATASETS, json));
+					});
 				}
-				else if (status === 403){
-					dispatch(receiveDatasets(LOGIN_ERROR, {}));
+				else if (response.status === 403){
+					dispatch(receiveDatasets(LOGIN_ERROR, []));
 				}
 				else{
-					dispatch(receiveDatasets(RECEIVE_DATASETS, {}));
+					dispatch(receiveDatasets(RECEIVE_DATASETS, []));
 				}
 			});
 	};
 }
 
-export function fetchDatasets(limit, offset, dataType) {
+export function fetchDatasets(dataType, space, limit, offset) {
 	let endpoint = `${config.dataService}?limit=${limit}&skip=${offset}`;
-	if (dataType !== "All"){
+	if (dataType !== null && dataType !== "All") {
 		endpoint = `${endpoint}&type=${dataType}`;
 	}
+	if (space !== null && space !== "All"){
+		endpoint = `${endpoint}&space=${space}`;
+	}
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint, { mode:"cors", headers: getHeader() })
-			.then(response =>
-				Promise.all([response.status, response.json()])
-			)
-			.then(([status, json]) =>{
-				if (status === 200 ){
-					dispatch(receiveDatasets(RECEIVE_DATASETS, json));
+		return fetch(endpoint, {mode: "cors", headers: getHeader()})
+			.then(response =>{
+				if (response.status === 200){
+					response.json().then(json =>{
+						dispatch(receiveDatasets(RECEIVE_DATASETS, json));
+					});
 				}
-				else if (status === 403){
-					dispatch(receiveDatasets(LOGIN_ERROR, {}));
+				else if (response.status === 403){
+					dispatch(receiveDatasets(LOGIN_ERROR, []));
 				}
 				else{
-					dispatch(receiveDatasets(RECEIVE_DATASETS, {}));
+					dispatch(receiveDatasets(RECEIVE_DATASETS, []));
 				}
 			});
 	};
 }
 
-export function searchHazards(limit, offset, keyword){
-	let endpoint = `${config.hazardServiceBase}hazards/search?limit=${limit}&skip=${offset}&text=${keyword}`;
+export function fetchSpaces() {
+	const endpoint = config.spaceService;
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint, { mode:"cors", headers: getHeader() })
-			.then(response =>
-				Promise.all([response.status, response.json()])
-			)
-			.then(([status, json]) =>{
-				if (status === 200 ){
-					dispatch(receiveHazards(RECEIVE_HAZARDS, json));
+		return fetch(endpoint, {mode: "cors", headers: getHeader()})
+			.then(response =>{
+				if (response.status === 200){
+					response.json().then(json =>{
+						dispatch(receiveSpaces(RECEIVE_SPACES, json));
+					});
 				}
-				else if (status === 403){
-					dispatch(receiveHazards(LOGIN_ERROR, {}));
+				else if (response.status === 403){
+					dispatch(receiveSpaces(LOGIN_ERROR, []));
 				}
 				else{
-					dispatch(receiveHazards(RECEIVE_HAZARDS, {}));
+					dispatch(receiveSpaces(RECEIVE_SPACES, []));
 				}
 			});
 	};
 }
 
-export function fetchHazards(hazard_type:string, limit, offset){
-	const endpoint = `${config.hazardServiceBase}${hazard_type}?limit=${limit}&skip=${offset}`;
+export function searchHazards(hazard_type, keyword, limit, offset) {
+	let endpoint = `${config.hazardServiceBase}${hazard_type}/search?limit=${limit}&skip=${offset}&text=${keyword}`;
 	return (dispatch: Dispatch) => {
-		return fetch(endpoint, { mode:"cors", headers: getHeader() })
-			.then(response =>
-				Promise.all([response.status, response.json()])
-			)
-			.then(([status, json]) =>{
-				if (status === 200 ){
-					dispatch(receiveHazards(RECEIVE_HAZARDS, json));
+		return fetch(endpoint, {mode: "cors", headers: getHeader()})
+			.then(response =>{
+				if (response.status === 200){
+					response.json().then(json =>{
+						dispatch(receiveHazards(RECEIVE_HAZARDS, json));
+					});
 				}
-				else if (status === 403){
-					dispatch(receiveHazards(LOGIN_ERROR, {}));
+				else if (response.status === 403){
+					dispatch(receiveHazards(LOGIN_ERROR, []));
 				}
 				else{
-					dispatch(receiveHazards(RECEIVE_HAZARDS, {}));
+					dispatch(receiveHazards(RECEIVE_HAZARDS, []));
+				}
+			});
+	};
+}
+
+export function fetchHazards(hazard_type: string, space: string, limit, offset) {
+	let endpoint = `${config.hazardServiceBase}${hazard_type}?limit=${limit}&skip=${offset}`;
+	if (space !== null && space !== "All"){
+		endpoint = `${endpoint}&space=${space}`;
+	}
+	return (dispatch: Dispatch) => {
+		return fetch(endpoint, {mode: "cors", headers: getHeader()})
+			.then(response =>{
+				if (response.status === 200){
+					response.json().then(json =>{
+						dispatch(receiveHazards(RECEIVE_HAZARDS, json));
+					});
+				}
+				else if (response.status === 403){
+					dispatch(receiveHazards(LOGIN_ERROR, []));
+				}
+				else{
+					dispatch(receiveHazards(RECEIVE_HAZARDS, []));
 				}
 			});
 	};
@@ -170,7 +208,7 @@ export function fetchHazards(hazard_type:string, limit, offset){
 export async function loginHelper(username, password) {
 	const endpoint = config.authService;
 	// Currently CORS error due to the header
-	const userRequest =  await fetch(endpoint, {
+	const userRequest = await fetch(endpoint, {
 		method: "GET",
 		headers: {
 			"Authorization": `LDAP ${ window.btoa(`${username }:${ password}`) }`
@@ -184,10 +222,11 @@ export async function loginHelper(username, password) {
 
 export const LOGIN_ERROR = "LOGIN_ERROR";
 export const SET_USER = "SET_USER";
+
 export function login(username, password) {
-	return async(dispatch: Dispatch) => {
+	return async (dispatch: Dispatch) => {
 		const json = await loginHelper(username, password);
-		if(typeof(Storage) !== "undefined" && json["auth-token"] !== undefined ) {
+		if (typeof(Storage) !== "undefined" && json["auth-token"] !== undefined) {
 			sessionStorage.setItem("auth", json["auth-token"]);
 			sessionStorage.setItem("user", json["user"]);
 			return dispatch({
@@ -204,10 +243,10 @@ export function login(username, password) {
 	};
 }
 
-export function readCredentials(tokens){
+export function readCredentials(tokens) {
 	// reading credentials from tokens passed in URL and stored in sessionStorage
 	// if there's token passed in, reset the sessionStorage to save that token
-	if(typeof(Storage) !== "undefined") {
+	if (typeof(Storage) !== "undefined") {
 		sessionStorage.setItem("auth", tokens["auth-token"]);
 		sessionStorage.setItem("user", tokens["user"]);
 
@@ -217,9 +256,10 @@ export function readCredentials(tokens){
 
 
 export const LOGOUT = "LOGOUT";
+
 export function logout() {
 	return (dispatch: Dispatch) => {
-		if(typeof(Storage) !== "undefined") {
+		if (typeof(Storage) !== "undefined") {
 			sessionStorage.removeItem("auth");
 			sessionStorage.removeItem("user");
 			sessionStorage.removeItem("locationFrom");
@@ -231,6 +271,7 @@ export function logout() {
 }
 
 export const RECEIVE_EXECUTION_ID = "RECEIVE_WORKFLOW_ID";
+
 export function receiveDatawolfResponse(json) {
 	// Get the id of the layers in geoserver to display in the map
 	// Get the info from a table to display
@@ -256,10 +297,10 @@ async function getOutputDatasetHelper(executionId: String) {
 		headers: headers
 	});
 
-	const datawolfExecution  = await datawolf_execution_fetch.json();
+	const datawolfExecution = await datawolf_execution_fetch.json();
 
-	const output_dataset_id =datawolfExecution.datasets["7774de32-481f-48dd-8223-d9cdf16eaec1"];
-	const endpoint = `${ config.dataService }/${ output_dataset_id }` ;
+	const output_dataset_id = datawolfExecution.datasets["7774de32-481f-48dd-8223-d9cdf16eaec1"];
+	const endpoint = `${ config.dataService }/${ output_dataset_id }`;
 	const output_dataset = await fetch(endpoint, {
 		headers: getHeader()
 	});
@@ -276,14 +317,15 @@ async function getOutputDatasetHelper(executionId: String) {
 }
 
 export const RECEIVE_OUTPUT = "RECEIVE_OUTPUT";
+
 export function getOutputDataset(executionId: String) {
 
 	return async (dispatch: Dispatch) => {
 		const data = await getOutputDatasetHelper(executionId);
-		 dispatch({
+		dispatch({
 			type: RECEIVE_OUTPUT,
 			outputDatasetId: data[0],
-			file: data[1].replace(/"/g,"").split("\n")
+			file: data[1].replace(/"/g, "").split("\n")
 		});
 
 	};
@@ -316,9 +358,8 @@ export async function executeDatawolfWorkflowHelper(workflowid, creatorid, title
 
 export function executeDatawolfWorkflow(workflowid, creatorid, title, description, parameters, datasets) {
 
-	return async (dispatch: Dispatch) =>
-	{
-		 const json = await  executeDatawolfWorkflowHelper(workflowid, creatorid, title, description, parameters, datasets);
+	return async (dispatch: Dispatch) => {
+		const json = await  executeDatawolfWorkflowHelper(workflowid, creatorid, title, description, parameters, datasets);
 		return dispatch({
 			type: RECEIVE_EXECUTION_ID,
 			executionId: json,
@@ -328,7 +369,7 @@ export function executeDatawolfWorkflow(workflowid, creatorid, title, descriptio
 
 }
 
-export function getUsername(){
+export function getUsername() {
 	return sessionStorage.user;
 }
 

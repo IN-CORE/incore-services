@@ -4,6 +4,7 @@ let apihost = "incore2-services.ncsa.illinois.edu";
 let apiurl = `${apiprotocol}://${apihost}`;
 
 const config = {
+	spaceService:`${apiurl}/space/api/spaces`,
 	fragilityService: `${apiurl}/fragility/api/fragilities`,
 	semanticService: "",
 	hazardServiceBase: `${apiurl}/hazard/api/`,
