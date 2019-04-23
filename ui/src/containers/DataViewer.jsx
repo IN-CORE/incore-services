@@ -1,10 +1,12 @@
 import {connect} from "react-redux";
 import DataViewerComponent from "../components/DataViewer";
-import {fetchDatasets, searchDatasets} from "../actions";
+import {fetchDatasets, fetchSpaces, searchDatasets} from "../actions";
+
 
 const mapStateToProps = (state, ownProps) => {
 	return {
 		datasets: state.data.datasets,
+		spaces: state.space.spaces,
 		authError: state.user.loginError,
 		locationFrom: state.user.locationFrom
 	};
@@ -12,11 +14,14 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
 	return {
-		getAllDatasets: (limit, offset, dataType) => {
-			dispatch(fetchDatasets(limit, offset, dataType));
+		getAllSpaces: () => {
+			dispatch(fetchSpaces());
 		},
-		searchAllDatasets: (limit, offset, keyword) => {
-			dispatch(searchDatasets(limit, offset, keyword));
+		getAllDatasets: (dataType, space, limit, offset) => {
+			dispatch(fetchDatasets(dataType, space, limit, offset));
+		},
+		searchAllDatasets: (keyword, limit, offset) => {
+			dispatch(searchDatasets(keyword, limit, offset));
 		}
 	};
 };

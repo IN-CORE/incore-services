@@ -29,7 +29,8 @@ class HazardExplorerPage extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			type: "earthquakes",
+			selectedHazardType: "earthquakes",
+			selectedSpace:"All",
 			selectedHazard: "",
 			selectedHazardDatasetId: "",
 			boundingBox: [],
@@ -39,6 +40,7 @@ class HazardExplorerPage extends Component {
 			authError: false,
 			authLocationFrom: null,
 			expanded: true,
+
 			offset: 0,
 			pageNumber: 1,
 			dataPerPage: 50
@@ -49,6 +51,7 @@ class HazardExplorerPage extends Component {
 		this.searchHazards = this.searchHazards.bind(this);
 		this.handleKeyPressed = this.handleKeyPressed.bind(this);
 		this.exportJson = this.exportJson.bind(this);
+		this.handleSpaceSelection = this.handleSpaceSelection.bind(this);
 		this.previous = this.previous.bind(this);
 		this.next = this.next.bind(this);
 		this.changeDataPerPage = this.changeDataPerPage.bind(this);
@@ -66,12 +69,11 @@ class HazardExplorerPage extends Component {
 
 			this.setState({
 				authError: false
+			}, function () {
+				this.props.getAllSpaces();
+				this.props.getAllHazards(this.state.selectedHazardType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 			});
-
-			// fetch datasets
-			this.props.getAllHazards(this.state.type, this.state.dataPerPage, this.state.offset);
 		}
-
 		// not logged in
 		else {
 			this.setState({
@@ -92,16 +94,31 @@ class HazardExplorerPage extends Component {
 		this.setState({
 			pageNumber: 1,
 			offset: 0,
-			type: value,
+			selectedHazardType: value,
 			selectedHazard: "",
 			selectedHazardDatasetId: "",
 			searchText: "",
 			registeredSearchText: "",
 			searching: false,
 		}, function () {
-			this.props.getAllHazards(this.state.type, this.state.dataPerPage, this.state.offset);
+			this.props.getAllHazards(this.state.selectedHazardType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 		});
 
+	}
+
+	handleSpaceSelection(event, index, value){
+		this.setState({
+			pageNumber: 1,
+			offset: 0,
+			selectedHazard: "",
+			selectedHazardDatasetId: "",
+			searchText: "",
+			registeredSearchText: "",
+			searching: false,
+			selectedSpace: value
+		}, function() {
+			this.props.getAllHazards(this.state.selectedHazardType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
+		});
 	}
 
 	onClickHazard(hazardId) {
@@ -155,13 +172,15 @@ class HazardExplorerPage extends Component {
 		this.setState({
 			registeredSearchText: this.refs.searchBox.getValue(),
 			searching: true,
+			selectedSpace: "All",
 			selectedHazard: "",
 			selectedHazardDatasetId: "",
 			boundingBox: [],
 			pageNumber: 1,
 			offset: 0
 		}, function(){
-			this.props.searchAllHazards(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+			this.props.searchAllHazards(this.state.selectedHazardType, this.state.registeredSearchText,
+				this.state.dataPerPage, this.state.offset);
 		});
 	}
 
@@ -199,10 +218,11 @@ class HazardExplorerPage extends Component {
 			boundingBox: [],
 		}, function () {
 			if (this.state.registeredSearchText !== "" && this.state.searching) {
-				this.props.searchAllHazards(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+				this.props.searchAllHazards(this.state.selectedHazardType, this.state.registeredSearchText,
+					this.state.dataPerPage, this.state.offset);
 			}
 			else {
-				this.props.getAllHazards(this.state.type, this.state.dataPerPage, this.state.offset);
+				this.props.getAllHazards(this.state.selectedHazardType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 			}
 		});
 	}
@@ -216,10 +236,11 @@ class HazardExplorerPage extends Component {
 			boundingBox: [],
 		}, function () {
 			if (this.state.registeredSearchText !== "" && this.state.searching) {
-				this.props.searchAllHazards(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+				this.props.searchAllHazards(this.state.selectedHazardType, this.state.registeredSearchText,
+					this.state.dataPerPage, this.state.offset);
 			}
 			else {
-				this.props.getAllHazards(this.state.type, this.state.dataPerPage, this.state.offset);
+				this.props.getAllHazards(this.state.selectedHazardType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 			}
 		});
 	}
@@ -234,10 +255,11 @@ class HazardExplorerPage extends Component {
 			boundingBox: [],
 		}, function () {
 			if (this.state.registeredSearchText !== "" && this.state.searching) {
-				this.props.searchAllHazards(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+				this.props.searchAllHazards(this.state.selectedHazardType, this.state.registeredSearchText,
+					this.state.dataPerPage, this.state.offset);
 			}
 			else {
-				this.props.getAllHazards(this.state.type, this.state.dataPerPage, this.state.offset);
+				this.props.getAllHazards(this.state.selectedHazardType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 			}
 		});
 	}
@@ -304,6 +326,21 @@ class HazardExplorerPage extends Component {
 			}
 		}
 
+		let space_types = "";
+		if (this.props.spaces.length > 0){
+			const space_menu_items = this.props.spaces.map((space, index) =>
+				<MenuItem value={space.metadata.name} primaryText={space.metadata.name}/>
+			);
+			space_types = (<SelectField floatingLabelText="Spaces"
+										hintText="Spaces"
+										value={this.state.selectedSpace}
+										onChange={this.handleSpaceSelection}
+										style={{maxWidth:"200px"}}>
+				<MenuItem value="All" primaryText="All"/>
+				{space_menu_items}
+			</SelectField>);
+		}
+
 		if (this.state.authError) {
 			if (this.state.authLocationFrom !== undefined
 				&& this.state.authLocationFrom !== null
@@ -319,8 +356,7 @@ class HazardExplorerPage extends Component {
 			const data_per_page = (<SelectField floatingLabelText="Results per page"
 												value={this.state.dataPerPage}
 												onChange={this.changeDataPerPage}
-												style={{maxWidth:"200px"}}
-			>
+												style={{maxWidth:"200px"}}>
 				<MenuItem primaryText="15" value={15}/>
 				<MenuItem primaryText="30" value={30}/>
 				<MenuItem primaryText="50" value={50}/>
@@ -335,12 +371,11 @@ class HazardExplorerPage extends Component {
 
 					<GridList cols={12} cellHeight="auto">
 						{/* select hazard type */}
-						<GridTile cols={3}>
+						<GridTile cols={2}>
 							<SelectField floatingLabelText="Hazard Type"
-										 value={this.state.type}
+										 value={this.state.selectedHazardType}
 										 onChange={this.changeHazardType}
-										 style={{maxWidth:"200px"}}
-							>
+										 style={{maxWidth:"200px"}}>
 								<MenuItem value="earthquakes" primaryText="Earthquake" key="earthquakes"/>
 								<MenuItem value="tornadoes" primaryText="Tornado" key="tornadoes"/>
 								<MenuItem value="hurricaneWindfields" primaryText="Hurricane"
@@ -349,13 +384,19 @@ class HazardExplorerPage extends Component {
 							</SelectField>
 						</GridTile>
 
+						{/*spaces*/}
+						<GridTile cols={2}>
+							{space_types}
+						</GridTile>
+
 						{/* set data per page to be shown */}
-						<GridTile cols={3} style={{float: "left"}}>
+						<GridTile cols={2} style={{float: "left"}}>
 							{data_per_page}
 						</GridTile>
+
 						{/* search hazard based on name or description */}
 						<GridTile cols={6} style={{float: "right"}}>
-							<TextField ref="searchBox" hintText="Search All Hazards"
+							<TextField ref="searchBox" hintText="Search Hazard"
 									   onKeyPress={this.handleKeyPressed}
 									   value={this.state.searchText}
 									   onChange={e=>{this.setState({searchText:e.target.value});}}/>

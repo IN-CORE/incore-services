@@ -40,7 +40,8 @@ class DataViewer extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			dataType: "All",
+			selectedDataType: "All",
+			selectedSpace:"All",
 			selectedDataset: "",
 			selectedDatasetFormat: "",
 			fileData: "",
@@ -61,6 +62,7 @@ class DataViewer extends Component {
 		this.onClickFileDescriptor = this.onClickFileDescriptor.bind(this);
 		this.exportJson = this.exportJson.bind(this);
 		this.downloadDataset = this.downloadDataset.bind(this);
+		this.handleSpaceSelection = this.handleSpaceSelection.bind(this);
 		this.previous = this.previous.bind(this);
 		this.next = this.next.bind(this);
 		this.changeDataPerPage = this.changeDataPerPage.bind(this);
@@ -80,7 +82,8 @@ class DataViewer extends Component {
 			this.setState({
 				authError: false
 			}, function () {
-				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+				this.props.getAllDatasets(this.state.selectedDataType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
+				this.props.getAllSpaces();
 			});
 		}
 
@@ -103,7 +106,7 @@ class DataViewer extends Component {
 
 	changeDatasetType(event, index, value) {
 		this.setState({
-			dataType: value,
+			selectedDataType: value,
 			pageNumber: 1,
 			offset: 0,
 			selectedDataset: "",
@@ -114,7 +117,24 @@ class DataViewer extends Component {
 			registeredSearchText: "",
 			searching: false,
 		}, function () {
-			this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+			this.props.getAllDatasets(this.state.selectedDataType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
+		});
+	}
+
+	handleSpaceSelection(event, index, value){
+		this.setState({
+			selectedSpace: value,
+			pageNumber: 1,
+			offset: 0,
+			selectedDataset: "",
+			selectedDatasetFormat: "",
+			fileData: "",
+			fileExtension: "",
+			searchText: "",
+			registeredSearchText: "",
+			searching: false,
+		}, function () {
+			this.props.getAllDatasets(this.state.selectedDataType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 		});
 	}
 
@@ -138,9 +158,11 @@ class DataViewer extends Component {
 			fileExtension: "",
 			selectedDatasetFormat: "",
 			pageNumber: 1,
-			offset: 0
+			offset: 0,
+			selectedDataType: "All",
+			selectedSpace: "All"
 		}, function () {
-			this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+			this.props.searchAllDatasets(this.state.registeredSearchText, this.state.dataPerPage, this.state.offset);
 		});
 	}
 
@@ -244,11 +266,11 @@ class DataViewer extends Component {
 		}, function () {
 			if (this.state.registeredSearchText !== "" && this.state.searching){
 				// change page on searchAllDatasets
-				this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+				this.props.searchAllDatasets(this.state.registeredSearchText, this.state.dataPerPage, this.state.offset);
 			}
 			else{
 				// change page on getAllDatasets
-				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+				this.props.getAllDatasets(this.state.selectedDataType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 			}
 		});
 	}
@@ -264,11 +286,11 @@ class DataViewer extends Component {
 		}, function () {
 			if (this.state.registeredSearchText !== "" && this.state.searching){
 				// change page on searchAllDatasets
-				this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+				this.props.searchAllDatasets(this.state.registeredSearchText, this.state.dataPerPage, this.state.offset);
 			}
 			else{
 				// change page on getAllDatasets
-				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+				this.props.getAllDatasets(this.state.selectedDataType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 			}
 		});
 	}
@@ -285,11 +307,11 @@ class DataViewer extends Component {
 		}, function () {
 			if (this.state.registeredSearchText !== "" && this.state.searching){
 				// change page on searchAllDatasets
-				this.props.searchAllDatasets(this.state.dataPerPage, this.state.offset, this.state.registeredSearchText);
+				this.props.searchAllDatasets(this.state.registeredSearchText, this.state.dataPerPage, this.state.offset);
 			}
 			else{
 				// change page on getAllDatasets
-				this.props.getAllDatasets(this.state.dataPerPage, this.state.offset, this.state.dataType);
+				this.props.getAllDatasets(this.state.selectedDataType, this.state.selectedSpace, this.state.dataPerPage, this.state.offset);
 			}
 		});
 	}
@@ -300,11 +322,27 @@ class DataViewer extends Component {
 		);
 		let dataset_types = (<SelectField
 			floatingLabelText="Dataset Type"
-			value={this.state.dataType}
+			value={this.state.selectedDataType}
 			onChange={this.changeDatasetType}
-			style={{maxWidth: "200px"}}>
+			style={{maxWidth: "300px"}}>
 			{type_menu_items}
 		</SelectField>);
+
+		let space_types = "";
+		if (this.props.spaces.length > 0){
+			const space_menu_items = this.props.spaces.map((space, index) =>
+				<MenuItem value={space.metadata.name} primaryText={space.metadata.name}/>
+			);
+			space_types = (<SelectField fullWidth={true}
+										floatingLabelText="Spaces"
+										hintText="Spaces"
+										value={this.state.selectedSpace}
+										onChange={this.handleSpaceSelection}
+										style={{maxWidth: "200px"}}>
+				<MenuItem value="All" primaryText="All"/>
+				{space_menu_items}
+			</SelectField>);
+		}
 
 		// list items
 		let list_items = "";
@@ -503,13 +541,18 @@ class DataViewer extends Component {
 							{dataset_types}
 						</GridTile>
 
+						{/*space types*/}
+						<GridTile cols={2}>
+							{space_types}
+						</GridTile>
+
 						{/*per page*/}
-						<GridTile cols={3} style={{float: "left"}}>
+						<GridTile cols={2} style={{float: "left"}}>
 							{data_per_page}
 						</GridTile>
 
 						{/*search box*/}
-						<GridTile cols={6} style={{float: "right"}}>
+						<GridTile cols={5} style={{float: "right"}}>
 							<TextField ref="searchBox"
 									   hintText="Search All Datasets"
 									   onKeyPress={this.handleKeyPressed}
