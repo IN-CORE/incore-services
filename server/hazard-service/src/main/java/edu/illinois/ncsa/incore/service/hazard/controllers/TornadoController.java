@@ -170,9 +170,10 @@ public class TornadoController {
                 String datasetId = ServiceUtil.createDataset(datasetObject, username, files);
                 tornadoModel.setDatasetId(datasetId);
 
+                tornado = repository.addTornado(tornado);
                 addTornadoToSpace(tornado, username);
 
-                return repository.addTornado(tornado);
+                return tornado;
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
                 if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
@@ -182,9 +183,9 @@ public class TornadoController {
                     String datasetId = ServiceUtil.createDataset(datasetObject, username, fileParts);
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
+                    tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, username);
-
-                    return repository.addTornado(tornado);
+                    return tornado;
                 } else {
                     logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
                     throw new BadRequestException("Could not create Tornado. Check your file extensions and the number of files in the request.");

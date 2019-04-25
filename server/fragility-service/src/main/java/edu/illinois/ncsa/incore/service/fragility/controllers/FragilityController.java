@@ -196,8 +196,10 @@ public class FragilityController {
                                               @ApiParam(value="Text to search by", example = "steel") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-
         List<FragilitySet> sets = this.fragilityDAO.searchFragilities(text);
+        if (sets.size() == 0) {
+            throw new NotFoundException();
+        }
         Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
 
         List<FragilitySet> accessibleFragilities = sets.stream()
