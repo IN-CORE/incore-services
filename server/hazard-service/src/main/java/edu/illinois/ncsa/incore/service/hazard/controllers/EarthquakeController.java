@@ -50,13 +50,13 @@ import java.util.stream.Collectors;
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
     info = @Info(
-        description = "Incore Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
-        version = "v0.2.0",
-        title = "Incore v2 Hazard API",
+        description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
+        version = "v0.3.0",
+        title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
-            name = "Jong S. Lee",
-            email = "jonglee@illinois.edu",
-            url = "http://resilience.colostate.edu"
+            name = "IN-CORE Dev Team",
+            email = "incore-dev@lists.illinois.edu",
+            url = "https://incore2.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
@@ -91,13 +91,8 @@ public class EarthquakeController {
     @Inject
     private AttenuationProvider attenuationProvider;
 
-//    @Inject
-//    private BaseAttenuation model;
-
     @Inject
     private IAuthorizer authorizer;
-
-    // TODO add endpoint to retrieve a list of models
 
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
@@ -221,7 +216,7 @@ public class EarthquakeController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Name of the space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results.") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return.") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @ApiParam(value = "Limit number of results to return.") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<Earthquake> earthquakes = repository.getEarthquakes();
 
         if (!spaceName.equals("")) {
@@ -291,9 +286,9 @@ public class EarthquakeController {
         "data along with a list of HazardResults. Each HazardResult is a lat, long and hazard value.")
     public SeismicHazardResults getEarthquakeHazardForBox(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
-        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Ground motion demand type. Ex: PGA, PGV, 0.2 SA, etc", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Ground motion demand unit. Ex: g, %g, cm/s, etc", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "Bounding box of a raster. Min X.", required = true) @QueryParam("minX") double minX,
         @ApiParam(value = "Bounding box of a raster. Min Y.", required = true) @QueryParam("minY") double minY,
         @ApiParam(value = "Bounding box of a raster. Max X.", required = true) @QueryParam("maxX") double maxX,
@@ -376,10 +371,10 @@ public class EarthquakeController {
         notes = "The results contain ground shaking parameter (PGA, SA, etc) for specific locations.")
     public List<SeismicHazardResult> getEarthquakeHazardValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
-        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "Amplify hazard.", required = false) @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard,
+        @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Ground motion demand type. Ex: PGA, PGV, 0.2 SA, etc.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Ground motion demand unit. Ex: g, %g, cm/s, etc.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Amplify hazard by soil type.", required = false) @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
         Earthquake eq = getEarthquake(earthquakeId, username);
@@ -416,7 +411,7 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns aleatory uncertainties for a model based earthquake")
     public Map<String, Double> getEarthquakeAleatoricUncertainties(@ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-                                                                   @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
+                                                                   @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
                                                                    @ApiParam(value = "Demand Type. Ex: PGA.", required = true) @QueryParam("demandType") String demandType) {
         Earthquake eq = getEarthquake(earthquakeId, username);
         if (eq != null && eq instanceof EarthquakeModel) {
@@ -470,10 +465,9 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/variance/{variance-type}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns total and epistemic variance for a model based earthquake",
-        notes = "Only functional for total variance of ChiouYoungs2014 model based earthquakes")
+    @ApiOperation(value = "Returns total and epistemic variance for a model based earthquake")
     public List<VarianceResult> getEarthquakeVariance(@ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-                                                      @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
+                                                      @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
                                                       @ApiParam(value = "Type of Variance. epistemic or total", required = true) @PathParam("variance-type") String varianceType,
                                                       @ApiParam(value = "Demand Type. Ex: PGA.", required = true) @QueryParam("demandType") String demandType,
                                                       @ApiParam(value = "Demand unit. Ex: g.", required = true) @QueryParam("demandUnits") String demandUnits,
@@ -559,14 +553,13 @@ public class EarthquakeController {
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns liquefaction (PGD) values.",
+    @ApiOperation(value = "Returns liquefaction (PGD) values, probability of liquefaction, and probability of ground failure.",
         notes = "This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
     public List<LiquefactionHazardResult> getEarthquakeLiquefaction(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Geology dataset from data service.", required = true) @QueryParam("geologyDataset") String geologyId,
-        @ApiParam(value = "Ground Water Id that currently doesn't do anything.") @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId,
-        @ApiParam(value = "Liquefaction demand unit. Ex: PGD", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Liquefaction demand unit. Ex: in, cm, etc", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'", required = true) @QueryParam("point") List<IncorePoint> points) {
         Earthquake eq = getEarthquake(earthquakeId, username);
         // TODO add logging/error for earthquake dataset that it can't be used
@@ -590,6 +583,7 @@ public class EarthquakeController {
         }
     }
 
+    // TODO this is incomplete API, we need to determine if it's needed as a separate endpoint
     @GET
     @Path("/soil/amplification")
     @Produces({MediaType.APPLICATION_JSON})
@@ -598,10 +592,10 @@ public class EarthquakeController {
         "parameter (PGA, Sa, etc), hazard value, and default site class to use.")
     public Response getEarthquakeSiteAmplification(
         @ApiParam(value = "Method to get hazard amplification.", required = true) @QueryParam("method") String method,
-        @ApiParam(value = "Dataset from data service.", required = true) @QueryParam("datasetId") @DefaultValue("") String datasetId,
+        @ApiParam(value = "ID of site class dataset from data service.", required = true) @QueryParam("datasetId") @DefaultValue("") String datasetId,
         @ApiParam(value = "Latitude coordinate of the site.", required = true) @QueryParam("siteLat") double siteLat,
         @ApiParam(value = "Longitude coordinate of the site.", required = true) @QueryParam("siteLong") double siteLong,
-        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Ground motion demand type. Ex: PGA, PGV, 0.2 SA, etc.", required = true) @QueryParam("demandType") String demandType,
         @ApiParam(value = "Hazard value.", required = true) @QueryParam("hazard") double hazard,
         @ApiParam(value = "Default site classification. Expected  A, B, C, D, E or F.") @QueryParam("defaultSiteClass") String defaultSiteClass) {
 
@@ -651,8 +645,8 @@ public class EarthquakeController {
     @GET
     @Path("models")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true, value = "Returns attenuation models.", notes = "This returns the requested " +
-        "ground shaking parameter (PGA, SA, etc) for a lat/long location using the attenuation model specified.")
+    @ApiOperation(hidden = true, value = "Returns available attenuation models.", notes = "This returns the available " +
+        "attenuation models.")
     public Set<String> getSupportedEarthquakeModels() {
         return attenuationProvider.getAttenuations().keySet();
     }
@@ -667,7 +661,7 @@ public class EarthquakeController {
     public List<Earthquake> findEarthquakes(@HeaderParam("X-Credential-Username") String username,
                                     @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                     @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                    @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                    @ApiParam(value = "Limit number of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<Earthquake> earthquakes = this.repository.searchEarthquakes(text);
         if (earthquakes.size() == 0) {
             throw new NotFoundException();
