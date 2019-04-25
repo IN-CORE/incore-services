@@ -243,6 +243,8 @@ public class HurricaneController {
                     inputHurricane.getRasterResolution(), username));
 
                 hurricaneWindfields.setPrivileges(Privileges.newWithSingleOwner(username));
+                //save hurricane
+                hurricaneWindfields =repository.addHurricane(hurricaneWindfields);
 
                 //add hurricane to the user's space
                 Space space = spaceRepository.getSpaceByName(username);
@@ -255,8 +257,6 @@ public class HurricaneController {
                     space.addMember(hurricaneWindfields.getId());
                     spaceRepository.addSpace(space);
                 }
-
-                repository.addHurricane(hurricaneWindfields);
 
             } catch (JsonGenerationException e) {
                 throw new NotFoundException("Error finding a mapping for the coast and category");

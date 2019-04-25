@@ -202,6 +202,8 @@ public class TsunamiController {
                         hazardDataset.setDatasetId(datasetId);
                     }
 
+                    tsunami = repository.addTsunami(tsunami);
+
                     Space space = spaceRepository.getSpaceByName(username);
                     if(space == null) {
                         space = new Space(username);
@@ -210,7 +212,6 @@ public class TsunamiController {
                     space.addMember(tsunami.getId());
                     spaceRepository.addSpace(space);
 
-                    tsunami = repository.addTsunami(tsunami);
                     return tsunami;
                 } else {
                     throw new BadRequestException("Could not create Tsunami, no files were attached with your request.");

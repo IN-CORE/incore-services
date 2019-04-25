@@ -63,12 +63,12 @@ import java.util.*;
 @Path("spaces")
 public class SpaceController {
     private static final String SERVICES_URL = Config.getConfigProperties().getProperty("dataservice.url");
-    private static final String EARTHQUAKE_URL = "/hazard/api/earthquakes/";
-    private static final String TORNADO_URL = "/hazard/api/tornadoes/";
-    private static final String HURRICANE_URL = "/hazard/api/hurricaneWindfields/";
-    private static final String TSUNAMI_URL = "/hazard/api/tsunamis/";
-    private static final String FRAGILITY_URL = "/fragility/api/fragilities/";
-    private static final String DATA_URL = "/data/api/datasets/";
+    private static final String EARTHQUAKE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/earthquakes/" : "/hazard/api/earthquakes/";
+    private static final String TORNADO_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
+    private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
+    private static final String TSUNAMI_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
+    private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "fragility/api/fragilities/" : "/fragility/api/fragilities/";
+    private static final String DATA_URL = SERVICES_URL.endsWith("/") ? "data/api/datasets/" : "/data/api/datasets/";
 
     public static final String SPACE_MEMBERS = "members";
     public static final String SPACE_METADATA = "metadata";
@@ -350,7 +350,7 @@ public class SpaceController {
     private String getFragilityDataset(String datasetId, String username) {
         HttpURLConnection con;
         try {
-            URL url = new URL(FRAGILITY_URL + datasetId);
+            URL url = new URL(SERVICES_URL + FRAGILITY_URL + datasetId);
             try {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
@@ -364,7 +364,8 @@ public class SpaceController {
     private String getDataDataset(String datasetId, String username) {
         HttpURLConnection con;
         try {
-            URL url = new URL(DATA_URL + datasetId);
+            URL url = new URL(SERVICES_URL + DATA_URL + datasetId);
+            String uri = url.toString();
             try {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
