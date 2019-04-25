@@ -41,7 +41,7 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=space' \
   --data 'uris=/space' \
-  --data 'upstream_url=http://localhost:8080/space/'
+  --data 'upstream_url=http://localhost:8888/space/'
 
 
 
