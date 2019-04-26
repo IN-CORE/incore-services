@@ -71,12 +71,20 @@ public class MockAuthorizer implements IAuthorizer{
     }
 
     @Override
-    public Set<String> getAllMembersUserHasAccessTo(String username, List<Space> spaces) {return null;}
+    public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {return null;}
 
     @Override
     public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {return false;}
 
     @Override
+    public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {return false;}
+
+    @Override
+    public boolean canUserModifyMember(String username, String memberId, List<Space> spaces) {return false;}
+
+    @Override
     public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {return null;}
+
+
 
 }

@@ -240,7 +240,7 @@ public class EarthquakeController {
             return earthquakes;
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
         List<Earthquake> accessibleEarthquakes = earthquakes.stream()
             .filter(earthquake -> membersSet.contains(earthquake.getId()))
             .skip(offset)
@@ -667,7 +667,7 @@ public class EarthquakeController {
             throw new NotFoundException();
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
         earthquakes = earthquakes.stream()
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)

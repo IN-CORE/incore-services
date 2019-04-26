@@ -98,7 +98,7 @@ public class HurricaneController {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCategory() == category).collect(Collectors.toList());
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         List<HurricaneWindfields> accesibbleHurricaneWindfields = hurricaneWindfields.stream()
             .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
@@ -314,7 +314,7 @@ public class HurricaneController {
         if (hurricanes.size() == 0) {
             throw new NotFoundException();
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         hurricanes = hurricanes.stream()
             .filter(b -> membersSet.contains(b.getId()))

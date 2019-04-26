@@ -101,6 +101,12 @@ public class Authorizer implements IAuthorizer {
     // methods to get all members a user has access to
     /////////////////////////////////////////////////////////
 
+    /**
+     * Return a list of spaces a user can read
+     * @param username string name of user
+     * @param spaces a list of all spaces
+     * @return a list of accessible spaces
+     */
     public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {
         return getSpacesUserCanRead(spaces, username);
     }
@@ -111,7 +117,7 @@ public class Authorizer implements IAuthorizer {
      * @param spaces list of all spaces the user has at least READ permission
      * @return a set of all members a user can access with at least READ permission
      */
-    public Set<String> getAllMembersUserHasAccessTo(String username, List<Space> spaces) {
+    public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {
         Set<String> membersSet = new HashSet<>();
         List<Space> userAccessibleSpaces = getSpacesUserCanRead(spaces, username);
         for (Space space: userAccessibleSpaces) {
@@ -124,15 +130,55 @@ public class Authorizer implements IAuthorizer {
      * Determines if the user has permission to read the memberId (dataset, hazard, etc)
      * @param memberId the String id of the member
      * @param spaces a list of all spaces
-     * @return boolean - true if the user has reading permissions on the member's space
+     * @return boolean - true if the user has reading permissions on a space tha contains the member
      */
     public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {
-        Set<String> userMembersSet = getAllMembersUserHasAccessTo(username, spaces);
+        Set<String> userMembersSet = getAllMembersUserHasReadAccessTo(username, spaces);
         return userMembersSet.contains(memberId);
     }
 
+    /**
+     * This method determines if a user can delete a member based on its privileges on a space the member is part of, or
+     * based on a special group the user might be part of.
+     * @param username string name of the user
+     * @param memberId the string id of the member
+     * @param spaces a list of all spaces
+     * @return boolean - true if the user has admin permissions on a space that contains the member
+     */
+    public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {
+        List<Space> userSpaces = spaces.stream()
+            .filter(space -> canUserAccessSpace(space, username, PrivilegeLevel.ADMIN))
+            .collect(Collectors.toList());
+
+        Set<String> membersSet = new HashSet<>();
+        for (Space space : userSpaces) {
+            membersSet.addAll(space.getMembers());
+        }
+        return membersSet.contains(memberId);
+    }
+
+    /**
+     * This method determines if a user can delete a member based on its privileges on a space the member is part of, or
+     * based on a special group the user might be part of.
+     * @param username string name of the user
+     * @param memberId string id of the member
+     * @param spaces a list of all spaces
+     * @return boolean - true if the user has write or admin permissions on a space that contains the member
+     */
+    public boolean canUserModifyMember(String username, String memberId, List<Space> spaces) {
+        List<Space> userSpaces = spaces.stream()
+            .filter(space -> canUserAccessSpace(space, username, PrivilegeLevel.WRITE))
+            .collect(Collectors.toList());
+
+        Set<String> membersSet = new HashSet<>();
+        for (Space space : userSpaces) {
+            membersSet.addAll(space.getMembers());
+        }
+        return membersSet.contains(memberId);
+    }
+
     ////////////////////////////////////////////////////////
-    // helper methods
+    // private methods
     /////////////////////////////////////////////////////////
 
     private Set<PrivilegeLevel> getGroupSpecificPrivileges(String user, Privileges spec) {
@@ -208,8 +254,34 @@ public class Authorizer implements IAuthorizer {
      */
     private List<Space> getSpacesUserCanRead(List<Space> spaces, String username){
         return spaces.stream()
-            .filter(space -> space.getUserPrivilegeLevel(username) != null || !getGroupSpecificPrivileges(username, space.getPrivileges()).isEmpty())
+            .filter(space -> canUserAccessSpace(space, username, PrivilegeLevel.READ))
             .collect(Collectors.toList());
+    }
+
+    //TODO: review this implementation
+    /**
+     * This method is to check if a user can access a space with a specific privilege level
+     * @param space the space retrieved from the repository
+     * @param username the string name of the user
+     * @param privilegeLevel the privilege level we want to check for
+     * @return boolean - true if the user has the specified privilege level
+     */
+    private boolean canUserAccessSpace(Space space, String username, PrivilegeLevel privilegeLevel) {
+        if (privilegeLevel == PrivilegeLevel.READ){
+            return space.getUserPrivilegeLevel(username) != null ||
+                space.getGroupPrivilegeLevel(username) != null ||
+                !getGroupSpecificPrivileges(username, space.getPrivileges()).isEmpty();
+        } else if (privilegeLevel == PrivilegeLevel.WRITE) {
+            return space.getUserPrivilegeLevel(username) == PrivilegeLevel.WRITE || space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
+                space.getGroupPrivilegeLevel(username) == PrivilegeLevel.WRITE || space.getGroupPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
+                (getGroupSpecificPrivileges(username, space.getPrivileges())).contains(PrivilegeLevel.WRITE) ||
+                (getGroupSpecificPrivileges(username, space.getPrivileges())).contains(PrivilegeLevel.ADMIN);
+        } else if (privilegeLevel == PrivilegeLevel.ADMIN) {
+            return space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
+                space.getGroupPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
+                (getGroupSpecificPrivileges(username, space.getPrivileges())).contains(PrivilegeLevel.ADMIN);
+        }
+        return false;
     }
 
 

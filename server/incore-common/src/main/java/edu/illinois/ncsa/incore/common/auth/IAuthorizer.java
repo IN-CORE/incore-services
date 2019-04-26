@@ -30,8 +30,12 @@ public interface IAuthorizer {
 
     List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces);
 
-    Set<String> getAllMembersUserHasAccessTo(String username, List<Space> spaces);
+    Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces);
 
     boolean canUserReadMember(String username, String memberId, List<Space> spaces);
+
+    boolean canUserModifyMember(String username, String memberId, List<Space> spaces);
+
+    boolean canUserDeleteMember(String username, String memberId, List<Space> spaces);
 
 }
