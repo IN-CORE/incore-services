@@ -90,7 +90,7 @@ public class TsunamiController {
         }
         List<Tsunami> tsunamis = repository.getTsunamis();
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         List<Tsunami> accessibleTsunamis = tsunamis.stream()
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
@@ -239,7 +239,7 @@ public class TsunamiController {
         if (tsunamis.size() == 0) {
             throw new NotFoundException();
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         tsunamis = tsunamis.stream()
             .filter(b -> membersSet.contains(b.getId()))

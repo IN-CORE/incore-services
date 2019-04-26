@@ -164,7 +164,7 @@ public class DatasetController {
             return datasets;
         }
         //get all datasets that the user can read
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         //return the intersection between all datasets, and the ones the user can read
         List<Dataset> accesibleDatasets = datasets.stream()
@@ -377,45 +377,38 @@ public class DatasetController {
             throw new BadRequestException("Credential user name should be provided.");
         }
 
-        Dataset dataset = null;
-        dataset = getDatasetbyId(username, datasetId);
+        Dataset dataset = getDatasetbyId(username, datasetId);
 
-        List<Space> userAdminSpaces = spaceRepository.getAllSpaces().stream()
-            .filter(d -> d.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN)
-            .collect(Collectors.toList());
-        String creator = dataset.getCreator();
-        for (Space userAdminSpace: userAdminSpaces) {
-
+        if (dataset == null) {
+            throw new NotFoundException();
         }
-        if (creator != null) {
-            if (creator.equals(username)) {
-                // remove dataset
-                dataset = repository.deleteDataset(datasetId);
-                if (dataset != null) {
-                    // remove files
-                    List<FileDescriptor> fds = dataset.getFileDescriptors();
-                    if (fds.size() > 0) {
-                        for (FileDescriptor fd : fds) {
-                            File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
-                            FileUtils.deleteTmpDir(file);
 
-                        }
-                    }
-                    // remove geoserver layer
-                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+        if (authorizer.canUserDeleteMember(username, datasetId, spaceRepository.getAllSpaces())) {
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for(Space space : spaces){
+                if(space.hasMember(datasetId)){
+                    space.removeMember(datasetId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+            // remove dataset
+            dataset = repository.deleteDataset(datasetId);
+            if (dataset != null) {
+                // remove files
+                List<FileDescriptor> fds = dataset.getFileDescriptors();
+                if (fds.size() > 0) {
+                    for (FileDescriptor fd : fds) {
+                        File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
+                        FileUtils.deleteTmpDir(file);
 
-                    // remove id from spaces
-                    List<Space> spaces = spaceRepository.getAllSpaces();
-                    for(Space space : spaces){
-                        if(space.hasMember(datasetId)){
-                            space.removeMember(datasetId);
-                            spaceRepository.addSpace(space);
-                        }
                     }
                 }
-            } else {
-                dataset = null;
+                // remove geoserver layer
+                boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
             }
+        } else {
+            throw new NotAuthorizedException(username + " is not authorized to delete the dataset");
         }
 
         return dataset;
@@ -431,12 +424,13 @@ public class DatasetController {
                                @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'", required = true)
                                    FormDataMultiPart inputs) {
-
         if (username == null) {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
         }
-
+        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+            throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
+        }
         // adding geoserver flag
         // if this flas is false, the data will not be uploaded to geoserver
         boolean enableGeoserver = false;
@@ -568,10 +562,17 @@ public class DatasetController {
     public Object updateObject(@HeaderParam("X-Credential-Username") String username,
                                @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
+        if (username == null) {
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
+        }
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (!isJsonValid) {
             logger.error("Posted json is not a valid json.");
             throw new BadRequestException("Posted json is not a valid json.");
+        }
+        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+            throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
         }
 
         Dataset dataset = repository.getDatasetById(datasetId);
@@ -579,20 +580,11 @@ public class DatasetController {
             throw new NotFoundException();
         }
 
-        //get all spaces that the user has a write or admin privileges
-        List<Space> accessibleSpaces = spaceRepository.getAllSpaces().stream()
-            .filter(d -> d.getUserPrivilegeLevel(username) == PrivilegeLevel.WRITE || d.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN)
-            .collect(Collectors.toList());
+        String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+        String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
+        dataset = repository.updateDataset(datasetId, propName, propVal);
+        return dataset;
 
-        for (Space space: accessibleSpaces) {
-            if (space.hasMember(datasetId)) {
-                String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
-                String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
-                dataset = repository.updateDataset(datasetId, propName, propVal);
-                return dataset;
-            }
-        }
-        throw new ForbiddenException("You have no permission to modify the dataset");
     }
 
     @GET
@@ -611,7 +603,7 @@ public class DatasetController {
             throw new NotFoundException();
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         datasets = datasets.stream()
             .filter(dataset -> membersSet.contains(dataset.getId()))

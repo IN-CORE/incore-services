@@ -29,7 +29,6 @@ import org.apache.log4j.Logger;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
 
-import javax.annotation.security.DenyAll;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -104,7 +103,7 @@ public class MappingController {
             }
             return mappingSets;
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         return mappingSets.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -164,7 +163,7 @@ public class MappingController {
                                           @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         List<FragilitySet> fragilitySets = this.fragilityDAO.getCachedFragilities().stream()
             .filter(b -> membersSet.contains(b.getId()))

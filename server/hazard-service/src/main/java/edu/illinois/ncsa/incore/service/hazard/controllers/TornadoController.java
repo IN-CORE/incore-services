@@ -41,7 +41,6 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -94,7 +93,7 @@ public class TornadoController {
             }
             return tornadoes;
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         List<Tornado> accessibleTornadoes = tornadoes.stream()
             .filter(tornado -> membersSet.contains(tornado.getId()))
@@ -304,7 +303,7 @@ public class TornadoController {
         if (tornadoes.size() == 0) {
             throw new NotFoundException();
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         tornadoes = tornadoes.stream()
             .filter(b -> membersSet.contains(b.getId()))
