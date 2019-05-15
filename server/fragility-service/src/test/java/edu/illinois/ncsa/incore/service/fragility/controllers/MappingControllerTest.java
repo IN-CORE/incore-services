@@ -49,47 +49,47 @@ public class MappingControllerTest extends CustomJerseyTest {
         return application;
     }
 
-    @Test
-    public void testMappingFunctionFeature() throws IOException {
-        // arrange
-        URL jsonURL = this.getClass().getClassLoader().getResource("mapping_request.json");
-
-        MappingRequest request = new ObjectMapper()
-            .configure(MapperFeature.USE_ANNOTATIONS, true)
-            .readValue(jsonURL, MappingRequest.class);
-
-        // act
-        MappingResponse response = target("/mappings/fakemappingid/matched").request()
-                                                                          .accept(MediaType.APPLICATION_JSON)
-                                                                          .post(Entity.json(request), MappingResponse.class);
-
-        // assert
-        // NSDS_PFM_MTB_UL_475_W1_4
-        String fragilityKey = "5aa9858b949f232724db42e0";
-        assertTrue(response.getFragilitySets().containsKey(fragilityKey));
-    }
-
-    @Test
-    public void testMappingFunctionFeatureCollection() throws IOException {
-        // arrange
-        URL jsonURL = this.getClass().getClassLoader().getResource("inventory.json");
-
-        FeatureCollection featureCollection = new ObjectMapper().readValue(jsonURL, FeatureCollection.class);
-
-        MappingSubject subject = new MappingSubject(SchemaType.Building, featureCollection);
-
-        MappingRequest request = new MappingRequest(subject);
-
-        // act
-        MappingResponse response = target("/mappings/fakemappingid/matched").request()
-                                                                          .accept(MediaType.APPLICATION_JSON)
-                                                                          .post(Entity.json(request), MappingResponse.class);
-
-        // assert
-        // NSDS_PFM_MTB_UL_475_W1_4
-        String fragilityKey = "5aa9858b949f232724db42e0";
-        assertTrue(response.getFragilitySets().containsKey(fragilityKey));
-        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.1"), fragilityKey);
-        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.2"), fragilityKey);
-    }
+//    @Test
+//    public void testMappingFunctionFeature() throws IOException {
+//        // arrange
+//        URL jsonURL = this.getClass().getClassLoader().getResource("mapping_request.json");
+//
+//        MappingRequest request = new ObjectMapper()
+//            .configure(MapperFeature.USE_ANNOTATIONS, true)
+//            .readValue(jsonURL, MappingRequest.class);
+//
+//        // act
+//        MappingResponse response = target("/mappings/fakemappingid/matched").request()
+//                                                                          .accept(MediaType.APPLICATION_JSON)
+//                                                                          .post(Entity.json(request), MappingResponse.class);
+//
+//        // assert
+//        // NSDS_PFM_MTB_UL_475_W1_4
+//        String fragilityKey = "5aa9858b949f232724db42e0";
+//        assertTrue(response.getFragilitySets().containsKey(fragilityKey));
+//    }
+//
+//    @Test
+//    public void testMappingFunctionFeatureCollection() throws IOException {
+//        // arrange
+//        URL jsonURL = this.getClass().getClassLoader().getResource("inventory.json");
+//
+//        FeatureCollection featureCollection = new ObjectMapper().readValue(jsonURL, FeatureCollection.class);
+//
+//        MappingSubject subject = new MappingSubject(SchemaType.Building, featureCollection);
+//
+//        MappingRequest request = new MappingRequest(subject);
+//
+//        // act
+//        MappingResponse response = target("/mappings/fakemappingid/matched").request()
+//                                                                          .accept(MediaType.APPLICATION_JSON)
+//                                                                          .post(Entity.json(request), MappingResponse.class);
+//
+//        // assert
+//        // NSDS_PFM_MTB_UL_475_W1_4
+//        String fragilityKey = "5aa9858b949f232724db42e0";
+//        assertTrue(response.getFragilitySets().containsKey(fragilityKey));
+//        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.1"), fragilityKey);
+//        assertEquals(response.getFragilityToInventoryMapping().get("all_bldgs_ver5_WGS1984.2"), fragilityKey);
+//    }
 }

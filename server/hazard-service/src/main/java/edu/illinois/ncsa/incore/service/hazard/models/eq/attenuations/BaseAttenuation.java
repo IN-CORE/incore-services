@@ -10,10 +10,10 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.SeismicHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -31,6 +31,24 @@ public abstract class BaseAttenuation {
     protected List<String> hazardOutputTypes;
     protected Map<String, List<Double>> coefficients;
 
+    public static String getUnits(String hazardType) {
+        if (hazardType.equalsIgnoreCase(HazardUtil.PGA)) {
+            return "g"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase(HazardUtil.PGD)) {
+            return "m"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase(HazardUtil.PGV)) {
+            return "cm/s"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase("SA")) { //$NON-NLS-1$
+            return "g"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase("SD")) { //$NON-NLS-1$
+            return "cm"; //$NON-NLS-1$
+        } else if (hazardType.equalsIgnoreCase("SV")) { //$NON-NLS-1$
+            return "cm/s"; //$NON-NLS-1$
+        } else {
+            return "g"; //$NON-NLS-1$
+        }
+    }
+
     /**
      * Subclasses should implement this method and put required model parameters
      * in a map
@@ -39,37 +57,43 @@ public abstract class BaseAttenuation {
      */
     public abstract double getValue(String period, Site site) throws Exception;
 
-    /**
-     *
-     * @param median_hazard
-     * @param period
-     * @param site
+    /** Returns standard deviation by combining all the applicable uncertainties
+     * @param median_hazard median hazard value
+     * @param period demand types such as PGA, 0.2 SA, 0.3 SA, 1.0 SA etc.
+     * @param site site location
      * @return
      * @throws Exception
      */
     public abstract double getStandardDeviation(double median_hazard, String period, Site site) throws Exception;
 
     /**
-     *
-     * @param period
-     * @param site
-     * @return
-     * @throws Exception
+     * @return map with all periods and aleatoric standard deviations
      */
-    public abstract double getAleatoricStdDev(String period, Site site) throws Exception;
+    public abstract Map<String, Double> getAleatoricUncertainties();
+
+    /***
+     * Returns aleatoric uncertainty for a provided demand
+     * @param demand demand types such as PGA, 0.2 SA, 0.3 SA, 1.0 SA etc.
+     * @return Aleatoric uncertainity value
+     */
+    public Double getAleatoricUncertainties(String demand) {
+        Map<String, Double> uncertainties = getAleatoricUncertainties();
+        if (uncertainties.containsKey(demand.toUpperCase())) {
+            return uncertainties.get(demand.toUpperCase());
+        }
+        return null;
+    }
 
     /**
-     *
-     * @param medianHazard
-     * @param period
-     * @param site
-     * @return
+     * @param combinedHazard hazard value of all the combined attenuation models
+     * @param period demand types such as PGA, 0.2 SA, 0.3 SA, 1.0 SA etc.
+     * @param site site location
+     * @return Log Standard deviation of the model specific hazard value from the combined models' hazard value
      * @throws Exception
      */
-    public double getEpistemicVariance(double medianHazard, String period, Site site) throws Exception
-    {
+    public double getEpistemicVariance(double combinedHazard, String period, Site site) throws Exception {
         double hazard = getValue(period, site);
-        double epistemicVariance = Math.pow(Math.log(hazard) - Math.log(medianHazard), 2);
+        double epistemicVariance = Math.sqrt(Math.pow(Math.log(hazard) - Math.log(combinedHazard), 2));
         return epistemicVariance;
     }
 
@@ -115,7 +139,7 @@ public abstract class BaseAttenuation {
             } catch (IOException e) {
                 logger.error("Could not read cofficient file for attenuation.", e);
             }
-        } catch(URISyntaxException e) {
+        } catch (URISyntaxException e) {
             logger.error("Error parsing coefficients file for attenuation", e);
         }
 
@@ -128,8 +152,7 @@ public abstract class BaseAttenuation {
      * @param hazardType
      * @return true/false whether it can be supported for output
      */
-    public boolean canOutput(String hazardType)
-    {
+    public boolean canOutput(String hazardType) {
         if (hazardType == null) {
             return false;
         }
@@ -161,8 +184,7 @@ public abstract class BaseAttenuation {
      * @param hazardType
      * @return the period as a double
      */
-    private double periodFromHazard(String hazardType)
-    {
+    private double periodFromHazard(String hazardType) {
         double period = 0.0;
         String[] split = hazardType.split(" "); //$NON-NLS-1$
         if (split.length > 0) {
@@ -176,7 +198,6 @@ public abstract class BaseAttenuation {
         return period;
     }
 
-
     /**
      * Gets the closest supported hazard to the desired one.<br>
      * If the hazard is exactly supported, just returns it.<br>
@@ -187,8 +208,7 @@ public abstract class BaseAttenuation {
      * @param hazardType
      * @return the string representation of the closest supported hazard.
      */
-    public String closestSupportedHazard(String hazardType)
-    {
+    public String closestSupportedHazard(String hazardType) {
         double period = periodFromHazard(hazardType);
 
         String closest = null;
@@ -224,8 +244,7 @@ public abstract class BaseAttenuation {
         return closest;
     }
 
-    public SeismicHazardResult getValueClosestMatch(String hazardType, Site site) throws Exception
-    {
+    public SeismicHazardResult getValueClosestMatch(String hazardType, Site site) throws Exception {
         // if we exact match, don't bother running through them all
         if (canOutput(hazardType)) {
             return new SeismicHazardResult(getValue(hazardType, site), hazardType);
@@ -254,61 +273,37 @@ public abstract class BaseAttenuation {
 
         // will get here if the ground motion types never match...
         if (closest == null) {
-            throw new UnsupportedHazardException("Unsupported hazard "+hazardType);
+            throw new UnsupportedHazardException("Unsupported hazard " + hazardType);
         }
 
         return new SeismicHazardResult(getValue(closest, site), closest);
     }
 
-    public static String getUnits(String hazardType)
-    {
-        if (hazardType.equalsIgnoreCase(HazardUtil.PGA)) {
-            return "g"; //$NON-NLS-1$
-        } else if (hazardType.equalsIgnoreCase(HazardUtil.PGD)) {
-            return "m"; //$NON-NLS-1$
-        } else if (hazardType.equalsIgnoreCase(HazardUtil.PGV)) {
-            return "cm/s"; //$NON-NLS-1$
-        } else if (hazardType.equalsIgnoreCase("SA")) { //$NON-NLS-1$
-            return "g"; //$NON-NLS-1$
-        } else if (hazardType.equalsIgnoreCase("SD")) { //$NON-NLS-1$
-            return "cm"; //$NON-NLS-1$
-        } else if (hazardType.equalsIgnoreCase("SV")) { //$NON-NLS-1$
-            return "cm/s"; //$NON-NLS-1$
-        } else {
-            return "g"; //$NON-NLS-1$
-        }
-    }
-
     /**
-     *
      * @return
      */
     public abstract boolean canProduceStandardDeviation();
 
-    public EqParameters getRuptureParameters()
-    {
+    public EqParameters getRuptureParameters() {
         return ruptureParameters;
     }
 
-    public void setRuptureParameters(EqParameters ruptureParameters)
-    {
+    public void setRuptureParameters(EqParameters ruptureParameters) {
         this.ruptureParameters = ruptureParameters;
     }
 
     /**
-     *
      * @param period
      * @return
      */
-    protected List<Double> getCoefficients(String period)
-    {
-        if(coefficients.containsKey(period)) {
+    protected List<Double> getCoefficients(String period) {
+        if (coefficients.containsKey(period)) {
             return coefficients.get(period);
         } else {
             // Handles case differences for PGA, PGV, etc. This could be handled in the service as well
-            if(coefficients.containsKey(period.toUpperCase())) {
+            if (coefficients.containsKey(period.toUpperCase())) {
                 return coefficients.get(period.toUpperCase());
-            } else if(coefficients.containsKey(period.toLowerCase())) {
+            } else if (coefficients.containsKey(period.toLowerCase())) {
                 return coefficients.get(period.toLowerCase());
             }
         }
@@ -316,21 +311,17 @@ public abstract class BaseAttenuation {
     }
 
     /**
-     *
      * @return List of hazard outputs
      */
-    public List<String> getHazardOutputTypes()
-    {
+    public List<String> getHazardOutputTypes() {
         return hazardOutputTypes;
     }
 
-    public String[] getRegions()
-    {
-        return new String[] { "Global" };
+    public String[] getRegions() {
+        return new String[]{"Global"};
     }
 
-    public boolean isRegionRequired()
-    {
+    public boolean isRegionRequired() {
         return false;
     }
 

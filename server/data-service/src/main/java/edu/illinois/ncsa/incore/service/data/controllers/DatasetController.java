@@ -13,17 +13,20 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
 import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
+import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -39,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,13 +52,13 @@ import java.util.stream.Collectors;
 
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Data Service for creating and accessing spaces",
-        version = "v0.2.0",
-        title = "IN-CORE v2 Data Services API",
+        description = "IN-CORE Data Service for creating and accessing datasets",
+        version = "v0.3.0",
+        title = "IN-CORE v2 Data Service API",
         contact = @Contact(
-            name = "Jong S. Lee",
-            email = "jonglee@illinois.edu",
-            url = "http://resilience.colostate.edu"
+            name = "IN-CORE Dev Team",
+            email = "incore-dev@lists.illinois.edu",
+            url = "https://incore2.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
@@ -75,20 +79,18 @@ public class DatasetController {
     private static final String GEOSERVER_ENABLE = Config.getConfigProperties().getProperty("geoserver.enable");
     private static final String POST_PARAMENTER_NAME = "name";
     private static final String POST_PARAMENTER_FILE = "file";
-    private static final String POST_PARAMENTER_META = "parentdataset";
-    private static final String POST_PARAMETER_DATASET_ID = "datasetId";
     private static final String UPDATE_OBJECT_NAME = "property name";
     private static final String UPDATE_OBJECT_VALUE = "property value";
-    private static final String WEBDAV_SPACE_NAME = "ergo";
     private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
     private IRepository repository;
 
+    @Inject
+    private ISpaceRepository spaceRepository;
 
     @Inject
     private IAuthorizer authorizer;
-
 
     @GET
     @Path("{id}")
@@ -102,11 +104,17 @@ public class DatasetController {
             throw new NotFoundException("Error finding dataset with the id of " + datasetId);
         }
 
-        if (!authorizer.canRead(username, dataset.getPrivileges())) {
-            throw new ForbiddenException("You are not allowed to access that dataset");
+        //feeling lucky, try to get dataset directly from user's space
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space != null && space.hasMember(datasetId) ) {
+            return dataset;
         }
 
-        return dataset;
+        if (authorizer.canUserReadMember(username, datasetId, spaceRepository.getAllSpaces())) {
+            return dataset;
+        }
+
+        throw new ForbiddenException();
     }
 
     @GET
@@ -116,9 +124,12 @@ public class DatasetController {
                                      @ApiParam(value = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: ergo:buildingInventoryVer5, ergo:census",
                                          required = false) @QueryParam("type") String typeStr,
                                      @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
-                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator
+                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
+                                     @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                     @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                     @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit
     ) {
-        List<Dataset> datasets = null;
+        List<Dataset> datasets;
         if (typeStr != null && titleStr == null) {  // query only for the type
             datasets = repository.getDatasetByType(typeStr);
         } else if (typeStr == null && titleStr != null) {   // query only for the title
@@ -133,11 +144,39 @@ public class DatasetController {
             logger.error("Error finding dataset");
             throw new NotFoundException("Error finding dataset");
         }
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new NotFoundException();
+            }
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+            datasets = datasets.stream()
+                .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+            if (datasets.size() == 0) {
+                throw new NotFoundException("No hurricanes were found in space " + spaceName);
+            }
+            return datasets;
+        }
+        //get all datasets that the user can read
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-        return datasets.stream()
-            .filter(d -> (creator == null || "".equals(creator.trim()) || creator.trim().equals(d.getCreator())))
-            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+        //return the intersection between all datasets, and the ones the user can read
+        List<Dataset> accesibleDatasets = datasets.stream()
+            .filter(dataset -> userMembersSet.contains(dataset.getId()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
+
+        if(accesibleDatasets.size() > 0) {
+            return accesibleDatasets;
+        }
+        throw new ForbiddenException();
     }
 
     @GET
@@ -147,15 +186,7 @@ public class DatasetController {
     public Response getFileByDataset(@HeaderParam("X-Credential-Username") String username,
                                      @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         File outFile = null;
-        Dataset dataset = repository.getDatasetById(datasetId);
-        if (dataset == null) {
-            logger.error("Error finding dataset with the id of " + datasetId);
-            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
-        }
-
-        if (!authorizer.canRead(username, dataset.getPrivileges())) {
-            throw new ForbiddenException();
-        }
+        Dataset dataset = getDatasetbyId(username, datasetId);
 
         try {
             outFile = FileUtils.loadFileFromService(dataset, repository, false, "");
@@ -184,15 +215,7 @@ public class DatasetController {
 
     public List<FileDescriptor> getDatasetsFiles(@HeaderParam("X-Credential-Username") String username,
                                                  @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
-        Dataset dataset = repository.getDatasetById(datasetId);
-        if (dataset == null) {
-            logger.error("Error finding dataset with the id of " + datasetId);
-            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
-        }
-
-        if (!authorizer.canRead(username, dataset.getPrivileges())) {
-            throw new ForbiddenException();
-        }
+        Dataset dataset = getDatasetbyId(username, datasetId);
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         if (fds == null) {
@@ -211,15 +234,7 @@ public class DatasetController {
                                             @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
                                             @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
         File outFile = null;
-        Dataset dataset = repository.getDatasetById(id);
-        if (dataset == null) {
-            logger.error("Error finding dataset with the id of " + id);
-            throw new NotFoundException("Error finding dataset with the id of " + id);
-        }
-
-        if (!authorizer.canRead(username, dataset.getPrivileges())) {
-            throw new ForbiddenException();
-        }
+        Dataset dataset = getDatasetbyId(username, id);
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         String dataUrl = "";
@@ -255,15 +270,7 @@ public class DatasetController {
     public FileDescriptor getFileByDatasetIdFileDescriptor(@HeaderParam("X-Credential-Username") String username,
                                                            @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
                                                            @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
-        Dataset dataset = repository.getDatasetById(id);
-        if (dataset == null) {
-            logger.error("Error finding dataset with the id of " + id);
-            throw new NotFoundException("Error finding dataset with the id of " + id);
-        }
-
-        if (!authorizer.canRead(username, dataset.getPrivileges())) {
-            throw new ForbiddenException();
-        }
+        Dataset dataset = getDatasetbyId(username, id);
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         String fdId = "";
@@ -302,7 +309,7 @@ public class DatasetController {
             throw new BadRequestException("Posted json is not a valid json.");
         }
 
-        boolean isDatasetParameterValid = JsonUtils.isDatasetParameterValid(inDatasetJson);
+        boolean isDatasetParameterValid = DataJsonUtils.isDatasetParameterValid(inDatasetJson);
         if (isDatasetParameterValid != true) {
             logger.error("Posted json is not a valid json.");
             throw new BadRequestException("Posted json has wrong parameter");
@@ -341,15 +348,15 @@ public class DatasetController {
 
             String id = dataset.getId();
 
-            Space space = repository.getSpaceByName(username);
+            Space space = spaceRepository.getSpaceByName(username);
             if(space == null){
                 space = new Space(username);
                 space.addMember(id);
                 space.setPrivileges(Privileges.newWithSingleOwner(username));
-                repository.addSpace(space);
+                spaceRepository.addSpace(space);
             } else {
                 space.addMember(id);
-                repository.addSpace(space);
+                spaceRepository.addSpace(space);
             }
 
         }
@@ -370,49 +377,38 @@ public class DatasetController {
             throw new BadRequestException("Credential user name should be provided.");
         }
 
+        Dataset dataset = getDatasetbyId(username, datasetId);
 
-        Dataset dataset = null;
-        dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
-            logger.error("Error finding dataset with the id of " + datasetId);
-            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+            throw new NotFoundException();
         }
 
-        if (!authorizer.canWrite(username, dataset.getPrivileges())) {
-            throw new ForbiddenException();
-        }
+        if (authorizer.canUserDeleteMember(username, datasetId, spaceRepository.getAllSpaces())) {
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for(Space space : spaces){
+                if(space.hasMember(datasetId)){
+                    space.removeMember(datasetId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+            // remove dataset
+            dataset = repository.deleteDataset(datasetId);
+            if (dataset != null) {
+                // remove files
+                List<FileDescriptor> fds = dataset.getFileDescriptors();
+                if (fds.size() > 0) {
+                    for (FileDescriptor fd : fds) {
+                        File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
+                        FileUtils.deleteTmpDir(file);
 
-        String creator = dataset.getCreator();
-
-        if (creator != null) {
-            if (creator.equals(username)) {
-                // remove dataset
-                dataset = repository.deleteDataset(datasetId);
-                if (dataset != null) {
-                    // remove files
-                    List<FileDescriptor> fds = dataset.getFileDescriptors();
-                    if (fds.size() > 0) {
-                        for (FileDescriptor fd : fds) {
-                            File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
-                            FileUtils.deleteTmpDir(file);
-
-                        }
-                    }
-                    // remove geoserver layer
-                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
-
-                    // remove id from spaces
-                    List<Space> spaces = repository.getAllSpaces();
-                    for(Space space : spaces){
-                        if(space.hasMember(datasetId)){
-                            space.removeMember(datasetId);
-                            repository.addSpace(space);
-                        }
                     }
                 }
-            } else {
-                dataset = null;
+                // remove geoserver layer
+                boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
             }
+        } else {
+            throw new NotAuthorizedException(username + " is not authorized to delete the dataset");
         }
 
         return dataset;
@@ -428,12 +424,13 @@ public class DatasetController {
                                @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'", required = true)
                                    FormDataMultiPart inputs) {
-
         if (username == null) {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
         }
-
+        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+            throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
+        }
         // adding geoserver flag
         // if this flas is false, the data will not be uploaded to geoserver
         boolean enableGeoserver = false;
@@ -445,15 +442,7 @@ public class DatasetController {
         String objIdStr = datasetId;
         String inJson = "";
         String paramName = "";
-        Dataset dataset = repository.getDatasetById(objIdStr);
-        if (dataset == null) {
-            logger.error("Error finding dataset with the id of " + datasetId);
-            throw new NotFoundException("Error finding dataset with the id of " + datasetId);
-        }
-
-        if (!authorizer.canWrite(username, dataset.getPrivileges())) {
-            throw new ForbiddenException();
-        }
+        Dataset dataset = getDatasetbyId(username, objIdStr);
 
         boolean isJsonValid = false;
         boolean isGeoserver = false;
@@ -573,27 +562,59 @@ public class DatasetController {
     public Object updateObject(@HeaderParam("X-Credential-Username") String username,
                                @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
+        if (username == null) {
+            logger.error("Credential user name should be provided.");
+            throw new BadRequestException("Credential user name should be provided.");
+        }
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
-        if (isJsonValid != true) {
+        if (!isJsonValid) {
             logger.error("Posted json is not a valid json.");
             throw new BadRequestException("Posted json is not a valid json.");
         }
-
-        Dataset dataset = null;
-        dataset = repository.getDatasetById(datasetId);
-        if (!(authorizer.canWrite(username, dataset.getPrivileges()))) {
-            throw new ForbiddenException();
+        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+            throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
         }
 
-
-        if (isJsonValid) {
-            String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
-            String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
-            dataset = repository.updateDataset(datasetId, propName, propVal);
+        Dataset dataset = repository.getDatasetById(datasetId);
+        if (dataset == null) {
+            throw new NotFoundException();
         }
 
+        String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+        String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
+        dataset = repository.updateDataset(datasetId, propName, propVal);
         return dataset;
+
     }
 
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all datasets", notes="Gets all datasets that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(code = 404, message = "No datasets found with the searched text")
+    })
+    public List<Dataset> findDatasets(@HeaderParam("X-Credential-Username") String username,
+                                              @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Dataset> datasets = this.repository.searchDatasets(text);
+        if (datasets.size() == 0) {
+            throw new NotFoundException();
+        }
 
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+
+        datasets = datasets.stream()
+            .filter(dataset -> membersSet.contains(dataset.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+        if (datasets.size() == 0) {
+            throw new NotAuthorizedException(username + " has no permission to access the datasets that match the search criteria");
+        }
+
+        return datasets;
+    }
 }

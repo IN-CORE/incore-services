@@ -9,3 +9,5 @@ include 'incore-common'
 include 'auth-service'
 include "semantic-core"
 include 'semantic-service'
+include 'space-service'
+

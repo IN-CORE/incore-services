@@ -13,7 +13,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
@@ -47,13 +50,13 @@ import java.util.stream.Collectors;
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
     info = @Info(
-        description = "Incore Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
-        version = "v0.2.0",
-        title = "Incore v2 Hazard API",
+        description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
+        version = "v0.3.0",
+        title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
-            name = "Jong S. Lee",
-            email = "jonglee@illinois.edu",
-            url = "http://resilience.colostate.edu"
+            name = "IN-CORE Dev Team",
+            email = "incore-dev@lists.illinois.edu",
+            url = "https://incore2.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
@@ -69,7 +72,7 @@ import java.util.stream.Collectors;
     //externalDocs = @ExternalDocs(value = "FEMA  Hazard Manual", url = "https://www.fema.gov/earthquake")
 )
 
-@Api(value="earthquakes", authorizations = {})
+@Api(value = "earthquakes", authorizations = {})
 
 @Path("earthquakes")
 @ApiResponses(value = {
@@ -83,18 +86,19 @@ public class EarthquakeController {
     private IEarthquakeRepository repository;
 
     @Inject
+    private ISpaceRepository spaceRepository;
+
+    @Inject
     private AttenuationProvider attenuationProvider;
 
     @Inject
     private IAuthorizer authorizer;
 
-    // TODO add endpoint to retrieve a list of models
-
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new earthquake, the newly created earthquake is returned.",
-        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create both model earthquakes (with attenuation) and dataset-based earthquakes " +
             "with GeoTiff files uploaded.")
     @ApiImplicitParams({
@@ -145,6 +149,9 @@ public class EarthquakeController {
 
                     scenarioEarthquake.setHazardDataset(rasterDataset);
                     earthquake = repository.addEarthquake(earthquake);
+
+                    addEarthquakeToSpace(earthquake, username);
+
                     return earthquake;
                 } catch (IOException e) {
                     logger.error("Error creating raster dataset", e);
@@ -177,19 +184,23 @@ public class EarthquakeController {
                         }
 
                         String filename = filePart.getContentDisposition().getFileName();
-                        BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
+                        BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
                         InputStream fis = bodyPartEntity.getInputStream();
-
+                        //TODO: we should check that we successfully created a raster dataset
                         String datasetId = ServiceUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName, username, description, datasetType);
+
                         hazardDataset.setDatasetId(datasetId);
                     }
                     // Save changes to earthquake
                     earthquake = repository.addEarthquake(earthquake);
+
+                    addEarthquakeToSpace(earthquake, username);
+
                     return earthquake;
-                }
-                else {
+                } else {
                     logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
-                    throw new BadRequestException("Could not create Earthquake. Check your file extensions and the number of files in the request.");                }
+                    throw new BadRequestException("Could not create Earthquake. Check your file extensions and the number of files in the request.");
+                }
             }
 
         } catch (IOException e) {
@@ -202,11 +213,45 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns all earthquakes.")
     public List<Earthquake> getEarthquakes(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Name of the space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Skip the first n results.") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit number of results to return.") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Earthquake> earthquakes = repository.getEarthquakes();
 
-        return repository.getEarthquakes().stream()
-            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new NotFoundException();
+            }
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+
+            earthquakes = earthquakes.stream()
+                .filter(earthquake -> spaceMembers.contains(earthquake.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+            if (earthquakes.size() == 0) {
+                throw new NotFoundException("No earthquakes were found in space " + spaceName);
+            }
+            return earthquakes;
+        }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        List<Earthquake> accessibleEarthquakes = earthquakes.stream()
+            .filter(earthquake -> membersSet.contains(earthquake.getId()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
+
+        if(accessibleEarthquakes.size() == 0) {
+            throw new ForbiddenException();
+        }
+
+        return accessibleEarthquakes;
     }
 
     @GET
@@ -214,17 +259,23 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the earthquake with matching id.")
     public Earthquake getEarthquake(
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Id of the earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username) {
-
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
         if (earthquake == null) {
             throw new NotFoundException();
         }
-        if (!authorizer.canRead(username, earthquake.getPrivileges())) {
-            throw new ForbiddenException();
+        //feeling lucky
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space != null && space.hasMember(earthquakeId)) {
+            return earthquake;
         }
-        return earthquake;
+
+        if (authorizer.canUserReadMember(username, earthquakeId, spaceRepository.getAllSpaces())) {
+            return earthquake;
+        }
+
+        throw new ForbiddenException();
     }
 
     @GET
@@ -235,9 +286,9 @@ public class EarthquakeController {
         "data along with a list of HazardResults. Each HazardResult is a lat, long and hazard value.")
     public SeismicHazardResults getEarthquakeHazardForBox(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
-        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Ground motion demand type. Ex: PGA, PGV, 0.2 SA, etc", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Ground motion demand unit. Ex: g, %g, cm/s, etc", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "Bounding box of a raster. Min X.", required = true) @QueryParam("minX") double minX,
         @ApiParam(value = "Bounding box of a raster. Min Y.", required = true) @QueryParam("minY") double minY,
         @ApiParam(value = "Bounding box of a raster. Max X.", required = true) @QueryParam("maxX") double maxX,
@@ -320,10 +371,10 @@ public class EarthquakeController {
         notes = "The results contain ground shaking parameter (PGA, SA, etc) for specific locations.")
     public List<SeismicHazardResult> getEarthquakeHazardValues(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true) @PathParam("earthquake-id") String earthquakeId,
-        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Liquefaction demand unit. Ex: PGD.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "Amplify hazard.", required = false) @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard,
+        @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Ground motion demand type. Ex: PGA, PGV, 0.2 SA, etc.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Ground motion demand unit. Ex: g, %g, cm/s, etc.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Amplify hazard by soil type.", required = false) @QueryParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
         Earthquake eq = getEarthquake(earthquakeId, username);
@@ -354,17 +405,161 @@ public class EarthquakeController {
         }
     }
 
+
+    @GET
+    @Path("{earthquake-id}/aleatoryuncertainty")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns aleatory uncertainties for a model based earthquake")
+    public Map<String, Double> getEarthquakeAleatoricUncertainties(@ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+                                                                   @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
+                                                                   @ApiParam(value = "Demand Type. Ex: PGA.", required = true) @QueryParam("demandType") String demandType) {
+        Earthquake eq = getEarthquake(earthquakeId, username);
+        if (eq != null && eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
+            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+
+            Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+            Map<String, Double> cumulativeAleatoryUncertainties = new HashMap<>();
+
+            while (iterator.hasNext()) {
+                BaseAttenuation model = iterator.next();
+                Double weight = attenuations.get(model);
+                Map<String, Double> aleatoryUncertainties = model.getAleatoricUncertainties();
+
+                if (aleatoryUncertainties != null) {
+                    //This logic adopted from the paper, assumes all models will have
+                    // the same set of demand types defined for their respective aleatory uncertainties
+                    aleatoryUncertainties.forEach((key, value) -> {
+                        if (cumulativeAleatoryUncertainties.containsKey(key)) {
+                            Double curVal = cumulativeAleatoryUncertainties.get(key);
+                            cumulativeAleatoryUncertainties.put(key, curVal + (weight * Math.pow(value, 2)));
+                        } else {
+                            cumulativeAleatoryUncertainties.put(key, (weight * Math.pow(value, 2)));
+                        }
+                    });
+                }
+            }
+
+            for (Map.Entry<String, Double> element : cumulativeAleatoryUncertainties.entrySet()) {
+                cumulativeAleatoryUncertainties.put(element.getKey(), Math.sqrt(element.getValue()));
+            }
+
+            if (cumulativeAleatoryUncertainties.size() > 0) {
+                if (demandType != null && demandType.trim() != "") {
+                    if (cumulativeAleatoryUncertainties.containsKey(demandType.trim().toUpperCase())) {
+                        return new HashMap<String, Double>() {
+                            {
+                                put(demandType, cumulativeAleatoryUncertainties.get(demandType.trim().toUpperCase()));
+                            }
+                        };
+                    }
+                }
+            }
+            return cumulativeAleatoryUncertainties;
+        } else {
+            logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " is not attenuation model based");
+        }
+    }
+
+    @GET
+    @Path("{earthquake-id}/variance/{variance-type}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns total and epistemic variance for a model based earthquake")
+    public List<VarianceResult> getEarthquakeVariance(@ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+                                                      @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
+                                                      @ApiParam(value = "Type of Variance. epistemic or total", required = true) @PathParam("variance-type") String varianceType,
+                                                      @ApiParam(value = "Demand Type. Ex: PGA.", required = true) @QueryParam("demandType") String demandType,
+                                                      @ApiParam(value = "Demand unit. Ex: g.", required = true) @QueryParam("demandUnits") String demandUnits,
+                                                      @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'.", required = true) @QueryParam("point") List<IncorePoint> points) {
+
+        Earthquake eq = getEarthquake(earthquakeId, username);
+        List<VarianceResult> varianceResults = new ArrayList<>();
+        if (eq != null && eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
+            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+            List<SeismicHazardResult> seismicHazardResults = getEarthquakeHazardValues(username, earthquakeId, demandType, demandUnits,
+                false, points);
+            Map<String, Double> aleatoricUncertainties = getEarthquakeAleatoricUncertainties(username, earthquakeId, demandType);
+
+            // single attenuation model with weight 1
+            boolean hasSingleModel = (attenuations.size() == 1);
+            BaseAttenuation singleModel = null;
+
+            int i = 0;
+            for (IncorePoint point : points) {
+                Site localSite = new Site(point.getLocation());
+                Double hazardVal = seismicHazardResults.get(i).getHazardValue();
+                Double cumulativeEpistemicVariance = 0.0;
+                Double cumulativeTotalVariance = 0.0;
+
+                for (Map.Entry<BaseAttenuation, Double> element : attenuations.entrySet()) {
+                    BaseAttenuation model = element.getKey();
+                    Double weight = element.getValue();
+                    if (i == 0) {
+                        singleModel = model;
+                    }
+                    try {
+                        Double epistemicVariance = model.getEpistemicVariance(hazardVal, demandType, localSite);
+                        cumulativeEpistemicVariance += weight * Math.pow(epistemicVariance, 2);
+                    } catch (Exception e) {
+                        logger.error("Error fetching epistemic variance for earthquake id " + earthquakeId, e);
+                    }
+                }
+
+                cumulativeEpistemicVariance = Math.sqrt(cumulativeEpistemicVariance);
+
+                if (varianceType.equalsIgnoreCase("total")) {
+                    if (hasSingleModel) {
+                        // This is for ChiouYoungs2014 that does not have aleatory uncertainty set and uses a custom stddev method
+                        // NOTE that ChiouYoungs2014 will not work together with other models to share weights.
+                        try {
+                            cumulativeTotalVariance = singleModel.getStandardDeviation(hazardVal, demandType, localSite);
+                        } catch (Exception e) {
+                            logger.error("Error fetching standard deviation for earthquake id " + earthquakeId, e);
+                        }
+                    } else {
+                        if (aleatoricUncertainties != null && aleatoricUncertainties.containsKey(demandType.trim().toUpperCase())) {
+                            Double aleatoricUncertainty = aleatoricUncertainties.get(demandType.trim().toUpperCase());
+                            cumulativeTotalVariance = Math.sqrt(Math.pow(aleatoricUncertainty, 2) + Math.pow(cumulativeEpistemicVariance, 2));
+
+                        } else {
+                            logger.error("Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
+                            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
+                        }
+                    }
+                    varianceResults.add(new VarianceResult(localSite.getLocation().getY(), localSite.getLocation().getX(),
+                        demandType, demandUnits, cumulativeTotalVariance));
+                } else if (varianceType.equalsIgnoreCase("epistemic")) {
+                    varianceResults.add(new VarianceResult(localSite.getLocation().getY(), localSite.getLocation().getX(),
+                        demandType, demandUnits, cumulativeEpistemicVariance));
+
+                } else {
+                    logger.error("Input variance type " + varianceType + " is not implemented");
+                    throw new InternalServerErrorException("Input variance type " + varianceType + " is not implemented");
+                }
+            }
+
+        } else {
+            logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " is not attenuation model based");
+        }
+
+        return varianceResults;
+
+    }
+
+
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns liquefaction (PGD) values.",
-        notes="This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
+    @ApiOperation(value = "Returns liquefaction (PGD) values, probability of liquefaction, and probability of ground failure.",
+        notes = "This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
     public List<LiquefactionHazardResult> getEarthquakeLiquefaction(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Earthquake dataset guid from data service.", required = true)  @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Geology dataset from data service.", required = true) @QueryParam("geologyDataset") String geologyId,
-        @ApiParam(value = "Ground Water Id that currently doesn't do anything.") @QueryParam("groundWaterId") @DefaultValue(("")) String groundWaterId,
-        @ApiParam(value = "Liquefaction demand unit. Ex: PGD", required = true)@QueryParam("demandUnits") String demandUnits,
+        @ApiParam(value = "Liquefaction demand unit. Ex: in, cm, etc", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.01,-83.85'", required = true) @QueryParam("point") List<IncorePoint> points) {
         Earthquake eq = getEarthquake(earthquakeId, username);
         // TODO add logging/error for earthquake dataset that it can't be used
@@ -388,18 +583,19 @@ public class EarthquakeController {
         }
     }
 
+    // TODO this is incomplete API, we need to determine if it's needed as a separate endpoint
     @GET
     @Path("/soil/amplification")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns earthquake site hazard amplification.", notes=" This returns the amplified " +
+    @ApiOperation(value = "Returns earthquake site hazard amplification.", notes = " This returns the amplified " +
         "hazard given a methodology (e.g. NEHRP), soil map dataset id (optional), latitude, longitude, ground shaking " +
         "parameter (PGA, Sa, etc), hazard value, and default site class to use.")
     public Response getEarthquakeSiteAmplification(
         @ApiParam(value = "Method to get hazard amplification.", required = true) @QueryParam("method") String method,
-        @ApiParam(value = "Dataset from data service.", required = true) @QueryParam("datasetId") @DefaultValue("") String datasetId,
+        @ApiParam(value = "ID of site class dataset from data service.", required = true) @QueryParam("datasetId") @DefaultValue("") String datasetId,
         @ApiParam(value = "Latitude coordinate of the site.", required = true) @QueryParam("siteLat") double siteLat,
         @ApiParam(value = "Longitude coordinate of the site.", required = true) @QueryParam("siteLong") double siteLong,
-        @ApiParam(value = "Liquefaction demand type. Ex: g.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Ground motion demand type. Ex: PGA, PGV, 0.2 SA, etc.", required = true) @QueryParam("demandType") String demandType,
         @ApiParam(value = "Hazard value.", required = true) @QueryParam("hazard") double hazard,
         @ApiParam(value = "Default site classification. Expected  A, B, C, D, E or F.") @QueryParam("defaultSiteClass") String defaultSiteClass) {
 
@@ -449,10 +645,55 @@ public class EarthquakeController {
     @GET
     @Path("models")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true, value = "Returns attenuation models.", notes="This returns the requested " +
-        "ground shaking parameter (PGA, SA, etc) for a lat/long location using the attenuation model specified.")
+    @ApiOperation(hidden = true, value = "Returns available attenuation models.", notes = "This returns the available " +
+        "attenuation models.")
     public Set<String> getSupportedEarthquakeModels() {
         return attenuationProvider.getAttenuations().keySet();
+    }
+
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all earthquakes", notes="Gets all earthquakes that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(code = 404, message = "No earthquakes found with the searched text")
+    })
+    public List<Earthquake> findEarthquakes(@HeaderParam("X-Credential-Username") String username,
+                                    @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+                                    @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                    @ApiParam(value = "Limit number of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Earthquake> earthquakes = this.repository.searchEarthquakes(text);
+        if (earthquakes.size() == 0) {
+            throw new NotFoundException();
+        }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        earthquakes = earthquakes.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+        if (earthquakes.size() == 0) {
+            throw new NotAuthorizedException(username + " is not authorized to read the earthquakes that meet the search criteria");
+        }
+        return earthquakes;
+    }
+
+    // Helper functions
+
+    //For adding earthquake id to user's space
+    private void addEarthquakeToSpace(Earthquake earthquake, String username) {
+        Space space = spaceRepository.getSpaceByName(username);
+        if(space != null) {
+            space.addMember(earthquake.getId());
+            spaceRepository.addSpace(space);
+        } else {
+            space = new Space(username);
+            space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+            space.addMember(earthquake.getId());
+            spaceRepository.addSpace(space);
+        }
     }
 
 }

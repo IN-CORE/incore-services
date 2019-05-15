@@ -37,8 +37,8 @@ import java.util.stream.Collectors;
 /**
  * Created by ywkim on 9/27/2017.
  */
-public class JsonUtils {
-    public static final Logger logger = Logger.getLogger(JsonUtils.class);
+public class DataJsonUtils {
+    public static final Logger logger = Logger.getLogger(DataJsonUtils.class);
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
@@ -99,106 +99,7 @@ public class JsonUtils {
         return outJson;
     }
 
-    // validate if json is okay
-    public static boolean isJSONValid(String inJson) {
-        try {
-            new JSONObject(inJson);
-        } catch (JSONException ex) {
-            try {
-                new JSONArray(inJson);
-            } catch (JSONException ex1) {
-                return false;
-            }
-        }
-        return true;
-    }
 
-    public static boolean isDatasetParameterValid(String inJson) {
-        Field[] allFields = Dataset.class.getDeclaredFields();
-        List<String> datasetParams = Arrays.stream(allFields).map(Field::getName).collect(Collectors.toList());
-
-        Object json = null;
-        Set<String> jsonKeys = null;
-        try {
-            json = new JSONObject(inJson);
-            jsonKeys = ((JSONObject) json).keySet();
-        } catch (JSONException ex) {
-            try {
-                json = new JSONArray(inJson);
-                jsonKeys = ((JSONObject) json).keySet();
-            } catch (JSONException ex1) {
-                return false;
-            }
-        }
-        return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
-
-
-//        Field[] allFields = Dataset.class.getDeclaredFields();
-//        for (Field field: allFields) {
-//            datasetParams.add(field.getName().toString());
-//        }
-//
-//        Object json = null;
-//        Set<String> keys = null;
-//        try {
-//            json = new JSONObject(inJson);
-//            keys = ((JSONObject) json).keySet();
-//        } catch (JSONException ex) {
-//            try {
-//                json = new JSONArray(inJson);
-//                keys = ((JSONObject) json).keySet();
-//            } catch (JSONException ex1) {
-//                return false;
-//            }
-//        }
-//        for (String key: keys) {
-//            inJsonKeys.add(key);
-//        }
-//
-//        // check if the json key is in the dataset parameters
-//        for (String key: inJsonKeys) {
-//            int matchingCounter = 0;
-//            for (String param: datasetParams) {
-//                if (key.equals(param)) {
-//                    matchingCounter += 1;
-//                    break;
-//                }
-//            }
-//            if (matchingCounter == 0) {
-//                isValid = false;
-//            }
-//        }
-//
-//        return isValid;
-    }
-
-    public static String extractValueFromJsonString(String inId, String inJson) {
-        JSONObject jsonObj = new JSONObject(inJson);
-        if (jsonObj.has(inId)) {
-            Object output = jsonObj.get(inId);
-            return output.toString();
-        } else {
-            return "";
-        }
-    }
-
-    public static List<String> extractValueListFromJsonString(String inId, String inJson) {
-        JSONObject jsonObj = new JSONObject(inJson);
-        List<String> outList = new LinkedList<String>();
-        if (jsonObj.has(inId)) {
-            try {
-                JSONArray inArray = (JSONArray) jsonObj.get(inId);
-                for (Object jObj: inArray) {
-                    outList.add(jObj.toString());
-                }
-                return outList;
-            } catch (JSONException e) {
-                return outList;
-            }
-        } else {
-            return outList;
-        }
-    }
 
     public static HashMap<String, Object> extractMapFromJsonString(String inJson){
         try {
@@ -239,6 +140,26 @@ public class JsonUtils {
         FileUtils.deleteTmpDir(inCsv, FileUtils.EXTENSION_CSV);
 
         return outStr;
+    }
+
+    public static boolean isDatasetParameterValid(String inJson) {
+        Field[] allFields = Dataset.class.getDeclaredFields();
+        List<String> datasetParams = Arrays.stream(allFields).map(Field::getName).collect(Collectors.toList());
+
+        Object json = null;
+        Set<String> jsonKeys = null;
+        try {
+            json = new JSONObject(inJson);
+            jsonKeys = ((JSONObject) json).keySet();
+        } catch (JSONException ex) {
+            try {
+                json = new JSONArray(inJson);
+                jsonKeys = ((JSONObject) json).keySet();
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
     }
 
     public static String getJsonByDatasetId(String datasetId) {

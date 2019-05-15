@@ -20,6 +20,6 @@ public interface IMappingDAO {
     void initialize();
     List<MappingSet> getMappingSets();
     Optional<MappingSet> getMappingSetById(String id);
-    List<MappingSet> queryMappingSets(Map<String, String> queryMap, int offset, int limit);
-    void saveMappingSet(MappingSet mappingSet);
+    List<MappingSet> queryMappingSets(Map<String, String> queryMap);
+    String saveMappingSet(MappingSet mappingSet);
 }

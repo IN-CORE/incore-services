@@ -10,8 +10,10 @@ class LineChart extends React.Component {
 		HighCharts.chart(this.props.chartId, this.props.configuration);
 	}
 
-	componentDidUpdate() {
-		HighCharts.chart(this.props.chartId, this.props.configuration);
+	componentDidUpdate(prevProps) {
+		if (prevProps.chartId !== this.props.chartId || prevProps.configuration !== this.props.configuration){
+			HighCharts.chart(this.props.chartId, this.props.configuration);
+		}
 	}
 
 	render() {

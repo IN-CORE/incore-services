@@ -32,10 +32,10 @@ public class TsunamiControllerTest extends CustomJerseyTest {
         return application;
     }
 
-    @Test
-    public void testGetTsunamis() throws Exception {
-        String output = target("tsunamis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
-        JSONArray parsedObject = new JSONArray(output);
-        assertEquals(1, parsedObject.length());
-    }
+//    @Test
+//    public void testGetTsunamis() throws Exception {
+//        String output = target("tsunamis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+//        JSONArray parsedObject = new JSONArray(output);
+//        assertEquals(1, parsedObject.length());
+//    }
 }

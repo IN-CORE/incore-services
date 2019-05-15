@@ -45,15 +45,17 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     }
 
     @Override
-    public void saveFragility(FragilitySet fragilitySet) {
+    public String saveFragility(FragilitySet fragilitySet) {
         if (fragilitySet == null) {
             throw new IllegalArgumentException();
         } else {
             // the save method mutates the fragilitySet object with an document id
-            this.dataStore.save(fragilitySet);
+            String id = this.dataStore.save(fragilitySet).getId().toString();
 
             // make sure that this.fragilities get updated as well
             this.loadFragilities();
+
+            return id;
         }
 
     }
@@ -77,9 +79,10 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
                  query.criteria("legacyId").containsIgnoreCase(text),
                  query.criteria("hazardType").containsIgnoreCase(text),
                  query.criteria("inventoryType").containsIgnoreCase(text),
+                 query.criteria("description").containsIgnoreCase(text),
                  query.criteria("authors").containsIgnoreCase(text));
 
-        List<FragilitySet> sets = query.limit(100).asList();
+        List<FragilitySet> sets = query.asList();
 
         return sets;
     }
@@ -88,21 +91,20 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.dataStore.createQuery(FragilitySet.class)
                                                 .filter(attributeType, attributeValue)
-                                                .limit(100)
                                                 .asList();
 
         return sets;
     }
 
     @Override
-    public List<FragilitySet> queryFragilities(Map<String, String> queryMap, int offset, int limit) {
+    public List<FragilitySet> queryFragilities(Map<String, String> queryMap) {
         Query<FragilitySet> query = this.dataStore.createQuery(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<FragilitySet> sets = query.offset(offset).limit(limit).asList();
+        List<FragilitySet> sets = query.asList();
 
         return sets;
     }

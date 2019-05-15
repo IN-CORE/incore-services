@@ -44,30 +44,30 @@ public class FragilityControllerTest extends CustomJerseyTest {
         return application;
     }
 
-    @Test
-    public void testGetFragilities() throws IOException {
-        Response response = target("/fragilities").request().get();
-
-        assertEquals(200, response.getStatus());
-        assertTrue(response.getLength() >= 0);
-    }
-
-    @Test
-    public void testSaveFragility() throws IOException {
-        // read payload data from json file
-        URL jsonURL = this.getClass().getClassLoader().getResource("fragility_request.json");
-        ObjectMapper mapper = new ObjectMapper();
-        FragilitySet request = mapper.readValue(jsonURL, FragilitySet.class);
-
-        // act
-        FragilitySet returned = target("/fragilities").request()
-            .header("X-Credential-Username", "tester")
-            .accept(MediaType.APPLICATION_JSON)
-            .post(Entity.json(request), FragilitySet.class);
-
-        // assert
-        assertNotNull(returned.getId());
-    }
+//    @Test
+//    public void testGetFragilities() throws IOException {
+//        Response response = target("/fragilities").request().get();
+//
+//        assertEquals(200, response.getStatus());
+//        assertTrue(response.getLength() >= 0);
+//    }
+//
+//    @Test
+//    public void testSaveFragility() throws IOException {
+//        // read payload data from json file
+//        URL jsonURL = this.getClass().getClassLoader().getResource("fragility_request.json");
+//        ObjectMapper mapper = new ObjectMapper();
+//        FragilitySet request = mapper.readValue(jsonURL, FragilitySet.class);
+//
+//        // act
+//        FragilitySet returned = target("/fragilities").request()
+//            .header("X-Credential-Username", "tester")
+//            .accept(MediaType.APPLICATION_JSON)
+//            .post(Entity.json(request), FragilitySet.class);
+//
+//        // assert
+//        assertNotNull(returned.getId());
+//    }
 }
 
 

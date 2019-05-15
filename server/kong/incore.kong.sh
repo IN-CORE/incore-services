@@ -36,6 +36,12 @@ curl -i -X POST \
   --data 'uris=/hazard' \
   --data 'upstream_url=http://localhost:8888/hazard/'
 
+curl -i -X DELETE --url http://localhost:8001/apis/space
+curl -i -X POST \
+  --url http://localhost:8001/apis/ \
+  --data 'name=space' \
+  --data 'uris=/space' \
+  --data 'upstream_url=http://localhost:8888/space/'
 
 
 

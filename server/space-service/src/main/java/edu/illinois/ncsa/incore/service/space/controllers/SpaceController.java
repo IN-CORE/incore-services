@@ -1,3 +1,4 @@
+package edu.illinois.ncsa.incore.service.space.controllers;
 /*******************************************************************************
  * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
@@ -8,17 +9,15 @@
  *   Yong Wook Kim (NCSA) - initial API and implementation
  *  ******************************************************************************
  */
-
-package edu.illinois.ncsa.incore.service.data.controllers;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.models.Space;
-import edu.illinois.ncsa.incore.service.data.models.spaces.Metadata;
-import edu.illinois.ncsa.incore.service.data.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.models.SpaceMetadata;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -40,13 +39,13 @@ import java.util.*;
 
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Data Service for creating and accessing spaces",
-        version = "v0.2.0",
-        title = "IN-CORE v2 Data Services API",
+        description = "IN-CORE Space Service for creating and accessing spaces",
+        version = "v0.3.0",
+        title = "IN-CORE v2 Space Service API",
         contact = @Contact(
-            name = "Jong S. Lee",
-            email = "jonglee@illinois.edu",
-            url = "http://resilience.colostate.edu"
+            name = "IN-CORE Dev Team",
+            email = "incore-dev@lists.illinois.edu",
+            url = "https://incore2.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
@@ -64,23 +63,20 @@ import java.util.*;
 @Path("spaces")
 public class SpaceController {
     private static final String SERVICES_URL = Config.getConfigProperties().getProperty("dataservice.url");
-    private static final String EARTHQUAKE_URL = "/hazard/api/earthquakes/";
-    private static final String TORNADO_URL = "/hazard/api/tornadoes/";
-    private static final String HURRICANE_URL = "/hazard/api/hurricaneWindfields/";
-    private static final String TSUNAMI_URL = "/hazard/api/tsunamis/";
-    private static final String FRAGILITY_URL = "/fragility/api/fragilities/";
-    private static final List<String> SPACE_IDENTIFIERS = Arrays.asList("metadata", "privileges", "members");
-    private static final List<String> METADATA_IDENTIFIERS = Arrays.asList("name");
+    private static final String EARTHQUAKE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/earthquakes/" : "/hazard/api/earthquakes/";
+    private static final String TORNADO_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
+    private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
+    private static final String TSUNAMI_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
+    private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "fragility/api/fragilities/" : "/fragility/api/fragilities/";
+    private static final String DATA_URL = SERVICES_URL.endsWith("/") ? "data/api/datasets/" : "/data/api/datasets/";
 
     public static final String SPACE_MEMBERS = "members";
     public static final String SPACE_METADATA = "metadata";
-    public static final String SPACE_METADATA_NAME = "name";
-    public static final String SPACE_PRIVILEGES = "privileges";
 
     private Logger logger = Logger.getLogger(SpaceController.class);
 
     @Inject
-    private IRepository repository;
+    private ISpaceRepository spaceRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -90,87 +86,85 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Ingest space object as json")
     public Space ingestSpace(@HeaderParam("X-Credential-Username") String username,
-                                 @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
+                             @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
         if (username == null || !JsonUtils.isJSONValid(spaceJson)) {
             throw new BadRequestException("User must provide a valid json and username");
         }
 
-        if (!isSpaceJsonValid(spaceJson)){
-            throw new BadRequestException("JSON contains invalid identifiers");
-        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Space newSpace = objectMapper.readValue(spaceJson, Space.class);
 
-        String metadata = getMetadataFromSpaceJson(spaceJson);
-        String privilegesJson = JsonUtils.extractValueFromJsonString(SPACE_PRIVILEGES, spaceJson);
-        List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
-        String name = JsonUtils.extractValueFromJsonString(SPACE_METADATA_NAME, metadata);
-
-        if(name.equals("")){
-            throw new BadRequestException("A name must be included in metadata");
-        }
-
-        Space foundSpace = repository.getSpaceByName(name);
-        if (foundSpace == null) {
-            Space space = new Space();
-
-            space.setMetadata(new Metadata(name));
-            space.setMembers(members);
-            space.setPrivileges(Privileges.newWithSingleOwner(username));
-
-            if(!privilegesJson.equals("")){
-                addPrivilegesToSpace(space, privilegesJson);
+            if(newSpace.getName().equals("")){
+                throw new BadRequestException("Invalid name");
             }
 
-            repository.addSpace(space);
+            if(spaceRepository.getSpaceByName(newSpace.getName()) == null){
+                newSpace.addUserPrivileges(username, PrivilegeLevel.ADMIN);
 
-            return space;
-        } else{
-            throw new BadRequestException("Space already exists.");
+                //TODO: this should change in the future. The space should not have to care about what it is adding.
+                List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
+                for (String datasetId : members) {
+                    addDatasets(newSpace, username, datasetId);
+                }
+
+                return spaceRepository.addSpace(newSpace);
+
+            } else {
+                throw new BadRequestException("Space already exists with name " + newSpace.getName());
+            }
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid space JSON. " + e.toString());
         }
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of all available INCORE Dataset spaces", notes = "Return spaces that the user has privileges to read")
+    @ApiOperation(value = "Gets the list of all available spaces", notes = "Return spaces that the user has privileges to read. If a datasetId is passed, it will return all spaces that contains it.")
     public List<Space> getSpacesList(@HeaderParam("X-Credential-Username") String username,
                                      @ApiParam(value = "Dataset Id") @QueryParam("dataset") String datasetId) {
         if (username == null) {
             throw new BadRequestException("User must provide a valid username");
         }
 
-        List<Space> spaces = repository.getAllSpaces();
-        List<Space> filteredSpaces = new ArrayList<>();
-
-        for(Space space : spaces){
-            if (authorizer.canRead(username, space.getPrivileges())) {
-                if(datasetId != null){
-                    if(space.hasMember(datasetId)){
-                        filteredSpaces.add(space);
-                    }
-                } else {
-                    filteredSpaces.add(space);
+        if (datasetId != null) {
+            if (!authorizer.canUserReadMember(username, datasetId, spaceRepository.getAllSpaces())) {
+                throw new ForbiddenException("User can't access the given dataset");
+            }
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(username, spaceRepository.getAllSpaces());
+            List<Space> spacesWithDataset = new ArrayList<>();
+            for (Space space: filteredSpaces) {
+                if (space.hasMember(datasetId)) {
+                    spacesWithDataset.add(space);
                 }
             }
+            if (spacesWithDataset.size() == 0) {
+                throw new NotFoundException("No spaces user has access to contain the dataset");
+            }
+            return spacesWithDataset;
         }
 
-        if(filteredSpaces.size() == 0 && datasetId != null){
-            throw new NotFoundException("No spaces have the dataset " + datasetId);
+        List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(username, spaceRepository.getAllSpaces());
+        if(filteredSpaces.size() == 0) {
+            throw new ForbiddenException("User can't access any space");
         }
+
         return filteredSpaces;
+
+
     }
 
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the spaces of a dataset from the Dataset collection")
+    @ApiOperation(value = "Gets a space.")
     public Space getSpaceById(@HeaderParam("X-Credential-Username") String username,
-                                  @ApiParam(value = "Space Id from data service", required = true) @PathParam("id") String spaceId) {
-        Space space = repository.getSpaceById(spaceId);
-        if (space == null) {
-            logger.error("Error finding space with the id of " + spaceId);
-            throw new NotFoundException("Error finding space with the id of " + spaceId);
-        }
+                              @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId) {
+        Space space = getSpace(spaceId);
+        if (space == null) throw new NotFoundException();
+
         if (!(authorizer.canRead(username, space.getPrivileges()))) {
-            throw new ForbiddenException("You are not allowed to add the dataset " + spaceId);
+            throw new ForbiddenException(username + " is not authorized to access the space " + spaceId);
         }
 
         return space;
@@ -180,10 +174,10 @@ public class SpaceController {
     @Path("{id}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Updates a space from the Dataset collection")
+    @ApiOperation(value = "Updates a space.")
     public Space updateSpace(@HeaderParam("X-Credential-Username") String username,
-                                @ApiParam(value = "Space Id from data service", required = true) @PathParam("id") String spaceId,
-                                @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
+                             @ApiParam(value = "SpaceOld Id from data service", required = true) @PathParam("id") String spaceId,
+                             @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
         if (username == null) {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
@@ -196,9 +190,6 @@ public class SpaceController {
 
         Space space = getSpace(spaceId);
 
-        if (space == null) {
-            throw new NotFoundException();
-        }
         if (!(authorizer.canWrite(username, space.getPrivileges()))) {
             throw new ForbiddenException("You are not allowed to modify the space " + spaceId);
         }
@@ -208,16 +199,22 @@ public class SpaceController {
         if(metadata.equals("") && members.size() == 0){
             throw new BadRequestException("Invalid identifiers");
         }
-        //TODO: will need more work when metadata contains more than just the name. Move on to using ObjectMappers.
+        //TODO: this will need to change once we add more fields to metadata
         if (!metadata.equals("")) {
-            String name = JsonUtils.extractValueFromJsonString(SPACE_METADATA_NAME, metadata);
-            if(name.equals("")){
-                throw new BadRequestException("Invalid identifier in metadata");
-            }
-            if(repository.getSpaceByName(name) == null) {
-                space.setMetadata(new Metadata(name));
-            } else {
-                throw new BadRequestException("New name of space already exists");
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                SpaceMetadata newMetadata = objectMapper.readValue(metadata, SpaceMetadata.class);
+                String name = newMetadata.getName();
+                if(name.equals("")){
+                    throw new BadRequestException("Invalid name in metadata");
+                }
+                if(spaceRepository.getSpaceByName(name) == null) {
+                    space.setMetadata(newMetadata);
+                } else {
+                    throw new BadRequestException("New name of space already exists");
+                }
+            } catch (IOException e){
+                throw new BadRequestException("Invalid metadata. " + e.toString());
             }
         }
         if (members.size() > 0){
@@ -226,7 +223,7 @@ public class SpaceController {
             }
         }
 
-        space = repository.addSpace(space);
+        space = spaceRepository.addSpace(space);
 
         return space;
     }
@@ -236,8 +233,8 @@ public class SpaceController {
     @Path("{id}/datasets/{datasetId}")
     @ApiOperation(value = "Adds a dataset to a space")
     public Space addDatasetsToSpace(@HeaderParam("X-Credential-Username") String username,
-                               @ApiParam(value = "Space Id from data service", required = true) @PathParam("id") String spaceId,
-                               @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("datasetId") String datasetId) {
+                                    @ApiParam(value = "SpaceOld Id from data service", required = true) @PathParam("id") String spaceId,
+                                    @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("datasetId") String datasetId) {
         if (username == null) {
             throw new BadRequestException("User must provide a valid json and username");
         }
@@ -261,8 +258,8 @@ public class SpaceController {
     @Path("{id}/grant")
     @ApiOperation(value = "Grants new privileges to a space")
     public Space grantPrivilegesToSpace(@HeaderParam("X-Credential-Username") String username,
-                              @ApiParam(value = "Space Id from data service", required = true) @PathParam("id") String spaceId,
-                              @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
+                                        @ApiParam(value = "SpaceOld Id from data service", required = true) @PathParam("id") String spaceId,
+                                        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
         if (username == null) {
             throw new BadRequestException("User must provide a valid json and username");
         }
@@ -273,59 +270,29 @@ public class SpaceController {
             throw new NotAuthorizedException(username + " has not write permissions in " +spaceId);
         }
 
-        if(!addPrivilegesToSpace(space, privilegesJson)){
-            throw new BadRequestException("No valid privileges found");
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            Privileges privileges = objectMapper.readValue(privilegesJson, Privileges.class);
+            space.addPrivileges(privileges);
+        } catch (IOException e){
+            throw new BadRequestException("Invalid privileges JSON. " + e.toString());
         }
 
-        repository.addSpace(space);
+        spaceRepository.addSpace(space);
 
         return space;
 
     }
 
     /**
-     * Verifies that the metadataJson's identifiers are valid
-     * @param metadataJson String representing the metadata json
-     * @return Metadata String representation if metadataJson contains valid identifiers
-     */
-    private String getMetadataFromSpaceJson(String metadataJson){
-        String metadata = JsonUtils.extractValueFromJsonString(SPACE_METADATA, metadataJson);
-        if(metadata.equals("")){
-            throw new BadRequestException("Metadata must be included in space json");
-        }
-        HashMap<String, Object> metadataMap = JsonUtils.extractMapFromJsonString(metadata);
-
-        Set<String> metadataIdentifiers = metadataMap.keySet();
-
-        if (metadataIdentifiers.stream().allMatch(it -> METADATA_IDENTIFIERS.contains(it))){
-            return metadata;
-        } else {
-            throw new BadRequestException("Metadata identifiers are incorrect");
-        }
-    }
-
-    /**
-     * Verifies that a json's identifiers are within the constrains of the defined space identifiers
-     * @param spaceJson
-     * @return true if spaceJson is valid
-     */
-    private boolean isSpaceJsonValid(String spaceJson){
-        HashMap<String, Object> spaceMap = JsonUtils.extractMapFromJsonString(spaceJson);
-
-        Set<String> spaceIdentifiers = spaceMap.keySet();
-
-        return spaceIdentifiers.stream().allMatch(it -> SPACE_IDENTIFIERS.contains(it));
-    }
-
-    /**
-     *
+     * If the space is not found it will throw a 404
      * @param spaceId
-     * @return Space if one was found
+     * @return SpaceOld if one was found
      */
     private Space getSpace(String spaceId){
-        Space space = repository.getSpaceById(spaceId);
+        Space space = spaceRepository.getSpaceById(spaceId);
         if (space == null) {
-            throw new NotFoundException("Error in finding space with id " + spaceId);
+            throw new NotFoundException("Could not find space with id " + spaceId);
         }
         return space;
     }
@@ -380,10 +347,25 @@ public class SpaceController {
      * @param username username
      * @return Json response of API call
      */
-    private String getFragilityDataset(String datasetId, String username){
+    private String getFragilityDataset(String datasetId, String username) {
         HttpURLConnection con;
         try {
-                URL url = new URL(FRAGILITY_URL + datasetId);
+            URL url = new URL(SERVICES_URL + FRAGILITY_URL + datasetId);
+            try {
+                con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
+                con.setRequestProperty("X-Credential-Username", username);
+                return getContent(con);
+            } catch (IOException ex){}
+        } catch (MalformedURLException e){}
+        return null;
+    }
+
+    private String getDataDataset(String datasetId, String username) {
+        HttpURLConnection con;
+        try {
+            URL url = new URL(SERVICES_URL + DATA_URL + datasetId);
+            String uri = url.toString();
             try {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
@@ -416,70 +398,8 @@ public class SpaceController {
     }
 
     /**
-     * Extracts user and group privileges from json and adds them to a space.
-     * @param space
-     * @param inJson
-     * @return true if privileges were added successfully
-     */
-    private boolean addPrivilegesToSpace(Space space, String inJson){
-        HashMap<String, Object> privilegesMap = JsonUtils.extractMapFromJsonString(inJson);
-
-        if(privilegesMap == null){
-            throw new BadRequestException("Invalid Json");
-        }
-
-        Object userPrivileges = privilegesMap.get("userPrivileges");
-        Object groupPrivileges = privilegesMap.get("groupPrivileges");
-
-        if(userPrivileges == null && groupPrivileges == null){
-            return true;
-        }
-
-        Privileges privileges = space.getPrivileges();
-
-        if(userPrivileges != null) {
-            HashMap<String, String> userPrivilegesMap = getPrivilegesMap((HashMap<String, Object>) userPrivileges);
-            Set<String> users = userPrivilegesMap.keySet();
-            for(String user : users){
-                privileges.addUserPrivileges(user, PrivilegeLevel.valueOf(userPrivilegesMap.get(user)));
-            }
-        }
-        if(groupPrivileges != null) {
-            HashMap<String, String> groupPrivilegesMap = getPrivilegesMap((HashMap<String, Object>) groupPrivileges);
-            Set<String> users = groupPrivilegesMap.keySet();
-            for(String user : users){
-                privileges.addGroupPrivileges(user, PrivilegeLevel.valueOf(groupPrivilegesMap.get(user)));
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Gets a username to privilege level map. Also verifies if the privilege level provided is valid.
-     * @param privileges Privileges map to verify that its privilege levels are valid
-     * @return Mapping of usernames and privilege levels
-     */
-    private HashMap<String, String> getPrivilegesMap(HashMap<String, Object> privileges){
-        HashMap<String, String> parsedPrivileges = new HashMap<>();
-
-        Set<String> keys = privileges.keySet();
-
-        for(String key : keys){
-            String value = privileges.get(key).toString().toUpperCase();
-            try{
-                PrivilegeLevel.valueOf(value);
-            } catch(Exception e){
-                throw new BadRequestException("Invalid privilege level");
-            }
-            parsedPrivileges.put(key, value);
-        }
-
-        return parsedPrivileges;
-    }
-
-    /**
      * Add dataset(s) to a space
-     * @param space Space to modify
+     * @param space SpaceOld to modify
      * @param username username
      * @param datasetId Id of dataset
      * @return True if a dataset was found in any service and added to the space successfully
@@ -488,16 +408,16 @@ public class SpaceController {
         //TODO: SpaceController doesn't have to care about what is adding, so we need to rethink the design to avoid
         // the following conditional branching.
         //get dataset from data-service
-        if(repository.getDatasetById(datasetId) != null){
+        if(getDataDataset(datasetId, username) != null){
             space.addMember(datasetId);
-            repository.addSpace(space);
+            spaceRepository.addSpace(space);
             return true;
         }
 
         //get dataset from fragility-service
         if(getFragilityDataset(datasetId, username) != null){
             space.addMember(datasetId);
-            repository.addSpace(space);
+            spaceRepository.addSpace(space);
             return true;
         }
 
@@ -508,7 +428,7 @@ public class SpaceController {
             for (String id : datasets) {
                 space.addMember(id);
             }
-            repository.addSpace(space);
+            spaceRepository.addSpace(space);
             return true;
         }
         return false;

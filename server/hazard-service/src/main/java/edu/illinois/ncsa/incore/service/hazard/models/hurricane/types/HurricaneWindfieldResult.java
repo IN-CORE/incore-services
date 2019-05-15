@@ -10,8 +10,8 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
 
 public class HurricaneWindfieldResult {
-    private String demand;
-    private String units;
+    private String demandType;
+    private String demandUnits;
     private double hazardValue;
     private double latitude;
     private double longitude;
@@ -20,20 +20,20 @@ public class HurricaneWindfieldResult {
         this.latitude = latitude;
         this.longitude = longitude;
         this.hazardValue = hazardValue;
-        this.demand = demandType;
-        this.units = demandUnits;
+        this.demandType = demandType;
+        this.demandUnits = demandUnits;
     }
 
     public double getHazardValue() {
         return hazardValue;
     }
 
-    public String getUnits() {
-        return units;
+    public String getDemandUnits() {
+        return demandUnits;
     }
 
-    public String getDemand() {
-        return demand;
+    public String getDemandType() {
+        return demandType;
     }
 
     public double getLatitude() {

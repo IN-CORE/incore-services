@@ -11,6 +11,7 @@ import org.apache.commons.lang.math.NumberUtils;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 public class ChiouYoungs2014 extends BaseAttenuation {
     private double[] c = new double[12];
@@ -33,6 +34,11 @@ public class ChiouYoungs2014 extends BaseAttenuation {
     public ChiouYoungs2014() {
         URL coefficientURL = AtkinsonBoore1995.class.getResource("/hazard/earthquake/coefficients/ChiouYoungs2014.csv");
         readCoefficients(coefficientURL);
+    }
+
+    //TODO: Find if we have aleatoric uncertainties defined in the paper
+    public Map<String, Double> getAleatoricUncertainties() {
+        return null;
     }
 
     public double getValue(String period, Site site) throws Exception {
@@ -295,10 +301,6 @@ public class ChiouYoungs2014 extends BaseAttenuation {
         double sigma = Math.sqrt(square(1 + NL0) * square(tau) + square(sigmaNL0));
 
         return sigma;
-    }
-
-    public double getAleatoricStdDev(String period, Site site) throws Exception {
-        return 0;
     }
 
     public boolean canProduceStandardDeviation() {

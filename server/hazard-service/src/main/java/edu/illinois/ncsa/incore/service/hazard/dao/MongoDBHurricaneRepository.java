@@ -106,4 +106,16 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
         return hurricanes;
     }
+
+    @Override
+    public List<HurricaneWindfields> searchHurricanes(String text) {
+        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+
+        query.or(query.criteria("name").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text));
+
+        List<HurricaneWindfields> hurricanes = query.asList();
+
+        return hurricanes;
+    }
 }
