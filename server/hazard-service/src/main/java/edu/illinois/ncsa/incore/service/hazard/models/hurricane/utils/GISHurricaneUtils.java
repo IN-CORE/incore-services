@@ -8,8 +8,12 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
+import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -22,6 +26,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.process.vector.ClipProcess;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -62,7 +67,7 @@ import static java.lang.Math.*;
 public class GISHurricaneUtils {
     public static final String TEMP_DIR_PREFIX = "temp_hurricane_";
     // todo gdal_grid command should be changed based on the system
-    //public static final String cmdGdalGrid = "cmd /c \"C:\\Program Files\\GDAL\\gdal_grid\" "; // for windows
+//    public static final String cmdGdalGrid = "cmd /c \"C:\\Program Files\\GDAL\\gdal_grid\" "; // for windows
     public static final String cmdGdalGrid = "gdal_grid ";  // for mac/linux
     public static final String cmdZField = "-zfield velocity ";
     public static final String cmdAlgo = "-a invdist:power=2.0:smoothing=0.0:radius1=0.0:radius2=0.0:angle=0.0:max_points=0:min_points=0:nodata=0.0 ";
@@ -186,6 +191,7 @@ public class GISHurricaneUtils {
         File outfile = new File(inFile);
 
         GeotoolsUtils.outToFile(outfile, schema, dfc);
+        dfc.clear();
 
         logger.debug(inFile + " has been created.");
     }
@@ -227,7 +233,6 @@ public class GISHurricaneUtils {
             int numCellsY = (int) (totalYLength / rasterResolution);
             int totCells = numCellsX * numCellsY;
             logger.debug("Number of the cell will be " + totCells);
-
             String tempDir = Files.createTempDirectory(TEMP_DIR_PREFIX).toString();
             System.out.println(tempDir);
             logger.debug("Temporay directory " + tempDir + " has been created.");
@@ -283,6 +288,7 @@ public class GISHurricaneUtils {
             String outFilePath = tempDir + "/hurricane_all.shp";
             File outAllFile = new File(outFilePath);
             GeotoolsUtils.outToFile(outAllFile, allSchema, allDfc);
+            allDfc.clear();
 
             List<String> outFilePaths = Arrays.asList(tempDir + "/hurricane_all.shp", tempDir + "/hurricane_all.shx",
                 tempDir + "/hurricane_all.dbf", tempDir + "/hurricane_all.fix", tempDir + "/hurricane_all.prj");
@@ -292,6 +298,8 @@ public class GISHurricaneUtils {
                 "full time range");
             hsDatasets.add(simDatasetAll);
 
+            // remove temp file
+            deleteTmpDir(new File(tempDir));
 
             //TODO add a method to remove the temp directory
         } catch (FileNotFoundException e) {
@@ -333,30 +341,51 @@ public class GISHurricaneUtils {
     /**
      * calculate hurricane velocity of given point
      *
-     * @param filePath
+     * @param datasetId
+     * @param username
      * @param lat
      * @param lon
      * @return
      * @throws IOException
      */
-    public static double CalcVelocityFromPoint(String filePath, double lat, double lon) throws IOException {
-        // TODO so this method should be like CalcVelocityFromPoint(String datasetId, double lat, double lon)
-        // TODO then download and save the hurricane_all.shp in temp folder and put the value in file path
-        // TODO after get the velocity value, remove temp folder
-        double[][] outArr = null;
-        SimpleFeatureCollection inFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(filePath);
-        SimpleFeatureType schema = inFeatures.getSchema();
+    public static double CalcVelocityFromPoint(String datasetId, String username, double lat, double lon) throws IOException {
+        // copy the shapefile from the repository to the temp directory and cache them
+        // if there is no cache, create the cache folder and use it
+        // to collect all the shapefile components in a single directory
+        // so geotools can read the shapefile
+        double searchLimitDistVariable = 0.5;
+        File hurricaneCacheDir = new File(Config.getConfigProperties().getProperty("data.repo.data.dir") + File.separator + "cache_data" + File.separator + "hurricane" + File.separator + "shapefile" + File.separator + datasetId);
+        String shpFilePath = null;
+        if (hurricaneCacheDir.exists()) {
+            String[] shapefileList = hurricaneCacheDir.list();
+            for (String file : shapefileList) {
+                File inFile = new File(file);
+                String fileName = FilenameUtils.getName(inFile.getName());
+                String fileExt = FilenameUtils.getExtension(inFile.getName());
+                if (fileExt.equalsIgnoreCase("shp")) {
+                    shpFilePath = hurricaneCacheDir + File.separator + inFile.getPath();
+                }
+            }
+        } else {
+            org.json.JSONObject datasetJson = ServiceUtil.getDatasetJsonFromDataService(datasetId, username);
+            List fileList = ServiceUtil.getFileDescriptorFileList(datasetJson);
+            shpFilePath = ServiceUtil.collectShapfileInFolder(fileList, hurricaneCacheDir);
+        }
+
+        SimpleFeatureCollection inFeatures = GeotoolsUtils.GetSimpleFeatureCollectionFromPath(shpFilePath);
         DefaultFeatureCollection outFC = new DefaultFeatureCollection();
 
         if (inFeatures != null) {
-            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
-            SpatialIndexFeatureCollection featureIndex;
             Coordinate coord = new Coordinate(lon, lat);
             Point startPoint = geometryFactory.createPoint(coord);
             DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
-            featureIndex = new SpatialIndexFeatureCollection(inFeatures.getSchema());
-            featureIndex.addAll(inFeatures);
+            // check if the point is in the boulding box
+            boolean isPointIn = GISUtil.IsPointInPolygonBySFC(inFeatures, startPoint);
+            if (isPointIn == false) {
+                logger.debug("Point is out of bounds");
+                return 0.0;
+            }
 
             SimpleFeatureIterator inFeatureIter = inFeatures.features();
             List<SimpleFeature> inFeatureList = new ArrayList<SimpleFeature>();
@@ -381,46 +410,32 @@ public class GISHurricaneUtils {
 
 
             // TODO calculate limit distance
-            final double searchDistLimitByBoundingBox = featureIndex.getBounds().getSpan(0) / 10;
-            final double searchDistLimit = (Math.abs(firstX - secondX)) * 2;
+//            final double searchDistLimitByBoundingBox = featureIndex.getBounds().getSpan(0) / 10;
+            double searchDistLimit = (Math.abs(firstX - secondX)) * searchLimitDistVariable;
             Coordinate pCoord = startPoint.getCoordinate();
             ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
-                featureIndex.getSchema().getCoordinateReferenceSystem());
-            refEnv.expandBy(searchDistLimit);
-            BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
-            SimpleFeatureCollection sfc = featureIndex.subCollection(bbox);
-//            outArr = new double[sfc.size()][2];
+                inFeatures.getSchema().getCoordinateReferenceSystem());
 
-            // give enough distance for the minimum distance to start
-            double minDist = searchDistLimit + 1.0e-6;
+            // sort features by the distance. the closest comes first
+            SimpleFeature[] sfArr = createClipper(refEnv, searchDistLimit, inFeatures);
 
-            Coordinate minDistPoint = null;
-            SimpleFeatureIterator sfi = sfc.features();
-
-            if (sfc.size() == 0) {
+            if (sfArr.length == 0) {
                 logger.debug("Point is out of bounds");
                 return 0.0;
             }
-
-            // create output feature array.
-            SimpleFeature[] sfArr = new SimpleFeature[sfc.size()];
-            int sfIndex = 0;
-            try {
-                while (sfi.hasNext()) {
-                    sfArr[sfIndex] = (SimpleFeature) sfi.next();
-                    sfIndex++;
-                }
-            } finally {
-                sfi.close();
-            }
-
-            // sort features by the distance. the closest comes first
-            sfArr = sortByDistance(sfArr, pCoord);
 
             // get the simulation number with the highest value in closest N points
             // 12 should cover most of simulation box in around the point
             // create closest n points
             int n = 12;
+
+            // check if sfArr has more than needed number of point which is n
+            while(sfArr.length < n) {
+                searchLimitDistVariable += 1;
+                searchDistLimit = (Math.abs(firstX - secondX)) * searchLimitDistVariable;
+                sfArr = createClipper(refEnv, searchDistLimit, inFeatures);
+            }
+            sfArr = sortByDistance(sfArr, pCoord);
             int simNum = getHighestSimulationNumber(sfArr.clone(), n);
 
             // grab closet 3 point with the simulation given simulation number
@@ -435,30 +450,89 @@ public class GISHurricaneUtils {
                 }
             }
 
-            // check if it is in a same line which means that the point is in the simulation.
+            // check if it is in a same line which means that the point is not in the simulation.
             boolean isLinedUp = isPointOnSameLine(simPtList);
 
             // if the points are lined up, select other simulation
             if (isLinedUp) {
-                simNum = selectAnotherSimNum(simNum, sfArr, schema, n, pCoord);
+                simNum = selectAnotherSimNum(simNum, sfArr);
             }
 
             // select point with only simNum
             List<SimpleFeature> selectedSimPts = selectSimNumPoints(sfArr, simNum);
 
+            // if selectedSimPts is less than 4 points, this should be redone
+            if (selectedSimPts.size() < 4) {
+                while (selectedSimPts.size() < 4) {
+                    searchLimitDistVariable += 1;
+                    searchDistLimit = (Math.abs(firstX - secondX)) * searchLimitDistVariable;
+                    sfArr = createClipper(refEnv, searchDistLimit, inFeatures);
+                    selectedSimPts = selectSimNumPoints(sfArr, simNum);
+                }
+                // reselect after distance sorting for more accurate result
+                sfArr = sortByDistance(sfArr, pCoord);
+                selectedSimPts = selectSimNumPoints(sfArr, simNum);
+            }
             // create 4 points that consists rectangular shape
             List<SimpleFeature> rectangularPtList = createRectangularPoints(selectedSimPts);
 
-//			// create output shapefile of 4 points for testing purpose
+//			// create output shapefile of 4 points for debugging purpose
 //			for (int i=0; i<rectangularPtList.size();i++){
 //				outFC.add(rectangularPtList.get(i));
 //			}
 //			outToFile(new File("C:\\Users\\ywkim\\Documents\\NIST\\Hurricane\\out_small.shp"), schema, outFC);
 
-            return interploateFromFourPoints(rectangularPtList, lat, lon, minDist);
+            // give enough distance for the minimum distance to start
+            double minDist = searchDistLimit + 1.0e-6;
+
+            return interpolateFromFourPoints(rectangularPtList, lat, lon, minDist);
         } else {
             return 0.0;
         }
+    }
+
+    public static SimpleFeature[] createClipper(ReferencedEnvelope refEnv, double searchDistLimit, SimpleFeatureCollection inFeatures) {
+        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+        refEnv.expandBy(searchDistLimit);
+        BBOX bbox = ff.bbox(ff.property(inFeatures.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
+
+        // make sfc clip
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        Coordinate[] coords  =
+            new Coordinate[] {new Coordinate(refEnv.getMinX(), refEnv.getMinY()), new Coordinate(refEnv.getMaxX(), refEnv.getMinY()),
+                new Coordinate(refEnv.getMaxX(), refEnv.getMaxY()), new Coordinate(refEnv.getMinX(), refEnv.getMaxY()), new Coordinate(refEnv.getMinX(), refEnv.getMinY()) };
+        LinearRing ring = geometryFactory.createLinearRing( coords );
+        LinearRing holes[] = null; // use LinearRing[] to represent holes
+        Polygon clip_zone = geometryFactory.createPolygon(ring, holes );
+
+        ClipProcess cp = new ClipProcess();
+        SimpleFeatureCollection sfc = cp.execute(inFeatures, clip_zone, false);
+
+        Coordinate minDistPoint = null;
+        SimpleFeatureIterator sfi = sfc.features();
+
+        // create output feature array.
+        SimpleFeature[] sfArr = new SimpleFeature[sfc.size()];
+        int sfIndex = 0;
+        try {
+            while (sfi.hasNext()) {
+                sfArr[sfIndex] = (SimpleFeature) sfi.next();
+                sfIndex++;
+            }
+        } finally {
+            sfi.close();
+        }
+
+        return sfArr;
+    }
+
+    public static void deleteTmpDir(File tempDir) {
+        String[] fileList = tempDir.list();
+        for (String file : fileList) {
+            File currentFile = new File(tempDir.getPath(), file);
+            currentFile.delete();
+        }
+        tempDir.delete();
     }
 
     /**
@@ -545,15 +619,11 @@ public class GISHurricaneUtils {
      *
      * @param simNum
      * @param sfArr
-     * @param schema
-     * @param n
-     * @param pCoord
      * @return
-     * @throws IOException
      */
-    public static int selectAnotherSimNum(int simNum, SimpleFeature[] sfArr, SimpleFeatureType schema, int n, Coordinate pCoord) throws IOException {
+    public static int selectAnotherSimNum(int simNum, SimpleFeature[] sfArr)  {
+        // the simnum that should be selected should be either simnum + 1 or simnum - 1
         List<SimpleFeature> sfList = new LinkedList<SimpleFeature>();
-        DefaultFeatureCollection outFC = new DefaultFeatureCollection();
 
         // remove given simulation number from the list
         for (int i = 0; i < sfArr.length; i++) {
@@ -563,13 +633,15 @@ public class GISHurricaneUtils {
         }
 
         SimpleFeature[] newSfArr = new SimpleFeature[sfList.size()];
+
+        //create output shapefile of the selection for the debugging purpose
+        DefaultFeatureCollection outFC = new DefaultFeatureCollection();
         for (int i = 0; i < sfList.size(); i++) {
             newSfArr[i] = sfList.get(i);
-            outFC.add(newSfArr[i]);
         }
 
         // get new simulation number with highest value
-        simNum = getHighestSimulationNumber(newSfArr, n);
+        simNum = getHighestSimulationNumber(newSfArr, newSfArr.length);
 
         return simNum;
     }
@@ -611,26 +683,16 @@ public class GISHurricaneUtils {
      * @return
      */
     public static int getHighestSimulationNumber(SimpleFeature[] sfArr, int n) {
-        SimpleFeature[] sfArrN = new SimpleFeature[n];
+        double highestValue = 0.0;
+        int simNum = 0;
 
         for (int i = 0; i < n; i++) {
-            sfArrN[i] = sfArr[i];
-        }
-
-        for (int i = 0; i < n; i++) {
-            for (int j = 1; j < (n - 1); j++) {
-                double v_j = (double) sfArrN[j].getAttribute(HURRICANE_FLD_VELOCITY);
-                double v_j_1 = (double) sfArrN[j - 1].getAttribute(HURRICANE_FLD_VELOCITY);
-
-                if (v_j_1 > v_j) {
-                    SimpleFeature temp = sfArrN[j - 1];
-                    sfArrN[j - 1] = sfArrN[j];
-                    sfArrN[j] = temp;
-                }
+            double tempValue = (double) sfArr[i].getAttribute(HURRICANE_FLD_VELOCITY);
+            if (tempValue > highestValue) {
+                highestValue = tempValue;
+                simNum = (int) sfArr[i].getAttribute(HURRICANE_FLD_SIM);
             }
         }
-
-        int simNum = (int) sfArrN[0].getAttribute(HURRICANE_FLD_SIM);
 
         return simNum;
     }
@@ -698,7 +760,7 @@ public class GISHurricaneUtils {
      * @return
      * @throws IOException
      */
-    public static double interploateFromFourPoints(List<SimpleFeature> inList, double lat, double lon, double minDist) throws IOException {
+    public static double interpolateFromFourPoints(List<SimpleFeature> inList, double lat, double lon, double minDist) throws IOException {
         double[] minMaxArr = findMaxMin(inList);
 
         double xMin = minMaxArr[0];

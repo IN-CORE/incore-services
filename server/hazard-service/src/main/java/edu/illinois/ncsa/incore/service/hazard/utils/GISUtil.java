@@ -22,9 +22,11 @@ import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffReader;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.geometry.BoundingBox;
 
 import java.io.*;
 import java.net.URL;
@@ -71,6 +73,15 @@ public class GISUtil {
         }
 
         return feature;
+    }
+
+    public static boolean IsPointInPolygonBySFC(SimpleFeatureCollection inFeatures, Point pt) {
+        boolean isIn = false;
+
+        ReferencedEnvelope env = inFeatures.getBounds();
+        isIn = env.contains(pt.getCoordinate());
+
+        return isIn;
     }
 
     public static URL unZipShapefiles(File file, File destDirectory){
@@ -127,8 +138,6 @@ public class GISUtil {
     }
 
     public static synchronized GridCoverage getGridCoverage(String datasetId, String creator) {
-
-
         URL inSourceFileUrl = null;
 
         try {
