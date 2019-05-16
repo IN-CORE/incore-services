@@ -139,6 +139,7 @@ test {
             compile("org.geotools:gt-shapefile:17.0")
             compile("org.geotools:gt-referencing:17.0")
             compile("org.geotools:gt-epsg-hsql:17.0")
+            compile("org.geotools:gt-process-feature:17.0")
 
             //misc other dependencies
             compile("javax.media:jai_core:1.1.3")

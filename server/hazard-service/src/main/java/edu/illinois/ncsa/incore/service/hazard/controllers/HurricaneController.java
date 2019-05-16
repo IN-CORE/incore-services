@@ -26,8 +26,6 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.WindfieldD
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
-import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
-import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -35,13 +33,14 @@ import org.opengis.geometry.MismatchedDimensionException;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value="hurricaneWindfields", authorizations = {})
+@Api(value = "hurricaneWindfields", authorizations = {})
 
 @Path("hurricaneWindfields")
 @ApiResponses(value = {
@@ -150,18 +149,13 @@ public class HurricaneController {
 
         //Get shapefile datasetid
         String datasetId = hurricane.findFullPathDatasetId();
-
-        //Unzip shapefiles locally
-        File incoreWorkDir = ServiceUtil.getWorkDirectory();
-        File zipFile = ServiceUtil.getFileFromDataService(datasetId, username, incoreWorkDir);
-        URL shpFileUrl = GISUtil.unZipShapefiles(zipFile, incoreWorkDir);
         String hurrDemandType = hurricane.getDemandType();
-        String hurrDemandUnits  = hurricane.getDemandUnits().toString();
+        String hurrDemandUnits = hurricane.getDemandUnits().toString();
 
         if (hurricane != null) {
 
-            if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
-                log.error("Unsupported hurricane demandType provided to GET values : "+ demandType);
+            if (!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)) {
+                log.error("Unsupported hurricane demandType provided to GET values : " + demandType);
                 throw new NotFoundException("Unsupported hurricane demandType. Please use 3s or 60s.");
             }
 
@@ -170,10 +164,10 @@ public class HurricaneController {
                 double lat = point.getLocation().getY();
                 double lon = point.getLocation().getX();
                 try {
-                    //TODO: Take features directly instead of loading from file each time - improves performance
-                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(shpFileUrl.getPath(), lat, lon); // 3s gust at 10m elevation
 
-                    HashMap <String, Double> convertedWf = HurricaneUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
+                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, username, lat, lon); // 3s gust at 10m elevation
+
+                    HashMap<String, Double> convertedWf = HurricaneUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
                     windValue = convertedWf.get(demandType);
 
                     if (!demandUnits.toString().equals(hurrDemandUnits)) {
@@ -188,9 +182,6 @@ public class HurricaneController {
             }
         }
 
-        if (incoreWorkDir.exists()) {
-            incoreWorkDir.delete();
-        }
 
         return hurrResults;
     }
@@ -205,12 +196,17 @@ public class HurricaneController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         HurricaneWindfields inputHurricane) {
 
+        if (username == null) {
+            log.error("Credential user name should be provided.");
+            throw new NotFoundException("Credential user name should be provided.");
+        }
+
         HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
         if (inputHurricane != null) {
             String demandType = inputHurricane.getDemandType().trim();
 
-            if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
-                log.error("Unsupported hurricane demandType provided in POST JSON : "+ demandType);
+            if (!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)) {
+                log.error("Unsupported hurricane demandType provided in POST JSON : " + demandType);
                 throw new NotFoundException("Unsupported hurricane demandType. Please use 3s or 60s");
             }
             HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(username,

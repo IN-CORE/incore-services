@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.utils;
 
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -29,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ServiceUtil {
@@ -170,6 +172,95 @@ public class ServiceUtil {
 
     }
 
+    public static JSONObject getDatasetJsonFromDataService(String datasetId, String creator) {
+        JSONObject datasetJson = new JSONObject();
+
+        String dataEndpoint = "http://localhost:8080/";
+        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
+            dataEndpoint = dataEndpointProp;
+            if (!dataEndpoint.endsWith("/")) {
+                dataEndpoint += "/";
+            }
+        }
+
+        InputStream inputStream = null;
+        try {
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            HttpClient httpclient = builder.build();
+
+            String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId;
+            HttpGet httpGet = new HttpGet(requestUrl);
+            httpGet.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+
+            HttpResponse response = null;
+
+            response = httpclient.execute(httpGet);
+            inputStream = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder sb = new StringBuilder();
+
+            String line = null;
+            try {
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            String result = sb.toString();
+            datasetJson = new JSONObject(result);
+
+        } catch (IOException e) {
+            // TODO add logging
+            logger.error(e);
+        }
+
+        return datasetJson;
+    }
+
+    public static List<File> getFileDescriptorFileList(JSONObject datasetJson) {
+        List outlist = new LinkedList<String>();
+        String restStorageDir = Config.getConfigProperties().getProperty("data.repo.data.dir");
+
+        JSONArray fdList = (JSONArray) (datasetJson.get("fileDescriptors"));
+        for (Object fd : fdList) {
+            String filePath = restStorageDir + File.separator + (String) (((JSONObject) (fd)).get("dataURL"));
+            // the following line is only for PC's testing, convert slash to file separator
+//            filePath = filePath.replace('/', '\\');
+            outlist.add(new File(filePath));
+        }
+
+        return outlist;
+    }
+
+    public static String collectShapfileInFolder(List<File> fileList, File tempFile) throws IOException {
+        String outPath = null;
+        String tempDir = tempFile.getPath();
+
+        for (int i = 0; i < fileList.size(); i++) {
+            File sourceFile = fileList.get(i);
+            String fileName = FilenameUtils.getName(sourceFile.getName());
+            String fileExt = FilenameUtils.getExtension(sourceFile.getName());
+            File destFile = new File(tempDir + File.separator + fileName);
+
+            if (fileExt.equalsIgnoreCase("shp")) {
+                outPath = destFile.getPath();
+            }
+
+            org.apache.commons.io.FileUtils.copyFile(sourceFile, destFile);
+        }
+
+        return outPath;
+    }
+
     public static File getFileFromDataService(String datasetId, String creator, File incoreWorkDirectory) {
         String dataEndpoint = "http://localhost:8080/";
         String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
@@ -295,13 +386,12 @@ public class ServiceUtil {
         String datasetId = createDataset(title, creator, description, datasetType);
 
         if (datasetId != null) {
+            MultipartEntityBuilder params = MultipartEntityBuilder.create();
             for (File vizFile : vizFiles) {
-                MultipartEntityBuilder params = MultipartEntityBuilder.create();
                 params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
                 params.addBinaryBody(HazardConstants.FILE_PARAMETER_, vizFile);
-
-                attachFileToDataset(datasetId, creator, params);
             }
+            attachFileToDataset(datasetId, creator, params);
         }
 
         return datasetId;
