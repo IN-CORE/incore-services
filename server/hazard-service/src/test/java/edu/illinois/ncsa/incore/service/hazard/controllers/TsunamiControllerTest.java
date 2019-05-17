@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import edu.illinois.ncsa.incore.service.hazard.CustomJerseyTest;
@@ -26,10 +32,10 @@ public class TsunamiControllerTest extends CustomJerseyTest {
         return application;
     }
 
-    @Test
-    public void testGetTsunamis() throws Exception {
-        String output = target("tsunamis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
-        JSONArray parsedObject = new JSONArray(output);
-        assertEquals(1, parsedObject.length());
-    }
+//    @Test
+//    public void testGetTsunamis() throws Exception {
+//        String output = target("tsunamis").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+//        JSONArray parsedObject = new JSONArray(output);
+//        assertEquals(1, parsedObject.length());
+//    }
 }

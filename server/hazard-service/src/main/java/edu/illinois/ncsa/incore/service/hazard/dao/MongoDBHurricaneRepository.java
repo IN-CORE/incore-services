@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -101,6 +101,18 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
+
+        List<HurricaneWindfields> hurricanes = query.asList();
+
+        return hurricanes;
+    }
+
+    @Override
+    public List<HurricaneWindfields> searchHurricanes(String text) {
+        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+
+        query.or(query.criteria("name").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text));
 
         List<HurricaneWindfields> hurricanes = query.asList();
 

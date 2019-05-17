@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Prototype for IN-CORE v2, a web application with a service oriented architecture based on IN-CORE v1.
 
+
 ### Added
 
 - Authentication service - uses LDAP

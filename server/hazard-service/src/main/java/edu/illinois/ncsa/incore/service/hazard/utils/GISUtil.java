@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
 import com.vividsolutions.jts.geom.MultiPolygon;
@@ -16,9 +22,11 @@ import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffReader;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.geometry.BoundingBox;
 
 import java.io.*;
 import java.net.URL;
@@ -65,6 +73,15 @@ public class GISUtil {
         }
 
         return feature;
+    }
+
+    public static boolean IsPointInPolygonBySFC(SimpleFeatureCollection inFeatures, Point pt) {
+        boolean isIn = false;
+
+        ReferencedEnvelope env = inFeatures.getBounds();
+        isIn = env.contains(pt.getCoordinate());
+
+        return isIn;
     }
 
     public static URL unZipShapefiles(File file, File destDirectory){
@@ -121,8 +138,6 @@ public class GISUtil {
     }
 
     public static synchronized GridCoverage getGridCoverage(String datasetId, String creator) {
-
-
         URL inSourceFileUrl = null;
 
         try {

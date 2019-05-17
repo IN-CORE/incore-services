@@ -1,15 +1,12 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
-
+ ********************************************************************************/
 package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.github.sardine.DavResource;
@@ -60,7 +57,6 @@ public class FileUtils {
     public static final String DATASET_TYPE = "dataType";
     public static final String DATASET_SOURCE_DATASET = "sourceDataset";
     public static final String DATASET_FORMAT = "format";
-    public static final String DATASET_SPACES = "spaces";
     public static final String DATASET_DESCRIPTION = "description";
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FILE_ZIP_EXTENSION = "zip";

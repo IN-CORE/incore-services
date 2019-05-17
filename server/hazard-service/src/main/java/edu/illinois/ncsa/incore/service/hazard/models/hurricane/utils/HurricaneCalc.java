@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Gowtham Naraharisetty (NCSA) - initial API and implementation
@@ -46,7 +46,7 @@ public class HurricaneCalc {
 
 
     public static HurricaneSimulationEnsemble simulateHurricane(String username, double transD, IncorePoint landfallLoc, String model,
-                                                                int resolution, int gridPoints, String rfMethod) {
+                                                                String demandType, String demandUnits, int resolution, int gridPoints, String rfMethod) {
         //TODO: Comeup with a better name for gridPoints
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation
         //This function simulates wind fields for the selected data-driven model
@@ -133,7 +133,7 @@ public class HurricaneCalc {
             final Callable<List<HurricaneSimulation>> hurrSims = () -> {
                 pList.parallelStream().forEach(i -> {
                     hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
-                        track.get(i), resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
+                        track.get(i), demandType, demandUnits, resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
                         (JSONArray) zonesFitted.get(i), (JSONArray) radiusM.get(i), rfMethod));
 
                 });
@@ -157,7 +157,7 @@ public class HurricaneCalc {
     }
 
     public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
-                                                                       int resolution, int gridPoints,
+                                                                       String demandType, String demandUnits, int resolution, int gridPoints,
                                                                        Complex VTsSimu, JSONArray omegaFitted, JSONArray zonesFitted,
                                                                        JSONArray radiusM, String rfMethod) {
         HurricaneSimulation hsim = new HurricaneSimulation();
@@ -172,9 +172,9 @@ public class HurricaneCalc {
         Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted, zonesFitted,
             radiusM, rfMethod);
 
-        List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal);
+        List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal, demandType, demandUnits);
         //hsim.setSurfaceVelocity(strList); //Uncomment to see complex values too
-        hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal));
+        hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal, demandType, demandUnits));
 
 
         IncorePoint ctr = hgrid.getCenter();

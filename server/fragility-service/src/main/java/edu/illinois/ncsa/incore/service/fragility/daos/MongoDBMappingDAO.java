@@ -1,8 +1,8 @@
-/*
- * Copyright (c) 2018 University of Illinois and others.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Omar Elabd
@@ -54,19 +54,20 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public void saveMappingSet(MappingSet mappingSet) {
-        this.dataStore.save(mappingSet);
+    public String saveMappingSet(MappingSet mappingSet) {
+        String id = this.dataStore.save(mappingSet).getId().toString();
+        return id;
     }
 
     @Override
-    public List<MappingSet> queryMappingSets(Map<String, String> queryMap, int offset, int limit) {
+    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
         Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<MappingSet> mappingSets = query.offset(offset).limit(limit).asList();
+        List<MappingSet> mappingSets = query.asList();
 
         return mappingSets;
     }

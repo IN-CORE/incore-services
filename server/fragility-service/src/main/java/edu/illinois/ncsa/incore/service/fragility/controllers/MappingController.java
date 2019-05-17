@@ -1,8 +1,8 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Omar Elabd, Nathan Tolbert
@@ -12,6 +12,8 @@ package edu.illinois.ncsa.incore.service.fragility.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
@@ -44,6 +46,9 @@ public class MappingController {
     private IFragilityDAO fragilityDAO;
 
     @Inject
+    private ISpaceRepository spaceRepository;
+
+    @Inject
     private IAuthorizer authorizer;
 
     @GET
@@ -53,6 +58,7 @@ public class MappingController {
                                         @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
                                         @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
                                         @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
+                                        @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
@@ -73,17 +79,36 @@ public class MappingController {
         List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
-            mappingSets = this.mappingDAO.getMappingSets()
-                .stream()
+            mappingSets = this.mappingDAO.getMappingSets();
+        } else {
+            mappingSets = this.mappingDAO.queryMappingSets(queryMap);
+        }
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new NotFoundException();
+            }
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+
+            mappingSets = mappingSets.stream()
+                .filter(mapping -> spaceMembers.contains(mapping.getId()))
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-        } else {
-            mappingSets = this.mappingDAO.queryMappingSets(queryMap, offset, limit);
+            if (mappingSets.size() == 0) {
+                throw new NotFoundException("No mappings were found in space " + spaceName);
+            }
+            return mappingSets;
         }
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         return mappingSets.stream()
-            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
     }
 
@@ -97,11 +122,10 @@ public class MappingController {
 
         if (mappingSet.isPresent()) {
             MappingSet actual = mappingSet.get();
-            if (authorizer.canRead(username, actual.getPrivileges())) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
                 return actual;
-            } else {
-                throw new ForbiddenException();
             }
+            throw new ForbiddenException();
         } else {
             throw new NotFoundException();
         }
@@ -115,7 +139,17 @@ public class MappingController {
                                     @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
         mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         mappingSet.setCreator(username);
-        this.mappingDAO.saveMappingSet(mappingSet);
+
+        String id = this.mappingDAO.saveMappingSet(mappingSet);
+
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space == null) {
+            space = new Space(username);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
+        }
+        space.addMember(id);
+        spaceRepository.addSpace(space);
+
         return mappingSet;
     }
 
@@ -129,10 +163,13 @@ public class MappingController {
                                           @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
 
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+
         List<FragilitySet> fragilitySets = this.fragilityDAO.getCachedFragilities().stream()
-            .filter(b -> authorizer.canRead(username, b.getPrivileges()))
+            .filter(b -> membersSet.contains(b.getId()))
             .collect(Collectors.toList());
 
+        if (fragilitySets.size() == 0) throw new ForbiddenException();
 
         Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();
@@ -180,4 +217,6 @@ public class MappingController {
 
         return mappingResponse;
     }
+
+
 }

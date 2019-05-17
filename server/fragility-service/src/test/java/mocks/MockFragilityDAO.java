@@ -1,12 +1,12 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Omar Elabd, Nathan Tolbert
- */
+ *******************************************************************************/
 
 package mocks;
 
@@ -66,7 +66,7 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public void saveFragility(FragilitySet fragilitySet) {
+    public String saveFragility(FragilitySet fragilitySet) {
         // mutate fragilitySet object with this id
         try {
             Field field = FragilitySet.class.getDeclaredField("id");
@@ -74,12 +74,14 @@ public class MockFragilityDAO implements IFragilityDAO {
 
             try {
                 field.set(fragilitySet, new ObjectId());
+                return fragilitySet.getId();
             } catch (IllegalAccessException e) {
                 // do nothing
             }
         } catch (NoSuchFieldException e) {
             // do nothing
         }
+        return null;
     }
 
 
@@ -115,14 +117,14 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public List<FragilitySet> queryFragilities(Map<String, String> queryMap, int offset, int limit) {
+    public List<FragilitySet> queryFragilities(Map<String, String> queryMap) {
         Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<FragilitySet> sets = query.offset(offset).limit(limit).asList();
+        List<FragilitySet> sets = query.asList();
 
         return sets;
     }

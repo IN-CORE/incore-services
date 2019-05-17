@@ -1,9 +1,10 @@
-import React, { Component } from "react";
-import { browserHistory } from "react-router";
+import React, {Component} from "react";
+import {browserHistory} from "react-router";
 import {
 	TextField, GridTile, GridList, RaisedButton, Card, CardText, CardTitle, CardHeader, Paper,
 	Divider
 } from "material-ui";
+import config from "../app.config";
 
 type Props = {
 	name: string
@@ -50,7 +51,7 @@ class HomePage extends Component {
 
 
 		this.setState({password: password});
-		if(event.charCode === 13) {
+		if (event.charCode === 13) {
 			this.login(event);
 		}
 	}
@@ -58,14 +59,14 @@ class HomePage extends Component {
 	async login(event: Object) {
 		await this.props.login(this.state.username, this.state.password);
 		if(!this.props.loginError) {
-			browserHistory.push("/FragilityViewer");
+			browserHistory.push(`${config.urlPrefix}/FragilityViewer`);
 		}
 
 	}
 
 	render() {
 		let loginError = "";
-		if(this.props.loginError) {
+		if (this.props.loginError) {
 			loginError = "Username/Password is not correct. Try again";
 		}
 
@@ -73,10 +74,10 @@ class HomePage extends Component {
 			<div className="center" style={{display: "block", margin: "auto", width: "500px", paddingTop: "10%"}}>
 				<Paper zDepth={3} style={{padding: 20}}>
 					<h2>IN-CORE v2 Login</h2>
-					<Divider />
+					<Divider/>
 					<GridList cellHeight="auto" cols={1}>
 						<GridTile>
-							<p style={{color:"red"}}>{loginError} </p>
+							<p style={{color: "red"}}>{loginError} </p>
 						</GridTile>
 						<GridTile>
 							<TextField

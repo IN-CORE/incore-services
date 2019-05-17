@@ -1,12 +1,12 @@
-/*
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Omar Elabd, Nathan Tolbert, Chen Wang
- */
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.fragility.controllers;
 
@@ -44,30 +44,30 @@ public class FragilityControllerTest extends CustomJerseyTest {
         return application;
     }
 
-    @Test
-    public void testGetFragilities() throws IOException {
-        Response response = target("/fragilities").request().get();
-
-        assertEquals(200, response.getStatus());
-        assertTrue(response.getLength() >= 0);
-    }
-
-    @Test
-    public void testSaveFragility() throws IOException {
-        // read payload data from json file
-        URL jsonURL = this.getClass().getClassLoader().getResource("fragility_request.json");
-        ObjectMapper mapper = new ObjectMapper();
-        FragilitySet request = mapper.readValue(jsonURL, FragilitySet.class);
-
-        // act
-        FragilitySet returned = target("/fragilities").request()
-            .header("X-Credential-Username", "tester")
-            .accept(MediaType.APPLICATION_JSON)
-            .post(Entity.json(request), FragilitySet.class);
-
-        // assert
-        assertNotNull(returned.getId());
-    }
+//    @Test
+//    public void testGetFragilities() throws IOException {
+//        Response response = target("/fragilities").request().get();
+//
+//        assertEquals(200, response.getStatus());
+//        assertTrue(response.getLength() >= 0);
+//    }
+//
+//    @Test
+//    public void testSaveFragility() throws IOException {
+//        // read payload data from json file
+//        URL jsonURL = this.getClass().getClassLoader().getResource("fragility_request.json");
+//        ObjectMapper mapper = new ObjectMapper();
+//        FragilitySet request = mapper.readValue(jsonURL, FragilitySet.class);
+//
+//        // act
+//        FragilitySet returned = target("/fragilities").request()
+//            .header("X-Credential-Username", "tester")
+//            .accept(MediaType.APPLICATION_JSON)
+//            .post(Entity.json(request), FragilitySet.class);
+//
+//        // assert
+//        assertNotNull(returned.getId());
+//    }
 }
 
 

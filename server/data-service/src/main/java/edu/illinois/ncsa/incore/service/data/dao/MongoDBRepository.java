@@ -1,15 +1,13 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Omar Elabd (NCSA) - initial API and implementation
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.data.dao;
 
@@ -19,7 +17,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -36,7 +33,6 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class MongoDBRepository implements IRepository {
     private final String DATASET_COLLECTION_NAME = "Dataset";
-    private final String DATASET_FIELD_NAME = "name";
     private final String DATASET_FIELD_TYPE = "dataType";
     private final String DATASET_FIELD_TITLE = "title";
     private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";
@@ -70,10 +66,6 @@ public class MongoDBRepository implements IRepository {
 
     public List<Dataset> getAllDatasets() {
         return this.dataStore.createQuery(Dataset.class).asList();
-    }
-
-    public List<Space> getAllSpaces() {
-        return this.dataStore.createQuery(Space.class).asList();
     }
 
     public List<MvzDataset> getAllMvzDatasets() {
@@ -124,29 +116,6 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore.findAndDelete(query);
     }
 
-
-    public Space getSpaceById(String id) {
-        return this.dataStore.get(Space.class, new ObjectId(id));
-    }
-
-    public Space getSpaceByName(String name) {
-        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field(DATASET_FIELD_NAME).equal(name);
-        Space foundSpace = spaceQuery.get();
-
-        return foundSpace;
-    }
-
-    public Space addSpace(Space space) {
-        String id = this.dataStore.save(space).getId().toString();
-        return getSpaceById(id);
-    }
-
-    public Space removeIdFromSpace(Space space, String id) {
-        space.removeDatasetId(id);
-        return space;
-    }
-
     public MvzDataset addMvzDataset(MvzDataset mvzDataset) {
         String id = this.dataStore.save(mvzDataset).getId().toString();
         return getMvzDatasetById(id);
@@ -188,5 +157,20 @@ public class MongoDBRepository implements IRepository {
         MongoCollection collection = mongodb.getCollection(DATASET_COLLECTION_NAME);
         collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));
         return getDatasetById(datasetId);
+    }
+
+    @Override
+    public List<Dataset> searchDatasets(String text) {
+        Query<Dataset> query = this.dataStore.createQuery(Dataset.class);
+
+        query.or(query.criteria("title").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text),
+            query.criteria("creator").containsIgnoreCase(text),
+            query.criteria("fileDescriptors.filename").containsIgnoreCase(text),
+            query.criteria("dataType").containsIgnoreCase(text));
+
+        List<Dataset> datasets = query.asList();
+
+        return datasets;
     }
 }

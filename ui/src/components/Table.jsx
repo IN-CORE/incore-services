@@ -16,7 +16,8 @@ class Table extends Component {
 				colHeaders: this.props.colHeaders,
 				observeChanges: true,
 				height: this.props.height,
-				overflow: "hidden"
+				overflow: "auto",
+				stretchH: "all"
 			});
 	}
 
@@ -27,7 +28,10 @@ class Table extends Component {
 				data: this.props.data,
 				rowHeaders: this.props.rowHeaders,
 				colHeaders: this.props.colHeaders,
-				observeChanges: true
+				observeChanges: true,
+				height: this.props.height,
+				overflow: "auto",
+				stretchH: "all"
 			});
 	}
 

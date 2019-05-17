@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2018 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -13,7 +13,9 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.query.Query;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,6 +50,21 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
         List<TsunamiDataset> tsunamiDatasets = this.dataStore.createQuery(TsunamiDataset.class).asList();
         tsunamis.addAll(tsunamiDatasets);
         // TODO this will need to be updated if there are model based tsunamis
+
+        return tsunamis;
+    }
+
+    @Override
+    public List<Tsunami> searchTsunamis(String text) {
+        Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
+
+        query.or(query.criteria("name").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text));
+
+        List<TsunamiDataset> tsunamiDatasets = query.asList();
+
+        List<Tsunami> tsunamis = new ArrayList<>();
+        tsunamis.addAll(tsunamiDatasets);
 
         return tsunamis;
     }

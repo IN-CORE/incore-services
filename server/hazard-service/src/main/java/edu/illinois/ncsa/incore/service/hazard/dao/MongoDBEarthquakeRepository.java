@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -17,11 +17,9 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeModel;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     private String hostUri;
@@ -90,6 +88,25 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
 
         earthquakes.addAll(earthquakes1);
         earthquakes.addAll(earthquakes2);
+
+        return earthquakes;
+    }
+
+    @Override
+    public List<Earthquake> searchEarthquakes(String text) {
+        Query<EarthquakeDataset> query = this.dataStore.createQuery(EarthquakeDataset.class);
+
+        query.or(query.criteria("name").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text));
+
+        Query<EarthquakeModel> modelQuery = this.dataStore.createQuery(EarthquakeModel.class);
+
+        modelQuery.or(modelQuery.criteria("name").containsIgnoreCase(text),
+            modelQuery.criteria("description").containsIgnoreCase(text));
+
+        List<Earthquake> earthquakes = new ArrayList<>();
+        earthquakes.addAll(query.asList());
+        earthquakes.addAll(modelQuery.asList());
 
         return earthquakes;
     }

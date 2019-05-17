@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -56,6 +62,11 @@ public class MockTornadoRepository implements ITornadoRepository {
     public List<Tornado> getTornadoes() {
         System.out.println(this.tornadoes.size());
         return this.tornadoes;
+    }
+
+    @Override
+    public List<Tornado> searchTornadoes(String text) {
+        return null;
     }
 
     @Override

@@ -1,16 +1,13 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Chris Navarro (NCSA) - initial API and implementation
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
-
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.data.models;
 
 /**
@@ -396,6 +393,15 @@ public class Dataset {
      */
     public void setSpaces(List<String> spaces) {
         this.spaces = spaces;
+    }
+
+    /**
+     * Remove the space from the set of spaces of the dataset.
+     *
+     * @param space the space to be removed.
+     */
+    public void removeSpace(String space) {
+        getSpaces().remove(space);
     }
 
     /**

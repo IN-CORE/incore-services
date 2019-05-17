@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Gowtham Naraharisetty (NCSA) - initial API and implementation
@@ -38,22 +38,43 @@ public class HurricaneUtil {
     public static final String UNITS_KT = "kt";
     public static final String UNITS_MPS = "mps";
     public static final String UNITS_KMPH = "kmph";
+    public static final String UNITS_MPH = "mph";
     public static final double R_EARTH = 6371 * 1000; // mean radius of earth, meter
     public static final double PARA = 3.5;
     public static final double X_MAX = 6 * 80;
     public static final double RHO = 1.2754; // air density, kg/m^3
     public static final double MB2PA = 100; // unit change from mb to Pa
     public static final double PN = 1013.25 * MB2PA; // Pa, ambient pressure, 101.325 kPa, 29.921 inHg, 760 mmHg.
-    public static final double KT2MS = 0.514444; // unit change from KT to m/s
-    public static final double KT2KMPH = 0.514444 * 3.6;
+
+    public static final double KT2MS = 0.514444;
+    public static final double KT2KMPH = 1.8519984;
+    public static final double KT2MPH = 1.15078;
+
+    public static final double MPH2MS = 0.44704;
+    public static final double MPH2KMPH = 1.60934;
+    public static final double MPH2KT = 0.868974;
+
+    public static final double KMPH2MS = 0.277778;
+    public static final double KMPH2MPH = 0.6213714;
+    public static final double KMPH2KT = 0.539957;
+
+    public static final double MS2KMPH = 3.6;
+    public static final double MS2MPH = 2.23694;
+    public static final double MS2KT = 1.94384;
+
     public static final double FR = 0.8; //Conversion parameter
     public static final int TOTAL_OMEGAS = 16; //This is 360 degrees divided by 22.5 degrees
     public static final Map<String, String[]> categoryMapping;
-    private static final Logger logger = Logger.getLogger(HurricaneUtil.class);
+    private static final Logger log = Logger.getLogger(HurricaneUtil.class);
     public static List<Integer> OMEGAS_ALL = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
     public static final String GRID_RESOLUTION_UNITS = "km";
     public static final String RASTER_RESOLUTION_UNITS = "km";
     public static final String TRANSD_UNITS = "degrees";
+    public static final double WINDFIELD_DEFAULT_ELEVATION = 10.0;
+    public static final double STANDARD_OPEN_TERRAIN_ROUGHNESS = 0.03;
+    public static final double VAN_KORMAN_CONSTANT = 0.4;
+    public static final String WIND_VELOCITY_3SECS = "3s";
+    public static final String WIND_VELOCITY_60SECS = "60s";
 
     static {
         categoryMapping = new HashMap<String, String[]>();
@@ -142,8 +163,12 @@ public class HurricaneUtil {
         return retList;
     }
 
-    //Calculate abs value
-    public static final List<List<Double>> convert2DComplexArrayToAbsList(Complex[][] cArr) {
+    /***
+     * Calculate abs value and apply 3-s gust conversion
+     * @param cArr
+     * @return
+     */
+    public static final List<List<Double>> convert2DComplexArrayToAbsList(Complex[][] cArr, String demandType, String demandUnits) {
         List<List<Double>> retList = new ArrayList<>();
         int rows = cArr.length;
         int cols = 0;
@@ -154,8 +179,18 @@ public class HurricaneUtil {
         for (int row = 0; row < rows; row++) {
             List<Double> rowList = new ArrayList<>();
             for (int col = 0; col < cols; col++) {
-                //rowList.add(cArr[row][col].toString());
-                rowList.add(cArr[row][col].abs());
+                //rowList.add(cArr[row][col].abs());
+                double windVal = cArr[row][col].abs();
+                if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
+                    windVal = convertWindfieldVelocity(HurricaneUtil.WIND_VELOCITY_60SECS, windVal, WINDFIELD_DEFAULT_ELEVATION,
+                        STANDARD_OPEN_TERRAIN_ROUGHNESS).get(demandType);
+                }
+
+                if(!demandUnits.equalsIgnoreCase(UNITS_KT)){
+                    windVal = getCorrectUnitsOfVelocity(windVal, UNITS_KT, demandUnits);
+                }
+
+                rowList.add(windVal);
             }
             retList.add(rowList);
         }
@@ -164,7 +199,7 @@ public class HurricaneUtil {
     }
 
 
-    public static final List<List<String>> convert2DComplexArrayToStringList(Complex[][] cArr) {
+    public static final List<List<String>> convert2DComplexArrayToStringList(Complex[][] cArr, String demandType, String demandUnits) {
         List<List<String>> retList = new ArrayList<>();
         int rows = cArr.length;
         int cols = 0;
@@ -172,10 +207,20 @@ public class HurricaneUtil {
             cols = cArr[0].length;
         }
 
+        double factor = 1.0;
+        if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
+            factor = convertWindfieldVelocity(HurricaneUtil.WIND_VELOCITY_60SECS, factor, WINDFIELD_DEFAULT_ELEVATION,
+                STANDARD_OPEN_TERRAIN_ROUGHNESS).get(demandType);
+        }
+
+        if(!demandUnits.equalsIgnoreCase(UNITS_KT)){
+            factor = getCorrectUnitsOfVelocity(factor, UNITS_KT, demandUnits);
+        }
+
         for (int row = 0; row < rows; row++) {
             List<String> rowList = new ArrayList<>();
             for (int col = 0; col < cols; col++) {
-                rowList.add(cArr[row][col].toString());
+                rowList.add(cArr[row][col].multiply(factor).toString());
             }
             retList.add(rowList);
         }
@@ -684,14 +729,146 @@ public class HurricaneUtil {
 
 
     public static double getCorrectUnitsOfVelocity(double hazardValue, String originalDemandUnits, String requestedDemandUnits) {
-        if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPS)) {
+        if (originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)){
+            return hazardValue;
+        }
+        else if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPS)) {
             return hazardValue * KT2MS;
         } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_KMPH)) {
             return hazardValue * KT2KMPH;
-        } else {
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPH)) {
+            return hazardValue * KT2MPH;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_MPH) && requestedDemandUnits.equalsIgnoreCase(UNITS_KT)) {
+            return hazardValue * MPH2KT;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_MPH) && requestedDemandUnits.equalsIgnoreCase(UNITS_KMPH)) {
+            return hazardValue * MPH2KMPH;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_MPH) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPS)) {
+            return hazardValue * MPH2MS;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KMPH) && requestedDemandUnits.equalsIgnoreCase(UNITS_KT)) {
+            return hazardValue * KMPH2KT;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KMPH) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPH)) {
+            return hazardValue * KMPH2MPH;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KMPH) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPS)) {
+            return hazardValue * KMPH2MS;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_MPS) && requestedDemandUnits.equalsIgnoreCase(UNITS_KT)) {
+            return hazardValue * MS2KT;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_MPS) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPH)) {
+            return hazardValue * MS2MPH;
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_MPS) && requestedDemandUnits.equalsIgnoreCase(UNITS_KMPH)) {
+            return hazardValue * MS2KMPH;
+        }
+        else {
             throw new UnsupportedOperationException("Cannot convert Velocity from " + originalDemandUnits + " to " + requestedDemandUnits);
         }
     }
 
+    /***
+     * 1-D data interpolation. Compares to MATLAB interp1()
+     * source: http://www.java2s.com/Code/Java/Collections-Data-Structure/LinearInterpolation.htm
+     * @param x
+     * @param y
+     * @param xi
+     * @return
+     * @throws IllegalArgumentException
+     */
+    public static final double[] interpLinear(double[] x, double[] y, double[] xi) throws IllegalArgumentException {
+
+        if (x.length != y.length) {
+            throw new IllegalArgumentException("X and Y must be the same length");
+        }
+        if (x.length == 1) {
+            throw new IllegalArgumentException("X must contain more than one value");
+        }
+        double[] dx = new double[x.length - 1];
+        double[] dy = new double[x.length - 1];
+        double[] slope = new double[x.length - 1];
+        double[] intercept = new double[x.length - 1];
+
+        // Calculate the line equation (i.e. slope and intercept) between each point
+        for (int i = 0; i < x.length - 1; i++) {
+            dx[i] = x[i + 1] - x[i];
+            if (dx[i] == 0) {
+                throw new IllegalArgumentException("X must be montotonic. A duplicate " + "x-value was found");
+            }
+            if (dx[i] < 0) {
+                throw new IllegalArgumentException("X must be sorted");
+            }
+            dy[i] = y[i + 1] - y[i];
+            slope[i] = dy[i] / dx[i];
+            intercept[i] = y[i] - x[i] * slope[i];
+        }
+
+        // Perform the interpolation here
+        double[] yi = new double[xi.length];
+        for (int i = 0; i < xi.length; i++) {
+            if ((xi[i] > x[x.length - 1]) || (xi[i] < x[0])) {
+                yi[i] = Double.NaN;
+            } else {
+                int loc = Arrays.binarySearch(x, xi[i]);
+                if (loc < -1) {
+                    loc = -loc - 2;
+                    yi[i] = slope[loc] * xi[i] + intercept[loc];
+                } else {
+                    yi[i] = y[loc];
+                }
+            }
+        }
+
+        return yi;
+    }
+
+    /***
+     * Converts 60s/3s wind speed at 10 m elevation over the standard open terrain exposure to the corresponding
+     * 1-min and 3-seconds sustained wind speed over a user specified exposure at a user interested elevation.
+     * @param srcDemand Specifies if input windspeed is 60s or 3s
+     * @param windAt10m 1-min sustained wind speed at 10 m elevation for standard open terrain exopsure
+     * @param elevation elevation to calculate the wind speed at
+     * @param roughness user specified exposure or roughness length, roughness can take values from 0.003 to 2.5 m, values out of the range are not applicable.
+     *           For sparsely built-up suburbs roughness~0.2-0.4, for densely built-up suburbs, towns, roughness~0.8-1.2)
+     * @return 1-min sustained wind speed and 3-s gust wind speed at specified elevation and roughness
+     */
+
+    public static HashMap<String, Double> convertWindfieldVelocity(String srcDemand, Double windAt10m, Double elevation, Double roughness) {
+        HashMap<String, Double> convertedWf = new HashMap<>();
+
+        double zos = STANDARD_OPEN_TERRAIN_ROUGHNESS; //surface roughness for the standard open terrain exposure
+        double k = VAN_KORMAN_CONSTANT; // Von Karman constant
+        double ct60 = 1.29;
+        double ct3 = 2.85;
+        double[] betaS = {6.5, 6.0, 5.25, 4.85, 4.0};
+        double[] zoSs = {0.005, 0.07, 0.3, 1.0, 2.5};
+
+        double beta = interpLinear(zoSs, betaS, new double[]{zos})[0];
+        double factorA = 1;
+        //convert 1-min sustained wind velocity to hourly mean wind velocity for open terrain and 10 m elevation
+        if(srcDemand.equalsIgnoreCase(WIND_VELOCITY_60SECS)) {
+            factorA = 1 + pow(beta, 0.5) * ct60 / 2.5 / log(elevation / zos);
+        } else if(srcDemand.equalsIgnoreCase(WIND_VELOCITY_3SECS)){
+            factorA = 1 + pow(beta, 0.5) * ct3 / 2.5 / log(elevation / zos);
+        } else{
+            log.error("Error in convertWindfieldVelocity. Provided input demand "+ srcDemand + " is not valid");
+        }
+
+        double wfAt3600s10m = windAt10m / factorA;
+
+        //convert hourly mean wind velocity from standard exposure to user specified exposure
+        Double wfStarS = wfAt3600s10m * k / log(10 / zos); // friction velocity for the standard exposure
+        Double wfStar = wfStarS / pow(zos / roughness, 0.0706); // friction velocity for the user specified exposure
+        Double wf3600 = wfStar / k * log(elevation / roughness); //adjusted mean wind speed at height elevation for the user specified exposure
+
+        //covert hourly mean wind velocity for user specifed exposure to 1-min sustained wind velocity
+        beta = (roughness < zoSs[0]) ? 6.5 : interpLinear(zoSs, betaS, new double[]{roughness})[0];
+        double factor60 = 1 + pow(beta, 0.5) * ct60 / 2.5 / log(elevation / roughness);
+        double wfAt60s = factor60 * wf3600;
+
+        //covert hourly mean wind velocity for user specifed exposure to 3-sec gust wind velocity
+        double factor3 = 1 + pow(beta, 0.5) * ct3 / 2.5 / log(elevation / roughness);
+        double wfAt3s = factor3 * wf3600;
+
+        convertedWf.put(WIND_VELOCITY_3SECS, wfAt3s);
+        convertedWf.put(WIND_VELOCITY_60SECS, wfAt60s);
+
+        return convertedWf;
+    }
 
 }

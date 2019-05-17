@@ -1,15 +1,12 @@
-/*
- * ******************************************************************************
- *   Copyright (c) 2017 University of Illinois and others.  All rights reserved.
- *   This program and the accompanying materials are made available under the
- *   terms of the BSD-3-Clause which accompanies this distribution,
- *   and is available at https://opensource.org/licenses/BSD-3-Clause
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
  *   Yong Wook Kim (NCSA) - initial API and implementation
- *  ******************************************************************************
- */
-
+ *******************************************************************************/
 package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -42,9 +39,8 @@ import java.util.stream.Collectors;
 /**
  * Created by ywkim on 9/27/2017.
  */
-public class JsonUtils {
-    public static final Logger logger = Logger.getLogger(JsonUtils.class);
-
+public class DataJsonUtils {
+    public static final Logger logger = Logger.getLogger(DataJsonUtils.class);
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
@@ -105,37 +101,7 @@ public class JsonUtils {
         return outJson;
     }
 
-    // validate if json is okay
-    public static boolean isJSONValid(String inJson) {
-        try {
-            new JSONObject(inJson);
-        } catch (JSONException ex) {
-            try {
-                new JSONArray(inJson);
-            } catch (JSONException ex1) {
-                return false;
-            }
-        }
-        return true;
-    }
 
-    public static boolean isDatasetParameterValid(String inJson) {
-        Field[] allFields = Dataset.class.getDeclaredFields();
-        List<String> datasetParams = Arrays.stream(allFields).map(Field::getName).collect(Collectors.toList());
-
-        Object json = null;
-        Set<String> jsonKeys = null;
-        try {
-            json = new JSONObject(inJson);
-            jsonKeys = ((JSONObject) json).keySet();
-        } catch (JSONException ex) {
-            try {
-                json = new JSONArray(inJson);
-                jsonKeys = ((JSONObject) json).keySet();
-            } catch (JSONException ex1) {
-                return false;
-            }
-        }
 
         return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
 
@@ -179,13 +145,29 @@ public class JsonUtils {
 //        return isValid;
     }
 
-    public static String extractValueFromJsonString(String inId, String inJson) {
+    public static HashMap<String, Object> extractMapFromJsonString(String inJson){
+        try {
+            return new ObjectMapper().readValue(inJson, HashMap.class);
+        } catch (IOException e){
+            return null;
+        }
+    }
+
+    public static List<String> extractValueListFromJsonString(String inId, String inJson) {
         JSONObject jsonObj = new JSONObject(inJson);
+        List<String> outList = new LinkedList<String>();
         if (jsonObj.has(inId)) {
-            Object output = jsonObj.get(inId);
-            return output.toString();
+            try {
+                JSONArray inArray = (JSONArray) jsonObj.get(inId);
+                for (Object jObj: inArray) {
+                    outList.add(jObj.toString());
+                }
+                return outList;
+            } catch (JSONException e) {
+                return outList;
+            }
         } else {
-            return "";
+            return outList;
         }
     }
 
@@ -222,25 +204,6 @@ public class JsonUtils {
         return networkDataset;
     }
 
-
-    public static List<String> extractValueListFromJsonString(String inId, String inJson) {
-        JSONObject jsonObj = new JSONObject(inJson);
-        List<String> outList = new LinkedList<String>();
-        if (jsonObj.has(inId)) {
-            try {
-                JSONArray inArray = (JSONArray) jsonObj.get(inId);
-                for (Object jObj : inArray) {
-                    outList.add(jObj.toString());
-                }
-                return outList;
-            } catch (JSONException e) {
-                return outList;
-            }
-        } else {
-            return outList;
-        }
-    }
-
     public static String formatDatasetAsGeoJson(File shapefile) throws IOException {
         //TODO: this should return the data in geoJSON format
         String geoJsonStr;
@@ -272,6 +235,26 @@ public class JsonUtils {
         FileUtils.deleteTmpDir(inCsv, FileUtils.EXTENSION_CSV);
 
         return outStr;
+    }
+
+    public static boolean isDatasetParameterValid(String inJson) {
+        Field[] allFields = Dataset.class.getDeclaredFields();
+        List<String> datasetParams = Arrays.stream(allFields).map(Field::getName).collect(Collectors.toList());
+
+        Object json = null;
+        Set<String> jsonKeys = null;
+        try {
+            json = new JSONObject(inJson);
+            jsonKeys = ((JSONObject) json).keySet();
+        } catch (JSONException ex) {
+            try {
+                json = new JSONArray(inJson);
+                jsonKeys = ((JSONObject) json).keySet();
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
     }
 
     public static String getJsonByDatasetId(String datasetId) {

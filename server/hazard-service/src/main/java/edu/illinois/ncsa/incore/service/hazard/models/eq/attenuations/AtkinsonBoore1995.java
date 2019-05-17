@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2017 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -15,11 +15,11 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AtkinsonBoore1995 extends BaseAttenuation {
-
-    private static double[] aleatoricUncertainties = {0.620, 0.581, 0.5730878, 0.550};
 
     public AtkinsonBoore1995() {
         URL coefficientURL = AtkinsonBoore1995.class.getResource("/hazard/earthquake/coefficients/AtkinsonBoore1995.csv");
@@ -48,26 +48,21 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
      */
     public double getStandardDeviation(double medianHazard, String period, Site site) throws Exception {
         double std_deviation = 0.0;
-        std_deviation = Math.sqrt(Math.pow(getAleatoricStdDev(period, site), 2) + getEpistemicVariance(medianHazard, period, site));
+        std_deviation = Math.sqrt(Math.pow(getAleatoricUncertainties(period), 2) +
+            getEpistemicVariance(medianHazard, period, site));
         return std_deviation;
     }
 
-    /**
-     * @param period
-     * @return Lognormal aleatoric uncertainty
-     */
-    public double getAleatoricStdDev(String period, Site site) throws Exception {
-        if (period.equalsIgnoreCase("PGA")) {
-            return aleatoricUncertainties[0];
-        } else if (period.equalsIgnoreCase("0.2")) {
-            return aleatoricUncertainties[1];
-        } else if (period.equalsIgnoreCase("0.3")) {
-            return aleatoricUncertainties[2];
-        } else if (period.equalsIgnoreCase("1.0")) {
-            return aleatoricUncertainties[3];
-        } else {
-            return 0.0;
-        }
+
+    public Map<String, Double> getAleatoricUncertainties() {
+        return new HashMap<String, Double>() {
+            {
+                put("PGA", 0.620);
+                put("0.2 SA", 0.581);
+                put("0.3 SA", 0.5730878);
+                put("1.0 SA", 0.550);
+            }
+        };
     }
 
     @Override
@@ -76,9 +71,9 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
     }
 
     /**
-     * @param period      Period / Hazard to compute
-     * @param magnitude           Moment Magnitude of the event
-     * @param distance    Distance from the epicenter to the point of interest
+     * @param period     Period / Hazard to compute
+     * @param magnitude  Moment Magnitude of the event
+     * @param distance   Distance from the epicenter to the point of interest
      * @param focalDepth Depth of the event
      * @return Hazard Value
      * @todo We assume site class D, we must get this info from the user if
@@ -105,118 +100,96 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isFaultTypeRequired()
-    {
+    public boolean isFaultTypeRequired() {
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isGeologyRequired()
-    {
+    public boolean isGeologyRequired() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isDipAngleRequired()
-    {
+    public boolean isDipAngleRequired() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isAzimuthAngleRequired()
-    {
+    public boolean isAzimuthAngleRequired() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isCoseismicRuptureDepthRequired()
-    {
+    public boolean isCoseismicRuptureDepthRequired() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isShearWaveDepthRequired()
-    {
+    public boolean isShearWaveDepthRequired() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isShearWaveDepth10Required()
-    {
+    public boolean isShearWaveDepth10Required() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isRakeAngleRequired()
-    {
+    public boolean isRakeAngleRequired() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public boolean isSeismogenicDepthRequired()
-    {
+    public boolean isSeismogenicDepthRequired() {
         // TODO Auto-generated method stub
         return false;
     }
 
     /**
-     *
      * @return
      */
-    public boolean isSoilMapRequired()
-    {
+    public boolean isSoilMapRequired() {
         return true;
     }
 
     /**
-     *
      * @return
      */
-    public boolean isSoilTypeRequired()
-    {
+    public boolean isSoilTypeRequired() {
         return true;
     }
 

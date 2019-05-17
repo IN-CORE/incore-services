@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2018 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -17,11 +17,9 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class MongoDBTornadoRepository implements ITornadoRepository {
     private String hostUri;
@@ -69,6 +67,26 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
         List<Tornado> tornadoes = new LinkedList<Tornado>();
         tornadoes.addAll(this.dataStore.createQuery(TornadoModel.class).asList());
         tornadoes.addAll(this.dataStore.createQuery(TornadoDataset.class).asList());
+
+        return tornadoes;
+    }
+
+    @Override
+    public List<Tornado> searchTornadoes(String text) {
+        Query<TornadoDataset> datasetQuery = this.dataStore.createQuery(TornadoDataset.class);
+        Query<TornadoModel> modelQuery = this.dataStore.createQuery(TornadoModel.class);
+
+        datasetQuery.or(datasetQuery.criteria("name").containsIgnoreCase(text),
+            datasetQuery.criteria("description").containsIgnoreCase(text));
+        List<TornadoDataset> tornadoDatasets = datasetQuery.asList();
+
+        modelQuery.or(modelQuery.criteria("name").containsIgnoreCase(text),
+            modelQuery.criteria("description").containsIgnoreCase(text));
+        List<TornadoModel> tornadoModels = modelQuery.asList();
+
+        List<Tornado> tornadoes = new ArrayList<>();
+        tornadoes.addAll(tornadoDatasets);
+        tornadoes.addAll(tornadoModels);
 
         return tornadoes;
     }

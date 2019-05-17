@@ -1,8 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2018 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
- * terms of the BSD-3-Clause which accompanies this distribution,
- * and is available at https://opensource.org/licenses/BSD-3-Clause
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
@@ -10,8 +10,8 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
 
 public class HurricaneWindfieldResult {
-    private String demand;
-    private String units;
+    private String demandType;
+    private String demandUnits;
     private double hazardValue;
     private double latitude;
     private double longitude;
@@ -20,20 +20,20 @@ public class HurricaneWindfieldResult {
         this.latitude = latitude;
         this.longitude = longitude;
         this.hazardValue = hazardValue;
-        this.demand = demandType;
-        this.units = demandUnits;
+        this.demandType = demandType;
+        this.demandUnits = demandUnits;
     }
 
     public double getHazardValue() {
         return hazardValue;
     }
 
-    public String getUnits() {
-        return units;
+    public String getDemandUnits() {
+        return demandUnits;
     }
 
-    public String getDemand() {
-        return demand;
+    public String getDemandType() {
+        return demandType;
     }
 
     public double getLatitude() {
