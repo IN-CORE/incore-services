@@ -13,7 +13,6 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -24,7 +23,6 @@ import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.NetworkData;
 import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
-import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
@@ -351,7 +349,7 @@ public class DatasetController {
 
             // add network information in the dataset
             if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                NetworkDataset networkDataset = JsonUtils.createNetworkDataset(inDatasetJson);
+                NetworkDataset networkDataset = DataJsonUtils.createNetworkDataset(inDatasetJson);
                 dataset.setNetworkDataset(networkDataset);
             }
 

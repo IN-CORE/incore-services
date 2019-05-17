@@ -18,6 +18,7 @@ import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import edu.illinois.ncsa.incore.service.data.models.NetworkData;
 import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -99,50 +100,6 @@ public class DataJsonUtils {
 //            outJson = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
         return outJson;
-    }
-
-
-
-        return jsonKeys.stream().allMatch(it -> datasetParams.contains(it));
-
-
-//        Field[] allFields = Dataset.class.getDeclaredFields();
-//        for (Field field: allFields) {
-//            datasetParams.add(field.getName().toString());
-//        }
-//
-//        Object json = null;
-//        Set<String> keys = null;
-//        try {
-//            json = new JSONObject(inJson);
-//            keys = ((JSONObject) json).keySet();
-//        } catch (JSONException ex) {
-//            try {
-//                json = new JSONArray(inJson);
-//                keys = ((JSONObject) json).keySet();
-//            } catch (JSONException ex1) {
-//                return false;
-//            }
-//        }
-//        for (String key: keys) {
-//            inJsonKeys.add(key);
-//        }
-//
-//        // check if the json key is in the dataset parameters
-//        for (String key: inJsonKeys) {
-//            int matchingCounter = 0;
-//            for (String param: datasetParams) {
-//                if (key.equals(param)) {
-//                    matchingCounter += 1;
-//                    break;
-//                }
-//            }
-//            if (matchingCounter == 0) {
-//                isValid = false;
-//            }
-//        }
-//
-//        return isValid;
     }
 
     public static HashMap<String, Object> extractMapFromJsonString(String inJson){
