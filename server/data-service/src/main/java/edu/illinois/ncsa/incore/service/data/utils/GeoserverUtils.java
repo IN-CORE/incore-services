@@ -8,13 +8,11 @@
  *   Yong Wook Kim (NCSA) - initial API and implementation
  *******************************************************************************/
 
-package edu.illinois.ncsa.incore.service.data.geoserver;
+package edu.illinois.ncsa.incore.service.data.utils;
 
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import org.apache.commons.io.FilenameUtils;
 
@@ -121,14 +119,54 @@ public class GeoserverUtils {
         return published;
     }
 
+    public static boolean networkDatasetUploadToGeoserver(Dataset dataset, IRepository repository) throws IOException, URISyntaxException {
+        String datasetId = dataset.getId();
+        boolean link_published = false;
+        boolean node_published = false;
+        File[] outFiles = null;
+        String inExt = "";
+
+        if (datasetId != null && datasetId.length() > 0) {
+            // get file name for node and link
+            String linkName = dataset.getNetworkDataset().getLink().getFileName();
+            String nodeName = dataset.getNetworkDataset().getNode().getFileName();
+
+            // get zip file
+            inExt = "shp";
+            outFiles = FileUtils.loadNetworkFileFromService(dataset, repository, true, inExt);
+            // replace extension from zip to shp
+            String linkFileName = FilenameUtils.removeExtension(outFiles[0].getAbsolutePath()) + "." + inExt;
+            double[] bbox = GeotoolsUtils.getBboxFromShp(new File(linkFileName));
+            dataset.setBoundingBox(bbox);
+            repository.addDataset(dataset);
+            link_published = uploadToGeoserver(datasetId, outFiles[0], inExt);
+            node_published = uploadToGeoserver(datasetId, outFiles[1], inExt);
+
+        }
+
+        FileUtils.deleteTmpDir(outFiles[0]);
+
+        if (link_published == true && node_published == true) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public static boolean removeLayerFromGeoserver(String id) {
         GeoServerRESTPublisher publisher = createPublisher();
         return publisher.removeLayer(GEOSERVER_WORKSPACE, id);
     }
 
+    public static boolean removeLayerFromGeoserver(String id, String surfix) {
+        GeoServerRESTPublisher publisher = createPublisher();
+        return publisher.removeLayer(GEOSERVER_WORKSPACE, id + surfix);
+    }
+
     public static boolean removeStoreFromGeoserver(String id) {
         GeoServerRESTPublisher publisher = createPublisher();
-        return publisher.removeCoverageStore(GEOSERVER_WORKSPACE, id, false);
+        boolean isRemoved = publisher.removeCoverageStore(GEOSERVER_WORKSPACE, id, false, GeoServerRESTPublisher.Purge.ALL);
+        return isRemoved;
     }
 
     public static GeoServerRESTPublisher createPublisher() {

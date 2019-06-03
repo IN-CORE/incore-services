@@ -28,23 +28,26 @@ To start the service
     
     | Route | Method | Description |
     | ----- | ------ | ----------- | 
+    | / | GET | Returns a list of datasets in the Dataset collection | 
     | /{id}	| GET | Returns Dataset about a particular dataset specified by {id} |
-    | /list | GET | Returns a list of datasets in the Dataset collection | 
-    | /list-spaces | GET | Returns a list of spaces in the Space collection |
-    | /{id}/files |	GET	Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset |
-    | /{id}/filedescriptors/{fdid}/files | GET | Returns a file that is attached to a FileDescriptor specified by {fdid} in a dataset specified by {id} |
-    | /joinshptable/{id} | GET | Returns a zip file of shapefile after joinig analysis result table dataset specified by {id} using result dataset's source dataset shapefile |
-    | /ingest-dataset | POST | ingest a dataset to create a new dataset object |
+    | /{id}/blob |	GET	| Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset |
+    | /{id}/files/{file_id} | GET | Return a FileDescriptor with given file_id and dataset id |
+    | /{id}/files/{file_id}/blob | GET | Returns a file that is attached to a FileDescriptor specified by {file_id} in a dataset specified by {id} |
+    | /files | GET | Return list of FileDescriptors | 
+    | /spaces | GET | Returns a list of spaces in the Space collection | 
+    | / | POST | Post a dataset to create a new dataset object |
     | | | headers: Form |
     | | | content: multipart/form-data |
     | | | body: Form |
     | | | input: Dataset json |
     | | | input json example when it is a parent dataset (parameter name: dataset, item type: text) |
-    | | | { schema: "buildingInventory", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shapefile", spaces: ["ywkim", "ergo"] } |
+    | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shapefile", spaces: ["incore", "ergo"] } |
     | | | input json example when it is a result dataset example (parameter name : dataset, item type: text) |
-    | | | { schema: "buildingDamage", type: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["ywkim", "ergo"] } |
+    | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["incore", "ergo"] } |
+    | | | input json example when it is a parent network dataset (parameter name: dataset, item type: text) |
+        | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shp-network", networkDataset:{link:{linkType:  "pipeline"}, node:{networkType: "water facility"}, graph:{graphType: "table"}}, spaces: ["incore", "ergo"] } |
     | | | output: Dataset |
-    | /upload-files | POST | upload file(s) to attach to a dataset by FileDescriptor |
+    | /{id}/files | POST | upload file(s) to attach to a dataset by FileDescriptor |
     | | | headers: Form |
     | | | content: multipart/form-data |
     | | | body: Form |
@@ -54,17 +57,20 @@ To start the service
     | | |     shapefile.shx |
     | | |     shapefilx.prj |
     | | |     shapefile.dbf |
-    | | | input json example (parameter name: parentdataset, item type: Text) |
-    | | |    {datasetId: "59e6107863f9401f64b86b4c"} |
+    | | | When it is a network dataset, the parameter name should be |
+    | | | link-file, node-file, graph-file |
     | | | output: Dataset |
-    | /update | POST | file(s) to upload to attach to a dataset by FileDescriptor |
+    | /{id} | PUT | Update properties of datasets |
     | | | headers: Form
     | | | content: multipart/form-data
     | | | body: Form
-    | | | input : json contains a dataset id to update and property name and value for update |
     | | | input json example (parameter name: update, item type: text) |
-    | | | {datasetId: "59e0ec0c68f4742a340411d2", property name: "sourceDataset", property value: "59e0eb7d68f4742a342d9738"} |
+    | | | {"property name": "sourceDataset", "property value": "59e0eb7d68f4742a342d9738"} |
     | | | output: Object (e.g. Dataset, Space) |
+    |/{id} | DELETE | Delete the dataset |
+    | | | the files related to the dataset set also be deleted |
+    | | | if the file is uploaded in geoserver, it will also be deleted |
+    
  
 
 3) Deploy the war file to web container.  I've been using apache-tomcat [http://tomcat.apache.org], and typically copy the war to the tomcat webapps directory.  On my machine:

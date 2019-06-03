@@ -107,6 +107,11 @@ public class Dataset {
     private double[] boundingBox = null;
 
     /**
+     * NetworkDataset networkDataset
+     */
+    private NetworkDataset networkDataset = null;
+
+    /**
      * Privileges associated with this dataset
      */
     private Privileges privileges = new Privileges();
@@ -260,16 +265,34 @@ public class Dataset {
 
     /**
      * get bounding box information
+     *
      * @return
      */
-    public double[] getBoundingBox() { return boundingBox; }
+    public double[] getBoundingBox() {
+        return boundingBox;
+    }
 
     /**
      * set bounding box information
+     *
      * @param boundingBox
      */
     public void setBoundingBox(double[] boundingBox) {
         this.boundingBox = boundingBox;
+    }
+
+    /**
+     * get network networkDataset information
+     */
+    public NetworkDataset getNetworkDataset() {
+        return networkDataset;
+    }
+
+    /**
+     * set network networkDataset information
+     */
+    public void setNetworkDataset(NetworkDataset networkDataset) {
+        this.networkDataset = networkDataset;
     }
 
     /**
@@ -311,6 +334,15 @@ public class Dataset {
     }
 
     /**
+     * Return the string that is the source dataset of the artifact
+     *
+     * @return storedUrl that represents the url of the stored file of the artifact
+     */
+    public String getStoredUrl() {
+        return storedUrl;
+    }
+
+    /**
      * Sets the string that represents the type of the artifact.
      *
      * @param storedUrl sets the string that represents the stored url of the
@@ -318,15 +350,6 @@ public class Dataset {
      */
     public void setStoredUrl(String storedUrl) {
         this.storedUrl = storedUrl;
-    }
-
-    /**
-     * Return the string that is the source dataset of the artifact
-     *
-     * @return storedUrl that represents the url of the stored file of the artifact
-     */
-    public String getStoredUrl() {
-        return storedUrl;
     }
 
     /**
