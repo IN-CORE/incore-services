@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
-@JsonSubTypes({@JsonSubTypes.Type(value = NetworkDataset.class, name = "networkDataset")})
 public class Dataset {
     /**
      * Used for serialization of object
