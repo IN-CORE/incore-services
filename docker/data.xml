@@ -1,0 +1,4 @@
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">/data/</Set>
+  <Set name="war">/home/incore/lib/data-service.war</Set>
+</Configure>
