@@ -1,0 +1,23 @@
+FROM openjdk:8-jre
+
+# Do we need this?
+# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
+# RUN groupadd -r incore -g 1001 && useradd -r -g incore -u 1001 incore
+
+# TODO we could compile the service here so this works standalone
+
+# Working Directory
+WORKDIR /home/incore
+COPY server/data-service/build/libs/data-service.war /home/incore/lib/
+COPY docker/data.xml /home/incore/conf/
+COPY docker/incore.properties /home/incore/conf/
+COPY docker/jetty-runner.jar /home/incore/lib/
+
+# Is this necessary?
+#RUN chown -R incore $INCORE_HOME && chgrp -R incore $INCORE_HOME
+
+ENV JETTY_PORT 8080
+
+EXPOSE 8080
+CMD ["java", "-Xmx512m", "-Dincore.properties=conf/incore.properties", "-jar", "lib/jetty-runner.jar", "--port", "8888", "conf/data.xml"]
+

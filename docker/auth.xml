@@ -1,0 +1,4 @@
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">/auth/</Set>
+  <Set name="war">/home/incore/lib/auth-service.war</Set>
+</Configure>
