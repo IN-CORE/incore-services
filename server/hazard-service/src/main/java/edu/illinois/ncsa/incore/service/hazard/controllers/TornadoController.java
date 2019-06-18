@@ -101,12 +101,7 @@ public class TornadoController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (accessibleTornadoes.size() != 0) {
             return accessibleTornadoes;
-        }
-
-        throw new ForbiddenException();
-
     }
 
     @POST
@@ -311,9 +306,6 @@ public class TornadoController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (tornadoes.size() == 0) {
-            throw new NotAuthorizedException(username + " is not authorized to read the tornadoes that meet the search criteria");
-        }
         return tornadoes;
     }
 

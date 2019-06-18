@@ -140,11 +140,8 @@ public class FragilityController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
-        if (accessibleFragilities.size() > 0) {
-            return accessibleFragilities;
-        }
 
-        throw new NotAuthorizedException(username + " has no access to fragilities.");
+        return accessibleFragilities;
     }
 
     @POST
@@ -207,10 +204,6 @@ public class FragilityController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
-
-        if(accessibleFragilities.size() == 0) {
-            throw new ForbiddenException();
-        }
 
         return accessibleFragilities;
     }

@@ -247,10 +247,6 @@ public class EarthquakeController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if(accessibleEarthquakes.size() == 0) {
-            throw new ForbiddenException();
-        }
-
         return accessibleEarthquakes;
     }
 
@@ -674,9 +670,6 @@ public class EarthquakeController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (earthquakes.size() == 0) {
-            throw new NotAuthorizedException(username + " is not authorized to read the earthquakes that meet the search criteria");
-        }
         return earthquakes;
     }
 
