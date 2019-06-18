@@ -99,17 +99,13 @@ public class HurricaneController {
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-        List<HurricaneWindfields> accesibbleHurricaneWindfields = hurricaneWindfields.stream()
+        List<HurricaneWindfields> accessibleHurricaneWindfields = hurricaneWindfields.stream()
             .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (accesibbleHurricaneWindfields.size() != 0) {
-            return accesibbleHurricaneWindfields;
-        } else {
-            throw new ForbiddenException();
-        }
+        return accessibleHurricaneWindfields;
     }
 
     @GET
@@ -318,10 +314,6 @@ public class HurricaneController {
             .limit(limit)
             .collect(Collectors.toList());
 
-
-        if (hurricanes.size() == 0) {
-            throw new NotAuthorizedException(username + " is not authorized to read the hurricanes that meet the search criteria");
-        }
         return hurricanes;
     }
 

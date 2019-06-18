@@ -174,16 +174,13 @@ public class DatasetController {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         //return the intersection between all datasets, and the ones the user can read
-        List<Dataset> accesibleDatasets = datasets.stream()
+        List<Dataset> accessibleDatasets = datasets.stream()
             .filter(dataset -> userMembersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
 
-        if(accesibleDatasets.size() > 0) {
-            return accesibleDatasets;
-        }
-        throw new ForbiddenException();
+        return accessibleDatasets;
     }
 
     @GET
@@ -734,10 +731,6 @@ public class DatasetController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
-
-        if (datasets.size() == 0) {
-            throw new NotAuthorizedException(username + " has no permission to access the datasets that match the search criteria");
-        }
 
         return datasets;
     }

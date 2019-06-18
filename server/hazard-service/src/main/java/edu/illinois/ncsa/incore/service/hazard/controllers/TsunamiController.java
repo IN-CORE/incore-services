@@ -98,11 +98,7 @@ public class TsunamiController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (accessibleTsunamis.size() == 0) {
-            throw new ForbiddenException();
-        } else {
-            return accessibleTsunamis;
-        }
+        return accessibleTsunamis;
     }
 
     @GET
@@ -247,9 +243,6 @@ public class TsunamiController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (tsunamis.size() == 0) {
-            throw new NotAuthorizedException(username + " is not authorized to read the tsunamis that meet the search criteria");
-        }
         return tsunamis;
     }
 
