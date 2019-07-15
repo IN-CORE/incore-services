@@ -72,7 +72,12 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore.createQuery(MvzDataset.class).asList();
     }
 
-    public Dataset getDatasetById(String id) {
+    public Dataset getDatasetById(String id)
+    {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         return this.dataStore.get(Dataset.class, new ObjectId(id));
     }
 
@@ -99,6 +104,10 @@ public class MongoDBRepository implements IRepository {
     }
 
     public Dataset getDatasetByFileDescriptorId(String id) {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
         datasetQuery.filter(DATASET_FIELD_FILEDESCRIPTOR_ID, new ObjectId(id));
         return datasetQuery.get();

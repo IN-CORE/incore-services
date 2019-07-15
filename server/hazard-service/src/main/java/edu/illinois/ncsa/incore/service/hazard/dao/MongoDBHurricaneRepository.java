@@ -70,6 +70,10 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
     @Override
     public HurricaneWindfields getHurricaneById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         return this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
     }
 

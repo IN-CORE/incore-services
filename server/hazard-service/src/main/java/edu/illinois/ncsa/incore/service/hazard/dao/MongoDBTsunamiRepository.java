@@ -32,6 +32,10 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public Tsunami getTsunamiById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         Tsunami tsunami = this.dataStore.get(TsunamiDataset.class, new ObjectId(id));
         // TODO this will need to be updated if there are model based tsunamis
 

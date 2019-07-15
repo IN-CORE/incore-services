@@ -52,6 +52,10 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
 
     @Override
     public Optional<FragilitySet> getFragilitySetById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return Optional.empty();
+        }
+
         FragilitySet fragilitySet = this.dataStore.get(FragilitySet.class, new ObjectId(id));
 
         if (fragilitySet == null) {

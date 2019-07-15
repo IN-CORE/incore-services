@@ -99,6 +99,10 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
 
     @Override
     public Tornado getTornadoById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         Tornado tornado = this.dataStore.get(TornadoModel.class, new ObjectId(id));
         if (tornado != null) {
             return tornado;

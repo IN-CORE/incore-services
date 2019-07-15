@@ -302,10 +302,16 @@ public class HurricaneController {
                                             @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                             @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                             @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<HurricaneWindfields> hurricanes = this.repository.searchHurricanes(text);
-        if (hurricanes.size() == 0) {
-            throw new NotFoundException();
+        List<HurricaneWindfields> hurricanes;
+        HurricaneWindfields hurricane = repository.getHurricaneById(text);
+        if (hurricane != null) {
+            hurricanes =  new ArrayList<HurricaneWindfields>() {{
+                add(hurricane);
+            }};
+        } else {
+            hurricanes = this.repository.searchHurricanes(text);
         }
+
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         hurricanes = hurricanes.stream()

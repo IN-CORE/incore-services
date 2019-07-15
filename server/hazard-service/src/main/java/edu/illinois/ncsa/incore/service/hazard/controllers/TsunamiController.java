@@ -37,6 +37,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -231,10 +232,16 @@ public class TsunamiController {
                                        @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<Tsunami> tsunamis = this.repository.searchTsunamis(text);
-        if (tsunamis.size() == 0) {
-            throw new NotFoundException();
+        List<Tsunami> tsunamis;
+        Tsunami tsunami = repository.getTsunamiById(text);
+        if (tsunami != null) {
+            tsunamis = new ArrayList<Tsunami>() {{
+                add(tsunami);
+            }};
+        } else {
+            tsunamis = this.repository.searchTsunamis(text);
         }
+
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         tsunamis = tsunamis.stream()
