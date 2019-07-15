@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
-    // Since the list of mappings are currently few (at the moment) we can store them in memory
-    private List<MappingSet> mappingSets;
 
     public MongoDBMappingDAO(MongoClientURI mongoClientURI) {
         super(mongoClientURI);
@@ -30,16 +28,11 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     @Override
     public void initialize() {
         super.initializeDataStore(MappingSet.class);
-        this.loadMappingSets();
     }
 
     @Override
     public List<MappingSet> getMappingSets() {
-        if (this.mappingSets == null || this.mappingSets.isEmpty()) {
-            this.loadMappingSets();
-        }
-
-        return this.mappingSets;
+        return this.dataStore.createQuery(MappingSet.class).asList();
     }
 
     @Override
@@ -55,8 +48,12 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
     @Override
     public String saveMappingSet(MappingSet mappingSet) {
-        String id = this.dataStore.save(mappingSet).getId().toString();
-        return id;
+        if (mappingSet == null) {
+            throw new IllegalArgumentException();
+        } else {
+            String id = this.dataStore.save(mappingSet).getId().toString();
+            return id;
+        }
     }
 
     @Override
@@ -70,10 +67,5 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         List<MappingSet> mappingSets = query.asList();
 
         return mappingSets;
-    }
-
-    private void loadMappingSets() {
-        List<MappingSet> mappingSets = this.dataStore.createQuery(MappingSet.class).asList();
-        this.mappingSets = mappingSets;
     }
 }

@@ -165,7 +165,7 @@ public class MappingController {
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-        List<FragilitySet> fragilitySets = this.fragilityDAO.getCachedFragilities().stream()
+        List<FragilitySet> fragilitySets = this.fragilityDAO.getFragilities().stream()
             .filter(b -> membersSet.contains(b.getId()))
             .collect(Collectors.toList());
 
