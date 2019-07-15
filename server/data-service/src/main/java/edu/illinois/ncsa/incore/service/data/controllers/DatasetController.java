@@ -719,9 +719,16 @@ public class DatasetController {
                                               @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<Dataset> datasets = this.repository.searchDatasets(text);
-        if (datasets.size() == 0) {
-            throw new NotFoundException();
+
+        List<Dataset> datasets;
+
+        Dataset ds = repository.getDatasetById(text);
+        if (ds != null) {
+            datasets = new ArrayList<Dataset>() {{
+                add(ds);
+            }};
+        } else {
+            datasets = this.repository.searchDatasets(text);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());

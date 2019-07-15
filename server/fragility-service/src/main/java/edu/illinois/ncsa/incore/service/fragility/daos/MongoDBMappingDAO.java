@@ -37,6 +37,10 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
     @Override
     public Optional<MappingSet> getMappingSetById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return Optional.empty();
+        }
+
         MappingSet mappingSet = this.dataStore.get(MappingSet.class, new ObjectId(id));
 
         if (mappingSet == null) {

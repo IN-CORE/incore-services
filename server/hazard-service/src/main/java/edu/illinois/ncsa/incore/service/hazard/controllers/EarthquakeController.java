@@ -658,9 +658,15 @@ public class EarthquakeController {
                                     @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                     @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                     @ApiParam(value = "Limit number of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<Earthquake> earthquakes = this.repository.searchEarthquakes(text);
-        if (earthquakes.size() == 0) {
-            throw new NotFoundException();
+
+        List<Earthquake> earthquakes;
+        Earthquake earthquake = repository.getEarthquakeById(text);
+        if (earthquake != null) {
+            earthquakes = new ArrayList<Earthquake>() {{
+                add(earthquake);
+            }};
+        } else {
+            earthquakes = this.repository.searchEarthquakes(text);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
