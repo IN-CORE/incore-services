@@ -22,8 +22,6 @@ import org.mongodb.morphia.query.Query;
 import java.util.*;
 
 public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
-    // Since the list of fragilities are currently few (at the moment) we can store them in memory
-    private List<FragilitySet> fragilities;
 
     public MongoDBFragilityDAO(MongoClientURI mongoClientURI) {
         super(mongoClientURI);
@@ -32,16 +30,11 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     @Override
     public void initialize() {
         super.initializeDataStore(FragilitySet.class);
-        this.loadFragilities();
     }
 
     @Override
-    public List<FragilitySet> getCachedFragilities() {
-        if (this.fragilities == null || this.fragilities.isEmpty()) {
-            this.loadFragilities();
-        }
-
-        return this.fragilities;
+    public List<FragilitySet> getFragilities() {
+        return this.dataStore.createQuery(FragilitySet.class).asList();
     }
 
     @Override
@@ -51,9 +44,6 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
         } else {
             // the save method mutates the fragilitySet object with an document id
             String id = this.dataStore.save(fragilitySet).getId().toString();
-
-            // make sure that this.fragilities get updated as well
-            this.loadFragilities();
 
             return id;
         }
@@ -117,10 +107,5 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
                                                 .asList();
 
         return sets;
-    }
-
-    private void loadFragilities() {
-        List<FragilitySet> fragilitySets = this.dataStore.createQuery(FragilitySet.class).asList();
-        this.fragilities = fragilitySets;
     }
 }

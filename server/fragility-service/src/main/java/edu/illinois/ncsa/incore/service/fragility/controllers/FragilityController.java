@@ -107,7 +107,7 @@ public class FragilityController {
         List<FragilitySet> fragilitySets;
 
         if (queryMap.isEmpty()) {
-            fragilitySets = this.fragilityDAO.getCachedFragilities();
+            fragilitySets = this.fragilityDAO.getFragilities();
         } else {
             fragilitySets = this.fragilityDAO.queryFragilities(queryMap);
         }
