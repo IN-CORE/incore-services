@@ -73,6 +73,11 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     public Earthquake getEarthquakeById(String id) {
         // There doesn't seem to be a way to find by the parent class Earthquake
         // TODO Look into this later to see if there is a better way to handle this
+
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         Earthquake earthquake = this.dataStore.get(EarthquakeModel.class, new ObjectId(id));
         if (earthquake == null) {
             earthquake = this.dataStore.get(EarthquakeDataset.class, new ObjectId(id));

@@ -61,7 +61,7 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public List<FragilitySet> getCachedFragilities() {
+    public List<FragilitySet> getFragilities() {
         return this.fragilitySets;
     }
 

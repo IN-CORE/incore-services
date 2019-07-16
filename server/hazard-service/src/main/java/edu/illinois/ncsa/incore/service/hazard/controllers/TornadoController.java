@@ -101,12 +101,7 @@ public class TornadoController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (accessibleTornadoes.size() != 0) {
             return accessibleTornadoes;
-        }
-
-        throw new ForbiddenException();
-
     }
 
     @POST
@@ -299,10 +294,16 @@ public class TornadoController {
                                                      @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                                      @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<Tornado> tornadoes = this.repository.searchTornadoes(text);
-        if (tornadoes.size() == 0) {
-            throw new NotFoundException();
+        List<Tornado> tornadoes;
+        Tornado tornado = repository.getTornadoById(text);
+        if (tornado != null) {
+            tornadoes = new ArrayList<Tornado>() {{
+                add(tornado);
+            }};
+        } else {
+            tornadoes = this.repository.searchTornadoes(text);
         }
+
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         tornadoes = tornadoes.stream()
@@ -311,9 +312,6 @@ public class TornadoController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (tornadoes.size() == 0) {
-            throw new NotAuthorizedException(username + " is not authorized to read the tornadoes that meet the search criteria");
-        }
         return tornadoes;
     }
 

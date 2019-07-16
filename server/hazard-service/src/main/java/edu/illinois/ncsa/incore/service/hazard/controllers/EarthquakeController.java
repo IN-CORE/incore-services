@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
-        version = "v0.3.0",
+        version = "v0.4.0",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -246,10 +246,6 @@ public class EarthquakeController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
-
-        if(accessibleEarthquakes.size() == 0) {
-            throw new ForbiddenException();
-        }
 
         return accessibleEarthquakes;
     }
@@ -662,9 +658,15 @@ public class EarthquakeController {
                                     @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                     @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                     @ApiParam(value = "Limit number of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<Earthquake> earthquakes = this.repository.searchEarthquakes(text);
-        if (earthquakes.size() == 0) {
-            throw new NotFoundException();
+
+        List<Earthquake> earthquakes;
+        Earthquake earthquake = repository.getEarthquakeById(text);
+        if (earthquake != null) {
+            earthquakes = new ArrayList<Earthquake>() {{
+                add(earthquake);
+            }};
+        } else {
+            earthquakes = this.repository.searchEarthquakes(text);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
@@ -674,9 +676,6 @@ public class EarthquakeController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (earthquakes.size() == 0) {
-            throw new NotAuthorizedException(username + " is not authorized to read the earthquakes that meet the search criteria");
-        }
         return earthquakes;
     }
 

@@ -22,18 +22,14 @@ import org.apache.log4j.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 
 @SwaggerDefinition(
     info = @Info(
-        version = "0.3.0",
+        version = "v0.4.0",
         description = "IN-CORE Service For Fragilities and Fragility mappings",
 
         title = "IN-CORE v2 Fragility Service API",
@@ -107,7 +103,7 @@ public class FragilityController {
         List<FragilitySet> fragilitySets;
 
         if (queryMap.isEmpty()) {
-            fragilitySets = this.fragilityDAO.getCachedFragilities();
+            fragilitySets = this.fragilityDAO.getFragilities();
         } else {
             fragilitySets = this.fragilityDAO.queryFragilities(queryMap);
         }
@@ -140,11 +136,8 @@ public class FragilityController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
-        if (accessibleFragilities.size() > 0) {
-            return accessibleFragilities;
-        }
 
-        throw new NotAuthorizedException(username + " has no access to fragilities.");
+        return accessibleFragilities;
     }
 
     @POST
@@ -196,10 +189,14 @@ public class FragilityController {
                                               @ApiParam(value="Text to search by", example = "steel") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<FragilitySet> sets = this.fragilityDAO.searchFragilities(text);
-        if (sets.size() == 0) {
-            throw new NotFoundException();
+        List<FragilitySet> sets = new ArrayList<>();
+        Optional<FragilitySet> fs = this.fragilityDAO.getFragilitySetById(text);
+        if (fs.isPresent()) {
+                sets.add(fs.get());
+        } else {
+            sets = this.fragilityDAO.searchFragilities(text);
         }
+
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         List<FragilitySet> accessibleFragilities = sets.stream()
@@ -207,10 +204,6 @@ public class FragilityController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
-
-        if(accessibleFragilities.size() == 0) {
-            throw new ForbiddenException();
-        }
 
         return accessibleFragilities;
     }

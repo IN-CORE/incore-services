@@ -13,19 +13,20 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.geoserver.GeoserverUtils;
-import edu.illinois.ncsa.incore.service.data.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.NetworkData;
+import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
+import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
+import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
@@ -53,7 +54,7 @@ import java.util.stream.Collectors;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
-        version = "v0.3.0",
+        version = "v0.4.0",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -79,8 +80,14 @@ public class DatasetController {
     private static final String GEOSERVER_ENABLE = Config.getConfigProperties().getProperty("geoserver.enable");
     private static final String POST_PARAMENTER_NAME = "name";
     private static final String POST_PARAMENTER_FILE = "file";
+    private static final String POST_PARAMENTER_FILE_LINK = "link-file";
+    private static final String POST_PARAMENTER_FILE_NODE = "node-file";
+    private static final String POST_PARAMENTER_FILE_GRAPH = "graph-file";
+    private static final String POST_PARAMENTER_META = "parentdataset";
+    private static final String POST_PARAMETER_DATASET_ID = "datasetId";
     private static final String UPDATE_OBJECT_NAME = "property name";
     private static final String UPDATE_OBJECT_VALUE = "property value";
+    private static final String WEBDAV_SPACE_NAME = "incore";
     private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
@@ -167,16 +174,13 @@ public class DatasetController {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         //return the intersection between all datasets, and the ones the user can read
-        List<Dataset> accesibleDatasets = datasets.stream()
+        List<Dataset> accessibleDatasets = datasets.stream()
             .filter(dataset -> userMembersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
 
-        if(accesibleDatasets.size() > 0) {
-            return accesibleDatasets;
-        }
-        throw new ForbiddenException();
+        return accessibleDatasets;
     }
 
     @GET
@@ -340,6 +344,12 @@ public class DatasetController {
             dataset.setFormat(format);
             dataset.setPrivileges(Privileges.newWithSingleOwner(username));
 
+            // add network information in the dataset
+            if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                NetworkDataset networkDataset = DataJsonUtils.createNetworkDataset(inDatasetJson);
+                dataset.setNetworkDataset(networkDataset);
+            }
+
             dataset = repository.addDataset(dataset);
             if (dataset == null) {
                 logger.error("Error finding dataset with the id of " + dataset.getId());
@@ -383,6 +393,8 @@ public class DatasetController {
             throw new NotFoundException();
         }
 
+        String format = dataset.getFormat();
+
         if (authorizer.canUserDeleteMember(username, datasetId, spaceRepository.getAllSpaces())) {
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
@@ -405,8 +417,16 @@ public class DatasetController {
                     }
                 }
                 // remove geoserver layer
-                boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
-            }
+                if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                        // remove network dataset
+                        boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
+                        boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
+                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
+                    } else {
+                        boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                    }
+
+}
         } else {
             throw new NotAuthorizedException(username + " is not authorized to delete the dataset");
         }
@@ -444,6 +464,52 @@ public class DatasetController {
         String paramName = "";
         Dataset dataset = getDatasetbyId(username, objIdStr);
 
+        // get data format to see if it is a network dataset
+        String format = dataset.getFormat();
+        String linkFileName = null;
+        String nodeFileName = null;
+        String graphFileName = null;
+
+        // check if there is link, node, and graph files are presented in the bodypart
+        if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+            boolean isLinkPresented = false;
+            boolean isNodePresented = false;
+            boolean isGraphPresented = false;
+
+            for (int i = 0; i < bodyPartSize; i++) {
+                paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
+                if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_LINK)) {
+                    String tmpName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
+                    String fileExt = FilenameUtils.getExtension(tmpName);
+                    if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                        isLinkPresented = true;
+                        linkFileName = tmpName;
+                    }
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_NODE)) {
+                    String tmpName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
+                    String fileExt = FilenameUtils.getExtension(tmpName);
+                    if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                        isNodePresented = true;
+                        nodeFileName = tmpName;
+                    }
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_GRAPH)) {
+                    graphFileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
+                    isGraphPresented = true;
+                }
+            }
+
+            if (isLinkPresented == false) {
+                logger.error("Error finding link file");
+                throw new NotFoundException("Error finding link file with the id of " + datasetId);
+            } else if (isNodePresented == false) {
+                logger.error("Error finding node file");
+                throw new NotFoundException("Error finding node file with the id of " + datasetId);
+            } else if (isGraphPresented == false) {
+                logger.error("Error finding graph file");
+                throw new NotFoundException("Error finding graph file with the id of " + datasetId);
+            }
+        }
+
         boolean isJsonValid = false;
         boolean isGeoserver = false;
         boolean isAsc = false;
@@ -451,10 +517,14 @@ public class DatasetController {
         boolean isTif = false;
         boolean isJoin = false;
 
-        int j = 0;
+        int file_counter = 0;
+        int link_counter = 0;
+        int node_counter = 0;
+        int graph_counter = 0;
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
-            if (paramName.equals(POST_PARAMENTER_FILE)) {
+            if (paramName.equals(POST_PARAMENTER_FILE) || paramName.equals(POST_PARAMENTER_FILE_LINK) ||
+                paramName.equals(POST_PARAMENTER_FILE_NODE) || paramName.equals(POST_PARAMENTER_FILE_GRAPH)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                 String fileExt = FilenameUtils.getExtension(fileName);
                 if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||
@@ -468,27 +538,58 @@ public class DatasetController {
                         isShp = true;
                     }
                 }
-                InputStream is = (InputStream) inputs.getFields(POST_PARAMENTER_FILE).get(j).getValueAs(InputStream.class);
-                FileDescriptor fd = new FileDescriptor();
-                FileStorageDisk fsDisk = new FileStorageDisk();
-
-                fsDisk.setFolder(DATA_REPO_FOLDER);
-                try {
-                    fd = fsDisk.storeFile(fileName, is);
-                    fd.setFilename(fileName);
-                } catch (IOException e) {
-                    logger.error("Error storing files of the dataset with the id of " + datasetId);
-                    throw new NotFoundException("Error string files of the dataset with the id of " + datasetId);
+                InputStream is = null;
+                if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE)) {
+                    is = (InputStream) inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
+                    file_counter++;
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_LINK)) {
+                    is = (InputStream) inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
+                    link_counter++;
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_NODE)) {
+                    is = (InputStream) inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
+                    node_counter++;
+                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_GRAPH)) {
+                    is = (InputStream) inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
+                    graph_counter++;
                 }
-                dataset.addFileDescriptor(fd);
-                j++;
+
+                if (is != null) {
+                    FileDescriptor fd = new FileDescriptor();
+                    FileStorageDisk fsDisk = new FileStorageDisk();
+
+                    fsDisk.setFolder(DATA_REPO_FOLDER);
+                    try {
+                        fd = fsDisk.storeFile(fileName, is);
+                        fd.setFilename(fileName);
+                    } catch (IOException e) {
+                        logger.error("Error storing files of the dataset with the id of " + datasetId);
+                        throw new NotFoundException("Error string files of the dataset with the id of " + datasetId);
+                    }
+                    dataset.addFileDescriptor(fd);
+                }
             }
         }
+
+        // add link, node, graph file name to dataset
+        if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+            NetworkDataset networkDataset = dataset.getNetworkDataset();
+            NetworkData link = networkDataset.getLink();
+            NetworkData node = networkDataset.getNode();
+            NetworkData graph = networkDataset.getGraph();
+            link.setFileName(linkFileName);
+            node.setFileName(nodeFileName);
+            graph.setFileName(graphFileName);
+            networkDataset.setLink(link);
+            networkDataset.setNode(node);
+            networkDataset.setGraph(graph);
+            dataset.setNetworkDataset(networkDataset);
+        }
+
         repository.addDataset(dataset);
 
         // check if there is a source dataset, if so it will be joined to source dataset
-        String format = dataset.getFormat();
         String sourceDataset = dataset.getSourceDataset();
+
         // join it if it is a table dataset with source dataset existed
         if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
             isJoin = true;
@@ -500,7 +601,7 @@ public class DatasetController {
         File zipFile = null;
         boolean isShpfile = false;
 
-        if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE)) {
+        if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE) || format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
             for (int i = 0; i < dataFDs.size(); i++) {
                 FileDescriptor sfd = dataFDs.get(i);
                 String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
@@ -514,10 +615,25 @@ public class DatasetController {
             }
             try {
                 // create GUID if there is no GUID in the table
-                boolean isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
-                if (isGuid) {
-                    logger.debug("The shapefile already has guid field");
+                boolean isGuid = true;
+                boolean isLinkGuid = true;
+                boolean isNodeGuid = true;
+                if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                    isLinkGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files, linkFileName);
+                    if (isLinkGuid) {
+                        logger.debug("The link shapefile already has guid field");
+                    }
+                    isNodeGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files, nodeFileName);
+                    if (isNodeGuid) {
+                        logger.debug("The node shapefile already has guid field");
+                    }
+                } else {
+                    isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
+                    if (isGuid) {
+                        logger.debug("The shapefile already has guid field");
+                    }
                 }
+
             } catch (IOException e) {
                 logger.error("Error creating temp directory in guid creation process ", e);
                 throw new InternalServerErrorException("Error creating temp directory in guid creation process ", e);
@@ -527,6 +643,7 @@ public class DatasetController {
 
         if (enableGeoserver && isGeoserver) {
             if (isJoin) {
+                // todo: the join process for the network dataset should be added in here
                 try {
                     zipFile = FileUtils.joinShpTable(dataset, repository, true);
                     GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
@@ -539,7 +656,11 @@ public class DatasetController {
                 }
             } else {
                 try {
-                    GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                        GeoserverUtils.networkDatasetUploadToGeoserver(dataset, repository);
+                    } else {
+                        GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                    }
                 } catch (IOException e) {
                     logger.error("Error uploading dataset to geoserver ", e);
                     throw new InternalServerErrorException("Error uploading dataset to geoserver ", e);
@@ -598,9 +719,16 @@ public class DatasetController {
                                               @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<Dataset> datasets = this.repository.searchDatasets(text);
-        if (datasets.size() == 0) {
-            throw new NotFoundException();
+
+        List<Dataset> datasets;
+
+        Dataset ds = repository.getDatasetById(text);
+        if (ds != null) {
+            datasets = new ArrayList<Dataset>() {{
+                add(ds);
+            }};
+        } else {
+            datasets = this.repository.searchDatasets(text);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
@@ -610,10 +738,6 @@ public class DatasetController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
-
-        if (datasets.size() == 0) {
-            throw new NotAuthorizedException(username + " has no permission to access the datasets that match the search criteria");
-        }
 
         return datasets;
     }

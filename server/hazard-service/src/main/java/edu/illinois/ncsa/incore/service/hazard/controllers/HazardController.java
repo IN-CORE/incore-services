@@ -122,10 +122,6 @@ public class HazardController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (datasets.size() == 0) {
-            throw new NotAuthorizedException(username + " is not authorized to access the hazards that match the search criteria.");
-        }
-
         return datasets;
     }
 
