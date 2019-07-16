@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
-        version = "v0.3.0",
+        version = "v0.4.0",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",

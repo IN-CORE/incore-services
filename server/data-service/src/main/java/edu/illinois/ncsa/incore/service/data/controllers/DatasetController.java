@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
-        version = "v0.3.0",
+        version = "v0.4.0",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",

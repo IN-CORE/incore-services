@@ -40,7 +40,7 @@ import java.util.*;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Space Service for creating and accessing spaces",
-        version = "v0.3.0",
+        version = "v0.4.0",
         title = "IN-CORE v2 Space Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
