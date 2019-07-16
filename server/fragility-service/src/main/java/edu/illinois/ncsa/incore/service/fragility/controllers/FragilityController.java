@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @SwaggerDefinition(
     info = @Info(
-        version = "0.3.0",
+        version = "v0.4.0",
         description = "IN-CORE Service For Fragilities and Fragility mappings",
 
         title = "IN-CORE v2 Fragility Service API",
