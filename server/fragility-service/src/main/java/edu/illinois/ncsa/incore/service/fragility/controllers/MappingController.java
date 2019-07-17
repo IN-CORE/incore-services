@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.*;
 import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
 
@@ -196,15 +197,30 @@ public class MappingController {
             features.add((Feature) mappingRequest.mappingSubject.inventory);
         }
 
+        Map<String, FragilitySet> queriedFragilitySets = new HashMap<>();
         for (Feature feature : features) {
             String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(),
                 feature.getProperties(), mappingRequest.parameters);
 
-            Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(fragilityKey);
-            if(fragilitySet.isPresent() ) {
-                boolean canReadFragility =  authorizer.canUserReadMember(username, fragilityKey, allSpaces);
-                if (canReadFragility) {
-                    fragilitySetMap.put(fragilityKey, fragilitySet.get());
+            if(ObjectId.isValid(fragilityKey)){
+                FragilitySet currFragility = null;
+                if (queriedFragilitySets.containsKey(fragilityKey)) {
+                    currFragility = queriedFragilitySets.get(fragilityKey);
+                } else {
+                    Optional<FragilitySet> fragilitySet =  this.fragilityDAO.getFragilitySetById(fragilityKey);
+                    if (fragilitySet.isPresent()) {
+                        if (authorizer.canUserReadMember(username, fragilityKey, allSpaces)) {
+                            currFragility = fragilitySet.get();
+                        }
+                        // if currFagility is set to null for a queried fragility,
+                        // it means we already read the fragility and determined that it doesn't have read access.
+                        queriedFragilitySets.put(fragilityKey, currFragility);
+                    }
+                }
+
+                // If we found a matching fragility and user has read access to it
+                if(currFragility != null) {
+                    fragilitySetMap.put(fragilityKey, currFragility);
                     fragilityMap.put(feature.getId(), fragilityKey);
                 }
             }
