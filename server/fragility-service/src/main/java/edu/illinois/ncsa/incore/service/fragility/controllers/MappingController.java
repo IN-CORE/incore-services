@@ -166,7 +166,9 @@ public class MappingController {
         Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();
 
-        boolean canReadMapping =  authorizer.canUserReadMember(username, mappingSetId, spaceRepository.getAllSpaces());
+        List<Space> allSpaces = spaceRepository.getAllSpaces();
+
+        boolean canReadMapping =  authorizer.canUserReadMember(username, mappingSetId, allSpaces);
         if (!canReadMapping){
             throw new ForbiddenException();
         }
@@ -200,7 +202,7 @@ public class MappingController {
 
             Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(fragilityKey);
             if(fragilitySet.isPresent() ) {
-                boolean canReadFragility =  authorizer.canUserReadMember(username, fragilityKey, spaceRepository.getAllSpaces());
+                boolean canReadFragility =  authorizer.canUserReadMember(username, fragilityKey, allSpaces);
                 if (canReadFragility) {
                     fragilitySetMap.put(fragilityKey, fragilitySet.get());
                     fragilityMap.put(feature.getId(), fragilityKey);
