@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.*;
 import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
 import org.geojson.Feature;
 import org.geojson.FeatureCollection;
 
@@ -158,21 +159,20 @@ public class MappingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Map each inventory to a fragility set Id based on the input mapping Id",
-        notes="Returns a json where key is the inventory id that is mapped to a fragility set id based on the input mapping id")
+        notes = "Returns a json where key is the inventory id that is mapped to a fragility set id based on the input mapping id")
     public MappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
                                           @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-
-        List<FragilitySet> fragilitySets = this.fragilityDAO.getFragilities().stream()
-            .filter(b -> membersSet.contains(b.getId()))
-            .collect(Collectors.toList());
-
-        if (fragilitySets.size() == 0) throw new ForbiddenException();
-
         Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();
+
+        List<Space> allSpaces = spaceRepository.getAllSpaces();
+
+        boolean canReadMapping = authorizer.canUserReadMember(username, mappingSetId, allSpaces);
+        if (!canReadMapping) {
+            throw new ForbiddenException();
+        }
 
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
 
@@ -197,18 +197,32 @@ public class MappingController {
             features.add((Feature) mappingRequest.mappingSubject.inventory);
         }
 
+        Map<String, FragilitySet> queriedFragilitySets = new HashMap<>();
         for (Feature feature : features) {
             String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(),
                 feature.getProperties(), mappingRequest.parameters);
 
-            Optional<FragilitySet> fragilityMatch = fragilitySets.stream()
-                .filter(set -> set.getId().equals(fragilityKey))
-                .findFirst();
+            if (ObjectId.isValid(fragilityKey)) {
+                FragilitySet currFragility = null;
+                if (queriedFragilitySets.containsKey(fragilityKey)) {
+                    currFragility = queriedFragilitySets.get(fragilityKey);
+                } else {
+                    Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(fragilityKey);
+                    if (fragilitySet.isPresent()) {
+                        if (authorizer.canUserReadMember(username, fragilityKey, allSpaces)) {
+                            currFragility = fragilitySet.get();
+                        }
+                        // if currFagility is set to null for a queried fragility,
+                        // it means we already read the fragility and determined that it doesn't have read access.
+                        queriedFragilitySets.put(fragilityKey, currFragility);
+                    }
+                }
 
-            if (fragilityMatch.isPresent()) {
-                FragilitySet fragilitySet = fragilityMatch.get();
-                fragilitySetMap.put(fragilitySet.getId(), fragilitySet);
-                fragilityMap.put(feature.getId(), fragilitySet.getId());
+                // If we found a matching fragility and user has read access to it
+                if (currFragility != null) {
+                    fragilitySetMap.put(fragilityKey, currFragility);
+                    fragilityMap.put(feature.getId(), fragilityKey);
+                }
             }
         }
 
