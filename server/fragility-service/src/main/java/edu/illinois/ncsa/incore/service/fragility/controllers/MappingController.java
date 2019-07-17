@@ -163,16 +163,13 @@ public class MappingController {
                                           @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-
-        List<FragilitySet> fragilitySets = this.fragilityDAO.getFragilities().stream()
-            .filter(b -> membersSet.contains(b.getId()))
-            .collect(Collectors.toList());
-
-        if (fragilitySets.size() == 0) throw new ForbiddenException();
-
         Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();
+
+        boolean canReadMapping =  authorizer.canUserReadMember(username, mappingSetId, spaceRepository.getAllSpaces());
+        if (!canReadMapping){
+            throw new ForbiddenException();
+        }
 
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
 
@@ -201,14 +198,13 @@ public class MappingController {
             String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(),
                 feature.getProperties(), mappingRequest.parameters);
 
-            Optional<FragilitySet> fragilityMatch = fragilitySets.stream()
-                .filter(set -> set.getId().equals(fragilityKey))
-                .findFirst();
-
-            if (fragilityMatch.isPresent()) {
-                FragilitySet fragilitySet = fragilityMatch.get();
-                fragilitySetMap.put(fragilitySet.getId(), fragilitySet);
-                fragilityMap.put(feature.getId(), fragilitySet.getId());
+            Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(fragilityKey);
+            if(fragilitySet.isPresent() ) {
+                boolean canReadFragility =  authorizer.canUserReadMember(username, fragilityKey, spaceRepository.getAllSpaces());
+                if (canReadFragility) {
+                    fragilitySetMap.put(fragilityKey, fragilitySet.get());
+                    fragilityMap.put(feature.getId(), fragilityKey);
+                }
             }
         }
 
