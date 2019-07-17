@@ -159,7 +159,7 @@ public class MappingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Map each inventory to a fragility set Id based on the input mapping Id",
-        notes="Returns a json where key is the inventory id that is mapped to a fragility set id based on the input mapping id")
+        notes = "Returns a json where key is the inventory id that is mapped to a fragility set id based on the input mapping id")
     public MappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
                                           @PathParam("mappingSetId") String mappingSetId,
                                           MappingRequest mappingRequest) throws ParseException {
@@ -169,8 +169,8 @@ public class MappingController {
 
         List<Space> allSpaces = spaceRepository.getAllSpaces();
 
-        boolean canReadMapping =  authorizer.canUserReadMember(username, mappingSetId, allSpaces);
-        if (!canReadMapping){
+        boolean canReadMapping = authorizer.canUserReadMember(username, mappingSetId, allSpaces);
+        if (!canReadMapping) {
             throw new ForbiddenException();
         }
 
@@ -202,12 +202,12 @@ public class MappingController {
             String fragilityKey = mapper.getFragilityFor(mappingRequest.mappingSubject.schemaType.toString(),
                 feature.getProperties(), mappingRequest.parameters);
 
-            if(ObjectId.isValid(fragilityKey)){
+            if (ObjectId.isValid(fragilityKey)) {
                 FragilitySet currFragility = null;
                 if (queriedFragilitySets.containsKey(fragilityKey)) {
                     currFragility = queriedFragilitySets.get(fragilityKey);
                 } else {
-                    Optional<FragilitySet> fragilitySet =  this.fragilityDAO.getFragilitySetById(fragilityKey);
+                    Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(fragilityKey);
                     if (fragilitySet.isPresent()) {
                         if (authorizer.canUserReadMember(username, fragilityKey, allSpaces)) {
                             currFragility = fragilitySet.get();
@@ -219,7 +219,7 @@ public class MappingController {
                 }
 
                 // If we found a matching fragility and user has read access to it
-                if(currFragility != null) {
+                if (currFragility != null) {
                     fragilitySetMap.put(fragilityKey, currFragility);
                     fragilityMap.put(feature.getId(), fragilityKey);
                 }
