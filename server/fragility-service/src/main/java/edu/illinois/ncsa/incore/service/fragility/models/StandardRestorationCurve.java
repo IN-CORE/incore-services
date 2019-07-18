@@ -10,16 +10,16 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
-public class StandardFragilityCurve extends FragilityCurve {
+public class StandardRestorationCurve extends RestorationCurve {
     public double median;
     public double beta;
     public CurveType curveType;
 
-    public StandardFragilityCurve() {
+    public StandardRestorationCurve() {
         super();
     }
 
-    public StandardFragilityCurve(double median, double beta, CurveType curveType, String label) {
+    public StandardRestorationCurve(double median, double beta, CurveType curveType, String label) {
         super(label);
 
         this.median = median;

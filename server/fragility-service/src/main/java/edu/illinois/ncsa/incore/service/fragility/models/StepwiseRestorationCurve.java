@@ -10,20 +10,12 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
-public class StandardFragilityCurve extends FragilityCurve {
-    public double median;
-    public double beta;
-    public CurveType curveType;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-    public StandardFragilityCurve() {
-        super();
-    }
-
-    public StandardFragilityCurve(double median, double beta, CurveType curveType, String label) {
-        super(label);
-
-        this.median = median;
-        this.beta = beta;
-        this.curveType = curveType;
+public class StepwiseRestorationCurve extends RestorationCurve {
+    
+    public StepwiseRestorationCurve() {
+        throw new NotImplementedException();
     }
 }
+

@@ -6,24 +6,19 @@
  *
  * Contributors:
  * Omar Elabd, Nathan Tolbert
- */
+ *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
-public class StandardFragilityCurve extends FragilityCurve {
-    public double median;
-    public double beta;
-    public CurveType curveType;
+public class CustomExpressionRestorationCurve extends RestorationCurve {
+    public String expression;
 
-    public StandardFragilityCurve() {
+    public CustomExpressionRestorationCurve() {
         super();
     }
 
-    public StandardFragilityCurve(double median, double beta, CurveType curveType, String label) {
+    public CustomExpressionRestorationCurve(String expression, String label) {
         super(label);
-
-        this.median = median;
-        this.beta = beta;
-        this.curveType = curveType;
+        this.expression = expression;
     }
 }

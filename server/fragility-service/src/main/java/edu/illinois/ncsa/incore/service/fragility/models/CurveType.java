@@ -10,7 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
-public enum FragilityCurveType {
+public enum CurveType {
     LogNormal,
     Normal
 }
