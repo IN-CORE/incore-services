@@ -16,10 +16,7 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
-import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
-import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
-import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBFragilityDAO;
-import edu.illinois.ncsa.incore.service.fragility.daos.MongoDBMappingDAO;
+import edu.illinois.ncsa.incore.service.fragility.daos.*;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -41,6 +38,8 @@ public class Application extends ResourceConfig {
         fragilityDAO.initialize();
         IMappingDAO mappingDAO = new MongoDBMappingDAO(mongoClientUri);
         mappingDAO.initialize();
+        IRestorationDAO restorationDAO = new MongoDBRestorationDAO(mongoClientUri);
+        restorationDAO.initialize();
 
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
