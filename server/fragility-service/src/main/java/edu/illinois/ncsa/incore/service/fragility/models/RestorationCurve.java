@@ -17,8 +17,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @XmlTransient
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "className")
-@XmlSeeAlso({CustomExpressionRestorationCurve.class, StepwiseRestorationCurve.class,
-    StandardRestorationCurve.class, MarkovChainRestorationCurve.class})
+@XmlSeeAlso({CustomExpressionRestorationCurve.class, StandardRestorationCurve.class, MarkovChainRestorationCurve.class})
 public abstract class RestorationCurve {
     public String description;
 
@@ -30,3 +29,5 @@ public abstract class RestorationCurve {
         this.description = label;
     }
 }
+
+//TODO StepwiseRestorationCurve.class

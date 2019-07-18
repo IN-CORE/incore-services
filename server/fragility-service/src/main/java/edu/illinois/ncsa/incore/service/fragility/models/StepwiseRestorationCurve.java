@@ -15,6 +15,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class StepwiseRestorationCurve extends RestorationCurve {
     
     public StepwiseRestorationCurve() {
+        super();
         throw new NotImplementedException();
     }
 }

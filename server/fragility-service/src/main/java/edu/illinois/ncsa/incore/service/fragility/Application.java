@@ -58,6 +58,7 @@ public class Application extends ResourceConfig {
             protected void configure() {
                 super.bind(fragilityDAO).to(IFragilityDAO.class);
                 super.bind(mappingDAO).to(IMappingDAO.class);
+                super.bind(restorationDAO).to(IRestorationDAO.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
