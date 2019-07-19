@@ -12,22 +12,22 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
-import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
+import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityMappingDAO;
+import edu.illinois.ncsa.incore.service.fragility.models.FragilityMappingSet;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
-public class MockMappingDAO implements IMappingDAO {
-    private List<MappingSet> mappingSets = new ArrayList<>();
+public class MockFragilityMappingDAO implements IFragilityMappingDAO {
+    private List<FragilityMappingSet> mappingSets = new ArrayList<>();
 
     @Override
     public void initialize() {
         URL mappingPath = this.getClass().getClassLoader().getResource("building_mapping.json");
 
         try {
-            MappingSet mappingSet = new ObjectMapper().readValue(mappingPath, new TypeReference<MappingSet>() {});
+            FragilityMappingSet mappingSet = new ObjectMapper().readValue(mappingPath, new TypeReference<FragilityMappingSet>() {});
             this.mappingSets = Arrays.asList(mappingSet);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -35,22 +35,22 @@ public class MockMappingDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> getMappingSets() {
+    public List<FragilityMappingSet> getMappingSets() {
         return mappingSets;
     }
 
     @Override
-    public Optional<MappingSet> getMappingSetById(String id) {
+    public Optional<FragilityMappingSet> getMappingSetById(String id) {
         return Optional.of(this.mappingSets.get(0));
     }
 
     @Override
-    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
+    public List<FragilityMappingSet> queryMappingSets(Map<String, String> queryMap) {
         return null;
     }
 
     @Override
-    public String saveMappingSet(MappingSet mappingSet) {
+    public String saveMappingSet(FragilityMappingSet mappingSet) {
         this.mappingSets.add(mappingSet);
         return this.mappingSets.get(0).getId();
     }

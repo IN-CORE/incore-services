@@ -13,7 +13,7 @@ package mocks;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.MockAuthorizer;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
-import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
+import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityMappingDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -25,7 +25,7 @@ public class MockApplication extends ResourceConfig {
         IFragilityDAO fragilityDAO = new MockFragilityDAO();
         fragilityDAO.initialize();
 
-        IMappingDAO mappingDAO = new MockMappingDAO();
+        IFragilityMappingDAO mappingDAO = new MockFragilityMappingDAO();
         mappingDAO.initialize();
 
         for (Class klass : classes) {
@@ -38,7 +38,7 @@ public class MockApplication extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(fragilityDAO).to(IFragilityDAO.class);
-                super.bind(mappingDAO).to(IMappingDAO.class);
+                super.bind(mappingDAO).to(IFragilityMappingDAO.class);
                 super.bind(mockAuthorizor).to(IAuthorizer.class);
             }
         });

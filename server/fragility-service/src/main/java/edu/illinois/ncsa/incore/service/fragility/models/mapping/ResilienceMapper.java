@@ -14,7 +14,7 @@ import ncsa.tools.common.exceptions.FailedComparisonException;
 
 import java.util.*;
 
-public class FragilityMapper {
+public class ResilienceMapper {
 
     private List<MatchFilterMap> mappingSets = new ArrayList<MatchFilterMap>();
 
@@ -22,7 +22,7 @@ public class FragilityMapper {
         mappingSets.add(mappingSet);
     }
 
-    public String getFragilityFor(String schema, Map<String, Object> row, Map<String, Object> params) {
+    public String getResilienceCurveFor(String schema, Map<String, Object> row, Map<String, Object> params) {
         //get all possible mapping sets that we know about for this schema
         //for each one, look at each fragility mapping set, see which is "best"
 

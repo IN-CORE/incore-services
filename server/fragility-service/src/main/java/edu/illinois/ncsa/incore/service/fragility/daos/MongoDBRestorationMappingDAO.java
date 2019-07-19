@@ -11,7 +11,7 @@
 package edu.illinois.ncsa.incore.service.fragility.daos;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.RestorationMappingSet;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
 
@@ -19,29 +19,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
+public class MongoDBRestorationMappingDAO extends MongoDAO implements IRestorationMappingDAO {
 
-    public MongoDBMappingDAO(MongoClientURI mongoClientURI) {
+    public MongoDBRestorationMappingDAO(MongoClientURI mongoClientURI) {
         super(mongoClientURI);
     }
 
     @Override
     public void initialize() {
-        super.initializeDataStore(MappingSet.class);
+        super.initializeDataStore(RestorationMappingSet.class);
     }
 
     @Override
-    public List<MappingSet> getMappingSets() {
-        return this.dataStore.createQuery(MappingSet.class).asList();
+    public List<RestorationMappingSet> getMappingSets() {
+        return this.dataStore.createQuery(RestorationMappingSet.class).asList();
     }
 
     @Override
-    public Optional<MappingSet> getMappingSetById(String id) {
+    public Optional<RestorationMappingSet> getMappingSetById(String id) {
         if (!ObjectId.isValid(id)) {
             return Optional.empty();
         }
 
-        MappingSet mappingSet = this.dataStore.get(MappingSet.class, new ObjectId(id));
+        RestorationMappingSet mappingSet = this.dataStore.get(RestorationMappingSet.class, new ObjectId(id));
 
         if (mappingSet == null) {
             return Optional.empty();
@@ -51,7 +51,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public String saveMappingSet(MappingSet mappingSet) {
+    public String saveMappingSet(RestorationMappingSet mappingSet) {
         if (mappingSet == null) {
             throw new IllegalArgumentException();
         } else {
@@ -61,14 +61,14 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
-        Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
+    public List<RestorationMappingSet> queryMappingSets(Map<String, String> queryMap) {
+        Query<RestorationMappingSet> query = this.dataStore.createQuery(RestorationMappingSet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<MappingSet> mappingSets = query.asList();
+        List<RestorationMappingSet> mappingSets = query.asList();
 
         return mappingSets;
     }

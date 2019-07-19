@@ -16,18 +16,18 @@ import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MappingResponse {
+public class FragilityMappingResponse {
     @JsonProperty("sets")
     public Map<String, FragilitySet> fragilitySets = new HashMap<>();
 
     @JsonProperty("mapping")
     public Map<String, String> fragilityToInventoryMapping = new HashMap<>();
 
-    public MappingResponse() {
+    public FragilityMappingResponse() {
 
     }
 
-    public MappingResponse(Map<String, FragilitySet> fragilitySets, Map<String, String> fragilityMap) {
+    public FragilityMappingResponse(Map<String, FragilitySet> fragilitySets, Map<String, String> fragilityMap) {
         this.fragilitySets = fragilitySets;
         this.fragilityToInventoryMapping = fragilityMap;
     }

@@ -10,16 +10,16 @@
 
 package edu.illinois.ncsa.incore.service.fragility.daos;
 
-import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.FragilityMappingSet;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface IMappingDAO {
+public interface IFragilityMappingDAO {
     void initialize();
-    List<MappingSet> getMappingSets();
-    Optional<MappingSet> getMappingSetById(String id);
-    List<MappingSet> queryMappingSets(Map<String, String> queryMap);
-    String saveMappingSet(MappingSet mappingSet);
+    List<FragilityMappingSet> getMappingSets();
+    Optional<FragilityMappingSet> getMappingSetById(String id);
+    List<FragilityMappingSet> queryMappingSets(Map<String, String> queryMap);
+    String saveMappingSet(FragilityMappingSet mappingSet);
 }
