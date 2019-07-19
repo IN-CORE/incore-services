@@ -11,7 +11,7 @@
 package edu.illinois.ncsa.incore.service.fragility.daos;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.fragility.models.RestorationMappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
 
@@ -27,21 +27,21 @@ public class MongoDBRestorationMappingDAO extends MongoDAO implements IRestorati
 
     @Override
     public void initialize() {
-        super.initializeDataStore(RestorationMappingSet.class);
+        super.initializeDataStore(MappingSet.class);
     }
 
     @Override
-    public List<RestorationMappingSet> getMappingSets() {
-        return this.dataStore.createQuery(RestorationMappingSet.class).asList();
+    public List<MappingSet> getMappingSets() {
+        return this.dataStore.createQuery(MappingSet.class).asList();
     }
 
     @Override
-    public Optional<RestorationMappingSet> getMappingSetById(String id) {
+    public Optional<MappingSet> getMappingSetById(String id) {
         if (!ObjectId.isValid(id)) {
             return Optional.empty();
         }
 
-        RestorationMappingSet mappingSet = this.dataStore.get(RestorationMappingSet.class, new ObjectId(id));
+        MappingSet mappingSet = this.dataStore.get(MappingSet.class, new ObjectId(id));
 
         if (mappingSet == null) {
             return Optional.empty();
@@ -51,7 +51,7 @@ public class MongoDBRestorationMappingDAO extends MongoDAO implements IRestorati
     }
 
     @Override
-    public String saveMappingSet(RestorationMappingSet mappingSet) {
+    public String saveMappingSet(MappingSet mappingSet) {
         if (mappingSet == null) {
             throw new IllegalArgumentException();
         } else {
@@ -61,14 +61,14 @@ public class MongoDBRestorationMappingDAO extends MongoDAO implements IRestorati
     }
 
     @Override
-    public List<RestorationMappingSet> queryMappingSets(Map<String, String> queryMap) {
-        Query<RestorationMappingSet> query = this.dataStore.createQuery(RestorationMappingSet.class);
+    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
+        Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<RestorationMappingSet> mappingSets = query.asList();
+        List<MappingSet> mappingSets = query.asList();
 
         return mappingSets;
     }

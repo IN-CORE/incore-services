@@ -13,21 +13,21 @@ package mocks;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityMappingDAO;
-import edu.illinois.ncsa.incore.service.fragility.models.FragilityMappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
 public class MockFragilityMappingDAO implements IFragilityMappingDAO {
-    private List<FragilityMappingSet> mappingSets = new ArrayList<>();
+    private List<MappingSet> mappingSets = new ArrayList<>();
 
     @Override
     public void initialize() {
         URL mappingPath = this.getClass().getClassLoader().getResource("building_mapping.json");
 
         try {
-            FragilityMappingSet mappingSet = new ObjectMapper().readValue(mappingPath, new TypeReference<FragilityMappingSet>() {});
+            MappingSet mappingSet = new ObjectMapper().readValue(mappingPath, new TypeReference<MappingSet>() {});
             this.mappingSets = Arrays.asList(mappingSet);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -35,22 +35,22 @@ public class MockFragilityMappingDAO implements IFragilityMappingDAO {
     }
 
     @Override
-    public List<FragilityMappingSet> getMappingSets() {
+    public List<MappingSet> getMappingSets() {
         return mappingSets;
     }
 
     @Override
-    public Optional<FragilityMappingSet> getMappingSetById(String id) {
+    public Optional<MappingSet> getMappingSetById(String id) {
         return Optional.of(this.mappingSets.get(0));
     }
 
     @Override
-    public List<FragilityMappingSet> queryMappingSets(Map<String, String> queryMap) {
+    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
         return null;
     }
 
     @Override
-    public String saveMappingSet(FragilityMappingSet mappingSet) {
+    public String saveMappingSet(MappingSet mappingSet) {
         this.mappingSets.add(mappingSet);
         return this.mappingSets.get(0).getId();
     }

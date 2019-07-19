@@ -15,13 +15,15 @@ import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-public abstract class MappingSet {
+@Entity("FragilityMappingSet")
+//@Entity("MappingSet")
+public class MappingSet {
     @Id
     private ObjectId id;
 
@@ -39,6 +41,15 @@ public abstract class MappingSet {
             return id.toHexString();
         }
     }
+
+    public MappingSet(String name, String hazardType, String inventoryType, List<Mapping> mappings) {
+        this.name = name;
+        this.hazardType = hazardType;
+        this.inventoryType = inventoryType;
+        this.mappings = mappings;
+    }
+
+    public MappingSet() {}
 
     public String getName() {
         return name;

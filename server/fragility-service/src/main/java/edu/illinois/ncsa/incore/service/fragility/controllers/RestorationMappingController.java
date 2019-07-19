@@ -17,7 +17,7 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IRestorationMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.RestorationSet;
-import edu.illinois.ncsa.incore.service.fragility.models.RestorationMappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.RestorationMappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.ResilienceMapper;
@@ -55,7 +55,7 @@ public class RestorationMappingController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets list of restoration mappings", notes="Apply filters to get the desired set of restoration mappings")
-    public List<RestorationMappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
+    public List<MappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
                                         @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
                                         @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
                                         @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
@@ -77,7 +77,7 @@ public class RestorationMappingController {
             queryMap.put("creator", creator);
         }
 
-        List<RestorationMappingSet> mappingSets;
+        List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
             mappingSets = this.mappingDAO.getMappingSets();
@@ -117,12 +117,12 @@ public class RestorationMappingController {
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a restoration mapping set by Id", notes="Get a particular restoration mapping set based on the id provided")
-    public RestorationMappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
+    public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
                                         @ApiParam(value="hexadecimal restoration mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
-        Optional<RestorationMappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
-            RestorationMappingSet actual = mappingSet.get();
+            MappingSet actual = mappingSet.get();
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
                 return actual;
             }
@@ -136,8 +136,8 @@ public class RestorationMappingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a restoration Mapping", notes="Post a restoration mapping set that maps a restoration to an inventory's attributes")
-    public RestorationMappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-                                    @ApiParam(value="json representing the restoration mapping") RestorationMappingSet mappingSet) {
+    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
+                                    @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
         mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         mappingSet.setCreator(username);
 
@@ -174,7 +174,7 @@ public class RestorationMappingController {
             throw new ForbiddenException();
         }
 
-        Optional<RestorationMappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
 
         if (!mappingSet.isPresent()) {
             throw new BadRequestException();

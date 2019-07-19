@@ -17,7 +17,7 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
-import edu.illinois.ncsa.incore.service.fragility.models.FragilityMappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.FragilityMappingResponse;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.ResilienceMapper;
@@ -55,7 +55,7 @@ public class MappingController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets list of fragility mappings", notes="Apply filters to get the desired set of fragility mappings")
-    public List<FragilityMappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
+    public List<MappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
                                         @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
                                         @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
                                         @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
@@ -77,7 +77,7 @@ public class MappingController {
             queryMap.put("creator", creator);
         }
 
-        List<FragilityMappingSet> mappingSets;
+        List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
             mappingSets = this.mappingDAO.getMappingSets();
@@ -117,12 +117,12 @@ public class MappingController {
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a fragility mapping set by Id", notes="Get a particular fragility mapping set based on the id provided")
-    public FragilityMappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
+    public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
                                         @ApiParam(value="hexadecimal fragility mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
-        Optional<FragilityMappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
-            FragilityMappingSet actual = mappingSet.get();
+            MappingSet actual = mappingSet.get();
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
                 return actual;
             }
@@ -136,8 +136,8 @@ public class MappingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a fragility Mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
-    public FragilityMappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-                                    @ApiParam(value="json representing the fragility mapping") FragilityMappingSet mappingSet) {
+    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
+                                    @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
         mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         mappingSet.setCreator(username);
 
@@ -174,7 +174,7 @@ public class MappingController {
             throw new ForbiddenException();
         }
 
-        Optional<FragilityMappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
 
         if (!mappingSet.isPresent()) {
             throw new BadRequestException();

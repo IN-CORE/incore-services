@@ -10,7 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.fragility.daos;
 
-import edu.illinois.ncsa.incore.service.fragility.models.FragilityMappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 
 import java.util.List;
 import java.util.Map;
@@ -18,8 +18,8 @@ import java.util.Optional;
 
 public interface IFragilityMappingDAO {
     void initialize();
-    List<FragilityMappingSet> getMappingSets();
-    Optional<FragilityMappingSet> getMappingSetById(String id);
-    List<FragilityMappingSet> queryMappingSets(Map<String, String> queryMap);
-    String saveMappingSet(FragilityMappingSet mappingSet);
+    List<MappingSet> getMappingSets();
+    Optional<MappingSet> getMappingSetById(String id);
+    List<MappingSet> queryMappingSets(Map<String, String> queryMap);
+    String saveMappingSet(MappingSet mappingSet);
 }
