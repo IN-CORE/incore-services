@@ -80,9 +80,9 @@ public class RestorationMappingController {
         List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
-            mappingSets = this.mappingDAO.getMappingSets();
+            mappingSets = this.mappingDAO.getMappingSets("restoration");
         } else {
-            mappingSets = this.mappingDAO.queryMappingSets(queryMap);
+            mappingSets = this.mappingDAO.queryMappingSets(queryMap, "restoration");
         }
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -119,7 +119,7 @@ public class RestorationMappingController {
     @ApiOperation(value = "Gets a restoration mapping set by Id", notes="Get a particular restoration mapping set based on the id provided")
     public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
                                         @ApiParam(value="hexadecimal restoration mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "restoration");
 
         if (mappingSet.isPresent()) {
             MappingSet actual = mappingSet.get();
@@ -132,27 +132,27 @@ public class RestorationMappingController {
         }
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a restoration Mapping", notes="Post a restoration mapping set that maps a restoration to an inventory's attributes")
-    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-                                    @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
-        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
-        mappingSet.setCreator(username);
-
-        String id = this.mappingDAO.saveMappingSet(mappingSet);
-
-        Space space = spaceRepository.getSpaceByName(username);
-        if (space == null) {
-            space = new Space(username);
-            space.setPrivileges(Privileges.newWithSingleOwner(username));
-        }
-        space.addMember(id);
-        spaceRepository.addSpace(space);
-
-        return mappingSet;
-    }
+//    @POST
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces({MediaType.APPLICATION_JSON})
+//    @ApiOperation(value = "Create a restoration Mapping", notes="Post a restoration mapping set that maps a restoration to an inventory's attributes")
+//    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
+//                                    @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
+//        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
+//        mappingSet.setCreator(username);
+//
+//        String id = this.mappingDAO.saveMappingSet(mappingSet);
+//
+//        Space space = spaceRepository.getSpaceByName(username);
+//        if (space == null) {
+//            space = new Space(username);
+//            space.setPrivileges(Privileges.newWithSingleOwner(username));
+//        }
+//        space.addMember(id);
+//        spaceRepository.addSpace(space);
+//
+//        return mappingSet;
+//    }
 
     @POST
     @Path("{mappingSetId}/matched")
@@ -174,7 +174,7 @@ public class RestorationMappingController {
             throw new ForbiddenException();
         }
 
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId, "restoration");
 
         if (!mappingSet.isPresent()) {
             throw new BadRequestException();

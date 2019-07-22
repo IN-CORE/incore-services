@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
-import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityMappingDAO;
+import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
@@ -38,11 +38,11 @@ import java.util.stream.Collectors;
 
 @Api(value="fragility-mappings", authorizations = {})
 @Path("fragility-mappings")
-public class MappingController {
-    private static final Logger logger = Logger.getLogger(MappingController.class);
+public class FragilityMappingController {
+    private static final Logger logger = Logger.getLogger(FragilityMappingController.class);
 
     @Inject
-    private IFragilityMappingDAO mappingDAO;
+    private IMappingDAO mappingDAO;
     @Inject
     private IFragilityDAO fragilityDAO;
 
@@ -80,9 +80,9 @@ public class MappingController {
         List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
-            mappingSets = this.mappingDAO.getMappingSets();
+            mappingSets = this.mappingDAO.getMappingSets("fragility");
         } else {
-            mappingSets = this.mappingDAO.queryMappingSets(queryMap);
+            mappingSets = this.mappingDAO.queryMappingSets(queryMap, "fragility");
         }
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -119,7 +119,7 @@ public class MappingController {
     @ApiOperation(value = "Gets a fragility mapping set by Id", notes="Get a particular fragility mapping set based on the id provided")
     public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
                                         @ApiParam(value="hexadecimal fragility mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "fragility");
 
         if (mappingSet.isPresent()) {
             MappingSet actual = mappingSet.get();
@@ -132,27 +132,27 @@ public class MappingController {
         }
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a fragility Mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
-    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-                                    @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
-        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
-        mappingSet.setCreator(username);
-
-        String id = this.mappingDAO.saveMappingSet(mappingSet);
-
-        Space space = spaceRepository.getSpaceByName(username);
-        if (space == null) {
-            space = new Space(username);
-            space.setPrivileges(Privileges.newWithSingleOwner(username));
-        }
-        space.addMember(id);
-        spaceRepository.addSpace(space);
-
-        return mappingSet;
-    }
+//    @POST
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces({MediaType.APPLICATION_JSON})
+//    @ApiOperation(value = "Create a fragility Mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
+//    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
+//                                    @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
+//        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
+//        mappingSet.setCreator(username);
+//
+//        String id = this.mappingDAO.saveMappingSet(mappingSet);
+//
+//        Space space = spaceRepository.getSpaceByName(username);
+//        if (space == null) {
+//            space = new Space(username);
+//            space.setPrivileges(Privileges.newWithSingleOwner(username));
+//        }
+//        space.addMember(id);
+//        spaceRepository.addSpace(space);
+//
+//        return mappingSet;
+//    }
 
     @POST
     @Path("{mappingSetId}/matched")
@@ -174,7 +174,7 @@ public class MappingController {
             throw new ForbiddenException();
         }
 
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId, "fragility");
 
         if (!mappingSet.isPresent()) {
             throw new BadRequestException();

@@ -18,8 +18,8 @@ import java.util.Optional;
 
 public interface IMappingDAO {
     void initialize();
-    List<MappingSet> getMappingSets();
-    Optional<MappingSet> getMappingSetById(String id);
-    List<MappingSet> queryMappingSets(Map<String, String> queryMap);
-    String saveMappingSet(MappingSet mappingSet);
+    List<MappingSet> getMappingSets(String type);
+    Optional<MappingSet> getMappingSetById(String id, String type);
+    List<MappingSet> queryMappingSets(Map<String, String> queryMap, String type);
+//    String saveMappingSet(MappingSet mappingSet);
 }

@@ -10,23 +10,11 @@
 
 package edu.illinois.ncsa.incore.service.fragility.controllers;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.fragility.models.MappingSubject;
-import edu.illinois.ncsa.incore.service.fragility.models.SchemaType;
-import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingResponse;
 import mocks.MockApplication;
-import org.geojson.FeatureCollection;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,7 +32,7 @@ public class MappingControllerTest extends CustomJerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(MappingController.class);
+        MockApplication application = new MockApplication(FragilityMappingController.class);
 
         return application;
     }
