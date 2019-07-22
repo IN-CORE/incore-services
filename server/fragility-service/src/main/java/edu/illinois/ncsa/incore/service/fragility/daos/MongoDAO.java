@@ -12,6 +12,8 @@ package edu.illinois.ncsa.incore.service.fragility.daos;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.service.fragility.models.FragilityMappingSet;
+import edu.illinois.ncsa.incore.service.fragility.models.RestorationMappingSet;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -34,6 +36,8 @@ public abstract class MongoDAO {
 
 
         Set<Class> classesToMap = new HashSet<>(Arrays.asList(classes));
+        classesToMap.add(FragilityMappingSet.class);
+        classesToMap.add(RestorationMappingSet.class);
 
         Morphia morphia = new Morphia(classesToMap);
 

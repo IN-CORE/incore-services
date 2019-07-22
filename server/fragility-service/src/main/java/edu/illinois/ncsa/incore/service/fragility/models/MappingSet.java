@@ -18,15 +18,20 @@ import edu.illinois.ncsa.incore.service.fragility.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({@JsonSubTypes.Type(value = FragilityMappingSet.class, name = "fragilityMapping"),
+    @JsonSubTypes.Type(value = RestorationMappingSet.class, name = "restorationMapping")})
+@XmlRootElement
 public abstract class MappingSet {
 
     @Id
+    @Property("_id")
     private ObjectId id;
 
     private String name;

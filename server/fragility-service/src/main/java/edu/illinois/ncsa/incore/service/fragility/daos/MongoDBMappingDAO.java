@@ -29,8 +29,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public void initialize() {
-        super.initializeDataStore(MappingSet.class);
+    public void initialize() { super.initializeDataStore(MappingSet.class);
     }
 
     @Override
