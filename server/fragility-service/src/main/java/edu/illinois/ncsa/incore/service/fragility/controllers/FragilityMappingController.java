@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
+import edu.illinois.ncsa.incore.service.fragility.models.FragilityMappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
@@ -132,27 +133,29 @@ public class FragilityMappingController {
         }
     }
 
-//    @POST
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    @Produces({MediaType.APPLICATION_JSON})
-//    @ApiOperation(value = "Create a fragility Mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
-//    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-//                                    @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
-//        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
-//        mappingSet.setCreator(username);
-//
-//        String id = this.mappingDAO.saveMappingSet(mappingSet);
-//
-//        Space space = spaceRepository.getSpaceByName(username);
-//        if (space == null) {
-//            space = new Space(username);
-//            space.setPrivileges(Privileges.newWithSingleOwner(username));
-//        }
-//        space.addMember(id);
-//        spaceRepository.addSpace(space);
-//
-//        return mappingSet;
-//    }
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Create a fragility Mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
+    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
+                                    @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
+
+        FragilityMappingSet fragilityMappingSet = (FragilityMappingSet) mappingSet;
+        fragilityMappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
+        fragilityMappingSet.setCreator(username);
+
+        String id = this.mappingDAO.saveMappingSet(fragilityMappingSet);
+
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space == null) {
+            space = new Space(username);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
+        }
+        space.addMember(id);
+        spaceRepository.addSpace(space);
+
+        return fragilityMappingSet;
+    }
 
     @POST
     @Path("{mappingSetId}/matched")

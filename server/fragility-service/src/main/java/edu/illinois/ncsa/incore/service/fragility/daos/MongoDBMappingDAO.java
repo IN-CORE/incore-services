@@ -68,15 +68,15 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         }
     }
 
-//    @Override
-//    public String saveMappingSet(MappingSet mappingSet) {
-//        if (mappingSet == null) {
-//            throw new IllegalArgumentException();
-//        } else {
-//            String id = this.dataStore.save(mappingSet).getId().toString();
-//            return id;
-//        }
-//    }
+    @Override
+    public String saveMappingSet(MappingSet mappingSet) {
+        if (mappingSet == null) {
+            throw new IllegalArgumentException();
+        } else {
+            String id = this.dataStore.save(mappingSet).getId().toString();
+            return id;
+        }
+    }
 
     @Override
     public List<MappingSet> queryMappingSets(Map<String, String> queryMap, String type) {

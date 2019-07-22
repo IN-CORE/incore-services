@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
+import edu.illinois.ncsa.incore.service.fragility.models.RestorationMappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.RestorationSet;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
@@ -132,27 +133,29 @@ public class RestorationMappingController {
         }
     }
 
-//    @POST
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    @Produces({MediaType.APPLICATION_JSON})
-//    @ApiOperation(value = "Create a restoration Mapping", notes="Post a restoration mapping set that maps a restoration to an inventory's attributes")
-//    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-//                                    @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
-//        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
-//        mappingSet.setCreator(username);
-//
-//        String id = this.mappingDAO.saveMappingSet(mappingSet);
-//
-//        Space space = spaceRepository.getSpaceByName(username);
-//        if (space == null) {
-//            space = new Space(username);
-//            space.setPrivileges(Privileges.newWithSingleOwner(username));
-//        }
-//        space.addMember(id);
-//        spaceRepository.addSpace(space);
-//
-//        return mappingSet;
-//    }
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Create a restoration Mapping", notes="Post a restoration mapping set that maps a restoration to an inventory's attributes")
+    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
+                                    @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
+
+        RestorationMappingSet fragilityMappingSet = (RestorationMappingSet) mappingSet;
+        fragilityMappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
+        fragilityMappingSet.setCreator(username);
+
+        String id = this.mappingDAO.saveMappingSet(fragilityMappingSet);
+
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space == null) {
+            space = new Space(username);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
+        }
+        space.addMember(id);
+        spaceRepository.addSpace(space);
+
+        return fragilityMappingSet;
+    }
 
     @POST
     @Path("{mappingSetId}/matched")

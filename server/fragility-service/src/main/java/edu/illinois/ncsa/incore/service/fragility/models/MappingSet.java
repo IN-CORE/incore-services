@@ -24,9 +24,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({@JsonSubTypes.Type(value = FragilityMappingSet.class, name = "fragilityMapping"),
-    @JsonSubTypes.Type(value = RestorationMappingSet.class, name = "restorationMapping")})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "mappingType")
+@JsonSubTypes({@JsonSubTypes.Type(value = FragilityMappingSet.class, name = "fragility"),
+    @JsonSubTypes.Type(value = RestorationMappingSet.class, name = "restoration")})
 @XmlRootElement
 public abstract class MappingSet {
 
