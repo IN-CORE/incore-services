@@ -37,11 +37,8 @@ public class Application extends ResourceConfig {
         IFragilityDAO fragilityDAO = new MongoDBFragilityDAO(mongoClientUri);
         fragilityDAO.initialize();
 
-        IFragilityMappingDAO mappingDAO = new MongoDBFragilityMappingDAO(mongoClientUri);
+        IMappingDAO mappingDAO = new MongoDBMappingDAO(mongoClientUri);
         mappingDAO.initialize();
-
-        IRestorationMappingDAO resMappingDAO = new MongoDBRestorationMappingDAO(mongoClientUri);
-        resMappingDAO.initialize();
 
         IRestorationDAO restorationDAO = new MongoDBRestorationDAO(mongoClientUri);
         restorationDAO.initialize();
@@ -62,8 +59,7 @@ public class Application extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(fragilityDAO).to(IFragilityDAO.class);
-                super.bind(mappingDAO).to(IFragilityMappingDAO.class);
-                super.bind(resMappingDAO).to(IRestorationMappingDAO.class);
+                super.bind(mappingDAO).to(IMappingDAO.class);
                 super.bind(restorationDAO).to(IRestorationDAO.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);

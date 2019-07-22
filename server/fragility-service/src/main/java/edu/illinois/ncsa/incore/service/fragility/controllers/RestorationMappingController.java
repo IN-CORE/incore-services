@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.fragility.daos.IRestorationDAO;
-import edu.illinois.ncsa.incore.service.fragility.daos.IRestorationMappingDAO;
+import edu.illinois.ncsa.incore.service.fragility.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.fragility.models.RestorationSet;
 import edu.illinois.ncsa.incore.service.fragility.models.MappingSet;
 import edu.illinois.ncsa.incore.service.fragility.models.dto.MappingRequest;
@@ -42,7 +42,7 @@ public class RestorationMappingController {
     private static final Logger logger = Logger.getLogger(RestorationMappingController.class);
 
     @Inject
-    private IRestorationMappingDAO mappingDAO;
+    private IMappingDAO mappingDAO;
     @Inject
     private IRestorationDAO restorationDAO;
 

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface IFragilityMappingDAO {
+public interface IMappingDAO {
     void initialize();
     List<MappingSet> getMappingSets();
     Optional<MappingSet> getMappingSetById(String id);

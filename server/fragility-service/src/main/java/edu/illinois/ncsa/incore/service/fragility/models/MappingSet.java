@@ -21,9 +21,8 @@ import org.mongodb.morphia.annotations.Id;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity("FragilityMappingSet")
-//@Entity("MappingSet")
-public class MappingSet {
+
+public abstract class MappingSet {
     @Id
     private ObjectId id;
 
@@ -41,15 +40,6 @@ public class MappingSet {
             return id.toHexString();
         }
     }
-
-    public MappingSet(String name, String hazardType, String inventoryType, List<Mapping> mappings) {
-        this.name = name;
-        this.hazardType = hazardType;
-        this.inventoryType = inventoryType;
-        this.mappings = mappings;
-    }
-
-    public MappingSet() {}
 
     public String getName() {
         return name;

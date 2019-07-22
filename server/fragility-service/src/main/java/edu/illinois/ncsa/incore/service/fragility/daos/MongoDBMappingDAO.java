@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class MongoDBRestorationMappingDAO extends MongoDAO implements IRestorationMappingDAO {
+public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
-    public MongoDBRestorationMappingDAO(MongoClientURI mongoClientURI) {
+    public MongoDBMappingDAO(MongoClientURI mongoClientURI) {
         super(mongoClientURI);
     }
 
