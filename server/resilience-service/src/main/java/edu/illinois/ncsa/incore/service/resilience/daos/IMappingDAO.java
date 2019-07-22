@@ -1,0 +1,25 @@
+/*******************************************************************************
+ * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * This program and the accompanying materials are made available under the
+ * terms of the Mozilla Public License v2.0 which accompanies this distribution,
+ * and is available at https://www.mozilla.org/en-US/MPL/2.0/
+ *
+ * Contributors:
+ * Omar Elabd
+ *******************************************************************************/
+
+package edu.illinois.ncsa.incore.service.resilience.daos;
+
+import edu.illinois.ncsa.incore.service.resilience.models.MappingSet;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+public interface IMappingDAO {
+    void initialize();
+    List<MappingSet> getMappingSets(String type);
+    Optional<MappingSet> getMappingSetById(String id, String type);
+    List<MappingSet> queryMappingSets(Map<String, String> queryMap, String type);
+    String saveMappingSet(MappingSet mappingSet);
+}

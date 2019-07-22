@@ -2,9 +2,9 @@
 curl -i -X DELETE --url http://localhost:8001/apis/fragility
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
-  --data 'name=fragility' \
-  --data 'uris=/fragility' \
-  --data 'upstream_url=http://localhost:8888/fragility/'
+  --data 'name=resilience' \
+  --data 'uris=/resilience' \
+  --data 'upstream_url=http://localhost:8888/resilience/'
 
 
 

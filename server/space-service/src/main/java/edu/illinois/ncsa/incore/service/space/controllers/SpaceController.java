@@ -67,7 +67,7 @@ public class SpaceController {
     private static final String TORNADO_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
     private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
     private static final String TSUNAMI_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
-    private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "fragility/api/fragilities/" : "/fragility/api/fragilities/";
+    private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "resilience/api/fragilities/" : "/resilience/api/fragilities/";
     private static final String DATA_URL = SERVICES_URL.endsWith("/") ? "data/api/datasets/" : "/data/api/datasets/";
 
     public static final String SPACE_MEMBERS = "members";
@@ -342,7 +342,7 @@ public class SpaceController {
     }
 
     /**
-     * Makes an HTTP request to the fragility service
+     * Makes an HTTP request to the resilience service
      * @param datasetId Id of dataset
      * @param username username
      * @return Json response of API call
@@ -414,7 +414,7 @@ public class SpaceController {
             return true;
         }
 
-        //get dataset from fragility-service
+        //get dataset from resilience-service
         if(getFragilityDataset(datasetId, username) != null){
             space.addMember(datasetId);
             spaceRepository.addSpace(space);
