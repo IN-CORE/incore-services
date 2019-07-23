@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "mappingType")
-@JsonSubTypes({@JsonSubTypes.Type(value = FragilityMappingSet.class, name = "resilience"),
+@JsonSubTypes({@JsonSubTypes.Type(value = FragilityMappingSet.class, name = "fragility"),
     @JsonSubTypes.Type(value = RestorationMappingSet.class, name = "restoration")})
 @XmlRootElement
 public abstract class MappingSet {

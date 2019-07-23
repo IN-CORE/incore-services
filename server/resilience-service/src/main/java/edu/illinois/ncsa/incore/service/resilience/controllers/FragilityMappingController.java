@@ -37,8 +37,8 @@ import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value="resilience-mappings", authorizations = {})
-@Path("resilience-mappings")
+@Api(value="fragility-mappings", authorizations = {})
+@Path("fragility-mappings")
 public class FragilityMappingController {
     private static final Logger logger = Logger.getLogger(FragilityMappingController.class);
 
