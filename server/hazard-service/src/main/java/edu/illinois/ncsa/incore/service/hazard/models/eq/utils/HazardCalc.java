@@ -98,35 +98,52 @@ public class HazardCalc {
     public static SeismicHazardResult getGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String period, String hazardType, String demandUnits, int spectrumOverride, boolean amplifyHazard, String creator) throws Exception {
 
         if (HazardUtil.SD.equalsIgnoreCase(hazardType)) {
-            // TODO CMN - I don't see any example that uses this so deferring implementation
-            throw new UnsupportedHazardException("Conversion to SD is not yet implemented");
+            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, true);
+            if(!supported) {
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, HazardUtil.SA, spectrumOverride, amplifyHazard, creator, demandUnits);
+                // We use the result period for conversion because in the case of closest match, the requested period may not have been used
+                double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), HazardUtil.SA, demandUnits, HazardUtil.SD);
+                return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), HazardUtil.SD, demandUnits);
+            } else {
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
+                double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+                return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
+            }
         } else if (HazardUtil.PGV.equalsIgnoreCase(hazardType)) {
-            // First, check if it supports the hazard directly from the attenuation models
-            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType);
+            // First, check if the hazard is directly from the attenuation models or datasets
+            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, true);
             // If not supported, check if it supports 1.0 Sec SA
             if (!supported) {
-                supported = supportsHazard(earthquake, attenuations, "1.0", "Sa");
+                supported = supportsHazard(earthquake, attenuations, "1.0", "Sa", true);
 
                 if (!supported) {
-                    throw new UnsupportedHazardException(hazardType + " is not supported and cannot be converted to given the scenario earthquake");
+                    throw new UnsupportedHazardException(hazardType + " is not supported and cannot be converted to given the defined earthquake");
                 }
-                logger.debug(hazardType + " is not directly supported by the scenario earthquake, using 1.0 second SA to compute " + hazardType);
+                logger.debug(hazardType + " is not directly supported by the earthquake, using 1.0 second SA to compute " + hazardType);
 
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0", "Sa", spectrumOverride, amplifyHazard, creator, null);
                 double updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits, HazardUtil.PGV);
                 return new SeismicHazardResult(updatedHazardVal, "0.0", HazardUtil.PGV, demandUnits);
+            } else {
+                // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
+                double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+                return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
             }
 
         } else {
-            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType);
+            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, false);
             if (!supported) {
                 // TODO add spectrum method support so we can infer values
-                logger.warn(hazardType + " is not supported by the given scenario earthquake, defaulting to closest match.");
+                logger.warn(hazardType + " is not supported by the defined earthquake.");
+                return null;
             }
-            return computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
-        }
+            SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
+            double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
 
-        return null;
+            // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
+            return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
+        }
 
     }
 
@@ -172,7 +189,7 @@ public class HazardCalc {
                     siteAmplification = new NEHRPSiteAmplification();
 
                     if (closestHazardPeriod.equalsIgnoreCase(HazardUtil.PGV)) {
-                        double pga = computeGroundMotionAtSite(earthquake, attenuations, site, "PGA", demand, spectrumOverride, false, creator, null).getHazardValue();
+                        double pga = computeGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA", spectrumOverride, false, creator, null).getHazardValue();
                         hazardValue *= siteAmplification.getSiteAmplification(site, pga, siteClass, closestHazardPeriod);
                     } else {
                         // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
@@ -183,6 +200,13 @@ public class HazardCalc {
 
             }
 
+            // A bit of a hack to return PGA/PGD/PGV with period as 0.0 instead of PGA/PGV/PGD which was used to locate the coefficients
+            if(Double.parseDouble(period) == 0.0) {
+                closestHazardPeriod = "0.0";
+            }
+
+            return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand);
+
         } else {
             EarthquakeDataset eqDataset = (EarthquakeDataset) earthquake;
             HazardDataset hazardDataset = HazardUtil.findHazard(eqDataset.getHazardDatasets(), demand, period, false);
@@ -191,20 +215,17 @@ public class HazardCalc {
             try {
                 hazardValue = HazardUtil.findRasterPoint(site.getLocation(), (GridCoverage2D) gc);
                 hazardValue = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(), Double.parseDouble(period), hazardDataset.getDemandType(), demandUnits, demand);
+
+                return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand, demandUnits);
             } catch (PointOutsideCoverageException e) {
                 logger.debug("Point outside tiff image.");
+                return null;
             }
         }
 
-        // A bit of a hack to return PGA/PGD/PGV with period as 0.0 instead of PGA/PGV/PGD which was used to locate the coefficients
-        if(Double.parseDouble(period) == 0.0) {
-            closestHazardPeriod = "0.0";
-        }
-
-        return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand);
     }
 
-    public static boolean supportsHazard(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, String period, String demandType) {
+    public static boolean supportsHazard(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, String period, String demandType, boolean exactOnly) {
         boolean canOutputHazard = true;
         if (earthquake instanceof EarthquakeModel) {
             String fullDemandType = HazardUtil.getFullDemandType(period, demandType);
@@ -216,7 +237,7 @@ public class HazardCalc {
                 }
             }
         } else {
-            HazardDataset hazardDataset = HazardUtil.findHazard(((EarthquakeDataset) earthquake).getHazardDatasets(), demandType, period, false);
+            HazardDataset hazardDataset = HazardUtil.findHazard(((EarthquakeDataset) earthquake).getHazardDatasets(), demandType, period, exactOnly);
             if (hazardDataset == null) {
                 canOutputHazard = false;
             }
