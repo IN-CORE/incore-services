@@ -10,8 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
@@ -54,27 +54,24 @@ import java.util.stream.Collectors;
 public class RestorationController {
 
     private static final Logger logger = Logger.getLogger(RestorationController.class);
-
-    @Inject
-    private IRestorationDAO restorationDAO;
-
-    @Inject
-    private ISpaceRepository spaceRepository;
-
     @Inject
     IAuthorizer authorizer;
+    @Inject
+    private IRestorationDAO restorationDAO;
+    @Inject
+    private ISpaceRepository spaceRepository;
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets list of restorations", notes = "Apply filters to get the desired set of restorations")
     public List<RestorationSet> getRestorations(@HeaderParam("X-Credential-Username") String username,
-                                               @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                               @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                               @ApiParam(value = "Legacy restoration Id from v1") @QueryParam("legacy_id") String legacyId,
-                                               @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
-                                               @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                                @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                                @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                                @ApiParam(value = "Legacy restoration Id from v1") @QueryParam("legacy_id") String legacyId,
+                                                @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
+                                                @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                                @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                                @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -181,9 +178,9 @@ public class RestorationController {
         @ApiResponse(code = 404, message = "No restorations found with the searched text")
     })
     public List<RestorationSet> findRestorations(@HeaderParam("X-Credential-Username") String username,
-                                                @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
-                                                @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                                 @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                                 @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                                 @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<RestorationSet> sets = new ArrayList<>();
         Optional<RestorationSet> fs = this.restorationDAO.getRestorationSetById(text);
         if (fs.isPresent()) {

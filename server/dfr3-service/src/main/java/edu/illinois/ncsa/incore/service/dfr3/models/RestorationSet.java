@@ -41,11 +41,12 @@ public class RestorationSet {
     private Privileges privileges;
     private String creator;
 
-    public RestorationSet() { }
+    public RestorationSet() {
+    }
 
     public RestorationSet(String legacyId, String description, List<String> authors, PaperReference paperReference, String resultUnit,
-                        String resultType, String timeUnits, String hazardType, String inventoryType,
-                        List<RestorationCurve> restorationCurves) {
+                          String resultType, String timeUnits, String hazardType, String inventoryType,
+                          List<RestorationCurve> restorationCurves) {
         this.legacyId = legacyId;
         this.description = description;
         this.authors = authors;
@@ -91,7 +92,9 @@ public class RestorationSet {
         return resultType;
     }
 
-    public String getTimeUnits() { return timeUnits; }
+    public String getTimeUnits() {
+        return timeUnits;
+    }
 
     public String getHazardType() {
         return hazardType;
@@ -113,12 +116,12 @@ public class RestorationSet {
         this.privileges = privileges;
     }
 
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
     public String getCreator() {
         return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
     // endregion
 }

@@ -19,11 +19,11 @@ import org.dom4j.Element;
  */
 public class MappingDatasetStub implements UserFacing {
 
+    MatchFilterMap mfm = new MatchFilterMap();
+
     public MatchFilterMap getMatchFilterMap() {
         return mfm;
     }
-
-    MatchFilterMap mfm = new MatchFilterMap();
 
     @Override
     public void initializeFromElement(Element element) {

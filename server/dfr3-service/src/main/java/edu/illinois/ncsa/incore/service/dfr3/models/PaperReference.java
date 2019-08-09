@@ -15,7 +15,8 @@ public class PaperReference {
     public String doi;
     public String yearPublished;
 
-    public PaperReference() {}
+    public PaperReference() {
+    }
 
     public PaperReference(String name, String yearPublished, String doi) {
         this.name = name;

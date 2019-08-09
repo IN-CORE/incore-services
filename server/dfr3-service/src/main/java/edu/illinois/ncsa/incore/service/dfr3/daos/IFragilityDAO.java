@@ -18,11 +18,18 @@ import java.util.Optional;
 
 public interface IFragilityDAO {
     void initialize();
+
     List<FragilitySet> getFragilities();
+
     String saveFragility(FragilitySet fragilitySet);
+
     Optional<FragilitySet> getFragilitySetById(String id);
+
     List<FragilitySet> searchFragilities(String text);
+
     List<FragilitySet> queryFragilities(String attributeType, String attributeValue);
+
     List<FragilitySet> queryFragilities(Map<String, String> typeValueMap);
+
     List<FragilitySet> queryFragilityAuthor(String author);
 }

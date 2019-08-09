@@ -32,15 +32,15 @@ public class Dfr3Mapper {
         combinedParams.putAll(params);
 
         Optional<PropertyMatch> matched = mappingSets.stream()
-                                                     .flatMap(mappingSet -> mappingSet.getPropertyMatches().stream())
-                                                     .filter(propMatch -> {
-                                                         try {
-                                                             return propMatch.getMatchFilter().matches(combinedParams, true);
-                                                         } catch (FailedComparisonException e) {
-                                                             return false;
-                                                         }
-                                                     })
-                                                     .findFirst();
+            .flatMap(mappingSet -> mappingSet.getPropertyMatches().stream())
+            .filter(propMatch -> {
+                try {
+                    return propMatch.getMatchFilter().matches(combinedParams, true);
+                } catch (FailedComparisonException e) {
+                    return false;
+                }
+            })
+            .findFirst();
 
         if (matched.isPresent()) {
             if (params.containsKey("key")) {

@@ -82,6 +82,6 @@ public class FragilitySetBuilder {
 
     public FragilitySet build() {
         return new FragilitySet(legacyId, description, authors, paperReference, resultUnit, resultType, demandType, demandUnits,
-                                hazardType, inventoryType, fragilityCurves);
+            hazardType, inventoryType, fragilityCurves);
     }
 }

@@ -54,27 +54,24 @@ import java.util.stream.Collectors;
 public class RepairController {
 
     private static final Logger logger = Logger.getLogger(RepairController.class);
-
-    @Inject
-    private IRepairDAO repairDAO;
-
-    @Inject
-    private ISpaceRepository spaceRepository;
-
     @Inject
     IAuthorizer authorizer;
+    @Inject
+    private IRepairDAO repairDAO;
+    @Inject
+    private ISpaceRepository spaceRepository;
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets list of repairs", notes = "Apply filters to get the desired set of repairs")
     public List<RepairSet> getRepairs(@HeaderParam("X-Credential-Username") String username,
-                                               @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                               @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                               @ApiParam(value = "Legacy repair Id from v1") @QueryParam("legacy_id") String legacyId,
-                                               @ApiParam(value = "Repair creator's username") @QueryParam("creator") String creator,
-                                               @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                      @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                      @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                      @ApiParam(value = "Legacy repair Id from v1") @QueryParam("legacy_id") String legacyId,
+                                      @ApiParam(value = "Repair creator's username") @QueryParam("creator") String creator,
+                                      @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                      @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -139,7 +136,7 @@ public class RepairController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a repair set", notes = "Post a repair set to the repair service")
     public RepairSet uploadRepairSet(@HeaderParam("X-Credential-Username") String username,
-                                               @ApiParam(value = "json representing the repair set") RepairSet repairSet) {
+                                     @ApiParam(value = "json representing the repair set") RepairSet repairSet) {
         repairSet.setPrivileges(Privileges.newWithSingleOwner(username));
         repairSet.setCreator(username);
         String repairId = this.repairDAO.saveRepair(repairSet);
@@ -160,8 +157,8 @@ public class RepairController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a repair by Id", notes = "Get a particular repair based on the id provided")
     public RepairSet getRepairSetById(@HeaderParam("X-Credential-Username") String username,
-                                                @ApiParam(value = "hexadecimal repair id", example = "5b47b2d8337d4a36187c6727")
-                                                @PathParam("repairId") String id) {
+                                      @ApiParam(value = "hexadecimal repair id", example = "5b47b2d8337d4a36187c6727")
+                                      @PathParam("repairId") String id) {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
         if (repairSet.isPresent()) {
@@ -181,9 +178,9 @@ public class RepairController {
         @ApiResponse(code = 404, message = "No repairs found with the searched text")
     })
     public List<RepairSet> findRepairs(@HeaderParam("X-Credential-Username") String username,
-                                                @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
-                                                @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                       @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                       @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<RepairSet> sets = new ArrayList<>();
         Optional<RepairSet> fs = this.repairDAO.getRepairSetById(text);
         if (fs.isPresent()) {

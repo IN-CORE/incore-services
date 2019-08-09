@@ -49,7 +49,7 @@ public class Application extends ResourceConfig {
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
         String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
-        if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
+        if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }
 

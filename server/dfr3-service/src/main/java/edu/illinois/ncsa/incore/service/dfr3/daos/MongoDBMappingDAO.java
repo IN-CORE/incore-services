@@ -11,8 +11,8 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilityMappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RepairMappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationMappingSet;
 import org.bson.types.ObjectId;
@@ -30,21 +30,20 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public void initialize() { super.initializeDataStore(MappingSet.class);
+    public void initialize() {
+        super.initializeDataStore(MappingSet.class);
     }
 
     @Override
     public List<MappingSet> getMappingSets(String type) {
         List<MappingSet> mappingSets = new LinkedList<>();
-        if (type.equals("fragility")){
+        if (type.equals("fragility")) {
             List<FragilityMappingSet> fragilityMappingSets = this.dataStore.createQuery(FragilityMappingSet.class).asList();
             mappingSets.addAll(fragilityMappingSets);
-        }
-        else if (type.equals("restoration")){
+        } else if (type.equals("restoration")) {
             List<RestorationMappingSet> restorationMappingSets = this.dataStore.createQuery(RestorationMappingSet.class).asList();
             mappingSets.addAll(restorationMappingSets);
-        }
-        else if (type.equals("repair")){
+        } else if (type.equals("repair")) {
             List<RepairMappingSet> repairMappingSets = this.dataStore.createQuery(RepairMappingSet.class).asList();
             mappingSets.addAll(repairMappingSets);
         }
@@ -58,14 +57,12 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         }
 
         MappingSet mappingSet = null;
-        if (type.equals("fragility")){
+        if (type.equals("fragility")) {
             mappingSet = this.dataStore.get(FragilityMappingSet.class, new ObjectId(id));
 
-        }
-        else if (type.equals("restoration")){
+        } else if (type.equals("restoration")) {
             mappingSet = this.dataStore.get(RestorationMappingSet.class, new ObjectId(id));
-        }
-        else if (type.equals("repair")){
+        } else if (type.equals("repair")) {
             mappingSet = this.dataStore.get(RepairMappingSet.class, new ObjectId(id));
         }
 
@@ -98,16 +95,14 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
             }
             List<FragilityMappingSet> fragilityMappingSets = query.asList();
             mappingSets.addAll(fragilityMappingSets);
-        }
-        else if (type.equals("restoration")) {
+        } else if (type.equals("restoration")) {
             Query<RestorationMappingSet> query = this.dataStore.createQuery(RestorationMappingSet.class);
             for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
                 query.filter(queryEntry.getKey(), queryEntry.getValue());
             }
             List<RestorationMappingSet> restorationMappingSets = query.asList();
             mappingSets.addAll(restorationMappingSets);
-        }
-        else if (type.equals("repair")) {
+        } else if (type.equals("repair")) {
             Query<RepairMappingSet> query = this.dataStore.createQuery(RepairMappingSet.class);
             for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
                 query.filter(queryEntry.getKey(), queryEntry.getValue());

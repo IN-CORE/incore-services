@@ -10,8 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
@@ -24,7 +24,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 
 @SwaggerDefinition(
@@ -50,27 +49,25 @@ import java.util.stream.Collectors;
 )
 
 
-@Api(value="fragilities", authorizations = {})
+@Api(value = "fragilities", authorizations = {})
 @Path("fragilities")
 public class FragilityController {
 
     private static final Logger logger = Logger.getLogger(FragilityController.class);
-
+    @Inject
+    IAuthorizer authorizer;
     @Inject
     private IFragilityDAO fragilityDAO;
-
     @Inject
     private ISpaceRepository spaceRepository;
 
-    @Inject IAuthorizer authorizer;
-
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of fragilities", notes="Apply filters to get the desired set of fragilities")
+    @ApiOperation(value = "Gets list of fragilities", notes = "Apply filters to get the desired set of fragilities")
     public List<FragilitySet> getFragilities(@HeaderParam("X-Credential-Username") String username,
                                              @ApiParam(value = "demand type filter", example = "PGA") @QueryParam("demand") String demandType,
-                                             @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
-                                             @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
+                                             @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                             @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
                                              @ApiParam(value = "not implemented", hidden = true) @QueryParam("author") String author,
                                              @ApiParam(value = "Legacy fragility Id from v1") @QueryParam("legacy_id") String legacyId,
                                              @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
@@ -143,15 +140,15 @@ public class FragilityController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a fragility set", notes="Post a fragility set to the dfr3 service")
+    @ApiOperation(value = "Create a fragility set", notes = "Post a fragility set to the dfr3 service")
     public FragilitySet uploadFragilitySet(@HeaderParam("X-Credential-Username") String username,
-                                           @ApiParam(value="json representing the fragility set") FragilitySet fragilitySet) {
+                                           @ApiParam(value = "json representing the fragility set") FragilitySet fragilitySet) {
         fragilitySet.setPrivileges(Privileges.newWithSingleOwner(username));
         fragilitySet.setCreator(username);
         String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
 
         Space space = spaceRepository.getSpaceByName(username);
-        if(space == null) {
+        if (space == null) {
             space = new Space(username);
             space.setPrivileges(Privileges.newWithSingleOwner(username));
         }
@@ -164,9 +161,9 @@ public class FragilityController {
     @GET
     @Path("{fragilityId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a fragility by Id", notes="Get a particular fragility based on the id provided")
+    @ApiOperation(value = "Gets a fragility by Id", notes = "Get a particular fragility based on the id provided")
     public FragilitySet getFragilityById(@HeaderParam("X-Credential-Username") String username,
-                                         @ApiParam(value="fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
+                                         @ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
         if (fragilitySet.isPresent()) {
@@ -181,18 +178,18 @@ public class FragilityController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all fragilities", notes="Gets all fragilities that contain a specific text")
+    @ApiOperation(value = "Search for a text in all fragilities", notes = "Gets all fragilities that contain a specific text")
     @ApiResponses(value = {
         @ApiResponse(code = 404, message = "No fragilities found with the searched text")
     })
     public List<FragilitySet> findFragilities(@HeaderParam("X-Credential-Username") String username,
-                                              @ApiParam(value="Text to search by", example = "steel") @QueryParam("text") String text,
+                                              @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<FragilitySet> sets = new ArrayList<>();
         Optional<FragilitySet> fs = this.fragilityDAO.getFragilitySetById(text);
         if (fs.isPresent()) {
-                sets.add(fs.get());
+            sets.add(fs.get());
         } else {
             sets = this.fragilityDAO.searchFragilities(text);
         }

@@ -15,7 +15,9 @@ import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
 
@@ -66,11 +68,11 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
         Query<FragilitySet> query = this.dataStore.createQuery(FragilitySet.class);
 
         query.or(query.criteria("demandType").containsIgnoreCase(text),
-                 query.criteria("legacyId").containsIgnoreCase(text),
-                 query.criteria("hazardType").containsIgnoreCase(text),
-                 query.criteria("inventoryType").containsIgnoreCase(text),
-                 query.criteria("description").containsIgnoreCase(text),
-                 query.criteria("authors").containsIgnoreCase(text));
+            query.criteria("legacyId").containsIgnoreCase(text),
+            query.criteria("hazardType").containsIgnoreCase(text),
+            query.criteria("inventoryType").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text),
+            query.criteria("authors").containsIgnoreCase(text));
 
         List<FragilitySet> sets = query.asList();
 
@@ -80,8 +82,8 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.dataStore.createQuery(FragilitySet.class)
-                                                .filter(attributeType, attributeValue)
-                                                .asList();
+            .filter(attributeType, attributeValue)
+            .asList();
 
         return sets;
     }
@@ -102,9 +104,9 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
         List<FragilitySet> sets = this.dataStore.createQuery(FragilitySet.class)
-                                                .field("authors")
-                                                .contains(author)
-                                                .asList();
+            .field("authors")
+            .contains(author)
+            .asList();
 
         return sets;
     }

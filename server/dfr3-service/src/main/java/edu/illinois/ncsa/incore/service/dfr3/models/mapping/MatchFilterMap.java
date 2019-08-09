@@ -34,11 +34,33 @@ public class MatchFilterMap implements UserFacing {
     }
 
     public MatchFilterMap(List<PropertyMatch> matches) {
-	    this.matches = matches;
+        this.matches = matches;
     }
 
     public MatchFilterMap(Element element) {
         initializeFromElement(element);
+    }
+
+    public static MatchFilterMap loadMatchFilterMapFromUrl(String mappingUrl) throws DeserializationException {
+        try {
+            return loadMatchFilterMapFromUrl(new URL(mappingUrl));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        throw new DeserializationException("Could not deserialize " + mappingUrl);
+    }
+
+    public static MatchFilterMap loadMatchFilterMapFromUrl(URL mappingUrl) throws DeserializationException {
+        try {
+            MappingDatasetStub stub = new MappingDatasetStub();
+            XmlUtils.deserializeUserFacingBeanFromFile(mappingUrl, stub);
+            return stub.getMatchFilterMap();
+        } catch (DeserializationException e) {
+            e.printStackTrace();
+        }
+
+        throw new DeserializationException("Could not deserialize " + mappingUrl.toString());
     }
 
     public List<PropertyMatch> getPropertyMatches() {
@@ -71,27 +93,5 @@ public class MatchFilterMap implements UserFacing {
         while (iterator.hasNext()) {
             matches.add(new PropertyMatch((Element) iterator.next()));
         }
-    }
-
-    public static MatchFilterMap loadMatchFilterMapFromUrl(String mappingUrl) throws DeserializationException {
-        try {
-            return loadMatchFilterMapFromUrl(new URL(mappingUrl));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        throw new DeserializationException("Could not deserialize " + mappingUrl);
-    }
-
-    public static MatchFilterMap loadMatchFilterMapFromUrl(URL mappingUrl) throws DeserializationException {
-        try {
-            MappingDatasetStub stub = new MappingDatasetStub();
-            XmlUtils.deserializeUserFacingBeanFromFile(mappingUrl, stub);
-            return stub.getMatchFilterMap();
-        } catch (DeserializationException e) {
-            e.printStackTrace();
-        }
-
-        throw new DeserializationException("Could not deserialize " + mappingUrl.toString());
     }
 }

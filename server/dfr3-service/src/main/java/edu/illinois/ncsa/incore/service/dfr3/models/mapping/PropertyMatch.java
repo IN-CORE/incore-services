@@ -25,8 +25,6 @@ import java.util.Map;
 
 
 public class PropertyMatch implements UserFacing {
-    private final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(this.getClass());
-
     public final static String TAG_SELF = "property-match"; //$NON-NLS-1$
     public final static String TAG_MAP = "map"; //$NON-NLS-1$
     public final static String TAG_ENTRY = "entry"; //$NON-NLS-1$
@@ -36,7 +34,7 @@ public class PropertyMatch implements UserFacing {
     public final static String TAG_FILTER = "filter"; //$NON-NLS-1$
     public final static String TAG_STATEMENT = "statement"; //$NON-NLS-1$
     public final static String TAG_RULE = "rule"; //$NON-NLS-1$
-
+    private final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(this.getClass());
     private Map<String, String> map = new HashMap<String, String>();
     private String key;
     private MatchFilter matchFilter;
@@ -62,6 +60,10 @@ public class PropertyMatch implements UserFacing {
         return map;
     }
 
+    public void setMap(Map<String, String> map) {
+        this.map = map;
+    }
+
     public String getKey() {
         return key;
     }
@@ -70,16 +72,12 @@ public class PropertyMatch implements UserFacing {
         this.key = key;
     }
 
-    public void setMap(Map<String, String> map) {
-        this.map = map;
+    public MatchFilter getMatchFilter() {
+        return matchFilter;
     }
 
     public void setMatchFilter(MatchFilter matchFilter) {
         this.matchFilter = matchFilter;
-    }
-
-    public MatchFilter getMatchFilter() {
-        return matchFilter;
     }
 
     @SuppressWarnings("unchecked")

@@ -43,7 +43,8 @@ public class FragilitySet {
     private Privileges privileges;
     private String creator;
 
-    public FragilitySet() { }
+    public FragilitySet() {
+    }
 
     public FragilitySet(String legacyId, String description, List<String> authors, PaperReference paperReference, String resultUnit,
                         String resultType, String demandType, String demandUnits, String hazardType, String inventoryType,
@@ -122,12 +123,12 @@ public class FragilitySet {
         this.privileges = privileges;
     }
 
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
     public String getCreator() {
         return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
     // endregion
 }

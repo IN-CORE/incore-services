@@ -19,12 +19,13 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilityMappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
-import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.dfr3.models.dto.FragilityMappingResponse;
+import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.Dfr3Mapper;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.*;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -37,7 +38,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value="fragility-mappings", authorizations = {})
+@Api(value = "fragility-mappings", authorizations = {})
 @Path("fragility-mappings")
 public class FragilityMappingController {
     private static final Logger logger = Logger.getLogger(FragilityMappingController.class);
@@ -55,10 +56,10 @@ public class FragilityMappingController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of fragility mappings", notes="Apply filters to get the desired set of fragility mappings")
+    @ApiOperation(value = "Gets list of fragility mappings", notes = "Apply filters to get the desired set of fragility mappings")
     public List<MappingSet> getFragilityMappings(@HeaderParam("X-Credential-Username") String username,
-                                                 @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
-                                                 @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
+                                                 @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                                 @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
                                                  @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
                                                  @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                                  @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
@@ -117,9 +118,9 @@ public class FragilityMappingController {
     @GET
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a fragility mapping set by Id", notes="Get a particular fragility mapping set based on the id provided")
+    @ApiOperation(value = "Gets a fragility mapping set by Id", notes = "Get a particular fragility mapping set based on the id provided")
     public MappingSet getFragilityMappingSetById(@HeaderParam("X-Credential-Username") String username,
-                                                 @ApiParam(value="fragility mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
+                                                 @ApiParam(value = "fragility mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "fragility");
 
         if (mappingSet.isPresent()) {
@@ -136,9 +137,9 @@ public class FragilityMappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a fragility mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
+    @ApiOperation(value = "Create a fragility mapping", notes = "Post a fragility mapping set that maps a fragility to an inventory's attributes")
     public MappingSet uploadFragilityMapping(@HeaderParam("X-Credential-Username") String username,
-                                             @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
+                                             @ApiParam(value = "json representing the fragility mapping") MappingSet mappingSet) {
 
         FragilityMappingSet fragilityMappingSet = (FragilityMappingSet) mappingSet;
         fragilityMappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
@@ -164,8 +165,8 @@ public class FragilityMappingController {
     @ApiOperation(value = "Map each inventory to a fragility set Id based on the input mapping Id",
         notes = "Returns a json where key is the inventory id that is mapped to a fragility set id based on the input mapping id")
     public FragilityMappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
-                                          @PathParam("mappingSetId") String mappingSetId,
-                                          MappingRequest mappingRequest) throws ParseException {
+                                                   @PathParam("mappingSetId") String mappingSetId,
+                                                   MappingRequest mappingRequest) throws ParseException {
 
         Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
         Map<String, String> fragilityMap = new HashMap<>();

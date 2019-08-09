@@ -26,8 +26,8 @@ import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "mappingType")
 @JsonSubTypes({@JsonSubTypes.Type(value = FragilityMappingSet.class, name = "fragility"),
-@JsonSubTypes.Type(value = RestorationMappingSet.class, name = "restoration"),
-@JsonSubTypes.Type(value = RepairMappingSet.class, name = "repair")})
+    @JsonSubTypes.Type(value = RestorationMappingSet.class, name = "restoration"),
+    @JsonSubTypes.Type(value = RepairMappingSet.class, name = "repair")})
 @XmlRootElement
 public abstract class MappingSet {
 
@@ -87,11 +87,11 @@ public abstract class MappingSet {
         this.privileges = privileges;
     }
 
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
     public String getCreator() {
         return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 }

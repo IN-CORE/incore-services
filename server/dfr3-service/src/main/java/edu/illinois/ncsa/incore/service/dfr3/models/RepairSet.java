@@ -41,7 +41,8 @@ public class RepairSet {
     private Privileges privileges;
     private String creator;
 
-    public RepairSet() { }
+    public RepairSet() {
+    }
 
     public RepairSet(String legacyId, String description, List<String> authors, PaperReference paperReference, String resultUnit,
                      String resultType, String timeUnits, String hazardType, String inventoryType,
@@ -91,7 +92,9 @@ public class RepairSet {
         return resultType;
     }
 
-    public String getTimeUnits() { return timeUnits; }
+    public String getTimeUnits() {
+        return timeUnits;
+    }
 
     public String getHazardType() {
         return hazardType;
@@ -113,12 +116,12 @@ public class RepairSet {
         this.privileges = privileges;
     }
 
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
     public String getCreator() {
         return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
     // endregion
 }

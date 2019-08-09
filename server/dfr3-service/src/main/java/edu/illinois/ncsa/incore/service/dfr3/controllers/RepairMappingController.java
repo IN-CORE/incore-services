@@ -38,7 +38,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value="repair-mappings", authorizations = {})
+@Api(value = "repair-mappings", authorizations = {})
 @Path("repair-mappings")
 public class RepairMappingController {
     private static final Logger logger = Logger.getLogger(RepairMappingController.class);
@@ -56,10 +56,10 @@ public class RepairMappingController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of repair mappings", notes="Apply filters to get the desired set of repair mappings")
+    @ApiOperation(value = "Gets list of repair mappings", notes = "Apply filters to get the desired set of repair mappings")
     public List<MappingSet> getRepairMappings(@HeaderParam("X-Credential-Username") String username,
-                                              @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
-                                              @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
+                                              @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                              @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
                                               @ApiParam(value = "Repair creator's username") @QueryParam("creator") String creator,
                                               @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
@@ -118,9 +118,9 @@ public class RepairMappingController {
     @GET
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a repair mapping set by Id", notes="Get a particular repair mapping set based on the id provided")
+    @ApiOperation(value = "Gets a repair mapping set by Id", notes = "Get a particular repair mapping set based on the id provided")
     public MappingSet getRepairMappingSetById(@HeaderParam("X-Credential-Username") String username,
-                                              @ApiParam(value="hexadecimal repair mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
+                                              @ApiParam(value = "hexadecimal repair mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "repair");
 
         if (mappingSet.isPresent()) {
@@ -137,9 +137,9 @@ public class RepairMappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a repair Mapping", notes="Post a repair mapping set that maps a repair to an inventory's attributes")
+    @ApiOperation(value = "Create a repair Mapping", notes = "Post a repair mapping set that maps a repair to an inventory's attributes")
     public MappingSet uploadRepairMapping(@HeaderParam("X-Credential-Username") String username,
-                                          @ApiParam(value="json representing the repair mapping") MappingSet mappingSet) {
+                                          @ApiParam(value = "json representing the repair mapping") MappingSet mappingSet) {
 
         RepairMappingSet fragilityMappingSet = (RepairMappingSet) mappingSet;
         fragilityMappingSet.setPrivileges(Privileges.newWithSingleOwner(username));

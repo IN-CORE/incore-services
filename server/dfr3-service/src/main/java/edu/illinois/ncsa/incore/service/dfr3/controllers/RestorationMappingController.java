@@ -14,17 +14,18 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
+import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationMappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationSet;
-import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.dfr3.models.dto.RestorationMappingResponse;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.Dfr3Mapper;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.*;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -37,7 +38,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value="restoration-mappings", authorizations = {})
+@Api(value = "restoration-mappings", authorizations = {})
 @Path("restoration-mappings")
 public class RestorationMappingController {
     private static final Logger logger = Logger.getLogger(RestorationMappingController.class);
@@ -55,10 +56,10 @@ public class RestorationMappingController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of restoration mappings", notes="Apply filters to get the desired set of restoration mappings")
+    @ApiOperation(value = "Gets list of restoration mappings", notes = "Apply filters to get the desired set of restoration mappings")
     public List<MappingSet> getRestorationMappings(@HeaderParam("X-Credential-Username") String username,
-                                                   @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
-                                                   @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
+                                                   @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                                   @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
                                                    @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
                                                    @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                                    @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
@@ -117,9 +118,9 @@ public class RestorationMappingController {
     @GET
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a restoration mapping set by Id", notes="Get a particular restoration mapping set based on the id provided")
+    @ApiOperation(value = "Gets a restoration mapping set by Id", notes = "Get a particular restoration mapping set based on the id provided")
     public MappingSet getRestorationMappingSetById(@HeaderParam("X-Credential-Username") String username,
-                                                   @ApiParam(value="hexadecimal restoration mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
+                                                   @ApiParam(value = "hexadecimal restoration mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "restoration");
 
         if (mappingSet.isPresent()) {
@@ -136,9 +137,9 @@ public class RestorationMappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a restoration Mapping", notes="Post a restoration mapping set that maps a restoration to an inventory's attributes")
+    @ApiOperation(value = "Create a restoration Mapping", notes = "Post a restoration mapping set that maps a restoration to an inventory's attributes")
     public MappingSet uploadRestorationMapping(@HeaderParam("X-Credential-Username") String username,
-                                               @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
+                                               @ApiParam(value = "json representing the restoration mapping") MappingSet mappingSet) {
 
         RestorationMappingSet fragilityMappingSet = (RestorationMappingSet) mappingSet;
         fragilityMappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
