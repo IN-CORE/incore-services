@@ -6,19 +6,24 @@
  *
  * Contributors:
  * Omar Elabd, Nathan Tolbert
- *******************************************************************************/
+ */
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-public class CustomExpressionRestorationCurve extends RestorationCurve {
-    public String expression;
+public class StandardRepairCurve extends RepairCurve {
+    public double median;
+    public double beta;
+    public CurveType curveType;
 
-    public CustomExpressionRestorationCurve() {
+    public StandardRepairCurve() {
         super();
     }
 
-    public CustomExpressionRestorationCurve(String expression, String label) {
+    public StandardRepairCurve(double median, double beta, CurveType curveType, String label) {
         super(label);
-        this.expression = expression;
+
+        this.median = median;
+        this.beta = beta;
+        this.curveType = curveType;
     }
 }

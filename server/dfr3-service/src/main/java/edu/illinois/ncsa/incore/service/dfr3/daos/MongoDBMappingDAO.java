@@ -13,6 +13,7 @@ package edu.illinois.ncsa.incore.service.dfr3.daos;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilityMappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.models.RepairMappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationMappingSet;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
@@ -43,6 +44,10 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
             List<RestorationMappingSet> restorationMappingSets = this.dataStore.createQuery(RestorationMappingSet.class).asList();
             mappingSets.addAll(restorationMappingSets);
         }
+        else if (type.equals("repair")){
+            List<RepairMappingSet> repairMappingSets = this.dataStore.createQuery(RepairMappingSet.class).asList();
+            mappingSets.addAll(repairMappingSets);
+        }
         return mappingSets;
     }
 
@@ -59,6 +64,9 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         }
         else if (type.equals("restoration")){
             mappingSet = this.dataStore.get(RestorationMappingSet.class, new ObjectId(id));
+        }
+        else if (type.equals("repair")){
+            mappingSet = this.dataStore.get(RepairMappingSet.class, new ObjectId(id));
         }
 
         if (mappingSet == null) {
@@ -98,6 +106,14 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
             }
             List<RestorationMappingSet> restorationMappingSets = query.asList();
             mappingSets.addAll(restorationMappingSets);
+        }
+        else if (type.equals("repair")) {
+            Query<RepairMappingSet> query = this.dataStore.createQuery(RepairMappingSet.class);
+            for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
+                query.filter(queryEntry.getKey(), queryEntry.getValue());
+            }
+            List<RepairMappingSet> repairMappingSets = query.asList();
+            mappingSets.addAll(repairMappingSets);
         }
 
         return mappingSets;

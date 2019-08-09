@@ -10,7 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-public class MarkovChainRestorationCurve extends RestorationCurve {
+public class MarkovChainRepairCurve extends RepairCurve {
     public double param1;
     public double param2;
     public double param3;
@@ -21,13 +21,13 @@ public class MarkovChainRestorationCurve extends RestorationCurve {
     public double param8;
     public CurveType curveType;
 
-    public MarkovChainRestorationCurve() {
+    public MarkovChainRepairCurve() {
         super();
     }
 
-    public MarkovChainRestorationCurve(double param1, double param2, double param3,
-                                       double param4, double param5, double param6, double param7, double param8,
-                                       CurveType curveType, String label) {
+    public MarkovChainRepairCurve(double param1, double param2, double param3,
+                                  double param4, double param5, double param6, double param7, double param8,
+                                  CurveType curveType, String label) {
         super(label);
 
         this.param1 = param1;

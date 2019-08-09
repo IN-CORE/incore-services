@@ -10,24 +10,15 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+public class CustomExpressionRepairCurve extends RestorationCurve {
+    public String expression;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
-
-@XmlTransient
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "className")
-@XmlSeeAlso({StandardRestorationCurve.class})
-public abstract class RestorationCurve {
-    public String description;
-
-    public RestorationCurve() {
-
+    public CustomExpressionRepairCurve() {
+        super();
     }
 
-    public RestorationCurve(String label) {
-        this.description = label;
+    public CustomExpressionRepairCurve(String expression, String label) {
+        super(label);
+        this.expression = expression;
     }
 }
-
-//TODO StepwiseRestorationCurve.class

@@ -56,13 +56,13 @@ public class RestorationMappingController {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets list of restoration mappings", notes="Apply filters to get the desired set of restoration mappings")
-    public List<MappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
-                                        @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
-                                        @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
-                                        @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
-                                        @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    public List<MappingSet> getRestorationMappings(@HeaderParam("X-Credential-Username") String username,
+                                                   @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
+                                                   @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
+                                                   @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
+                                                   @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                                   @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                                   @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -118,8 +118,8 @@ public class RestorationMappingController {
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a restoration mapping set by Id", notes="Get a particular restoration mapping set based on the id provided")
-    public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
-                                        @ApiParam(value="hexadecimal restoration mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
+    public MappingSet getRestorationMappingSetById(@HeaderParam("X-Credential-Username") String username,
+                                                   @ApiParam(value="hexadecimal restoration mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "restoration");
 
         if (mappingSet.isPresent()) {
@@ -137,8 +137,8 @@ public class RestorationMappingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a restoration Mapping", notes="Post a restoration mapping set that maps a restoration to an inventory's attributes")
-    public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-                                    @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
+    public MappingSet uploadRestorationMapping(@HeaderParam("X-Credential-Username") String username,
+                                               @ApiParam(value="json representing the restoration mapping") MappingSet mappingSet) {
 
         RestorationMappingSet fragilityMappingSet = (RestorationMappingSet) mappingSet;
         fragilityMappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
@@ -163,9 +163,9 @@ public class RestorationMappingController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Map each inventory to a restoration set Id based on the input mapping Id",
         notes = "Returns a json where key is the inventory id that is mapped to a restoration set id based on the input mapping id")
-    public RestorationMappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
-                                          @PathParam("mappingSetId") String mappingSetId,
-                                          MappingRequest mappingRequest) throws ParseException {
+    public RestorationMappingResponse mapRestorations(@HeaderParam("X-Credential-Username") String username,
+                                                      @PathParam("mappingSetId") String mappingSetId,
+                                                      MappingRequest mappingRequest) throws ParseException {
 
         Map<String, RestorationSet> restorationSetMap = new HashMap<>();
         Map<String, String> restorationMap = new HashMap<>();

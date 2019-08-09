@@ -43,6 +43,9 @@ public class Application extends ResourceConfig {
         IRestorationDAO restorationDAO = new MongoDBRestorationDAO(mongoClientUri);
         restorationDAO.initialize();
 
+        IRepairDAO repairDAO = new MongoDBRepairDAO(mongoClientUri);
+        repairDAO.initialize();
+
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
         String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
@@ -61,6 +64,7 @@ public class Application extends ResourceConfig {
                 super.bind(fragilityDAO).to(IFragilityDAO.class);
                 super.bind(mappingDAO).to(IMappingDAO.class);
                 super.bind(restorationDAO).to(IRestorationDAO.class);
+                super.bind(repairDAO).to(IRepairDAO.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }

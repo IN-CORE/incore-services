@@ -14,17 +14,18 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
-import edu.illinois.ncsa.incore.service.dfr3.models.FragilityMappingSet;
-import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.models.RepairMappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingRequest;
-import edu.illinois.ncsa.incore.service.dfr3.models.dto.FragilityMappingResponse;
+import edu.illinois.ncsa.incore.service.dfr3.models.dto.RepairMappingResponse;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.Dfr3Mapper;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.*;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -37,15 +38,15 @@ import javax.ws.rs.core.MediaType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value="fragility-mappings", authorizations = {})
-@Path("fragility-mappings")
-public class FragilityMappingController {
-    private static final Logger logger = Logger.getLogger(FragilityMappingController.class);
+@Api(value="repair-mappings", authorizations = {})
+@Path("repair-mappings")
+public class RepairMappingController {
+    private static final Logger logger = Logger.getLogger(RepairMappingController.class);
 
     @Inject
     private IMappingDAO mappingDAO;
     @Inject
-    private IFragilityDAO fragilityDAO;
+    private IRepairDAO repairDAO;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -55,14 +56,14 @@ public class FragilityMappingController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of fragility mappings", notes="Apply filters to get the desired set of fragility mappings")
-    public List<MappingSet> getFragilityMappings(@HeaderParam("X-Credential-Username") String username,
-                                                 @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
-                                                 @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
-                                                 @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
-                                                 @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                                 @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                 @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    @ApiOperation(value = "Gets list of repair mappings", notes="Apply filters to get the desired set of repair mappings")
+    public List<MappingSet> getRepairMappings(@HeaderParam("X-Credential-Username") String username,
+                                              @ApiParam(value = "hazard type  filter", example= "earthquake") @QueryParam("hazard") String hazardType,
+                                              @ApiParam(value = "Inventory type", example="building") @QueryParam("inventory") String inventoryType,
+                                              @ApiParam(value = "Repair creator's username") @QueryParam("creator") String creator,
+                                              @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -81,9 +82,9 @@ public class FragilityMappingController {
         List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
-            mappingSets = this.mappingDAO.getMappingSets("fragility");
+            mappingSets = this.mappingDAO.getMappingSets("repair");
         } else {
-            mappingSets = this.mappingDAO.queryMappingSets(queryMap, "fragility");
+            mappingSets = this.mappingDAO.queryMappingSets(queryMap, "repair");
         }
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -117,10 +118,10 @@ public class FragilityMappingController {
     @GET
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a fragility mapping set by Id", notes="Get a particular fragility mapping set based on the id provided")
-    public MappingSet getFragilityMappingSetById(@HeaderParam("X-Credential-Username") String username,
-                                                 @ApiParam(value="fragility mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "fragility");
+    @ApiOperation(value = "Gets a repair mapping set by Id", notes="Get a particular repair mapping set based on the id provided")
+    public MappingSet getRepairMappingSetById(@HeaderParam("X-Credential-Username") String username,
+                                              @ApiParam(value="hexadecimal repair mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id, "repair");
 
         if (mappingSet.isPresent()) {
             MappingSet actual = mappingSet.get();
@@ -136,11 +137,11 @@ public class FragilityMappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a fragility mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
-    public MappingSet uploadFragilityMapping(@HeaderParam("X-Credential-Username") String username,
-                                             @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
+    @ApiOperation(value = "Create a repair Mapping", notes="Post a repair mapping set that maps a repair to an inventory's attributes")
+    public MappingSet uploadRepairMapping(@HeaderParam("X-Credential-Username") String username,
+                                          @ApiParam(value="json representing the repair mapping") MappingSet mappingSet) {
 
-        FragilityMappingSet fragilityMappingSet = (FragilityMappingSet) mappingSet;
+        RepairMappingSet fragilityMappingSet = (RepairMappingSet) mappingSet;
         fragilityMappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         fragilityMappingSet.setCreator(username);
 
@@ -161,14 +162,14 @@ public class FragilityMappingController {
     @Path("{mappingSetId}/matched")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Map each inventory to a fragility set Id based on the input mapping Id",
-        notes = "Returns a json where key is the inventory id that is mapped to a fragility set id based on the input mapping id")
-    public FragilityMappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
-                                          @PathParam("mappingSetId") String mappingSetId,
-                                          MappingRequest mappingRequest) throws ParseException {
+    @ApiOperation(value = "Map each inventory to a repair set Id based on the input mapping Id",
+        notes = "Returns a json where key is the inventory id that is mapped to a repair set id based on the input mapping id")
+    public RepairMappingResponse mapRepairs(@HeaderParam("X-Credential-Username") String username,
+                                            @PathParam("mappingSetId") String mappingSetId,
+                                            MappingRequest mappingRequest) throws ParseException {
 
-        Map<String, FragilitySet> fragilitySetMap = new HashMap<>();
-        Map<String, String> fragilityMap = new HashMap<>();
+        Map<String, RepairSet> repairSetMap = new HashMap<>();
+        Map<String, String> repairMap = new HashMap<>();
 
         List<Space> allSpaces = spaceRepository.getAllSpaces();
 
@@ -177,7 +178,7 @@ public class FragilityMappingController {
             throw new ForbiddenException();
         }
 
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId, "fragility");
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId, "repair");
 
         if (!mappingSet.isPresent()) {
             throw new BadRequestException();
@@ -200,37 +201,37 @@ public class FragilityMappingController {
             features.add((Feature) mappingRequest.mappingSubject.inventory);
         }
 
-        Map<String, FragilitySet> queriedFragilitySets = new HashMap<>();
+        Map<String, RepairSet> queriedRepairSets = new HashMap<>();
         for (Feature feature : features) {
-            String fragilityKey = mapper.getDfr3CurveFor(mappingRequest.mappingSubject.schemaType.toString(),
+            String repairKey = mapper.getDfr3CurveFor(mappingRequest.mappingSubject.schemaType.toString(),
                 feature.getProperties(), mappingRequest.parameters);
 
-            if (ObjectId.isValid(fragilityKey)) {
-                FragilitySet currFragility = null;
-                if (queriedFragilitySets.containsKey(fragilityKey)) {
-                    currFragility = queriedFragilitySets.get(fragilityKey);
+            if (ObjectId.isValid(repairKey)) {
+                RepairSet currRepair = null;
+                if (queriedRepairSets.containsKey(repairKey)) {
+                    currRepair = queriedRepairSets.get(repairKey);
                 } else {
-                    Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(fragilityKey);
-                    if (fragilitySet.isPresent()) {
-                        if (authorizer.canUserReadMember(username, fragilityKey, allSpaces)) {
-                            currFragility = fragilitySet.get();
+                    Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(repairKey);
+                    if (repairSet.isPresent()) {
+                        if (authorizer.canUserReadMember(username, repairKey, allSpaces)) {
+                            currRepair = repairSet.get();
                         }
-                        // if currFagility is set to null for a queried fragility,
-                        // it means we already read the fragility and determined that it doesn't have read access.
-                        queriedFragilitySets.put(fragilityKey, currFragility);
+                        // if currRepair is set to null for a queried repair,
+                        // it means we already read the repair and determined that it doesn't have read access.
+                        queriedRepairSets.put(repairKey, currRepair);
                     }
                 }
 
-                // If we found a matching fragility and user has read access to it
-                if (currFragility != null) {
-                    fragilitySetMap.put(fragilityKey, currFragility);
-                    fragilityMap.put(feature.getId(), fragilityKey);
+                // If we found a matching repair and user has read access to it
+                if (currRepair != null) {
+                    repairSetMap.put(repairKey, currRepair);
+                    repairMap.put(feature.getId(), repairKey);
                 }
             }
         }
 
         // Construct response
-        FragilityMappingResponse mappingResponse = new FragilityMappingResponse(fragilitySetMap, fragilityMap);
+        RepairMappingResponse mappingResponse = new RepairMappingResponse(repairSetMap, repairMap);
 
         return mappingResponse;
     }

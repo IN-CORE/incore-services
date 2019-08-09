@@ -17,15 +17,15 @@ import javax.xml.bind.annotation.XmlTransient;
 
 @XmlTransient
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "className")
-@XmlSeeAlso({StandardRestorationCurve.class})
-public abstract class RestorationCurve {
+@XmlSeeAlso({CustomExpressionRepairCurve.class, StandardRepairCurve.class, MarkovChainRepairCurve.class, StepwiseRepairCurve.class})
+public abstract class RepairCurve {
     public String description;
 
-    public RestorationCurve() {
+    public RepairCurve() {
 
     }
 
-    public RestorationCurve(String label) {
+    public RepairCurve(String label) {
         this.description = label;
     }
 }
