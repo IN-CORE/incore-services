@@ -2,7 +2,7 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID"
          version="2.5">
-    <display-name>Fragility Service</display-name>
+    <display-name>DFR3 Service</display-name>
     <servlet>
         <servlet-name>jersey</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
@@ -35,7 +35,7 @@
         </init-param>
         <init-param>
             <param-name>swagger.api.basepath</param-name>
-            <param-value>/fragility/api</param-value>
+            <param-value>/dfr3/api</param-value>
         </init-param>
         <load-on-startup>2</load-on-startup>
     </servlet>
