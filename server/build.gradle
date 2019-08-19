@@ -53,7 +53,7 @@ if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
 //a "farm" is the gretty term for multiple webapps that can be run
 //in the same webapp service.
 farm {
-    webapp ':resilience-service'
+    webapp ':dfr3-service'
     webapp ':data-service'
     webapp ':hazard-service'
     webapp ':maestro-service'

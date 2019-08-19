@@ -67,7 +67,7 @@ public class SpaceController {
     private static final String TORNADO_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
     private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
     private static final String TSUNAMI_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
-    private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "resilience/api/fragilities/" : "/resilience/api/fragilities/";
+    private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/fragilities/" : "/dfr3/api/fragilities/";
     private static final String DATA_URL = SERVICES_URL.endsWith("/") ? "data/api/datasets/" : "/data/api/datasets/";
 
     public static final String SPACE_MEMBERS = "members";
