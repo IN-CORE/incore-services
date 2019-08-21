@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
-import edu.illinois.ncsa.incore.service.dfr3.models.dto.FragilityMappingResponse;
 import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
@@ -32,7 +31,7 @@ public class MappingControllerTest extends CustomJerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(FragilityMappingController.class);
+        MockApplication application = new MockApplication(MappingController.class);
 
         return application;
     }

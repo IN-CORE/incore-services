@@ -10,8 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
@@ -24,12 +22,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "mappingType")
-@JsonSubTypes({@JsonSubTypes.Type(value = FragilityMappingSet.class, name = "fragility"),
-    @JsonSubTypes.Type(value = RestorationMappingSet.class, name = "restoration"),
-    @JsonSubTypes.Type(value = RepairMappingSet.class, name = "repair")})
 @XmlRootElement
-public abstract class MappingSet {
+public class MappingSet {
 
     @Id
     @Property("_id")
@@ -38,6 +32,7 @@ public abstract class MappingSet {
     private String name;
     private String hazardType;
     private String inventoryType;
+    private String mappingType;
     private List<Mapping> mappings = new ArrayList<>();
     private Privileges privileges;
     private String creator;
@@ -94,4 +89,13 @@ public abstract class MappingSet {
     public void setCreator(String creator) {
         this.creator = creator;
     }
+
+    public String getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(String mappingType) {
+        this.mappingType = mappingType;
+    }
+
 }

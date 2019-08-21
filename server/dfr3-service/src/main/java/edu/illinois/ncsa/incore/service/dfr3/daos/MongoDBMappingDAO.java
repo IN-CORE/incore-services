@@ -11,10 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.dfr3.models.FragilityMappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
-import edu.illinois.ncsa.incore.service.dfr3.models.RepairMappingSet;
-import edu.illinois.ncsa.incore.service.dfr3.models.RestorationMappingSet;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
 
@@ -35,36 +32,18 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> getMappingSets(String type) {
-        List<MappingSet> mappingSets = new LinkedList<>();
-        if (type.equals("fragility")) {
-            List<FragilityMappingSet> fragilityMappingSets = this.dataStore.createQuery(FragilityMappingSet.class).asList();
-            mappingSets.addAll(fragilityMappingSets);
-        } else if (type.equals("restoration")) {
-            List<RestorationMappingSet> restorationMappingSets = this.dataStore.createQuery(RestorationMappingSet.class).asList();
-            mappingSets.addAll(restorationMappingSets);
-        } else if (type.equals("repair")) {
-            List<RepairMappingSet> repairMappingSets = this.dataStore.createQuery(RepairMappingSet.class).asList();
-            mappingSets.addAll(repairMappingSets);
-        }
-        return mappingSets;
+    public List<MappingSet> getMappingSets() {
+        return this.dataStore.createQuery(MappingSet.class).asList();
     }
 
     @Override
-    public Optional<MappingSet> getMappingSetById(String id, String type) {
+    public Optional<MappingSet> getMappingSetById(String id) {
         if (!ObjectId.isValid(id)) {
             return Optional.empty();
         }
 
         MappingSet mappingSet = null;
-        if (type.equals("fragility")) {
-            mappingSet = this.dataStore.get(FragilityMappingSet.class, new ObjectId(id));
-
-        } else if (type.equals("restoration")) {
-            mappingSet = this.dataStore.get(RestorationMappingSet.class, new ObjectId(id));
-        } else if (type.equals("repair")) {
-            mappingSet = this.dataStore.get(RepairMappingSet.class, new ObjectId(id));
-        }
+        mappingSet = this.dataStore.get(MappingSet.class, new ObjectId(id));
 
         if (mappingSet == null) {
             return Optional.empty();
@@ -84,33 +63,13 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> queryMappingSets(Map<String, String> queryMap, String type) {
+    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
 
-        List<MappingSet> mappingSets = new LinkedList<MappingSet>();
-
-        if (type.equals("fragility")) {
-            Query<FragilityMappingSet> query = this.dataStore.createQuery(FragilityMappingSet.class);
-            for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-                query.filter(queryEntry.getKey(), queryEntry.getValue());
-            }
-            List<FragilityMappingSet> fragilityMappingSets = query.asList();
-            mappingSets.addAll(fragilityMappingSets);
-        } else if (type.equals("restoration")) {
-            Query<RestorationMappingSet> query = this.dataStore.createQuery(RestorationMappingSet.class);
-            for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-                query.filter(queryEntry.getKey(), queryEntry.getValue());
-            }
-            List<RestorationMappingSet> restorationMappingSets = query.asList();
-            mappingSets.addAll(restorationMappingSets);
-        } else if (type.equals("repair")) {
-            Query<RepairMappingSet> query = this.dataStore.createQuery(RepairMappingSet.class);
-            for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-                query.filter(queryEntry.getKey(), queryEntry.getValue());
-            }
-            List<RepairMappingSet> repairMappingSets = query.asList();
-            mappingSets.addAll(repairMappingSets);
+        Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
+        for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
+            query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
-
-        return mappingSets;
+        return query.asList();
     }
+
 }

@@ -11,32 +11,31 @@
 package edu.illinois.ncsa.incore.service.dfr3.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class RepairMappingResponse {
+public class MappingResponse {
     @JsonProperty("sets")
-    public Map<String, RepairSet> repairSets = new HashMap<>();
+    public Map<String, ?> dfr3Sets = new HashMap<>();
 
     @JsonProperty("mapping")
-    public Map<String, String> repairToInventoryMapping = new HashMap<>();
+    public Map<String, String> dfr3SetsToInventoryMapping = new HashMap<>();
 
-    public RepairMappingResponse() {
+    public MappingResponse() {
 
     }
 
-    public RepairMappingResponse(Map<String, RepairSet> repairSets, Map<String, String> repairMap) {
-        this.repairSets = repairSets;
-        this.repairToInventoryMapping = repairMap;
+    public MappingResponse(Map<String, ?> setJsonMap, Map<String, String> setIdMap) {
+        this.dfr3Sets = setJsonMap;
+        this.dfr3SetsToInventoryMapping = setIdMap;
     }
 
-    public Map<String, RepairSet> getRepairSets() {
-        return repairSets;
+    public Map<String, ?> getDfr3Sets() {
+        return dfr3Sets;
     }
 
-    public Map<String, String> getRepairToInventoryMapping() {
-        return repairToInventoryMapping;
+    public Map<String, String> getDfr3SetsToInventoryMapping() {
+        return dfr3SetsToInventoryMapping;
     }
 }
