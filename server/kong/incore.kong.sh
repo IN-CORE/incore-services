@@ -4,7 +4,8 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=dfr3' \
   --data 'uris=/dfr3' \
-  --data 'upstream_url=http://localhost:8888/dfr3/'
+  --data 'upstream_url=http://localhost:8888/dfr3/' \
+  --data 'upstream_read_timeout=120000'
 
 
 
@@ -34,7 +35,8 @@ curl -i -X POST \
   --url http://localhost:8001/apis/ \
   --data 'name=hazard' \
   --data 'uris=/hazard' \
-  --data 'upstream_url=http://localhost:8888/hazard/'
+  --data 'upstream_url=http://localhost:8888/hazard/' \
+  --data 'upstream_read_timeout=1200000'
 
 curl -i -X DELETE --url http://localhost:8001/apis/space
 curl -i -X POST \

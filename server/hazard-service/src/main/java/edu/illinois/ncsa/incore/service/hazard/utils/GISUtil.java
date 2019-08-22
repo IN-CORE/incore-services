@@ -112,14 +112,42 @@ public class GISUtil {
         return inSourceFileUrl;
     }
 
+    private static URL cacheFeatureCollection(String datasetId, File cacheDir, String creator) {
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, cacheDir);
+        return GISUtil.unZipShapefiles(file, cacheDir);
+    }
+
     public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
 
-        File incoreWorkDirectory = ServiceUtil.getWorkDirectory();
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, incoreWorkDirectory);
-
-        URL inSourceFileUrl = unZipShapefiles(file, incoreWorkDirectory);
+        URL inSourceFileUrl = null;
 
         try {
+            //first see if the cache has the .shp file in it
+            File cacheDir = ServiceUtil.getCacheDirectory("dataset-" + datasetId);
+            if (cacheDir.exists()){
+                String[] shpFiles = cacheDir.list(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.toLowerCase().endsWith(".shp");
+                    }
+                });
+                if (shpFiles != null && shpFiles.length > 0){
+                    inSourceFileUrl = new File(cacheDir, shpFiles[0]).toURI().toURL();
+                }
+            }
+
+            //if not, download the cache it
+            if (inSourceFileUrl == null) {
+                inSourceFileUrl = cacheFeatureCollection(datasetId, cacheDir, creator);
+            }
+
+            //if we still don't have it, there's a problem
+            if (inSourceFileUrl == null) {
+                logger.error("Could not locate Feature Collection");
+                return null;
+            }
+
+
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("url", inSourceFileUrl);
 
@@ -130,6 +158,7 @@ public class GISUtil {
             dataStore.dispose();
             SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures();
             return inputFeatures;
+
         } catch (IOException e) {
             logger.error("Error reading shapefile");
             return null;
