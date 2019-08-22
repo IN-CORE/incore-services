@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.hazard.models.tsunami;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
@@ -33,8 +32,6 @@ public abstract class Tsunami {
     private String description;
     private Date date = new Date();
 
-    private Privileges privileges;
-
     public void setName(String name) {
         this.name = name;
     }
@@ -49,14 +46,6 @@ public abstract class Tsunami {
 
     public String getId() {
         return id.toString();
-    }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
     }
 
     public String getName() {

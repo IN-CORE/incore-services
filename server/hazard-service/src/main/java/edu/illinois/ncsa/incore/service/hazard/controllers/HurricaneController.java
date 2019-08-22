@@ -14,9 +14,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
+import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
@@ -224,7 +224,6 @@ public class HurricaneController {
                 hurricaneWindfields.setTransD(inputHurricane.getTransD());
                 hurricaneWindfields.setModelUsed(hurricaneSimulationEnsemble.getModelUsed());
                 hurricaneWindfields.setLandfallLocation(inputHurricane.getLandfallLocation());
-                hurricaneWindfields.setPrivileges(Privileges.newWithSingleOwner(username));
                 hurricaneWindfields.setTimes(hurricaneSimulationEnsemble.getTimes());
                 hurricaneWindfields.setGridPoints(inputHurricane.getGridPoints());
 
@@ -234,7 +233,6 @@ public class HurricaneController {
                 hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
                     inputHurricane.getRasterResolution(), username));
 
-                hurricaneWindfields.setPrivileges(Privileges.newWithSingleOwner(username));
                 //save hurricane
                 hurricaneWindfields =repository.addHurricane(hurricaneWindfields);
 
@@ -245,7 +243,7 @@ public class HurricaneController {
                     spaceRepository.addSpace(space);
                 } else {
                     space = new Space(username);
-                    space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+                    space.setPrivileges(Privileges.newWithSingleOwner(username));
                     space.addMember(hurricaneWindfields.getId());
                     spaceRepository.addSpace(space);
                 }

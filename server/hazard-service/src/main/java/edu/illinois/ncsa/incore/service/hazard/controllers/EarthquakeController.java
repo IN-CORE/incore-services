@@ -117,7 +117,6 @@ public class EarthquakeController {
         Earthquake earthquake = null;
         try {
             earthquake = mapper.readValue(eqJson, Earthquake.class);
-            earthquake.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // Create temporary working directory
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");
@@ -689,7 +688,7 @@ public class EarthquakeController {
             spaceRepository.addSpace(space);
         } else {
             space = new Space(username);
-            space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
             space.addMember(earthquake.getId());
             spaceRepository.addSpace(space);
         }

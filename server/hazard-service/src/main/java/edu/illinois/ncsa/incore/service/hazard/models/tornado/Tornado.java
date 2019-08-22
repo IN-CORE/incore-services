@@ -9,7 +9,6 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
@@ -30,7 +29,6 @@ public class Tornado {
     private String name;
     private String description;
 
-    private Privileges privileges;
     private Date date = new Date();
 
     public String getDescription() {
@@ -43,14 +41,6 @@ public class Tornado {
 
     public String getId() {
         return id.toString();
-    }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
     }
 
     public String getName() {

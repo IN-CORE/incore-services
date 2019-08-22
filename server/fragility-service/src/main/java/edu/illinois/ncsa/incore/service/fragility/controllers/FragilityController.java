@@ -146,7 +146,6 @@ public class FragilityController {
     @ApiOperation(value = "Create a fragility set", notes="Post a fragility set to the fragility service")
     public FragilitySet uploadFragilitySet(@HeaderParam("X-Credential-Username") String username,
                                            @ApiParam(value="json representing the fragility set") FragilitySet fragilitySet) {
-        fragilitySet.setPrivileges(Privileges.newWithSingleOwner(username));
         fragilitySet.setCreator(username);
         String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
 

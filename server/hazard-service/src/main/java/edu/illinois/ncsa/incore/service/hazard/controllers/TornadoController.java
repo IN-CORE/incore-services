@@ -123,7 +123,6 @@ public class TornadoController {
         Tornado tornado = null;
         try {
             tornado = mapper.readValue(tornadoJson, Tornado.class);
-            tornado.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // TODO verify that parameters like title are not null
 
@@ -158,7 +157,7 @@ public class TornadoController {
                 File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection) collection);
 
                 // Create dataset object representation for storing shapefile
-                JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
+                JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
                 String datasetId = ServiceUtil.createDataset(datasetObject, username, files);
@@ -172,7 +171,7 @@ public class TornadoController {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
                 if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
                     // Create dataset object representation for storing shapefile
-                    JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
+                    JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
                     String datasetId = ServiceUtil.createDataset(datasetObject, username, fileParts);
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
@@ -323,7 +322,7 @@ public class TornadoController {
             spaceRepository.addSpace(space);
         } else {
             space = new Space(username);
-            space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
             space.addMember(tornado.getId());
             spaceRepository.addSpace(space);
         }
