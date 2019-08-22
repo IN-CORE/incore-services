@@ -10,6 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
@@ -32,7 +33,10 @@ public class MappingSet {
     private String name;
     private String hazardType;
     private String inventoryType;
+
+    @JsonProperty("mappingType")
     private String mappingType;
+
     private List<Mapping> mappings = new ArrayList<>();
     private Privileges privileges;
     private String creator;

@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.dfr3.daos.*;
-import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.models.*;
 import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingResponse;
 import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingRequest;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.Dfr3Mapper;
@@ -175,7 +175,7 @@ public class MappingController {
                                                    @PathParam("mappingSetId") String mappingSetId,
                                                    MappingRequest mappingRequest) throws ParseException {
 
-        Map<String, Object> setJsonMap = new HashMap<>();
+        Map<String, Dfr3Set> setJsonMap = new HashMap<>();
         Map<String, String> setIdMap = new HashMap<>();
 
         List<Space> allSpaces = spaceRepository.getAllSpaces();
@@ -210,34 +210,45 @@ public class MappingController {
             features.add((Feature) mappingRequest.mappingSubject.inventory);
         }
 
-        Map<String, Object> queriedDfr3Set = new HashMap<>();
+        Map<String, Dfr3Set> queriedDfr3Set = new HashMap<>();
         for (Feature feature : features) {
             String setKey = mapper.getDfr3CurveFor(mappingRequest.mappingSubject.schemaType.toString(),
                 feature.getProperties(), mappingRequest.parameters);
 
             if (ObjectId.isValid(setKey)) {
-                Object currSet = new Object();
+                Dfr3Set currSet = null;
                 if (queriedDfr3Set.containsKey(setKey)) {
                     currSet = queriedDfr3Set.get(setKey);
                 } else {
-                    Optional<?> dfr3Set = null;
                     if (mappingType.equalsIgnoreCase("fragility")) {
-                        dfr3Set = this.fragilityDAO.getFragilitySetById(setKey);
+                        Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(setKey);
+
+                        if (fragilitySet.isPresent()) {
+                            if (authorizer.canUserReadMember(username, setKey, allSpaces)) {
+                                currSet = fragilitySet.get();
+                            }
+                            queriedDfr3Set.put(setKey, currSet);
+                        }
                     }
                     else if (mappingType.equalsIgnoreCase("repair")){
-                        dfr3Set = this.repairDAO.getRepairSetById(setKey);
+                        Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(setKey);
+
+                        if (repairSet.isPresent()) {
+                            if (authorizer.canUserReadMember(username, setKey, allSpaces)) {
+                                currSet = repairSet.get();
+                            }
+                            queriedDfr3Set.put(setKey, currSet);
+                        }
                     }
                     else if (mappingType.equalsIgnoreCase("restoration")){
-                        dfr3Set = this.restorationDAO.getRestorationSetById(setKey);
-                    }
+                        Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(setKey);
 
-                    if (dfr3Set.isPresent()) {
-                        if (authorizer.canUserReadMember(username, setKey, allSpaces)) {
-                            currSet = dfr3Set.get();
+                        if (restorationSet.isPresent()) {
+                            if (authorizer.canUserReadMember(username, setKey, allSpaces)) {
+                                currSet = restorationSet.get();
+                            }
+                            queriedDfr3Set.put(setKey, currSet);
                         }
-                        // if currSet is set to null for a queried set of DFR3 objects,
-                        // it means we already read the object and determined that it doesn't have read access.
-                        queriedDfr3Set.put(setKey, currSet);
                     }
                 }
 
