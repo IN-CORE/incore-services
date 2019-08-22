@@ -97,6 +97,12 @@ public class Authorizer implements IAuthorizer {
         );
     }
 
+    @Override
+    public boolean canDelete(String user, Privileges privileges) {
+        Set<PrivilegeLevel> privilegesFor = getPrivilegesFor(user, privileges);
+        return (privilegesFor.contains(PrivilegeLevel.ADMIN));
+    }
+
     ////////////////////////////////////////////////////////
     // methods to get all members a user has access to
     /////////////////////////////////////////////////////////
@@ -158,14 +164,14 @@ public class Authorizer implements IAuthorizer {
     }
 
     /**
-     * This method determines if a user can delete a member based on its privileges on a space the member is part of, or
+     * This method determines if a user can add a member to a space (or modify it) based on its privileges on a space the member is part of, or
      * based on a special group the user might be part of.
      * @param username string name of the user
      * @param memberId string id of the member
      * @param spaces a list of all spaces
      * @return boolean - true if the user has write or admin permissions on a space that contains the member
      */
-    public boolean canUserModifyMember(String username, String memberId, List<Space> spaces) {
+    public boolean canUserWriteMember(String username, String memberId, List<Space> spaces) {
         List<Space> userSpaces = spaces.stream()
             .filter(space -> canUserAccessSpace(space, username, PrivilegeLevel.WRITE))
             .collect(Collectors.toList());

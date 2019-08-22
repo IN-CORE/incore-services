@@ -448,7 +448,7 @@ public class DatasetController {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
         }
-        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(username, datasetId, spaceRepository.getAllSpaces())) {
             throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
         }
         // adding geoserver flag
@@ -692,7 +692,7 @@ public class DatasetController {
             logger.error("Posted json is not a valid json.");
             throw new BadRequestException("Posted json is not a valid json.");
         }
-        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(username, datasetId, spaceRepository.getAllSpaces())) {
             throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
         }
 
