@@ -13,7 +13,7 @@ import org.mongodb.morphia.annotations.Entity;
 import java.util.List;
 
 @Entity("RestorationSet")
-public class RestorationSet extends Dfr3Set{
+public class RestorationSet extends DFR3Set {
 
     private String timeUnits;
     private List<RestorationCurve> restorationCurves;

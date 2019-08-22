@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
-public abstract class Dfr3Set {
+public abstract class DFR3Set {
     @Id
     protected ObjectId id;
 

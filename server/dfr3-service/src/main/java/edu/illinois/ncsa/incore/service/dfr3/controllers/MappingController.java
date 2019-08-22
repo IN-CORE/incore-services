@@ -175,7 +175,7 @@ public class MappingController {
                                                    @PathParam("mappingSetId") String mappingSetId,
                                                    MappingRequest mappingRequest) throws ParseException {
 
-        Map<String, Dfr3Set> setJsonMap = new HashMap<>();
+        Map<String, DFR3Set> setJsonMap = new HashMap<>();
         Map<String, String> setIdMap = new HashMap<>();
 
         List<Space> allSpaces = spaceRepository.getAllSpaces();
@@ -210,13 +210,13 @@ public class MappingController {
             features.add((Feature) mappingRequest.mappingSubject.inventory);
         }
 
-        Map<String, Dfr3Set> queriedDfr3Set = new HashMap<>();
+        Map<String, DFR3Set> queriedDfr3Set = new HashMap<>();
         for (Feature feature : features) {
             String setKey = mapper.getDfr3CurveFor(mappingRequest.mappingSubject.schemaType.toString(),
                 feature.getProperties(), mappingRequest.parameters);
 
             if (ObjectId.isValid(setKey)) {
-                Dfr3Set currSet = null;
+                DFR3Set currSet = null;
                 if (queriedDfr3Set.containsKey(setKey)) {
                     currSet = queriedDfr3Set.get(setKey);
                 } else {

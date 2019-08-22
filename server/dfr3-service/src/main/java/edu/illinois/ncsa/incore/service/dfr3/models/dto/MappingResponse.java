@@ -11,14 +11,14 @@
 package edu.illinois.ncsa.incore.service.dfr3.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.illinois.ncsa.incore.service.dfr3.models.Dfr3Set;
+import edu.illinois.ncsa.incore.service.dfr3.models.DFR3Set;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class MappingResponse {
     @JsonProperty("sets")
-    public Map<String, Dfr3Set> dfr3Sets = new HashMap<>();
+    public Map<String, DFR3Set> dfr3Sets = new HashMap<>();
 
     @JsonProperty("mapping")
     public Map<String, String> dfr3SetsToInventoryMapping = new HashMap<>();
@@ -27,12 +27,12 @@ public class MappingResponse {
 
     }
 
-    public MappingResponse(Map<String, Dfr3Set> setJsonMap, Map<String, String> setIdMap) {
+    public MappingResponse(Map<String, DFR3Set> setJsonMap, Map<String, String> setIdMap) {
         this.dfr3Sets = setJsonMap;
         this.dfr3SetsToInventoryMapping = setIdMap;
     }
 
-    public Map<String, Dfr3Set> getDfr3Sets() {
+    public Map<String, DFR3Set> getDfr3Sets() {
         return dfr3Sets;
     }
 

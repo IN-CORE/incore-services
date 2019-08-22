@@ -13,7 +13,7 @@ import org.mongodb.morphia.annotations.Entity;
 import java.util.List;
 
 @Entity("FragilitySet")
-public class FragilitySet extends Dfr3Set {
+public class FragilitySet extends DFR3Set {
 
     protected String demandType;
     protected String demandUnits;
