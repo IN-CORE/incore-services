@@ -6,7 +6,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.json.simple.JSONObject;
 
 import javax.xml.bind.annotation.XmlID;
@@ -17,8 +16,6 @@ public class HistoricHurricane {
 
     @XmlID
     private String model;
-
-    private Privileges privileges;
 
     private JSONObject parameters;
 
@@ -38,11 +35,4 @@ public class HistoricHurricane {
         this.parameters = parameters;
     }
 
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
-    }
 }

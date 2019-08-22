@@ -9,7 +9,6 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
@@ -25,7 +24,6 @@ public abstract class Earthquake {
     @Id
     @Property("_id")
     private ObjectId id;
-    private Privileges privileges;
 
     public void setName(String name) {
         this.name = name;
@@ -47,14 +45,6 @@ public abstract class Earthquake {
 
     public String getId() {
         return id.toString();
-    }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
     }
 
     public String getName() {

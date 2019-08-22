@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.fragility.models;
 
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.fragility.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
@@ -30,7 +29,6 @@ public class MappingSet {
     private String hazardType;
     private String inventoryType;
     private List<Mapping> mappings = new ArrayList<>();
-    private Privileges privileges;
     private String creator;
 
     public String getId() {
@@ -68,14 +66,6 @@ public class MappingSet {
         MatchFilterMap matchFilterMap = new MatchFilterMap(propertyMatches);
 
         return matchFilterMap;
-    }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
     }
 
     public void setCreator(String creator) {

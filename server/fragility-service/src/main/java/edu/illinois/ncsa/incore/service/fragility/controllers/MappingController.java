@@ -138,7 +138,6 @@ public class MappingController {
     @ApiOperation(value = "Create a fragility Mapping", notes="Post a fragility mapping set that maps a fragility to an inventory's attributes")
     public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
                                     @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
-        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         mappingSet.setCreator(username);
 
         String id = this.mappingDAO.saveMappingSet(mappingSet);

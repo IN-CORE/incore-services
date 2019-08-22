@@ -167,7 +167,6 @@ public class TsunamiController {
         Tsunami tsunami = null;
         try {
             tsunami = mapper.readValue(tsunamiJson, Tsunami.class);
-            tsunami.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // Create temporary working directory
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");
@@ -204,7 +203,7 @@ public class TsunamiController {
                     Space space = spaceRepository.getSpaceByName(username);
                     if(space == null) {
                         space = new Space(username);
-                        space.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+                        space.setPrivileges(Privileges.newWithSingleOwner(username));
                     }
                     space.addMember(tsunami.getId());
                     spaceRepository.addSpace(space);

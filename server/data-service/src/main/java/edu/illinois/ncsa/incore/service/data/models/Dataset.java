@@ -16,7 +16,6 @@ package edu.illinois.ncsa.incore.service.data.models;
  */
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
@@ -97,11 +96,6 @@ public class Dataset {
     private String sourceDataset = "";
 
     /**
-     * List of spaces to the artifact.
-     */
-    private List<String> spaces = null;
-
-    /**
      * Bounding box array
      */
     private double[] boundingBox = null;
@@ -110,11 +104,6 @@ public class Dataset {
      * NetworkDataset networkDataset
      */
     private NetworkDataset networkDataset = null;
-
-    /**
-     * Privileges associated with this dataset
-     */
-    private Privileges privileges = new Privileges();
 
     public Dataset() {
     }
@@ -372,37 +361,6 @@ public class Dataset {
     }
 
     /**
-     * Return the string that is the source dataset of the artifact
-     *
-     * @return source dataset that represents the source dataset of the artifact
-     */
-    public List<String> getSpaces() {
-        if (spaces == null) {
-            spaces = new ArrayList<String>();
-        }
-        return spaces;
-    }
-
-    /**
-     * Sets the string that represents the type of the artifact.
-     *
-     * @param spaces sets the string that represents the type of the
-     *               artifact.
-     */
-    public void setSpaces(List<String> spaces) {
-        this.spaces = spaces;
-    }
-
-    /**
-     * Remove the space from the set of spaces of the dataset.
-     *
-     * @param space the space to be removed.
-     */
-    public void removeSpace(String space) {
-        getSpaces().remove(space);
-    }
-
-    /**
      * Add the file descriptor to the set of file descriptors to the dataset.
      *
      * @param fileDescriptor the file descriptors to be added.
@@ -463,15 +421,6 @@ public class Dataset {
      */
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
-    }
-
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
     }
 
     /**
