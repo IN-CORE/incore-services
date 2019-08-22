@@ -83,7 +83,7 @@ public class Space {
     }
 
     public List<String> getMembers() {
-        return members;
+        return this.members;
     }
 
     public void setMembers(List<String> members) {
@@ -100,7 +100,6 @@ public class Space {
     }
 
     public boolean hasMember(String id){
-        if(this.members == null) return false;
         for(String datasetId : this.members){
             if (datasetId.equals(id))
                 return true;
@@ -109,9 +108,7 @@ public class Space {
     }
 
     public void removeMember(String id) {
-        if (id != null) {
-            getMembers().remove(id);
-        }
+        members.remove(id);
     }
 
     public void setMetadata(SpaceMetadata metadata){

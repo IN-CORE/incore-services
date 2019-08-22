@@ -28,13 +28,15 @@ public interface IAuthorizer {
 
     boolean canWrite(String user, String privilegeSpecJson);
 
+    boolean canDelete(String user, Privileges privileges);
+
     List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces);
 
     Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces);
 
     boolean canUserReadMember(String username, String memberId, List<Space> spaces);
 
-    boolean canUserModifyMember(String username, String memberId, List<Space> spaces);
+    boolean canUserWriteMember(String username, String memberId, List<Space> spaces);
 
     boolean canUserDeleteMember(String username, String memberId, List<Space> spaces);
 
