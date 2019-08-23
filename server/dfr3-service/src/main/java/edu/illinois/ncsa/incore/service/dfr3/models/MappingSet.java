@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @XmlRootElement
+@Entity("MappingSet")
 public class MappingSet {
 
     @Id
@@ -83,5 +84,13 @@ public class MappingSet {
 
     public String getCreator() {
         return creator;
+    }
+
+    public String getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(String mappingType) {
+        this.mappingType = mappingType;
     }
 }
