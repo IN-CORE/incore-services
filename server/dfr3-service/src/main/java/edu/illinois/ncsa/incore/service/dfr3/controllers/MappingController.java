@@ -150,9 +150,7 @@ public class MappingController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create an inventory mapping", notes = "Post a json that represents mapping between inventory's attributes and DFR3 object sets")
     public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-                                    @ApiParam(value = "json representing the mapping") MappingSet mappingSet) {
-
-        mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
+                                    @ApiParam(value="json representing the fragility mapping") MappingSet mappingSet) {
         mappingSet.setCreator(username);
 
         String id = this.mappingDAO.saveMappingSet(mappingSet);

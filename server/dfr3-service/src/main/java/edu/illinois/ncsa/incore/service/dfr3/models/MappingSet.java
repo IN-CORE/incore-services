@@ -11,11 +11,11 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
@@ -38,7 +38,6 @@ public class MappingSet {
     private String mappingType;
 
     private List<Mapping> mappings = new ArrayList<>();
-    private Privileges privileges;
     private String creator;
 
     public String getId() {
@@ -78,28 +77,11 @@ public class MappingSet {
         return matchFilterMap;
     }
 
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 
     public String getCreator() {
         return creator;
     }
-
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
-    public String getMappingType() {
-        return mappingType;
-    }
-
-    public void setMappingType(String mappingType) {
-        this.mappingType = mappingType;
-    }
-
 }
