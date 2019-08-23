@@ -67,6 +67,9 @@ public class SpaceController {
     private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
     private static final String TSUNAMI_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
     private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/fragilities/" : "/dfr3/api/fragilities/";
+    private static final String REPAIR_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/repairs/" : "/dfr3/api/repairs/";
+    private static final String RESTORATION_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/restorations/" : "/dfr3/api/restorations/";
+    private static final String MAPPING_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/mappings/" : "/dfr3/api/mappings/";
     private static final String DATA_URL = SERVICES_URL.endsWith("/") ? "data/api/datasets/" : "/data/api/datasets/";
 
     private static final String SPACE_MEMBERS = "members";
@@ -356,13 +359,13 @@ public class SpaceController {
     }
 
     /**
-     * Makes an HTTP request to hazard service
+     * Gets a list of all hazard dataset ids including the hazard id
      *
      * @param hazardId id of hazard
      * @param username username
-     * @return A list of Json responses
+     * @return A list of ObjectIds related to the hazardId
      */
-    private List<String> getHazards(String hazardId, String username) {
+    private List<String> getHazardIds(String hazardId, String username) {
         //TODO: check if there is a better way of doing this
         HttpURLConnection con;
         try {
@@ -497,24 +500,32 @@ public class SpaceController {
         //TODO: SpaceController doesn't have to care about what is adding, so we need to rethink the design to avoid
         // the following conditional branching.
         //get dataset from data-service
+
+        boolean isValidNonHazardMember = false;
+
         if (get(DATA_URL, memberId, username) != null) {
-            space.addMember(memberId);
-            spaceRepository.addSpace(space);
-            return true;
+            isValidNonHazardMember = true;
+        } else if(get(FRAGILITY_URL, memberId, username) != null){
+            isValidNonHazardMember = true;
+        } else if(get(REPAIR_URL, memberId, username) != null){
+            isValidNonHazardMember = true;
+        } else if(get(RESTORATION_URL, memberId, username) != null){
+            isValidNonHazardMember = true;
+        } else if(get(MAPPING_URL, memberId, username) != null){
+            isValidNonHazardMember = true;
         }
 
-        //get fragility from fragility-service
-        if (get(FRAGILITY_URL, memberId, username) != null) {
+        if(isValidNonHazardMember) {
             space.addMember(memberId);
             spaceRepository.addSpace(space);
             return true;
         }
 
         //get a list containing the hazard and its associated datasets from hazard-service
-        List<String> hazardDatasets = getHazards(memberId, username);
+        List<String> hazardIds = getHazardIds(memberId, username);
         //If the hazard has no datasets, we will just add the hazard id to the space
-        if (hazardDatasets != null && hazardDatasets.size() > 0) {
-            for (String id : hazardDatasets) {
+        if (hazardIds != null && hazardIds.size() > 0) {
+            for (String id : hazardIds) {
                 space.addMember(id);
             }
             spaceRepository.addSpace(space);
@@ -535,7 +546,7 @@ public class SpaceController {
         //TODO: this will be removed in the future since spaces should not care about what they are removing
         List<String> deleteMembers = new ArrayList<>(membersToDelete.getMembers());
         for (String member : deleteMembers) {
-            List<String> additionalMembers = getHazards(member, username);
+            List<String> additionalMembers = getHazardIds(member, username);
             if (additionalMembers != null) {
                 for (String newMember : additionalMembers) {
                     membersToDelete.addMember(newMember);
