@@ -35,17 +35,17 @@ public class MockFragilityMappingDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> getMappingSets(String type) {
+    public List<MappingSet> getMappingSets() {
         return mappingSets;
     }
 
     @Override
-    public Optional<MappingSet> getMappingSetById(String id, String type) {
+    public Optional<MappingSet> getMappingSetById(String id) {
         return Optional.of(this.mappingSets.get(0));
     }
 
     @Override
-    public List<MappingSet> queryMappingSets(Map<String, String> queryMap, String type) {
+    public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
         return null;
     }
 
