@@ -10,6 +10,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import org.mongodb.morphia.annotations.Entity;
+
 import java.util.List;
 
 @Entity("FragilitySet")
@@ -20,8 +21,8 @@ public class FragilitySet extends DFR3Set {
     private List<FragilityCurve> fragilityCurves;
 
     public String getDemandType() {
-    return demandType;
-}
+        return demandType;
+    }
 
     public String getDemandUnits() {
         return demandUnits;
