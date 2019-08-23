@@ -14,10 +14,13 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.service.dfr3.daos.*;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.*;
-import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingResponse;
 import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingRequest;
+import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingResponse;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.Dfr3Mapper;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import io.swagger.annotations.Api;
@@ -61,13 +64,13 @@ public class MappingController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets list of all inventory mappings", notes = "Apply filters to get the desired set of mappings")
     public List<MappingSet> getMappings(@HeaderParam("X-Credential-Username") String username,
-                                                 @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                                 @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                                 @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam("mappingType") String mappingType,
-                                                 @ApiParam(value = "Creator's username") @QueryParam("creator") String creator,
-                                                 @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                                 @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                 @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                        @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                        @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                        @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam("mappingType") String mappingType,
+                                        @ApiParam(value = "Creator's username") @QueryParam("creator") String creator,
+                                        @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -128,7 +131,7 @@ public class MappingController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a mapping set by Id", notes = "Get a particular mapping set based on the id provided")
     public MappingSet getMappingSetById(@HeaderParam("X-Credential-Username") String username,
-                                                 @ApiParam(value = "mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
+                                        @ApiParam(value = "mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
@@ -147,7 +150,7 @@ public class MappingController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create an inventory mapping", notes = "Post a json that represents mapping between inventory's attributes and DFR3 object sets")
     public MappingSet uploadMapping(@HeaderParam("X-Credential-Username") String username,
-                                             @ApiParam(value = "json representing the mapping") MappingSet mappingSet) {
+                                    @ApiParam(value = "json representing the mapping") MappingSet mappingSet) {
 
         mappingSet.setPrivileges(Privileges.newWithSingleOwner(username));
         mappingSet.setCreator(username);
@@ -172,8 +175,8 @@ public class MappingController {
     @ApiOperation(value = "Map each inventory to a DFR3 object Id based on the input mapping Id",
         notes = "Returns a json where key is the inventory id that is mapped to a DFR3 object id based on the input mapping id")
     public MappingResponse mapFragilities(@HeaderParam("X-Credential-Username") String username,
-                                                   @PathParam("mappingSetId") String mappingSetId,
-                                                   MappingRequest mappingRequest) throws ParseException {
+                                          @PathParam("mappingSetId") String mappingSetId,
+                                          MappingRequest mappingRequest) throws ParseException {
 
         Map<String, DFR3Set> setJsonMap = new HashMap<>();
         Map<String, String> setIdMap = new HashMap<>();
@@ -229,8 +232,7 @@ public class MappingController {
                             }
                             queriedDfr3Set.put(setKey, currSet);
                         }
-                    }
-                    else if (mappingType.equalsIgnoreCase("repair")){
+                    } else if (mappingType.equalsIgnoreCase("repair")) {
                         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(setKey);
 
                         if (repairSet.isPresent()) {
@@ -239,8 +241,7 @@ public class MappingController {
                             }
                             queriedDfr3Set.put(setKey, currSet);
                         }
-                    }
-                    else if (mappingType.equalsIgnoreCase("restoration")){
+                    } else if (mappingType.equalsIgnoreCase("restoration")) {
                         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(setKey);
 
                         if (restorationSet.isPresent()) {
