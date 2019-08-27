@@ -25,7 +25,7 @@ fi
 # Build individual images
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/auth-jetty$VERSION:latest -f Dockerfile.auth .
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/data-jetty$VERSION:latest -f Dockerfile.data .
-$DEBUG docker build -t hub.ncsa.illinois.edu/incore/frag-jetty$VERSION:latest -f Dockerfile.fragility .
+$DEBUG docker build -t hub.ncsa.illinois.edu/incore/dfr3-jetty$VERSION:latest -f Dockerfile.dfr3 .
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/hazard-jetty$VERSION:latest -f Dockerfile.hazard .
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/maestro-jetty$VERSION:latest -f Dockerfile.maestro .
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/space-jetty$VERSION:latest -f Dockerfile.space .

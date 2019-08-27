@@ -1,10 +1,10 @@
 #add the apis that are forwarded by kong
-curl -i -X DELETE --url http://localhost:8001/apis/fragility
+curl -i -X DELETE --url http://localhost:8001/apis/dfr3
 curl -i -X POST \
   --url http://localhost:8001/apis/ \
-  --data 'name=fragility' \
-  --data 'uris=/fragility' \
-  --data 'upstream_url=http://localhost:8888/fragility/' \
+  --data 'name=dfr3' \
+  --data 'uris=/dfr3' \
+  --data 'upstream_url=http://localhost:8888/dfr3/' \
   --data 'upstream_read_timeout=120000'
 
 

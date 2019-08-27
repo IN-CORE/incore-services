@@ -56,6 +56,7 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
         return foundSpace;
     }
 
+    //TODO: Rename to saveSpace since it updates an existing too
     public Space addSpace(Space space) {
         String id = (this.dataStore.save(space)).getId().toString();
         return getSpaceById(id);
