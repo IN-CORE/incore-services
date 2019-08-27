@@ -67,17 +67,12 @@ public class RepairController {
     public List<RepairSet> getRepairs(@HeaderParam("X-Credential-Username") String username,
                                       @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
                                       @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                      @ApiParam(value = "Legacy repair Id from v1") @QueryParam("legacy_id") String legacyId,
                                       @ApiParam(value = "Repair creator's username") @QueryParam("creator") String creator,
                                       @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                       @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
-
-        if (legacyId != null) {
-            queryMap.put("legacyId", legacyId);
-        }
 
         if (hazardType != null) {
             queryMap.put("hazardType", hazardType);
