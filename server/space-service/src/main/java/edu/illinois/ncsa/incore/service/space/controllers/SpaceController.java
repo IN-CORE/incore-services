@@ -542,17 +542,17 @@ public class SpaceController {
                 }
             }
         }
-        List<Space> spaces = spaceRepository.getAllSpaces();
+
         for (String member : membersToDelete.getMembers()) {
             space.removeMember(member);
         }
-
         spaceRepository.addSpace(space);
 
+        List<Space> spaces = spaceRepository.getAllSpaces();
         //we need to keep track if a member is no longer a part of any space after removing
         Space orphansSpace = spaceRepository.getSpaceByName("orphans");
 
-        //add all members that do not belong to any space to the orphans space (to be handled later)
+        //add all members that do not belong to any space to the orphans space
         for (String removedMember : membersToDelete.getMembers()) {
             boolean isOrphan = true;
             for (Space searchSpace : spaces) {
