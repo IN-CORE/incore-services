@@ -96,6 +96,13 @@ public class HazardCalc {
     }
 
     public static SeismicHazardResult getGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String period, String hazardType, String demandUnits, int spectrumOverride, boolean amplifyHazard, String creator) throws Exception {
+        // If demand type units is null, use default for the requested demand
+        // This might not be the best way to handle it, but it is at least consistent in providing the units of what is
+        // being returned
+        if(demandUnits == null) {
+            // This code should be probably not be inside the BaseAttenuation
+            demandUnits = BaseAttenuation.getUnits(hazardType);
+        }
 
         if (HazardUtil.SD.equalsIgnoreCase(hazardType)) {
             boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, true);
@@ -132,6 +139,7 @@ public class HazardCalc {
             }
 
         } else {
+            // TODO we need to modify this when we support spectrum methods
             boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, false);
             if (!supported) {
                 // TODO add spectrum method support so we can infer values
@@ -210,6 +218,7 @@ public class HazardCalc {
         } else {
             EarthquakeDataset eqDataset = (EarthquakeDataset) earthquake;
             HazardDataset hazardDataset = HazardUtil.findHazard(eqDataset.getHazardDatasets(), demand, period, false);
+            closestHazardPeriod = Double.toString(hazardDataset.getPeriod());
 
             GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
             try {
@@ -219,7 +228,9 @@ public class HazardCalc {
                 return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand, demandUnits);
             } catch (PointOutsideCoverageException e) {
                 logger.debug("Point outside tiff image.");
-                return null;
+                // This might be something we clarify with researchers. If the point is outside of the grid coverage,
+                // how do we indicate the point wasn't found?
+                return new SeismicHazardResult(0.0, closestHazardPeriod, demand, demandUnits);
             }
         }
 
@@ -233,9 +244,17 @@ public class HazardCalc {
             while (iterator.hasNext()) {
                 BaseAttenuation model = iterator.next();
                 if (!model.canOutput(fullDemandType)) {
-                    canOutputHazard = false;
+                    if(exactOnly) {
+                        canOutputHazard = false;
+                    } else {
+                        // If we don't need an exact match, check for closest match
+                        if(model.closestSupportedHazard(period.trim() + " " + demandType.trim()) == null) {
+                            canOutputHazard = false;
+                        }
+                    }
                 }
             }
+
         } else {
             HazardDataset hazardDataset = HazardUtil.findHazard(((EarthquakeDataset) earthquake).getHazardDatasets(), demandType, period, exactOnly);
             if (hazardDataset == null) {
