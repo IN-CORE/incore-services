@@ -34,18 +34,17 @@ To start the service
     | /{id}/files/{file_id} | GET | Return a FileDescriptor with given file_id and dataset id |
     | /{id}/files/{file_id}/blob | GET | Returns a file that is attached to a FileDescriptor specified by {file_id} in a dataset specified by {id} |
     | /files | GET | Return list of FileDescriptors | 
-    | /spaces | GET | Returns a list of spaces in the Space collection | 
     | / | POST | Post a dataset to create a new dataset object |
     | | | headers: Form |
     | | | content: multipart/form-data |
     | | | body: Form |
     | | | input: Dataset json |
     | | | input json example when it is a parent dataset (parameter name: dataset, item type: text) |
-    | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shapefile", spaces: ["incore", "ergo"] } |
+    | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shapefile"} |
     | | | input json example when it is a result dataset example (parameter name : dataset, item type: text) |
-    | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv", spaces: ["incore", "ergo"] } |
+    | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0", title: "shelby building damage", sourceDataset: "59e5098168f47426547409f3", format: "csv"} |
     | | | input json example when it is a parent network dataset (parameter name: dataset, item type: text) |
-        | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shp-network", networkDataset:{link:{linkType:  "pipeline"}, node:{networkType: "water facility"}, graph:{graphType: "table"}}, spaces: ["incore", "ergo"] } |
+        | | | { dataType: "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0", title: "Shelby_County_Essential_Facilities", sourceDataset: "", format: "shp-network", networkDataset:{link:{linkType:  "pipeline"}, node:{networkType: "water facility"}, graph:{graphType: "table"}} |
     | | | output: Dataset |
     | /{id}/files | POST | upload file(s) to attach to a dataset by FileDescriptor |
     | | | headers: Form |
@@ -66,7 +65,7 @@ To start the service
     | | | body: Form
     | | | input json example (parameter name: update, item type: text) |
     | | | {"property name": "sourceDataset", "property value": "59e0eb7d68f4742a342d9738"} |
-    | | | output: Object (e.g. Dataset, Space) |
+    | | | output: Object (e.g. Dataset) |
     |/{id} | DELETE | Delete the dataset |
     | | | the files related to the dataset set also be deleted |
     | | | if the file is uploaded in geoserver, it will also be deleted |

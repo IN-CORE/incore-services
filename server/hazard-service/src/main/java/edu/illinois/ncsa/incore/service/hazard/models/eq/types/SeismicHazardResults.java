@@ -19,7 +19,7 @@ public class SeismicHazardResults {
 
     public SeismicHazardResults(String hazardType, String demandType, List<HazardResult> hazardResults) {
         this.period = hazardType;
-        this.units = BaseAttenuation.getUnits(hazardType);
+        this.units = BaseAttenuation.getUnits(demandType);
         this.demandType = demandType;
         this.hazardResults = hazardResults;
     }

@@ -542,20 +542,13 @@ public class TornadoUtils {
         return null;
     }
 
-    public static JSONObject getTornadoDatasetObject(String title, String creator, String description) {
-        JSONArray spaces = new JSONArray();
-        if (creator != null) {
-            spaces.put(creator);
-        }
-        spaces.put(HazardConstants.ERGO_SPACE);
-
+    public static JSONObject getTornadoDatasetObject(String title, String description) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(HazardConstants.DATA_TYPE, TornadoHazard.TORNADO_SCHEMA_NAME);
         jsonObject.put(HazardConstants.TITLE, title);
         jsonObject.put(HazardConstants.SOURCE_DATASET, "");
         jsonObject.put(HazardConstants.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
         jsonObject.put(HazardConstants.DESCRIPTION, description);
-        jsonObject.put(HazardConstants.SPACES, spaces);
 
         return jsonObject;
     }

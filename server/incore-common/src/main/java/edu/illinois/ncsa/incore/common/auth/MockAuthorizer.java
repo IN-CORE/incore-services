@@ -20,6 +20,7 @@ public class MockAuthorizer implements IAuthorizer{
 
     private boolean canRead = false;
     private boolean canWrite = false;
+    private boolean canDelete = false;
 
     public MockAuthorizer(boolean canRead, boolean canWrite) {
         this.canRead = canRead;
@@ -71,6 +72,9 @@ public class MockAuthorizer implements IAuthorizer{
     }
 
     @Override
+    public boolean canDelete(String user, Privileges privileges) {return canDelete;}
+
+    @Override
     public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {return null;}
 
     @Override
@@ -80,7 +84,7 @@ public class MockAuthorizer implements IAuthorizer{
     public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {return false;}
 
     @Override
-    public boolean canUserModifyMember(String username, String memberId, List<Space> spaces) {return false;}
+    public boolean canUserWriteMember(String username, String memberId, List<Space> spaces) {return false;}
 
     @Override
     public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {return null;}

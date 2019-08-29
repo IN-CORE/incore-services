@@ -29,7 +29,7 @@ public class SeismicHazardResult {
     public SeismicHazardResult(double hazardValue, String hazardType, String demand) {
         this.hazardValue = hazardValue;
         this.period = hazardType;
-        this.units = BaseAttenuation.getUnits(hazardType);
+        this.units = BaseAttenuation.getUnits(demand);
         this.demand = demand;
     }
 

@@ -16,8 +16,6 @@ public class HazardDataset {
     public static final String RASTER_FORMAT = "raster";
     public static final String HAZARD_TIF = "hazard.tif";
 
-    public static final String ERGO_SPACE = "ergo";
-
     // Dataset fields
     public static final String SCHEMA = "schema";
     public static final String TYPE = "type";
@@ -25,7 +23,6 @@ public class HazardDataset {
     public static final String SOURCE_DATASET = "sourceDataset";
     public static final String FORMAT = "format";
     public static final String DESCRIPTION = "description";
-    public static final String SPACES = "spaces";
     public static final String DATASET_PARAMETER = "dataset";
     public static final String FILE_PARAMETER_ = "file";
 

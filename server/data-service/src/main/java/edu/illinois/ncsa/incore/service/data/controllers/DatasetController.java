@@ -78,16 +78,13 @@ import java.util.stream.Collectors;
 public class DatasetController {
     private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
     private static final String GEOSERVER_ENABLE = Config.getConfigProperties().getProperty("geoserver.enable");
-    private static final String POST_PARAMENTER_NAME = "name";
-    private static final String POST_PARAMENTER_FILE = "file";
-    private static final String POST_PARAMENTER_FILE_LINK = "link-file";
-    private static final String POST_PARAMENTER_FILE_NODE = "node-file";
-    private static final String POST_PARAMENTER_FILE_GRAPH = "graph-file";
-    private static final String POST_PARAMENTER_META = "parentdataset";
-    private static final String POST_PARAMETER_DATASET_ID = "datasetId";
+    private static final String POST_PARAMETER_NAME = "name";
+    private static final String POST_PARAMETER_FILE = "file";
+    private static final String POST_PARAMETER_FILE_LINK = "link-file";
+    private static final String POST_PARAMETER_FILE_NODE = "node-file";
+    private static final String POST_PARAMETER_FILE_GRAPH = "graph-file";
     private static final String UPDATE_OBJECT_NAME = "property name";
     private static final String UPDATE_OBJECT_VALUE = "property value";
-    private static final String WEBDAV_SPACE_NAME = "incore";
     private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     @Inject
@@ -342,7 +339,6 @@ public class DatasetController {
             dataset.setDescription(description);
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
-            dataset.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // add network information in the dataset
             if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
@@ -448,7 +444,7 @@ public class DatasetController {
             logger.error("Credential user name should be provided.");
             throw new BadRequestException("Credential user name should be provided.");
         }
-        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(username, datasetId, spaceRepository.getAllSpaces())) {
             throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
         }
         // adding geoserver flag
@@ -477,22 +473,22 @@ public class DatasetController {
             boolean isGraphPresented = false;
 
             for (int i = 0; i < bodyPartSize; i++) {
-                paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
-                if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_LINK)) {
+                paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMETER_NAME);
+                if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_LINK)) {
                     String tmpName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                     String fileExt = FilenameUtils.getExtension(tmpName);
                     if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                         isLinkPresented = true;
                         linkFileName = tmpName;
                     }
-                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_NODE)) {
+                } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_NODE)) {
                     String tmpName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                     String fileExt = FilenameUtils.getExtension(tmpName);
                     if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
                         isNodePresented = true;
                         nodeFileName = tmpName;
                     }
-                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_GRAPH)) {
+                } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_GRAPH)) {
                     graphFileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                     isGraphPresented = true;
                 }
@@ -522,9 +518,9 @@ public class DatasetController {
         int node_counter = 0;
         int graph_counter = 0;
         for (int i = 0; i < bodyPartSize; i++) {
-            paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMENTER_NAME);
-            if (paramName.equals(POST_PARAMENTER_FILE) || paramName.equals(POST_PARAMENTER_FILE_LINK) ||
-                paramName.equals(POST_PARAMENTER_FILE_NODE) || paramName.equals(POST_PARAMENTER_FILE_GRAPH)) {
+            paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMETER_NAME);
+            if (paramName.equals(POST_PARAMETER_FILE) || paramName.equals(POST_PARAMETER_FILE_LINK) ||
+                paramName.equals(POST_PARAMETER_FILE_NODE) || paramName.equals(POST_PARAMETER_FILE_GRAPH)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                 String fileExt = FilenameUtils.getExtension(fileName);
                 if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||
@@ -539,16 +535,16 @@ public class DatasetController {
                     }
                 }
                 InputStream is = null;
-                if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE)) {
+                if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE)) {
                     is = (InputStream) inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
                     file_counter++;
-                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_LINK)) {
+                } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_LINK)) {
                     is = (InputStream) inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
                     link_counter++;
-                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_NODE)) {
+                } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_NODE)) {
                     is = (InputStream) inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
                     node_counter++;
-                } else if (paramName.equalsIgnoreCase(POST_PARAMENTER_FILE_GRAPH)) {
+                } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_GRAPH)) {
                     is = (InputStream) inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
                     graph_counter++;
                 }
@@ -692,7 +688,7 @@ public class DatasetController {
             logger.error("Posted json is not a valid json.");
             throw new BadRequestException("Posted json is not a valid json.");
         }
-        if (!authorizer.canUserModifyMember(username, datasetId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(username, datasetId, spaceRepository.getAllSpaces())) {
             throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
         }
 

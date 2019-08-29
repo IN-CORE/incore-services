@@ -911,49 +911,4 @@ public class GISHurricaneUtils {
         }
         return distance;
     }
-
-    /**
-     * main method for testing
-     *
-     * @param args
-     * @throws IOException
-     * @throws MismatchedDimensionException
-     * @throws FactoryException
-     * @throws TransformException
-     * @throws SchemaException
-     */
-    public static void main(String[] args) throws MismatchedDimensionException, FactoryException, TransformException, SchemaException, IOException {
-        //String inJsonPath = "C:\\Users\\ywkim\\Downloads\\hurricanes_RealValue_21by21.json";
-//        String inJsonPath = "/Users/vnarah2/Downloads/hurricanes_RealValue_21by21.json";
-        String inJsonPath = "/Volumes/BOOTCAMP/Users/ywkim/Documents/NIST/hurricanes_RealValue_21by21.json";
-//        String inBigHurricane = "/Users/vnarah2/Downloads/hurricane_all.shp";
-        String inBigHurricane = "/Volumes/BOOTCAMP/Users/ywkim/Documents/NIST/Hurricane/out_big.shp";
-        //String inBigHurricane = "C:\\Users\\ywkim\\AppData\\Local\\Temp\\temp_hurricane_7754104894667377752\\hurricane_all.shp";
-
-
-        try {
-            byte[] readAllBytes = Files.readAllBytes(Paths.get(inJsonPath));
-            String json = new String(readAllBytes);
-
-            List<HurricaneSimulationDataset> l = processHurricaneFromJson(json, 6, "vnarah2");
-
-            Point p1 = geometryFactory.createPoint(new Coordinate(-80.58398121668098, 28.077842354237724));
-            Point p2 = geometryFactory.createPoint(new Coordinate(-82.20277561165092, 26.45906346358401));
-
-            double dist = getGeogDistance(p1, p2, "hwind");
-            System.out.println(dist);
-
-        } catch (IOException e) {
-
-        }
-
-        //processHurricaneFromJson(inJsonPath, 100);
-        double value = 0;
-//        value = CalcVelocityFromPoint(inBigHurricane, 28.08, -70.83);
-//        System.out.println(value);
-//        value = CalcVelocityFromPoint(inBigHurricane, 28.07, -80.85);
-//        System.out.println(value);
-//        value = CalcVelocityFromPoint(inBigHurricane, 28.683, -82.789);
-//        System.out.println(value);
-    }
 }

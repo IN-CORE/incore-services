@@ -325,11 +325,6 @@ public class ServiceUtil {
 
     public static String createDataset(String title, String creator, String description, String datasetType) throws IOException {
         String dataEndpoint = getDataServiceEndpoint();
-        JSONArray spaces = new JSONArray();
-        if (creator != null) {
-            spaces.put(creator);
-        }
-        spaces.put(HazardConstants.ERGO_SPACE);
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(HazardConstants.DATA_TYPE, datasetType);
@@ -337,7 +332,6 @@ public class ServiceUtil {
         jsonObject.put(HazardConstants.SOURCE_DATASET, "");
         jsonObject.put(HazardConstants.FORMAT, HazardConstants.RASTER_FORMAT);
         jsonObject.put(HazardConstants.DESCRIPTION, description);
-        jsonObject.put(HazardConstants.SPACES, spaces);
 
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
