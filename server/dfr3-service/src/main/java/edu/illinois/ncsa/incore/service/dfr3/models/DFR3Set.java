@@ -30,7 +30,6 @@ public abstract class DFR3Set {
     protected String hazardType;
     protected String inventoryType;
 
-    protected Privileges privileges;
     protected String creator;
 
     // region Getters
@@ -66,21 +65,12 @@ public abstract class DFR3Set {
         return resultType;
     }
 
-
     public String getHazardType() {
         return hazardType;
     }
 
     public String getInventoryType() {
         return inventoryType;
-    }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
     }
 
     public String getCreator() {

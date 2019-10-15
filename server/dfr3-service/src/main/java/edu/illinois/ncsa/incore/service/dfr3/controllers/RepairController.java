@@ -132,7 +132,6 @@ public class RepairController {
     @ApiOperation(value = "Create a repair set", notes = "Post a repair set to the repair service")
     public RepairSet uploadRepairSet(@HeaderParam("X-Credential-Username") String username,
                                      @ApiParam(value = "json representing the repair set") RepairSet repairSet) {
-        repairSet.setPrivileges(Privileges.newWithSingleOwner(username));
         repairSet.setCreator(username);
         String repairId = this.repairDAO.saveRepair(repairSet);
 
