@@ -10,7 +10,11 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-public class PeriodStandardFragilityCurve extends StandardFragilityCurve {
+public class PeriodStandardFragilityCurve extends FragilityCurve {
+    public double alpha;
+    public double beta;
+    public AlphaType alphaType;
+    public CurveType curveType;
     public double periodParam2;
     public double periodParam1;
     public double periodParam0;
@@ -20,10 +24,14 @@ public class PeriodStandardFragilityCurve extends StandardFragilityCurve {
         super();
     }
 
-    public PeriodStandardFragilityCurve(double median, double beta, CurveType curveType, String label,
+    public PeriodStandardFragilityCurve(double alpha, double beta, AlphaType alphaType, CurveType curveType, String label,
                                         int periodEqnType, double periodParam0, double periodParam1, double periodParam2) {
-        super(median, beta, curveType, label);
+        super(label);
 
+        this.alpha = alpha;
+        this.beta = beta;
+        this.alphaType = alphaType;
+        this.curveType = curveType;
         this.periodEqnType = periodEqnType;
         this.periodParam0 = periodParam0;
         this.periodParam1 = periodParam1;

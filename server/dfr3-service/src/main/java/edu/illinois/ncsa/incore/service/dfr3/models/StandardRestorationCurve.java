@@ -11,19 +11,21 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 public class StandardRestorationCurve extends RestorationCurve {
-    public double median;
+    public double alpha;
     public double beta;
+    public AlphaType alphaType;
     public CurveType curveType;
 
     public StandardRestorationCurve() {
         super();
     }
 
-    public StandardRestorationCurve(double median, double beta, CurveType curveType, String label) {
+    public StandardRestorationCurve(double alpha, double beta, AlphaType alphaType, CurveType curveType, String label) {
         super(label);
 
-        this.median = median;
+        this.alpha = alpha;
         this.beta = beta;
+        this.alphaType = alphaType;
         this.curveType = curveType;
     }
 }
