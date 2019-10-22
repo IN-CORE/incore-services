@@ -11,19 +11,21 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 public class StandardFragilityCurve extends FragilityCurve {
-    public double median;
+    public double alpha;
     public double beta;
+    public AlphaType alphaType;
     public CurveType curveType;
 
     public StandardFragilityCurve() {
         super();
     }
 
-    public StandardFragilityCurve(double median, double beta, CurveType curveType, String label) {
+    public StandardFragilityCurve(double alpha, double beta, AlphaType alphaType, CurveType curveType, String label) {
         super(label);
 
-        this.median = median;
+        this.alpha = alpha;
         this.beta = beta;
+        this.alphaType = alphaType;
         this.curveType = curveType;
     }
 }

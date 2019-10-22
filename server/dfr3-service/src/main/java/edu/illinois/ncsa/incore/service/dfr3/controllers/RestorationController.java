@@ -132,7 +132,6 @@ public class RestorationController {
     @ApiOperation(value = "Create a restoration set", notes = "Post a restoration set to the restoration service")
     public RestorationSet uploadRestorationSet(@HeaderParam("X-Credential-Username") String username,
                                                @ApiParam(value = "json representing the restoration set") RestorationSet restorationSet) {
-        restorationSet.setPrivileges(Privileges.newWithSingleOwner(username));
         restorationSet.setCreator(username);
         String restorationId = this.restorationDAO.saveRestoration(restorationSet);
 
