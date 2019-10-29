@@ -48,7 +48,7 @@ public class Privileges {
     public static Privileges newWithSingleOwner(String owner) {
         Privileges privileges = new Privileges();
         if (owner == null) {
-            log.warn("Owner not specified (did you authenticate, or forget to set X-Credential-Username?)");
+            log.warn("Owner not specified (did you authenticate, or forget to set x-auth-userinfo?)");
         } else {
             privileges.userPrivileges.put(owner, PrivilegeLevel.ADMIN);
         }

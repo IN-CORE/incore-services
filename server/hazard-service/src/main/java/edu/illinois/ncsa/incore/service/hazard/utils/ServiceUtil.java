@@ -63,7 +63,7 @@ public class ServiceUtil {
 
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
         params.addTextBody(HazardConstants.DATASET_PARAMETER, datasetObject.toString());
@@ -92,7 +92,7 @@ public class ServiceUtil {
 
             // Attach file
             httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);
@@ -130,7 +130,7 @@ public class ServiceUtil {
 
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
         params.addTextBody(HazardConstants.DATASET_PARAMETER, datasetObject.toString());
@@ -158,7 +158,7 @@ public class ServiceUtil {
 
             // Attach file
             httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);
@@ -191,7 +191,7 @@ public class ServiceUtil {
 
             String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId;
             HttpGet httpGet = new HttpGet(requestUrl);
-            httpGet.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
             HttpResponse response = null;
 
@@ -278,7 +278,7 @@ public class ServiceUtil {
 
             String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId + "/blob";
             HttpGet httpGet = new HttpGet(requestUrl);
-            httpGet.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
             HttpResponse response = null;
 
@@ -338,7 +338,7 @@ public class ServiceUtil {
 
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
         params.addTextBody(HazardConstants.DATASET_PARAMETER, jsonObject.toString());
@@ -410,7 +410,7 @@ public class ServiceUtil {
 
         // Attach file
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
         httpPost.setEntity(params.build());
 
         HttpClientBuilder builder = HttpClientBuilder.create();

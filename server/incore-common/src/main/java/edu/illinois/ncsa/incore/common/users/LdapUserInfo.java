@@ -13,7 +13,7 @@ package edu.illinois.ncsa.incore.common.users;
 
 import java.util.Set;
 
-public class UserInfo {
+public class LdapUserInfo {
     public String login;
     public String email;
     public String firstName;
