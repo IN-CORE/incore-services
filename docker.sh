@@ -23,7 +23,7 @@ else
 fi
 
 # Build individual images
-$DEBUG docker build -t hub.ncsa.illinois.edu/incore/auth-jetty$VERSION:latest -f Dockerfile.auth .
+#$DEBUG docker build -t hub.ncsa.illinois.edu/incore/auth-jetty$VERSION:latest -f Dockerfile.auth .
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/data-jetty$VERSION:latest -f Dockerfile.data .
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/dfr3-jetty$VERSION:latest -f Dockerfile.dfr3 .
 $DEBUG docker build -t hub.ncsa.illinois.edu/incore/hazard-jetty$VERSION:latest -f Dockerfile.hazard .
