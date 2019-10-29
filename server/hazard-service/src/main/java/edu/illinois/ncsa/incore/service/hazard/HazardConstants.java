@@ -31,8 +31,8 @@ public class HazardConstants {
     public static final String DATASET_PARAMETER = "dataset";
     public static final String FILE_PARAMETER_ = "file";
 
-    // Kong
-    public static final String X_CREDENTIAL_USERNAME = "X-Credential-Username";
+    // Ambassador
+    public static final String X_AUTH_USERINFO = "x-auth-userinfo";
 
     // Dataset API
     public static final String DATASETS_ENDPOINT = "data/api/datasets";
