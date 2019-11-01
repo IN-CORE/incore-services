@@ -38,7 +38,8 @@ public class TornadoCalc {
      * @return wind hazard at the specified location
      * @throws Exception
      */
-    public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation, String username) throws Exception {
+    public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation,
+                                                       String username, String Authorization) throws Exception {
 
         if (tornado instanceof TornadoModel) {
             TornadoModel scenarioTornado = (TornadoModel) tornado;
@@ -57,7 +58,7 @@ public class TornadoCalc {
             return new WindHazardResult(demandUnits, windHazard);
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
-            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username);
+            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username, Authorization);
             SimpleFeatureCollection efBoxPolygons = (SimpleFeatureCollection) obj;
             // TODO this should probably be exposed as a parameter in the request
             double windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0);

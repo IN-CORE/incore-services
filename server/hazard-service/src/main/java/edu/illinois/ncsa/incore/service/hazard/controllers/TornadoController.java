@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
     private String username;
+    private String Authorization;
 
     @Inject
     private ITornadoRepository repository;
@@ -69,11 +70,15 @@ public class TornadoController {
     private GeometryFactory factory = new GeometryFactory();
 
     @Inject
-    public TornadoController(@ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+    public TornadoController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User credentials Authorization", required = true) @HeaderParam("Authorization") String Authorization
+    ) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
             throw new NotAuthorizedException("Invalid User Info!");
         }
         else{
+            this.Authorization = Authorization;
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
@@ -187,7 +192,7 @@ public class TornadoController {
                 JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
-                String datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
+                String datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.Authorization, files);
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado = repository.addTornado(tornado);
@@ -200,7 +205,7 @@ public class TornadoController {
                     // Create dataset object representation for storing shapefile
                     JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
-                    String datasetId = ServiceUtil.createDataset(datasetObject, this.username, fileParts);
+                    String datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.Authorization, fileParts);
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
                     tornado = repository.addTornado(tornado);
@@ -259,7 +264,7 @@ public class TornadoController {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, this.username);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, this.username, this.Authorization);
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }
@@ -283,7 +288,7 @@ public class TornadoController {
         if (tornado != null) {
             for (IncorePoint point : points) {
                 try {
-                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, this.username));
+                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, this.username, this.Authorization));
                 } catch (UnsupportedHazardException e) {
                     logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are supported", e);
                     // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);

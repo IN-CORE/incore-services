@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 public class TsunamiController {
     private static final Logger log = Logger.getLogger(TsunamiController.class);
     private String username;
+    private String Authorization;
 
     @Inject
     private ITsunamiRepository repository;
@@ -65,13 +66,17 @@ public class TsunamiController {
     private IAuthorizer authorizer;
 
     @Inject
-    public TsunamiController(@ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+    public TsunamiController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User credentials Authorization.", required = true) @HeaderParam("Authorization") String Authorization
+    ) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
             throw new NotAuthorizedException("Invalid User Info!");
         }
         else{
             ObjectMapper objectMapper = new ObjectMapper();
             try {
+                this.Authorization = Authorization;
                 UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
                 if (user.getPreferredUsername() == null){
                     throw new NotAuthorizedException("Invalid User Info!");
@@ -160,7 +165,7 @@ public class TsunamiController {
         if (tsunami != null) {
             for (IncorePoint point : points) {
                 try {
-                    tsunamiResults.add(TsunamiCalc.getTsunamiHazardValue(tsunami, demandType, demandUnits, point, this.username));
+                    tsunamiResults.add(TsunamiCalc.getTsunamiHazardValue(tsunami, demandType, demandUnits, point, this.username, this.Authorization));
                 } catch (UnsupportedHazardException e) {
                     log.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
                 }
@@ -216,7 +221,7 @@ public class TsunamiController {
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(), tsunamiDataset.getName() + " " + datasetName,
-                            this.username, description, datasetType);
+                            this.username, this.Authorization, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 
