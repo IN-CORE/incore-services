@@ -7,28 +7,15 @@ RUN apt-get -qq -y update && \
   apt-get install -qq -y gdal-bin && \
   apt-get clean
 
-# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN groupadd -r incore -g 1001 && useradd -r -g incore -u 1001 incore
-ENV INCORE_HOME /home/incore/
-RUN mkdir -p "$INCORE_HOME"
-ENV INCORE_SERVICE /home/incore/incore-service/
-RUN mkdir -p "$INCORE_SERVICE/" && mkdir -p "$INCORE_SERVICE/lib" && mkdir -p "$INCORE_SERVICE/conf"
-WORKDIR $INCORE_SERVICE
-#ADD incore-service/lib/*.war "$INCORE_SERVICE/lib/"
-ADD incore-service/lib/hazard-service-0.0.1.war "$INCORE_SERVICE/lib/"
-ADD incore-service/conf/hazard.xml "$INCORE_SERVICE/conf/"
-ADD incore-service/conf/incore.properties "$INCORE_SERVICE/conf/"
-ADD incore-service/lib/jetty-runner.jar "$INCORE_SERVICE/lib/"
-
-#COPY docker-entrypoint.sh generate-jetty-start.sh /
-RUN chown -R incore $INCORE_HOME && chgrp -R incore $INCORE_HOME
+# Working Directory
+WORKDIR /home/incore
+COPY server/hazard-service/build/libs/hazard-service-0.0.1.war /home/incore/lib/
+COPY docker/hazard.xml /home/incore/conf/
+COPY docker/incore.properties /home/incore/conf/
+COPY docker/jetty-runner.jar /home/incore/lib/
 
 ENV JETTY_PORT 8080
 
-#USER incore
-#USER root
 EXPOSE 8080
-#ENTRYPOINT ["/docker-entrypoint.sh"]
-#CMD ["java","-jar","/usr/local/jetty/start.jar"]
 CMD ["java", "-Xmx512m", "-Dincore.properties=conf/incore.properties", "-jar", "lib/jetty-runner.jar", "--port", "8888", "conf/hazard.xml"]
 
