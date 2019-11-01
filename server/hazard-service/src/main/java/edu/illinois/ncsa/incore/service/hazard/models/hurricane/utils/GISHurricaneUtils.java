@@ -209,7 +209,7 @@ public class GISHurricaneUtils {
      */
     //
     public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson, double rasterResolution,
-                                                                            String username) throws MismatchedDimensionException {
+                                                                            String username, String Authorization) throws MismatchedDimensionException {
         // TODO the rasterResolution input in here is KM, so if the input json unit is not km, this should be changed
         // TODO also, since this is geographic projection, the resolution is not perfectly matching with the given value
         // TODO however, since the geotiff is for the visualization purpose only, this should be fine
@@ -238,6 +238,7 @@ public class GISHurricaneUtils {
             logger.debug("Temporay directory " + tempDir + " has been created.");
 
             for (int k = 0; k < hurricaneSims.size(); k++) {
+                System.out.println("Processing dataset" + k);
                 JSONObject tempHurricane = (JSONObject) hurricaneSims.get(k);
                 JSONArray gridLats = (JSONArray) tempHurricane.get("gridLats");
                 JSONArray gridLongs = (JSONArray) tempHurricane.get("gridLongs");
@@ -262,7 +263,9 @@ public class GISHurricaneUtils {
                 List<Double> lonList = convertDoubleJsonArrayToList(gridLongs);
 
                 // create point shapefile
+                System.out.println("CreateHurricanePointShapefile begin");
                 CreateHurricanePointShapefile(latList, lonList, velList, k, outShp);
+                System.out.println("CreateHurricanePointShapefile complete");
 
                 // create geotiff from given shapefile
                 String cmdSize = "-outsize " + numCellsX + " " + numCellsY + " ";
@@ -275,11 +278,12 @@ public class GISHurricaneUtils {
                 }
 
                 logger.debug(cmdStr);
+                System.out.println(cmdStr);
                 performProcess(cmdStr);
-
+                System.out.println("performProcess complete");
                 //TODO Get the creator - pass a param?
                 HurricaneSimulationDataset simDataset = HurricaneUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid Snapshot",
-                    username, "Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                    username, Authorization,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                     (String) tempHurricane.get("absTime"));
                 hsDatasets.add(simDataset);
             }
@@ -293,20 +297,25 @@ public class GISHurricaneUtils {
             List<String> outFilePaths = Arrays.asList(tempDir + "/hurricane_all.shp", tempDir + "/hurricane_all.shx",
                 tempDir + "/hurricane_all.dbf", tempDir + "/hurricane_all.fix", tempDir + "/hurricane_all.prj");
 
+            System.out.println("createHurricaneDataSetFromFiles begins");
             HurricaneSimulationDataset simDatasetAll = HurricaneUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane Full Snapshot",
-                username, "Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                username, Authorization,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                 "full time range");
             hsDatasets.add(simDatasetAll);
+            System.out.println("createHurricaneDataSetFromFiles complete");
 
             // remove temp file
             deleteTmpDir(new File(tempDir));
 
             //TODO add a method to remove the temp directory
         } catch (FileNotFoundException e) {
+            System.out.println("Input file not found");
             throw new NotFoundException("Input file not found");
         } catch (IOException e) {
+            System.out.println("Error creating the Raster");
             throw new NotFoundException("Error creating the Raster");
         } catch (ParseException e) {
+            System.out.println("Error parsing the json input");
             throw new NotFoundException("Error parsing the json input");
         }
         return hsDatasets;
@@ -348,7 +357,7 @@ public class GISHurricaneUtils {
      * @return
      * @throws IOException
      */
-    public static double CalcVelocityFromPoint(String datasetId, String username, double lat, double lon) throws IOException {
+    public static double CalcVelocityFromPoint(String datasetId, String username, String Authorization, double lat, double lon) throws IOException {
         // copy the shapefile from the repository to the temp directory and cache them
         // if there is no cache, create the cache folder and use it
         // to collect all the shapefile components in a single directory
@@ -367,7 +376,7 @@ public class GISHurricaneUtils {
                 }
             }
         } else {
-            org.json.JSONObject datasetJson = ServiceUtil.getDatasetJsonFromDataService(datasetId, username);
+            org.json.JSONObject datasetJson = ServiceUtil.getDatasetJsonFromDataService(datasetId, username, Authorization);
             List fileList = ServiceUtil.getFileDescriptorFileList(datasetJson);
             shpFilePath = ServiceUtil.collectShapfileInFolder(fileList, hurricaneCacheDir);
         }

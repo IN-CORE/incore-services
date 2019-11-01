@@ -700,10 +700,11 @@ public class HurricaneUtil {
     }
 
     public static HurricaneSimulationDataset createHurricaneDataSetFromFile(String filePath, String title, String creator,
+                                                                            String Authorization,
                                                                             String description, String datasetType,
                                                                             String simulationAbsTime) throws IOException {
         File file = new File(filePath);
-        String datasetId = ServiceUtil.createRasterDataset(file, title, creator, description, datasetType);
+        String datasetId = ServiceUtil.createRasterDataset(file, title, creator, Authorization, description, datasetType);
 
 
         HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
@@ -713,13 +714,14 @@ public class HurricaneUtil {
     }
 
     public static HurricaneSimulationDataset createHurricaneDataSetFromFiles(List<String> filePaths, String title, String creator,
+                                                                             String Authorization,
                                                                              String description, String datasetType,
                                                                              String simulationAbsTime) throws IOException {
         List<File> files = new ArrayList();
         for (String filePath : filePaths) {
             files.add(new File(filePath));
         }
-        String datasetId = ServiceUtil.createVisualizationDataset(files, title, creator, description, datasetType);
+        String datasetId = ServiceUtil.createVisualizationDataset(files, title, creator, Authorization, description, datasetType);
 
         HurricaneSimulationDataset simDataset = new HurricaneSimulationDataset();
         simDataset.setAbsTime(simulationAbsTime);

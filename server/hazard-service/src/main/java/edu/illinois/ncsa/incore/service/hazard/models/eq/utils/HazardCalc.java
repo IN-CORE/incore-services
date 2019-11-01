@@ -54,7 +54,12 @@ public class HazardCalc {
     private static final Logger logger = Logger.getLogger(HazardCalc.class);
     private static GeometryFactory factory = new GeometryFactory();
 
-    public static LiquefactionHazardResult getLiquefactionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, SimpleFeatureCollection soilGeology, String demandUnits, String creator) {
+    public static LiquefactionHazardResult getLiquefactionAtSite(Earthquake earthquake,
+                                                                 Map<BaseAttenuation, Double> attenuations,
+                                                                 Site site, SimpleFeatureCollection soilGeology,
+                                                                 String demandUnits,
+                                                                 String creator,
+                                                                 String Authorization) {
 
         // TODO fix this for dataset
         EarthquakeModel eqModel = (EarthquakeModel) earthquake;
@@ -71,7 +76,8 @@ public class HazardCalc {
             SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), soilGeology);
             if (feature != null) {
                 susceptibilitity = feature.getAttribute("liq_suscep").toString();
-                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA", "g", 0, true, creator).getHazardValue();
+                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA",
+                    "g", 0, true, creator, Authorization).getHazardValue();
                 groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, magnitude);
                 double liqProbability = liquefaction.getProbabilityOfLiquefaction(eqModel.getEqParameters().getMagnitude(), pgaValue, susceptibilitity, groundWaterDepth);
                 groundFailureProb = liquefaction.getProbabilityOfGroundFailure(susceptibilitity, pgaValue, groundWaterDepth, magnitude);
@@ -95,7 +101,10 @@ public class HazardCalc {
 
     }
 
-    public static SeismicHazardResult getGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String period, String hazardType, String demandUnits, int spectrumOverride, boolean amplifyHazard, String creator) throws Exception {
+    public static SeismicHazardResult getGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations,
+                                                            Site site, String period, String hazardType, String demandUnits,
+                                                            int spectrumOverride, boolean amplifyHazard, String creator,
+                                                            String Authorization) throws Exception {
         // If demand type units is null, use default for the requested demand
         // This might not be the best way to handle it, but it is at least consistent in providing the units of what is
         // being returned
@@ -107,12 +116,14 @@ public class HazardCalc {
         if (HazardUtil.SD.equalsIgnoreCase(hazardType)) {
             boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, true);
             if(!supported) {
-                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, HazardUtil.SA, spectrumOverride, amplifyHazard, creator, demandUnits);
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, HazardUtil.SA,
+                    spectrumOverride, amplifyHazard, creator, Authorization, demandUnits);
                 // We use the result period for conversion because in the case of closest match, the requested period may not have been used
                 double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), HazardUtil.SA, demandUnits, HazardUtil.SD);
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), HazardUtil.SD, demandUnits);
             } else {
-                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType,
+                    spectrumOverride, amplifyHazard, creator, Authorization, demandUnits);
                 double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
             }
@@ -128,12 +139,14 @@ public class HazardCalc {
                 }
                 logger.debug(hazardType + " is not directly supported by the earthquake, using 1.0 second SA to compute " + hazardType);
 
-                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0", "Sa", spectrumOverride, amplifyHazard, creator, null);
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0",
+                    "Sa", spectrumOverride, amplifyHazard, creator, Authorization, null);
                 double updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits, HazardUtil.PGV);
                 return new SeismicHazardResult(updatedHazardVal, "0.0", HazardUtil.PGV, demandUnits);
             } else {
                 // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
-                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType,
+                    spectrumOverride, amplifyHazard, creator, Authorization, demandUnits);
                 double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
             }
@@ -146,7 +159,8 @@ public class HazardCalc {
                 logger.warn(hazardType + " is not supported by the defined earthquake.");
                 return null;
             }
-            SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard, creator, demandUnits);
+            SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride, amplifyHazard,
+                creator, Authorization, demandUnits);
             double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(), Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
 
             // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
@@ -155,7 +169,10 @@ public class HazardCalc {
 
     }
 
-    public static SeismicHazardResult computeGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, Site site, String period, String demand, int spectrumOverride, boolean amplifyHazard, String creator, String demandUnits) throws Exception {
+    public static SeismicHazardResult computeGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations,
+                                                                Site site, String period, String demand, int spectrumOverride,
+                                                                boolean amplifyHazard, String creator, String Authorization,
+                                                                String demandUnits) throws Exception {
 
         double hazardValue = 0.0;
         String closestHazardPeriod = period;
@@ -197,7 +214,8 @@ public class HazardCalc {
                     siteAmplification = new NEHRPSiteAmplification();
 
                     if (closestHazardPeriod.equalsIgnoreCase(HazardUtil.PGV)) {
-                        double pga = computeGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA", spectrumOverride, false, creator, null).getHazardValue();
+                        double pga = computeGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA",
+                            spectrumOverride, false, creator, Authorization,null).getHazardValue();
                         hazardValue *= siteAmplification.getSiteAmplification(site, pga, siteClass, closestHazardPeriod);
                     } else {
                         // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for amplifying PGV
@@ -220,7 +238,7 @@ public class HazardCalc {
             HazardDataset hazardDataset = HazardUtil.findHazard(eqDataset.getHazardDatasets(), demand, period, false);
             closestHazardPeriod = Double.toString(hazardDataset.getPeriod());
 
-            GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
+            GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator, Authorization);
             try {
                 hazardValue = HazardUtil.findRasterPoint(site.getLocation(), (GridCoverage2D) gc);
                 hazardValue = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(), Double.parseDouble(period), hazardDataset.getDemandType(), demandUnits, demand);
@@ -265,7 +283,10 @@ public class HazardCalc {
         return canOutputHazard;
     }
 
-    public static GridCoverage getEarthquakeHazardRaster(EarthquakeModel scenarioEarthquake, Map<BaseAttenuation, Double> attenuations, String creator) throws Exception {
+    public static GridCoverage getEarthquakeHazardRaster(EarthquakeModel scenarioEarthquake,
+                                                         Map<BaseAttenuation, Double> attenuations,
+                                                         String creator,
+                                                         String Authorization) throws Exception {
         EqVisualization visualizationParameters = scenarioEarthquake.getVisualizationParameters();
         boolean amplifyHazard = visualizationParameters.isAmplifyHazard();
         double minX = visualizationParameters.getMinX();
@@ -334,7 +355,9 @@ public class HazardCalc {
             startX = (float) minX + (cellsize / 2.0f);
             for (int x = 0; x < width; x++) {
                 localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
-                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations, localSite, demandComponents[0], demandComponents[1], demandUnits, 0, amplifyHazard, creator).getHazardValue();
+                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations,
+                    localSite, demandComponents[0], demandComponents[1], demandUnits,
+                    0, amplifyHazard, creator, Authorization).getHazardValue();
 
                 raster.setSample(x, y, 0, hazardValue);
 

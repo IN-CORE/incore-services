@@ -105,8 +105,9 @@ public class DatasetController {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets a dataset from the Dataset collection", notes = "")
-    public Dataset getDatasetbyId(@HeaderParam("x-auth-userinfo") String userInfo,
-                                  @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
+    public Dataset getDatasetbyId(
+        @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
             throw new BadRequestException("Invalid User Info!");
         }

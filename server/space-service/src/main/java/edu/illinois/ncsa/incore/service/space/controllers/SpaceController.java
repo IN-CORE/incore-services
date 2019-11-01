@@ -77,126 +77,117 @@ public class SpaceController {
 
     private Logger logger = Logger.getLogger(SpaceController.class);
 
+    private String username;
+    private String Authorization;
+
     @Inject
     private ISpaceRepository spaceRepository;
 
     @Inject
     private IAuthorizer authorizer;
 
+    @Inject
+    public SpaceController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User credentials Authorization.", required = true) @HeaderParam("Authorization") String Authorization
+    ) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+        else{
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                this.Authorization = Authorization;
+                UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+                if (user.getPreferredUsername() == null){
+                    throw new NotAuthorizedException("Invalid User Info!");
+                }else{
+                    this.username = user.getPreferredUsername();
+                }
+            }
+            catch (Exception e) {
+                throw new NotAuthorizedException("Invalid User Info!");
+            }
+        }
+    }
+
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Ingest space object as json")
-    public Space ingestSpace(@HeaderParam("x-auth-userinfo") String userInfo,
-                             @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+    public Space ingestSpace(
+        @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
 
-        ObjectMapper userObjectMapper = new ObjectMapper();
-        try{
-            UserInfo user = userObjectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
+        ObjectMapper spaceObjectMapper = new ObjectMapper();
+        try {
+            Space newSpace = spaceObjectMapper.readValue(spaceJson, Space.class);
 
-            ObjectMapper spaceObjectMapper = new ObjectMapper();
-            try {
-                Space newSpace = spaceObjectMapper.readValue(spaceJson, Space.class);
-
-                if (newSpace.getName().equals("")) {
-                    throw new BadRequestException("Invalid name");
-                }
-
-                if (spaceRepository.getSpaceByName(newSpace.getName()) == null) {
-                    newSpace.addUserPrivileges(username, PrivilegeLevel.ADMIN);
-
-                    //TODO: this should change in the future. The space should not have to care about what it is adding.
-                    List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
-                    for (String id : members) {
-                        addMembers(newSpace, username, id);
-                    }
-
-                    return spaceRepository.addSpace(newSpace);
-
-                } else {
-                    throw new BadRequestException("Space already exists with name " + newSpace.getName());
-                }
-            } catch (Exception e) {
-                throw new BadRequestException("Invalid space JSON. " + e.toString());
+            if (newSpace.getName().equals("")) {
+                throw new BadRequestException("Invalid name");
             }
-        }
-        catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+
+            if (spaceRepository.getSpaceByName(newSpace.getName()) == null) {
+                newSpace.addUserPrivileges(this.username, PrivilegeLevel.ADMIN);
+
+                //TODO: this should change in the future. The space should not have to care about what it is adding.
+                List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
+                for (String id : members) {
+                    addMembers(newSpace, this.username, this.Authorization, id);
+                }
+
+                return spaceRepository.addSpace(newSpace);
+
+            } else {
+                throw new BadRequestException("Space already exists with name " + newSpace.getName());
+            }
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid space JSON. " + e.toString());
         }
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets the list of all available spaces", notes = "Return spaces that the user has read/write/admin privileges on. If a member Id is passed, it will return all spaces that contains the member.")
-    public List<Space> getSpacesList(@HeaderParam("x-auth-userinfo") String userInfo,
-                                     @ApiParam(value = "Member Id") @QueryParam("member") String memberId) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+    public List<Space> getSpacesList(@ApiParam(value = "Member Id") @QueryParam("member") String memberId) {
 
-        ObjectMapper userObjectMapper = new ObjectMapper();
-        try{
-            UserInfo user = userObjectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-
-            if (memberId != null) {
-                if (!authorizer.canUserReadMember(username, memberId, spaceRepository.getAllSpaces())) {
-                    throw new ForbiddenException("User can't access the given member");
-                }
-                List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(username, spaceRepository.getAllSpaces());
-                List<Space> spacesWithMember = new ArrayList<>();
-                for (Space space : filteredSpaces) {
-                    if (space.hasMember(memberId)) {
-                        spacesWithMember.add(space);
-                    }
-                }
-                if (spacesWithMember.size() == 0) {
-                    throw new NotFoundException("No spaces user has access to contain the member with id " + memberId);
-                }
-                return spacesWithMember;
+        if (memberId != null) {
+            if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces())) {
+                throw new ForbiddenException("User can't access the given member");
             }
-
-            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(username, spaceRepository.getAllSpaces());
-            if (filteredSpaces.size() == 0) {
-                throw new ForbiddenException("User can't access any space");
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+            List<Space> spacesWithMember = new ArrayList<>();
+            for (Space space : filteredSpaces) {
+                if (space.hasMember(memberId)) {
+                    spacesWithMember.add(space);
+                }
             }
+            if (spacesWithMember.size() == 0) {
+                throw new NotFoundException("No spaces user has access to contain the member with id " + memberId);
+            }
+            return spacesWithMember;
+        }
 
-            return filteredSpaces;
+        List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+        if (filteredSpaces.size() == 0) {
+            throw new ForbiddenException("User can't access any space");
         }
-        catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+
+        return filteredSpaces;
     }
 
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets a space.")
-    public Space getSpaceById(@HeaderParam("x-auth-userinfo") String userInfo,
-                              @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+    public Space getSpaceById(@ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId) {
+
+        Space space = getSpace(spaceId);
+
+        if (!(authorizer.canRead(this.username, space.getPrivileges()))) {
+            throw new ForbiddenException(this.username + " is not authorized to access the space " + spaceId);
         }
 
-        ObjectMapper userObjectMapper = new ObjectMapper();
-        try {
-            UserInfo user = userObjectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-            Space space = getSpace(spaceId);
-
-            if (!(authorizer.canRead(username, space.getPrivileges()))) {
-                throw new ForbiddenException(username + " is not authorized to access the space " + spaceId);
-            }
-
-            return space;
-        }
-        catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+        return space;
     }
 
     @PUT
@@ -204,96 +195,80 @@ public class SpaceController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Updates a space.")
-    public Space updateSpace(@HeaderParam("x-auth-userinfo") String userInfo,
-                             @ApiParam(value = "Space id.", required = true) @PathParam("id") String spaceId,
+    public Space updateSpace(@ApiParam(value = "Space id.", required = true) @PathParam("id") String spaceId,
                              @ApiParam(value = "JSON representing a space") @FormDataParam("space") String spaceJson,
-                             @ApiParam(value = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+                             @ApiParam(value = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson)
+    {
+        Space space = getSpace(spaceId);
+
+        //modify space by changing name or adding a list of members
+        if (spaceJson != null) {
+            if (!(authorizer.canWrite(this.username, space.getPrivileges()))) {
+                throw new ForbiddenException("You are not allowed to modify the space " + spaceId);
+            }
+            if (!JsonUtils.isJSONValid(spaceJson)) {
+                logger.error("Posted json is not a valid json.");
+                throw new BadRequestException("Posted json is not a valid json.");
+            }
+
+            String metadata = JsonUtils.extractValueFromJsonString(SPACE_METADATA, spaceJson);
+            List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
+            if (metadata.equals("") && members.size() == 0) {
+                throw new BadRequestException("Invalid identifiers");
+            }
+            //TODO: this will need to change once we add more fields to metadata
+            if (!metadata.equals("")) {
+                ObjectMapper metadataObjectMapper = new ObjectMapper();
+                try {
+                    SpaceMetadata newMetadata = metadataObjectMapper.readValue(metadata, SpaceMetadata.class);
+                    String name = newMetadata.getName();
+                    if (name.equals("")) {
+                        throw new BadRequestException("Invalid name in metadata");
+                    }
+                    if (spaceRepository.getSpaceByName(name) == null) {
+                        space.setMetadata(newMetadata);
+                    } else {
+                        throw new BadRequestException("New name of space already exists");
+                    }
+                } catch (IOException e) {
+                    throw new BadRequestException("Invalid metadata. " + e.toString());
+                }
+            }
+            if (members.size() > 0) {
+                for (String id : members) {
+                    addMembers(space, this.username, this.Authorization, id);
+                }
+            }
+
+            space = spaceRepository.addSpace(space);
+
+            return space;
         }
 
-        ObjectMapper userObjectMapper = new ObjectMapper();
-        try{
-            UserInfo user = userObjectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-            if (username == null || (spaceJson == null && membersToRemoveJson == null)) {
-                throw new BadRequestException();
-            }
+        if (!(authorizer.canDelete(this.username, space.getPrivileges()))) {
+            throw new ForbiddenException("You are not allowed to remove members from the space " + spaceId);
+        }
+        // modify space by deleting a list of members
+        Members membersToDelete;
 
-            Space space = getSpace(spaceId);
-
-            //modify space by changing name or adding a list of members
-            if (spaceJson != null) {
-                if (!(authorizer.canWrite(username, space.getPrivileges()))) {
-                    throw new ForbiddenException("You are not allowed to modify the space " + spaceId);
-                }
-                if (!JsonUtils.isJSONValid(spaceJson)) {
-                    logger.error("Posted json is not a valid json.");
-                    throw new BadRequestException("Posted json is not a valid json.");
-                }
-
-                String metadata = JsonUtils.extractValueFromJsonString(SPACE_METADATA, spaceJson);
-                List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
-                if (metadata.equals("") && members.size() == 0) {
-                    throw new BadRequestException("Invalid identifiers");
-                }
-                //TODO: this will need to change once we add more fields to metadata
-                if (!metadata.equals("")) {
-                    ObjectMapper metadataObjectMapper = new ObjectMapper();
-                    try {
-                        SpaceMetadata newMetadata = metadataObjectMapper.readValue(metadata, SpaceMetadata.class);
-                        String name = newMetadata.getName();
-                        if (name.equals("")) {
-                            throw new BadRequestException("Invalid name in metadata");
-                        }
-                        if (spaceRepository.getSpaceByName(name) == null) {
-                            space.setMetadata(newMetadata);
-                        } else {
-                            throw new BadRequestException("New name of space already exists");
-                        }
-                    } catch (IOException e) {
-                        throw new BadRequestException("Invalid metadata. " + e.toString());
-                    }
-                }
-                if (members.size() > 0) {
-                    for (String id : members) {
-                        addMembers(space, username, id);
-                    }
-                }
-
-                space = spaceRepository.addSpace(space);
-
-                return space;
-            }
-
-            if (!(authorizer.canDelete(username, space.getPrivileges()))) {
-                throw new ForbiddenException("You are not allowed to remove members from the space " + spaceId);
-            }
-            // modify space by deleting a list of members
-            Members membersToDelete;
-
-            ObjectMapper memeberObjectMapper = new ObjectMapper();
-            try {
-                membersToDelete = memeberObjectMapper.readValue(membersToRemoveJson, Members.class);
-            } catch (Exception e) {
-                throw new BadRequestException("Invalid members JSON. " + e.toString());
-            }
-            boolean spaceContainsMembers = false;
-            List<String> members = membersToDelete.getMembers();
-            for (String member: members) {
-                if (space.hasMember(member)) {
-                    spaceContainsMembers = true;
-                    break;
-                }
-            }
-            if (membersToDelete.getMembers().size() != 0 && spaceContainsMembers) {
-                return removeMembers(username, space, membersToDelete);
-            } else {
-                throw new NotFoundException("The space does not contains the members defined to be removed.");
+        ObjectMapper memeberObjectMapper = new ObjectMapper();
+        try {
+            membersToDelete = memeberObjectMapper.readValue(membersToRemoveJson, Members.class);
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid members JSON. " + e.toString());
+        }
+        boolean spaceContainsMembers = false;
+        List<String> members = membersToDelete.getMembers();
+        for (String member: members) {
+            if (space.hasMember(member)) {
+                spaceContainsMembers = true;
+                break;
             }
         }
-        catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+        if (membersToDelete.getMembers().size() != 0 && spaceContainsMembers) {
+            return removeMembers(this.username, this.Authorization, space, membersToDelete);
+        } else {
+            throw new NotFoundException("The space does not contains the members defined to be removed.");
         }
     }
 
@@ -301,32 +276,20 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/members/{memberId}")
     @ApiOperation(value = "Adds a member to a space")
-    public Space addMembersToSpace(@HeaderParam("x-auth-userinfo") String userInfo,
-                                   @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-                                   @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+    public Space addMembersToSpace(
+        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
+        @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId)
+    {
+        Space space = getSpace(spaceId);
+
+        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+            throw new NotAuthorizedException(this.username + " can't modify the space");
         }
 
-        ObjectMapper userObjectMapper = new ObjectMapper();
-        try{
-            UserInfo user = userObjectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-
-            Space space = getSpace(spaceId);
-
-            if (!authorizer.canWrite(username, space.getPrivileges())) {
-                throw new NotAuthorizedException(username + " can't modify the space");
-            }
-
-            if (addMembers(space, username, memberId)) {
-                return space;
-            } else {
-                throw new NotFoundException("Could not retrieve member with id " + memberId);
-            }
-        }
-        catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+        if (addMembers(space, this.username, this.Authorization, memberId)) {
+            return space;
+        } else {
+            throw new NotFoundException("Could not retrieve member with id " + memberId);
         }
     }
 
@@ -335,78 +298,56 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/grant")
     @ApiOperation(value = "Grants new privileges to a space")
-    public Space grantPrivilegesToSpace(@HeaderParam("x-auth-userinfo") String userInfo,
-                                        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-                                        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
+    public Space grantPrivilegesToSpace(
+        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
+        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson)
+    {
+        Space space = getSpace(spaceId);
 
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+            throw new NotAuthorizedException(this.username + " has not write permissions in " + spaceId);
         }
 
-        ObjectMapper userObjectMapper = new ObjectMapper();
-        try{
-            UserInfo user = userObjectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-            Space space = getSpace(spaceId);
-
-            if (!authorizer.canWrite(username, space.getPrivileges())) {
-                throw new NotAuthorizedException(username + " has not write permissions in " + spaceId);
-            }
-
-            ObjectMapper privilegeObjectMapper = new ObjectMapper();
-            try {
-                Privileges privileges = privilegeObjectMapper.readValue(privilegesJson, Privileges.class);
-                space.addPrivileges(privileges);
-            } catch (IOException e) {
-                throw new BadRequestException("Invalid privileges JSON. " + e.toString());
-            }
-
-            spaceRepository.addSpace(space);
-
-            return space;
+        ObjectMapper privilegeObjectMapper = new ObjectMapper();
+        try {
+            Privileges privileges = privilegeObjectMapper.readValue(privilegesJson, Privileges.class);
+            space.addPrivileges(privileges);
+        } catch (IOException e) {
+            throw new BadRequestException("Invalid privileges JSON. " + e.toString());
         }
-        catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+
+        spaceRepository.addSpace(space);
+
+        return space;
+
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/members/{memberId}")
     @ApiOperation("Removes a member from a space")
-    public Space removeMemberFromSpace(@HeaderParam("x-auth-userinfo") String userInfo,
-                                       @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId,
-                                       @ApiParam(value = "Member id", required = true) @PathParam("memberId") String memberId) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+    public Space removeMemberFromSpace(
+        @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId,
+        @ApiParam(value = "Member id", required = true) @PathParam("memberId") String memberId)
+    {
+
+        if (memberId == null) {
+            throw new BadRequestException("User must provide a member Id or a list of member ids");
         }
 
-        ObjectMapper userObjectMapper = new ObjectMapper();
-        try {
-            UserInfo user = userObjectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-
-            if (memberId == null) {
-                throw new BadRequestException("User must provide a member Id or a list of member ids");
-            }
-
-            Space space = getSpace(spaceId);
-            if (!authorizer.canDelete(username, space.getPrivileges())) {
-                throw new NotAuthorizedException("User has no privileges to modify the space " + space.getName());
-            }
-
-            if (!space.hasMember(memberId)) {
-                throw new NotFoundException("The member id was not found.");
-            }
-
-            Members membersToDelete = new Members();
-            membersToDelete.addMember(memberId);
-
-            return removeMembers(username, space, membersToDelete);
+        Space space = getSpace(spaceId);
+        if (!authorizer.canDelete(this.username, space.getPrivileges())) {
+            throw new NotAuthorizedException("User has no privileges to modify the space " + space.getName());
         }
-        catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+
+        if (!space.hasMember(memberId)) {
+            throw new NotFoundException("The member id was not found.");
         }
+
+        Members membersToDelete = new Members();
+        membersToDelete.addMember(memberId);
+
+        return removeMembers(this.username, this.Authorization, space, membersToDelete);
     }
 
     /**
@@ -430,7 +371,7 @@ public class SpaceController {
      * @param username username
      * @return A list of ObjectIds related to the hazardId
      */
-    private List<String> getHazardIds(String hazardId, String username) {
+    private List<String> getHazardIds(String hazardId, String username, String Authorization) {
         //TODO: check if there is a better way of doing this
         HttpURLConnection con;
         try {
@@ -444,6 +385,7 @@ public class SpaceController {
                     con = (HttpURLConnection) url.openConnection();
                     con.setRequestMethod("GET");
                     con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
+                    con.setRequestProperty("Authorization", Authorization);
                     String content = getContent(con);
                     con.disconnect();
                     if (content != null) {
@@ -507,7 +449,7 @@ public class SpaceController {
      * @param username   username
      * @return Json response of API call
      */
-    private String get(String serviceUrl, String memberId, String username) {
+    private String get(String serviceUrl, String memberId, String username, String Authorization) {
         HttpURLConnection con;
         try {
             URL url = new URL(SERVICES_URL + serviceUrl + memberId);
@@ -515,6 +457,7 @@ public class SpaceController {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
+                con.setRequestProperty("Authorization", Authorization);
                 return getContent(con);
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -558,7 +501,7 @@ public class SpaceController {
      * @return True if a member was found in any service and was added to the space successfully. False if no member was
      * found or if the user has no write/admin privileges on a space that contains the member.
      */
-    private boolean addMembers(Space space, String username, String memberId) {
+    private boolean addMembers(Space space, String username, String Authorization, String memberId) {
         if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces())) {
             return false;
         }
@@ -568,15 +511,15 @@ public class SpaceController {
 
         boolean isValidNonHazardMember = false;
 
-        if (get(DATA_URL, memberId, username) != null) {
+        if (get(DATA_URL, memberId, username, Authorization) != null) {
             isValidNonHazardMember = true;
-        } else if(get(FRAGILITY_URL, memberId, username) != null){
+        } else if(get(FRAGILITY_URL, memberId, username, Authorization) != null){
             isValidNonHazardMember = true;
-        } else if(get(REPAIR_URL, memberId, username) != null){
+        } else if(get(REPAIR_URL, memberId, username, Authorization) != null){
             isValidNonHazardMember = true;
-        } else if(get(RESTORATION_URL, memberId, username) != null){
+        } else if(get(RESTORATION_URL, memberId, username, Authorization) != null){
             isValidNonHazardMember = true;
-        } else if(get(MAPPING_URL, memberId, username) != null){
+        } else if(get(MAPPING_URL, memberId, username, Authorization) != null){
             isValidNonHazardMember = true;
         }
 
@@ -587,7 +530,7 @@ public class SpaceController {
         }
 
         //get a list containing the hazard and its associated datasets from hazard-service
-        List<String> hazardIds = getHazardIds(memberId, username);
+        List<String> hazardIds = getHazardIds(memberId, username, Authorization);
         //If the hazard has no datasets, we will just add the hazard id to the space
         if (hazardIds != null && hazardIds.size() > 0) {
             for (String id : hazardIds) {
@@ -607,11 +550,11 @@ public class SpaceController {
      * @param membersToDelete list of members to remove
      * @return space with removed members if successful, unmodified space otherwise
      */
-    private Space removeMembers(String username, Space space, Members membersToDelete) {
+    private Space removeMembers(String username, String Authorization, Space space, Members membersToDelete) {
         //TODO: this will be removed in the future since spaces should not care about what they are removing
         List<String> deleteMembers = new ArrayList<>(membersToDelete.getMembers());
         for (String member : deleteMembers) {
-            List<String> additionalMembers = getHazardIds(member, username);
+            List<String> additionalMembers = getHazardIds(member, username, Authorization);
             if (additionalMembers != null) {
                 for (String newMember : additionalMembers) {
                     membersToDelete.addMember(newMember);

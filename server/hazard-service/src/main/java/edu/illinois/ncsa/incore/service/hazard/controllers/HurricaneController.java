@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
     private String username;
+    private String Authorization;
 
     @Inject
     private IHurricaneRepository repository;
@@ -62,12 +63,15 @@ public class HurricaneController {
     private IAuthorizer authorizer;
 
     @Inject
-    public HurricaneController(@ApiParam(value = "User credentials.", required = true)
-                                   @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+    public HurricaneController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User Authorization token.", required = true) @HeaderParam("Authorization") String Authorization
+    ) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
             throw new NotAuthorizedException("Invalid User Info!");
         }
         else{
+            this.Authorization = Authorization;
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
@@ -185,7 +189,7 @@ public class HurricaneController {
                 double lon = point.getLocation().getX();
                 try {
 
-                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at 10m elevation
+                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, this.Authorization, lat, lon); // 3s gust at 10m elevation
 
                     HashMap<String, Double> convertedWf = HurricaneUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
                     windValue = convertedWf.get(demandType);
@@ -247,7 +251,7 @@ public class HurricaneController {
                 hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
 
                 hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
-                    inputHurricane.getRasterResolution(), this.username));
+                    inputHurricane.getRasterResolution(), this.username, this.Authorization));
 
                 //save hurricane
                 hurricaneWindfields = repository.addHurricane(hurricaneWindfields);
@@ -297,7 +301,7 @@ public class HurricaneController {
         }
 
         if (HurricaneUtil.categoryMapping.get(coast) != null) {
-            return HurricaneCalc.simulateHurricane(this.username, transD, landfallLoc,
+            return HurricaneCalc.simulateHurricane(this.username, this.Authorization, transD, landfallLoc,
                 HurricaneUtil.categoryMapping.get(coast)[category - 1], demandType, demandUnits, resolution, gridPoints, rfMethod);
         } else {
             throw new NotFoundException("Error finding a mapping for the coast and category");
