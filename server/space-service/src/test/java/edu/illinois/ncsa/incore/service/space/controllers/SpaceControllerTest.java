@@ -79,7 +79,7 @@ class SpaceControllerTest extends CustomJerseyTest {
 
         assertNotNull(parsedObject.get("id").toString());
         assertNotNull(parsedObject.get("metadata").toString());
-//    }
+    }
 
     @Test
     public void testGrantPrivileges() throws IOException {
