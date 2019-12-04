@@ -11,11 +11,9 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import edu.illinois.ncsa.incore.common.models.UserInfo;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -51,7 +49,6 @@ import java.util.stream.Collectors;
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
     private String username;
-    private String Authorization;
 
     @Inject
     private IHurricaneRepository repository;
@@ -64,26 +61,9 @@ public class HurricaneController {
 
     @Inject
     public HurricaneController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User Authorization token.", required = true) @HeaderParam("Authorization") String Authorization
-    ) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
             throw new NotAuthorizedException("Invalid User Info!");
-        }
-        else{
-            this.Authorization = Authorization;
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-                if (user.getPreferredUsername() == null){
-                    throw new NotAuthorizedException("Invalid User Info!");
-                }else{
-                    this.username = user.getPreferredUsername();
-                }
-            }
-            catch (Exception e) {
-                throw new NotAuthorizedException("Invalid User Info!");
-            }
         }
     }
 
@@ -189,7 +169,7 @@ public class HurricaneController {
                 double lon = point.getLocation().getX();
                 try {
 
-                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, this.Authorization, lat, lon); // 3s gust at 10m elevation
+                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at 10m elevation
 
                     HashMap<String, Double> convertedWf = HurricaneUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
                     windValue = convertedWf.get(demandType);
@@ -251,7 +231,7 @@ public class HurricaneController {
                 hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
 
                 hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
-                    inputHurricane.getRasterResolution(), this.username, this.Authorization));
+                    inputHurricane.getRasterResolution(), this.username));
 
                 //save hurricane
                 hurricaneWindfields = repository.addHurricane(hurricaneWindfields);
@@ -301,7 +281,7 @@ public class HurricaneController {
         }
 
         if (HurricaneUtil.categoryMapping.get(coast) != null) {
-            return HurricaneCalc.simulateHurricane(this.username, this.Authorization, transD, landfallLoc,
+            return HurricaneCalc.simulateHurricane(this.username, transD, landfallLoc,
                 HurricaneUtil.categoryMapping.get(coast)[category - 1], demandType, demandUnits, resolution, gridPoints, rfMethod);
         } else {
             throw new NotFoundException("Error finding a mapping for the coast and category");

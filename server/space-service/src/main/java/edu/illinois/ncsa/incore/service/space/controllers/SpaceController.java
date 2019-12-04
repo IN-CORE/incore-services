@@ -78,7 +78,6 @@ public class SpaceController {
     private Logger logger = Logger.getLogger(SpaceController.class);
 
     private String username;
-    private String Authorization;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -88,26 +87,9 @@ public class SpaceController {
 
     @Inject
     public SpaceController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User credentials Authorization.", required = true) @HeaderParam("Authorization") String Authorization
-    ) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
             throw new NotAuthorizedException("Invalid User Info!");
-        }
-        else{
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                this.Authorization = Authorization;
-                UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-                if (user.getPreferredUsername() == null){
-                    throw new NotAuthorizedException("Invalid User Info!");
-                }else{
-                    this.username = user.getPreferredUsername();
-                }
-            }
-            catch (Exception e) {
-                throw new NotAuthorizedException("Invalid User Info!");
-            }
         }
     }
 
@@ -132,7 +114,7 @@ public class SpaceController {
                 //TODO: this should change in the future. The space should not have to care about what it is adding.
                 List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
                 for (String id : members) {
-                    addMembers(newSpace, this.username, this.Authorization, id);
+                    addMembers(newSpace, this.username, id);
                 }
 
                 return spaceRepository.addSpace(newSpace);
@@ -236,7 +218,7 @@ public class SpaceController {
             }
             if (members.size() > 0) {
                 for (String id : members) {
-                    addMembers(space, this.username, this.Authorization, id);
+                    addMembers(space, this.username, id);
                 }
             }
 
@@ -266,7 +248,7 @@ public class SpaceController {
             }
         }
         if (membersToDelete.getMembers().size() != 0 && spaceContainsMembers) {
-            return removeMembers(this.username, this.Authorization, space, membersToDelete);
+            return removeMembers(this.username, space, membersToDelete);
         } else {
             throw new NotFoundException("The space does not contains the members defined to be removed.");
         }
@@ -286,7 +268,7 @@ public class SpaceController {
             throw new NotAuthorizedException(this.username + " can't modify the space");
         }
 
-        if (addMembers(space, this.username, this.Authorization, memberId)) {
+        if (addMembers(space, this.username, memberId)) {
             return space;
         } else {
             throw new NotFoundException("Could not retrieve member with id " + memberId);
@@ -347,7 +329,7 @@ public class SpaceController {
         Members membersToDelete = new Members();
         membersToDelete.addMember(memberId);
 
-        return removeMembers(this.username, this.Authorization, space, membersToDelete);
+        return removeMembers(this.username, space, membersToDelete);
     }
 
     /**
@@ -371,7 +353,7 @@ public class SpaceController {
      * @param username username
      * @return A list of ObjectIds related to the hazardId
      */
-    private List<String> getHazardIds(String hazardId, String username, String Authorization) {
+    private List<String> getHazardIds(String hazardId, String username) {
         //TODO: check if there is a better way of doing this
         HttpURLConnection con;
         try {
@@ -385,7 +367,6 @@ public class SpaceController {
                     con = (HttpURLConnection) url.openConnection();
                     con.setRequestMethod("GET");
                     con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
-                    con.setRequestProperty("Authorization", Authorization);
                     String content = getContent(con);
                     con.disconnect();
                     if (content != null) {
@@ -449,7 +430,7 @@ public class SpaceController {
      * @param username   username
      * @return Json response of API call
      */
-    private String get(String serviceUrl, String memberId, String username, String Authorization) {
+    private String get(String serviceUrl, String memberId, String username) {
         HttpURLConnection con;
         try {
             URL url = new URL(SERVICES_URL + serviceUrl + memberId);
@@ -457,7 +438,6 @@ public class SpaceController {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
-                con.setRequestProperty("Authorization", Authorization);
                 return getContent(con);
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -501,7 +481,7 @@ public class SpaceController {
      * @return True if a member was found in any service and was added to the space successfully. False if no member was
      * found or if the user has no write/admin privileges on a space that contains the member.
      */
-    private boolean addMembers(Space space, String username, String Authorization, String memberId) {
+    private boolean addMembers(Space space, String username, String memberId) {
         if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces())) {
             return false;
         }
@@ -511,15 +491,15 @@ public class SpaceController {
 
         boolean isValidNonHazardMember = false;
 
-        if (get(DATA_URL, memberId, username, Authorization) != null) {
+        if (get(DATA_URL, memberId, username) != null) {
             isValidNonHazardMember = true;
-        } else if(get(FRAGILITY_URL, memberId, username, Authorization) != null){
+        } else if(get(FRAGILITY_URL, memberId, username) != null){
             isValidNonHazardMember = true;
-        } else if(get(REPAIR_URL, memberId, username, Authorization) != null){
+        } else if(get(REPAIR_URL, memberId, username) != null){
             isValidNonHazardMember = true;
-        } else if(get(RESTORATION_URL, memberId, username, Authorization) != null){
+        } else if(get(RESTORATION_URL, memberId, username) != null){
             isValidNonHazardMember = true;
-        } else if(get(MAPPING_URL, memberId, username, Authorization) != null){
+        } else if(get(MAPPING_URL, memberId, username) != null){
             isValidNonHazardMember = true;
         }
 
@@ -530,7 +510,7 @@ public class SpaceController {
         }
 
         //get a list containing the hazard and its associated datasets from hazard-service
-        List<String> hazardIds = getHazardIds(memberId, username, Authorization);
+        List<String> hazardIds = getHazardIds(memberId, username);
         //If the hazard has no datasets, we will just add the hazard id to the space
         if (hazardIds != null && hazardIds.size() > 0) {
             for (String id : hazardIds) {
@@ -550,11 +530,11 @@ public class SpaceController {
      * @param membersToDelete list of members to remove
      * @return space with removed members if successful, unmodified space otherwise
      */
-    private Space removeMembers(String username, String Authorization, Space space, Members membersToDelete) {
+    private Space removeMembers(String username, Space space, Members membersToDelete) {
         //TODO: this will be removed in the future since spaces should not care about what they are removing
         List<String> deleteMembers = new ArrayList<>(membersToDelete.getMembers());
         for (String member : deleteMembers) {
-            List<String> additionalMembers = getHazardIds(member, username, Authorization);
+            List<String> additionalMembers = getHazardIds(member, username);
             if (additionalMembers != null) {
                 for (String newMember : additionalMembers) {
                     membersToDelete.addMember(newMember);

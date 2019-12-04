@@ -9,11 +9,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
-import edu.illinois.ncsa.incore.common.models.UserInfo;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -54,7 +52,6 @@ import java.util.stream.Collectors;
 public class TsunamiController {
     private static final Logger log = Logger.getLogger(TsunamiController.class);
     private String username;
-    private String Authorization;
 
     @Inject
     private ITsunamiRepository repository;
@@ -67,26 +64,9 @@ public class TsunamiController {
 
     @Inject
     public TsunamiController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User credentials Authorization.", required = true) @HeaderParam("Authorization") String Authorization
-    ) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
             throw new NotAuthorizedException("Invalid User Info!");
-        }
-        else{
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                this.Authorization = Authorization;
-                UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-                if (user.getPreferredUsername() == null){
-                    throw new NotAuthorizedException("Invalid User Info!");
-                }else{
-                    this.username = user.getPreferredUsername();
-                }
-            }
-            catch (Exception e) {
-                throw new NotAuthorizedException("Invalid User Info!");
-            }
         }
     }
 
@@ -165,7 +145,7 @@ public class TsunamiController {
         if (tsunami != null) {
             for (IncorePoint point : points) {
                 try {
-                    tsunamiResults.add(TsunamiCalc.getTsunamiHazardValue(tsunami, demandType, demandUnits, point, this.username, this.Authorization));
+                    tsunamiResults.add(TsunamiCalc.getTsunamiHazardValue(tsunami, demandType, demandUnits, point, this.username));
                 } catch (UnsupportedHazardException e) {
                     log.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
                 }
@@ -221,7 +201,7 @@ public class TsunamiController {
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(), tsunamiDataset.getName() + " " + datasetName,
-                            this.username, this.Authorization, description, datasetType);
+                            this.username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 
