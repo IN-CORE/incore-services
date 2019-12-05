@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import edu.illinois.ncsa.incore.common.models.UserInfo;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -63,6 +64,18 @@ public class HurricaneController {
     public HurricaneController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
+                throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
+            }
+        }
+        catch (Exception e) {
             throw new NotAuthorizedException("Invalid User Info!");
         }
     }

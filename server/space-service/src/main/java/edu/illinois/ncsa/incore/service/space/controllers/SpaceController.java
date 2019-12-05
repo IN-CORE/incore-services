@@ -91,6 +91,18 @@ public class SpaceController {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
             throw new NotAuthorizedException("Invalid User Info!");
         }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
+                throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
+            }
+        }
+        catch (Exception e) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
     }
 
     @POST
