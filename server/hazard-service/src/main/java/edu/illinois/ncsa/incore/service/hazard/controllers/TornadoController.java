@@ -195,6 +195,7 @@ public class TornadoController {
                 String datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.Authorization, files);
                 tornadoModel.setDatasetId(datasetId);
 
+                tornado.setCreator(this.username);
                 tornado = repository.addTornado(tornado);
                 addTornadoToSpace(tornado, this.username);
 
@@ -208,6 +209,7 @@ public class TornadoController {
                     String datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.Authorization, fileParts);
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
+                    tornado.setCreator(this.username);
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
                     return tornado;

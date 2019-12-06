@@ -35,6 +35,8 @@ public abstract class Earthquake {
 
     private Date date = new Date();
 
+    private String creator = null;
+
     public String getDescription() {
         return description;
     }
@@ -60,4 +62,9 @@ public abstract class Earthquake {
         this.date = date;
     }
 
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) { this.creator = creator; }
 }

@@ -225,6 +225,7 @@ public class TsunamiController {
                         hazardDataset.setDatasetId(datasetId);
                     }
 
+                    tsunami.setCreator(this.username);
                     tsunami = repository.addTsunami(tsunami);
 
                     Space space = spaceRepository.getSpaceByName(this.username);

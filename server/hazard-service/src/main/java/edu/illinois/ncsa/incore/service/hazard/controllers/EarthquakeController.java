@@ -179,6 +179,9 @@ public class EarthquakeController {
                     rasterDataset.setPeriod(Double.parseDouble(demandComponents[0]));
 
                     scenarioEarthquake.setHazardDataset(rasterDataset);
+                    // add creator using username info
+                    earthquake.setCreator(this.username);
+
                     earthquake = repository.addEarthquake(earthquake);
 
                     addEarthquakeToSpace(earthquake, this.username);
@@ -223,6 +226,10 @@ public class EarthquakeController {
 
                         hazardDataset.setDatasetId(datasetId);
                     }
+
+                    // add creator using username info
+                    earthquake.setCreator(this.username);
+
                     // Save changes to earthquake
                     earthquake = repository.addEarthquake(earthquake);
 

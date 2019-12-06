@@ -236,6 +236,7 @@ public class HurricaneController {
 
                 hurricaneWindfields.setName(inputHurricane.getName());
                 hurricaneWindfields.setDescription(inputHurricane.getDescription());
+                hurricaneWindfields.setCreator(this.username);
 
                 hurricaneWindfields.setCategory(inputHurricane.getCategory());
                 hurricaneWindfields.setCoast(inputHurricane.getCoast());
