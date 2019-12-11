@@ -10,15 +10,14 @@
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import edu.illinois.ncsa.incore.common.models.UserInfo;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
@@ -45,9 +44,16 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
@@ -84,7 +90,6 @@ public class EarthquakeController {
     private static final Logger logger = Logger.getLogger(EarthquakeController.class);
     private GeometryFactory factory = new GeometryFactory();
     private String username;
-    private String Authorization;
 
     @Inject
     private IEarthquakeRepository repository;
@@ -100,29 +105,21 @@ public class EarthquakeController {
 
     @Inject
     public EarthquakeController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User Authorization token.", required = true) @HeaderParam("Authorization") String Authorization
-    ) {
-        if (userInfo == null
-            || !JsonUtils.isJSONValid(userInfo)
-            || Authorization == null)
-        {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
             throw new NotAuthorizedException("Invalid User Info!");
         }
-        else{
-            this.Authorization = Authorization;
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-                if (user.getPreferredUsername() == null){
-                    throw new NotAuthorizedException("Invalid User Info!");
-                }else{
-                    this.username = user.getPreferredUsername();
-                }
-            }
-            catch (Exception e) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
                 throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
             }
+        }
+        catch (Exception e) {
+            throw new NotAuthorizedException("Invalid User Info!");
         }
     }
 
@@ -162,13 +159,13 @@ public class EarthquakeController {
                 try {
                     File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
 
-                    GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username, this.Authorization);
+                    GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
                     HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
 
                     String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
                     String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
                     String description = "Earthquake visualization";
-                    String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username, this.Authorization,
+                    String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
                         description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
 
                     DeterministicHazardDataset rasterDataset = new DeterministicHazardDataset();
@@ -222,7 +219,7 @@ public class EarthquakeController {
                         InputStream fis = bodyPartEntity.getInputStream();
                         //TODO: we should check that we successfully created a raster dataset
                         String datasetId = ServiceUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName,
-                            this.username, this.Authorization, description, datasetType);
+                            this.username, description, datasetType);
 
                         hazardDataset.setDatasetId(datasetId);
                     }
@@ -386,7 +383,7 @@ public class EarthquakeController {
                     try {
                         localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
                         hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period,
-                            demand, demandUnits, 0, amplifyHazard, this.username, this.Authorization);
+                            demand, demandUnits, 0, amplifyHazard, this.username);
                         hazardResults.add(new HazardResult(startY, startX, hazardValue.getHazardValue()));
                     } catch (Exception e) {
                         logger.error("Error computing hazard value.", e);
@@ -431,7 +428,7 @@ public class EarthquakeController {
 
                 try {
                     hazardResults.add(HazardCalc.getGroundMotionAtSite(eq, attenuations, localSite, demandComponents[0],
-                        demandComponents[1], demandUnits, 0, amplifyHazard, this.username, this.Authorization));
+                        demandComponents[1], demandUnits, 0, amplifyHazard, this.username));
                 } catch (Exception e) {
                     throw new InternalServerErrorException("Error computing hazard.", e);
                 }
@@ -608,13 +605,13 @@ public class EarthquakeController {
 
             List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId,
-                this.username, this.Authorization);
+                this.username);
 
             for (IncorePoint point : points) {
                 Site localSite = new Site(point.getLocation());
                 // TODO find groundwater depth if shapefile is passed in
                 hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology,
-                    demandUnits, this.username, this.Authorization));
+                    demandUnits, this.username));
             }
 
             return hazardResults;

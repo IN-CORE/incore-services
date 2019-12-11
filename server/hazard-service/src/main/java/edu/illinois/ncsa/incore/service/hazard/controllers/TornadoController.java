@@ -16,7 +16,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -56,7 +55,6 @@ import java.util.stream.Collectors;
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
     private String username;
-    private String Authorization;
 
     @Inject
     private ITornadoRepository repository;
@@ -71,26 +69,21 @@ public class TornadoController {
 
     @Inject
     public TornadoController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User credentials Authorization", required = true) @HeaderParam("Authorization") String Authorization
-    ) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo) || Authorization == null) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
             throw new NotAuthorizedException("Invalid User Info!");
         }
-        else{
-            this.Authorization = Authorization;
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-                if (user.getPreferredUsername() == null){
-                    throw new NotAuthorizedException("Invalid User Info!");
-                }else{
-                    this.username = user.getPreferredUsername();
-                }
-            }
-            catch (Exception e) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
                 throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
             }
+        }
+        catch (Exception e) {
+            throw new NotAuthorizedException("Invalid User Info!");
         }
     }
 
@@ -192,7 +185,7 @@ public class TornadoController {
                 JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
-                String datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.Authorization, files);
+                String datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);
@@ -206,7 +199,7 @@ public class TornadoController {
                     // Create dataset object representation for storing shapefile
                     JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
-                    String datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.Authorization, fileParts);
+                    String datasetId = ServiceUtil.createDataset(datasetObject, this.username, fileParts);
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
                     tornado.setCreator(this.username);
@@ -266,7 +259,7 @@ public class TornadoController {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, this.username, this.Authorization);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, this.username);
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }
@@ -290,7 +283,7 @@ public class TornadoController {
         if (tornado != null) {
             for (IncorePoint point : points) {
                 try {
-                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, this.username, this.Authorization));
+                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, this.username));
                 } catch (UnsupportedHazardException e) {
                     logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are supported", e);
                     // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
