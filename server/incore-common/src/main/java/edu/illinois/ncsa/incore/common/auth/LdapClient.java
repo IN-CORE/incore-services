@@ -49,7 +49,6 @@ public class LdapClient {
         long currSecs = System.currentTimeMillis()/1000;
 
         if ((currSecs - lastUserGroupCacheRefreshed < ldapRefreshSecs)  && userGroupCache.containsKey(user)) {
-            System.out.println("Cache being used. Last Refresh: "+ lastUserGroupCacheRefreshed + " Curr Time: " + currSecs);
             return userGroupCache.get(user);
         }
 
@@ -84,7 +83,6 @@ public class LdapClient {
             log.error("Could not find groups for user " + user, e);
         }
         userGroupCache.put(user, result);
-        System.out.println("Cache Refreshed. Last Refresh: "+ lastUserGroupCacheRefreshed + " Curr Time: " + currSecs);
         lastUserGroupCacheRefreshed = System.currentTimeMillis()/1000;
         return result;
     }
