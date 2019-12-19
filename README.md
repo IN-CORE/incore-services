@@ -2,9 +2,6 @@
 
 IN-CORE Web Services is a component of IN-CORE. IN-CORE uses a service oriented architecture with a REST API for communicating with the different services. The followings are services in IN-CORE Web Services in this repository
 
-## Authentication Service
-The authentication service  
-
 ## Data Service
 The data service uses MongoDB and provides basic capabililities to fetch/store data from file storage. In addition, the data service uses a Geoserver to serve GIS data.
 
