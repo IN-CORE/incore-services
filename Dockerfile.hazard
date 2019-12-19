@@ -2,6 +2,7 @@ FROM openjdk:8
 
 # install gdal-bin
 RUN apt-get -qq -y update && \
+  apt-get -qq -y install cron && \
   apt-get -qq -y install software-properties-common && \
   add-apt-repository -y ppa:ubuntugis/ppa && \
   apt-get install -qq -y gdal-bin && \
