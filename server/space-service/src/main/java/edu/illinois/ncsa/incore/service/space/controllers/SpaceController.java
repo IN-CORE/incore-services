@@ -6,7 +6,8 @@ package edu.illinois.ncsa.incore.service.space.controllers;
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *******************************************************************************
  */
-
+import edu.illinois.ncsa.incore.common.models.UserInfo;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
@@ -15,7 +16,6 @@ import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.SpaceMetadata;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.service.space.models.Members;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
@@ -77,37 +77,56 @@ public class SpaceController {
 
     private Logger logger = Logger.getLogger(SpaceController.class);
 
+    private String username;
+
     @Inject
     private ISpaceRepository spaceRepository;
 
     @Inject
     private IAuthorizer authorizer;
 
+    @Inject
+    public SpaceController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
+                throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
+            }
+        }
+        catch (Exception e) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+    }
+
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Ingest space object as json")
-    public Space ingestSpace(@HeaderParam("X-Credential-Username") String username,
-                             @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
-        if (username == null || !JsonUtils.isJSONValid(spaceJson)) {
-            throw new BadRequestException("User must provide a valid json and username");
-        }
+    public Space ingestSpace(
+        @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper spaceObjectMapper = new ObjectMapper();
         try {
-            Space newSpace = objectMapper.readValue(spaceJson, Space.class);
+            Space newSpace = spaceObjectMapper.readValue(spaceJson, Space.class);
 
             if (newSpace.getName().equals("")) {
                 throw new BadRequestException("Invalid name");
             }
 
             if (spaceRepository.getSpaceByName(newSpace.getName()) == null) {
-                newSpace.addUserPrivileges(username, PrivilegeLevel.ADMIN);
+                newSpace.addUserPrivileges(this.username, PrivilegeLevel.ADMIN);
 
                 //TODO: this should change in the future. The space should not have to care about what it is adding.
                 List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
                 for (String id : members) {
-                    addMembers(newSpace, username, id);
+                    addMembers(newSpace, this.username, id);
                 }
 
                 return spaceRepository.addSpace(newSpace);
@@ -123,17 +142,13 @@ public class SpaceController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets the list of all available spaces", notes = "Return spaces that the user has read/write/admin privileges on. If a member Id is passed, it will return all spaces that contains the member.")
-    public List<Space> getSpacesList(@HeaderParam("X-Credential-Username") String username,
-                                     @ApiParam(value = "Member Id") @QueryParam("member") String memberId) {
-        if (username == null) {
-            throw new BadRequestException("User must provide a valid username");
-        }
+    public List<Space> getSpacesList(@ApiParam(value = "Member Id") @QueryParam("member") String memberId) {
 
         if (memberId != null) {
-            if (!authorizer.canUserReadMember(username, memberId, spaceRepository.getAllSpaces())) {
+            if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces())) {
                 throw new ForbiddenException("User can't access the given member");
             }
-            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(username, spaceRepository.getAllSpaces());
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
             List<Space> spacesWithMember = new ArrayList<>();
             for (Space space : filteredSpaces) {
                 if (space.hasMember(memberId)) {
@@ -146,26 +161,24 @@ public class SpaceController {
             return spacesWithMember;
         }
 
-        List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(username, spaceRepository.getAllSpaces());
+        List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
         if (filteredSpaces.size() == 0) {
             throw new ForbiddenException("User can't access any space");
         }
 
         return filteredSpaces;
-
-
     }
 
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets a space.")
-    public Space getSpaceById(@HeaderParam("X-Credential-Username") String username,
-                              @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId) {
+    public Space getSpaceById(@ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId) {
+
         Space space = getSpace(spaceId);
 
-        if (!(authorizer.canRead(username, space.getPrivileges()))) {
-            throw new ForbiddenException(username + " is not authorized to access the space " + spaceId);
+        if (!(authorizer.canRead(this.username, space.getPrivileges()))) {
+            throw new ForbiddenException(this.username + " is not authorized to access the space " + spaceId);
         }
 
         return space;
@@ -176,19 +189,15 @@ public class SpaceController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Updates a space.")
-    public Space updateSpace(@HeaderParam("X-Credential-Username") String username,
-                             @ApiParam(value = "Space id.", required = true) @PathParam("id") String spaceId,
+    public Space updateSpace(@ApiParam(value = "Space id.", required = true) @PathParam("id") String spaceId,
                              @ApiParam(value = "JSON representing a space") @FormDataParam("space") String spaceJson,
-                             @ApiParam(value = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson) {
-        if (username == null || (spaceJson == null && membersToRemoveJson == null)) {
-            throw new BadRequestException();
-        }
-
+                             @ApiParam(value = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson)
+    {
         Space space = getSpace(spaceId);
 
         //modify space by changing name or adding a list of members
         if (spaceJson != null) {
-            if (!(authorizer.canWrite(username, space.getPrivileges()))) {
+            if (!(authorizer.canWrite(this.username, space.getPrivileges()))) {
                 throw new ForbiddenException("You are not allowed to modify the space " + spaceId);
             }
             if (!JsonUtils.isJSONValid(spaceJson)) {
@@ -203,9 +212,9 @@ public class SpaceController {
             }
             //TODO: this will need to change once we add more fields to metadata
             if (!metadata.equals("")) {
-                ObjectMapper objectMapper = new ObjectMapper();
+                ObjectMapper metadataObjectMapper = new ObjectMapper();
                 try {
-                    SpaceMetadata newMetadata = objectMapper.readValue(metadata, SpaceMetadata.class);
+                    SpaceMetadata newMetadata = metadataObjectMapper.readValue(metadata, SpaceMetadata.class);
                     String name = newMetadata.getName();
                     if (name.equals("")) {
                         throw new BadRequestException("Invalid name in metadata");
@@ -221,7 +230,7 @@ public class SpaceController {
             }
             if (members.size() > 0) {
                 for (String id : members) {
-                    addMembers(space, username, id);
+                    addMembers(space, this.username, id);
                 }
             }
 
@@ -230,15 +239,15 @@ public class SpaceController {
             return space;
         }
 
-        if (!(authorizer.canDelete(username, space.getPrivileges()))) {
+        if (!(authorizer.canDelete(this.username, space.getPrivileges()))) {
             throw new ForbiddenException("You are not allowed to remove members from the space " + spaceId);
         }
         // modify space by deleting a list of members
         Members membersToDelete;
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper memeberObjectMapper = new ObjectMapper();
         try {
-            membersToDelete = objectMapper.readValue(membersToRemoveJson, Members.class);
+            membersToDelete = memeberObjectMapper.readValue(membersToRemoveJson, Members.class);
         } catch (Exception e) {
             throw new BadRequestException("Invalid members JSON. " + e.toString());
         }
@@ -251,7 +260,7 @@ public class SpaceController {
             }
         }
         if (membersToDelete.getMembers().size() != 0 && spaceContainsMembers) {
-            return removeMembers(username, space, membersToDelete);
+            return removeMembers(this.username, space, membersToDelete);
         } else {
             throw new NotFoundException("The space does not contains the members defined to be removed.");
         }
@@ -261,20 +270,17 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/members/{memberId}")
     @ApiOperation(value = "Adds a member to a space")
-    public Space addMembersToSpace(@HeaderParam("X-Credential-Username") String username,
-                                   @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-                                   @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId) {
-        if (username == null) {
-            throw new BadRequestException("User must provide a valid json and username");
-        }
-
+    public Space addMembersToSpace(
+        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
+        @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId)
+    {
         Space space = getSpace(spaceId);
 
-        if (!authorizer.canWrite(username, space.getPrivileges())) {
-            throw new NotAuthorizedException(username + " can't modify the space");
+        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+            throw new NotAuthorizedException(this.username + " can't modify the space");
         }
 
-        if (addMembers(space, username, memberId)) {
+        if (addMembers(space, this.username, memberId)) {
             return space;
         } else {
             throw new NotFoundException("Could not retrieve member with id " + memberId);
@@ -286,22 +292,19 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/grant")
     @ApiOperation(value = "Grants new privileges to a space")
-    public Space grantPrivilegesToSpace(@HeaderParam("X-Credential-Username") String username,
-                                        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-                                        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
-        if (username == null) {
-            throw new BadRequestException("User must provide a valid json and username");
-        }
-
+    public Space grantPrivilegesToSpace(
+        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
+        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson)
+    {
         Space space = getSpace(spaceId);
 
-        if (!authorizer.canWrite(username, space.getPrivileges())) {
-            throw new NotAuthorizedException(username + " has not write permissions in " + spaceId);
+        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+            throw new NotAuthorizedException(this.username + " has not write permissions in " + spaceId);
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper privilegeObjectMapper = new ObjectMapper();
         try {
-            Privileges privileges = objectMapper.readValue(privilegesJson, Privileges.class);
+            Privileges privileges = privilegeObjectMapper.readValue(privilegesJson, Privileges.class);
             space.addPrivileges(privileges);
         } catch (IOException e) {
             throw new BadRequestException("Invalid privileges JSON. " + e.toString());
@@ -317,19 +320,17 @@ public class SpaceController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/members/{memberId}")
     @ApiOperation("Removes a member from a space")
-    public Space removeMemberFromSpace(@HeaderParam("X-Credential-Username") String username,
-                                       @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId,
-                                       @ApiParam(value = "Member id", required = true) @PathParam("memberId") String memberId) {
-        if (username == null) {
-            throw new BadRequestException("User must provide a valid username");
-        }
+    public Space removeMemberFromSpace(
+        @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId,
+        @ApiParam(value = "Member id", required = true) @PathParam("memberId") String memberId)
+    {
 
         if (memberId == null) {
             throw new BadRequestException("User must provide a member Id or a list of member ids");
         }
 
         Space space = getSpace(spaceId);
-        if (!authorizer.canDelete(username, space.getPrivileges())) {
+        if (!authorizer.canDelete(this.username, space.getPrivileges())) {
             throw new NotAuthorizedException("User has no privileges to modify the space " + space.getName());
         }
 
@@ -340,8 +341,7 @@ public class SpaceController {
         Members membersToDelete = new Members();
         membersToDelete.addMember(memberId);
 
-        return removeMembers(username, space, membersToDelete);
-
+        return removeMembers(this.username, space, membersToDelete);
     }
 
     /**
@@ -378,7 +378,7 @@ public class SpaceController {
                 for (URL url : urls) {
                     con = (HttpURLConnection) url.openConnection();
                     con.setRequestMethod("GET");
-                    con.setRequestProperty("X-Credential-Username", username);
+                    con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
                     String content = getContent(con);
                     con.disconnect();
                     if (content != null) {
@@ -449,7 +449,7 @@ public class SpaceController {
             try {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
-                con.setRequestProperty("X-Credential-Username", username);
+                con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
                 return getContent(con);
             } catch (IOException ex) {
                 ex.printStackTrace();

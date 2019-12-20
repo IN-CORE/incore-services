@@ -28,6 +28,7 @@ public class Tornado {
     // Friendly name of Tornado hazard
     private String name;
     private String description;
+    private String creator = null;
 
     private Date date = new Date();
 
@@ -50,6 +51,12 @@ public class Tornado {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) { this.creator = creator; }
 
     /**
      * Date created

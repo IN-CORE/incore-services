@@ -46,7 +46,8 @@ public class ServiceUtil {
      * @return
      * @throws IOException
      */
-    public static String createDataset(JSONObject datasetObject, String creator, List<FormDataBodyPart> fileParts) throws IOException {
+    public static String createDataset(JSONObject datasetObject, String creator,
+                                       List<FormDataBodyPart> fileParts) throws IOException {
         // TODO cleanup duplicate code
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
@@ -63,7 +64,7 @@ public class ServiceUtil {
 
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
         params.addTextBody(HazardConstants.DATASET_PARAMETER, datasetObject.toString());
@@ -92,7 +93,7 @@ public class ServiceUtil {
 
             // Attach file
             httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);
@@ -130,7 +131,7 @@ public class ServiceUtil {
 
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
         params.addTextBody(HazardConstants.DATASET_PARAMETER, datasetObject.toString());
@@ -158,7 +159,7 @@ public class ServiceUtil {
 
             // Attach file
             httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);
@@ -191,7 +192,7 @@ public class ServiceUtil {
 
             String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId;
             HttpGet httpGet = new HttpGet(requestUrl);
-            httpGet.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
             HttpResponse response = null;
 
@@ -278,7 +279,7 @@ public class ServiceUtil {
 
             String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId + "/blob";
             HttpGet httpGet = new HttpGet(requestUrl);
-            httpGet.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
             HttpResponse response = null;
 
@@ -338,7 +339,7 @@ public class ServiceUtil {
 
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
 
         MultipartEntityBuilder params = MultipartEntityBuilder.create();
         params.addTextBody(HazardConstants.DATASET_PARAMETER, jsonObject.toString());
@@ -362,7 +363,8 @@ public class ServiceUtil {
     }
 
     //TODO: Obsolete this and use createVisualizationDataset instead?
-    public static String createRasterDataset(File rasterFile, String title, String creator, String description, String datasetType) throws IOException {
+    public static String createRasterDataset(File rasterFile, String title, String creator,
+                                             String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType);
 
         if (datasetId != null) {
@@ -376,7 +378,8 @@ public class ServiceUtil {
         return datasetId;
     }
 
-    public static String createVisualizationDataset(List<File> vizFiles, String title, String creator, String description, String datasetType) throws IOException {
+    public static String createVisualizationDataset(List<File> vizFiles, String title, String creator,
+                                                    String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType);
 
         if (datasetId != null) {
@@ -391,7 +394,8 @@ public class ServiceUtil {
         return datasetId;
     }
 
-    public static String createRasterDataset(String filename, InputStream fis, String title, String creator, String description, String datasetType) throws IOException {
+    public static String createRasterDataset(String filename, InputStream fis, String title, String creator,
+                                             String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType);
         if (datasetId != null) {
             MultipartEntityBuilder params = MultipartEntityBuilder.create();
@@ -403,14 +407,15 @@ public class ServiceUtil {
         return datasetId;
     }
 
-    public static void attachFileToDataset(String datasetId, String creator, MultipartEntityBuilder params) throws IOException {
+    public static void attachFileToDataset(String datasetId, String creator,
+                                           MultipartEntityBuilder params) throws IOException {
         String dataEndpoint = getDataServiceEndpoint();
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
         requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
 
         // Attach file
         HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(HazardConstants.X_CREDENTIAL_USERNAME, creator);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
         httpPost.setEntity(params.build());
 
         HttpClientBuilder builder = HttpClientBuilder.create();

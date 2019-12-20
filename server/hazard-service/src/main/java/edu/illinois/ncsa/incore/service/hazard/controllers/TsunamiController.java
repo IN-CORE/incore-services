@@ -9,9 +9,10 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import edu.illinois.ncsa.incore.common.models.UserInfo;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
 })
 public class TsunamiController {
     private static final Logger log = Logger.getLogger(TsunamiController.class);
+    private String username;
 
     @Inject
     private ITsunamiRepository repository;
@@ -61,21 +63,41 @@ public class TsunamiController {
     @Inject
     private IAuthorizer authorizer;
 
+    @Inject
+    public TsunamiController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
+                throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
+            }
+        }
+        catch (Exception e) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+    }
+
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns all tsunamis.")
     public List<Tsunami> getTsunamis(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Space name") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
                 throw new NotFoundException();
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
-                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+                throw new NotAuthorizedException(this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             List<Tsunami> tsunamis = repository.getTsunamis();
@@ -91,7 +113,7 @@ public class TsunamiController {
         }
         List<Tsunami> tsunamis = repository.getTsunamis();
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
 
         List<Tsunami> accessibleTsunamis = tsunamis.stream()
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
@@ -107,19 +129,18 @@ public class TsunamiController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the scenario tsunami matching the given id.")
     public Tsunami getTsunami(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
+
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
         if (tsunami == null) {
             throw new NotFoundException();
         }
 
-        if (authorizer.canUserReadMember(username, tsunamiId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
             return tsunami;
         }
 
         throw new ForbiddenException();
-
     }
 
     @GET
@@ -127,18 +148,17 @@ public class TsunamiController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the specified tsunami values.")
     public List<TsunamiHazardResult> getTsunamiHazardValues(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId,
         @ApiParam(value = "Tsunami demand type. Ex: 'Hmax, Vmax, Mmax'.", required = true) @QueryParam("demandType") String demandType,
         @ApiParam(value = "Tsunami demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '46.01,-123.94'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
-        Tsunami tsunami = getTsunami(username, tsunamiId);
+        Tsunami tsunami = getTsunami(tsunamiId);
         List<TsunamiHazardResult> tsunamiResults = new LinkedList<>();
         if (tsunami != null) {
             for (IncorePoint point : points) {
                 try {
-                    tsunamiResults.add(TsunamiCalc.getTsunamiHazardValue(tsunami, demandType, demandUnits, point, username));
+                    tsunamiResults.add(TsunamiCalc.getTsunamiHazardValue(tsunami, demandType, demandUnits, point, this.username));
                 } catch (UnsupportedHazardException e) {
                     log.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
                 }
@@ -159,7 +179,6 @@ public class TsunamiController {
         @ApiImplicitParam(name = "file", value = "Tsunami files.", required = true, dataType = "string", paramType = "form")
     })
     public Tsunami createTsunami(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(hidden = true) @FormDataParam("tsunami") String tsunamiJson,
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
@@ -194,16 +213,18 @@ public class TsunamiController {
                         BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
                         String filename = filePart.getContentDisposition().getFileName();
 
-                        String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(), tsunamiDataset.getName() + " " + datasetName, username, description, datasetType);
+                        String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(), tsunamiDataset.getName() + " " + datasetName,
+                            this.username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 
+                    tsunami.setCreator(this.username);
                     tsunami = repository.addTsunami(tsunami);
 
-                    Space space = spaceRepository.getSpaceByName(username);
+                    Space space = spaceRepository.getSpaceByName(this.username);
                     if(space == null) {
-                        space = new Space(username);
-                        space.setPrivileges(Privileges.newWithSingleOwner(username));
+                        space = new Space(this.username);
+                        space.setPrivileges(Privileges.newWithSingleOwner(this.username));
                     }
                     space.addMember(tsunami.getId());
                     spaceRepository.addSpace(space);
@@ -227,10 +248,11 @@ public class TsunamiController {
     @ApiResponses(value = {
         @ApiResponse(code = 404, message = "No tsunamis found with the searched text")
     })
-    public List<Tsunami> findTsunamis(@HeaderParam("X-Credential-Username") String username,
-                                       @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
-                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                       @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    public List<Tsunami> findTsunamis(
+        @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
         List<Tsunami> tsunamis;
         Tsunami tsunami = repository.getTsunamiById(text);
         if (tsunami != null) {
@@ -241,7 +263,7 @@ public class TsunamiController {
             tsunamis = this.repository.searchTsunamis(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
 
         tsunamis = tsunamis.stream()
             .filter(b -> membersSet.contains(b.getId()))

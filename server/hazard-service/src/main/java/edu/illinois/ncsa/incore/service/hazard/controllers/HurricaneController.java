@@ -11,9 +11,10 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import edu.illinois.ncsa.incore.common.models.UserInfo;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 })
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
+    private String username;
 
     @Inject
     private IHurricaneRepository repository;
@@ -58,24 +60,44 @@ public class HurricaneController {
     @Inject
     private IAuthorizer authorizer;
 
+    @Inject
+    public HurricaneController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
+                throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
+            }
+        }
+        catch (Exception e) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+    }
+
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns all hurricanes.")
     public List<HurricaneWindfields> getHurricaneWindfields(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
         @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
         List<HurricaneWindfields> hurricaneWindfields = repository.getHurricanes();
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
                 throw new NotFoundException();
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
-                throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+                throw new NotAuthorizedException(this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             hurricaneWindfields = hurricaneWindfields.stream()
@@ -97,7 +119,7 @@ public class HurricaneController {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCategory() == category).collect(Collectors.toList());
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
 
         List<HurricaneWindfields> accessibleHurricaneWindfields = hurricaneWindfields.stream()
             .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
@@ -113,14 +135,14 @@ public class HurricaneController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the hurricane with matching id.")
     public HurricaneWindfields getHurricaneWindfieldsById(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
+
         HurricaneWindfields hurricane = repository.getHurricaneById(hurricaneId);
         if (hurricane == null) {
             throw new NotFoundException();
         }
 
-        if (authorizer.canUserReadMember(username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
             return hurricane;
         }
 
@@ -132,7 +154,6 @@ public class HurricaneController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the hurricane wind field values.")
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
         @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.") @QueryParam("demandType") @DefaultValue(HurricaneUtil.WIND_VELOCITY_3SECS) String demandType,
         @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue(HurricaneUtil.UNITS_MPH) WindfieldDemandUnits demandUnits,
@@ -140,7 +161,7 @@ public class HurricaneController {
         @ApiParam(value = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @QueryParam("roughness") @DefaultValue("0.03") double roughness,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.09,-80.62'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
-        HurricaneWindfields hurricane = getHurricaneWindfieldsById(username, hurricaneId);
+        HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
         List<HurricaneWindfieldResult> hurrResults = new ArrayList<>();
 
         //Get shapefile datasetid
@@ -161,7 +182,7 @@ public class HurricaneController {
                 double lon = point.getLocation().getX();
                 try {
 
-                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, username, lat, lon); // 3s gust at 10m elevation
+                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at 10m elevation
 
                     HashMap<String, Double> convertedWf = HurricaneUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
                     windValue = convertedWf.get(demandType);
@@ -178,7 +199,6 @@ public class HurricaneController {
             }
         }
 
-
         return hurrResults;
     }
 
@@ -189,13 +209,7 @@ public class HurricaneController {
         notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
             "windfield's raster. Each cell represents the windspeed at 10m elevation and 3-sec wind gust by default")
     public HurricaneWindfields createHurricaneWindfields(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         HurricaneWindfields inputHurricane) {
-
-        if (username == null) {
-            log.error("Credential user name should be provided.");
-            throw new NotFoundException("Credential user name should be provided.");
-        }
 
         HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
         if (inputHurricane != null) {
@@ -205,8 +219,7 @@ public class HurricaneController {
                 log.error("Unsupported hurricane demandType provided in POST JSON : " + demandType);
                 throw new NotFoundException("Unsupported hurricane demandType. Please use 3s or 60s");
             }
-            HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(username,
-                inputHurricane.getCoast(), inputHurricane.getCategory(), inputHurricane.getTransD(),
+            HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(inputHurricane.getCoast(), inputHurricane.getCategory(), inputHurricane.getTransD(),
                 new IncorePoint(inputHurricane.getLandfallLocation()), demandType, inputHurricane.getDemandUnits().toString().trim(),
                 inputHurricane.getGridResolution(), inputHurricane.getGridPoints(), inputHurricane.getRfMethod());
 
@@ -216,6 +229,7 @@ public class HurricaneController {
 
                 hurricaneWindfields.setName(inputHurricane.getName());
                 hurricaneWindfields.setDescription(inputHurricane.getDescription());
+                hurricaneWindfields.setCreator(this.username);
 
                 hurricaneWindfields.setCategory(inputHurricane.getCategory());
                 hurricaneWindfields.setCoast(inputHurricane.getCoast());
@@ -231,19 +245,19 @@ public class HurricaneController {
                 hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
 
                 hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
-                    inputHurricane.getRasterResolution(), username));
+                    inputHurricane.getRasterResolution(), this.username));
 
                 //save hurricane
-                hurricaneWindfields =repository.addHurricane(hurricaneWindfields);
+                hurricaneWindfields = repository.addHurricane(hurricaneWindfields);
 
                 //add hurricane to the user's space
-                Space space = spaceRepository.getSpaceByName(username);
-                if(space != null) {
+                Space space = spaceRepository.getSpaceByName(this.username);
+                if (space != null) {
                     space.addMember(hurricaneWindfields.getId());
                     spaceRepository.addSpace(space);
                 } else {
-                    space = new Space(username);
-                    space.setPrivileges(Privileges.newWithSingleOwner(username));
+                    space = new Space(this.username);
+                    space.setPrivileges(Privileges.newWithSingleOwner(this.username));
                     space.addMember(hurricaneWindfields.getId());
                     spaceRepository.addSpace(space);
                 }
@@ -265,7 +279,6 @@ public class HurricaneController {
     @ApiOperation(hidden = true, value = "Simulates a hurricane by returning the result as json.",
         notes = "It is implemented to match MATLAB output and need not be exposed to external users")
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @PathParam("coast") String coast,
         @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
         @ApiParam(value = "Huricane landfall direction angle. Ex: 30.5.", required = true) @QueryParam("TransD") double transD,
@@ -282,7 +295,7 @@ public class HurricaneController {
         }
 
         if (HurricaneUtil.categoryMapping.get(coast) != null) {
-            return HurricaneCalc.simulateHurricane(username, transD, landfallLoc,
+            return HurricaneCalc.simulateHurricane(this.username, transD, landfallLoc,
                 HurricaneUtil.categoryMapping.get(coast)[category - 1], demandType, demandUnits, resolution, gridPoints, rfMethod);
         } else {
             throw new NotFoundException("Error finding a mapping for the coast and category");
@@ -292,25 +305,26 @@ public class HurricaneController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all hurricanes", notes="Gets all hurricanes that contain a specific text")
+    @ApiOperation(value = "Search for a text in all hurricanes", notes = "Gets all hurricanes that contain a specific text")
     @ApiResponses(value = {
         @ApiResponse(code = 404, message = "No hurricanes found with the searched text")
     })
-    public List<HurricaneWindfields> findHurricanes(@HeaderParam("X-Credential-Username") String username,
-                                            @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
-                                            @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                            @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    public List<HurricaneWindfields> findHurricanes(
+        @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
         List<HurricaneWindfields> hurricanes;
         HurricaneWindfields hurricane = repository.getHurricaneById(text);
         if (hurricane != null) {
-            hurricanes =  new ArrayList<HurricaneWindfields>() {{
+            hurricanes = new ArrayList<HurricaneWindfields>() {{
                 add(hurricane);
             }};
         } else {
             hurricanes = this.repository.searchHurricanes(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
 
         hurricanes = hurricanes.stream()
             .filter(b -> membersSet.contains(b.getId()))

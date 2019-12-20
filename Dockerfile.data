@@ -1,10 +1,10 @@
 FROM openjdk:8-jre
 
-# Do we need this?
-# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-# RUN groupadd -r incore -g 1001 && useradd -r -g incore -u 1001 incore
-
 # TODO we could compile the service here so this works standalone
+
+# install cron
+RUN apt-get -qq -y update && \
+  apt-get -qq -y install cron
 
 # Working Directory
 WORKDIR /home/incore
@@ -13,8 +13,22 @@ COPY docker/data.xml /home/incore/conf/
 COPY docker/incore.properties /home/incore/conf/
 COPY docker/jetty-runner.jar /home/incore/lib/
 
-# Is this necessary?
-#RUN chown -R incore $INCORE_HOME && chgrp -R incore $INCORE_HOME
+# cron job
+COPY clear_cache.sh /home/incore/clear_cache.sh
+COPY clear_cache_cron /home/incore/clear_cache_cron
+
+# Give execution rights on the cron job
+RUN chmod 0644 /home/incore/clear_cache_cron
+
+# Apply cron job
+RUN crontab /home/incore/clear_cache_cron
+
+# Create the log file
+RUN touch /var/log/clear_cache_cron.log
+RUN chmod go+w /var/log/clear_cache_cron.log
+
+# create data directory mounting point
+RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
 
 ENV JETTY_PORT 8080
 

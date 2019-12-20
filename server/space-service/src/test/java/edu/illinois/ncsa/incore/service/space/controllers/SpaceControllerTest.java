@@ -32,9 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SpaceControllerTest extends CustomJerseyTest{
+class SpaceControllerTest extends CustomJerseyTest {
 
-    public SpaceControllerTest() { super();}
+    public SpaceControllerTest() {
+        super();
+    }
 
     @Override
     public ResourceConfig configure() {
@@ -42,7 +44,7 @@ class SpaceControllerTest extends CustomJerseyTest{
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application  = new MockApplication(SpaceController.class);
+        MockApplication application = new MockApplication(SpaceController.class);
 
         return application;
     }
@@ -67,7 +69,10 @@ class SpaceControllerTest extends CustomJerseyTest{
         String jsontext = IOUtils.toString(inputStream);
         final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("space", jsontext);
 
-        Response response = target("/spaces").register(MultiPartWriter.class).request().header("X-Credential-Username", "testers").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+        Response response = target("/spaces").register(MultiPartWriter.class).request()
+            .header("x-auth-userinfo",
+                "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\",\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
+            .post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
 
         String output = response.readEntity(String.class);
         JSONObject parsedObject = new JSONObject(output);
@@ -77,7 +82,7 @@ class SpaceControllerTest extends CustomJerseyTest{
     }
 
     @Test
-    public void testGrantPrivileges()throws IOException {
+    public void testGrantPrivileges() throws IOException {
         String id = "5a25853ebeefaa1a583212b7";
 
         URL jsonURL = this.getClass().getClassLoader().getResource("json/privileges.json");
@@ -85,7 +90,10 @@ class SpaceControllerTest extends CustomJerseyTest{
         String jsontext = IOUtils.toString(inputStream);
         final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("grant", jsontext);
 
-        Response response = target("/spaces/" + id + "/grant").register(MultiPartWriter.class).request().header("X-Credential-Username", "test").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+        Response response = target("/spaces/" + id + "/grant").register(MultiPartWriter.class).request()
+            .header("x-auth-userinfo",
+            "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\",\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
+            .post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
 
         String output = response.readEntity(String.class);
         JSONObject parsedObject = new JSONObject(output);

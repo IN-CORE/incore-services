@@ -38,7 +38,8 @@ public class TornadoCalc {
      * @return wind hazard at the specified location
      * @throws Exception
      */
-    public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation, String username) throws Exception {
+    public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation,
+                                                       String username) throws Exception {
 
         if (tornado instanceof TornadoModel) {
             TornadoModel scenarioTornado = (TornadoModel) tornado;

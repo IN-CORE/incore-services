@@ -61,7 +61,8 @@ public class AtkinsonBoore1995Test {
 
         // TODO this should come from a mock eq
         Earthquake eq = new EarthquakeModel();
-        SeismicHazardResult result = HazardCalc.getGroundMotionAtSite(eq, attenuations, site, period, demand, HazardUtil.units_g, 0, true, "incrtest");
+        SeismicHazardResult result = HazardCalc.getGroundMotionAtSite(eq, attenuations, site, period, demand, HazardUtil.units_g,
+            0, true, "incrtest");
 
         double expected = 0.5322;
         assertEquals(expected, result.getHazardValue(), expected * 0.05);

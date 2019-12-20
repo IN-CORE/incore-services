@@ -9,6 +9,7 @@ package edu.illinois.ncsa.incore.service.hazard.utils;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.io.AbstractGridFormat;

@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.common.auth;
 
 import edu.illinois.ncsa.incore.common.config.Config;
-import edu.illinois.ncsa.incore.common.users.UserInfo;
+import edu.illinois.ncsa.incore.common.users.LdapUserInfo;
 import org.apache.log4j.Logger;
 
 import javax.naming.Context;
@@ -81,8 +81,8 @@ public class LdapClient {
         return result;
     }
 
-    public UserInfo getUserInfoFor(String user) {
-        UserInfo userInfo = null;
+    public LdapUserInfo getUserInfoFor(String user) {
+        LdapUserInfo userInfo = null;
         try {
             DirContext ctx = getContext();
             SearchControls ctls = new SearchControls();
@@ -101,7 +101,7 @@ public class LdapClient {
 
 
 
-                userInfo = new UserInfo();
+                userInfo = new LdapUserInfo();
                 userInfo.firstName = attrs.get("givenname").get().toString();
                 userInfo.lastName = attrs.get("sn").get().toString();
                 userInfo.fullName = attrs.get("cn").get().toString();

@@ -47,6 +47,8 @@ public class HurricaneWindfields {
     private List<String> times = new ArrayList();
     private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
 
+    private String creator = null;
+
     public String getDemandType() { return demandType; }
     public void setDemandType(String demandType) { this.demandType = demandType; }
 
@@ -182,4 +184,10 @@ public class HurricaneWindfields {
     public void setDate(Date date) {
         this.date = date;
     }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) { this.creator = creator; }
 }

@@ -1,0 +1,2 @@
+0 * * * *  /bin/bash /home/incore/clear_cache.sh >> /var/log/clear_cache_cron.log 2>&1
+
