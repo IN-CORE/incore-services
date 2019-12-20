@@ -12,5 +12,5 @@ DFR3 stands for Damage, Functionality, Repair, Restoration, Recovry. The service
 The hazard service supports creating hazard objects such as earthquake, tornado, tsunami, and hurrican-wind. After creating a hazard, users can request hazard value of a given location.
 
 ## Space Service
-The spce service manages groups of users and control access by those groups to certain entity throughout services.
+The space service manages groups of users and control access by those groups to certain entity throughout services.
 
