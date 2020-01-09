@@ -22,6 +22,27 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+class Groups{
+    private long lastUserRefresh = 0;
+    private Set<String> userGroups;
+
+    public long getLastUserRefresh() {
+        return lastUserRefresh;
+    }
+
+    public void setLastUserRefresh(long lastUserRefresh) {
+        this.lastUserRefresh = lastUserRefresh;
+    }
+
+    public Set<String> getUserGroups() {
+        return userGroups;
+    }
+
+    public void setUserGroups(Set<String> userGroups) {
+        this.userGroups = userGroups;
+    }
+}
+
 public class LdapClient {
 
     private static final Logger log = Logger.getLogger(LdapClient.class);
@@ -32,8 +53,7 @@ public class LdapClient {
     public static long ldapRefreshSecs =
         Long.parseLong(Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs"));
 
-    public Map<String,Set<String>> userGroupCache = new HashMap<>();
-    public long lastUserGroupCacheRefreshed = System.currentTimeMillis()/1000; //current time in secs since epoch
+    public Map<String,Groups> userGroupCache = new HashMap<>();
 
     private DirContext getContext() throws NamingException {
 
@@ -45,13 +65,17 @@ public class LdapClient {
     }
 
     public Set<String> getUserGroups(String user) {
-
         long currSecs = System.currentTimeMillis()/1000;
 
-        if ((currSecs - lastUserGroupCacheRefreshed < ldapRefreshSecs)  && userGroupCache.containsKey(user)) {
-            return userGroupCache.get(user);
+        if ( userGroupCache.containsKey(user)) {
+            if (currSecs - userGroupCache.get(user).getLastUserRefresh() < ldapRefreshSecs) {
+                System.out.println("Cache being used. Last Refresh: "+ userGroupCache.get(user).getLastUserRefresh() +
+                    " Curr Time: " + currSecs);
+                return userGroupCache.get(user).getUserGroups();
+            }
         }
 
+        Groups groupsInfo = new Groups();
         Set<String> result = new HashSet<>();
         try {
             DirContext ctx = getContext();
@@ -82,8 +106,18 @@ public class LdapClient {
         } catch (NamingException e) {
             log.error("Could not find groups for user " + user, e);
         }
-        userGroupCache.put(user, result);
-        lastUserGroupCacheRefreshed = System.currentTimeMillis()/1000;
+
+        groupsInfo.setUserGroups(result);
+        groupsInfo.setLastUserRefresh(System.currentTimeMillis()/1000);
+
+        if (userGroupCache.containsKey(user)) {
+            System.out.println("Cache Refreshed. Last Refresh: " + userGroupCache.get(user).getLastUserRefresh() +
+                " Curr Time: " + currSecs);
+        } else {
+            System.out.println("Added a new user to cache for first time");
+        }
+        userGroupCache.put(user, groupsInfo);
+
         return result;
     }
 
