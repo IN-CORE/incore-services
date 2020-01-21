@@ -69,7 +69,7 @@ public class LdapClient {
 
         if ( userGroupCache.containsKey(user)) {
             if (currSecs - userGroupCache.get(user).getLastUserRefresh() < ldapRefreshSecs) {
-                System.out.println("Cache being used. Last Refresh: "+ userGroupCache.get(user).getLastUserRefresh() +
+                System.out.println("Cache being used for "+ user+". Last Refresh: "+ userGroupCache.get(user).getLastUserRefresh() +
                     " Curr Time: " + currSecs);
                 return userGroupCache.get(user).getUserGroups();
             }
@@ -111,10 +111,10 @@ public class LdapClient {
         groupsInfo.setLastUserRefresh(System.currentTimeMillis()/1000);
 
         if (userGroupCache.containsKey(user)) {
-            System.out.println("Cache Refreshed. Last Refresh: " + userGroupCache.get(user).getLastUserRefresh() +
+            System.out.println("Cache Refreshed for "+ user +". Last Refresh: " + userGroupCache.get(user).getLastUserRefresh() +
                 " Curr Time: " + currSecs);
         } else {
-            System.out.println("Added a new user to cache for first time");
+            System.out.println("Added a new user "+ user +" to cache for first time");
         }
         userGroupCache.put(user, groupsInfo);
 
