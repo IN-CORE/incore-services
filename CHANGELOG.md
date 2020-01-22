@@ -5,16 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.6.1] - 2019-12-20
+IN-CORE service release for IN-CORE v1.0
 
-### Fixed 
-- Renaming Dataset type field in MongoDBRepository
-  [INCORE-325](https://jira.ncsa.illinois.edu/browse/INCORE-325)
+## [0.6.0] - 2019-10-22
+
+## [0.5.0] - 2019-08-29
+
+## [0.4.1] - 2019-07-18
+
+## [0.4.0] - 2019-07-16
+
+## [0.3.0] - 2019-05-15
+
+## [0.2.0] - 2019-03-06
+
 
 ## [0.1.0] - 2018-01-24
 
-Prototype for IN-CORE v2, a web application with a service oriented architecture based on IN-CORE v1.
-
+Prototype for IN-CORE, a web application with a service oriented architecture based on legacy IN-CORE v1, which
+was based on Ergo.
 
 ### Added
 

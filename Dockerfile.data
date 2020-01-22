@@ -2,6 +2,10 @@ FROM openjdk:8-jre
 
 # TODO we could compile the service here so this works standalone
 
+# install cron
+RUN apt-get -qq -y update && \
+  apt-get -qq -y install cron
+
 # Working Directory
 WORKDIR /home/incore
 COPY server/data-service/build/libs/data-service.war /home/incore/lib/
