@@ -7,7 +7,6 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.WindfieldDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
@@ -29,7 +28,6 @@ public class HurricaneWindfields {
     private String name;
     private String description;
     private Date date = new Date();
-    private Privileges privileges;
 
     public final String gridResolutionUnits = HurricaneUtil.GRID_RESOLUTION_UNITS;
     public final String rasterResolutionUnits = HurricaneUtil.RASTER_RESOLUTION_UNITS;
@@ -49,6 +47,8 @@ public class HurricaneWindfields {
     private List<String> times = new ArrayList();
     private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
 
+    private String creator = null;
+
     public String getDemandType() { return demandType; }
     public void setDemandType(String demandType) { this.demandType = demandType; }
 
@@ -62,15 +62,6 @@ public class HurricaneWindfields {
     public String getId() {
         return id.toString();
     }
-
-    public Privileges getPrivileges() {
-        return privileges;
-    }
-
-    public void setPrivileges(Privileges privileges) {
-        this.privileges = privileges;
-    }
-
 
     public List<String> getTimes() {
         return times;
@@ -193,4 +184,10 @@ public class HurricaneWindfields {
     public void setDate(Date date) {
         this.date = date;
     }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) { this.creator = creator; }
 }

@@ -21,10 +21,7 @@
     "dataType": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingCollapseRateTable.v1.0",
     "storedUrl": "",
     "format": "table",
-    "sourceDataset": "",
-    "spaces": [
-      "ergo"
-    ]
+    "sourceDataset": ""
   },
   {
     "id": "5a207b29beefa40740e87c9d",
@@ -48,10 +45,7 @@
     "dataType": "edu.illinois.ncsa.ergo.eq.decisionsupport.schemas.buildingDisruptionCost.v1.0",
     "storedUrl": "",
     "format": "table",
-    "sourceDataset": "",
-    "spaces": [
-      "ergo"
-    ]
+    "sourceDataset": ""
   },
   {
     "id" : "5ac4ef37f9ebf2057a08f566",
@@ -74,16 +68,7 @@
     ],
     "storedUrl" : "",
     "format" : "table",
-    "sourceDataset" : "",
-    "spaces" : [
-      "ywkim",
-      "ergo"
-    ],
-    "privileges" : {
-      "userPrivileges" : {
-        "gowtham" : "READ"
-      }
-    }
+    "sourceDataset" : ""
   },
   {
     "id" : "5a393841c7d30d044d9b66ec",
@@ -105,14 +90,6 @@
     "storedUrl" : "",
     "format" : "table",
     "sourceDataset" : "5a284f0bc7d30d13bc081a28",
-    "spaces" : [
-      "indiragp"
-    ],
-    "privileges" : {
-      "userPrivileges" : {
-        "indiragp" : "WRITE"
-      }
-    },
     "deleted" : false,
     "dataType" : "edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0"
   },
@@ -126,16 +103,7 @@
     "dataType" : "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0",
     "storedUrl" : "",
     "format" : "shapefile",
-    "sourceDataset" : "",
-    "spaces" : [
-      "ywkim",
-      "ergo"
-    ],
-    "privileges" : {
-      "userPrivileges" : {
-        "gowtham" : "READ"
-      }
-    }
+    "sourceDataset" : ""
   }
 
 ]

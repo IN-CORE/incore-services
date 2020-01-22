@@ -13,7 +13,9 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.query.Query;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,6 +32,10 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public Tsunami getTsunamiById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         Tsunami tsunami = this.dataStore.get(TsunamiDataset.class, new ObjectId(id));
         // TODO this will need to be updated if there are model based tsunamis
 
@@ -48,6 +54,21 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
         List<TsunamiDataset> tsunamiDatasets = this.dataStore.createQuery(TsunamiDataset.class).asList();
         tsunamis.addAll(tsunamiDatasets);
         // TODO this will need to be updated if there are model based tsunamis
+
+        return tsunamis;
+    }
+
+    @Override
+    public List<Tsunami> searchTsunamis(String text) {
+        Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
+
+        query.or(query.criteria("name").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text));
+
+        List<TsunamiDataset> tsunamiDatasets = query.asList();
+
+        List<Tsunami> tsunamis = new ArrayList<>();
+        tsunamis.addAll(tsunamiDatasets);
 
         return tsunamis;
     }

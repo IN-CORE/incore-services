@@ -3,6 +3,7 @@
     "tornadoType" : "model",
     "id": "5a7360ee5a52282c033e5ba3",
     "name" : "tornado 1",
+    "creator":"incrtest",
     "tornadoModel": "MeanWidthTornado",
     "tornadoParameters":{
       "numSimulations": 1,
@@ -37,6 +38,7 @@
     "tornadoType" : "model",
     "id": "5a7385645a52284c6a7d273a",
     "name": "tornado 2",
+    "creator":"incrtest",
     "tornadoModel": "MeanWidthTornado",
     "tornadoParameters":{
       "numSimulations": 1,

@@ -9,6 +9,7 @@ package edu.illinois.ncsa.incore.service.hazard.utils;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
@@ -22,9 +23,11 @@ import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffReader;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.geometry.BoundingBox;
 
 import java.io.*;
 import java.net.URL;
@@ -73,6 +76,15 @@ public class GISUtil {
         return feature;
     }
 
+    public static boolean IsPointInPolygonBySFC(SimpleFeatureCollection inFeatures, Point pt) {
+        boolean isIn = false;
+
+        ReferencedEnvelope env = inFeatures.getBounds();
+        isIn = env.contains(pt.getCoordinate());
+
+        return isIn;
+    }
+
     public static URL unZipShapefiles(File file, File destDirectory){
         URL inSourceFileUrl = null;
         byte[] buffer = new byte[1024];
@@ -101,14 +113,42 @@ public class GISUtil {
         return inSourceFileUrl;
     }
 
+    private static URL cacheFeatureCollection(String datasetId, File cacheDir, String creator) {
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, cacheDir);
+        return GISUtil.unZipShapefiles(file, cacheDir);
+    }
+
     public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
 
-        File incoreWorkDirectory = ServiceUtil.getWorkDirectory();
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, incoreWorkDirectory);
-
-        URL inSourceFileUrl = unZipShapefiles(file, incoreWorkDirectory);
+        URL inSourceFileUrl = null;
 
         try {
+            //first see if the cache has the .shp file in it
+            File cacheDir = ServiceUtil.getCacheDirectory("dataset-" + datasetId);
+            if (cacheDir.exists()){
+                String[] shpFiles = cacheDir.list(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.toLowerCase().endsWith(".shp");
+                    }
+                });
+                if (shpFiles != null && shpFiles.length > 0){
+                    inSourceFileUrl = new File(cacheDir, shpFiles[0]).toURI().toURL();
+                }
+            }
+
+            //if not, download the cache it
+            if (inSourceFileUrl == null) {
+                inSourceFileUrl = cacheFeatureCollection(datasetId, cacheDir, creator);
+            }
+
+            //if we still don't have it, there's a problem
+            if (inSourceFileUrl == null) {
+                logger.error("Could not locate Feature Collection");
+                return null;
+            }
+
+
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("url", inSourceFileUrl);
 
@@ -119,6 +159,7 @@ public class GISUtil {
             dataStore.dispose();
             SimpleFeatureCollection inputFeatures = (SimpleFeatureCollection) source.getFeatures();
             return inputFeatures;
+
         } catch (IOException e) {
             logger.error("Error reading shapefile");
             return null;
@@ -127,8 +168,6 @@ public class GISUtil {
     }
 
     public static synchronized GridCoverage getGridCoverage(String datasetId, String creator) {
-
-
         URL inSourceFileUrl = null;
 
         try {

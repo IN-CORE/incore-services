@@ -1,0 +1,36 @@
+FROM openjdk:8
+
+# install gdal-bin
+RUN apt-get -qq -y update && \
+  apt-get -qq -y install cron && \
+  apt-get -qq -y install software-properties-common && \
+  add-apt-repository -y ppa:ubuntugis/ppa && \
+  apt-get install -qq -y gdal-bin && \
+  apt-get clean
+
+# Working Directory
+WORKDIR /home/incore
+COPY server/hazard-service/build/libs/hazard-service-0.0.1.war /home/incore/lib/
+COPY docker/hazard.xml /home/incore/conf/
+COPY docker/incore-dev.properties /home/incore/conf/
+COPY docker/jetty-runner.jar /home/incore/lib/
+COPY clear_cache.sh /home/incore/clear_cache.sh
+COPY clear_cache_cron /home/incore/clear_cache_cron
+
+# Give execution rights on the cron job
+RUN chmod 0644 /home/incore/clear_cache_cron
+
+# Apply cron job
+RUN crontab /home/incore/clear_cache_cron
+
+# Create the log file
+RUN touch /var/log/clear_cache_cron.log
+RUN chmod go+w /var/log/clear_cache_cron.log
+
+# create data directory mounting point
+RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
+
+ENV JETTY_PORT 8080
+
+EXPOSE 8080
+CMD [ "sh", "-c", "cron && java -Xmx512m -Dincore.properties=conf/incore.properties -jar lib/jetty-runner.jar --port 8888 conf/hazard.xml"]

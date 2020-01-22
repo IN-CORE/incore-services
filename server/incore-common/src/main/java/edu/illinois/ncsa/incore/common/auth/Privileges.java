@@ -48,7 +48,7 @@ public class Privileges {
     public static Privileges newWithSingleOwner(String owner) {
         Privileges privileges = new Privileges();
         if (owner == null) {
-            log.warn("Owner not specified (did you authenticate, or forget to set X-Credential-Username?)");
+            log.warn("Owner not specified (did you authenticate, or forget to set x-auth-userinfo?)");
         } else {
             privileges.userPrivileges.put(owner, PrivilegeLevel.ADMIN);
         }
@@ -76,16 +76,23 @@ public class Privileges {
         this.userPrivileges.putAll(userPrivilegesMap);
     }
 
-    public void addGroupPrivileges(String owner, PrivilegeLevel privilegeLevel){
-        if(userPrivileges != null){
-            this.groupPrivileges.put(owner, privilegeLevel);
-        }else{
-            throw new NullPointerException("groupPrivileges was not instantiated");
-        }
-    }
-
     public void addGroupPrivilegesMap(Map<String, PrivilegeLevel> groupPrivilegesMap) {
         this.groupPrivileges.putAll(groupPrivilegesMap);
     }
+
+    public PrivilegeLevel getUserPrivilegeLevel(String username) {
+        if (userPrivileges.containsKey(username)) {
+            return userPrivileges.get(username);
+        }
+        return null;
+    }
+
+    public PrivilegeLevel getGroupPrivilegeLevel(String groupName) {
+        if (groupPrivileges.containsKey(groupName)) {
+            return groupPrivileges.get(groupName);
+        }
+        return null;
+    }
+
 
 }

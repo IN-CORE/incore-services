@@ -9,12 +9,16 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import edu.illinois.ncsa.incore.common.models.UserInfo;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
@@ -39,9 +43,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Api(value="tornadoes", authorizations = {})
+@Api(value = "tornadoes", authorizations = {})
 
 @Path("tornadoes")
 @ApiResponses(value = {
@@ -49,42 +54,93 @@ import java.util.stream.Collectors;
 })
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
+    private String username;
 
     @Inject
     private ITornadoRepository repository;
+
+    @Inject
+    private ISpaceRepository spaceRepository;
 
     @Inject
     private IAuthorizer authorizer;
 
     private GeometryFactory factory = new GeometryFactory();
 
+    @Inject
+    public TornadoController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            if (user.getPreferredUsername() == null){
+                throw new NotAuthorizedException("Invalid User Info!");
+            }else{
+                this.username = user.getPreferredUsername();
+            }
+        }
+        catch (Exception e) {
+            throw new NotAuthorizedException("Invalid User Info!");
+        }
+    }
+
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns all tornadoes.")
     public List<Tornado> getTornadoes(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
+        @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        return repository.getTornadoes().stream()
-            .filter(d -> authorizer.canRead(username, d.getPrivileges()))
-            .skip(offset)
-            .limit(limit)
-            .collect(Collectors.toList());
-    }
 
+        try {
+            List<Tornado> tornadoes = repository.getTornadoes();
+            if (!spaceName.equals("")) {
+                Space space = spaceRepository.getSpaceByName(spaceName);
+                if (space == null) {
+                    throw new NotFoundException();
+                }
+                if (!authorizer.canRead(this.username, space.getPrivileges())) {
+                    throw new NotAuthorizedException(this.username + " is not authorized to read the space " + spaceName);
+                }
+                List<String> spaceMembers = space.getMembers();
+                tornadoes = tornadoes.stream()
+                    .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+                if (tornadoes.size() == 0) {
+                    throw new NotFoundException("No tornadoes were found in space " + spaceName);
+                }
+                return tornadoes;
+            }
+            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+
+            List<Tornado> accessibleTornadoes = tornadoes.stream()
+                .filter(tornado -> membersSet.contains(tornado.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+
+            return accessibleTornadoes;
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid User Info!");
+        }
+    }
 
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new tornado, the newly created tornado is returned.",
-        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create both model tornadoes and dataset-based tornadoes with GeoTiff files uploaded.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "tornado", value = "Tornado json.", required = true, dataType = "string", paramType = "form"),
         @ApiImplicitParam(name = "file", value = "Tornado files.", required = true, dataType = "string", paramType = "form")
     })
     public Tornado createTornado(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(hidden = true) @FormDataParam("tornado") String tornadoJson,
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
@@ -92,7 +148,6 @@ public class TornadoController {
         Tornado tornado = null;
         try {
             tornado = mapper.readValue(tornadoJson, Tornado.class);
-            tornado.setPrivileges(Privileges.newWithSingleOwner(username));
 
             // TODO verify that parameters like title are not null
 
@@ -127,23 +182,30 @@ public class TornadoController {
                 File[] files = TornadoUtils.createTornadoShapefile((DefaultFeatureCollection) collection);
 
                 // Create dataset object representation for storing shapefile
-                JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
+                JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
-                String datasetId = ServiceUtil.createDataset(datasetObject, username, files);
+                String datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
                 tornadoModel.setDatasetId(datasetId);
 
-                return repository.addTornado(tornado);
+                tornado.setCreator(this.username);
+                tornado = repository.addTornado(tornado);
+                addTornadoToSpace(tornado, this.username);
+
+                return tornado;
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
                 if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
                     // Create dataset object representation for storing shapefile
-                    JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", username, "EF Boxes representing tornado");
+                    JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
-                    String datasetId = ServiceUtil.createDataset(datasetObject, username, fileParts);
+                    String datasetId = ServiceUtil.createDataset(datasetObject, this.username, fileParts);
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
-                    return repository.addTornado(tornado);
+                    tornado.setCreator(this.username);
+                    tornado = repository.addTornado(tornado);
+                    addTornadoToSpace(tornado, this.username);
+                    return tornado;
                 } else {
                     logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
                     throw new BadRequestException("Could not create Tornado. Check your file extensions and the number of files in the request.");
@@ -153,6 +215,7 @@ public class TornadoController {
             logger.error("Error mapping the request to a supported Tornado type.", e);
         }
         throw new BadRequestException("Could not create Tornado, check the format of your request.");
+
     }
 
     @GET
@@ -160,15 +223,24 @@ public class TornadoController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the tornado with matching id.")
     public Tornado getTornado(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         Tornado tornado = repository.getTornadoById(tornadoId);
 
-        if (!authorizer.canRead(username, tornado.getPrivileges())) {
-            throw new ForbiddenException();
+        if (tornado == null) {
+            throw new NotFoundException();
         }
-        return tornado;
+
+        Space space = spaceRepository.getSpaceByName(this.username);
+        if (space != null && space.hasMember(tornadoId)) {
+            return tornado;
+        }
+
+        if (authorizer.canUserReadMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+            return tornado;
+        }
+
+        throw new ForbiddenException();
     }
 
     @GET
@@ -176,19 +248,18 @@ public class TornadoController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
     public WindHazardResult getTornadoHazard(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
         @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "Latitude of a site. Ex: 35.027.", required = true) @QueryParam("siteLat") double siteLat,
         @ApiParam(value = "Longitude of a site. Ex: -90.131.", required = true) @QueryParam("siteLong") double siteLong,
         @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
 
-        Tornado tornado = getTornado(username, tornadoId);
+        Tornado tornado = getTornado(tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, username);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, this.username);
             } catch (Exception e) {
                 throw new InternalServerErrorException("Error computing hazard.", e);
             }
@@ -202,18 +273,17 @@ public class TornadoController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
     public List<WindHazardResult> getTornadoHazardValues(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
         @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '35.027,-90.131'.", required = true) @QueryParam("point") List<IncorePoint> points,
         @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
 
-        Tornado tornado = getTornado(username, tornadoId);
+        Tornado tornado = getTornado(tornadoId);
         List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
         if (tornado != null) {
             for (IncorePoint point : points) {
                 try {
-                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, username));
+                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, this.username));
                 } catch (UnsupportedHazardException e) {
                     logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are supported", e);
                     // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
@@ -231,11 +301,57 @@ public class TornadoController {
     @Produces({MediaType.TEXT_PLAIN})
     @ApiOperation(value = "Returns a zip shapefile representing tornado defined by given id.")
     public Response getFile(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         // TODO implement this and change MediaType to Octet Stream
         return Response.ok("Shapefile representing tornado not yet implemented.").build();
+    }
+
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all tornadoes", notes = "Gets all tornadoes that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(code = 404, message = "No tornadoes found with the searched text")
+    })
+    public List<Tornado> findTornadoes(
+        @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        List<Tornado> tornadoes;
+        Tornado tornado = repository.getTornadoById(text);
+        if (tornado != null) {
+            tornadoes = new ArrayList<Tornado>() {{
+                add(tornado);
+            }};
+        } else {
+            tornadoes = this.repository.searchTornadoes(text);
+        }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+
+        tornadoes = tornadoes.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+        return tornadoes;
+    }
+
+    //For adding tornado id to user's space
+    private void addTornadoToSpace(Tornado tornado, String username) {
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space != null) {
+            space.addMember(tornado.getId());
+            spaceRepository.addSpace(space);
+        } else {
+            space = new Space(username);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
+            space.addMember(tornado.getId());
+            spaceRepository.addSpace(space);
+        }
     }
 
 }

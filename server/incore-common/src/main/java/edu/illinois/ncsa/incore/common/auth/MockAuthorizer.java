@@ -10,13 +10,17 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
+import edu.illinois.ncsa.incore.common.models.Space;
+
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MockAuthorizer implements IAuthorizer{
 
     private boolean canRead = false;
     private boolean canWrite = false;
+    private boolean canDelete = false;
 
     public MockAuthorizer(boolean canRead, boolean canWrite) {
         this.canRead = canRead;
@@ -66,4 +70,25 @@ public class MockAuthorizer implements IAuthorizer{
     public boolean canWrite(String user, String privilegeSpecJson) {
         return canWrite;
     }
+
+    @Override
+    public boolean canDelete(String user, Privileges privileges) {return canDelete;}
+
+    @Override
+    public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {return null;}
+
+    @Override
+    public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {return false;}
+
+    @Override
+    public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {return false;}
+
+    @Override
+    public boolean canUserWriteMember(String username, String memberId, List<Space> spaces) {return false;}
+
+    @Override
+    public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {return null;}
+
+
+
 }

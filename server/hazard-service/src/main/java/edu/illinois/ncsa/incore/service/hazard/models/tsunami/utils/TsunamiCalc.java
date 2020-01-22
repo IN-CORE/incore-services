@@ -28,7 +28,8 @@ import java.util.List;
 public class TsunamiCalc {
     public static final Logger log = Logger.getLogger(TsunamiCalc.class);
 
-    public static TsunamiHazardResult getTsunamiHazardValue(Tsunami tsunami, String demandType, String demandUnits, IncorePoint location, String user) throws UnsupportedHazardException {
+    public static TsunamiHazardResult getTsunamiHazardValue(Tsunami tsunami, String demandType, String demandUnits,
+        IncorePoint location, String user) throws UnsupportedHazardException {
         if (tsunami instanceof TsunamiDataset) {
             TsunamiDataset tsunamiDataset = (TsunamiDataset) tsunami;
             TsunamiHazardDataset hazardDataset = findHazard(tsunamiDataset.getHazardDatasets(), demandType);

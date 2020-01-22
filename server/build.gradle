@@ -53,12 +53,12 @@ if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
 //a "farm" is the gretty term for multiple webapps that can be run
 //in the same webapp service.
 farm {
-    webapp ':fragility-service'
+    webapp ':dfr3-service'
     webapp ':data-service'
     webapp ':hazard-service'
     webapp ':maestro-service'
-    webapp ':auth-service'
     webapp ':semantic-service'
+    webapp ':space-service'
 }
 
 task farmWars(dependsOn: war, type: Copy) {
@@ -106,7 +106,7 @@ test {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["fragility-service", "data-service", "hazard-service", "maestro-service", "auth-service", "semantic-service"].each { name ->
+["dfr3-service", "data-service", "hazard-service", "maestro-service", "semantic-service", "space-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'
@@ -138,6 +138,7 @@ test {
             compile("org.geotools:gt-shapefile:17.0")
             compile("org.geotools:gt-referencing:17.0")
             compile("org.geotools:gt-epsg-hsql:17.0")
+            compile("org.geotools:gt-process-feature:17.0")
 
             //misc other dependencies
             compile("javax.media:jai_core:1.1.3")

@@ -15,12 +15,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.Space;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
-import org.bson.types.ObjectId;
 import org.mockito.Mockito;
 import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.Query;
 
 import java.io.IOException;
 import java.net.URL;
@@ -30,7 +27,6 @@ import java.util.List;
 public class MockRepository implements IRepository {
     private Datastore mockDataStore;
     private List<Dataset> datasets = new ArrayList<>();
-    private List<Space> spaces = new ArrayList<>();
     private List<MvzDataset> mvzDatasets = new ArrayList<>();
 
     public MockRepository() {
@@ -40,17 +36,10 @@ public class MockRepository implements IRepository {
     @Override
     public void initialize() {
         URL datasetsPath = this.getClass().getClassLoader().getResource("json/datasets.json");
-        URL spacesPath = this.getClass().getClassLoader().getResource("json/spaces.json");
         URL mvzDatasetsPath = this.getClass().getClassLoader().getResource("json/mvzdatasets.json");
 
         try {
             this.datasets = new ObjectMapper().readValue(datasetsPath, new TypeReference<List<Dataset>>(){});
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        try {
-            this.spaces = new ObjectMapper().readValue(spacesPath, new TypeReference<List<Space>>(){});
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -67,9 +56,17 @@ public class MockRepository implements IRepository {
     }
 
     @Override
-    public List<Space> getAllSpaces() {
-        return this.spaces;
+    public List<Dataset> searchDatasets(String text) {
+        List<Dataset> outList = new ArrayList<>();
+        for(int i = 0; i <this.datasets.size(); i++) {
+            if(this.datasets.get(i).getDescription().contains(text)) {
+                outList.add(datasets.get(i));
+            }
+        }
+        return outList;
     }
+
+
 
     @Override
     public List<MvzDataset> getAllMvzDatasets() {
@@ -153,37 +150,6 @@ public class MockRepository implements IRepository {
     }
 
     @Override
-    public Space getSpaceById(String id) {
-        for(int i = 0; i <this.spaces.size(); i++) {
-            if(this.spaces.get(i).getId().equalsIgnoreCase(id)) {
-                return this.spaces.get(i);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Space getSpaceByName(String name) {
-        for(int i = 0; i <this.spaces.size(); i++) {
-            if(this.spaces.get(i).getName().equalsIgnoreCase(name)) {
-                return this.spaces.get(i);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Space addSpace(Space space) {
-        this.spaces.add(space);
-        return this.spaces.get(this.spaces.size() - 1);
-    }
-
-    @Override
-    public Space removeIdFromSpace(Space space, String id) {
-        return null;
-    }
-
-    @Override
     public List<FileDescriptor> getAllFileDescriptors(){
         List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
         for (Dataset dataset: this.datasets) {
@@ -202,11 +168,6 @@ public class MockRepository implements IRepository {
 
     @Override
     public MvzDataset addMvzDataset(MvzDataset mvzDataset) {
-        return null;
-    }
-
-    @Override
-    public Space deleteSpace(String id){
         return null;
     }
 

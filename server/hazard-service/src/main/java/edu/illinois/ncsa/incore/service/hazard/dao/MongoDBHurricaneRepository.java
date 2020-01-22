@@ -70,6 +70,10 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
     @Override
     public HurricaneWindfields getHurricaneById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+
         return this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
     }
 
@@ -101,6 +105,18 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
+
+        List<HurricaneWindfields> hurricanes = query.asList();
+
+        return hurricanes;
+    }
+
+    @Override
+    public List<HurricaneWindfields> searchHurricanes(String text) {
+        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+
+        query.or(query.criteria("name").containsIgnoreCase(text),
+            query.criteria("description").containsIgnoreCase(text));
 
         List<HurricaneWindfields> hurricanes = query.asList();
 

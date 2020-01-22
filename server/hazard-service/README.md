@@ -49,7 +49,7 @@ Content-Type: multipart/form-data
 ###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
 
 When creating an earthquake dataset, the files must be included in the POST in the order found in the JSON
-so the correct dataset and metadata are associated. Currently only supports `.tif` files 
+so the correct dataset and metadataOld are associated. Currently only supports `.tif` files 
 
 ##### Sample JSON to create Probabilistic Earthquake
 
@@ -144,7 +144,7 @@ Content-Type: multipart/form-data
 ###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
 
 When creating a tsunami dataset, the files must be included in the POST in the order found in the JSON
-so the correct dataset and metadata are associated.
+so the correct dataset and metadataOld are associated.
 
 ##### Sample Tsunami Json
 {

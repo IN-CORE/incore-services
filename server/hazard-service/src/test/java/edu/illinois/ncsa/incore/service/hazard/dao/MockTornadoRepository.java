@@ -65,6 +65,11 @@ public class MockTornadoRepository implements ITornadoRepository {
     }
 
     @Override
+    public List<Tornado> searchTornadoes(String text) {
+        return null;
+    }
+
+    @Override
     public Datastore getDataStore() {
         return this.mockDataStore;
     }
