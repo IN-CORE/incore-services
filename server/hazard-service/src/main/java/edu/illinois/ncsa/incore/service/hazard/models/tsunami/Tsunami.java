@@ -31,6 +31,7 @@ public abstract class Tsunami {
     private String name;
     private String description;
     private Date date = new Date();
+    private String creator = null;
 
     public void setName(String name) {
         this.name = name;
@@ -60,5 +61,11 @@ public abstract class Tsunami {
     public void setDate(Date date) {
         this.date = date;
     }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) { this.creator = creator; }
 
 }

@@ -45,7 +45,7 @@ public class HurricaneCalc {
     private static final Logger logger = Logger.getLogger(HurricaneCalc.class);
 
 
-    public static HurricaneSimulationEnsemble simulateHurricane(String username, String Authorization, double transD, IncorePoint landfallLoc, String model,
+    public static HurricaneSimulationEnsemble simulateHurricane(String username, double transD, IncorePoint landfallLoc, String model,
                                                                 String demandType, String demandUnits, int resolution, int gridPoints, String rfMethod) {
         //TODO: Comeup with a better name for gridPoints
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation

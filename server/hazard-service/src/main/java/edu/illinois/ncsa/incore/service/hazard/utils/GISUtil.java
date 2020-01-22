@@ -113,12 +113,12 @@ public class GISUtil {
         return inSourceFileUrl;
     }
 
-    private static URL cacheFeatureCollection(String datasetId, File cacheDir, String creator, String Authorization) {
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, Authorization, cacheDir);
+    private static URL cacheFeatureCollection(String datasetId, File cacheDir, String creator) {
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, cacheDir);
         return GISUtil.unZipShapefiles(file, cacheDir);
     }
 
-    public static FeatureCollection getFeatureCollection(String datasetId, String creator, String Authorization) {
+    public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
 
         URL inSourceFileUrl = null;
 
@@ -139,7 +139,7 @@ public class GISUtil {
 
             //if not, download the cache it
             if (inSourceFileUrl == null) {
-                inSourceFileUrl = cacheFeatureCollection(datasetId, cacheDir, creator, Authorization);
+                inSourceFileUrl = cacheFeatureCollection(datasetId, cacheDir, creator);
             }
 
             //if we still don't have it, there's a problem
@@ -167,7 +167,7 @@ public class GISUtil {
 
     }
 
-    public static synchronized GridCoverage getGridCoverage(String datasetId, String creator, String Authorization) {
+    public static synchronized GridCoverage getGridCoverage(String datasetId, String creator) {
         URL inSourceFileUrl = null;
 
         try {
@@ -188,7 +188,7 @@ public class GISUtil {
 
             //if not, download the cache it
             if (inSourceFileUrl == null) {
-                inSourceFileUrl = cacheGridCoverage(datasetId, cacheDir, creator, Authorization);
+                inSourceFileUrl = cacheGridCoverage(datasetId, cacheDir, creator);
             }
 
             //if we still don't have it, there's a problem
@@ -215,8 +215,8 @@ public class GISUtil {
         return null;
     }
 
-    private static URL cacheGridCoverage(String datasetId, File cacheDir, String creator, String Authorization) {
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, Authorization, cacheDir);
+    private static URL cacheGridCoverage(String datasetId, File cacheDir, String creator) {
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, cacheDir);
 
         byte[] buffer = new byte[1024];
         URL tifFile = null;

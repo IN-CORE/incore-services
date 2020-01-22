@@ -85,7 +85,7 @@ curl -i -X POST \
   --data 'config.exposed_headers=X-Credential-User' \
   --data 'config.preflight_continue=false ' \
   --data 'config.origins=*' \
-  --data 'config.headers=Access-Control-Allow-Headers,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization,auth-user,auth-token,X-Credential-User' \
+  --data 'config.headers=Access-Control-Allow-Headers,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,auth-user,auth-token,X-Credential-User' \
 
 
 

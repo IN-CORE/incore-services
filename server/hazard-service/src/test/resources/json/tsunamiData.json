@@ -2,6 +2,7 @@
 {
   "tsunamiType" : "dataset",
   "id" : "5ba3f19d9ab6b4474cece3d6",
+  "creator":"incrtest",
   "hazardDatasets" : [
     {
       "hazardType" : "probabilistic",

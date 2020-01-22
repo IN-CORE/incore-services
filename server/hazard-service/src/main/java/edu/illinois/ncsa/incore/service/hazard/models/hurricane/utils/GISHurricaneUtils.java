@@ -209,7 +209,7 @@ public class GISHurricaneUtils {
      */
     //
     public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson, double rasterResolution,
-                                                                            String username, String Authorization) throws MismatchedDimensionException {
+                                                                            String username) throws MismatchedDimensionException {
         // TODO the rasterResolution input in here is KM, so if the input json unit is not km, this should be changed
         // TODO also, since this is geographic projection, the resolution is not perfectly matching with the given value
         // TODO however, since the geotiff is for the visualization purpose only, this should be fine
@@ -283,7 +283,7 @@ public class GISHurricaneUtils {
                 System.out.println("performProcess complete");
                 //TODO Get the creator - pass a param?
                 HurricaneSimulationDataset simDataset = HurricaneUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid Snapshot",
-                    username, Authorization,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                    username,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                     (String) tempHurricane.get("absTime"));
                 hsDatasets.add(simDataset);
             }
@@ -299,7 +299,7 @@ public class GISHurricaneUtils {
 
             System.out.println("createHurricaneDataSetFromFiles begins");
             HurricaneSimulationDataset simDatasetAll = HurricaneUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane Full Snapshot",
-                username, Authorization,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                username,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                 "full time range");
             hsDatasets.add(simDatasetAll);
             System.out.println("createHurricaneDataSetFromFiles complete");
@@ -357,7 +357,7 @@ public class GISHurricaneUtils {
      * @return
      * @throws IOException
      */
-    public static double CalcVelocityFromPoint(String datasetId, String username, String Authorization, double lat, double lon) throws IOException {
+    public static double CalcVelocityFromPoint(String datasetId, String username, double lat, double lon) throws IOException {
         // copy the shapefile from the repository to the temp directory and cache them
         // if there is no cache, create the cache folder and use it
         // to collect all the shapefile components in a single directory
@@ -376,7 +376,7 @@ public class GISHurricaneUtils {
                 }
             }
         } else {
-            org.json.JSONObject datasetJson = ServiceUtil.getDatasetJsonFromDataService(datasetId, username, Authorization);
+            org.json.JSONObject datasetJson = ServiceUtil.getDatasetJsonFromDataService(datasetId, username);
             List fileList = ServiceUtil.getFileDescriptorFileList(datasetJson);
             shpFilePath = ServiceUtil.collectShapfileInFolder(fileList, hurricaneCacheDir);
         }
