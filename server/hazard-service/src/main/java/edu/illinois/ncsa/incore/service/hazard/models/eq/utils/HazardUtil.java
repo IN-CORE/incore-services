@@ -14,7 +14,6 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.EqRupture;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.HazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import org.apache.commons.io.FilenameUtils;
