@@ -37,6 +37,7 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
     private double Rrup;
     private double Ftw, Fcn, Fjp; // Regional flags for Taiwan, China and Japan
     private double s5_JP, s6_JP;
+    // These are not used - the paper should be reviewed to see if they are useful or should be removed
     private double s1_measured, s2_measured;
     private String region;
 
@@ -64,7 +65,7 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
         String mechanism = ruptureParameters.getFaultType(this.getClass().getSimpleName());
         double[] originalDistances = HazardUtil.computeOriginalDistance(site, sourceSite);
 
-        // ****************************GET INPUTS**********************************
+        // Model inputs
         // Moment magnitude
         double M = ruptureParameters.getMagnitude();
 
@@ -119,8 +120,7 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
         // Centroid Joyner-Boore distance
         double CRjb = 999.0;
 
-        // ******************************COMPUTE*********************************
-
+        // Compute ground motion
         double Sa = Math.exp(f1(M, Rrup) + Frv * f7(M) + Fn * f8(M) + Fas * f11(CRjb) + f5(T, Vs30)
             + Fhw * f4(Rjb, Rrup, Rx, dip, Ztor, M, W) + f6(Ztor) + f10(Z1p0, Vs30) + Regional(Vs30, Rrup));
 
