@@ -9,8 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 
@@ -30,10 +28,7 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
     public double getValue(String period, Site site) throws Exception {
 
         double mag = ruptureParameters.getMagnitude();
-        double srcLatitude = ruptureParameters.getSrcLatitude();
-        double srcLongitude = ruptureParameters.getSrcLongitude();
-        double depth = ruptureParameters.getDepth();
-        Site sourceSite = new Site(new GeometryFactory().createPoint(new Coordinate(srcLongitude, srcLatitude)), depth);
+        Site sourceSite = HazardUtil.getSourceSite(ruptureParameters);
 
         double distance = HazardUtil.findDistance(site.getLocation(), sourceSite.getLocation());
         return getValue(period, mag, distance, sourceSite.getDepth());

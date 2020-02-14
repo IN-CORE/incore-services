@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.2] - 2020-02-14 
+
+### Added
+Added Abrahamson, Silva, Kamai 2014 and Campbell and Bozorgnia 2014 attenuation models [INCORE1-430](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-430)
+
+### Fixed
+The user's LDAP groups in the cache will now get refreshed after a certain interval [INCORE1-431](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-431)
+
+### Removed
+
 ## [0.6.1] - 2019-12-20
 IN-CORE service release for IN-CORE v1.0
 
