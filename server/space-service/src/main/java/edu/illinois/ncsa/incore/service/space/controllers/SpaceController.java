@@ -89,19 +89,19 @@ public class SpaceController {
     public SpaceController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new NotAuthorizedException("Invalid User Info!");
+            throw new BadRequestException("Invalid User Info!");
         }
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
             if (user.getPreferredUsername() == null){
-                throw new NotAuthorizedException("Invalid User Info!");
+                throw new BadRequestException("Invalid User Info!");
             }else{
                 this.username = user.getPreferredUsername();
             }
         }
         catch (Exception e) {
-            throw new NotAuthorizedException("Invalid User Info!");
+            throw new BadRequestException("Invalid User Info!");
         }
     }
 
@@ -155,18 +155,11 @@ public class SpaceController {
                     spacesWithMember.add(space);
                 }
             }
-            if (spacesWithMember.size() == 0) {
-                throw new NotFoundException("No spaces user has access to contain the member with id " + memberId);
-            }
+
             return spacesWithMember;
         }
 
-        List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
-        if (filteredSpaces.size() == 0) {
-            throw new ForbiddenException("User can't access any space");
-        }
-
-        return filteredSpaces;
+        return authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
     }
 
     @GET
@@ -277,7 +270,7 @@ public class SpaceController {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges())) {
-            throw new NotAuthorizedException(this.username + " can't modify the space");
+            throw new ForbiddenException(this.username + " is not allowed to update the space " + space.getName());
         }
 
         if (addMembers(space, this.username, memberId)) {
@@ -299,7 +292,7 @@ public class SpaceController {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges())) {
-            throw new NotAuthorizedException(this.username + " has not write permissions in " + spaceId);
+            throw new ForbiddenException(this.username + " has not write permissions in " + spaceId);
         }
 
         ObjectMapper privilegeObjectMapper = new ObjectMapper();
@@ -331,7 +324,7 @@ public class SpaceController {
 
         Space space = getSpace(spaceId);
         if (!authorizer.canDelete(this.username, space.getPrivileges())) {
-            throw new NotAuthorizedException("User has no privileges to modify the space " + space.getName());
+            throw new ForbiddenException("User has no privileges to modify the space " + space.getName());
         }
 
         if (!space.hasMember(memberId)) {
