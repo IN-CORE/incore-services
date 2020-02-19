@@ -64,7 +64,6 @@ public class LdapClient {
 
     public Set<String> getUserGroups(String user) {
 
-
         long ldapRefreshSecs = 900;
         if(Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs") != null
             && Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs").trim() != "") {
