@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Added a customn HTTP Exception throw class [INCORE-480](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-480)
+
 ### Fixed
 Update docker's properties files with new property added for LDAP cache refresh, so the docker builds will succeed [INCORE1-478](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-478)
 
