@@ -14,6 +14,7 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.config.Config;
@@ -30,7 +31,6 @@ import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
 
 import edu.illinois.ncsa.incore.common.models.UserInfo;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.*;
@@ -109,7 +109,7 @@ public class DatasetController {
         @HeaderParam("x-auth-userinfo") String userInfo,
         @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -120,7 +120,7 @@ public class DatasetController {
             Dataset dataset = repository.getDatasetById(datasetId);
             if (dataset == null) {
                 logger.error("Error finding dataset with the id of " + datasetId);
-                throw new NotFoundException("Error finding dataset with the id of " + datasetId);
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Error finding dataset with the id of " + datasetId);
             }
 
             //feeling lucky, try to get dataset directly from user's space
@@ -133,10 +133,10 @@ public class DatasetController {
                 return dataset;
             }
 
-            throw new ForbiddenException();
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " does not have the privileges to access the dataset " + datasetId);
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -153,9 +153,8 @@ public class DatasetController {
                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit
     ) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
-
         ObjectMapper objectMapper = new ObjectMapper();
         try{
             UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
@@ -174,15 +173,15 @@ public class DatasetController {
 
             if (datasets == null) {
                 logger.error("Error finding dataset");
-                throw new NotFoundException("Error finding dataset");
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find datasets.");
             }
             if (!spaceName.equals("")) {
                 Space space = spaceRepository.getSpaceByName(spaceName);
                 if (space == null) {
-                    throw new NotFoundException();
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Did not find space " + spaceName);
                 }
                 if (!authorizer.canRead(username, space.getPrivileges())) {
-                    throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
+                    throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
                 }
                 List<String> spaceMembers = space.getMembers();
                 datasets = datasets.stream()
@@ -191,7 +190,7 @@ public class DatasetController {
                     .limit(limit)
                     .collect(Collectors.toList());
                 if (datasets.size() == 0) {
-                    throw new NotFoundException("No hurricanes were found in space " + spaceName);
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No hurricanes were found in the space " + spaceName);
                 }
                 return datasets;
             }
@@ -208,7 +207,7 @@ public class DatasetController {
             return accessibleDatasets;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -219,7 +218,7 @@ public class DatasetController {
     public Response getFileByDataset(@HeaderParam("x-auth-userinfo") String userInfo,
                                      @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         try{
@@ -242,11 +241,11 @@ public class DatasetController {
                     "attachment; filename=\"" + fileName + "\"").build();
             } else {
                 logger.error("Error finding output zip file for " + datasetId);
-                throw new NotFoundException("Error finding output zip file for " + datasetId);
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find output zip file for " + datasetId);
             }
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -259,7 +258,7 @@ public class DatasetController {
     public List<FileDescriptor> getDatasetsFiles(@HeaderParam("x-auth-userinfo") String userInfo,
                                                  @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         try{
@@ -268,12 +267,12 @@ public class DatasetController {
             List<FileDescriptor> fds = dataset.getFileDescriptors();
             if (fds == null) {
                 logger.error("Error finding FileDescriptor from the dataset with the id of " + datasetId);
-                throw new NotFoundException("Error finding FileDescriptor from the dataset with the id of " + datasetId);
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find FileDescriptor from the dataset " + datasetId);
             }
             return fds;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -286,7 +285,7 @@ public class DatasetController {
                                             @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
                                             @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         try{
@@ -315,11 +314,11 @@ public class DatasetController {
                 return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
             } else {
                 logger.error("Error finding output file.");
-                throw new NotFoundException("Error finding output file.");
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find output file.");
             }
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -332,7 +331,7 @@ public class DatasetController {
                                                            @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
                                                            @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         try{
@@ -353,12 +352,12 @@ public class DatasetController {
 
             if (fileDescriptor == null) {
                 logger.error("Error finding FileDescriptor with the id of " + fileId);
-                throw new NotFoundException("Error finding FileDescriptor with the id of " + fileId);
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find FileDescriptor with the id of " + fileId);
             }
             return fileDescriptor;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -369,7 +368,7 @@ public class DatasetController {
     public Dataset ingestDataset(@HeaderParam("x-auth-userinfo") String userInfo,
                                  @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("dataset") String inDatasetJson) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -379,19 +378,19 @@ public class DatasetController {
 
             if (username == null) {
                 logger.error("Credential user name should be provided.");
-                throw new BadRequestException("Credential user name should be provided.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid credentials.");
             }
 
             boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
             if (isJsonValid != true) {
                 logger.error("Posted json is not a valid json.");
-                throw new BadRequestException("Posted json is not a valid json.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid json provided.");
             }
 
             boolean isDatasetParameterValid = DataJsonUtils.isDatasetParameterValid(inDatasetJson);
             if (isDatasetParameterValid != true) {
                 logger.error("Posted json is not a valid json.");
-                throw new BadRequestException("Posted json has wrong parameter");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid parameter in provided json.");
             }
 
             String title = "";
@@ -427,7 +426,7 @@ public class DatasetController {
                 dataset = repository.addDataset(dataset);
                 if (dataset == null) {
                     logger.error("Error finding dataset with the id of " + dataset.getId());
-                    throw new NotFoundException("Error finding dataset with the id of " + dataset.getId());
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find dataset " + dataset.getId());
                 }
 
                 String id = dataset.getId();
@@ -448,7 +447,7 @@ public class DatasetController {
             return dataset;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -461,7 +460,7 @@ public class DatasetController {
     public Dataset deleteDataset(@HeaderParam("x-auth-userinfo") String userInfo,
                                  @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -471,13 +470,13 @@ public class DatasetController {
 
             if (username == null) {
                 logger.error("Credential user name should be provided.");
-                throw new BadRequestException("Credential user name should be provided.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info: missing username.");
             }
 
             Dataset dataset = getDatasetbyId(userInfo, datasetId);
 
             if (dataset == null) {
-                throw new NotFoundException();
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "");
             }
 
             String format = dataset.getFormat();
@@ -515,13 +514,13 @@ public class DatasetController {
 
     }
             } else {
-                throw new NotAuthorizedException(username + " is not authorized to delete the dataset");
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to delete the dataset " + datasetId);
             }
 
             return dataset;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -536,7 +535,7 @@ public class DatasetController {
                                @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'", required = true)
                                    FormDataMultiPart inputs) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -546,10 +545,10 @@ public class DatasetController {
 
             if (username == null) {
                 logger.error("Credential user name should be provided.");
-                throw new BadRequestException("Credential user name should be provided.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info: missing username.");
             }
             if (!authorizer.canUserWriteMember(username, datasetId, spaceRepository.getAllSpaces())) {
-                throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to modify the dataset " + datasetId);
             }
             // adding geoserver flag
             // if this flas is false, the data will not be uploaded to geoserver
@@ -600,13 +599,13 @@ public class DatasetController {
 
                 if (isLinkPresented == false) {
                     logger.error("Error finding link file");
-                    throw new NotFoundException("Error finding link file with the id of " + datasetId);
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find link file with the id of " + datasetId);
                 } else if (isNodePresented == false) {
                     logger.error("Error finding node file");
-                    throw new NotFoundException("Error finding node file with the id of " + datasetId);
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find node file with the id of " + datasetId);
                 } else if (isGraphPresented == false) {
                     logger.error("Error finding graph file");
-                    throw new NotFoundException("Error finding graph file with the id of " + datasetId);
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find graph file with the id of " + datasetId);
                 }
             }
 
@@ -663,7 +662,7 @@ public class DatasetController {
                             fd.setFilename(fileName);
                         } catch (IOException e) {
                             logger.error("Error storing files of the dataset with the id of " + datasetId);
-                            throw new NotFoundException("Error string files of the dataset with the id of " + datasetId);
+                            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Error storing files of the dataset with the id of " + datasetId);
                         }
                         dataset.addFileDescriptor(fd);
                     }
@@ -774,7 +773,7 @@ public class DatasetController {
             return dataset;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -788,7 +787,7 @@ public class DatasetController {
                                @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -798,20 +797,20 @@ public class DatasetController {
 
             if (username == null) {
                 logger.error("Credential user name should be provided.");
-                throw new BadRequestException("Credential user name should be provided.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info: missing username.");
             }
             boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
             if (!isJsonValid) {
                 logger.error("Posted json is not a valid json.");
-                throw new BadRequestException("Posted json is not a valid json.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid json.");
             }
             if (!authorizer.canUserWriteMember(username, datasetId, spaceRepository.getAllSpaces())) {
-                throw new NotAuthorizedException(username + " has no permission to modify the dataset " + datasetId);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " has no permission to modify the dataset " + datasetId);
             }
 
             Dataset dataset = repository.getDatasetById(datasetId);
             if (dataset == null) {
-                throw new NotFoundException();
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Dataset " + datasetId + " not found");
             }
 
             String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
@@ -820,7 +819,7 @@ public class DatasetController {
             return dataset;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 
@@ -836,7 +835,7 @@ public class DatasetController {
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -865,7 +864,7 @@ public class DatasetController {
 
             return datasets;
         } catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid user info.");
         }
     }
 }

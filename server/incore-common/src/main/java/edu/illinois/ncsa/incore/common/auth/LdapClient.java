@@ -50,8 +50,6 @@ public class LdapClient {
 
     public static String ldapUri = Config.getConfigProperties().getProperty("auth.ldap.url");
     public static String userDn = Config.getConfigProperties().getProperty("auth.ldap.userDn");
-    public static long ldapRefreshSecs =
-        Long.parseLong(Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs"));
 
     public Map<String,Groups> userGroupCache = new HashMap<>();
 
@@ -65,6 +63,17 @@ public class LdapClient {
     }
 
     public Set<String> getUserGroups(String user) {
+
+        long ldapRefreshSecs = 900;
+        if(Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs") != null
+            && Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs").trim() != "") {
+            try {
+                ldapRefreshSecs = Long.parseLong(Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs"));
+            }
+            catch(NumberFormatException e){
+                log.error("NumberFormatException when reading the config: auth.ldap.cache.refresh.secs");
+            }
+        }
         long currSecs = System.currentTimeMillis()/1000;
 
         if ( userGroupCache.containsKey(user)) {
