@@ -24,12 +24,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockRepository implements IRepository {
+public class MockDataRepository implements IRepository {
     private Datastore mockDataStore;
     private List<Dataset> datasets = new ArrayList<>();
     private List<MvzDataset> mvzDatasets = new ArrayList<>();
 
-    public MockRepository() {
+    public MockDataRepository() {
         this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);
     }
 
