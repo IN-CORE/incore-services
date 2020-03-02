@@ -5,21 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.6.3] - 2020-03-02
 
 ### Added
 - HTTP Exception class that can include a custom exception message in the Response [INCORE-480](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-480)
 - Added UserInfoUtil class for validating user-info jsons and updated exceptions thrown in Dataset Controller. [INCORE1-476](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-476)
 ### Fixed
-Update docker's properties files with new property added for LDAP cache refresh, so the docker builds will succeed [INCORE1-478](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-478)
+- Update docker's properties files with new property added for LDAP cache refresh, so the docker builds will succeed [INCORE1-478](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-478)
 
 ## [0.6.2] - 2020-02-14 
 
 ### Added
-Added Abrahamson, Silva, Kamai 2014 and Campbell and Bozorgnia 2014 attenuation models [INCORE1-430](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-430)
+- Added Abrahamson, Silva, Kamai 2014 and Campbell and Bozorgnia 2014 attenuation models [INCORE1-430](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-430)
 
 ### Fixed
-The user's LDAP groups in the cache will now get refreshed after a certain interval [INCORE1-431](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-431)
+- The user's LDAP groups in the cache will now get refreshed after a certain interval [INCORE1-431](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-431)
 
 ### Removed
 
