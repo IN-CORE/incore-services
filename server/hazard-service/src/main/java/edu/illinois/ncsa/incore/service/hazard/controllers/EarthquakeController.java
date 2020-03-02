@@ -59,12 +59,12 @@ import java.util.stream.Collectors;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
-        version = "v0.4.0",
+        version = "v0.6.3",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore2.ncsa.illinois.edu"
+            url = "https://incore.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",

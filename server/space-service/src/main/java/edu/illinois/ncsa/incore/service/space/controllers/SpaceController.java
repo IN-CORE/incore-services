@@ -39,12 +39,12 @@ import java.util.*;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Space Service for creating and accessing spaces",
-        version = "v0.4.0",
+        version = "v0.6.3",
         title = "IN-CORE v2 Space Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore2.ncsa.illinois.edu"
+            url = "https://incore.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
