@@ -61,7 +61,7 @@ import java.util.*;
 
 @Path("spaces")
 public class SpaceController {
-    private static final String SERVICES_URL = Config.getConfigProperties().getProperty("dataservice.url");
+    private static final String SERVICES_URL = Config.getConfigProperties().getProperty("services.url");
     private static final String EARTHQUAKE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/earthquakes/" : "/hazard/api/earthquakes/";
     private static final String TORNADO_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
     private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";

@@ -51,7 +51,7 @@ public class ServiceUtil {
         // TODO cleanup duplicate code
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -118,7 +118,7 @@ public class ServiceUtil {
     public static String createDataset(JSONObject datasetObject, String creator, File[] files) throws IOException {
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -177,7 +177,7 @@ public class ServiceUtil {
         JSONObject datasetJson = new JSONObject();
 
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -264,7 +264,7 @@ public class ServiceUtil {
 
     public static File getFileFromDataService(String datasetId, String creator, File incoreWorkDirectory) {
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -313,7 +313,7 @@ public class ServiceUtil {
     public static String getDataServiceEndpoint() {
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("dataservice.url");
+        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
