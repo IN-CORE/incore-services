@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Removed
+- dataservice.url property. It's references are replaced with services.url [INCORE-482](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-482)
+
 ## [0.6.3] - 2020-03-02
 
 ### Added
