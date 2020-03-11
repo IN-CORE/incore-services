@@ -321,4 +321,45 @@ public class MappingController {
             throw new BadRequestException("Invalid User Info!");
         }
     }
+
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Search for a text in all mappings", notes = "Gets all mappings that contain a specific text")
+    public List<MappingSet> findFragilities(@HeaderParam("x-auth-userinfo") String userInfo,
+                                              @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
+            throw new BadRequestException("Invalid User Info!");
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
+            String username = user.getPreferredUsername();
+
+            List<MappingSet> sets = new ArrayList<>();
+            Optional<MappingSet> ms = this.mappingDAO.getMappingSetById(text);
+            if (ms.isPresent()) {
+                sets.add(ms.get());
+            } else {
+                sets = this.mappingDAO.searchMappings(text);
+            }
+
+            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+
+            List<MappingSet> accessibleMappings = sets.stream()
+                .filter(b -> membersSet.contains(b.getId()))
+                .skip(offset)
+                .limit(limit)
+                .collect(Collectors.toList());
+
+            return accessibleMappings;
+        }
+        catch (Exception e) {
+            throw new BadRequestException("Invalid User Info!");
+        }
+    }
+
 }

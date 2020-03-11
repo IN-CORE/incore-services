@@ -26,4 +26,6 @@ public interface IMappingDAO {
     List<MappingSet> queryMappingSets(Map<String, String> queryMap);
 
     String saveMappingSet(MappingSet mappingSet);
+
+    List<MappingSet> searchMappings(String text);
 }
