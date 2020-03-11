@@ -326,7 +326,7 @@ public class MappingController {
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Search for a text in all mappings", notes = "Gets all mappings that contain a specific text")
-    public List<MappingSet> findFragilities(@HeaderParam("x-auth-userinfo") String userInfo,
+    public List<MappingSet> findMappings(@HeaderParam("x-auth-userinfo") String userInfo,
                                               @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
