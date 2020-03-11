@@ -13,9 +13,7 @@ package mocks;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
-import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
-import org.mongodb.morphia.query.Query;
 
 import java.io.IOException;
 import java.net.URL;
