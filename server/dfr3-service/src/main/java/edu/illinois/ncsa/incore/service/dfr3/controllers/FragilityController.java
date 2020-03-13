@@ -31,14 +31,14 @@ import java.util.stream.Collectors;
 
 @SwaggerDefinition(
     info = @Info(
-        version = "v0.4.0",
+        version = "v0.6.3",
         description = "IN-CORE Service For Fragilities and Fragility mappings",
 
         title = "IN-CORE v2 Fragility Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore2.ncsa.illinois.edu"
+            url = "https://incore.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",

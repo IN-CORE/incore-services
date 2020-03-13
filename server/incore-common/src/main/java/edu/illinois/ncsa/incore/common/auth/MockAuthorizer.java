@@ -75,10 +75,31 @@ public class MockAuthorizer implements IAuthorizer{
     public boolean canDelete(String user, Privileges privileges) {return canDelete;}
 
     @Override
-    public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {return null;}
+    public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {
+        // Simplified version
+        // TODO: update this to reflect the actual method
+        Set<String> members = new HashSet<>();
+        for (Space space : spaces){
+            if (space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN) {
+                members.addAll(space.getMembers());
+            }
+        }
+        return members;
+    }
 
     @Override
-    public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {return false;}
+    public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {
+        // simplified version (checking if username is the owner of the space
+        // TODO: update this to reflect the actual method
+        for (Space space : spaces){
+            if (space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN) {
+                if (space.hasMember(memberId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {return false;}
