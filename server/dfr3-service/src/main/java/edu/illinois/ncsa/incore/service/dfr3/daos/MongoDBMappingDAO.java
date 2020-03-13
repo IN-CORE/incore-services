@@ -73,12 +73,19 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> searchMappings(String text) {
+    public List<MappingSet> searchMappings(String text, String mappingType) {
         Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
 
-        query.or(query.criteria("name").containsIgnoreCase(text),
-            query.criteria("hazardType").containsIgnoreCase(text),
-            query.criteria("inventoryType").containsIgnoreCase(text));
+        if(mappingType != null && !mappingType.trim().equals("")){
+                    query.criteria("mappingType").equalIgnoreCase(mappingType).or(
+                        query.criteria("name").containsIgnoreCase(text),
+                        query.criteria("hazardType").containsIgnoreCase(text),
+                        query.criteria("inventoryType").containsIgnoreCase(text));
+        } else {
+            query.or(query.criteria("name").containsIgnoreCase(text),
+                query.criteria("hazardType").containsIgnoreCase(text),
+                query.criteria("inventoryType").containsIgnoreCase(text));
+        }
 
         List<MappingSet> sets = query.asList();
 

@@ -328,6 +328,7 @@ public class MappingController {
     @ApiOperation(value = "Search for a text in all mappings", notes = "Gets all mappings that contain a specific text")
     public List<MappingSet> findMappings(@HeaderParam("x-auth-userinfo") String userInfo,
                                               @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                              @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam("mappingType") String mappingType,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
@@ -344,7 +345,7 @@ public class MappingController {
             if (ms.isPresent()) {
                 sets.add(ms.get());
             } else {
-                sets = this.mappingDAO.searchMappings(text);
+                sets = this.mappingDAO.searchMappings(text, mappingType);
             }
 
             Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
