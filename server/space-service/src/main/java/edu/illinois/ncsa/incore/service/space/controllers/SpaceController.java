@@ -159,7 +159,7 @@ public class SpaceController {
         Space space = getSpace(spaceId);
 
         if (!(authorizer.canRead(this.username, space.getPrivileges()))) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access the space " + spaceId);
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access " + space.getName() + "'s space");
         }
 
         return space;
