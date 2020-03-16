@@ -13,13 +13,11 @@ package edu.illinois.ncsa.incore.service.dfr3.controllers;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationSet;
-
-import edu.illinois.ncsa.incore.common.models.UserInfo;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
@@ -27,6 +25,7 @@ import org.apache.log4j.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,8 +56,10 @@ import java.util.stream.Collectors;
 @Api(value = "restorations", authorizations = {})
 @Path("restorations")
 public class RestorationController {
-
     private static final Logger logger = Logger.getLogger(RestorationController.class);
+
+    private  String username;
+
     @Inject
     IAuthorizer authorizer;
     @Inject
@@ -66,142 +67,109 @@ public class RestorationController {
     @Inject
     private ISpaceRepository spaceRepository;
 
+    @Inject
+    public RestorationController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        this.username = UserInfoUtils.getUsername(userInfo);
+    }
+
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets list of restorations", notes = "Apply filters to get the desired set of restorations")
-    public List<RestorationSet> getRestorations(@HeaderParam("x-auth-userinfo") String userInfo,
-                                                @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+    public List<RestorationSet> getRestorations(@ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
                                                 @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
                                                 @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
                                                 @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                                 @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                                 @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+        Map<String, String> queryMap = new HashMap<>();
+
+        if (hazardType != null) {
+            queryMap.put("hazardType", hazardType);
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
+        if (inventoryType != null) {
+            queryMap.put("inventoryType", inventoryType);
+        }
 
-            Map<String, String> queryMap = new HashMap<>();
+        if (creator != null) {
+            queryMap.put("creator", creator);
+        }
 
-            if (hazardType != null) {
-                queryMap.put("hazardType", hazardType);
+        List<RestorationSet> restorationSets;
+
+        if (queryMap.isEmpty()) {
+            restorationSets = this.restorationDAO.getRestorations();
+        } else {
+            restorationSets = this.restorationDAO.queryRestorations(queryMap);
+        }
+
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-
-            if (inventoryType != null) {
-                queryMap.put("inventoryType", inventoryType);
+            if (!authorizer.canRead(username, space.getPrivileges())) {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
             }
+            List<String> spaceMembers = space.getMembers();
 
-            if (creator != null) {
-                queryMap.put("creator", creator);
-            }
-
-            List<RestorationSet> restorationSets;
-
-            if (queryMap.isEmpty()) {
-                restorationSets = this.restorationDAO.getRestorations();
-            } else {
-                restorationSets = this.restorationDAO.queryRestorations(queryMap);
-            }
-
-            if (!spaceName.equals("")) {
-                Space space = spaceRepository.getSpaceByName(spaceName);
-                if (space == null) {
-                    throw new NotFoundException();
-                }
-                if (!authorizer.canRead(username, space.getPrivileges())) {
-                    throw new NotAuthorizedException(username + " is not authorized to read the space " + spaceName);
-                }
-                List<String> spaceMembers = space.getMembers();
-
-                restorationSets = restorationSets.stream()
-                    .filter(restoration -> spaceMembers.contains(restoration.getId()))
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList());
-                if (restorationSets.size() == 0) {
-                    throw new NotFoundException("No restorations were found in space " + spaceName);
-                }
-                return restorationSets;
-            }
-
-            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-
-            List<RestorationSet> accessibleRestorations = restorationSets.stream()
-                .filter(b -> membersSet.contains(b.getId()))
+            restorationSets = restorationSets.stream()
+                .filter(restoration -> spaceMembers.contains(restoration.getId()))
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-
-            return accessibleRestorations;
-        } catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            if (restorationSets.size() == 0) {
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No restorations were found in space " + spaceName);
+            }
+            return restorationSets;
         }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+
+        List<RestorationSet> accessibleRestorations = restorationSets.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+        return accessibleRestorations;
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a restoration set", notes = "Post a restoration set to the restoration service")
-    public RestorationSet uploadRestorationSet(@HeaderParam("x-auth-userinfo") String userInfo,
-                                               @ApiParam(value = "json representing the restoration set") RestorationSet restorationSet) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+    public RestorationSet uploadRestorationSet(@ApiParam(value = "json representing the restoration set") RestorationSet restorationSet) {
+        restorationSet.setCreator(username);
+        String restorationId = this.restorationDAO.saveRestoration(restorationSet);
+
+        Space space = spaceRepository.getSpaceByName(username);
+        if (space == null) {
+            space = new Space(username);
+            space.setPrivileges(Privileges.newWithSingleOwner(username));
         }
+        space.addMember(restorationId);
+        spaceRepository.addSpace(space);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-
-            restorationSet.setCreator(username);
-            String restorationId = this.restorationDAO.saveRestoration(restorationSet);
-
-            Space space = spaceRepository.getSpaceByName(username);
-            if (space == null) {
-                space = new Space(username);
-                space.setPrivileges(Privileges.newWithSingleOwner(username));
-            }
-            space.addMember(restorationId);
-            spaceRepository.addSpace(space);
-
-            return restorationSet;
-        } catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+        return restorationSet;
     }
 
     @GET
     @Path("{restorationId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a restoration by Id", notes = "Get a particular restoration based on the id provided")
-    public RestorationSet getRestorationSetById(@HeaderParam("x-auth-userinfo") String userInfo,
-                                                @ApiParam(value = "hexadecimal restoration id", example = "5b47b2d8337d4a36187c6727")
+    public RestorationSet getRestorationSetById(@ApiParam(value = "hexadecimal restoration id", example = "5b47b2d8337d4a36187c6727")
                                                 @PathParam("restorationId") String id) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+        Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-
-            Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
-
-            if (restorationSet.isPresent()) {
-                if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
-                    return restorationSet.get();
-                }
+        if (restorationSet.isPresent()) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+                return restorationSet.get();
             }
-
-            throw new NotFoundException();
-        } catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
         }
+
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a restoration with id " + id);
     }
 
     @GET
@@ -211,39 +179,26 @@ public class RestorationController {
     @ApiResponses(value = {
         @ApiResponse(code = 404, message = "No restorations found with the searched text")
     })
-    public List<RestorationSet> findRestorations(@HeaderParam("x-auth-userinfo") String userInfo,
-                                                 @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
+    public List<RestorationSet> findRestorations(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
                                                  @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                                  @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
+        List<RestorationSet> sets = new ArrayList<>();
+        Optional<RestorationSet> fs = this.restorationDAO.getRestorationSetById(text);
+        if (fs.isPresent()) {
+            sets.add(fs.get());
+        } else {
+            sets = this.restorationDAO.searchRestorations(text);
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-            List<RestorationSet> sets = new ArrayList<>();
-            Optional<RestorationSet> fs = this.restorationDAO.getRestorationSetById(text);
-            if (fs.isPresent()) {
-                sets.add(fs.get());
-            } else {
-                sets = this.restorationDAO.searchRestorations(text);
-            }
+        List<RestorationSet> accessibleRestorations = sets.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
 
-            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-
-            List<RestorationSet> accessibleRestorations = sets.stream()
-                .filter(b -> membersSet.contains(b.getId()))
-                .skip(offset)
-                .limit(limit)
-                .collect(Collectors.toList());
-
-            return accessibleRestorations;
-        } catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
-        }
+        return accessibleRestorations;
     }
 
 }

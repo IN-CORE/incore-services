@@ -9,15 +9,15 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
-import edu.illinois.ncsa.incore.common.models.UserInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
@@ -106,21 +106,7 @@ public class EarthquakeController {
     @Inject
     public EarthquakeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            if (user.getPreferredUsername() == null){
-                throw new NotAuthorizedException("Invalid User Info!");
-            }else{
-                this.username = user.getPreferredUsername();
-            }
-        }
-        catch (Exception e) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
+        this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @POST
@@ -235,14 +221,14 @@ public class EarthquakeController {
                     return earthquake;
                 } else {
                     logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
-                    throw new BadRequestException("Could not create Earthquake. Check your file extensions and the number of files in the request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Earthquake. Check your file extensions and the number of files in the request.");
                 }
             }
 
         } catch (IOException e) {
             logger.error("Error mapping the request to an Earthquake object.", e);
         }
-        throw new BadRequestException("Could not create earthquake, check the format of your request.");
+        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create earthquake, check the format of your request.");
     }
 
     @GET
@@ -259,10 +245,10 @@ public class EarthquakeController {
             if (!spaceName.equals("")) {
                 Space space = spaceRepository.getSpaceByName(spaceName);
                 if (space == null) {
-                    throw new NotFoundException();
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find space " + spaceName);
                 }
                 if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                    throw new NotAuthorizedException(this.username + " is not authorized to read the space " + spaceName);
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, this.username + " is not authorized to read the space " + spaceName);
                 }
                 List<String> spaceMembers = space.getMembers();
 
@@ -272,7 +258,7 @@ public class EarthquakeController {
                     .limit(limit)
                     .collect(Collectors.toList());
                 if (earthquakes.size() == 0) {
-                    throw new NotFoundException("No earthquakes were found in space " + spaceName);
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No earthquakes were found in space " + spaceName);
                 }
                 return earthquakes;
             }
@@ -286,7 +272,7 @@ public class EarthquakeController {
 
             return accessibleEarthquakes;
         } catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid User Info!");
         }
     }
 
@@ -299,7 +285,7 @@ public class EarthquakeController {
 
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
         if (earthquake == null) {
-            throw new NotFoundException();
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find an earthquake with id " + earthquakeId);
         }
         //feeling lucky
         Space space = spaceRepository.getSpaceByName(this.username);
@@ -311,7 +297,7 @@ public class EarthquakeController {
             return earthquake;
         }
 
-        throw new ForbiddenException();
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You don't have permission to access the earthquake with id" + earthquakeId);
     }
 
     @GET
@@ -430,14 +416,14 @@ public class EarthquakeController {
                     hazardResults.add(HazardCalc.getGroundMotionAtSite(eq, attenuations, localSite, demandComponents[0],
                         demandComponents[1], demandUnits, 0, amplifyHazard, this.username));
                 } catch (Exception e) {
-                    throw new InternalServerErrorException("Error computing hazard.", e);
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard.");
                 }
             }
 
             return hazardResults;
         } else {
             logger.error("Could not find  earthquake with id " + earthquakeId);
-            throw new NotFoundException("Could not find earthquake with id " + earthquakeId);
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find earthquake with id " + earthquakeId);
         }
 
     }
@@ -495,7 +481,7 @@ public class EarthquakeController {
             return cumulativeAleatoryUncertainties;
         } else {
             logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
-            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Earthquake with id " + earthquakeId + " is not attenuation model based");
         }
     }
 
@@ -562,7 +548,7 @@ public class EarthquakeController {
 
                         } else {
                             logger.error("Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
-                            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
                         }
                     }
                     varianceResults.add(new VarianceResult(localSite.getLocation().getY(), localSite.getLocation().getX(),
@@ -573,13 +559,13 @@ public class EarthquakeController {
 
                 } else {
                     logger.error("Input variance type " + varianceType + " is not implemented");
-                    throw new InternalServerErrorException("Input variance type " + varianceType + " is not implemented");
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Input variance type " + varianceType + " is not implemented");
                 }
             }
 
         } else {
             logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
-            throw new InternalServerErrorException("Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Earthquake with id " + earthquakeId + " is not attenuation model based");
         }
 
         return varianceResults;
@@ -617,7 +603,7 @@ public class EarthquakeController {
             return hazardResults;
         } else {
             logger.error("Could not find earthquake with id " + earthquakeId);
-            throw new NotFoundException("Could not find earthquake with id " + earthquakeId);
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find earthquake with id " + earthquakeId);
         }
     }
 
@@ -726,15 +712,12 @@ public class EarthquakeController {
     //For adding earthquake id to user's space
     private void addEarthquakeToSpace(Earthquake earthquake, String username) {
         Space space = spaceRepository.getSpaceByName(username);
-        if (space != null) {
-            space.addMember(earthquake.getId());
-            spaceRepository.addSpace(space);
-        } else {
+        if (space == null) {
             space = new Space(username);
             space.setPrivileges(Privileges.newWithSingleOwner(username));
-            space.addMember(earthquake.getId());
-            spaceRepository.addSpace(space);
         }
+        space.addMember(earthquake.getId());
+        spaceRepository.addSpace(space);
     }
 
 }
