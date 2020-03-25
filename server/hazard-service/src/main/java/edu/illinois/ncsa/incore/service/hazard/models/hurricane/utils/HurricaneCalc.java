@@ -13,6 +13,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
@@ -29,6 +30,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
@@ -151,7 +153,7 @@ public class HurricaneCalc {
             hEnsemble.setHurricaneSimulations(parallelSimResults);
             return hEnsemble;
         } catch (Exception e) {
-            throw new NotFoundException("Failed Creating the Hurricane");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed Creating the Hurricane");
         }
         //TODO: Add finally to cleanup all threads. Is it even needed?
     }
@@ -638,7 +640,7 @@ public class HurricaneCalc {
             }
             return vsReduced;
         } catch (Exception ex) {
-            throw new NotFoundException("Shapefile Not found");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed applying reduction factor: Shapefile Not found");
         }
     }
 

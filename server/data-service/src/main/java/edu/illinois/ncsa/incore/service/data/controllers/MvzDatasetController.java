@@ -10,6 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import io.swagger.annotations.Api;
@@ -22,6 +23,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 //TODO: Not enabling swagger docs because this controller is out of date with using X-Credential-Username
@@ -41,7 +43,7 @@ public class MvzDatasetController {
     public List<MvzDataset> getMvzDatasetList() {
         List<MvzDataset> mvzDatasets = repository.getAllMvzDatasets();
         if (mvzDatasets == null) {
-            throw new NotFoundException("There is no SpaceOld in the repository.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "There are no MVZ datasets in the repository.");
         }
         return mvzDatasets;
     }

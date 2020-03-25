@@ -10,6 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
 
 import java.net.URL;
@@ -19,6 +20,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -66,7 +68,7 @@ public class DBHurricaneRepository {
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            throw new NotFoundException("Model not found in the database");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Model not found in the database");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
