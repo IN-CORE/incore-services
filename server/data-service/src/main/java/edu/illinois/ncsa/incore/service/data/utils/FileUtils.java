@@ -24,7 +24,6 @@ import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
