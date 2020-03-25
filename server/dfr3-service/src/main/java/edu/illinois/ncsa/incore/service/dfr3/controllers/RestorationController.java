@@ -119,9 +119,6 @@ public class RestorationController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (restorationSets.size() == 0) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No restorations were found in space " + spaceName);
-            }
             return restorationSets;
         }
 

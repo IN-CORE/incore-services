@@ -119,9 +119,6 @@ public class RepairController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (repairSets.size() == 0) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No repairs were found in space " + spaceName);
-            }
             return repairSets;
         }
 

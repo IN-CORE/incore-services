@@ -93,9 +93,6 @@ public class TsunamiController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (tsunamis.size() == 0) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No tsunamis were found in space " + spaceName);
-            }
             return tsunamis;
         }
         List<Tsunami> tsunamis = repository.getTsunamis();

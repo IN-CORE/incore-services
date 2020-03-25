@@ -129,9 +129,6 @@ public class FragilityController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (fragilitySets.size() == 0) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No fragilities were found in space " + spaceName);
-            }
             return fragilitySets;
         }
 
@@ -175,6 +172,8 @@ public class FragilityController {
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
                 return fragilitySet.get();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the fragility with id " + id);
             }
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + fragilitySet);

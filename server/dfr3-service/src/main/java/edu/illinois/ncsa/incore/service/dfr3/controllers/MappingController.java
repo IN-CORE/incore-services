@@ -122,9 +122,6 @@ public class MappingController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (mappingSets.size() == 0) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No mappings were found in space " + spaceName);
-            }
             return mappingSets;
         }
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
@@ -188,15 +185,14 @@ public class MappingController {
 
         List<Space> allSpaces = spaceRepository.getAllSpaces();
 
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
+        if (!mappingSet.isPresent()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Mapping set is not present");
+        }
+
         boolean canReadMapping = authorizer.canUserReadMember(username, mappingSetId, allSpaces);
         if (!canReadMapping) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You can't access the mapping set " + mappingSetId);
-        }
-
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
-
-        if (!mappingSet.isPresent()) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Mapping set is not present");
         }
 
         String mappingType = mappingSet.get().getMappingType();

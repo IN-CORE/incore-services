@@ -257,9 +257,6 @@ public class EarthquakeController {
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
-                if (earthquakes.size() == 0) {
-                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No earthquakes were found in space " + spaceName);
-                }
                 return earthquakes;
             }
 

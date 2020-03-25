@@ -669,7 +669,7 @@ public class DatasetController {
 
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
-            throw new NotFoundException();
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a dataset with id " + datasetId);
         }
 
         String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);

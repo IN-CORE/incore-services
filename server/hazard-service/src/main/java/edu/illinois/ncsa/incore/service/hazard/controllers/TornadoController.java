@@ -95,9 +95,6 @@ public class TornadoController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (tornadoes.size() == 0) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No tornadoes were found in space " + spaceName);
-            }
             return tornadoes;
         }
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());

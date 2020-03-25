@@ -92,9 +92,6 @@ public class HurricaneController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (hurricaneWindfields.size() == 0) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No hurricanes were found in space " + spaceName);
-            }
             return hurricaneWindfields;
         }
 
