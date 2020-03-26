@@ -187,7 +187,7 @@ public class MappingController {
 
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
         if (!mappingSet.isPresent()) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Mapping set is not present");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a mapping set with id " + mappingSetId);
         }
 
         boolean canReadMapping = authorizer.canUserReadMember(username, mappingSetId, allSpaces);
@@ -272,20 +272,11 @@ public class MappingController {
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Search for a text in all mappings", notes = "Gets all mappings that contain a specific text")
-    public List<MappingSet> findMappings(@HeaderParam("x-auth-userinfo") String userInfo,
-                                              @ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
+    public List<MappingSet> findMappings(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
                                               @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam("mappingType") String mappingType,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new BadRequestException("Invalid User Info!");
-        }
-
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            String username = user.getPreferredUsername();
-
             List<MappingSet> sets = new ArrayList<>();
             Optional<MappingSet> ms = this.mappingDAO.getMappingSetById(text);
             if (ms.isPresent()) {
@@ -305,7 +296,7 @@ public class MappingController {
             return accessibleMappings;
         }
         catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Unknown Server error occured");
         }
     }
 
