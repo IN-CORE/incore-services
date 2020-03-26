@@ -9,8 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
-import edu.illinois.ncsa.incore.common.models.UserInfo;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -18,7 +16,9 @@ import com.vividsolutions.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
@@ -70,21 +70,7 @@ public class TornadoController {
     @Inject
     public TornadoController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            if (user.getPreferredUsername() == null){
-                throw new NotAuthorizedException("Invalid User Info!");
-            }else{
-                this.username = user.getPreferredUsername();
-            }
-        }
-        catch (Exception e) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
+        this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @GET
@@ -94,40 +80,32 @@ public class TornadoController {
         @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-
-        try {
-            List<Tornado> tornadoes = repository.getTornadoes();
-            if (!spaceName.equals("")) {
-                Space space = spaceRepository.getSpaceByName(spaceName);
-                if (space == null) {
-                    throw new NotFoundException();
-                }
-                if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                    throw new NotAuthorizedException(this.username + " is not authorized to read the space " + spaceName);
-                }
-                List<String> spaceMembers = space.getMembers();
-                tornadoes = tornadoes.stream()
-                    .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList());
-                if (tornadoes.size() == 0) {
-                    throw new NotFoundException("No tornadoes were found in space " + spaceName);
-                }
-                return tornadoes;
+        List<Tornado> tornadoes = repository.getTornadoes();
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
-
-            List<Tornado> accessibleTornadoes = tornadoes.stream()
-                .filter(tornado -> membersSet.contains(tornado.getId()))
+            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+            tornadoes = tornadoes.stream()
+                .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-
-            return accessibleTornadoes;
-        } catch (Exception e) {
-            throw new BadRequestException("Invalid User Info!");
+            return tornadoes;
         }
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+
+        List<Tornado> accessibleTornadoes = tornadoes.stream()
+            .filter(tornado -> membersSet.contains(tornado.getId()))
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
+
+        return accessibleTornadoes;
     }
 
     @POST
@@ -167,7 +145,7 @@ public class TornadoController {
                     newTornado = new RandomAngleTornado();
                 } else {
                     logger.error("Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
-                    throw new BadRequestException("Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
+                    throw new IncoreHTTPException(Response.Status.NOT_IMPLEMENTED, "Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
                 }
 
                 // Run the model
@@ -208,13 +186,13 @@ public class TornadoController {
                     return tornado;
                 } else {
                     logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
-                    throw new BadRequestException("Could not create Tornado. Check your file extensions and the number of files in the request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado. Check your file extensions and the number of files in the request.");
                 }
             }
         } catch (IOException e) {
             logger.error("Error mapping the request to a supported Tornado type.", e);
         }
-        throw new BadRequestException("Could not create Tornado, check the format of your request.");
+        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado, check the format of your request.");
 
     }
 
@@ -228,7 +206,7 @@ public class TornadoController {
         Tornado tornado = repository.getTornadoById(tornadoId);
 
         if (tornado == null) {
-            throw new NotFoundException();
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tornado with id " + tornadoId);
         }
 
         Space space = spaceRepository.getSpaceByName(this.username);
@@ -240,7 +218,7 @@ public class TornadoController {
             return tornado;
         }
 
-        throw new ForbiddenException();
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have the privileges to access the tornado " +tornadoId);
     }
 
     @GET
@@ -261,10 +239,10 @@ public class TornadoController {
             try {
                 return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, this.username);
             } catch (Exception e) {
-                throw new InternalServerErrorException("Error computing hazard.", e);
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard." + e.getMessage());
             }
         } else {
-            throw new NotFoundException("Tornado with id " + tornadoId + " was not found.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Tornado with id " + tornadoId + " was not found.");
         }
     }
 
@@ -292,7 +270,7 @@ public class TornadoController {
 
             return hazardResults;
         } else {
-            throw new NotFoundException("Tornado with id " + tornadoId + " was not found.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Tornado with id " + tornadoId + " was not found.");
         }
     }
 

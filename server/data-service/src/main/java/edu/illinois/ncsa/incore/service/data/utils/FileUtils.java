@@ -13,6 +13,7 @@ import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -23,7 +24,7 @@ import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
-import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -695,7 +696,7 @@ public class FileUtils {
 
         Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
         if (sourceDataset == null) {
-            throw new NotFoundException("There is no Dataset with given id in the repository.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "There is no Dataset with given id in the repository.");
         } else {
             List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
             String sourceType = sourceDataset.getDataType();

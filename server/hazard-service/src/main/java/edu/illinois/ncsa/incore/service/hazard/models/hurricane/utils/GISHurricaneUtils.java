@@ -9,6 +9,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
@@ -44,10 +45,9 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.operation.TransformException;
 
-import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -124,7 +124,7 @@ public class GISHurricaneUtils {
                 resourcePath + jamaicaCords).getPath());
 
         } catch (IOException e) {
-            throw new NotFoundException("Shapefile Not found. Static init failed");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Shapefile Not found. Static init failed");
         }
     }
 
@@ -310,13 +310,13 @@ public class GISHurricaneUtils {
             //TODO add a method to remove the temp directory
         } catch (FileNotFoundException e) {
             System.out.println("Input file not found");
-            throw new NotFoundException("Input file not found");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Input file not found");
         } catch (IOException e) {
             System.out.println("Error creating the Raster");
-            throw new NotFoundException("Error creating the Raster");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error creating the Raster");
         } catch (ParseException e) {
             System.out.println("Error parsing the json input");
-            throw new NotFoundException("Error parsing the json input");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error parsing the json input");
         }
         return hsDatasets;
     }

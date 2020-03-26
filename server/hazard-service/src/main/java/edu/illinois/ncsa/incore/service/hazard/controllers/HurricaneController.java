@@ -11,13 +11,13 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import edu.illinois.ncsa.incore.common.models.UserInfo;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
@@ -34,6 +34,7 @@ import org.opengis.geometry.MismatchedDimensionException;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,21 +64,7 @@ public class HurricaneController {
     @Inject
     public HurricaneController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            if (user.getPreferredUsername() == null){
-                throw new NotAuthorizedException("Invalid User Info!");
-            }else{
-                this.username = user.getPreferredUsername();
-            }
-        }
-        catch (Exception e) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
+        this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @GET
@@ -94,10 +81,10 @@ public class HurricaneController {
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
-                throw new NotFoundException();
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find any space with name " + spaceName);
             }
             if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                throw new NotAuthorizedException(this.username + " is not authorized to read the space " + spaceName);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             hurricaneWindfields = hurricaneWindfields.stream()
@@ -105,9 +92,6 @@ public class HurricaneController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (hurricaneWindfields.size() == 0) {
-                throw new NotFoundException("No hurricanes were found in space " + spaceName);
-            }
             return hurricaneWindfields;
         }
 
@@ -139,14 +123,14 @@ public class HurricaneController {
 
         HurricaneWindfields hurricane = repository.getHurricaneById(hurricaneId);
         if (hurricane == null) {
-            throw new NotFoundException();
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a hurricane with id " + hurricaneId);
         }
 
         if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
             return hurricane;
         }
 
-        throw new ForbiddenException();
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You are not authorized to access the hurricane " + hurricaneId);
     }
 
     @GET
@@ -173,7 +157,7 @@ public class HurricaneController {
 
             if (!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)) {
                 log.error("Unsupported hurricane demandType provided to GET values : " + demandType);
-                throw new NotFoundException("Unsupported hurricane demandType. Please use 3s or 60s.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s.");
             }
 
             for (IncorePoint point : points) {
@@ -217,7 +201,7 @@ public class HurricaneController {
 
             if (!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)) {
                 log.error("Unsupported hurricane demandType provided in POST JSON : " + demandType);
-                throw new NotFoundException("Unsupported hurricane demandType. Please use 3s or 60s");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s");
             }
             HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(inputHurricane.getCoast(), inputHurricane.getCategory(), inputHurricane.getTransD(),
                 new IncorePoint(inputHurricane.getLandfallLocation()), demandType, inputHurricane.getDemandUnits().toString().trim(),
@@ -263,11 +247,11 @@ public class HurricaneController {
                 }
 
             } catch (JsonGenerationException e) {
-                throw new NotFoundException("Error finding a mapping for the coast and category");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding a mapping for the coast and category");
             } catch (JsonProcessingException e) {
-                throw new NotFoundException("Couldn't process json");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Couldn't process json");
             } catch (MismatchedDimensionException e) {
-                throw new NotFoundException("Error in geometry dimensions");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error in geometry dimensions");
             }
         }
         return hurricaneWindfields;
@@ -291,14 +275,14 @@ public class HurricaneController {
 
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
         if (coast == null || category <= 0 || category > 5) {
-            throw new NotFoundException("Coast needs to be gulf, florida or east. Category should be between 1 to 5");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Coast needs to be gulf, florida or east. Category should be between 1 to 5");
         }
 
         if (HurricaneUtil.categoryMapping.get(coast) != null) {
             return HurricaneCalc.simulateHurricane(this.username, transD, landfallLoc,
                 HurricaneUtil.categoryMapping.get(coast)[category - 1], demandType, demandUnits, resolution, gridPoints, rfMethod);
         } else {
-            throw new NotFoundException("Error finding a mapping for the coast and category");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Error finding a mapping for the coast and category");
         }
     }
 

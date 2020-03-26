@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
@@ -44,7 +45,7 @@ public class FileController {
         List<FileDescriptor> fds = repository.getAllFileDescriptors();
         if (fds == null) {
             logger.error("There is no FileDescriptors in the repository.");
-            throw new NotFoundException("There is no FileDesctiptor in the repository.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "There are no file descriptors in the repository.");
         }
         return fds;
     }
@@ -58,7 +59,7 @@ public class FileController {
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {
             logger.error("Error finding dataset.");
-            throw new NotFoundException("Error finding dataset.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the dataset " + id);
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
@@ -75,7 +76,7 @@ public class FileController {
 
         if (fileDescriptor == null) {
             logger.error("Error finding FileDesriptor with given id.");
-            throw new NotFoundException("Error finding FileDesriptor with given id.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a file descriptor with id " + id);
         }
 
         return fileDescriptor;
@@ -96,7 +97,7 @@ public class FileController {
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {
             logger.error("Error finding dataset.");
-            throw new NotFoundException("Error finding dataset.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a file descriptor with id " + id);
         }
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
@@ -121,7 +122,7 @@ public class FileController {
         if (outFile != null) {
             return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
         } else {
-            throw new NotFoundException("Error finding file with the given id");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find file with id " + id);
         }
     }
 }

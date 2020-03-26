@@ -6,7 +6,7 @@ package edu.illinois.ncsa.incore.service.space.controllers;
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *******************************************************************************
  */
-import edu.illinois.ncsa.incore.common.models.UserInfo;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.SpaceMetadata;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.space.models.Members;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
@@ -24,6 +25,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -88,21 +90,7 @@ public class SpaceController {
     @Inject
     public SpaceController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            if (user.getPreferredUsername() == null){
-                throw new NotAuthorizedException("Invalid User Info!");
-            }else{
-                this.username = user.getPreferredUsername();
-            }
-        }
-        catch (Exception e) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
+        this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @POST
@@ -117,7 +105,7 @@ public class SpaceController {
             Space newSpace = spaceObjectMapper.readValue(spaceJson, Space.class);
 
             if (newSpace.getName().equals("")) {
-                throw new BadRequestException("Invalid name");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid name");
             }
 
             if (spaceRepository.getSpaceByName(newSpace.getName()) == null) {
@@ -132,10 +120,10 @@ public class SpaceController {
                 return spaceRepository.addSpace(newSpace);
 
             } else {
-                throw new BadRequestException("Space already exists with name " + newSpace.getName());
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Space already exists with name " + newSpace.getName());
             }
         } catch (Exception e) {
-            throw new BadRequestException("Invalid space JSON. " + e.toString());
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid space JSON. " + e.toString());
         }
     }
 
@@ -146,7 +134,7 @@ public class SpaceController {
 
         if (memberId != null) {
             if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces())) {
-                throw new ForbiddenException("User can't access the given member");
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "does not have the privileges to access " + memberId);
             }
             List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
             List<Space> spacesWithMember = new ArrayList<>();
@@ -155,18 +143,11 @@ public class SpaceController {
                     spacesWithMember.add(space);
                 }
             }
-            if (spacesWithMember.size() == 0) {
-                throw new NotFoundException("No spaces user has access to contain the member with id " + memberId);
-            }
+
             return spacesWithMember;
         }
 
-        List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
-        if (filteredSpaces.size() == 0) {
-            throw new ForbiddenException("User can't access any space");
-        }
-
-        return filteredSpaces;
+        return authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
     }
 
     @GET
@@ -178,7 +159,7 @@ public class SpaceController {
         Space space = getSpace(spaceId);
 
         if (!(authorizer.canRead(this.username, space.getPrivileges()))) {
-            throw new ForbiddenException(this.username + " is not authorized to access the space " + spaceId);
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access " + space.getName() + "'s space");
         }
 
         return space;
@@ -198,17 +179,17 @@ public class SpaceController {
         //modify space by changing name or adding a list of members
         if (spaceJson != null) {
             if (!(authorizer.canWrite(this.username, space.getPrivileges()))) {
-                throw new ForbiddenException("You are not allowed to modify the space " + spaceId);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the space " + spaceId);
             }
             if (!JsonUtils.isJSONValid(spaceJson)) {
                 logger.error("Posted json is not a valid json.");
-                throw new BadRequestException("Posted json is not a valid json.");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Posted json is not a valid json.");
             }
 
             String metadata = JsonUtils.extractValueFromJsonString(SPACE_METADATA, spaceJson);
             List<String> members = JsonUtils.extractValueListFromJsonString(SPACE_MEMBERS, spaceJson);
             if (metadata.equals("") && members.size() == 0) {
-                throw new BadRequestException("Invalid identifiers");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid identifiers");
             }
             //TODO: this will need to change once we add more fields to metadata
             if (!metadata.equals("")) {
@@ -217,15 +198,15 @@ public class SpaceController {
                     SpaceMetadata newMetadata = metadataObjectMapper.readValue(metadata, SpaceMetadata.class);
                     String name = newMetadata.getName();
                     if (name.equals("")) {
-                        throw new BadRequestException("Invalid name in metadata");
+                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid name in metadata");
                     }
                     if (spaceRepository.getSpaceByName(name) == null) {
                         space.setMetadata(newMetadata);
                     } else {
-                        throw new BadRequestException("New name of space already exists");
+                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "New name of space already exists");
                     }
                 } catch (IOException e) {
-                    throw new BadRequestException("Invalid metadata. " + e.toString());
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid metadata. " + e.toString());
                 }
             }
             if (members.size() > 0) {
@@ -240,7 +221,7 @@ public class SpaceController {
         }
 
         if (!(authorizer.canDelete(this.username, space.getPrivileges()))) {
-            throw new ForbiddenException("You are not allowed to remove members from the space " + spaceId);
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You are not allowed to remove members from the space " + spaceId);
         }
         // modify space by deleting a list of members
         Members membersToDelete;
@@ -249,7 +230,7 @@ public class SpaceController {
         try {
             membersToDelete = memeberObjectMapper.readValue(membersToRemoveJson, Members.class);
         } catch (Exception e) {
-            throw new BadRequestException("Invalid members JSON. " + e.toString());
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid members JSON. " + e.toString());
         }
         boolean spaceContainsMembers = false;
         List<String> members = membersToDelete.getMembers();
@@ -262,7 +243,7 @@ public class SpaceController {
         if (membersToDelete.getMembers().size() != 0 && spaceContainsMembers) {
             return removeMembers(this.username, space, membersToDelete);
         } else {
-            throw new NotFoundException("The space does not contains the members defined to be removed.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "The space does not contains the members defined to be removed.");
         }
     }
 
@@ -277,13 +258,13 @@ public class SpaceController {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges())) {
-            throw new NotAuthorizedException(this.username + " can't modify the space");
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not allowed to update the space " + space.getName());
         }
 
         if (addMembers(space, this.username, memberId)) {
             return space;
         } else {
-            throw new NotFoundException("Could not retrieve member with id " + memberId);
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not retrieve member with id " + memberId);
         }
     }
 
@@ -299,7 +280,7 @@ public class SpaceController {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges())) {
-            throw new NotAuthorizedException(this.username + " has not write permissions in " + spaceId);
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have write permissions in " + spaceId);
         }
 
         ObjectMapper privilegeObjectMapper = new ObjectMapper();
@@ -307,7 +288,7 @@ public class SpaceController {
             Privileges privileges = privilegeObjectMapper.readValue(privilegesJson, Privileges.class);
             space.addPrivileges(privileges);
         } catch (IOException e) {
-            throw new BadRequestException("Invalid privileges JSON. " + e.toString());
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid privileges JSON. " + e.toString());
         }
 
         spaceRepository.addSpace(space);
@@ -326,16 +307,16 @@ public class SpaceController {
     {
 
         if (memberId == null) {
-            throw new BadRequestException("User must provide a member Id or a list of member ids");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "User must provide a member Id or a list of member ids");
         }
 
         Space space = getSpace(spaceId);
         if (!authorizer.canDelete(this.username, space.getPrivileges())) {
-            throw new NotAuthorizedException("User has no privileges to modify the space " + space.getName());
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, "User has no privileges to modify the space " + space.getName());
         }
 
         if (!space.hasMember(memberId)) {
-            throw new NotFoundException("The member id was not found.");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "The member id was not found.");
         }
 
         Members membersToDelete = new Members();
@@ -353,7 +334,7 @@ public class SpaceController {
     private Space getSpace(String spaceId) {
         Space space = spaceRepository.getSpaceById(spaceId);
         if (space == null) {
-            throw new NotFoundException("Could not find space with id " + spaceId);
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find space with id " + spaceId);
         }
         return space;
     }

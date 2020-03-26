@@ -9,13 +9,13 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
-import edu.illinois.ncsa.incore.common.models.UserInfo;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITsunamiRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -36,6 +36,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,21 +67,7 @@ public class TsunamiController {
     @Inject
     public TsunamiController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-        if (userInfo == null || !JsonUtils.isJSONValid(userInfo)) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            UserInfo user = objectMapper.readValue(userInfo, UserInfo.class);
-            if (user.getPreferredUsername() == null){
-                throw new NotAuthorizedException("Invalid User Info!");
-            }else{
-                this.username = user.getPreferredUsername();
-            }
-        }
-        catch (Exception e) {
-            throw new NotAuthorizedException("Invalid User Info!");
-        }
+            this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @GET
@@ -94,10 +81,10 @@ public class TsunamiController {
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
-                throw new NotFoundException();
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
             if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                throw new NotAuthorizedException(this.username + " is not authorized to read the space " + spaceName);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             List<Tsunami> tsunamis = repository.getTsunamis();
@@ -106,9 +93,6 @@ public class TsunamiController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            if (tsunamis.size() == 0) {
-                throw new NotFoundException("No tsunamis were found in space " + spaceName);
-            }
             return tsunamis;
         }
         List<Tsunami> tsunamis = repository.getTsunamis();
@@ -133,14 +117,14 @@ public class TsunamiController {
 
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
         if (tsunami == null) {
-            throw new NotFoundException();
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tsunami with id " + tsunamiId);
         }
 
         if (authorizer.canUserReadMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
             return tsunami;
         }
 
-        throw new ForbiddenException();
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have the privileges to access " + tsunamiId);
     }
 
     @GET
@@ -231,14 +215,15 @@ public class TsunamiController {
 
                     return tsunami;
                 } else {
-                    throw new BadRequestException("Could not create Tsunami, no files were attached with your request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, no files were attached with your request.");
                 }
             }
 
         } catch (IOException e) {
             log.error("Error mapping the request to a supported Tsunami type.", e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported Tsunami type. " + e.getMessage());
         }
-        throw new BadRequestException("Could not create Tsunami, check the format of your request.");
+        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, check the format of your request.");
     }
 
     @GET
