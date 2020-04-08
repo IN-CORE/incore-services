@@ -13,24 +13,24 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class WindHazardResult {
-    private String demandType = "Wind";
-    private String demandUnits;
+    private String demand = "Wind";
+    private String units;
     private double hazardValue;
 
-    public WindHazardResult(String demandUnits, double hazardValue) {
+    public WindHazardResult(String units, double hazardValue) {
         this.hazardValue = hazardValue;
-        this.demandUnits = demandUnits;
+        this.units = units;
     }
 
     public double getHazardValue() {
         return hazardValue;
     }
 
-    public String getDemandUnits() {
-        return this.demandUnits;
+    public String getUnits() {
+        return this.units;
     }
 
-    public String getDemandType() {
-        return this.demandType;
+    public String getDemand() {
+        return this.demand;
     }
 }
