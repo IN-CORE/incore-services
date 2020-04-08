@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Updated
 - Updated all controller's exceptions and its messages and added constructors to controllers that were missing one [INCORE-470](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-470)
 
+### Fixed
+- Tornado values response updated to be consistent with other hazards. Fixes the broken pyincore analyses for Tornado [INCORE1-555](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-555)
+
 ### Removed
 - dataservice.url property. It's references are replaced with services.url [INCORE-482](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-482)
 
