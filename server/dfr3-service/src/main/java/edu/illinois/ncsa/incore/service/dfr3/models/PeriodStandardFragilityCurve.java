@@ -10,27 +10,22 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import java.util.List;
-import java.util.Map;
-
 public class PeriodStandardFragilityCurve extends FragilityCurve {
-    public double[] alpha;
-    public double[] beta;
+    public double alpha;
+    public double beta;
     public AlphaType alphaType;
     public CurveType curveType;
     public double periodParam2;
     public double periodParam1;
     public double periodParam0;
     public int periodEqnType;
-    public Map<Integer, List<String>> rules;
 
     public PeriodStandardFragilityCurve() {
         super();
     }
 
-    public PeriodStandardFragilityCurve(double[] alpha, double[] beta, AlphaType alphaType, CurveType curveType, String label,
-                                        int periodEqnType, double periodParam0, double periodParam1, double periodParam2,
-                                        Map<Integer, List<String>> rules) {
+    public PeriodStandardFragilityCurve(double alpha, double beta, AlphaType alphaType, CurveType curveType, String label,
+                                        int periodEqnType, double periodParam0, double periodParam1, double periodParam2) {
         super(label);
 
         this.alpha = alpha;
@@ -41,6 +36,5 @@ public class PeriodStandardFragilityCurve extends FragilityCurve {
         this.periodParam0 = periodParam0;
         this.periodParam1 = periodParam1;
         this.periodParam2 = periodParam2;
-        this.rules = rules;
     }
 }

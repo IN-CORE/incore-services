@@ -10,22 +10,28 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import java.util.List;
+import java.util.Map;
+
 public class StandardFragilityCurve extends FragilityCurve {
-    public double alpha;
-    public double beta;
+    public double[] alpha;
+    public double[] beta;
     public AlphaType alphaType;
     public CurveType curveType;
+    public Map<Integer, List<String>> rules;
+
 
     public StandardFragilityCurve() {
         super();
     }
 
-    public StandardFragilityCurve(double alpha, double beta, AlphaType alphaType, CurveType curveType, String label) {
+    public StandardFragilityCurve(double[] alpha, double[] beta, AlphaType alphaType, CurveType curveType, String label, Map<Integer, List<String>> rules) {
         super(label);
 
         this.alpha = alpha;
         this.beta = beta;
         this.alphaType = alphaType;
         this.curveType = curveType;
+        this.rules = rules;
     }
 }
