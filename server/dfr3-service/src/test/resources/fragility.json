@@ -197,7 +197,7 @@
     "fragilityCurves": [
       {
         "className": "edu.illinois.ncsa.incore.service.dfr3.models.ParametricFragilityCurve",
-        "curveType": "LogNormal",
+        "curveType": "Logit",
         "parameters": [
           {
             "name": "Constant",
@@ -324,7 +324,7 @@
       },
       {
         "className": "edu.illinois.ncsa.incore.service.dfr3.models.ParametricFragilityCurve",
-        "curveType": "LogNormal",
+        "curveType": "Logit",
         "parameters": [
           {
             "name": "Constant",
@@ -451,7 +451,7 @@
       },
       {
         "className": "edu.illinois.ncsa.incore.service.dfr3.models.ParametricFragilityCurve",
-        "curveType": "LogNormal",
+        "curveType": "Logit",
         "parameters": [
           {
             "name": "Constant",
@@ -578,7 +578,7 @@
       },
       {
         "className": "edu.illinois.ncsa.incore.service.dfr3.models.ParametricFragilityCurve",
-        "curveType": "LogNormal",
+        "curveType": "Logit",
         "parameters": [
           {
             "name": "Constant",
