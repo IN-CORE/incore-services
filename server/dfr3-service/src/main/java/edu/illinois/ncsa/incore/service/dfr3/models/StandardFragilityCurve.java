@@ -18,14 +18,14 @@ public class StandardFragilityCurve extends FragilityCurve {
     public double[] beta;
     public AlphaType alphaType;
     public CurveType curveType;
-    public Map<Integer, List<String>> rules;
+    public Map<Integer, String> rules;
 
 
     public StandardFragilityCurve() {
         super();
     }
 
-    public StandardFragilityCurve(double[] alpha, double[] beta, AlphaType alphaType, CurveType curveType, String label, Map<Integer, List<String>> rules) {
+    public StandardFragilityCurve(double[] alpha, double[] beta, AlphaType alphaType, CurveType curveType, String label, Map<Integer, String> rules) {
         super(label);
 
         this.alpha = alpha;
