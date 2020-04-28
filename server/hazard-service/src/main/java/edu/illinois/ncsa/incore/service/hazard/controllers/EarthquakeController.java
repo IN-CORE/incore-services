@@ -18,7 +18,9 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import edu.illinois.ncsa.incore.service.hazard.Engine;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
+import edu.illinois.ncsa.incore.service.hazard.Job;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
@@ -104,6 +106,9 @@ public class EarthquakeController {
     private IAuthorizer authorizer;
 
     @Inject
+    private Engine engine;
+
+    @Inject
     public EarthquakeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
@@ -156,7 +161,7 @@ public class EarthquakeController {
 
                     DeterministicHazardDataset rasterDataset = new DeterministicHazardDataset();
                     rasterDataset.setEqParameters(scenarioEarthquake.getEqParameters());
-                    rasterDataset.setDatasetId(datasetId);
+                    //rasterDataset.setDatasetId(datasetId);
                     rasterDataset.setDemandType(demandComponents[1]);
                     rasterDataset.setDemandUnits(scenarioEarthquake.getVisualizationParameters().getDemandUnits());
                     rasterDataset.setPeriod(Double.parseDouble(demandComponents[0]));
@@ -168,6 +173,9 @@ public class EarthquakeController {
                     earthquake = repository.addEarthquake(earthquake);
 
                     addEarthquakeToSpace(earthquake, this.username);
+
+                    // Add job to create dataset to the queue
+                    engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
 
                     return earthquake;
                 } catch (IOException e) {

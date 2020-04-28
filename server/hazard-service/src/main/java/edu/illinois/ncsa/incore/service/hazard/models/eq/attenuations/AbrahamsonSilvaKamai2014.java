@@ -18,7 +18,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.log4j.Logger;
 
-import java.net.URL;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +42,7 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
     private String region;
 
     public AbrahamsonSilvaKamai2014() {
-        URL coefficientURL = AtkinsonBoore1995.class.getResource("/hazard/earthquake/coefficients/AbrahamsonSilvaKamai2014.csv");
+        InputStream coefficientURL = AtkinsonBoore1995.class.getResourceAsStream("/hazard/earthquake/coefficients/AbrahamsonSilvaKamai2014.csv");
         readCoefficients(coefficientURL);
     }
 

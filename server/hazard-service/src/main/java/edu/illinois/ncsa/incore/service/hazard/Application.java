@@ -20,6 +20,8 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.AttenuationProvider;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.spi.Container;
+import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 
 public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
@@ -57,6 +59,9 @@ public class Application extends ResourceConfig {
         IAuthorizer authorizer = Authorizer.getInstance();
         AttenuationProvider attenuationProvider = AttenuationProvider.getInstance();
 
+        Engine engine = new Engine();
+        engine.addServiceRepository("earthquake", earthquakeRepository);
+
         super.register(new AbstractBinder() {
 
             @Override
@@ -68,8 +73,10 @@ public class Application extends ResourceConfig {
                 super.bind(authorizer).to(IAuthorizer.class);
                 super.bind(tsunamiRepository).to(ITsunamiRepository.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
+                super.bind(engine).to(Engine.class);
             }
         });
         super.register(new CorsFilter());
+
     }
 }

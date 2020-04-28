@@ -7,7 +7,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.EqUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.commons.lang.math.NumberUtils;
 
-import java.net.URL;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +30,7 @@ public class ChiouYoungs2014 extends BaseAttenuation {
     private double Vs30, M, yref;
 
     public ChiouYoungs2014() {
-        URL coefficientURL = AtkinsonBoore1995.class.getResource("/hazard/earthquake/coefficients/ChiouYoungs2014.csv");
+        InputStream coefficientURL = AtkinsonBoore1995.class.getResourceAsStream("/hazard/earthquake/coefficients/ChiouYoungs2014.csv");
         readCoefficients(coefficientURL);
     }
 
