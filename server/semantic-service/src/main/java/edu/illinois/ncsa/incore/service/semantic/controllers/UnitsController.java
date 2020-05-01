@@ -37,7 +37,7 @@ public class UnitsController {
             return Response.ok(rdf)
                            .status(200)
                            .type("text/turtle;charset=utf-8")
-                           .header("Access-Control-Allow-Origin", "*")
+                           .header("Access-Control-Allow-Origin", "http://localhost:3000")
                            .header("Access-Control-Allow-Methods", "GET")
                            .build();
         } else {
@@ -56,7 +56,7 @@ public class UnitsController {
             return Response.ok(rdf)
                            .status(200)
                            .type("text/turtle;charset=utf-8")
-                           .header("Access-Control-Allow-Origin", "*")
+                           .header("Access-Control-Allow-Origin", "http://localhost:3000")
                            .header("Access-Control-Allow-Methods", "GET")
                            .build();
         } else {
