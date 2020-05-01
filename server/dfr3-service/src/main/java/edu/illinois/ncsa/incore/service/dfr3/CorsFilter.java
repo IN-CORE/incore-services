@@ -23,7 +23,12 @@ public class CorsFilter implements ContainerResponseFilter {
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         MultivaluedMap<String, Object> headers = responseContext.getHeaders();
 
-        headers.add("Access-Control-Allow-Origin", Config.getConfigProperties().getProperty("services.allow.origin"));
+        // if header origin is in the allowed origin list; add it to access-control-allow-origin header
+        String allowedOrigins = Config.getConfigProperties().getProperty("services.allow.origin");
+        String responseHeadersOrigin = responseContext.getHeaderString("Origin");
+        if (allowedOrigins.contains(responseHeadersOrigin)){
+            headers.add("Access-Control-Allow-Origin", responseHeadersOrigin);
+        }
         headers.add("Access-Control-Allow-Methods", "GET");
         headers.add("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, " +
             "Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, auth-user, " +
