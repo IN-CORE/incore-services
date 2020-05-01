@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Enable cors for dfr3 services [INCORE1-531](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-531) 
+- Enable cors for dfr3 services [INCORE1-585](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-585) 
 
 ## [0.6.4] - 2020-03-27
 
