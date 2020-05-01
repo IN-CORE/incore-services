@@ -26,7 +26,7 @@ public class CorsFilter implements ContainerResponseFilter {
         // if header origin is in the allowed origin list; add it to access-control-allow-origin header
         String allowedOrigins = Config.getConfigProperties().getProperty("services.allow.origin");
         String requestHeadersOrigin = requestContext.getHeaderString("Origin");
-        if (allowedOrigins.contains(requestHeadersOrigin)){
+        if (requestHeadersOrigin != null && allowedOrigins.contains(requestHeadersOrigin)){
             headers.add("Access-Control-Allow-Origin", requestHeadersOrigin);
         }
         headers.add("Access-Control-Allow-Methods", "GET");
