@@ -10,6 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.maestro;
 
+    import edu.illinois.ncsa.incore.common.config.Config;
+
     import javax.ws.rs.container.ContainerRequestContext;
     import javax.ws.rs.container.ContainerResponseContext;
     import javax.ws.rs.container.ContainerResponseFilter;
@@ -21,7 +23,7 @@ public class CorsFilter implements ContainerResponseFilter {
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         MultivaluedMap<String, Object> headers = responseContext.getHeaders();
 
-        headers.add("Access-Control-Allow-Origin", "http://localhost:3000");
+        headers.add("Access-Control-Allow-Origin", Config.getConfigProperties().getProperty("services.allow.origin"));
         headers.add("Access-Control-Allow-Methods", "GET");
         headers.add("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, " +
             "Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, auth-user, " +
