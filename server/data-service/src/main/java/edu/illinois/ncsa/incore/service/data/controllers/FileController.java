@@ -33,7 +33,8 @@ import java.util.List;
 @Path("files")
 public class FileController {
     private Logger logger = Logger.getLogger(edu.illinois.ncsa.incore.service.data.controllers.FileController.class);
-    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
+    private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR") != null ?
+        System.getenv("DATA_REPO_DATA_DIR") : Config.getConfigProperties().getProperty("data.repo.data.dir");
 
     @Inject
     private IRepository repository;

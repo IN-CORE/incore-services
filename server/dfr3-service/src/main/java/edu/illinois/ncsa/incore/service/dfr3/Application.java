@@ -27,7 +27,8 @@ public class Application extends ResourceConfig {
     public Application() {
         String mongodbUri = "mongodb://localhost:27017/dfr3db";
 
-        String mongodbUriProp = Config.getConfigProperties().getProperty("dfr3.mongodbURI");
+        String mongodbUriProp = System.getenv("DFR3_MONGODB_URI") != null ?
+            System.getenv("DFR3_MONGODB_URI") : Config.getConfigProperties().getProperty("dfr3.mongodbURI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
@@ -48,7 +49,8 @@ public class Application extends ResourceConfig {
 
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
-        String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
+        String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI") != null ?
+            System.getenv("SPACE_MONGODB_URI") : Config.getConfigProperties().getProperty("space.mongodbURI");
         if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }

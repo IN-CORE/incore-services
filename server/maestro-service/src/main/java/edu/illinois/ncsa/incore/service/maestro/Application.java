@@ -23,7 +23,8 @@ public class Application extends ResourceConfig {
     public Application() {
         String mongodbUri = "mongodb://localhost:27017/maestrodb2";
 
-        String mongodbUriProp = Config.getConfigProperties().getProperty("maestro.mongodbURI");
+        String mongodbUriProp = System.getenv("MAESTRO_MONGODB_URI") != null ?
+            System.getenv("MAESTRO_MONGODB_URI") : Config.getConfigProperties().getProperty("maestro.mongodbURI");
         if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }

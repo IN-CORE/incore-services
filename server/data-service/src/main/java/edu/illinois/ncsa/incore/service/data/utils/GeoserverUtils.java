@@ -29,10 +29,14 @@ import java.net.URISyntaxException;
 
 public class GeoserverUtils {
 
-    public static final String GEOSERVER_REST_URL = Config.getConfigProperties().getProperty("geoserver.url");
-    public static final String GEOSERVER_USER = Config.getConfigProperties().getProperty("geoserver.user");
-    public static final String GEOSERVER_PW = Config.getConfigProperties().getProperty("geoserver.pw");
-    public static final String GEOSERVER_WORKSPACE = Config.getConfigProperties().getProperty("geoserver.workspace");
+    public static final String GEOSERVER_REST_URL = System.getenv("GEOSERVER_URL") != null ?
+        System.getenv("GEOSERVER_URL") : Config.getConfigProperties().getProperty("geoserver.url");
+    public static final String GEOSERVER_USER = System.getenv("GEOSERVER_USER") != null ?
+        System.getenv("GEOSERVER_URL") : Config.getConfigProperties().getProperty("geoserver.user");
+    public static final String GEOSERVER_PW = System.getenv("GEOSERVER_PW") != null ?
+        System.getenv("GEOSERVER_PW") : Config.getConfigProperties().getProperty("geoserver.pw");
+    public static final String GEOSERVER_WORKSPACE = System.getenv("GEOSERVER_WORKSPACE") != null ?
+        System.getenv("GEOSERVER_WORKSPACE") : Config.getConfigProperties().getProperty("geoserver.workspace");
 
     /**
      * upload file to geoserver
