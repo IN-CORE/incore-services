@@ -363,7 +363,9 @@ public class GISHurricaneUtils {
         // to collect all the shapefile components in a single directory
         // so geotools can read the shapefile
         double searchLimitDistVariable = 0.5;
-        File hurricaneCacheDir = new File(Config.getConfigProperties().getProperty("data.repo.data.dir") + File.separator + "cache_data" + File.separator + "hurricane" + File.separator + "shapefile" + File.separator + datasetId);
+        File hurricaneCacheDir = new File(System.getenv("DATA_REPO_DATA_DIR") +
+            File.separator + "cache_data" + File.separator + "hurricane" + File.separator +
+            "shapefile" + File.separator + datasetId);
         String shpFilePath = null;
         if (hurricaneCacheDir.exists()) {
             String[] shapefileList = hurricaneCacheDir.list();

@@ -39,12 +39,9 @@ import java.util.zip.ZipOutputStream;
  * Created by ywkim on 6/8/2017.
  */
 public class FileUtils {
-    public static final String REPO_SERVER_URL = System.getenv("DATA_REPO_WEBDAV_SERVER_URL") != null ?
-        System.getenv("DATA_REPO_WEBDAV_SERVER_URL") : Config.getConfigProperties().getProperty("data.repo.webdav.server.url");
-    public static final String REPO_PROP_DIR = System.getenv("DATA_REPO_WEBDAV_PROP_DIR") != null ?
-        System.getenv("DATA_REPO_WEBDAV_PROP_DIR") : Config.getConfigProperties().getProperty("data.repo.webdav.prop.dir");
-    public static final String REPO_DS_DIR = System.getenv("DATA_REPO_WEBDAV_DS_DIR") != null ?
-        System.getenv("DATA_REPO_WEBDAV_DS_DIR") : Config.getConfigProperties().getProperty("data.repo.webdav.ds.dir");
+    public static final String REPO_SERVER_URL = System.getenv("DATA_REPO_WEBDAV_SERVER_URL");
+    public static final String REPO_PROP_DIR = System.getenv("DATA_REPO_WEBDAV_PROP_DIR");
+    public static final String REPO_DS_DIR = System.getenv("DATA_REPO_WEBDAV_DS_DIR");
     public static final String REPO_PROP_URL = REPO_SERVER_URL + REPO_PROP_DIR;
     public static final String REPO_DS_URL = REPO_SERVER_URL + REPO_DS_DIR;
     public static final String DATA_TEMP_DIR_PREFIX = "data_repo_";
@@ -74,8 +71,7 @@ public class FileUtils {
     public static final String NETWORK_NODE_TYPE = "nodeType";
     public static final String NETWORK_GRAPH_TYPE = "graphType";
     public static final Logger logger = Logger.getLogger(FileUtils.class);
-    private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR") != null ?
-        System.getenv("DATA_REPO_DATA_DIR") : Config.getConfigProperties().getProperty("data.repo.data.dir");
+    private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
 
     /**
      * delete temporary directory

@@ -48,10 +48,8 @@ public class LdapClient {
     private static final Logger log = Logger.getLogger(LdapClient.class);
 
 
-    public static String ldapUri = System.getenv("AUTH_LDAP_URL") != null ?
-        System.getenv("AUTH_LDAP_URL") : Config.getConfigProperties().getProperty("auth.ldap.url");
-    public static String userDn = System.getenv("AUTH_LDAP_USERDN") != null ?
-        System.getenv("AUTH_LDAP_USERDN") : Config.getConfigProperties().getProperty("auth.ldap.userDn");
+    public static String ldapUri = System.getenv("AUTH_LDAP_URL");
+    public static String userDn = System.getenv("AUTH_LDAP_USERDN");
 
     public Map<String,Groups> userGroupCache = new HashMap<>();
 
@@ -67,8 +65,7 @@ public class LdapClient {
     public Set<String> getUserGroups(String user) {
 
         long ldapRefreshSecs = 900;
-        String ldapRefreshString = System.getenv("AUTH_LDAP_CACHE_REFRESH_SECS") != null ?
-            System.getenv("AUTH_LDAP_CACHE_REFRESH_SECS") : Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs");
+        String ldapRefreshString = System.getenv("AUTH_LDAP_CACHE_REFRESH_SECS");
         if(ldapRefreshString != null && ldapRefreshString != "") {
             try {
                 ldapRefreshSecs = Long.parseLong(ldapRefreshString);
