@@ -106,7 +106,7 @@ public class DatasetController {
         this.username = UserInfoUtils.getUsername(userInfo);
     }
 
-    @GET
+    @PUT
     @Path("test")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets the data repo folder", notes = "")
