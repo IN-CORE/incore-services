@@ -107,6 +107,14 @@ public class DatasetController {
     }
 
     @GET
+    @Path("test")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gets the data repo folder", notes = "")
+    public String getVar() {
+        return "{\"data_repo_dir\": \"" + DATA_REPO_FOLDER + "\"}";
+    }
+
+    @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets a dataset from the Dataset collection", notes = "")
