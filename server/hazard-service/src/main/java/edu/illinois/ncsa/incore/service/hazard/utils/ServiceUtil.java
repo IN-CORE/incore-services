@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpResponse;

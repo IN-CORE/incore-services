@@ -10,8 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.dfr3;
 
-import edu.illinois.ncsa.incore.common.config.Config;
-
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;

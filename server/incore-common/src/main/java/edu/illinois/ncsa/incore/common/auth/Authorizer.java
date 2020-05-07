@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 

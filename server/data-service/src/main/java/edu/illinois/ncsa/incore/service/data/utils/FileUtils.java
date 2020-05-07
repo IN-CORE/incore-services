@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.data.utils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;

@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;

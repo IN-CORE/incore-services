@@ -8,7 +8,6 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;

@@ -14,7 +14,6 @@ package edu.illinois.ncsa.incore.service.space;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import org.apache.log4j.Logger;

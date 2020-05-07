@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.common.auth;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.users.LdapUserInfo;
 import org.apache.log4j.Logger;
 
@@ -71,7 +70,7 @@ public class LdapClient {
                 ldapRefreshSecs = Long.parseLong(ldapRefreshString);
             }
             catch(NumberFormatException e){
-                log.error("NumberFormatException when reading the config: auth.ldap.cache.refresh.secs");
+                log.error("NumberFormatException when reading the system env variables: AUTH_LDAP_CACHE_REFRESH_SECS");
             }
         }
         long currSecs = System.currentTimeMillis()/1000;
@@ -92,7 +91,7 @@ public class LdapClient {
             ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 
             if (userDn == null) {
-                log.error("No auth.ldap.userDn specified in config file");
+                log.error("No AUTH_LDAP_USER_DN in system env");
             }
 
             NamingEnumeration answer = ctx.search(userDn, "(uid=" + user + ")", ctls);
@@ -132,7 +131,7 @@ public class LdapClient {
             ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 
             if (userDn == null) {
-                log.error("No auth.ldap.userDn specified in config file");
+                log.error("No AUTH_LDAP_USER_DN in system env");
             }
 
             NamingEnumeration answer = ctx.search(userDn, "(uid=" + user + ")", ctls);

@@ -14,7 +14,6 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -104,14 +103,6 @@ public class DatasetController {
     public DatasetController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
-    }
-
-    @PUT
-    @Path("test")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the data repo folder", notes = "")
-    public String getVar() {
-        return "{\"data_repo_dir\": \"" + DATA_REPO_FOLDER + "\"}";
     }
 
     @GET

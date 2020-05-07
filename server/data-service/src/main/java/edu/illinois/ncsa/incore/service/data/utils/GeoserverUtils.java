@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.data.utils;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;

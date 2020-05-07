@@ -9,7 +9,6 @@
 
 package edu.illinois.ncsa.incore.service.space;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;

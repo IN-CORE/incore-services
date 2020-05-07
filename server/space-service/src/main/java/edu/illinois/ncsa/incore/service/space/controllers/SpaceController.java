@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.SpaceMetadata;

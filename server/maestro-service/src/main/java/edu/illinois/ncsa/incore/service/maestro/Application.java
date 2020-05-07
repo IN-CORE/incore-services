@@ -10,7 +10,6 @@
 package edu.illinois.ncsa.incore.service.maestro;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
 import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBRepository;
 import org.apache.log4j.Logger;

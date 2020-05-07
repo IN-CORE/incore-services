@@ -10,13 +10,11 @@
 
 package edu.illinois.ncsa.incore.service.maestro;
 
-    import edu.illinois.ncsa.incore.common.config.Config;
-
-    import javax.ws.rs.container.ContainerRequestContext;
-    import javax.ws.rs.container.ContainerResponseContext;
-    import javax.ws.rs.container.ContainerResponseFilter;
-    import javax.ws.rs.core.MultivaluedMap;
-    import java.io.IOException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 
 public class CorsFilter implements ContainerResponseFilter {
     @Override
