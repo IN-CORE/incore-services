@@ -127,7 +127,8 @@ public class EarthquakeController {
     })
     public Earthquake createEarthquake(
         @ApiParam(hidden = true) @FormDataParam("earthquake") String eqJson,
-        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts)
+        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts,
+        @ApiParam(value = "Use workflow service.", required = false) @QueryParam("useWorkflow") @DefaultValue("false") boolean useWorkflow)
     {
         // TODO finish adding log statements
         // First, get the Earthquake object from the form
@@ -148,20 +149,24 @@ public class EarthquakeController {
 
                 Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(scenarioEarthquake);
                 try {
-                    File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
-
-                    GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
-                    HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
-
                     String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
                     String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
-                    String description = "Earthquake visualization";
-                    String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
-                        description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+
+                    String datasetId = null;
+                    if(!useWorkflow) {
+                        System.out.println("don't use workflow");
+                        File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
+                        GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
+                        HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
+                        String description = "Earthquake visualization";
+                        datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
+                            description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+                    }
+
 
                     DeterministicHazardDataset rasterDataset = new DeterministicHazardDataset();
                     rasterDataset.setEqParameters(scenarioEarthquake.getEqParameters());
-                    //rasterDataset.setDatasetId(datasetId);
+                    rasterDataset.setDatasetId(datasetId);
                     rasterDataset.setDemandType(demandComponents[1]);
                     rasterDataset.setDemandUnits(scenarioEarthquake.getVisualizationParameters().getDemandUnits());
                     rasterDataset.setPeriod(Double.parseDouble(demandComponents[0]));
@@ -169,14 +174,14 @@ public class EarthquakeController {
                     scenarioEarthquake.setHazardDataset(rasterDataset);
                     // add creator using username info
                     earthquake.setCreator(this.username);
-
                     earthquake = repository.addEarthquake(earthquake);
-
                     addEarthquakeToSpace(earthquake, this.username);
 
-                    // Add job to create dataset to the queue
-                    engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
-
+                    if(useWorkflow) {
+                        System.out.println("use workflow");
+                        // Add job to create dataset to the queue
+                        engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
+                    }
                     return earthquake;
                 } catch (IOException e) {
                     logger.error("Error creating raster dataset", e);

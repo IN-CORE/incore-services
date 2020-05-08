@@ -16,8 +16,11 @@ public class Job {
     private String eqJson;
     private String username;
 
-    // 0 - needs to be submitted, 1 - running, 2 - done/failed
-    private int state = 0;
+    // Execution states from DataWolf
+    public enum State {
+        WAITING, RUNNING, QUEUED, FINISHED, ABORTED, FAILED, UNKNOWN
+    }
+    private State state = null;
 
     public Job() {
 
@@ -28,6 +31,7 @@ public class Job {
         this.service = service;
         this.objectId = objectId;
         this.eqJson = eqJson;
+        this.state = State.WAITING;
     }
 
     public String getService() {
@@ -38,11 +42,11 @@ public class Job {
         return this.objectId;
     }
 
-    public int getState() {
+    public State getState() {
         return this.state;
     }
 
-    public void setState(int state) {
+    public void setState(State state) {
         this.state = state;
     }
 

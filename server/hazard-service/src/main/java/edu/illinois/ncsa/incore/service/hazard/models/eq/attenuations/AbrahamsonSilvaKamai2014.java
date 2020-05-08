@@ -42,7 +42,7 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
     private String region;
 
     public AbrahamsonSilvaKamai2014() {
-        InputStream coefficientURL = AtkinsonBoore1995.class.getResourceAsStream("/hazard/earthquake/coefficients/AbrahamsonSilvaKamai2014.csv");
+        InputStream coefficientURL = AbrahamsonSilvaKamai2014.class.getResourceAsStream("/hazard/earthquake/coefficients/AbrahamsonSilvaKamai2014.csv");
         readCoefficients(coefficientURL);
     }
 

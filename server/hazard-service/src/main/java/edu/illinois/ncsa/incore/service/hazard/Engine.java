@@ -42,7 +42,9 @@ public class Engine {
     }
 
     public void addJob(Job job) {
-        queue.add(job);
+        synchronized (queue) {
+            queue.add(job);
+        }
     }
 
     class WorkerThread extends Thread {
@@ -55,15 +57,15 @@ public class Engine {
                 } catch (InterruptedException e) {
                     log.debug("Thread interrupted", e);
                 }
+
                 for (Job job : queue) {
-                    if (job.getState() == 0) {
+                    if (job.getExecutionId() == null) {
                         // submit to datawolf to create dataset
                         // TODO - consider associating workflow executions by user, currently we associate with a generic incore-dw user
                         // TODO - create user if they don't exist
                         String username = Config.getConfigProperties().getProperty("datawolf.user");
                         String executionId = ServiceUtil.submitCreateEarthquakeJob("a5e77b9c-5d8a-4052-b1bb-9b260a6c5102", username, "create eq", "Create earthquake dataset", job.getEqJson());
                         job.setExecutionId(executionId);
-                        job.setState(1);
                     } else {
                         // check on job status
                         Map<String, String> jobStatus = ServiceUtil.getWorkflowJobStatus(job.getExecutionId());
@@ -72,6 +74,8 @@ public class Engine {
                         // Assumption that all workflows are single step
                         String key = iterator.next();
                         String status = jobStatus.get(key);
+                        job.setState(Job.State.valueOf(status));
+                        log.debug("job id = "+job.getExecutionId() + ", state is " + job.getState());
                         if(status.equalsIgnoreCase("FINISHED")) {
                             dequeue.add(job);
                             storeResults(job);
@@ -79,6 +83,7 @@ public class Engine {
                             // remove from queue
                             dequeue.add(job);
                             // notify failure
+                            log.debug("Create earthquake job failed for "+job.getObjectId());
                         }
                     }
                 }

@@ -332,7 +332,8 @@ public class ServiceUtil {
         JSONObject submission = new JSONObject();
         submission.put("workflowId", workflowId);
         submission.put("title", title);
-        submission.put("creatorId", creator);
+        // TODO replace this with a call to datawolf to fetch the creator ID associated with the creator
+        submission.put("creatorId", "6140eada-2784-44bd-b40e-31096392163e");
         submission.put("description", description);
 
         File incoreWorkDirectory = null;
@@ -349,10 +350,10 @@ public class ServiceUtil {
             fileOutputStream.flush();
             fileOutputStream.close();
 
-                String datasetId = uploadWorkflowDataset("eq-model", "eq model json", eqJsonFile, creator);
-                JSONObject datasets = new JSONObject();
-                datasets.put("9f80ea38-14b1-46b0-b943-faa5b24914ed", datasetId);
-                submission.put("datasets", datasets);
+            String datasetId = uploadWorkflowDataset("eq-model", "eq model json", eqJsonFile, creator);
+            JSONObject datasets = new JSONObject();
+            datasets.put("9f80ea38-14b1-46b0-b943-faa5b24914ed", datasetId);
+            submission.put("datasets", datasets);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -367,7 +368,6 @@ public class ServiceUtil {
         HttpClientBuilder builder = HttpClientBuilder.create();
 
         try {
-
             HttpClient client = builder.build();
             MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
 
