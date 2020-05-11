@@ -349,7 +349,7 @@ public class TornadoController {
             return tornado;
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
-                " earthquake " + tornadoId);
+                " tornado " + tornadoId);
         }
     }
 
