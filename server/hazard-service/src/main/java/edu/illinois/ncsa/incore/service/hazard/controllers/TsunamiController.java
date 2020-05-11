@@ -226,6 +226,40 @@ public class TsunamiController {
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, check the format of your request.");
     }
 
+    @DELETE
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    @ApiOperation(value = "Deletes a Tsunami", notes = "Also deletes attached dataset and related files")
+    public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("id") String tsunamiId) {
+        getTsunami(tsunamiId);
+
+        if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(tsunamiId)) {
+                    space.removeMember(tsunamiId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            Tsunami tsunami = repository.deleteTsunamiById(tsunamiId); // remove dataset
+
+            if (tsunami != null & tsunami instanceof TsunamiDataset) {
+                TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
+                for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
+                    ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+                }
+            }
+
+            return tsunami;
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
+                " tsunami " + tsunamiId);
+        }
+    }
+
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})

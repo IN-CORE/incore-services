@@ -20,6 +20,8 @@ public interface ITsunamiRepository {
 
     Tsunami addTsunami(Tsunami tsunami);
 
+    Tsunami deleteTsunamiById(String id);
+
     List<Tsunami> getTsunamis();
 
     List<Tsunami> searchTsunamis(String text);
