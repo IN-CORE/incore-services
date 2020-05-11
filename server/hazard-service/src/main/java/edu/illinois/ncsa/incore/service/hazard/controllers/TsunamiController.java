@@ -244,7 +244,7 @@ public class TsunamiController {
                 }
             }
 
-            Tsunami tsunami = repository.deleteTsunamiById(tsunamiId); // remove dataset
+            Tsunami tsunami = repository.deleteTsunamiById(tsunamiId); // remove tsunami json
 
             if (tsunami != null & tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;

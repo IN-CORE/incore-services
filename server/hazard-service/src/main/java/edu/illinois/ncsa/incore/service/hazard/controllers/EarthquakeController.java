@@ -716,7 +716,7 @@ public class EarthquakeController {
                 }
             }
 
-            Earthquake eq = repository.deleteEarthquakeById(earthquakeId); // remove dataset
+            Earthquake eq = repository.deleteEarthquakeById(earthquakeId); // remove earthquake json
 
             if (eq != null & eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;

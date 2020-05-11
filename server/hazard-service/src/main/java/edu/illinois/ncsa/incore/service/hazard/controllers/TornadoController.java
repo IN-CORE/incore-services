@@ -336,7 +336,7 @@ public class TornadoController {
                 }
             }
 
-            Tornado tornado = repository.deleteTornadoById(tornadoId); // remove dataset
+            Tornado tornado = repository.deleteTornadoById(tornadoId); // remove tornado json
 
             if (tornado != null & tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;
