@@ -98,6 +98,20 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     }
 
     @Override
+    public Tornado deleteTornadoById(String id) {
+        Tornado tornado = this.dataStore.get(TornadoModel.class, new ObjectId(id));
+        if (tornado == null) {
+            Query<TornadoDataset> query = this.dataStore.createQuery(TornadoDataset.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        } else {
+            Query<TornadoModel> query = this.dataStore.createQuery(TornadoModel.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        }
+    }
+
+    @Override
     public Tornado getTornadoById(String id) {
         if (!ObjectId.isValid(id)) {
             return null;

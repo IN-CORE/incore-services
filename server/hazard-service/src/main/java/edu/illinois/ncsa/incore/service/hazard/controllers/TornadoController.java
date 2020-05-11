@@ -318,6 +318,41 @@ public class TornadoController {
         return tornadoes;
     }
 
+    @DELETE
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    @ApiOperation(value = "Deletes a tornado", notes = "Also deletes attached dataset and related files")
+    public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("id") String tornadoId) {
+        getTornado(tornadoId);
+
+        if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(tornadoId)) {
+                    space.removeMember(tornadoId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            Tornado tornado = repository.deleteTornadoById(tornadoId); // remove dataset
+
+            if (tornado != null & tornado instanceof TornadoModel) {
+                TornadoModel tModel = (TornadoModel) tornado;
+                ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username);
+            } else if (tornado != null & tornado instanceof TornadoDataset) {
+                TornadoDataset tDataset = (TornadoDataset) tornado;
+                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
+            }
+
+            return tornado;
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
+                " earthquake " + tornadoId);
+        }
+    }
+
     //For adding tornado id to user's space
     private void addTornadoToSpace(Tornado tornado, String username) {
         Space space = spaceRepository.getSpaceByName(username);
