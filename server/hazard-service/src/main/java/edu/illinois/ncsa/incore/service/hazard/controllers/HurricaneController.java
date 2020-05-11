@@ -11,15 +11,16 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneWindfields;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneWindfieldResult;
@@ -27,6 +28,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.WindfieldD
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -39,7 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Api(value = "hurricaneWindfields", authorizations = {})
@@ -255,6 +257,37 @@ public class HurricaneController {
             }
         }
         return hurricaneWindfields;
+    }
+
+    @DELETE
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    @ApiOperation(value = "Deletes a Hurricane Windfield", notes = "Also deletes attached datasets and related files")
+    public HurricaneWindfields deleteHurricaneWindfields(@ApiParam(value = "Hurricane Windfield Id", required = true) @PathParam("id") String hurricaneId) {
+        getHurricaneWindfieldsById(hurricaneId);
+
+        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(hurricaneId)) {
+                    space.removeMember(hurricaneId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            HurricaneWindfields hurricane = repository.deleteHurricaneById(hurricaneId); // remove hurricane document
+
+            for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
+                ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+            }
+
+            return hurricane;
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
+                " hurricane " + hurricaneId);
+        }
     }
 
     @GET
