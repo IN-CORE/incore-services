@@ -44,13 +44,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -703,6 +697,44 @@ public class EarthquakeController {
 
         return earthquakes;
     }
+
+    @DELETE
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    @ApiOperation(value = "Deletes an earthquake", notes = "Also deletes attached dataset and related files")
+    public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("id") String earthquakeId) {
+        getEarthquake(earthquakeId);
+
+        if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(earthquakeId)) {
+                    space.removeMember(earthquakeId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            Earthquake eq = repository.deleteEarthquakeById(earthquakeId); // remove dataset
+
+            if (eq != null & eq instanceof EarthquakeModel) {
+                EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
+                ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username);
+            } else if (eq != null & eq instanceof EarthquakeDataset) {
+                EarthquakeDataset eqDataset = (EarthquakeDataset) eq;
+                for (HazardDataset dataset : eqDataset.getHazardDatasets()) {
+                    ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+                }
+            }
+
+            return eq;
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
+                " earthquake " + earthquakeId);
+        }
+    }
+
 
     // Helper functions
 

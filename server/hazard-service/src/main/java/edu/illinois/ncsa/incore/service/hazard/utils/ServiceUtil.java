@@ -430,7 +430,7 @@ public class ServiceUtil {
         logger.debug("Attach file response " + responseStr);
     }
 
-    public static String deleteDataset(String datasetId, String user){
+    public static String deleteDataset(String datasetId, String user) {
         String dataEndpoint = getDataServiceEndpoint();
 
         HttpClientBuilder builder = HttpClientBuilder.create();
@@ -455,12 +455,11 @@ public class ServiceUtil {
 
                 String retDatasetId = object.getString("id");
                 return retDatasetId;
-            }
-            else {
+            } else {
                 logger.error("Deleting dataset " + datasetId + " failed with status code " + statusCode);
             }
         } catch (Exception ex) {
-            logger.error("Error deleting the dataset " + datasetId , ex);
+            logger.error("Error deleting the dataset " + datasetId, ex);
         }
         return null;
     }
