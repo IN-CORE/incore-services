@@ -232,9 +232,19 @@ public class TsunamiController {
     @Path("{id}")
     @ApiOperation(value = "Deletes a Tsunami", notes = "Also deletes attached dataset and related files")
     public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("id") String tsunamiId) {
-        getTsunami(tsunamiId);
+        Tsunami tsunami = getTsunami(tsunamiId);
 
         if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
+            //remove associated datasets
+            if (tsunami != null & tsunami instanceof TsunamiDataset) {
+                TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
+                for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
+                    ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+                }
+            }
+
+            Tsunami deletedTsunami = repository.deleteTsunamiById(tsunamiId); // remove tsunami json
+
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -244,16 +254,7 @@ public class TsunamiController {
                 }
             }
 
-            Tsunami tsunami = repository.deleteTsunamiById(tsunamiId); // remove tsunami json
-
-            if (tsunami != null & tsunami instanceof TsunamiDataset) {
-                TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
-                for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
-                    ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
-                }
-            }
-
-            return tsunami;
+            return deletedTsunami;
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
                 " tsunami " + tsunamiId);

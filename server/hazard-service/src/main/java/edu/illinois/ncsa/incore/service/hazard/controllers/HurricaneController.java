@@ -265,9 +265,16 @@ public class HurricaneController {
     @Path("{id}")
     @ApiOperation(value = "Deletes a Hurricane Windfield", notes = "Also deletes attached datasets and related files")
     public HurricaneWindfields deleteHurricaneWindfields(@ApiParam(value = "Hurricane Windfield Id", required = true) @PathParam("id") String hurricaneId) {
-        getHurricaneWindfieldsById(hurricaneId);
+        HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
         if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+            //delete associated datasets
+            for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
+                ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+            }
+
+            HurricaneWindfields deletedHurricane = repository.deleteHurricaneById(hurricaneId); // remove hurricane document
+
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -277,13 +284,7 @@ public class HurricaneController {
                 }
             }
 
-            HurricaneWindfields hurricane = repository.deleteHurricaneById(hurricaneId); // remove hurricane document
-
-            for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
-                ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
-            }
-
-            return hurricane;
+            return deletedHurricane;
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
                 " hurricane " + hurricaneId);

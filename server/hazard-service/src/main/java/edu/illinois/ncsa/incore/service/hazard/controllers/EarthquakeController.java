@@ -704,20 +704,10 @@ public class EarthquakeController {
     @Path("{id}")
     @ApiOperation(value = "Deletes an earthquake", notes = "Also deletes attached dataset and related files")
     public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("id") String earthquakeId) {
-        getEarthquake(earthquakeId);
+        Earthquake eq = getEarthquake(earthquakeId);
 
         if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {
-            // remove id from spaces
-            List<Space> spaces = spaceRepository.getAllSpaces();
-            for (Space space : spaces) {
-                if (space.hasMember(earthquakeId)) {
-                    space.removeMember(earthquakeId);
-                    spaceRepository.addSpace(space);
-                }
-            }
-
-            Earthquake eq = repository.deleteEarthquakeById(earthquakeId); // remove earthquake json
-
+            // delete associated datasets
             if (eq != null & eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
                 ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username);
@@ -728,7 +718,18 @@ public class EarthquakeController {
                 }
             }
 
-            return eq;
+            Earthquake deletedEq = repository.deleteEarthquakeById(earthquakeId); // remove earthquake json
+
+            //remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(earthquakeId)) {
+                    space.removeMember(earthquakeId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            return deletedEq;
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
                 " earthquake " + earthquakeId);

@@ -324,9 +324,20 @@ public class TornadoController {
     @Path("{id}")
     @ApiOperation(value = "Deletes a tornado", notes = "Also deletes attached dataset and related files")
     public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("id") String tornadoId) {
-        getTornado(tornadoId);
+        Tornado tornado = getTornado(tornadoId);
 
         if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+            // delete associated datasets
+            if (tornado != null & tornado instanceof TornadoModel) {
+                TornadoModel tModel = (TornadoModel) tornado;
+                ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username);
+            } else if (tornado != null & tornado instanceof TornadoDataset) {
+                TornadoDataset tDataset = (TornadoDataset) tornado;
+                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
+            }
+
+            Tornado deletedTornado = repository.deleteTornadoById(tornadoId); // remove tornado json
+
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -336,17 +347,7 @@ public class TornadoController {
                 }
             }
 
-            Tornado tornado = repository.deleteTornadoById(tornadoId); // remove tornado json
-
-            if (tornado != null & tornado instanceof TornadoModel) {
-                TornadoModel tModel = (TornadoModel) tornado;
-                ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username);
-            } else if (tornado != null & tornado instanceof TornadoDataset) {
-                TornadoDataset tDataset = (TornadoDataset) tornado;
-                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
-            }
-
-            return tornado;
+            return deletedTornado;
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
                 " tornado " + tornadoId);
