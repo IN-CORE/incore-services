@@ -16,6 +16,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -427,6 +428,41 @@ public class ServiceUtil {
 
         // This could be useful if there is a failure
         logger.debug("Attach file response " + responseStr);
+    }
+
+    public static String deleteDataset(String datasetId, String user){
+        String dataEndpoint = getDataServiceEndpoint();
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId;
+
+        HttpDelete httpDel = new HttpDelete(requestUrl);
+        httpDel.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + user + "\"}");
+
+        HttpResponse response = null;
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseStr = null;
+
+        try {
+            response = httpclient.execute(httpDel);
+            responseStr = responseHandler.handleResponse(response);
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if (statusCode == HttpStatus.SC_OK) {
+                JSONObject object = new JSONObject(responseStr);
+
+                String retDatasetId = object.getString("id");
+                return retDatasetId;
+            }
+            else {
+                logger.error("Deleting dataset " + datasetId + " failed with status code " + statusCode);
+            }
+        } catch (Exception ex) {
+            logger.error("Error deleting the dataset " + datasetId , ex);
+        }
+        return null;
     }
 
     public static File getWorkDirectory() {
