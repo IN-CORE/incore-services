@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
+
+- Enable cors for dfr3 services and a new property was added to list the allowed cross origin domains [INCORE1-585](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-585) 
 - DELETE endpoints for all hazards [INCORE1-560](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-560)
 
 ## [0.6.4] - 2020-03-27
