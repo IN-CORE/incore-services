@@ -15,7 +15,7 @@
     "demandUnits": "g",
     "fragilityCurves": [
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodConditionalStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -26,7 +26,7 @@
         "description": "Moderate"
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodConditionalStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -37,7 +37,7 @@
         "description": "Extensive"
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodConditionalStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 0.35,
@@ -65,7 +65,7 @@
     "demandUnits": "g",
     "fragilityCurves": [
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodConditionalStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 1.77,
@@ -76,7 +76,7 @@
         "description": "Moderate"
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodConditionalStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 1.77,
@@ -87,7 +87,7 @@
         "description": "Extensive"
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.PeriodConditionalStandardFragilityCurve",
         "periodParam2": 0.0,
         "periodParam1": 0.0,
         "periodParam0": 1.77,
@@ -112,7 +112,7 @@
     "demandUnits": "ft/s",
     "fragilityCurves": [
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.StandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
         "alpha": [
           2.6,
           2.6
@@ -130,7 +130,7 @@
         "description": "Slight"
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.StandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
         "alpha": [
           4.8,
           4.8
@@ -148,8 +148,9 @@
         "description": "Moderate"
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.StandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
         "alpha": [
+          8.4,
           8.4
         ],
         "beta": [
@@ -165,8 +166,9 @@
         "description": "Extensive"
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.StandardFragilityCurve",
+        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
         "alpha": [
+          13.1,
           13.1
         ],
         "beta": [
