@@ -10,22 +10,35 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-public class StandardFragilityCurve extends FragilityCurve {
-    public double alpha;
-    public double beta;
+import java.util.Map;
+import java.util.List;
+
+public class ConditionalStandardFragilityCurve extends FragilityCurve {
+    public double[] alpha;
+    public double[] beta;
     public AlphaType alphaType;
     public CurveType curveType;
+    public Map<Integer, List<String>> rules;
 
-    public StandardFragilityCurve() {
+
+    public ConditionalStandardFragilityCurve() {
         super();
     }
 
-    public StandardFragilityCurve(double alpha, double beta, AlphaType alphaType, CurveType curveType, String label) {
+    public ConditionalStandardFragilityCurve(double[] alpha, double[] beta, AlphaType alphaType, CurveType curveType, String label, Map<Integer, List<String>> rules){
         super(label);
-
         this.alpha = alpha;
         this.beta = beta;
         this.alphaType = alphaType;
         this.curveType = curveType;
+        this.rules = rules;
+    }
+
+    public double[] getAlpha() {
+        return alpha;
+    }
+
+    public double[] getBeta() {
+        return beta;
     }
 }
