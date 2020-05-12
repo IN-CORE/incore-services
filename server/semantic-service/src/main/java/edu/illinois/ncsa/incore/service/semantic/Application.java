@@ -52,6 +52,6 @@ public class Application extends ResourceConfig {
                 super.bind(authorizer).to(IAuthorizer.class);
             }
         });
-
+        super.register(new CorsFilter());
     }
 }
