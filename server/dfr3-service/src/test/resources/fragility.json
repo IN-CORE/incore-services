@@ -100,19 +100,24 @@
     ]
   },
   {
-    "id": "5e99cd6830d1f3f4ea6ed0ae",
-    "hazardType": "tsunami",
-    "inventoryType": "electric_facility",
+    "id": "5ebb0db727e5d0c756a7575f",
+    "legacyId": null,
+    "description": "seaside epf substation conditional fragility",
     "authors": [
       "Dylan Sanderson"
     ],
-    "description": "seaside epf substation conditional fragility",
+    "paperReference": null,
+    "resultUnit": null,
     "resultType": "Limit State",
+    "hazardType": "tsunami",
+    "inventoryType": "electric_facility",
+    "creator": "cwang138",
     "demandType": "Vmax",
     "demandUnits": "ft/s",
     "fragilityCurves": [
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
+        "className": "ConditionalStandardFragilityCurve",
+        "description": "Slight",
         "alpha": [
           2.6,
           2.6
@@ -121,16 +126,20 @@
           0.4,
           0.5
         ],
-        "curveType": "LogNormal",
         "alphaType": "median",
+        "curveType": "LogNormal",
         "rules": {
-          "0": "demand LT 3.2",
-          "1": "demand GE 3.2"
-        },
-        "description": "Slight"
+          "0": [
+            "demand LT 3.2"
+          ],
+          "1": [
+            "demand GE 3.2"
+          ]
+        }
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
+        "className": "ConditionalStandardFragilityCurve",
+        "description": "Moderate",
         "alpha": [
           4.8,
           4.8
@@ -139,16 +148,20 @@
           0.4,
           0.5
         ],
-        "curveType": "LogNormal",
         "alphaType": "median",
+        "curveType": "LogNormal",
         "rules": {
-          "0": "demand LT 3.2",
-          "1": "demand GE 3.2"
-        },
-        "description": "Moderate"
+          "0": [
+            "demand LT 3.2"
+          ],
+          "1": [
+            "demand GE 3.2"
+          ]
+        }
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
+        "className": "ConditionalStandardFragilityCurve",
+        "description": "Extensive",
         "alpha": [
           8.4,
           8.4
@@ -157,16 +170,20 @@
           0.4,
           0.5
         ],
-        "curveType": "LogNormal",
         "alphaType": "median",
+        "curveType": "LogNormal",
         "rules": {
-          "0": "demand LT 3.2",
-          "1": "demand GE 3.2"
-        },
-        "description": "Extensive"
+          "0": [
+            "demand LT 3.2"
+          ],
+          "1": [
+            "demand GE 3.2"
+          ]
+        }
       },
       {
-        "className": "edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve",
+        "className": "ConditionalStandardFragilityCurve",
+        "description": "Complete",
         "alpha": [
           13.1,
           13.1
@@ -175,13 +192,16 @@
           0.4,
           0.5
         ],
-        "curveType": "LogNormal",
         "alphaType": "median",
+        "curveType": "LogNormal",
         "rules": {
-          "0": "demand LT 3.2",
-          "1": "demand GE 3.2"
-        },
-        "description": "Complete"
+          "0": [
+            "demand LT 3.2"
+          ],
+          "1": [
+            "demand GE 3.2"
+          ]
+        }
       }
     ]
   },
