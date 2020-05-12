@@ -11,7 +11,9 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.service.dfr3.models.FragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
+import edu.illinois.ncsa.incore.service.dfr3.models.StandardFragilityCurve;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
 
@@ -41,6 +43,18 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
             throw new IllegalArgumentException();
         } else {
             // the save method mutates the fragilitySet object with an document id
+            // check if standard fragility curves alpha and beta has the same shape before saving
+            List<FragilityCurve> fragilityCurves = fragilitySet.getFragilityCurves();
+            fragilityCurves.forEach(curve -> {
+                if (curve instanceof StandardFragilityCurve) {
+                    double[] alpha = ((StandardFragilityCurve) curve).getAlpha();
+                    double[] beta = ((StandardFragilityCurve) curve).getBeta();
+                    if (alpha.length != beta.length) {
+                        throw new IllegalArgumentException("Alpha and Beta must have the same length/shape.");
+                    }
+                }
+            });
+
             String id = this.dataStore.save(fragilitySet).getId().toString();
 
             return id;
