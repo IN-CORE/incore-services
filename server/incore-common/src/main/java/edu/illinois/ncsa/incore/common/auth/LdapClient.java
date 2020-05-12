@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.common.auth;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.users.LdapUserInfo;
 import org.apache.log4j.Logger;
 
@@ -48,8 +47,8 @@ public class LdapClient {
     private static final Logger log = Logger.getLogger(LdapClient.class);
 
 
-    public static String ldapUri = Config.getConfigProperties().getProperty("auth.ldap.url");
-    public static String userDn = Config.getConfigProperties().getProperty("auth.ldap.userDn");
+    public static String ldapUri = System.getenv("AUTH_LDAP_URL");
+    public static String userDn = System.getenv("AUTH_LDAP_USERDN");
 
     public Map<String,Groups> userGroupCache = new HashMap<>();
 
@@ -65,13 +64,13 @@ public class LdapClient {
     public Set<String> getUserGroups(String user) {
 
         long ldapRefreshSecs = 900;
-        if(Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs") != null
-            && Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs").trim() != "") {
+        String ldapRefreshString = System.getenv("AUTH_LDAP_CACHE_REFRESH_SECS");
+        if(ldapRefreshString != null && ldapRefreshString != "") {
             try {
-                ldapRefreshSecs = Long.parseLong(Config.getConfigProperties().getProperty("auth.ldap.cache.refresh.secs"));
+                ldapRefreshSecs = Long.parseLong(ldapRefreshString);
             }
             catch(NumberFormatException e){
-                log.error("NumberFormatException when reading the config: auth.ldap.cache.refresh.secs");
+                log.error("NumberFormatException when reading the system env variables: AUTH_LDAP_CACHE_REFRESH_SECS");
             }
         }
         long currSecs = System.currentTimeMillis()/1000;
@@ -92,7 +91,7 @@ public class LdapClient {
             ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 
             if (userDn == null) {
-                log.error("No auth.ldap.userDn specified in config file");
+                log.error("No AUTH_LDAP_USER_DN in system env");
             }
 
             NamingEnumeration answer = ctx.search(userDn, "(uid=" + user + ")", ctls);
@@ -132,7 +131,7 @@ public class LdapClient {
             ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 
             if (userDn == null) {
-                log.error("No auth.ldap.userDn specified in config file");
+                log.error("No AUTH_LDAP_USER_DN in system env");
             }
 
             NamingEnumeration answer = ctx.search(userDn, "(uid=" + user + ")", ctls);

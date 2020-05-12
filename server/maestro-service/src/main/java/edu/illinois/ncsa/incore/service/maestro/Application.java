@@ -10,7 +10,6 @@
 package edu.illinois.ncsa.incore.service.maestro;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
 import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBRepository;
 import org.apache.log4j.Logger;
@@ -23,7 +22,7 @@ public class Application extends ResourceConfig {
     public Application() {
         String mongodbUri = "mongodb://localhost:27017/maestrodb2";
 
-        String mongodbUriProp = Config.getConfigProperties().getProperty("maestro.mongodbURI");
+        String mongodbUriProp = System.getenv("MAESTRO_MONGODB_URI");
         if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }

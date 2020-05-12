@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 
@@ -196,7 +195,7 @@ public class Authorizer implements IAuthorizer {
             Set<String> userGroups = ldapClient.getUserGroups(user);
 
             //if the user is an admin, they get full privileges
-            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.admins"))) {
+            if (userGroups.contains(System.getenv("AUTH_LDAP_ADMINS"))) {
                 HashSet<PrivilegeLevel> admin  = new HashSet<>();
                 admin.add(PrivilegeLevel.ADMIN);
                 admin.add(PrivilegeLevel.WRITE);
@@ -211,7 +210,7 @@ public class Authorizer implements IAuthorizer {
                 .collect(Collectors.toSet());
 
             //if the user is in the magic view-all group, give them read access
-            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.viewall"))) {
+            if (userGroups.contains(System.getenv("AUTH_LDAP_VIEW_ALL"))) {
                 privs.add(PrivilegeLevel.READ);
             }
 

@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpResponse;
@@ -52,7 +51,7 @@ public class ServiceUtil {
         // TODO cleanup duplicate code
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
+        String dataEndpointProp = System.getenv("SERVICES_URL");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -119,7 +118,7 @@ public class ServiceUtil {
     public static String createDataset(JSONObject datasetObject, String creator, File[] files) throws IOException {
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
+        String dataEndpointProp = System.getenv("SERVICES_URL");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -178,7 +177,7 @@ public class ServiceUtil {
         JSONObject datasetJson = new JSONObject();
 
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
+        String dataEndpointProp = System.getenv("SERVICES_URL");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -230,7 +229,7 @@ public class ServiceUtil {
 
     public static List<File> getFileDescriptorFileList(JSONObject datasetJson) {
         List outlist = new LinkedList<String>();
-        String restStorageDir = Config.getConfigProperties().getProperty("data.repo.data.dir");
+        String restStorageDir = System.getenv("DATA_REPO_DATA_DIR");
 
         JSONArray fdList = (JSONArray) (datasetJson.get("fileDescriptors"));
         for (Object fd : fdList) {
@@ -265,7 +264,7 @@ public class ServiceUtil {
 
     public static File getFileFromDataService(String datasetId, String creator, File incoreWorkDirectory) {
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
+        String dataEndpointProp = System.getenv("SERVICES_URL");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
@@ -314,7 +313,7 @@ public class ServiceUtil {
     public static String getDataServiceEndpoint() {
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = Config.getConfigProperties().getProperty("services.url");
+        String dataEndpointProp = System.getenv("SERVICES_URL");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
             dataEndpoint = dataEndpointProp;
             if (!dataEndpoint.endsWith("/")) {
