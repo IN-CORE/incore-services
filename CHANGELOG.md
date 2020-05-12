@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Enable cors for dfr3 services and a new property was added to list the allowed cross origin domains [INCORE1-585](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-585)
+
+### Updated
+- Application properties are now initialized by system environment variables [INCORE1-587](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-587)
+
 ## [0.6.4] - 2020-03-27
 
 ### Added

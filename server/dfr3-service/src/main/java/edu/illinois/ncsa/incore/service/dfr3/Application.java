@@ -13,7 +13,6 @@ package edu.illinois.ncsa.incore.service.dfr3;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import edu.illinois.ncsa.incore.service.dfr3.daos.*;
@@ -27,7 +26,7 @@ public class Application extends ResourceConfig {
     public Application() {
         String mongodbUri = "mongodb://localhost:27017/dfr3db";
 
-        String mongodbUriProp = Config.getConfigProperties().getProperty("dfr3.mongodbURI");
+        String mongodbUriProp = System.getenv("DFR3_MONGODB_URI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
@@ -48,7 +47,7 @@ public class Application extends ResourceConfig {
 
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
-        String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
+        String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
         if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }
