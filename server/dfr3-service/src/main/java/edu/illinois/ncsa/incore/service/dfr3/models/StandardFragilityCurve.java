@@ -10,7 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import java.util.List;
+import ncsa.tools.common.exceptions.ParseException;
+
 import java.util.Map;
 
 public class StandardFragilityCurve extends FragilityCurve {
@@ -25,9 +26,13 @@ public class StandardFragilityCurve extends FragilityCurve {
         super();
     }
 
-    public StandardFragilityCurve(double[] alpha, double[] beta, AlphaType alphaType, CurveType curveType, String label, Map<Integer, String> rules) {
+    public StandardFragilityCurve(double[] alpha, double[] beta, AlphaType alphaType, CurveType curveType, String label, Map<Integer, String> rules) throws ParseException {
         super(label);
 
+        // alpha and beta parameters are in pairs, so they must have the same length
+        if (alpha.length != beta.length) {
+            throw new ParseException("Alpha and beta parameters need to be in the same shape.");
+        }
         this.alpha = alpha;
         this.beta = beta;
         this.alphaType = alphaType;
