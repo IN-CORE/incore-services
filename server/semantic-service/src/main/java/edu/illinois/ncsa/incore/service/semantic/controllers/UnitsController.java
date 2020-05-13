@@ -6,20 +6,34 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.semantic.controllers;
 
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.semantic.units.dimension.Dimension;
 import edu.illinois.ncsa.incore.semantic.units.instances.Dimensions;
 import edu.illinois.ncsa.incore.semantic.units.io.parser.NameParser;
 import edu.illinois.ncsa.incore.semantic.units.model.Unit;
+import io.swagger.annotations.ApiParam;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.inject.Inject;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
 
-@Path("/")
+@Path("")
 public class UnitsController {
+    private String username;
+
+    @Inject
+    public UnitsController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        this.username = UserInfoUtils.getUsername(userInfo);
+        // we want to limit the semantic service to admins for now
+        Authorizer authorizer = new Authorizer();
+        if (!authorizer.isUserAdmin(this.username)) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+        }
+    }
     @GET
     @Path("/units/{uri}")
     public Response getUnit(@PathParam("uri") String uri,

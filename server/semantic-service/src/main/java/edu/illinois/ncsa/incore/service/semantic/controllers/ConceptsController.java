@@ -6,9 +6,14 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.semantic.controllers;
 
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.semantic.metamodel.concepts.Concept;
 import edu.illinois.ncsa.incore.semantic.metamodel.instances.Concepts;
+import io.swagger.annotations.ApiParam;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -16,6 +21,19 @@ import java.util.Optional;
 
 @Path("concepts")
 public class ConceptsController {
+    private String username;
+
+    @Inject
+    public ConceptsController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        this.username = UserInfoUtils.getUsername(userInfo);
+        // we want to limit the semantic service to admins for now
+        Authorizer authorizer = new Authorizer();
+        if (!authorizer.isUserAdmin(this.username)) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+        }
+    }
+
     @GET
     @Path("/{uri}")
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")

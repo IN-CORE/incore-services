@@ -1,7 +1,6 @@
 package edu.illinois.ncsa.incore.service.semantic.controllers;
 
-import com.mongodb.util.JSON;
-import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -40,10 +39,6 @@ import org.bson.Document;
     consumes = {"application/json"},
     produces = {"application/json"},
     schemes = {SwaggerDefinition.Scheme.HTTP}
-//    ,tags = {
-//        @Tag(name = "Private", description = "Tag used to denote operations as private")
-//    },
-    //externalDocs = @ExternalDocs(value = "FEMA  Hazard Manual", url = "https://www.fema.gov/earthquake")
 )
 
 @Api(value = "datasettypes", authorizations = {})
@@ -60,12 +55,14 @@ public class DatasetTypeController {
     private ISpaceRepository spaceRepository;
 
     @Inject
-    private IAuthorizer authorizer;
-
-    @Inject
     public DatasetTypeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        // we want to limit the semantic service to admins for now
+        Authorizer authorizer = new Authorizer();
+        if (!authorizer.isUserAdmin(this.username)) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+        }
     }
 
     @GET
@@ -74,16 +71,10 @@ public class DatasetTypeController {
     @ApiOperation(value = "list all datasettypes belong to a namespace.")
     public Response listDatasetTypes(@ApiParam(value="Space name.", required=true)
                                          @PathParam("namespace") String namespace) {
-        // we want to limit the semantic service to admins for now
         Space space = spaceRepository.getSpaceByName(namespace);
         if (space == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
         }
-        // check if user has permission to read space
-        if (!authorizer.canRead(username, space.getPrivileges())) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access the space " + namespace);
-        }
-
         // find intersection
         List<Document> datasetTypeList = this.datasetTypeDAO.getDatasetTypes();
         List<Document> results = datasetTypeList.stream()
@@ -113,44 +104,38 @@ public class DatasetTypeController {
         }
 
         Space space = spaceRepository.getSpaceByName(namespace);
-        if (space != null){
-            // check if user has permission to read space
-            if (!authorizer.canRead(username, space.getPrivileges())) {
-                return Response.status(401).entity(username + " is not authorized to read the space " + namespace).build();
-            }
-
-            Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.getDatasetTypeByUri(uri, version);
-
-            if (datasetTypeList.isPresent()) {
-                // make sure that uri is in the namespace
-                List<Document> results = datasetTypeList.get().stream()
-                    .filter(dType -> space.hasMember(dType.getObjectId("_id").toString()))
-                    .collect(Collectors.toList());
-
-                List<Document> matchedDatasetTypeList;
-
-                // find the latest
-                if (version.equals("latest")) {
-                    Optional<Document> latestMatched = results.stream()
-                        .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
-                    if (latestMatched.isPresent()) { matchedDatasetTypeList = new ArrayList<Document>() {{ add(latestMatched.get()); }}; }
-                    else { matchedDatasetTypeList = new ArrayList<>(); }
-                }
-                else{
-                    matchedDatasetTypeList = results;
-                }
-
-                return Response.ok(matchedDatasetTypeList).status(200)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "GET")
-                    .build();
-
-            } else {
-                return Response.status(404).entity("Cannot find the datasettype " + uri + " version " + version + " !").build();
-            }
+        if (space == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
         }
-        else{
-            return Response.status(404).entity("Cannot find the space " + namespace + "!").build();
+
+        Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.getDatasetTypeByUri(uri, version);
+
+        if (datasetTypeList.isPresent()) {
+            // make sure that uri is in the namespace
+            List<Document> results = datasetTypeList.get().stream()
+                .filter(dType -> space.hasMember(dType.getObjectId("_id").toString()))
+                .collect(Collectors.toList());
+
+            List<Document> matchedDatasetTypeList;
+
+            // find the latest
+            if (version.equals("latest")) {
+                Optional<Document> latestMatched = results.stream()
+                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
+                if (latestMatched.isPresent()) { matchedDatasetTypeList = new ArrayList<Document>() {{ add(latestMatched.get()); }}; }
+                else { matchedDatasetTypeList = new ArrayList<>(); }
+            }
+            else{
+                matchedDatasetTypeList = results;
+            }
+
+            return Response.ok(matchedDatasetTypeList).status(200)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "GET")
+                .build();
+
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the datasettype " + uri + " version " + version + " !");
         }
     }
 
@@ -161,39 +146,29 @@ public class DatasetTypeController {
     public Response searchDatasetType(
         @ApiParam(value = "Space name.", required = true) @PathParam("namespace") String namespace,
         @ApiParam(value = "Dataset type uri (name).") @QueryParam("datasettype") String datasettype) {
-
         if (datasettype == null) {
-            throw new WebApplicationException(
-                Response.status(400)
-                    .entity("the parameter \"datasettype\" is required!").build()
-            );
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The parameter \"datasettype\" is required!");
         }
 
         Space space = spaceRepository.getSpaceByName(namespace);
-        if (space != null) {
-            // check if user has permission to read space
-            if (!authorizer.canRead(username, space.getPrivileges())) {
-                return Response.status(401).entity(username + " is not authorized to read the space " + namespace).build();
-            }
-
-            Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.searchDatasetType(datasettype);
-            List<Document> results;
-            if (datasetTypeList.isPresent()) {
-                results = datasetTypeList.get().stream()
-                    .filter(dType -> space.hasMember(dType.getObjectId("_id").toString()))
-                    .collect(Collectors.toList());
-            } else {
-                results = new ArrayList<>();
-            }
-
-            return Response.ok(results).status(200)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET")
-                .build();
+        if (space == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
         }
-        else{
-            return Response.status(404).entity("Cannot find the space " + namespace + "!").build();
+
+        Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.searchDatasetType(datasettype);
+        List<Document> results;
+        if (datasetTypeList.isPresent()) {
+            results = datasetTypeList.get().stream()
+                .filter(dType -> space.hasMember(dType.getObjectId("_id").toString()))
+                .collect(Collectors.toList());
+        } else {
+            results = new ArrayList<>();
         }
+
+        return Response.ok(results).status(200)
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "GET")
+            .build();
     }
 
     @POST
@@ -204,28 +179,22 @@ public class DatasetTypeController {
     public Response publishDatasetType(
         @ApiParam(value = "Space name.") @PathParam("namespace") String namespace,
         @ApiParam(value = "Dataset type uri (name).") Document datasetType) {
-
         Space space = spaceRepository.getSpaceByName(namespace);
-        if (space != null) {
-            // check if user has permission to write to space
-            if (!authorizer.canWrite(username, space.getPrivileges())) {
-                return Response.status(401).entity(username + " is not authorized to write to the space " + namespace).build();
-            }
-
-            String id = this.datasetTypeDAO.postDatasetType(datasetType);
-
-            // add id to matching space
-            space.addMember(id);
-            spaceRepository.addSpace(space);
-
-            return Response.ok(id).status(200)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET")
-                .build();
+        if (space == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
         }
-        else{
-            return Response.status(404).entity("Cannot find the space " + namespace + "!").build();
-        }
+
+        String id = this.datasetTypeDAO.postDatasetType(datasetType);
+
+        // add id to matching space
+        space.addMember(id);
+        spaceRepository.addSpace(space);
+
+        return Response.ok(id).status(200)
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "GET")
+            .build();
+
     }
 
     @DELETE
@@ -236,28 +205,22 @@ public class DatasetTypeController {
         @ApiParam(value = "User credentials.") @HeaderParam("X-Credential-Username") String username,
         @ApiParam(value = "Space name.") @PathParam("namespace") String namespace,
         @ApiParam(value = "Dataset type id.") @PathParam("id") String id) {
-
         Space space = spaceRepository.getSpaceByName(namespace);
-        if (space != null) {
-            // check if user has permission to write to space
-            if (!authorizer.canWrite(username, space.getPrivileges())) {
-                return Response.status(401).entity(username + " is not authorized to write to the space " + namespace).build();
-            }
-
-            String deletedId = this.datasetTypeDAO.deleteDatasetType(id);
-
-            // remove id in the matching space
-            space.removeMember(deletedId);
-            spaceRepository.addSpace(space);
-
-            return Response.ok(deletedId).status(200)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET")
-                .build();
+        if (space == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
         }
-        else{
-            return Response.status(404).entity("Cannot find the space " + namespace + "!").build();
-        }
+
+        String deletedId = this.datasetTypeDAO.deleteDatasetType(id);
+
+        // remove id in the matching space
+        space.removeMember(deletedId);
+        spaceRepository.addSpace(space);
+
+        return Response.ok(deletedId).status(200)
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "GET")
+            .build();
+
     }
 
 }

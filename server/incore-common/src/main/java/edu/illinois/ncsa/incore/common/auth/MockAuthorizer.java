@@ -105,6 +105,11 @@ public class MockAuthorizer implements IAuthorizer{
     public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {return false;}
 
     @Override
+    public boolean isUserAdmin(String user) {
+        return false;
+    }
+
+    @Override
     public boolean canUserWriteMember(String username, String memberId, List<Space> spaces) {return false;}
 
     @Override

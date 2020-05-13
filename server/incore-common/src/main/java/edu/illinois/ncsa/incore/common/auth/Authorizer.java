@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
@@ -185,20 +184,24 @@ public class Authorizer implements IAuthorizer {
         return membersSet.contains(memberId);
     }
 
-    public boolean isUserAdmin(String user) {
+    /**
+     * This method determines if a user is an admin or not.
+     * @param username string name of the user
+     * @return boolean - true if the user is admin
+     */
+    public boolean isUserAdmin(String username) {
         try {
             LdapClient ldapClient = getLdapClient();
-            Set<String> userGroups = ldapClient.getUserGroups(user);
+            Set<String> userGroups = ldapClient.getUserGroups(username);
 
-            //if the user is an admin, they get full privileges
-            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.admins"))) {
+            if (userGroups.contains(System.getenv("AUTH_LDAP_ADMINS"))) {
                 return true;
             }
+            return false;
         } catch (Exception e) {
             logger.error(e);
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Internal server error.");
         }
-        return false;
     }
 
     ////////////////////////////////////////////////////////

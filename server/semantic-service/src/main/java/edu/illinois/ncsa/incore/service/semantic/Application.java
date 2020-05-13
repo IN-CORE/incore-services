@@ -9,7 +9,6 @@ package edu.illinois.ncsa.incore.service.semantic;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import edu.illinois.ncsa.incore.service.semantic.daos.IDatasetTypeDAO;
@@ -25,7 +24,7 @@ public class Application extends ResourceConfig {
         String semanticsMongodbUri = "mongodb://localhost:27017/semanticsdb";
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
-        String semanticsMongodbUriProp = Config.getConfigProperties().getProperty("semantics.mongodbURI");
+        String semanticsMongodbUriProp = System.getenv("SEMANTIC_MONGODB_URI");
         if (semanticsMongodbUriProp != null && !semanticsMongodbUriProp.isEmpty()) {
             semanticsMongodbUri = semanticsMongodbUriProp;
         }
@@ -34,7 +33,7 @@ public class Application extends ResourceConfig {
         IDatasetTypeDAO conceptDAO = new MongoDBDatasetTypeDAO(new MongoClientURI(semanticsMongodbUri));
         conceptDAO.initialize();
 
-        String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
+        String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
         if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }

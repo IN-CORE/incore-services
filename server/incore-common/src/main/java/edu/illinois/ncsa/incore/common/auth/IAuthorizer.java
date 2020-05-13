@@ -40,4 +40,6 @@ public interface IAuthorizer {
 
     boolean canUserDeleteMember(String username, String memberId, List<Space> spaces);
 
+    boolean isUserAdmin(String user);
+
 }
