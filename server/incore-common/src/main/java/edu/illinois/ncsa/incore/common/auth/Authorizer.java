@@ -213,17 +213,6 @@ public class Authorizer implements IAuthorizer {
             return allowThisUser(user);
         }
         try {
-//            LdapClient ldapClient = getLdapClient();
-//            Set<String> userGroups = ldapClient.getUserGroups(user);
-//
-//            //if the user is an admin, they get full privileges
-//            if (userGroups.contains(System.getenv("AUTH_LDAP_ADMINS"))) {
-//                HashSet<PrivilegeLevel> admin  = new HashSet<>();
-//                admin.add(PrivilegeLevel.ADMIN);
-//                admin.add(PrivilegeLevel.WRITE);
-//                admin.add(PrivilegeLevel.READ);
-//                return admin;
-//            }
             if (isUserAdmin(user)) {
                 HashSet<PrivilegeLevel> admin  = new HashSet<>();
                 admin.add(PrivilegeLevel.ADMIN);
