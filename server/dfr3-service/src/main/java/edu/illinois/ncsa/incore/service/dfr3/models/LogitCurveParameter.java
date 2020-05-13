@@ -10,7 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-public class CurveParameter {
+public class LogitCurveParameter {
     // parameter name / friendly name
     public String name;
 
@@ -23,10 +23,10 @@ public class CurveParameter {
     // parameter intercept default input - intercept term (X)
     public double interceptTermDefault;
 
-    public CurveParameter() {
+    public LogitCurveParameter() {
     }
 
-    public CurveParameter(String name, String unit, double coefficient, double interceptTermDefault) {
+    public LogitCurveParameter(String name, String unit, double coefficient, double interceptTermDefault) {
         this.name = name;
         this.unit = unit;
         this.coefficient = coefficient;

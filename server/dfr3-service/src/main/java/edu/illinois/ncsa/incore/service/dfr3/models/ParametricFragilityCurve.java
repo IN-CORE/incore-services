@@ -13,7 +13,7 @@ package edu.illinois.ncsa.incore.service.dfr3.models;
 import java.util.List;
 
 public class ParametricFragilityCurve extends FragilityCurve {
-    public List<CurveParameter> parameters;
+    public List<LogitCurveParameter> parameters;
     public CurveType curveType;
 
 
@@ -21,7 +21,7 @@ public class ParametricFragilityCurve extends FragilityCurve {
         super();
     }
 
-    public ParametricFragilityCurve(List<CurveParameter> parameters, CurveType curveType, String label) {
+    public ParametricFragilityCurve(List<LogitCurveParameter> parameters, CurveType curveType, String label) {
         super(label);
 
         this.parameters = parameters;
