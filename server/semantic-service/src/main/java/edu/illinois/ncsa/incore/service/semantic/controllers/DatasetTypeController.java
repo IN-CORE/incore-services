@@ -74,13 +74,14 @@ public class DatasetTypeController {
     @ApiOperation(value = "list all datasettypes belong to a namespace.")
     public Response listDatasetTypes(@ApiParam(value="Space name.", required=true)
                                          @PathParam("namespace") String namespace) {
+        // we want to limit the semantic service to admins for now
         Space space = spaceRepository.getSpaceByName(namespace);
         if (space == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
         }
         // check if user has permission to read space
         if (!authorizer.canRead(username, space.getPrivileges())) {
-            return Response.status(401).entity(username + " is not authorized to read the space " + namespace).build();
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access the space " + namespace);
         }
 
         // find intersection
@@ -89,10 +90,8 @@ public class DatasetTypeController {
             .filter(datasetType -> space.hasMember(datasetType.getObjectId("_id").toString()))
             .collect(Collectors.toList());
 
-        String serializedResults = JSON.serialize(results);
-
         if (results != null) {
-            return Response.ok(serializedResults).status(200)
+            return Response.ok(results).status(200)
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", "GET")
                 .build();
@@ -141,9 +140,7 @@ public class DatasetTypeController {
                     matchedDatasetTypeList = results;
                 }
 
-                String serializedResults = JSON.serialize(matchedDatasetTypeList);
-
-                return Response.ok(serializedResults).status(200)
+                return Response.ok(matchedDatasetTypeList).status(200)
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Access-Control-Allow-Methods", "GET")
                     .build();
@@ -189,9 +186,7 @@ public class DatasetTypeController {
                 results = new ArrayList<>();
             }
 
-            String serializedResults = JSON.serialize(results);
-
-            return Response.ok(serializedResults).status(200)
+            return Response.ok(results).status(200)
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", "GET")
                 .build();

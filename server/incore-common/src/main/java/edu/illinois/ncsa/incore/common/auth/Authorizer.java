@@ -11,9 +11,11 @@
 package edu.illinois.ncsa.incore.common.auth;
 
 import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 
+import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -183,6 +185,22 @@ public class Authorizer implements IAuthorizer {
         return membersSet.contains(memberId);
     }
 
+    public boolean isUserAdmin(String user) {
+        try {
+            LdapClient ldapClient = getLdapClient();
+            Set<String> userGroups = ldapClient.getUserGroups(user);
+
+            //if the user is an admin, they get full privileges
+            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.admins"))) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Internal server error.");
+        }
+        return false;
+    }
+
     ////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////
@@ -192,11 +210,18 @@ public class Authorizer implements IAuthorizer {
             return allowThisUser(user);
         }
         try {
-            LdapClient ldapClient = getLdapClient();
-            Set<String> userGroups = ldapClient.getUserGroups(user);
-
-            //if the user is an admin, they get full privileges
-            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.admins"))) {
+//            LdapClient ldapClient = getLdapClient();
+//            Set<String> userGroups = ldapClient.getUserGroups(user);
+//
+//            //if the user is an admin, they get full privileges
+//            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.admins"))) {
+//                HashSet<PrivilegeLevel> admin  = new HashSet<>();
+//                admin.add(PrivilegeLevel.ADMIN);
+//                admin.add(PrivilegeLevel.WRITE);
+//                admin.add(PrivilegeLevel.READ);
+//                return admin;
+//            }
+            if (isUserAdmin(user)) {
                 HashSet<PrivilegeLevel> admin  = new HashSet<>();
                 admin.add(PrivilegeLevel.ADMIN);
                 admin.add(PrivilegeLevel.WRITE);
@@ -204,7 +229,7 @@ public class Authorizer implements IAuthorizer {
                 return admin;
             }
 
-
+            Set<String> userGroups = ldapClient.getUserGroups(user);
             Set <PrivilegeLevel> privs = spec.groupPrivileges.keySet().stream()
                 .filter(userGroups::contains)
                 .map(key -> spec.groupPrivileges.get(key))
