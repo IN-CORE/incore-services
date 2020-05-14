@@ -48,6 +48,31 @@ goto fail
 :init
 @rem Get command-line arguments, handling Windowz variants
 
+@rem set system environment variables temporarily
+set SERVICES_URL="http://localhost:8080"
+set HAZARD_MONGODB_URI=""
+set MAESTRO_MONGODB_URI=""
+set DFR3_MONGODB_URI=""
+set DATA_MONGODB_URI=""
+set SPACE_MONGODB_URI=""
+set DATA_REPO_DATA_DIR="test"
+set DATA_REPO_WEBDAV_SERVER_URL="https://earthquake.ncsa.illinois.edu/"
+set DATA_REPO_WEBDAV_PROP_DIR="ergo-repo/properties/"
+set DATA_REPO_WEBDAV_DS_DIR="ergo-repo/datasets/"
+set GEOSERVER_URL="https://incore-dev-kube.ncsa.illinois.edu/geoserver/"
+set GEOSERVER_WORKSPACE="incore"
+set GEOSERVER_USER=""
+set GEOSERVER_PW=""
+set GEOSERVER_ENABLE="false"
+set AUTH_LDAP_URL="ldaps://ldap.ncsa.illinois.edu:636"
+set AUTH_LDAP_USERDN="ou=people,dc=ncsa,dc=illinois,dc=edu"
+set AUTH_LDAP_ADMINS="prj_incore"
+set AUTH_LDAP_CACHE_REFRESH_SECS="900"
+set AUTH_LDAP_VIEW_ALL="incore_viewall"
+set SERVICES_ALLOW_ORIGIN="http://localhost:3000,http://localhost:5000"
+set DATAWOLF_URL="https://incore2-datawolf.ncsa.illinois.edu/datawolf"
+set DATAWOLF_USER="incore-dw"
+
 if not "%OS%" == "Windows_NT" goto win9xME_args
 if "%@eval[2+2]" == "4" goto 4NT_args
 

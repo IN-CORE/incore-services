@@ -14,7 +14,6 @@ package edu.illinois.ncsa.incore.service.space;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import org.apache.log4j.Logger;
@@ -27,7 +26,7 @@ public class Application extends ResourceConfig {
     public Application() {
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
-        String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
+        String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
         if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }

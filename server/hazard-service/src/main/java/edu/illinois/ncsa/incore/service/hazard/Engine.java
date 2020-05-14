@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeModel;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
@@ -63,7 +62,7 @@ public class Engine {
                         // submit to datawolf to create dataset
                         // TODO - consider associating workflow executions by user, currently we associate with a generic incore-dw user
                         // TODO - create user if they don't exist
-                        String username = Config.getConfigProperties().getProperty("datawolf.user");
+                        String username = System.getenv("DATAWOLF_USER");
                         String executionId = ServiceUtil.submitCreateEarthquakeJob("a5e77b9c-5d8a-4052-b1bb-9b260a6c5102", username, "create eq", "Create earthquake dataset", job.getEqJson());
                         job.setExecutionId(executionId);
                     } else {
