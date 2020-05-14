@@ -710,11 +710,15 @@ public class EarthquakeController {
             // delete associated datasets
             if (eq != null & eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
-                ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username);
+                if (ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username) == null) {
+                    spaceRepository.addToOrphansSpace(scenarioEarthquake.getRasterDataset().getDatasetId());
+                }
             } else if (eq != null & eq instanceof EarthquakeDataset) {
                 EarthquakeDataset eqDataset = (EarthquakeDataset) eq;
                 for (HazardDataset dataset : eqDataset.getHazardDatasets()) {
-                    ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
                 }
             }
 

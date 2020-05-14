@@ -239,7 +239,9 @@ public class TsunamiController {
             if (tsunami != null & tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
                 for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
-                    ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
                 }
             }
 

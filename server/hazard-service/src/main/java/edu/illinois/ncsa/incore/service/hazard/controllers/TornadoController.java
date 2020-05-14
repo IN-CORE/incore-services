@@ -330,10 +330,15 @@ public class TornadoController {
             // delete associated datasets
             if (tornado != null & tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;
-                ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username);
+                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username) == null) {
+                    spaceRepository.addToOrphansSpace(tModel.getDatasetId());
+                }
             } else if (tornado != null & tornado instanceof TornadoDataset) {
                 TornadoDataset tDataset = (TornadoDataset) tornado;
                 ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
+                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username) == null) {
+                    spaceRepository.addToOrphansSpace(tDataset.getDatasetId());
+                }
             }
 
             Tornado deletedTornado = repository.deleteTornadoById(tornadoId); // remove tornado json

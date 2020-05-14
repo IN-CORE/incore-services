@@ -270,7 +270,9 @@ public class HurricaneController {
         if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
             //delete associated datasets
             for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
-                ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username);
+                if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                    spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                }
             }
 
             HurricaneWindfields deletedHurricane = repository.deleteHurricaneById(hurricaneId); // remove hurricane document
