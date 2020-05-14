@@ -77,6 +77,13 @@ public class MockRepository implements ISpaceRepository {
         return this.spaces.get(this.spaces.size() - 1);
     }
 
+    public Space getOrphanSpace(){
+        return getSpaceByName("orphans");
+    }
+    public Space addToOrphansSpace(String memberId){
+        return getSpaceByName("orphans");
+    }
+
     @Override
     public Space deleteSpace(String id){
         return null;
