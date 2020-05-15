@@ -18,7 +18,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.log4j.Logger;
 
-import java.net.URL;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +41,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
     private double Vs30, Sa1100;
 
     public CampbellBozorgnia2014() {
-        URL coefficientURL = CampbellBozorgnia2014.class.getResource("/hazard/earthquake/coefficients/CampbellBozorgnia2014.csv");
+        InputStream coefficientURL = CampbellBozorgnia2014.class.getResourceAsStream("/hazard/earthquake/coefficients/CampbellBozorgnia2014.csv");
         readCoefficients(coefficientURL);
     }
 

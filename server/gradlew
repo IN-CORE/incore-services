@@ -64,6 +64,8 @@ export AUTH_LDAP_ADMINS="prj_incore"
 export AUTH_LDAP_CACHE_REFRESH_SECS="900"
 export AUTH_LDAP_VIEW_ALL="incore_viewall"
 export SERVICES_ALLOW_ORIGIN="http://localhost:3000,http://localhost:5000"
+export DATAWOLF_URL="https://incore2-datawolf.ncsa.illinois.edu/datawolf"
+export DATAWOLF_USER="incore-dw"
 
 # Attempt to set APP_HOME
 # Resolve links: $0 may be a link
