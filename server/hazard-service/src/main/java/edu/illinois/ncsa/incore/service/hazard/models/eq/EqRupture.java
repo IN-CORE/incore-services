@@ -12,8 +12,6 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,12 +27,9 @@ public class EqRupture {
      */
     protected EqRupture() {
         coefficientRecords = new LinkedList<CSVRecord>();
-        URL coefficientURL = EqRupture.class.getResource("/hazard/earthquake/RuptureRegressionCoefficients.csv");
+        InputStream coefficientURL = EqRupture.class.getResourceAsStream("/hazard/earthquake/RuptureRegressionCoefficients.csv");
         CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
-        File coefficientFile = null;
-        try {
-            coefficientFile = new File(coefficientURL.toURI());
-            try (Reader csvFileReader = new FileReader(coefficientFile)) {
+            try (Reader csvFileReader = new InputStreamReader(coefficientURL)) {
                 CSVParser csvParser = new CSVParser(csvFileReader, csvFormat);
                 Iterator<CSVRecord> csvIterator = csvParser.iterator();
                 while (csvIterator.hasNext()) {
@@ -46,9 +41,6 @@ public class EqRupture {
             } catch (IOException e) {
                 log.error("Error reading rupture regression coefficients.", e);
             }
-        } catch (URISyntaxException e) {
-            log.error("Could not find rupture regression coefficients.", e);
-        }
     }
 
     /**

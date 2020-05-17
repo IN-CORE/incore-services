@@ -70,6 +70,8 @@ set AUTH_LDAP_ADMINS="prj_incore"
 set AUTH_LDAP_CACHE_REFRESH_SECS="900"
 set AUTH_LDAP_VIEW_ALL="incore_viewall"
 set SERVICES_ALLOW_ORIGIN="http://localhost:3000,http://localhost:5000"
+set DATAWOLF_URL="https://incore2-datawolf.ncsa.illinois.edu/datawolf"
+set DATAWOLF_USER="incore-dw"
 
 if not "%OS%" == "Windows_NT" goto win9xME_args
 if "%@eval[2+2]" == "4" goto 4NT_args
