@@ -260,7 +260,6 @@ public class HurricaneController {
     }
 
     @DELETE
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     @ApiOperation(value = "Deletes a Hurricane Windfield", notes = "Also deletes attached datasets and related files")

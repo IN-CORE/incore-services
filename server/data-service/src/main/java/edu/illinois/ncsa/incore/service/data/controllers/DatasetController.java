@@ -362,7 +362,6 @@ public class DatasetController {
 
 
     @DELETE
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     @ApiOperation(value = "Deletes a dataset", notes = "Also deletes attached information like files and geoserver layer")

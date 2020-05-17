@@ -699,7 +699,6 @@ public class EarthquakeController {
     }
 
     @DELETE
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     @ApiOperation(value = "Deletes an earthquake", notes = "Also deletes attached dataset and related files")
