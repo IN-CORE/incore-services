@@ -396,7 +396,7 @@ public class DatasetController {
                     }
                 }
                 // remove geoserver layer
-                if (GEOSERVER_ENABLE.equalsIgnoreCase("true")) {
+                if (Boolean.parseBoolean(GEOSERVER_ENABLE)) {
                     if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
                         // remove network dataset
                         boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
