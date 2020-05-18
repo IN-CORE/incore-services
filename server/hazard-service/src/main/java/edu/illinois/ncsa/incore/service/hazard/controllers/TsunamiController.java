@@ -235,7 +235,7 @@ public class TsunamiController {
 
         if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
             //remove associated datasets
-            if (tsunami != null & tsunami instanceof TsunamiDataset) {
+            if (tsunami != null && tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
                 for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
                     if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
