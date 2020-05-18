@@ -5,13 +5,26 @@
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
- * Omar Elabd, Nathan Tolbert
+ * Christopher Navarro, Chen Wang
  *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-public enum CurveType {
-    LogNormal,
-    Normal,
-    Logit
+import java.util.List;
+
+public class ParametricFragilityCurve extends FragilityCurve {
+    public List<LogitCurveParameter> parameters;
+    public CurveType curveType;
+
+
+    public ParametricFragilityCurve() {
+        super();
+    }
+
+    public ParametricFragilityCurve(List<LogitCurveParameter> parameters, CurveType curveType, String label) {
+        super(label);
+
+        this.parameters = parameters;
+        this.curveType = curveType;
+    }
 }
