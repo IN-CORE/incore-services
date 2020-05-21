@@ -11,7 +11,8 @@ gretty {
 repositories {
 
 	jcenter()
-	maven { url "http://repo.boundlessgeo.com/main"}
+	maven { url "https://repo.osgeo.org/repository/Geoserver-releases/"}
+        maven { url "https://mvnrepository.com/artifact/it.geosolution/"}
 	maven { url "http://dl.bintray.com/milton/Milton"}
 }
 

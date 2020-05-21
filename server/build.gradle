@@ -8,7 +8,7 @@ compileJava {
 //add dependencies for plugins needed to run the build
 buildscript {
     repositories {
-        maven { url 'http://download.osgeo.org/webdav/geotools/' }
+        maven { url 'https://repo.osgeo.org/repository/Geoserver-releases/' }
         mavenLocal()
         mavenCentral()
         jcenter()
@@ -35,12 +35,12 @@ idea {
 //  The buildscript repositories are for RUNNING the build script,
 //  This is for repositories needed to find dependencies of the projects)
 repositories {
-    maven { url 'http://download.osgeo.org/webdav/geotools/' }
+    maven { url 'https://repo.osgeo.org/repository/Geoserver-releases/' }
     mavenLocal()
     mavenCentral()
     jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    maven { url "http://repo.boundlessgeo.com/main/" }
+    maven { url "https://repo.osgeo.org/repository/Geoserver-releases/" }
 }
 
 
@@ -79,7 +79,7 @@ subprojects {
         mavenLocal()
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "http://repo.boundlessgeo.com/main/" }
+        maven { url "https://repo.osgeo.org/repository/" }
     }
 
     dependencies {
