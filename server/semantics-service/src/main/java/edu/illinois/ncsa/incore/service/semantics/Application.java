@@ -11,8 +11,8 @@ import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
-import edu.illinois.ncsa.incore.service.semantics.daos.IDatasetTypeDAO;
-import edu.illinois.ncsa.incore.service.semantics.daos.MongoDBDatasetTypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.daos.MongoDBTypeDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -30,7 +30,7 @@ public class Application extends ResourceConfig {
         }
 
         // use same instance of mongo client
-        IDatasetTypeDAO conceptDAO = new MongoDBDatasetTypeDAO(new MongoClientURI(semanticsMongodbUri));
+        ITypeDAO conceptDAO = new MongoDBTypeDAO(new MongoClientURI(semanticsMongodbUri));
         conceptDAO.initialize();
 
         String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
@@ -46,7 +46,7 @@ public class Application extends ResourceConfig {
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                super.bind(conceptDAO).to(IDatasetTypeDAO.class);
+                super.bind(conceptDAO).to(ITypeDAO.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }

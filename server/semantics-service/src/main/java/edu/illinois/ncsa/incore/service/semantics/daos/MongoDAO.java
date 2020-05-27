@@ -16,7 +16,7 @@ import com.mongodb.client.MongoCollection;
 
 public abstract class MongoDAO {
     protected MongoClientURI mongoClientURI;
-    protected MongoCollection dataStoreDatasetType;
+    protected MongoCollection dataStoreType;
     protected String databaseName;
 
     public MongoDAO(MongoClientURI mongoClientURI) {
@@ -26,12 +26,12 @@ public abstract class MongoDAO {
 
     public void initializeDataStore() {
         MongoClient client = new MongoClient(mongoClientURI);
-        this.dataStoreDatasetType = client.getDatabase(databaseName).getCollection("DatasetType");
+        this.dataStoreType = client.getDatabase(databaseName).getCollection("Type");
         // TODO: this.dataStoreDataType = client.getDatabase(databaseName).getCollection("DataType");
     }
 
-    public MongoCollection getDataStoreDatasetType() {
-        return this.dataStoreDatasetType;
+    public MongoCollection getDataStoreType() {
+        return this.dataStoreType;
     }
 
 

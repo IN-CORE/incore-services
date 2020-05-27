@@ -5,7 +5,7 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
-import edu.illinois.ncsa.incore.service.semantics.daos.IDatasetTypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -20,7 +20,7 @@ import org.bson.Document;
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Semantics Services for dataset type and data type",
+        description = "IN-CORE Semantics Services for type and data type",
         version = "v0.3.0",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
@@ -48,7 +48,7 @@ public class TypeController {
     private Authorizer authorizer;
 
     @Inject
-    private IDatasetTypeDAO datasetTypeDAO;
+    private ITypeDAO typeDAO;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -69,10 +69,10 @@ public class TypeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "list all types belong user has access to.")
     public Response listTypes(){
-        List<Document> datasetTypeList = this.datasetTypeDAO.getDatasetTypes();
+        List<Document> typeList = this.typeDAO.getTypes();
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-        //return the intersection between all datasets and the ones the user can read
-        List<Document> results = datasetTypeList.stream()
+        //return the intersection between all types and the ones the user can read
+        List<Document> results = typeList.stream()
             .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
             .collect(Collectors.toList());
 
@@ -86,7 +86,7 @@ public class TypeController {
     @GET
     @Path("types/{uri}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value="Show specific datasettypes by uri.")
+    @ApiOperation(value="Show specific types by uri.")
     public Response getType(
         @ApiParam(value = "Type uri (name).", required = true) @PathParam("uri") String uri,
         @ApiParam(value = "version number.") @QueryParam("version") String version) {
@@ -94,49 +94,49 @@ public class TypeController {
             version = "latest";
         }
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-        Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.getDatasetTypeByUri(uri, version);
+        Optional<List<Document>> typeList = this.typeDAO.getTypeByUri(uri, version);
 
-        if (datasetTypeList.isPresent()) {
+        if (typeList.isPresent()) {
             // make sure that uri is in the namespace
-            List<Document> results = datasetTypeList.get().stream()
+            List<Document> results = typeList.get().stream()
                 .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
-            List<Document> matchedDatasetTypeList;
+            List<Document> matchedTypeList;
 
             // find the latest
             if (version.equals("latest")) {
                 Optional<Document> latestMatched = results.stream()
                     .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
-                if (latestMatched.isPresent()) { matchedDatasetTypeList = new ArrayList<Document>() {{ add(latestMatched.get()); }}; }
-                else { matchedDatasetTypeList = new ArrayList<>(); }
+                if (latestMatched.isPresent()) { matchedTypeList = new ArrayList<Document>() {{ add(latestMatched.get()); }}; }
+                else { matchedTypeList = new ArrayList<>(); }
             }
             else{
-                matchedDatasetTypeList = results;
+                matchedTypeList = results;
             }
 
-            return Response.ok(matchedDatasetTypeList).status(200)
+            return Response.ok(matchedTypeList).status(200)
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", "GET")
                 .build();
 
         } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the datasettype " + uri + " version " + version + " !");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + uri + " version " + version + " !");
         }
     }
 
     @GET
     @Path("types/search")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value="Search dataset type by partial match of datasettype.")
+    @ApiOperation(value="Search type by partial match of type.")
     public Response searchType(
-        @ApiParam(value = "Dataset type uri (name).") @QueryParam("datasettype") String datasettype) {
+        @ApiParam(value = "Type uri (name).") @QueryParam("type") String type) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-        Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.searchDatasetType(datasettype);
+        Optional<List<Document>> typeList = this.typeDAO.searchType(type);
         List<Document> results;
-        if (datasetTypeList.isPresent()) {
-            results = datasetTypeList.get().stream()
-                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+        if (typeList.isPresent()) {
+            results = typeList.get().stream()
+                .filter(t -> userMembersSet.contains(t.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();
@@ -152,12 +152,12 @@ public class TypeController {
     @Path("/type")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value="Publish new datasetType.")
+    @ApiOperation(value="Publish new type.")
     public Response publishType(
-        @ApiParam(value = "Dataset type uri (name).") Document datasetType) {
+        @ApiParam(value = "Type uri (name).") Document type) {
         Space space = spaceRepository.getSpaceByName(this.username);
 
-        String id = this.datasetTypeDAO.postDatasetType(datasetType);
+        String id = this.typeDAO.postType(type);
 
         // add id to matching space
         space.addMember(id);
@@ -173,10 +173,10 @@ public class TypeController {
     @DELETE
     @Path("type/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete datasetType by id.")
+    @ApiOperation(value = "Delete type by id.")
     public Response deleteType(
-        @ApiParam(value = "Dataset type id.") @PathParam("id") String id) {
-        String deletedId = this.datasetTypeDAO.deleteDatasetType(id);
+        @ApiParam(value = "Type id.") @PathParam("id") String id) {
+        String deletedId = this.typeDAO.deleteType(id);
         if (deletedId == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with id " + id);
         }
