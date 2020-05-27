@@ -1,7 +1,6 @@
 package edu.illinois.ncsa.incore.service.semantics.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
-import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -21,9 +20,9 @@ import org.bson.Document;
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Semantic Services for dataset type and data type",
+        description = "IN-CORE Semantics Services for dataset type and data type",
         version = "v0.3.0",
-        title = "IN-CORE v2 Semantic Service API",
+        title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
@@ -58,7 +57,7 @@ public class DatasetTypeController {
     public DatasetTypeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
-        // we want to limit the semantic service to admins for now
+        // we want to limit the semantics service to admins for now
         this.authorizer = new Authorizer();
         if (!this.authorizer.isUserAdmin(this.username)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
