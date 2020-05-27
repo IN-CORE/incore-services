@@ -41,7 +41,7 @@ import org.bson.Document;
 @Api(value = "types", authorizations = {})
 
 @Path("")
-public class DatasetTypeController {
+public class TypeController {
 
     private String username;
 
@@ -54,7 +54,7 @@ public class DatasetTypeController {
     private ISpaceRepository spaceRepository;
 
     @Inject
-    public DatasetTypeController(
+    public TypeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
         // we want to limit the semantics service to admins for now
@@ -68,7 +68,7 @@ public class DatasetTypeController {
     @Path("types")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "list all types belong user has access to.")
-    public Response listDatasetTypes(){
+    public Response listTypes(){
         List<Document> datasetTypeList = this.datasetTypeDAO.getDatasetTypes();
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
         //return the intersection between all datasets and the ones the user can read
@@ -87,7 +87,7 @@ public class DatasetTypeController {
     @Path("types/{uri}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value="Show specific datasettypes by uri.")
-    public Response getDatasetType(
+    public Response getType(
         @ApiParam(value = "Type uri (name).", required = true) @PathParam("uri") String uri,
         @ApiParam(value = "version number.") @QueryParam("version") String version) {
         if (version == null) {
@@ -128,7 +128,7 @@ public class DatasetTypeController {
     @Path("types/search")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value="Search dataset type by partial match of datasettype.")
-    public Response searchDatasetType(
+    public Response searchType(
         @ApiParam(value = "Dataset type uri (name).") @QueryParam("datasettype") String datasettype) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
@@ -153,7 +153,7 @@ public class DatasetTypeController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value="Publish new datasetType.")
-    public Response publishDatasetType(
+    public Response publishType(
         @ApiParam(value = "Dataset type uri (name).") Document datasetType) {
         Space space = spaceRepository.getSpaceByName(this.username);
 
@@ -174,11 +174,14 @@ public class DatasetTypeController {
     @Path("type/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete datasetType by id.")
-    public Response deleteDatasetType(
+    public Response deleteType(
         @ApiParam(value = "Dataset type id.") @PathParam("id") String id) {
         String deletedId = this.datasetTypeDAO.deleteDatasetType(id);
+        if (deletedId == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with id " + id);
+        }
 
-        // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permisssions to delete
+        // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permissions to delete
         // remove id from spaces
         List<Space> spaces = spaceRepository.getAllSpaces();
         for (Space space : spaces) {
