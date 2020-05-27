@@ -46,7 +46,7 @@ public class DatasetTypeController {
 
     private String username;
 
-    private Set<String> userMembersSet;
+    private Authorizer authorizer;
 
     @Inject
     private IDatasetTypeDAO datasetTypeDAO;
@@ -54,18 +54,15 @@ public class DatasetTypeController {
     @Inject
     private ISpaceRepository spaceRepository;
 
-    private IAuthorizer authorizer;
-
     @Inject
     public DatasetTypeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
         // we want to limit the semantic service to admins for now
         this.authorizer = new Authorizer();
-        if (!authorizer.isUserAdmin(this.username)) {
+        if (!this.authorizer.isUserAdmin(this.username)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
         }
-        this.userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
     }
 
     @GET
@@ -74,10 +71,10 @@ public class DatasetTypeController {
     @ApiOperation(value = "list all types belong user has access to.")
     public Response listDatasetTypes(){
         List<Document> datasetTypeList = this.datasetTypeDAO.getDatasetTypes();
-
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
         //return the intersection between all datasets and the ones the user can read
         List<Document> results = datasetTypeList.stream()
-            .filter(type -> this.userMembersSet.contains(type.getObjectId("_id").toString()))
+            .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
             .collect(Collectors.toList());
 
         return Response.ok(results).status(200)
@@ -97,13 +94,13 @@ public class DatasetTypeController {
         if (version == null) {
             version = "latest";
         }
-
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
         Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.getDatasetTypeByUri(uri, version);
 
         if (datasetTypeList.isPresent()) {
             // make sure that uri is in the namespace
             List<Document> results = datasetTypeList.get().stream()
-                .filter(type -> this.userMembersSet.contains(type.getObjectId("_id").toString()))
+                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
             List<Document> matchedDatasetTypeList;
 
@@ -134,13 +131,13 @@ public class DatasetTypeController {
     @ApiOperation(value="Search dataset type by partial match of datasettype.")
     public Response searchDatasetType(
         @ApiParam(value = "Dataset type uri (name).") @QueryParam("datasettype") String datasettype) {
-        Space space = null;
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
         Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.searchDatasetType(datasettype);
         List<Document> results;
         if (datasetTypeList.isPresent()) {
             results = datasetTypeList.get().stream()
-                .filter(type -> this.userMembersSet.contains(type.getObjectId("_id").toString()))
+                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();
@@ -182,17 +179,15 @@ public class DatasetTypeController {
         @ApiParam(value = "Dataset type id.") @PathParam("id") String id) {
         String deletedId = this.datasetTypeDAO.deleteDatasetType(id);
 
-        if (authorizer.canUserDeleteMember(this.username, deletedId, spaceRepository.getAllSpaces())) {
-            // remove id from spaces
-            List<Space> spaces = spaceRepository.getAllSpaces();
-            for (Space space : spaces) {
-                if (space.hasMember(deletedId)) {
-                    space.removeMember(deletedId);
-                    spaceRepository.addSpace(space);
-                }
+        // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permisssions to delete
+        // remove id from spaces
+        List<Space> spaces = spaceRepository.getAllSpaces();
+        for (Space space : spaces) {
+            if (space.hasMember(deletedId)) {
+                space.removeMember(deletedId);
+                spaceRepository.addSpace(space);
             }
         }
-
         return Response.ok(deletedId).status(200)
             .header("Access-Control-Allow-Origin", "*")
             .header("Access-Control-Allow-Methods", "GET")
