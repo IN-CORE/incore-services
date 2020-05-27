@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.semantic.model;
+package edu.illinois.ncsa.incore.service.semantics.model;
 
 import org.mongodb.morphia.annotations.Embedded;
 import java.util.List;

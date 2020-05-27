@@ -8,7 +8,7 @@
  * Omar Elabd
  */
 
-package edu.illinois.ncsa.incore.service.semantic.daos;
+package edu.illinois.ncsa.incore.service.semantics.daos;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;

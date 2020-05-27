@@ -1,20 +1,18 @@
-package edu.illinois.ncsa.incore.service.semantic.controllers;
+package edu.illinois.ncsa.incore.service.semantics.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
-import edu.illinois.ncsa.incore.service.semantic.daos.IDatasetTypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.daos.IDatasetTypeDAO;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import io.swagger.annotations.*;
@@ -41,12 +39,14 @@ import org.bson.Document;
     schemes = {SwaggerDefinition.Scheme.HTTP}
 )
 
-@Api(value = "datasettypes", authorizations = {})
+@Api(value = "types", authorizations = {})
 
 @Path("")
 public class DatasetTypeController {
 
     private String username;
+
+    private Set<String> userMembersSet;
 
     @Inject
     private IDatasetTypeDAO datasetTypeDAO;
@@ -54,58 +54,48 @@ public class DatasetTypeController {
     @Inject
     private ISpaceRepository spaceRepository;
 
+    private IAuthorizer authorizer;
+
     @Inject
     public DatasetTypeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
         // we want to limit the semantic service to admins for now
-        Authorizer authorizer = new Authorizer();
+        this.authorizer = new Authorizer();
         if (!authorizer.isUserAdmin(this.username)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
         }
+        this.userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
     }
 
     @GET
-    @Path("/spaces/{namespace}/datasettypes")
+    @Path("types")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "list all datasettypes belong to a namespace.")
-    public Response listDatasetTypes(@ApiParam(value="Space name.", required=true)
-                                         @PathParam("namespace") String namespace) {
-        Space space = spaceRepository.getSpaceByName(namespace);
-        if (space == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
-        }
-        // find intersection
+    @ApiOperation(value = "list all types belong user has access to.")
+    public Response listDatasetTypes(){
         List<Document> datasetTypeList = this.datasetTypeDAO.getDatasetTypes();
+
+        //return the intersection between all datasets and the ones the user can read
         List<Document> results = datasetTypeList.stream()
-            .filter(datasetType -> space.hasMember(datasetType.getObjectId("_id").toString()))
+            .filter(type -> this.userMembersSet.contains(type.getObjectId("_id").toString()))
             .collect(Collectors.toList());
 
-        if (results != null) {
-            return Response.ok(results).status(200)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET")
-                .build();
-        } else {
-            return Response.status(404).entity("No datasettypes in this space!").build();
-        }
+        return Response.ok(results).status(200)
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "GET")
+            .build();
+
     }
 
     @GET
-    @Path("/spaces/{namespace}/datasettypes/{uri}")
+    @Path("types/{uri}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value="Show specific datasettypes by uri.")
     public Response getDatasetType(
-        @ApiParam(value = "Space name.", required = true) @PathParam("namespace") String namespace,
-        @ApiParam(value = "datasettype uri (name).", required = true) @PathParam("uri") String uri,
+        @ApiParam(value = "Type uri (name).", required = true) @PathParam("uri") String uri,
         @ApiParam(value = "version number.") @QueryParam("version") String version) {
         if (version == null) {
             version = "latest";
-        }
-
-        Space space = spaceRepository.getSpaceByName(namespace);
-        if (space == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
         }
 
         Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.getDatasetTypeByUri(uri, version);
@@ -113,9 +103,8 @@ public class DatasetTypeController {
         if (datasetTypeList.isPresent()) {
             // make sure that uri is in the namespace
             List<Document> results = datasetTypeList.get().stream()
-                .filter(dType -> space.hasMember(dType.getObjectId("_id").toString()))
+                .filter(type -> this.userMembersSet.contains(type.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
-
             List<Document> matchedDatasetTypeList;
 
             // find the latest
@@ -140,26 +129,18 @@ public class DatasetTypeController {
     }
 
     @GET
-    @Path("/spaces/{namespace}/datasettypes/search")
+    @Path("types/search")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value="Search dataset type by partial match of datasettype.")
     public Response searchDatasetType(
-        @ApiParam(value = "Space name.", required = true) @PathParam("namespace") String namespace,
         @ApiParam(value = "Dataset type uri (name).") @QueryParam("datasettype") String datasettype) {
-        if (datasettype == null) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The parameter \"datasettype\" is required!");
-        }
-
-        Space space = spaceRepository.getSpaceByName(namespace);
-        if (space == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
-        }
+        Space space = null;
 
         Optional<List<Document>> datasetTypeList = this.datasetTypeDAO.searchDatasetType(datasettype);
         List<Document> results;
         if (datasetTypeList.isPresent()) {
             results = datasetTypeList.get().stream()
-                .filter(dType -> space.hasMember(dType.getObjectId("_id").toString()))
+                .filter(type -> this.userMembersSet.contains(type.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();
@@ -172,17 +153,13 @@ public class DatasetTypeController {
     }
 
     @POST
-    @Path("/spaces/{namespace}/datasettype")
+    @Path("/type")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value="Publish new datasetType.")
     public Response publishDatasetType(
-        @ApiParam(value = "Space name.") @PathParam("namespace") String namespace,
         @ApiParam(value = "Dataset type uri (name).") Document datasetType) {
-        Space space = spaceRepository.getSpaceByName(namespace);
-        if (space == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
-        }
+        Space space = spaceRepository.getSpaceByName(this.username);
 
         String id = this.datasetTypeDAO.postDatasetType(datasetType);
 
@@ -198,23 +175,23 @@ public class DatasetTypeController {
     }
 
     @DELETE
-    @Path("/spaces/{namespace}/datasettypeId/{id}")
+    @Path("type/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete datasetType by id.")
     public Response deleteDatasetType(
-        @ApiParam(value = "User credentials.") @HeaderParam("X-Credential-Username") String username,
-        @ApiParam(value = "Space name.") @PathParam("namespace") String namespace,
         @ApiParam(value = "Dataset type id.") @PathParam("id") String id) {
-        Space space = spaceRepository.getSpaceByName(namespace);
-        if (space == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No space was found with the name " + namespace);
-        }
-
         String deletedId = this.datasetTypeDAO.deleteDatasetType(id);
 
-        // remove id in the matching space
-        space.removeMember(deletedId);
-        spaceRepository.addSpace(space);
+        if (authorizer.canUserDeleteMember(this.username, deletedId, spaceRepository.getAllSpaces())) {
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(deletedId)) {
+                    space.removeMember(deletedId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+        }
 
         return Response.ok(deletedId).status(200)
             .header("Access-Control-Allow-Origin", "*")

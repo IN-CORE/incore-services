@@ -4,15 +4,15 @@
  * terms of the Mozilla Public License v2.0 which accompanies this distribution,
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.semantic;
+package edu.illinois.ncsa.incore.service.semantics;
 
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
-import edu.illinois.ncsa.incore.service.semantic.daos.IDatasetTypeDAO;
-import edu.illinois.ncsa.incore.service.semantic.daos.MongoDBDatasetTypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.daos.IDatasetTypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.daos.MongoDBDatasetTypeDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -24,7 +24,7 @@ public class Application extends ResourceConfig {
         String semanticsMongodbUri = "mongodb://localhost:27017/semanticsdb";
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
-        String semanticsMongodbUriProp = System.getenv("SEMANTIC_MONGODB_URI");
+        String semanticsMongodbUriProp = System.getenv("SEMANTICS_MONGODB_URI");
         if (semanticsMongodbUriProp != null && !semanticsMongodbUriProp.isEmpty()) {
             semanticsMongodbUri = semanticsMongodbUriProp;
         }

@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.semantic.controllers;
+package edu.illinois.ncsa.incore.service.semantics.controllers;
 
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;

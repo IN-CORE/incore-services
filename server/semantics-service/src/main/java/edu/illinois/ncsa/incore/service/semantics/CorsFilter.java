@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.semantic;
+package edu.illinois.ncsa.incore.service.semantics;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class CorsFilter implements ContainerResponseFilter {
     @Override
-    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
         MultivaluedMap<String, Object> headers = responseContext.getHeaders();
 
         // if header origin is in the allowed origin list; add it to access-control-allow-origin header

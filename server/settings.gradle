@@ -7,6 +7,6 @@ include "hazard-service"
 include "maestro-service"
 include 'incore-common'
 include "semantic-core"
-include 'semantic-service'
+include 'semantics-service'
 include 'space-service'
 
