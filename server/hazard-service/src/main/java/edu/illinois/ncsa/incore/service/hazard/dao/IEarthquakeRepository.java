@@ -21,6 +21,8 @@ public interface IEarthquakeRepository {
 
     Earthquake addEarthquake(Earthquake earthquake);
 
+    Earthquake deleteEarthquakeById(String id);
+
     List<Earthquake> getEarthquakes();
 
     List<Earthquake> searchEarthquakes(String text);

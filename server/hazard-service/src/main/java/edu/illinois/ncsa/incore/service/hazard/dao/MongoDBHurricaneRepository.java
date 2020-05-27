@@ -18,7 +18,10 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class MongoDBHurricaneRepository implements IHurricaneRepository {
     private String hostUri;
@@ -66,6 +69,17 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     public HurricaneWindfields addHurricane(HurricaneWindfields hurricane) {
         String id = this.dataStore.save(hurricane).getId().toString();
         return getHurricaneById(id);
+    }
+
+    @Override
+    public HurricaneWindfields deleteHurricaneById(String id) {
+        HurricaneWindfields hurricane = this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
+        if (hurricane != null) {
+            Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        }
+        return null;
     }
 
     @Override

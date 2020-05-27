@@ -8,6 +8,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.apache.log4j.Logger;
@@ -50,6 +51,11 @@ public class MockTsunamiRepository implements ITsunamiRepository {
 
     @Override
     public Tsunami addTsunami(Tsunami tsunami) {
+        return null;
+    }
+
+    @Override
+    public Tsunami deleteTsunamiById(String id) {
         return null;
     }
 

@@ -59,6 +59,11 @@ public class MockTornadoRepository implements ITornadoRepository {
     }
 
     @Override
+    public Tornado deleteTornadoById(String id) {
+        return null;
+    }
+
+    @Override
     public List<Tornado> getTornadoes() {
         System.out.println(this.tornadoes.size());
         return this.tornadoes;

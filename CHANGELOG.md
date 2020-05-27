@@ -10,7 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Enable cors for dfr3 services and a new property was added to list the allowed cross origin domains [INCORE1-585](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-585)
-- Initial implementation of semantics service restricted to admin users [INCORE1-571](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-571)
+- Add DFR3 support for conditional and parametric fragilities [INCORE1-527](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-527)
+- Initial framework for moving long running object creation tasks outside of the hazard service [INCORE1-514](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-514)
+- DELETE endpoints for all hazards [INCORE1-560](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-560)
+- - Initial implementation of semantics service restricted to admin users [INCORE1-571](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-571)
 
 ### Updated
 - Application properties are now initialized by system environment variables [INCORE1-587](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-587)

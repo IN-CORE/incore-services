@@ -20,8 +20,6 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 
 public abstract class BaseAttenuation {
@@ -57,10 +55,12 @@ public abstract class BaseAttenuation {
      */
     public abstract double getValue(String period, Site site) throws Exception;
 
-    /** Returns standard deviation by combining all the applicable uncertainties
+    /**
+     * Returns standard deviation by combining all the applicable uncertainties
+     *
      * @param median_hazard median hazard value
-     * @param period demand types such as PGA, 0.2 SA, 0.3 SA, 1.0 SA etc.
-     * @param site site location
+     * @param period        demand types such as PGA, 0.2 SA, 0.3 SA, 1.0 SA etc.
+     * @param site          site location
      * @return
      * @throws Exception
      */
@@ -86,8 +86,8 @@ public abstract class BaseAttenuation {
 
     /**
      * @param combinedHazard hazard value of all the combined attenuation models
-     * @param period demand types such as PGA, 0.2 SA, 0.3 SA, 1.0 SA etc.
-     * @param site site location
+     * @param period         demand types such as PGA, 0.2 SA, 0.3 SA, 1.0 SA etc.
+     * @param site           site location
      * @return Log Standard deviation of the model specific hazard value from the combined models' hazard value
      * @throws Exception
      */
@@ -97,50 +97,45 @@ public abstract class BaseAttenuation {
         return epistemicVariance;
     }
 
-    public void readCoefficients(URL fileURL) {
+    public void readCoefficients(InputStream is) {
         hazardOutputTypes = new LinkedList<String>();
         coefficients = new HashMap<String, List<Double>>();
 
-        try {
-            File coefficientFile = new File(fileURL.toURI());
-            CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
+        CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
 
-            try (Reader csvFileReader = new FileReader(coefficientFile)) {
-                CSVParser csvParser = new CSVParser(csvFileReader, csvFormat);
-                Iterator<CSVRecord> csvIterator = csvParser.iterator();
-                List<Double> coeff = null;
-                while (csvIterator.hasNext()) {
-                    CSVRecord csvLine = csvIterator.next();
-                    String period = csvLine.get(1);
-                    coeff = new LinkedList<Double>();
-                    for (int column = 2; column < csvLine.size(); column++) {
-                        coeff.add(Double.parseDouble(csvLine.get(column)));
-                    }
+        try (Reader csvFileReader = new InputStreamReader(is)) {
+            CSVParser csvParser = new CSVParser(csvFileReader, csvFormat);
+            Iterator<CSVRecord> csvIterator = csvParser.iterator();
+            List<Double> coeff = null;
+            while (csvIterator.hasNext()) {
+                CSVRecord csvLine = csvIterator.next();
+                String period = csvLine.get(1);
+                coeff = new LinkedList<Double>();
+                for (int column = 2; column < csvLine.size(); column++) {
+                    coeff.add(Double.parseDouble(csvLine.get(column)));
+                }
 
-                    coefficients.put(period, coeff);
+                coefficients.put(period, coeff);
 
-                    try {
-                        // if we get an exception, we know that the period was PGA, PGV,
-                        // or PGD and not an Sa value
-                        Double.parseDouble(period);
-                        period += " Sa"; //$NON-NLS-1$
-                    } catch (NumberFormatException nfe) {
-
-                    }
-
-                    if (!hazardOutputTypes.contains(period)) {
-                        hazardOutputTypes.add(period);
-                    }
+                try {
+                    // if we get an exception, we know that the period was PGA, PGV,
+                    // or PGD and not an Sa value
+                    Double.parseDouble(period);
+                    period += " Sa"; //$NON-NLS-1$
+                } catch (NumberFormatException nfe) {
 
                 }
 
-            } catch (FileNotFoundException e) {
-                logger.error("Could not find coefficient file for attenuation.", e);
-            } catch (IOException e) {
-                logger.error("Could not read cofficient file for attenuation.", e);
+                if (!hazardOutputTypes.contains(period)) {
+                    hazardOutputTypes.add(period);
+                }
+
             }
-        } catch (URISyntaxException e) {
-            logger.error("Error parsing coefficients file for attenuation", e);
+
+        } catch (FileNotFoundException e) {
+            logger.error("Could not find coefficient file for attenuation.", e);
+        } catch (IOException e) {
+            logger.error("Could not read cofficient file for attenuation.", e);
         }
 
 

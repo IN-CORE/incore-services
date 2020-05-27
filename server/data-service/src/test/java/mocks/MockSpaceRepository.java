@@ -73,6 +73,16 @@ public class MockSpaceRepository implements ISpaceRepository {
     }
 
     @Override
+    public Space getOrphanSpace(){
+        return getSpaceByName("orphans");
+    }
+
+    @Override
+    public Space addToOrphansSpace(String memberId){
+        return getSpaceByName("orphans");
+    }
+
+    @Override
     public Space deleteSpace(String id) {
         return null;
     }

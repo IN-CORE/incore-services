@@ -9,15 +9,21 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -29,8 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class ServiceUtil {
 
@@ -323,6 +328,245 @@ public class ServiceUtil {
         return dataEndpoint;
     }
 
+    public static String submitCreateEarthquakeJob(String workflowId, String creator, String title, String description, String eqJson) {
+        JSONObject submission = new JSONObject();
+        submission.put("workflowId", workflowId);
+        submission.put("title", title);
+        // TODO replace this with a call to datawolf to fetch the creator ID associated with the creator
+        submission.put("creatorId", "6140eada-2784-44bd-b40e-31096392163e");
+        submission.put("description", description);
+
+        File incoreWorkDirectory = null;
+        try {
+            incoreWorkDirectory = File.createTempFile("incore", ".dir");
+            incoreWorkDirectory.delete();
+            incoreWorkDirectory.mkdirs();
+
+            File eqJsonFile = new File(incoreWorkDirectory, "eq-model.json");
+
+            FileOutputStream fileOutputStream = new FileOutputStream(eqJsonFile);
+            byte[] contentBytes = eqJson.getBytes();
+            fileOutputStream.write(contentBytes);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
+            String datasetId = uploadWorkflowDataset("eq-model", "eq model json", eqJsonFile, creator);
+            JSONObject datasets = new JSONObject();
+            datasets.put("9f80ea38-14b1-46b0-b943-faa5b24914ed", datasetId);
+            submission.put("datasets", datasets);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return submitWorkflowJob(submission);
+    }
+
+    public static String uploadWorkflowDataset(String title, String description, File file, String creator) {
+        String requestUrl = getDataWolfService() + "datasets";
+        HttpPost post = new HttpPost(requestUrl);
+        HttpClientBuilder builder = HttpClientBuilder.create();
+
+        try {
+            HttpClient client = builder.build();
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+
+            entityBuilder.addBinaryBody("uploadedFile", file);
+            entityBuilder.addTextBody("useremail", creator);
+            entityBuilder.addTextBody("description", description);
+            entityBuilder.addTextBody("title", title);
+
+            HttpEntity entity = entityBuilder.build();
+            post.setEntity(entity);
+            HttpResponse response = client.execute(post);
+
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                StringBuffer result = new StringBuffer();
+                String line = null;
+                while ((line = rd.readLine()) != null) {
+                    result.append(line);
+                }
+
+                return result.toString();
+            }
+
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static String submitWorkflowJob(JSONObject submission) {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = getDataWolfService() + "executions";
+        HttpPost httpPost = new HttpPost(requestUrl);
+
+        String json = null;
+        try {
+            json = submission.toString();
+
+            StringEntity input = new StringEntity(json);
+            input.setContentType("application/json");
+
+            httpPost.setEntity(input);
+
+            HttpResponse response = null;
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseStr = null;
+
+            response = httpclient.execute(httpPost);
+            responseStr = responseHandler.handleResponse(response);
+
+            logger.debug("Job submission HTTP response: "+response);
+            logger.debug("Execution ID: "+responseStr);
+            return responseStr;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static Map<String, String> getWorkflowJobStatus(String executionId) {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = getDataWolfService() + "executions" + "/" + executionId + "/" + "state";
+        HttpGet httpGet = new HttpGet(requestUrl);
+
+        try {
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseStr = null;
+
+            HttpResponse response = httpclient.execute(httpGet);
+            responseStr = responseHandler.handleResponse(response);
+
+            logger.debug("Job status HTTP response: "+response);
+            logger.debug("Job status: "+responseStr);
+
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> jobStatusMap = mapper.readValue(responseStr, Map.class);
+            return jobStatusMap;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static Map<String, String> getWorkflowOutputs(String executionId, List<String> datasetIds) {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = getDataWolfService() + "executions" + "/" + executionId;
+        HttpGet httpGet = new HttpGet(requestUrl);
+        Map<String, String> datasetMap = new HashMap<>();
+        try {
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseStr = null;
+
+            HttpResponse response = httpclient.execute(httpGet);
+            responseStr = responseHandler.handleResponse(response);
+
+            logger.debug("Get execution HTTP response: "+response);
+            logger.debug("Get execution json: "+responseStr);
+
+            JSONObject execution = new JSONObject(responseStr);
+            JSONObject datasetObj = (JSONObject)execution.get("datasets");
+
+            for(String datasetId : datasetIds) {
+                String outputDatasetId = datasetObj.getString(datasetId);
+                datasetMap.put(datasetId, outputDatasetId);
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return datasetMap;
+    }
+
+    public static List<File> getWorkflowDatasetFiles(String datasetId) {
+        List<File> files = new LinkedList<>();
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = getDataWolfService() + "datasets" + "/" + datasetId;
+        HttpGet httpGet = new HttpGet(requestUrl);
+
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseStr = null;
+
+        HttpResponse response = null;
+        try {
+            response = httpclient.execute(httpGet);
+            responseStr = responseHandler.handleResponse(response);
+
+            logger.debug("Job dataset HTTP response: "+response);
+            logger.debug("Job dataset object: "+responseStr);
+
+            JSONObject dataset = new JSONObject(responseStr);
+            JSONArray fileDescriptors = (JSONArray)dataset.get("fileDescriptors");
+            File incoreWorkDirectory = File.createTempFile("incore", ".dir");
+
+            incoreWorkDirectory.delete();
+            incoreWorkDirectory.mkdirs();
+
+            // Get dataset files - these needs to be generalized
+            for(int index = 0; index < fileDescriptors.length(); index++) {
+                JSONObject fileDescriptor = fileDescriptors.getJSONObject(index);
+                String descriptorId = fileDescriptor.getString("id");
+                String filename = fileDescriptor.getString("filename");
+                requestUrl = getDataWolfService() + "datasets" + "/" + datasetId + "/" + descriptorId + "/" + "file";
+
+                HttpGet httpGetFile = new HttpGet(requestUrl);
+                HttpResponse fileResponse = httpclient.execute(httpGetFile);
+
+                BufferedInputStream is = new BufferedInputStream(fileResponse.getEntity().getContent());
+                File file = new File(incoreWorkDirectory, filename);
+
+                BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+                int bytes;
+                while ((bytes = is.read()) != -1) {
+                    os.write(bytes);
+                }
+
+                is.close();
+                os.close();
+
+                files.add(file);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return files;
+    }
+
     public static String createDataset(String title, String creator, String description, String datasetType) throws IOException {
         String dataEndpoint = getDataServiceEndpoint();
 
@@ -428,6 +672,40 @@ public class ServiceUtil {
         logger.debug("Attach file response " + responseStr);
     }
 
+    public static String deleteDataset(String datasetId, String user) {
+        String dataEndpoint = getDataServiceEndpoint();
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT + "/" + datasetId;
+
+        HttpDelete httpDel = new HttpDelete(requestUrl);
+        httpDel.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + user + "\"}");
+
+        HttpResponse response = null;
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseStr = null;
+
+        try {
+            response = httpclient.execute(httpDel);
+            responseStr = responseHandler.handleResponse(response);
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if (statusCode == HttpStatus.SC_OK) {
+                JSONObject object = new JSONObject(responseStr);
+
+                String retDatasetId = object.getString("id");
+                return retDatasetId;
+            } else {
+                logger.error("Deleting dataset " + datasetId + " failed with status code " + statusCode);
+            }
+        } catch (Exception ex) {
+            logger.error("Error deleting the dataset " + datasetId, ex);
+        }
+        return null;
+    }
+
     public static File getWorkDirectory() {
         File incoreWorkDirectory = null;
         try {
@@ -451,4 +729,20 @@ public class ServiceUtil {
         }
         return cacheDir;
     }
+
+    /**
+     * DataWolf Service Endpoint
+     * @return
+     */
+    public static String getDataWolfService() {
+        String dwurl = System.getenv("DATAWOLF_URL");
+        if (dwurl != null && !dwurl.isEmpty()) {
+            if (!dwurl.endsWith("/")) {
+                dwurl += "/";
+            }
+        }
+
+        return dwurl;
+    }
+
 }

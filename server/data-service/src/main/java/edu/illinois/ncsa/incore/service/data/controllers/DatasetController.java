@@ -362,7 +362,6 @@ public class DatasetController {
 
 
     @DELETE
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     @ApiOperation(value = "Deletes a dataset", notes = "Also deletes attached information like files and geoserver layer")
@@ -397,15 +396,16 @@ public class DatasetController {
                     }
                 }
                 // remove geoserver layer
-                if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                    // remove network dataset
-                    boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
-                    boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
-                    boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
-                } else {
-                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                if (Boolean.parseBoolean(GEOSERVER_ENABLE)) {
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                        // remove network dataset
+                        boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
+                        boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
+                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
+                    } else {
+                        boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                    }
                 }
-
             }
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the dataset " +datasetId);

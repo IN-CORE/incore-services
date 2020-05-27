@@ -39,6 +39,11 @@ public class MockRepository implements IEarthquakeRepository {
     }
 
     @Override
+    public Earthquake deleteEarthquakeById(String id) {
+        return null;
+    }
+
+    @Override
     public List<Earthquake> getEarthquakes() {
         return null;
     }

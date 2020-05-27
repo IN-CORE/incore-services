@@ -5,24 +5,26 @@
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
- * Chris Navarro (NCSA) - initial API and implementation
+ * Christopher Navarro, Chen Wang
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
+package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import java.util.List;
 
-public interface ITsunamiRepository {
-    void initialize();
+public class ParametricFragilityCurve extends FragilityCurve {
+    public List<LogitCurveParameter> parameters;
+    public CurveType curveType;
 
-    Tsunami getTsunamiById(String id);
 
-    Tsunami addTsunami(Tsunami tsunami);
+    public ParametricFragilityCurve() {
+        super();
+    }
 
-    Tsunami deleteTsunamiById(String id);
+    public ParametricFragilityCurve(List<LogitCurveParameter> parameters, CurveType curveType, String label) {
+        super(label);
 
-    List<Tsunami> getTsunamis();
-
-    List<Tsunami> searchTsunamis(String text);
+        this.parameters = parameters;
+        this.curveType = curveType;
+    }
 }
