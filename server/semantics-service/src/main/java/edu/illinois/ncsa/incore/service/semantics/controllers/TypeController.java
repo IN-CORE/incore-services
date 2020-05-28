@@ -21,12 +21,12 @@ import org.bson.Document;
 @SwaggerDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
-        version = "v0.3.0",
+        version = "v0.6.3",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore2.ncsa.illinois.edu"
+            url = "https://incore.ncsa.illinois.edu"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
@@ -77,7 +77,6 @@ public class TypeController {
             .collect(Collectors.toList());
 
         return Response.ok(results).status(200)
-            .header("Access-Control-Allow-Origin", "*")
             .header("Access-Control-Allow-Methods", "GET")
             .build();
 
@@ -115,7 +114,6 @@ public class TypeController {
             }
 
             return Response.ok(matchedTypeList).status(200)
-                .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", "GET")
                 .build();
 
@@ -127,12 +125,12 @@ public class TypeController {
     @GET
     @Path("types/search")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value="Search type by partial match of type.")
+    @ApiOperation(value="Search type by partial match of text.")
     public Response searchType(
-        @ApiParam(value = "Type uri (name).") @QueryParam("type") String type) {
+        @ApiParam(value = "Type uri (name).") @QueryParam("text") String text) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-        Optional<List<Document>> typeList = this.typeDAO.searchType(type);
+        Optional<List<Document>> typeList = this.typeDAO.searchType(text);
         List<Document> results;
         if (typeList.isPresent()) {
             results = typeList.get().stream()
@@ -143,13 +141,12 @@ public class TypeController {
         }
 
         return Response.ok(results).status(200)
-            .header("Access-Control-Allow-Origin", "*")
             .header("Access-Control-Allow-Methods", "GET")
             .build();
     }
 
     @POST
-    @Path("/type")
+    @Path("/types")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value="Publish new type.")
@@ -164,14 +161,13 @@ public class TypeController {
         spaceRepository.addSpace(space);
 
         return Response.ok(id).status(200)
-            .header("Access-Control-Allow-Origin", "*")
             .header("Access-Control-Allow-Methods", "GET")
             .build();
 
     }
 
     @DELETE
-    @Path("type/{id}")
+    @Path("types/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete type by id.")
     public Response deleteType(
@@ -191,7 +187,6 @@ public class TypeController {
             }
         }
         return Response.ok(deletedId).status(200)
-            .header("Access-Control-Allow-Origin", "*")
             .header("Access-Control-Allow-Methods", "GET")
             .build();
 
