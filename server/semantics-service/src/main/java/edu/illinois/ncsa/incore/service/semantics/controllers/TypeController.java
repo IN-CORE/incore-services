@@ -77,7 +77,6 @@ public class TypeController {
             .collect(Collectors.toList());
 
         return Response.ok(results).status(200)
-            .header("Access-Control-Allow-Methods", "GET")
             .build();
 
     }
@@ -114,7 +113,6 @@ public class TypeController {
             }
 
             return Response.ok(matchedTypeList).status(200)
-                .header("Access-Control-Allow-Methods", "GET")
                 .build();
 
         } else {
@@ -141,7 +139,6 @@ public class TypeController {
         }
 
         return Response.ok(results).status(200)
-            .header("Access-Control-Allow-Methods", "GET")
             .build();
     }
 
@@ -161,7 +158,6 @@ public class TypeController {
         spaceRepository.addSpace(space);
 
         return Response.ok(id).status(200)
-            .header("Access-Control-Allow-Methods", "GET")
             .build();
 
     }
@@ -187,7 +183,6 @@ public class TypeController {
             }
         }
         return Response.ok(deletedId).status(200)
-            .header("Access-Control-Allow-Methods", "GET")
             .build();
 
     }
