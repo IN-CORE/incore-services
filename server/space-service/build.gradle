@@ -4,9 +4,19 @@ gretty {
 }
 
 repositories {
-    jcenter()
-    maven { url "https://repo.osgeo.org/repository/Geoserver-releases/"}
-    maven { url "http://dl.bintray.com/milton/Milton"}
+        jcenter()
+        maven { url 'https://mvnrepository.com/artifact/com.sun.media/' }
+        maven { url 'https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/' }
+        maven { url 'http://maven.geotoolkit.org' }
+        maven { url 'http://maven.elmakers.com/repository/' }
+        maven { url "https://repo.osgeo.org/repository/Geoserver-releases/"}
+        maven { url "https://mvnrepository.com/artifact/it.geosolutions/"}
+        maven { url "https://repo.boundlessgeo.com/main/" }
+        maven { url "http://maven.geo-solutions.it/" }
+        maven { url "http://dl.bintray.com/milton/Milton" }
+        maven { url 'https://download.osgeo.org/webdav/geotools/' }
+        maven { url "https://repo.osgeo.org/repository/" }
+        maven { url "http://dl.bintray.com/milton/Milton"}
 }
 
 //specify additional dependencies that are specific to this sub-project.

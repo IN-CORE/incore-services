@@ -35,12 +35,15 @@ idea {
 //  The buildscript repositories are for RUNNING the build script,
 //  This is for repositories needed to find dependencies of the projects)
 repositories {
-    maven { url 'https://repo.osgeo.org/repository/Geoserver-releases/' }
+//    maven { url 'https://repo.osgeo.org/repository/Geoserver-releases/' }
+//    maven { url 'https://mvnrepository.com/artifact/com.sun.media/' }
+//    maven { url 'https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/' }
     mavenLocal()
     mavenCentral()
     jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     maven { url "https://repo.osgeo.org/repository/Geoserver-releases/" }
+    maven { url "http://maven.geotoolkit.org" }
 }
 
 
