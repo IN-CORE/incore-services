@@ -1,12 +1,7 @@
-repositories {
-	mavenCentral()
-}
 
+//configuration for gretty webapp server
 gretty {
 	contextPath '/dfr3/'
 }
 
-dependencies {
-	
-}
 

@@ -1,11 +1,5 @@
-apply plugin: 'java'
-apply plugin: 'war'
 
-repositories {
-        mavenCentral()
-        jcenter()
-}
-
+//configuration for gretty webapp server
 gretty {
     contextPath '/semantics/'
 }
