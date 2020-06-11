@@ -226,6 +226,42 @@ public class TsunamiController {
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, check the format of your request.");
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    @ApiOperation(value = "Deletes a Tsunami", notes = "Also deletes attached dataset and related files")
+    public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("id") String tsunamiId) {
+        Tsunami tsunami = getTsunami(tsunamiId);
+
+        if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
+            //remove associated datasets
+            if (tsunami != null && tsunami instanceof TsunamiDataset) {
+                TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
+                for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
+                }
+            }
+
+            Tsunami deletedTsunami = repository.deleteTsunamiById(tsunamiId); // remove tsunami json
+
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(tsunamiId)) {
+                    space.removeMember(tsunamiId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            return deletedTsunami;
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
+                " tsunami " + tsunamiId);
+        }
+    }
+
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})

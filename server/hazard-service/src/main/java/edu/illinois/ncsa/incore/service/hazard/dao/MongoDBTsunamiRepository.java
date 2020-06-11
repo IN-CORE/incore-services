@@ -49,6 +49,17 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
     }
 
     @Override
+    public Tsunami deleteTsunamiById(String id) {
+        Tsunami tsunami = this.dataStore.get(TsunamiDataset.class, new ObjectId(id));
+        if (tsunami != null) {
+            Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        }
+        return null;
+    }
+
+    @Override
     public List<Tsunami> getTsunamis() {
         List<Tsunami> tsunamis = new LinkedList<>();
         List<TsunamiDataset> tsunamiDatasets = this.dataStore.createQuery(TsunamiDataset.class).asList();

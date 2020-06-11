@@ -14,7 +14,6 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -78,8 +77,8 @@ import java.util.stream.Collectors;
 
 @Path("datasets")
 public class DatasetController {
-    private static final String DATA_REPO_FOLDER = Config.getConfigProperties().getProperty("data.repo.data.dir");
-    private static final String GEOSERVER_ENABLE = Config.getConfigProperties().getProperty("geoserver.enable");
+    private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
+    private static final String GEOSERVER_ENABLE = System.getenv("GEOSERVER_ENABLE");
     private static final String POST_PARAMETER_NAME = "name";
     private static final String POST_PARAMETER_FILE = "file";
     private static final String POST_PARAMETER_FILE_LINK = "link-file";
@@ -363,7 +362,6 @@ public class DatasetController {
 
 
     @DELETE
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     @ApiOperation(value = "Deletes a dataset", notes = "Also deletes attached information like files and geoserver layer")
@@ -398,15 +396,16 @@ public class DatasetController {
                     }
                 }
                 // remove geoserver layer
-                if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                    // remove network dataset
-                    boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
-                    boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
-                    boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
-                } else {
-                    boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                if (Boolean.parseBoolean(GEOSERVER_ENABLE)) {
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                        // remove network dataset
+                        boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
+                        boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
+                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
+                    } else {
+                        boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                    }
                 }
-
             }
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the dataset " +datasetId);

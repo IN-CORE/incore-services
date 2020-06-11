@@ -21,6 +21,8 @@ public interface ITornadoRepository {
 
     Tornado addTornado(Tornado tornado);
 
+    Tornado deleteTornadoById(String id);
+
     List<Tornado> getTornadoes();
 
     List<Tornado> searchTornadoes(String text);

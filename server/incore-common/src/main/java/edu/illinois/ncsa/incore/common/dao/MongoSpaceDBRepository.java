@@ -14,6 +14,7 @@ package edu.illinois.ncsa.incore.common.dao;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.models.Space;
+import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -29,6 +30,8 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     private String databaseName;
     private MongoClientURI mongoClientURI;
     private Datastore dataStore;
+
+    private Logger logger = Logger.getLogger(MongoSpaceDBRepository.class);
 
     public MongoSpaceDBRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
@@ -56,13 +59,30 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
         return foundSpace;
     }
 
+    public Space getOrphanSpace() {
+        Space orphans = getSpaceByName("orphans");
+        if (orphans == null) {
+            logger.error("orphans space not found in the Space DB. This can cause data inconsistency issues.");
+        }
+        return orphans;
+    }
+
     //TODO: Rename to saveSpace since it updates an existing too
     public Space addSpace(Space space) {
         String id = (this.dataStore.save(space)).getId().toString();
         return getSpaceById(id);
     }
 
-    public Space deleteSpace(String id){
+    public Space addToOrphansSpace(String memberId) {
+        Space orphans = getOrphanSpace();
+        if (orphans != null) {
+            orphans.addMember(memberId);
+            return addSpace(orphans);
+        }
+        return null;
+    }
+
+    public Space deleteSpace(String id) {
         Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
         spaceQuery.field("_id").equal(new ObjectId(id));
         return this.dataStore.findAndDelete(spaceQuery);

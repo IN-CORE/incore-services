@@ -12,5 +12,6 @@ package edu.illinois.ncsa.incore.service.dfr3.models;
 
 public enum CurveType {
     LogNormal,
-    Normal
+    Normal,
+    Logit
 }

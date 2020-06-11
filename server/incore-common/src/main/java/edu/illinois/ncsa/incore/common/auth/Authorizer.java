@@ -10,10 +10,11 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
-import edu.illinois.ncsa.incore.common.config.Config;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 
+import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -183,6 +184,26 @@ public class Authorizer implements IAuthorizer {
         return membersSet.contains(memberId);
     }
 
+    /**
+     * This method determines if a user is an admin or not.
+     * @param username string name of the user
+     * @return boolean - true if the user is admin
+     */
+    public boolean isUserAdmin(String username) {
+        try {
+            LdapClient ldapClient = getLdapClient();
+            Set<String> userGroups = ldapClient.getUserGroups(username);
+
+            if (userGroups.contains(System.getenv("AUTH_LDAP_ADMINS"))) {
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            logger.error(e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Internal server error.");
+        }
+    }
+
     ////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////
@@ -192,11 +213,7 @@ public class Authorizer implements IAuthorizer {
             return allowThisUser(user);
         }
         try {
-            LdapClient ldapClient = getLdapClient();
-            Set<String> userGroups = ldapClient.getUserGroups(user);
-
-            //if the user is an admin, they get full privileges
-            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.admins"))) {
+            if (isUserAdmin(user)) {
                 HashSet<PrivilegeLevel> admin  = new HashSet<>();
                 admin.add(PrivilegeLevel.ADMIN);
                 admin.add(PrivilegeLevel.WRITE);
@@ -204,14 +221,14 @@ public class Authorizer implements IAuthorizer {
                 return admin;
             }
 
-
+            Set<String> userGroups = ldapClient.getUserGroups(user);
             Set <PrivilegeLevel> privs = spec.groupPrivileges.keySet().stream()
                 .filter(userGroups::contains)
                 .map(key -> spec.groupPrivileges.get(key))
                 .collect(Collectors.toSet());
 
             //if the user is in the magic view-all group, give them read access
-            if (userGroups.contains(Config.getConfigProperties().getProperty("auth.ldap.viewall"))) {
+            if (userGroups.contains(System.getenv("AUTH_LDAP_VIEW_ALL"))) {
                 privs.add(PrivilegeLevel.READ);
             }
 

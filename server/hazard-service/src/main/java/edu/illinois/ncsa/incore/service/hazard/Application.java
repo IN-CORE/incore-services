@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.hazard;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.*;
@@ -20,6 +19,8 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.AttenuationProvider;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.spi.Container;
+import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 
 public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
@@ -27,7 +28,7 @@ public class Application extends ResourceConfig {
     public Application() {
         String mongodbUri = "mongodb://localhost:27017/hazarddb";
 
-        String mongodbUriProp = Config.getConfigProperties().getProperty("hazard.mongodbURI");
+        String mongodbUriProp = System.getenv("HAZARD_MONGODB_URI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
@@ -46,7 +47,7 @@ public class Application extends ResourceConfig {
 
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
-        String mongodbSpaceUriProp = Config.getConfigProperties().getProperty("space.mongodbURI");
+        String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
         if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }
@@ -56,6 +57,9 @@ public class Application extends ResourceConfig {
 
         IAuthorizer authorizer = Authorizer.getInstance();
         AttenuationProvider attenuationProvider = AttenuationProvider.getInstance();
+
+        Engine engine = new Engine();
+        engine.addServiceRepository("earthquake", earthquakeRepository);
 
         super.register(new AbstractBinder() {
 
@@ -68,8 +72,10 @@ public class Application extends ResourceConfig {
                 super.bind(authorizer).to(IAuthorizer.class);
                 super.bind(tsunamiRepository).to(ITsunamiRepository.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
+                super.bind(engine).to(Engine.class);
             }
         });
         super.register(new CorsFilter());
+
     }
 }

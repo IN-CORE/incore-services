@@ -10,7 +10,6 @@
 
 package edu.illinois.ncsa.incore.service.data.utils;
 
-import edu.illinois.ncsa.incore.common.config.Config;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
@@ -29,10 +28,10 @@ import java.net.URISyntaxException;
 
 public class GeoserverUtils {
 
-    public static final String GEOSERVER_REST_URL = Config.getConfigProperties().getProperty("geoserver.url");
-    public static final String GEOSERVER_USER = Config.getConfigProperties().getProperty("geoserver.user");
-    public static final String GEOSERVER_PW = Config.getConfigProperties().getProperty("geoserver.pw");
-    public static final String GEOSERVER_WORKSPACE = Config.getConfigProperties().getProperty("geoserver.workspace");
+    public static final String GEOSERVER_REST_URL = System.getenv("GEOSERVER_URL");
+    public static final String GEOSERVER_USER = System.getenv("GEOSERVER_USER");
+    public static final String GEOSERVER_PW = System.getenv("GEOSERVER_PW");
+    public static final String GEOSERVER_WORKSPACE = System.getenv("GEOSERVER_WORKSPACE");
 
     /**
      * upload file to geoserver

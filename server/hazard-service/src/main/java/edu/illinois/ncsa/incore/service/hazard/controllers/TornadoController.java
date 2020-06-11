@@ -318,6 +318,46 @@ public class TornadoController {
         return tornadoes;
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    @ApiOperation(value = "Deletes a tornado", notes = "Also deletes attached dataset and related files")
+    public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("id") String tornadoId) {
+        Tornado tornado = getTornado(tornadoId);
+
+        if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+            // delete associated datasets
+            if (tornado != null && tornado instanceof TornadoModel) {
+                TornadoModel tModel = (TornadoModel) tornado;
+                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username) == null) {
+                    spaceRepository.addToOrphansSpace(tModel.getDatasetId());
+                }
+            } else if (tornado != null && tornado instanceof TornadoDataset) {
+                TornadoDataset tDataset = (TornadoDataset) tornado;
+                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
+                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username) == null) {
+                    spaceRepository.addToOrphansSpace(tDataset.getDatasetId());
+                }
+            }
+
+            Tornado deletedTornado = repository.deleteTornadoById(tornadoId); // remove tornado json
+
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(tornadoId)) {
+                    space.removeMember(tornadoId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            return deletedTornado;
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
+                " tornado " + tornadoId);
+        }
+    }
+
     //For adding tornado id to user's space
     private void addTornadoToSpace(Tornado tornado, String username) {
         Space space = spaceRepository.getSpaceByName(username);

@@ -7,7 +7,7 @@ repositories {
 }
 
 gretty {
-    contextPath '/semantic/'
+    contextPath '/semantics/'
 }
 
 dependencies {

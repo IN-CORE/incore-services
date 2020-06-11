@@ -22,6 +22,8 @@ public interface IHurricaneRepository {
 
     HurricaneWindfields addHurricane(HurricaneWindfields hurricane);
 
+    HurricaneWindfields deleteHurricaneById(String id);
+
     List<HurricaneWindfields> getHurricanes();
 
     List<HurricaneWindfields> searchHurricanes(String text);

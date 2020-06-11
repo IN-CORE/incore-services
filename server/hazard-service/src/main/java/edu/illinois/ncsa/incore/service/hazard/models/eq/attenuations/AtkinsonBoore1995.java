@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 
-import java.net.URL;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +20,8 @@ import java.util.Map;
 public class AtkinsonBoore1995 extends BaseAttenuation {
 
     public AtkinsonBoore1995() {
-        URL coefficientURL = AtkinsonBoore1995.class.getResource("/hazard/earthquake/coefficients/AtkinsonBoore1995.csv");
-        readCoefficients(coefficientURL);
+        InputStream is = AtkinsonBoore1995.class.getResourceAsStream("/hazard/earthquake/coefficients/AtkinsonBoore1995.csv");
+        readCoefficients(is);
     }
 
     @Override

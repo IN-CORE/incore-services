@@ -70,6 +70,20 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     }
 
     @Override
+    public Earthquake deleteEarthquakeById(String id) {
+        Earthquake earthquake = this.dataStore.get(EarthquakeModel.class, new ObjectId(id));
+        if (earthquake == null) {
+            Query<EarthquakeDataset> query = this.dataStore.createQuery(EarthquakeDataset.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        } else {
+            Query<EarthquakeModel> query = this.dataStore.createQuery(EarthquakeModel.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        }
+    }
+
+    @Override
     public Earthquake getEarthquakeById(String id) {
         // There doesn't seem to be a way to find by the parent class Earthquake
         // TODO Look into this later to see if there is a better way to handle this

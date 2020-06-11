@@ -18,7 +18,9 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import edu.illinois.ncsa.incore.service.hazard.Engine;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
+import edu.illinois.ncsa.incore.service.hazard.Job;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
@@ -44,13 +46,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -104,6 +100,9 @@ public class EarthquakeController {
     private IAuthorizer authorizer;
 
     @Inject
+    private Engine engine;
+
+    @Inject
     public EarthquakeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
@@ -122,7 +121,8 @@ public class EarthquakeController {
     })
     public Earthquake createEarthquake(
         @ApiParam(hidden = true) @FormDataParam("earthquake") String eqJson,
-        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts)
+        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts,
+        @ApiParam(value = "Use workflow service.", required = false) @QueryParam("useWorkflow") @DefaultValue("false") boolean useWorkflow)
     {
         // TODO finish adding log statements
         // First, get the Earthquake object from the form
@@ -143,16 +143,20 @@ public class EarthquakeController {
 
                 Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(scenarioEarthquake);
                 try {
-                    File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
-
-                    GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
-                    HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
-
                     String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
                     String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
-                    String description = "Earthquake visualization";
-                    String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
-                        description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+
+                    String datasetId = null;
+                    if(!useWorkflow) {
+                        System.out.println("don't use workflow");
+                        File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
+                        GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
+                        HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
+                        String description = "Earthquake visualization";
+                        datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
+                            description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+                    }
+
 
                     DeterministicHazardDataset rasterDataset = new DeterministicHazardDataset();
                     rasterDataset.setEqParameters(scenarioEarthquake.getEqParameters());
@@ -164,11 +168,14 @@ public class EarthquakeController {
                     scenarioEarthquake.setHazardDataset(rasterDataset);
                     // add creator using username info
                     earthquake.setCreator(this.username);
-
                     earthquake = repository.addEarthquake(earthquake);
-
                     addEarthquakeToSpace(earthquake, this.username);
 
+                    if(useWorkflow) {
+                        System.out.println("use workflow");
+                        // Add job to create dataset to the queue
+                        engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
+                    }
                     return earthquake;
                 } catch (IOException e) {
                     logger.error("Error creating raster dataset", e);
@@ -703,6 +710,48 @@ public class EarthquakeController {
 
         return earthquakes;
     }
+
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
+    @ApiOperation(value = "Deletes an earthquake", notes = "Also deletes attached dataset and related files")
+    public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("id") String earthquakeId) {
+        Earthquake eq = getEarthquake(earthquakeId);
+
+        if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {
+            // delete associated datasets
+            if (eq != null && eq instanceof EarthquakeModel) {
+                EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
+                if (ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username) == null) {
+                    spaceRepository.addToOrphansSpace(scenarioEarthquake.getRasterDataset().getDatasetId());
+                }
+            } else if (eq != null && eq instanceof EarthquakeDataset) {
+                EarthquakeDataset eqDataset = (EarthquakeDataset) eq;
+                for (HazardDataset dataset : eqDataset.getHazardDatasets()) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
+                }
+            }
+
+            Earthquake deletedEq = repository.deleteEarthquakeById(earthquakeId); // remove earthquake json
+
+            //remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(earthquakeId)) {
+                    space.removeMember(earthquakeId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+
+            return deletedEq;
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
+                " earthquake " + earthquakeId);
+        }
+    }
+
 
     // Helper functions
 
