@@ -16,7 +16,7 @@ buildscript {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
     dependencies {
-        classpath 'org.akhikhl.gretty:gretty:1.4.2'
+        classpath 'org.gretty:gretty:3.0.3'
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
     }
 }
@@ -47,9 +47,11 @@ repositories {
 
 apply plugin: 'war'
 
-if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
-    project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
-}
+apply plugin: 'org.gretty'
+
+// if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
+//     project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
+// }
 
 //a "farm" is the gretty term for multiple webapps that can be run
 //in the same webapp service.
@@ -111,9 +113,10 @@ test {
     project(":$name") {
 
         apply plugin: 'war'
-        if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
-            project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
-        }
+        apply plugin: 'org.gretty'
+        // if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
+        //     project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
+        // }
 
         gretty {
             httpPort 8080
