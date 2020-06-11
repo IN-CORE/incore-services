@@ -44,6 +44,32 @@ die () {
     exit 1
 }
 
+# set system environment variables temporarily
+export SERVICES_URL="http://localhost:8080"
+export HAZARD_MONGODB_URI=""
+export MAESTRO_MONGODB_URI=""
+export DFR3_MONGODB_URI=""
+export DATA_MONGODB_URI=""
+export SPACE_MONGODB_URI=""
+export SEMANTICS_MONGODB_URI=""
+export DATA_REPO_DATA_DIR="test"
+export DATA_REPO_WEBDAV_SERVER_URL="https://earthquake.ncsa.illinois.edu/"
+export DATA_REPO_WEBDAV_PROP_DIR="ergo-repo/properties/"
+export DATA_REPO_WEBDAV_DS_DIR="ergo-repo/datasets/"
+export GEOSERVER_URL="https://incore-dev-kube.ncsa.illinois.edu/geoserver/"
+export GEOSERVER_WORKSPACE="incore"
+export GEOSERVER_USER=""
+export GEOSERVER_PW=""
+export GEOSERVER_ENABLE="false"
+export AUTH_LDAP_URL="ldaps://ldap.ncsa.illinois.edu:636"
+export AUTH_LDAP_USERDN="ou=people,dc=ncsa,dc=illinois,dc=edu"
+export AUTH_LDAP_ADMINS="prj_incore"
+export AUTH_LDAP_CACHE_REFRESH_SECS="900"
+export AUTH_LDAP_VIEW_ALL="incore_viewall"
+export SERVICES_ALLOW_ORIGIN="http://localhost:3000,http://localhost:5000"
+export DATAWOLF_URL="https://incore2-datawolf.ncsa.illinois.edu/datawolf"
+export DATAWOLF_USER="incore-dw"
+
 # OS specific support (must be 'true' or 'false').
 cygwin=false
 msys=false
