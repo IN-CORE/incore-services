@@ -78,6 +78,19 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     }
 
     @Override
+    public FragilitySet deleteFragilitySetById(String id) {
+        FragilitySet fragilitySet = this.dataStore.get(FragilitySet.class, new ObjectId(id));
+
+        if (fragilitySet == null) {
+            return null;
+        } else {
+            Query<FragilitySet> query = this.dataStore.createQuery(FragilitySet.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        }
+    }
+
+    @Override
     public List<FragilitySet> searchFragilities(String text) {
         Query<FragilitySet> query = this.dataStore.createQuery(FragilitySet.class);
 

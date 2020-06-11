@@ -179,6 +179,33 @@ public class FragilityController {
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + fragilitySet);
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{fragilityId}")
+    @ApiOperation(value = "Deletes a fragility by id")
+    public FragilitySet deleteFragilityById(@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
+        Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
+
+        if (fragilitySet.isPresent()) {
+            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+                //repository.del
+
+                //remove id from spaces
+                List<Space> spaces = spaceRepository.getAllSpaces();
+                for (Space space : spaces) {
+                    if (space.hasMember(id)) {
+                        space.removeMember(id);
+                        spaceRepository.addSpace(space);
+                    }
+                }
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the fragility with id " + id);
+            }
+        }
+
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + fragilitySet);
+    }
+
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})

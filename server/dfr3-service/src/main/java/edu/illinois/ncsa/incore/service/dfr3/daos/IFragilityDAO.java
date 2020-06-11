@@ -25,6 +25,8 @@ public interface IFragilityDAO {
 
     Optional<FragilitySet> getFragilitySetById(String id);
 
+    FragilitySet deleteFragilitySetById(String id);
+
     List<FragilitySet> searchFragilities(String text);
 
     List<FragilitySet> queryFragilities(String attributeType, String attributeValue);
