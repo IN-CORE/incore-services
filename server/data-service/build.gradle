@@ -10,7 +10,7 @@ gretty {
 
 repositories {
         jcenter()
-        maven { url "http://maven.geo-solutions.it/" }
+        maven { url "https://maven.geo-solutions.it/" }
 }
 
 
