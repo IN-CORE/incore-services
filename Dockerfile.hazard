@@ -10,7 +10,7 @@ RUN apt-get -qq -y update && \
 
 # Working Directory
 WORKDIR /home/incore
-COPY server/hazard-service/build/libs/hazard-service-0.0.1.war /home/incore/lib/
+COPY server/hazard-service/build/libs/hazard-service.war /home/incore/lib/
 COPY docker/hazard.xml /home/incore/conf/
 COPY docker/incore-dev.properties /home/incore/conf/
 COPY docker/jetty-runner.jar /home/incore/lib/
