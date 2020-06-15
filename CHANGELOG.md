@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.6.4] - 2020-05-29
+## [Unreleased]
+
+### Changed
+- Upgrade gradle to v6.5. Cleaned up gradle dependencies and changed geoserver related dependency links. [INCORE1-591](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-591)
+
+### Fixed
+- Resolved swagger path conflicts in delete hazard endpoints [INCORE1-659](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-659)
+
+
+## [0.6.5] - 2020-05-29
 
 ### Added
 
@@ -15,7 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - DELETE endpoints for all hazards [INCORE1-560](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-560)
 - Initial implementation of semantics service restricted to admin users [INCORE1-571](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-571)
 
-### Updated
+### Changed
 - Application properties are now initialized by system environment variables [INCORE1-587](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-587)
 
 ## [0.6.4] - 2020-03-27
@@ -23,7 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Text search endpoint to DFR3 Mappings [INCORE1-512](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-512)
 
-### Updated
+### Changed
 - Updated all controller's exceptions and its messages and added constructors to controllers that were missing one [INCORE-470](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-470)
 
 ### Fixed
