@@ -713,9 +713,9 @@ public class EarthquakeController {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{id}")
+    @Path("{earthquake-id}")
     @ApiOperation(value = "Deletes an earthquake", notes = "Also deletes attached dataset and related files")
-    public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("id") String earthquakeId) {
+    public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
         if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {

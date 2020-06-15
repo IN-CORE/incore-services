@@ -228,9 +228,9 @@ public class TsunamiController {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{id}")
+    @Path("{tsunami-id}")
     @ApiOperation(value = "Deletes a Tsunami", notes = "Also deletes attached dataset and related files")
-    public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("id") String tsunamiId) {
+    public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("tsunami-id") String tsunamiId) {
         Tsunami tsunami = getTsunami(tsunamiId);
 
         if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
