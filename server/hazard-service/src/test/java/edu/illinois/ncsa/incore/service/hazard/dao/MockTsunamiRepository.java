@@ -13,8 +13,8 @@ import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.FindOptions;
+import dev.morphia.morphia.Datastore;
+import dev.morphia.morphia.query.FindOptions;
 
 import java.io.IOException;
 import java.net.URL;

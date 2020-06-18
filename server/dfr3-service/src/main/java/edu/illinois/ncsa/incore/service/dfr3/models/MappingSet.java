@@ -15,9 +15,9 @@ import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
+import dev.morphia.morphia.annotations.Entity;
+import dev.morphia.morphia.annotations.Id;
+import dev.morphia.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;

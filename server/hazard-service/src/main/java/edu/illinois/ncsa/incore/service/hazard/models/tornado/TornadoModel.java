@@ -12,8 +12,8 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
+import dev.morphia.morphia.annotations.Id;
+import dev.morphia.morphia.annotations.Property;
 
 import java.util.List;
 

@@ -12,10 +12,10 @@ package edu.illinois.ncsa.incore.service.dfr3.typeconverters;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import org.mongodb.morphia.converters.SimpleValueConverter;
-import org.mongodb.morphia.converters.TypeConverter;
-import org.mongodb.morphia.mapping.MappedField;
-import org.mongodb.morphia.mapping.MappingException;
+import dev.morphia.morphia.converters.SimpleValueConverter;
+import dev.morphia.morphia.converters.TypeConverter;
+import dev.morphia.morphia.mapping.MappedField;
+import dev.morphia.morphia.mapping.MappingException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

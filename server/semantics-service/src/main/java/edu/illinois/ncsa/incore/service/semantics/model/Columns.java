@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.service.semantics.model;
 
-import org.mongodb.morphia.annotations.Embedded;
+import dev.morphia.morphia.annotations.Embedded;
 import java.util.List;
 
 @Embedded

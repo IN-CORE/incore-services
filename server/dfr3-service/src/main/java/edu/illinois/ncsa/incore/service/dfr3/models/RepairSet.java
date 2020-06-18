@@ -9,7 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import org.mongodb.morphia.annotations.Entity;
+import dev.morphia.morphia.annotations.Entity;
 import java.util.List;
 
 @Entity("RepairSet")

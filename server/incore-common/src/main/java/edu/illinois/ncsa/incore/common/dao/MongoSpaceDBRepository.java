@@ -16,9 +16,9 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.morphia.Datastore;
+import dev.morphia.morphia.Morphia;
+import dev.morphia.morphia.query.Query;
 
 import java.util.HashSet;
 import java.util.List;

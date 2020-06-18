@@ -12,8 +12,8 @@ package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
+import dev.morphia.morphia.Datastore;
+import dev.morphia.morphia.Morphia;
 
 import java.util.Arrays;
 import java.util.HashSet;

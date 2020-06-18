@@ -20,9 +20,9 @@ import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.morphia.Datastore;
+import dev.morphia.morphia.Morphia;
+import dev.morphia.morphia.query.Query;
 
 import java.util.ArrayList;
 import java.util.HashSet;

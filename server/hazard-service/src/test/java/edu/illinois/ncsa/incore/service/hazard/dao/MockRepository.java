@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
-import org.mongodb.morphia.Datastore;
+import dev.morphia.morphia.Datastore;
 
 import java.util.List;
 

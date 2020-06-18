@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneWindfields;
-import org.mongodb.morphia.Datastore;
+import dev.morphia.morphia.Datastore;
 
 import java.util.Map;
 import java.util.List;

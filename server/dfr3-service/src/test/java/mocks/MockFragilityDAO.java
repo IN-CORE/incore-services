@@ -18,9 +18,9 @@ import org.bson.types.ObjectId;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Key;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.morphia.Datastore;
+import dev.morphia.morphia.Key;
+import dev.morphia.morphia.query.Query;
 
 import java.io.IOException;
 import java.lang.reflect.Field;

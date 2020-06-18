@@ -14,7 +14,7 @@ package edu.illinois.ncsa.incore.service.data.dao;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
-import org.mongodb.morphia.Datastore;
+import dev.morphia.morphia.Datastore;
 
 import java.util.List;
 
