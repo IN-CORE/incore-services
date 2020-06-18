@@ -17,7 +17,7 @@ import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.mockito.Mockito;
-import dev.morphia.morphia.Datastore;
+import dev.morphia.Datastore;
 
 import java.io.IOException;
 import java.net.URL;

@@ -1,7 +1,7 @@
 package edu.illinois.ncsa.incore.service.semantics.model;
 
-import dev.morphia.morphia.annotations.Property;
-import dev.morphia.morphia.annotations.Embedded;
+import dev.morphia.annotations.Property;
+import dev.morphia.annotations.Embedded;
 
 @Embedded
 public class Context {

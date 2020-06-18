@@ -13,7 +13,7 @@ package edu.illinois.ncsa.incore.service.dfr3.daos;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.query.Query;
+import dev.morphia.query.Query;
 
 import java.util.LinkedList;
 import java.util.List;

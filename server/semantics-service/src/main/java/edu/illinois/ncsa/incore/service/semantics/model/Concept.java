@@ -1,10 +1,10 @@
 package edu.illinois.ncsa.incore.service.semantics.model;
 
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.annotations.Id;
-import dev.morphia.morphia.annotations.Entity;
-import dev.morphia.morphia.annotations.Property;
-import dev.morphia.morphia.annotations.Embedded;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Property;
+import dev.morphia.annotations.Embedded;
 
 import java.util.List;
 

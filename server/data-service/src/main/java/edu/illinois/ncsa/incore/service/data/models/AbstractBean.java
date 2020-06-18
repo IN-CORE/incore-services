@@ -16,8 +16,8 @@ package edu.illinois.ncsa.incore.service.data.models;
  */
 
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.annotations.Id;
-import dev.morphia.morphia.annotations.Property;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 
 import java.io.Serializable;
 

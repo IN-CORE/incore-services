@@ -19,8 +19,8 @@ package edu.illinois.ncsa.incore.service.data.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.annotations.Id;
-import dev.morphia.morphia.annotations.Property;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigInteger;

@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.annotations.Id;
-import dev.morphia.morphia.annotations.Property;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;

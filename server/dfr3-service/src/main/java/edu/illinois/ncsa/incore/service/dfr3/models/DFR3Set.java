@@ -2,7 +2,7 @@ package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.annotations.Id;
+import dev.morphia.annotations.Id;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;

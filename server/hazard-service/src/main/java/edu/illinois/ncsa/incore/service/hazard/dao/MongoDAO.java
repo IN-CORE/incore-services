@@ -11,8 +11,8 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import dev.morphia.morphia.Datastore;
-import dev.morphia.morphia.Morphia;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 
 import java.util.Arrays;
 import java.util.HashSet;

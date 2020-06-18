@@ -13,7 +13,7 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.query.Query;
+import dev.morphia.query.Query;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

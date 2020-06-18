@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragility
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.query.Query;
+import dev.morphia.query.Query;
 
 import java.util.List;
 import java.util.Map;

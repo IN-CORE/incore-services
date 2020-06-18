@@ -15,9 +15,9 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeModel;
 import org.bson.types.ObjectId;
-import dev.morphia.morphia.Datastore;
-import dev.morphia.morphia.Morphia;
-import dev.morphia.morphia.query.Query;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
+import dev.morphia.query.Query;
 
 import java.util.*;
 
