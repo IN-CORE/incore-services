@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [unreleased]
+
+### Changed
+- incore.properties has been removed from docker and semantics docker added. [INCORE1-671](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-671)
+
 ## [0.6.6] - 2020-06-15
 
 ### Changed

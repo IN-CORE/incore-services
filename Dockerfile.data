@@ -10,7 +10,6 @@ RUN apt-get -qq -y update && \
 WORKDIR /home/incore
 COPY server/data-service/build/libs/data-service.war /home/incore/lib/
 COPY docker/data.xml /home/incore/conf/
-COPY docker/incore.properties /home/incore/conf/
 COPY docker/jetty-runner.jar /home/incore/lib/
 
 # cron job

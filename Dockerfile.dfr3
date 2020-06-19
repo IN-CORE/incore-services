@@ -6,7 +6,6 @@ FROM openjdk:8-jre
 WORKDIR /home/incore
 COPY server/dfr3-service/build/libs/dfr3-service.war /home/incore/lib/
 COPY docker/dfr3.xml /home/incore/conf/
-COPY docker/incore.properties /home/incore/conf/
 COPY docker/jetty-runner.jar /home/incore/lib/
 
 # create data directory mounting point

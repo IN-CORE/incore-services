@@ -6,7 +6,6 @@ FROM openjdk:8-jre
 WORKDIR /home/incore
 COPY server/space-service/build/libs/space-service.war /home/incore/lib/
 COPY docker/space.xml /home/incore/conf/
-COPY docker/incore.properties /home/incore/conf/
 COPY docker/jetty-runner.jar /home/incore/lib/
 
 # create data directory mounting point

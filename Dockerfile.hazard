@@ -12,7 +12,6 @@ RUN apt-get -qq -y update && \
 WORKDIR /home/incore
 COPY server/hazard-service/build/libs/hazard-service.war /home/incore/lib/
 COPY docker/hazard.xml /home/incore/conf/
-COPY docker/incore-dev.properties /home/incore/conf/
 COPY docker/jetty-runner.jar /home/incore/lib/
 COPY clear_cache.sh /home/incore/clear_cache.sh
 COPY clear_cache_cron /home/incore/clear_cache_cron
