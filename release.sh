@@ -26,3 +26,4 @@ docker push hub.ncsa.illinois.edu/incore/data-jetty$VERSION:latest
 docker push hub.ncsa.illinois.edu/incore/dfr3-jetty$VERSION:latest
 docker push hub.ncsa.illinois.edu/incore/hazard-jetty$VERSION:latest
 docker push hub.ncsa.illinois.edu/incore/space-jetty$VERSION:latest
+docker push hub.ncsa.illinois.edu/incore/semantics-jetty$VERSION:latest
