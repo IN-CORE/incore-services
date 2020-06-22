@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - incore.properties has been removed from docker and semantics docker added. [INCORE1-671](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-671)
+- jetty temp folder location has been changed. [INCORE1-673](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-673)
 
 ## [0.6.6] - 2020-06-15
 
