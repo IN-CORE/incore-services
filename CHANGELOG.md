@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - incore.properties has been removed from docker and semantics docker added. [INCORE1-671](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-671)
 - Jetty temp folder location has been changed. [INCORE1-673](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-673)
 - Docker tagging in build process has been changed to distingush prod and dev [INCORE1-678](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-678)
+
 ## [0.6.6] - 2020-06-15
 
 ### Changed
