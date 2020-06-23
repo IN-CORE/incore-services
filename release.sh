@@ -22,8 +22,8 @@ fi
 
 #TODO this should be replaced with tagging
 # Push all images
-docker push hub.ncsa.illinois.edu/incore/data-jetty$VERSION:latest
-docker push hub.ncsa.illinois.edu/incore/dfr3-jetty$VERSION:latest
-docker push hub.ncsa.illinois.edu/incore/hazard-jetty$VERSION:latest
-docker push hub.ncsa.illinois.edu/incore/space-jetty$VERSION:latest
-docker push hub.ncsa.illinois.edu/incore/semantics-jetty$VERSION:latest
+docker push hub.ncsa.illinois.edu/incore/data-jetty:latest$VERSION
+docker push hub.ncsa.illinois.edu/incore/dfr3-jetty:latest$VERSION
+docker push hub.ncsa.illinois.edu/incore/hazard-jetty:latest$VERSION
+docker push hub.ncsa.illinois.edu/incore/space-jetty:latest$VERSION
+docker push hub.ncsa.illinois.edu/incore/semantics-jetty:latest$VERSION
