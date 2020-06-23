@@ -11,8 +11,8 @@ import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.WindfieldDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;

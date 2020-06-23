@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.mockito.Mockito;
-import org.mongodb.morphia.Datastore;
+import dev.morphia.Datastore;
 
 import java.io.IOException;
 import java.net.URL;

@@ -1,7 +1,7 @@
 package edu.illinois.ncsa.incore.service.semantics.model;
 
-import org.mongodb.morphia.annotations.Property;
-import org.mongodb.morphia.annotations.Embedded;
+import dev.morphia.annotations.Property;
+import dev.morphia.annotations.Embedded;
 
 @Embedded
 public class Column {

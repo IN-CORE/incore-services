@@ -15,8 +15,8 @@ import edu.illinois.ncsa.incore.service.data.models.mvz.DatasetId;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MaevizMapping;
 import edu.illinois.ncsa.incore.service.data.models.mvz.Metadata;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;

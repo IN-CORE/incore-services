@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.service.maestro.models;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Property;
+import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
