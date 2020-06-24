@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [unreleased]
+## [0.6.7] - 2020-06-30
 
 ### Changed
 - Upgrade morphia version to 1.5.8 and upgrade mongo driver to 3.12.5 [INCORE1-670](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-670)
