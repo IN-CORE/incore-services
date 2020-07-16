@@ -9,15 +9,16 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
-public class DeterministicHurricaneHazard extends HurricaneHazardDataset {
-    private HurricaneDeterministicParameters hurricaneParameters;
+public class HurricaneDeterministicParameters {
+    private String model = "Kriging"; // remove default when more models are added
 
-    public HurricaneDeterministicParameters getHurricaneParameters() {
-        return hurricaneParameters;
+    public String getModel() {
+        return model;
     }
 
-    public void setHurricaneParameters(HurricaneDeterministicParameters hurricaneParameters) {
-        this.hurricaneParameters = hurricaneParameters;
+    public void setModel(String model) {
+        this.model = model;
     }
 
 }
+
