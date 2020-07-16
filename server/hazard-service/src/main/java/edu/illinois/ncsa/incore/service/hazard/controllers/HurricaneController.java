@@ -222,9 +222,9 @@ public class HurricaneController {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{hurricaneId}")
+    @Path("{hurricane-id}")
     @ApiOperation(value = "Deletes a Hurricane", notes = "Also deletes attached datasets and related files")
-    public Hurricane deleteHurricaneWindfields(@ApiParam(value = "Hurricane Id", required = true) @PathParam("hurricaneId") String hurricaneId) {
+    public Hurricane deleteHurricaneWindfields(@ApiParam(value = "Hurricane Id", required = true) @PathParam("hurricane-id") String hurricaneId) {
         Hurricane hurricane = getHurricaneById(hurricaneId);
 
         if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {

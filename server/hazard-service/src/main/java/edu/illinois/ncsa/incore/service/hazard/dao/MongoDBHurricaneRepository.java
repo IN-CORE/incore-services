@@ -70,9 +70,9 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
     @Override
     public Hurricane deleteHurricaneById(String id) {
-        Hurricane hurricane = this.dataStore.get(Hurricane.class, new ObjectId(id));
+        Hurricane hurricane = this.dataStore.get(HurricaneDataset.class, new ObjectId(id));
         if (hurricane != null) {
-            Query<Hurricane> query = this.dataStore.createQuery(Hurricane.class);
+            Query<HurricaneDataset> query = this.dataStore.createQuery(HurricaneDataset.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -108,35 +108,16 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     @Override
-    public List<Hurricane> queryHurricanes(String attributeType, String attributeValue) {
-        List<Hurricane> hurricanes = this.dataStore.createQuery(Hurricane.class)
-            .filter(attributeType, attributeValue)
-            .asList();
-
-        return hurricanes;
-    }
-
-    @Override
-    public List<Hurricane> queryHurricanes(Map<String, String> queryMap) {
-        Query<Hurricane> query = this.dataStore.createQuery(Hurricane.class);
-
-        for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
-        }
-
-        List<Hurricane> hurricanes = query.asList();
-
-        return hurricanes;
-    }
-
-    @Override
     public List<Hurricane> searchHurricanes(String text) {
-        Query<Hurricane> query = this.dataStore.createQuery(Hurricane.class);
+        Query<HurricaneDataset> query = this.dataStore.createQuery(HurricaneDataset.class);
 
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<Hurricane> hurricanes = query.asList();
+        List<HurricaneDataset> hurricaneDatasets = query.asList();
+
+        List<Hurricane> hurricanes = new ArrayList<>();
+        hurricanes.addAll(hurricaneDatasets);
 
         return hurricanes;
     }

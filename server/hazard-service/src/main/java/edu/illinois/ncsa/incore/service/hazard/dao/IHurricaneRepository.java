@@ -30,7 +30,4 @@ public interface IHurricaneRepository {
 
     Datastore getDataStore();
 
-    List<Hurricane> queryHurricanes(String attributeType, String attributeValue);
-    List<Hurricane> queryHurricanes(Map<String, String> queryMap);
-
 }
