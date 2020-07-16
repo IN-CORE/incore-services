@@ -20,7 +20,7 @@ import org.bson.types.ObjectId;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tsunamiType")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hurricaneType")
 @JsonSubTypes({@JsonSubTypes.Type(value = HurricaneDataset.class, name = "dataset")})
 @XmlRootElement
 public abstract class Hurricane {
