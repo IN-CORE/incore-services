@@ -276,7 +276,7 @@ so the correct dataset and metadata are associated.
 ##### Sample Hurricane Json
 {
 	"name": "Galveston Deterministic Hurricane - Kriging",
-	"description": "Seaside dataset based deterministic hazard - 3 datasets",
+	"description": "Galveston dataset based deterministic hazard - 3 datasets",
 	"hurricaneType": "dataset",
 	"hazardDatasets": [
         {
