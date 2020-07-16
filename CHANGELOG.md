@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added 
+- Hurricane endpoints to accept dataset based deterministic hurricanes. This also involved refactoring current hurricaneWindfields code into separate route. [INCORE1-690](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-690)
+
 ## [0.6.7] - 2020-06-30
 
 ### Changed
