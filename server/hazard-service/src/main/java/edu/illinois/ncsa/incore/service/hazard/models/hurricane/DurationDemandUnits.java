@@ -6,26 +6,14 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
-public class HurricaneSimulationDataset {
+public enum DurationDemandUnits {
+    hr,
+    min,
+    sec;
 
-    private String absTime;
-    private String datasetId;
-    //Include demandType and units?
-
-
-    public String getAbsTime() {
-        return absTime;
+    public static DurationDemandUnits fromString(String unit) {
+        String lowerUnit = unit.toLowerCase();
+        return valueOf(lowerUnit);
     }
 
-    public void setAbsTime(String absTime) {
-        this.absTime = absTime;
-    }
-
-    public String getDatasetId() {
-        return datasetId;
-    }
-
-    public void setDatasetId(String datasetId) {
-        this.datasetId = datasetId;
-    }
 }

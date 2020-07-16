@@ -7,11 +7,11 @@
  * Contributors:
  * Gowtham Naraharisetty (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
+package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneGrid;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.math3.complex.Complex;
@@ -32,7 +32,7 @@ import static java.lang.Math.*;
 /**
  * Misc utility functions for doing conversion of hazard types and units
  */
-public class HurricaneUtil {
+public class HurricaneWindfieldsUtil {
     public static final String HAZARD = "hurricane";
     public static final String UNITS_M = "m";
     public static final String UNITS_KT = "kt";
@@ -65,7 +65,7 @@ public class HurricaneUtil {
     public static final double FR = 0.8; //Conversion parameter
     public static final int TOTAL_OMEGAS = 16; //This is 360 degrees divided by 22.5 degrees
     public static final Map<String, String[]> categoryMapping;
-    private static final Logger log = Logger.getLogger(HurricaneUtil.class);
+    private static final Logger log = Logger.getLogger(HurricaneWindfieldsUtil.class);
     public static List<Integer> OMEGAS_ALL = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
     public static final String GRID_RESOLUTION_UNITS = "km";
     public static final String RASTER_RESOLUTION_UNITS = "km";
@@ -181,8 +181,8 @@ public class HurricaneUtil {
             for (int col = 0; col < cols; col++) {
                 //rowList.add(cArr[row][col].abs());
                 double windVal = cArr[row][col].abs();
-                if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
-                    windVal = convertWindfieldVelocity(HurricaneUtil.WIND_VELOCITY_60SECS, windVal, WINDFIELD_DEFAULT_ELEVATION,
+                if(!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)){
+                    windVal = convertWindfieldVelocity(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS, windVal, WINDFIELD_DEFAULT_ELEVATION,
                         STANDARD_OPEN_TERRAIN_ROUGHNESS).get(demandType);
                 }
 
@@ -208,8 +208,8 @@ public class HurricaneUtil {
         }
 
         double factor = 1.0;
-        if(!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)){
-            factor = convertWindfieldVelocity(HurricaneUtil.WIND_VELOCITY_60SECS, factor, WINDFIELD_DEFAULT_ELEVATION,
+        if(!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)){
+            factor = convertWindfieldVelocity(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS, factor, WINDFIELD_DEFAULT_ELEVATION,
                 STANDARD_OPEN_TERRAIN_ROUGHNESS).get(demandType);
         }
 

@@ -18,16 +18,16 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
-import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneWindfieldsRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneWindfields;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneWindfieldResult;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.WindfieldDemandUnits;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationEnsemble;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.HurricaneWindfieldResult;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.WindfieldsDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneUtil;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsCalc;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
@@ -50,12 +50,12 @@ import java.util.stream.Collectors;
 @ApiResponses(value = {
     @ApiResponse(code = 500, message = "Internal Server Error")
 })
-public class HurricaneController {
-    private static final Logger log = Logger.getLogger(HurricaneController.class);
+public class HurricaneWindfieldsController {
+    private static final Logger log = Logger.getLogger(HurricaneWindfieldsController.class);
     private String username;
 
     @Inject
-    private IHurricaneRepository repository;
+    private IHurricaneWindfieldsRepository repository;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -64,7 +64,7 @@ public class HurricaneController {
     private IAuthorizer authorizer;
 
     @Inject
-    public HurricaneController(
+    public HurricaneWindfieldsController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
     }
@@ -79,7 +79,7 @@ public class HurricaneController {
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
-        List<HurricaneWindfields> hurricaneWindfields = repository.getHurricanes();
+        List<HurricaneWindfields> hurricaneWindfields = repository.getHurricaneWindfields();
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
@@ -123,7 +123,7 @@ public class HurricaneController {
     public HurricaneWindfields getHurricaneWindfieldsById(
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
 
-        HurricaneWindfields hurricane = repository.getHurricaneById(hurricaneId);
+        HurricaneWindfields hurricane = repository.getHurricaneWindfieldsById(hurricaneId);
         if (hurricane == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a hurricane with id " + hurricaneId);
         }
@@ -141,8 +141,8 @@ public class HurricaneController {
     @ApiOperation(value = "Returns the hurricane wind field values.")
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
-        @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.") @QueryParam("demandType") @DefaultValue(HurricaneUtil.WIND_VELOCITY_3SECS) String demandType,
-        @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue(HurricaneUtil.UNITS_MPH) WindfieldDemandUnits demandUnits,
+        @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.") @QueryParam("demandType") @DefaultValue(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) String demandType,
+        @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue(HurricaneWindfieldsUtil.UNITS_MPH) WindfieldsDemandUnits demandUnits,
         @ApiParam(value = "Elevation in meters at which wind speed has to be calculated.") @QueryParam("elevation") @DefaultValue("10.0") double elevation,
         @ApiParam(value = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @QueryParam("roughness") @DefaultValue("0.03") double roughness,
         @ApiParam(value = "List of points provided as lat,long. Ex: '28.09,-80.62'.", required = true) @QueryParam("point") List<IncorePoint> points) {
@@ -157,7 +157,7 @@ public class HurricaneController {
 
         if (hurricane != null) {
 
-            if (!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)) {
+            if (!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
                 log.error("Unsupported hurricane demandType provided to GET values : " + demandType);
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s.");
             }
@@ -170,11 +170,11 @@ public class HurricaneController {
 
                     windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at 10m elevation
 
-                    HashMap<String, Double> convertedWf = HurricaneUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
+                    HashMap<String, Double> convertedWf = HurricaneWindfieldsUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
                     windValue = convertedWf.get(demandType);
 
                     if (!demandUnits.toString().equals(hurrDemandUnits)) {
-                        windValue = HurricaneUtil.getCorrectUnitsOfVelocity(windValue, hurrDemandUnits, demandUnits.toString());
+                        windValue = HurricaneWindfieldsUtil.getCorrectUnitsOfVelocity(windValue, hurrDemandUnits, demandUnits.toString());
                     }
                 } catch (IOException e) {
                     log.error("Velocity calculation failed from the shapefile");
@@ -201,7 +201,7 @@ public class HurricaneController {
         if (inputHurricane != null) {
             String demandType = inputHurricane.getDemandType().trim();
 
-            if (!demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneUtil.WIND_VELOCITY_60SECS)) {
+            if (!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
                 log.error("Unsupported hurricane demandType provided in POST JSON : " + demandType);
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s");
             }
@@ -234,7 +234,7 @@ public class HurricaneController {
                     inputHurricane.getRasterResolution(), this.username));
 
                 //save hurricane
-                hurricaneWindfields = repository.addHurricane(hurricaneWindfields);
+                hurricaneWindfields = repository.addHurricaneWindfields(hurricaneWindfields);
 
                 //add hurricane to the user's space
                 Space space = spaceRepository.getSpaceByName(this.username);
@@ -274,7 +274,7 @@ public class HurricaneController {
                 }
             }
 
-            HurricaneWindfields deletedHurricane = repository.deleteHurricaneById(hurricaneId); // remove hurricane document
+            HurricaneWindfields deletedHurricane = repository.deleteHurricaneWindfieldsById(hurricaneId); // remove hurricane document
 
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
@@ -313,9 +313,9 @@ public class HurricaneController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Coast needs to be gulf, florida or east. Category should be between 1 to 5");
         }
 
-        if (HurricaneUtil.categoryMapping.get(coast) != null) {
-            return HurricaneCalc.simulateHurricane(this.username, transD, landfallLoc,
-                HurricaneUtil.categoryMapping.get(coast)[category - 1], demandType, demandUnits, resolution, gridPoints, rfMethod);
+        if (HurricaneWindfieldsUtil.categoryMapping.get(coast) != null) {
+            return HurricaneWindfieldsCalc.simulateHurricane(this.username, transD, landfallLoc,
+                HurricaneWindfieldsUtil.categoryMapping.get(coast)[category - 1], demandType, demandUnits, resolution, gridPoints, rfMethod);
         } else {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Error finding a mapping for the coast and category");
         }
@@ -334,13 +334,13 @@ public class HurricaneController {
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         List<HurricaneWindfields> hurricanes;
-        HurricaneWindfields hurricane = repository.getHurricaneById(text);
+        HurricaneWindfields hurricane = repository.getHurricaneWindfieldsById(text);
         if (hurricane != null) {
             hurricanes = new ArrayList<HurricaneWindfields>() {{
                 add(hurricane);
             }};
         } else {
-            hurricanes = this.repository.searchHurricanes(text);
+            hurricanes = this.repository.searchHurricaneWindfields(text);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());

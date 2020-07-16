@@ -9,28 +9,28 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneWindfields;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import dev.morphia.Datastore;
 
 import java.util.Map;
 import java.util.List;
 
-public interface IHurricaneRepository {
+public interface IHurricaneWindfieldsRepository {
     void initialize();
 
-    HurricaneWindfields getHurricaneById(String id);
+    HurricaneWindfields getHurricaneWindfieldsById(String id);
 
-    HurricaneWindfields addHurricane(HurricaneWindfields hurricane);
+    HurricaneWindfields addHurricaneWindfields(HurricaneWindfields hurricane);
 
-    HurricaneWindfields deleteHurricaneById(String id);
+    HurricaneWindfields deleteHurricaneWindfieldsById(String id);
 
-    List<HurricaneWindfields> getHurricanes();
+    List<HurricaneWindfields> getHurricaneWindfields();
 
-    List<HurricaneWindfields> searchHurricanes(String text);
+    List<HurricaneWindfields> searchHurricaneWindfields(String text);
 
     Datastore getDataStore();
 
-    List<HurricaneWindfields> queryHurricanes(String attributeType, String attributeValue);
-    List<HurricaneWindfields> queryHurricanes(Map<String, String> queryMap);
+    List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue);
+    List<HurricaneWindfields> queryHurricaneWindfields(Map<String, String> queryMap);
 
 }

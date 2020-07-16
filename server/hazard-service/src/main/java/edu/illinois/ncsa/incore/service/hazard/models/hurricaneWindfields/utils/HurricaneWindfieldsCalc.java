@@ -7,7 +7,7 @@
  * Contributors:
  * Gowtham Naraharisetty (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
+package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils;
 
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -17,10 +17,11 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneGrid;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulation;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationEnsemble;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HistoricHurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneGrid;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulation;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationEnsemble;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -42,8 +43,8 @@ import static java.lang.Math.*;
 /**
  * Misc utility functions for doing conversion of hazard types and units
  */
-public class HurricaneCalc {
-    private static final Logger logger = Logger.getLogger(HurricaneCalc.class);
+public class HurricaneWindfieldsCalc {
+    private static final Logger logger = Logger.getLogger(HurricaneWindfieldsCalc.class);
 
 
     public static HurricaneSimulationEnsemble simulateHurricane(String username, double transD, IncorePoint landfallLoc, String model,
@@ -65,7 +66,7 @@ public class HurricaneCalc {
         //IncorePoint landfallPoint = landfallLoc.getLocation();
         List<Double> timeNewRadii = (List<Double>) params.get("time_radii_new");
 
-        Complex vt0 = HurricaneUtil.parseComplexString(Vt0New.get(0), 'j');
+        Complex vt0 = HurricaneWindfieldsUtil.parseComplexString(Vt0New.get(0), 'j');
 
 
         double x1 = vt0.getReal();
@@ -83,14 +84,14 @@ public class HurricaneCalc {
         List<Complex> VTsSimu = new ArrayList<Complex>();
 
         for (String s : Vt0New) {
-            Complex c1 = HurricaneUtil.parseComplexString(s, 'j');
+            Complex c1 = HurricaneWindfieldsUtil.parseComplexString(s, 'j');
             double abNew = c1.abs();
             double angle = c1.getArgument();
 
-            VTsSimu.add(HurricaneUtil.convertToPolar(abNew, angle + th));
+            VTsSimu.add(HurricaneWindfieldsUtil.convertToPolar(abNew, angle + th));
         }
 
-        List<IncorePoint> track = HurricaneUtil.locateNewTrack(timeNewRadii, VTsSimu, landfallLoc, indexLandfall);
+        List<IncorePoint> track = HurricaneWindfieldsUtil.locateNewTrack(timeNewRadii, VTsSimu, landfallLoc, indexLandfall);
 
         if (!model.toLowerCase().equals("isabel") && !model.toLowerCase().equals("frances")) {
             VTsSimu.remove(indexLandfall);
@@ -133,7 +134,7 @@ public class HurricaneCalc {
 
             final Callable<List<HurricaneSimulation>> hurrSims = () -> {
                 pList.parallelStream().forEach(i -> {
-                    hSimulations.add(HurricaneCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
+                    hSimulations.add(HurricaneWindfieldsCalc.setSimulationWithWindfield((JSONObject) para.get(i), times.get(i),
                         track.get(i), demandType, demandUnits, resolution, gridPoints, VTsSimu.get(i), (JSONArray) omegaFitted.get(i),
                         (JSONArray) zonesFitted.get(i), (JSONArray) radiusM.get(i), rfMethod));
 
@@ -165,17 +166,17 @@ public class HurricaneCalc {
         hsim.setAbsTime(time);
 
 
-        HurricaneGrid hgrid = HurricaneUtil.defineGrid(center, resolution, gridPoints);
+        HurricaneGrid hgrid = HurricaneWindfieldsUtil.defineGrid(center, resolution, gridPoints);
 
         hsim.setGridLats(hgrid.getLati());
         hsim.setGridLongs(hgrid.getLongi());
 
-        Complex[][] vsFinal = HurricaneCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted, zonesFitted,
+        Complex[][] vsFinal = HurricaneWindfieldsCalc.simulateWindfieldWithCores(para, hgrid, VTsSimu, omegaFitted, zonesFitted,
             radiusM, rfMethod);
 
-        List<List<String>> strList = HurricaneUtil.convert2DComplexArrayToStringList(vsFinal, demandType, demandUnits);
+        List<List<String>> strList = HurricaneWindfieldsUtil.convert2DComplexArrayToStringList(vsFinal, demandType, demandUnits);
         //hsim.setSurfaceVelocity(strList); //Uncomment to see complex values too
-        hsim.setSurfaceVelocityAbs(HurricaneUtil.convert2DComplexArrayToAbsList(vsFinal, demandType, demandUnits));
+        hsim.setSurfaceVelocityAbs(HurricaneWindfieldsUtil.convert2DComplexArrayToAbsList(vsFinal, demandType, demandUnits));
 
 
         IncorePoint ctr = hgrid.getCenter();
@@ -209,8 +210,8 @@ public class HurricaneCalc {
         JSONArray arrRmThetaVspInner = (JSONArray) para.get("rm_theta_vsp_inner");
         JSONArray arrRmThetaVspOuter = (JSONArray) para.get("rm_theta_vsp_outer");
 
-        List<List<Complex>> rmThetaVspOuter = HurricaneUtil.convert2DComplexArrayToList(arrRmThetaVspOuter);
-        List<List<Complex>> rmThetaVspInner = HurricaneUtil.convert2DComplexArrayToList(arrRmThetaVspInner);
+        List<List<Complex>> rmThetaVspOuter = HurricaneWindfieldsUtil.convert2DComplexArrayToList(arrRmThetaVspOuter);
+        List<List<Complex>> rmThetaVspInner = HurricaneWindfieldsUtil.convert2DComplexArrayToList(arrRmThetaVspInner);
 
         double pc = (double) para.get("pc"); //central Pressure
         JSONArray vgInner = (JSONArray) para.get("vg_inner");
@@ -251,7 +252,7 @@ public class HurricaneCalc {
             r.add(rx);
         }
 
-        Map<String, Object> thetaRangeZones = HurricaneUtil.rangeWindSpeedComb(omegaFitted);
+        Map<String, Object> thetaRangeZones = HurricaneWindfieldsUtil.rangeWindSpeedComb(omegaFitted);
 
         double[][] thetaRange = (double[][]) thetaRangeZones.get("thetaRange");
         int[] zoneClass = (int[]) thetaRangeZones.get("zoneClass");
@@ -323,9 +324,9 @@ public class HurricaneCalc {
                     List<Complex> vGsOuterRi = new ArrayList<>();
 
                     for (int nsp = 0; nsp < nspOuter; nsp++) {
-                        vGsOuterRi.add(HurricaneUtil.HollandGradientWind(rRi, thetaRi, bOuter, fCorolosis,
+                        vGsOuterRi.add(HurricaneWindfieldsUtil.HollandGradientWind(rRi, thetaRi, bOuter, fCorolosis,
                             rmThetaVspOuterRi.get(nsp).get(minIndex), pc));
-                        vGsInnerRi.add(HurricaneUtil.HollandGradientWind(rRi, thetaRi, bInner, fCorolosis,
+                        vGsInnerRi.add(HurricaneWindfieldsUtil.HollandGradientWind(rRi, thetaRi, bInner, fCorolosis,
                             rmThetaVspInnerRi.get(nsp).get(minIndex), pc));
                     }
                     vGsOuter.add(vGsOuterRi);
@@ -396,8 +397,8 @@ public class HurricaneCalc {
                             Double fui = (tempAbsVgsOuter.get(k).get(j - 1)) / vspGOuter.get(j - 1);
                             Double fui1 = (tempAbsVgsOuter.get(k).get(j)) / vspGOuter.get(j);
 
-                            Double wi = HurricaneUtil.getWi(fui, fui1, "forward");
-                            Double wi1 = HurricaneUtil.getWi(fui, fui1, "backward");
+                            Double wi = HurricaneWindfieldsUtil.getWi(fui, fui1, "forward");
+                            Double wi1 = HurricaneWindfieldsUtil.getWi(fui, fui1, "backward");
 
                             combVgsOuter[k] = tempVgsOuter.get(k).get(j - 1).multiply(wi).
                                 add(tempVgsOuter.get(k).get(j).multiply(wi1));
@@ -423,8 +424,8 @@ public class HurricaneCalc {
                             Double fui = (tempAbsVgsInner.get(k).get(j - 1)) / vspGInner.get(j - 1);
                             Double fui1 = (tempAbsVgsInner.get(k).get(j)) / vspGInner.get(j);
 
-                            Double wi = HurricaneUtil.getWi(fui, fui1, "forward");
-                            Double wi1 = HurricaneUtil.getWi(fui, fui1, "backward");
+                            Double wi = HurricaneWindfieldsUtil.getWi(fui, fui1, "forward");
+                            Double wi1 = HurricaneWindfieldsUtil.getWi(fui, fui1, "backward");
 
                             combVgsInner[k] = tempVgsInner.get(k).get(j - 1).multiply(wi).
                                 add(tempVgsInner.get(k).get(j).multiply(wi1));
@@ -499,7 +500,7 @@ public class HurricaneCalc {
 
             fdp[idx] = (rmOuter * r) / (pow(rmOuter, 2) + pow(r, 2));
             if (vGsTotal[idx] != null) {
-                Complex vSurf = (vGsTotal[idx].multiply(HurricaneUtil.FR)).add(vTs.multiply(fdp[idx]));
+                Complex vSurf = (vGsTotal[idx].multiply(HurricaneWindfieldsUtil.FR)).add(vTs.multiply(fdp[idx]));
                 // Rotate counter-clockwise
                 if (r < rmOuter) {
                     alpha[idx] = a1 * (r / rmOuter) * (Math.PI / 180);
@@ -509,7 +510,7 @@ public class HurricaneCalc {
                     alpha[idx] = a3 * (Math.PI / 180);
                 }
 
-                vSurfRot[idx] = (HurricaneUtil.rotateVector(vSurf, alpha[idx])).divide(HurricaneUtil.KT2MS);
+                vSurfRot[idx] = (HurricaneWindfieldsUtil.rotateVector(vSurf, alpha[idx])).divide(HurricaneWindfieldsUtil.KT2MS);
             } else { // Adding this condition to handle 0,0 complex number when it's returning null. !HACK! fix the source.
                 vSurfRot[idx] = new Complex(0, 0);
             }

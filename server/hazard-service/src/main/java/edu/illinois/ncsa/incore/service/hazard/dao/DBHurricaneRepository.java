@@ -9,9 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HistoricHurricane;
 
 import java.net.URL;
 
@@ -26,29 +25,6 @@ import java.io.IOException;
 
 
 public class DBHurricaneRepository {
-    private String hostUri;
-    private String databaseName;
-    private int port;
-    private MongoClientURI mongoClientURI;
-
-    private JSONObject jsonParams;
-
-    public DBHurricaneRepository() {
-        this.port = 27017;
-        this.hostUri = "localhost";
-        this.databaseName = "hazarddb";
-    }
-
-    public DBHurricaneRepository(String hostUri, String databaseName, int port) {
-        this.databaseName = databaseName;
-        this.hostUri = hostUri;
-        this.port = port;
-    }
-
-//    @Override
-//    public void initialize() {
-//        this.initializeDataStore();
-//    }
 
     //@Override
     public HistoricHurricane getHurricaneByModel(String model) {

@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneWindfields;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MongoDBHurricaneRepository implements IHurricaneRepository {
+public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfieldsRepository {
     private String hostUri;
     private String databaseName;
     private int port;
@@ -32,19 +32,19 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     private Datastore dataStore;
 
     // TODO I believe we can just use the URI and remove this later
-    public MongoDBHurricaneRepository() {
+    public MongoDBHurricaneWindfieldsRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
         this.databaseName = "hazarddb";
     }
 
-    public MongoDBHurricaneRepository(String hostUri, String databaseName, int port) {
+    public MongoDBHurricaneWindfieldsRepository(String hostUri, String databaseName, int port) {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
     }
 
-    public MongoDBHurricaneRepository(MongoClientURI mongoClientURI) {
+    public MongoDBHurricaneWindfieldsRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
         this.databaseName = mongoClientURI.getDatabase();
     }
@@ -66,13 +66,13 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     @Override
-    public HurricaneWindfields addHurricane(HurricaneWindfields hurricane) {
+    public HurricaneWindfields addHurricaneWindfields(HurricaneWindfields hurricane) {
         String id = this.dataStore.save(hurricane).getId().toString();
-        return getHurricaneById(id);
+        return getHurricaneWindfieldsById(id);
     }
 
     @Override
-    public HurricaneWindfields deleteHurricaneById(String id) {
+    public HurricaneWindfields deleteHurricaneWindfieldsById(String id) {
         HurricaneWindfields hurricane = this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
         if (hurricane != null) {
             Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
@@ -83,7 +83,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     @Override
-    public HurricaneWindfields getHurricaneById(String id) {
+    public HurricaneWindfields getHurricaneWindfieldsById(String id) {
         if (!ObjectId.isValid(id)) {
             return null;
         }
@@ -92,7 +92,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     @Override
-    public List<HurricaneWindfields> getHurricanes() {
+    public List<HurricaneWindfields> getHurricaneWindfields() {
         List<HurricaneWindfields> hurricaneWindfields = this.dataStore.createQuery(HurricaneWindfields.class).asList();
         return hurricaneWindfields;
 
@@ -104,7 +104,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     @Override
-    public List<HurricaneWindfields> queryHurricanes(String attributeType, String attributeValue) {
+    public List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue) {
         List<HurricaneWindfields> hurricanes = this.dataStore.createQuery(HurricaneWindfields.class)
             .filter(attributeType, attributeValue)
             .asList();
@@ -113,7 +113,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     @Override
-    public List<HurricaneWindfields> queryHurricanes(Map<String, String> queryMap) {
+    public List<HurricaneWindfields> queryHurricaneWindfields(Map<String, String> queryMap) {
         Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
@@ -126,7 +126,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     @Override
-    public List<HurricaneWindfields> searchHurricanes(String text) {
+    public List<HurricaneWindfields> searchHurricaneWindfields(String text) {
         Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
 
         query.or(query.criteria("name").containsIgnoreCase(text),

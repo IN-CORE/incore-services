@@ -4,15 +4,14 @@
  * terms of the Mozilla Public License v2.0 which accompanies this distribution,
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
+package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
-public enum WindfieldDemandUnits {
-    mph,
-    kt,
-    mps,
-    kmph;
+public enum DistanceDemandUnits {
+    m,
+    ft,
+    cm;
 
-    public static WindfieldDemandUnits fromString(String unit) {
+    public static DistanceDemandUnits fromString(String unit) {
         String lowerUnit = unit.toLowerCase();
         return valueOf(lowerUnit);
     }

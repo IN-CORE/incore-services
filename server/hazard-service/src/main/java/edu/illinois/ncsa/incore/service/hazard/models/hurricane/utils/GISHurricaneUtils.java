@@ -10,7 +10,8 @@ import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneSimulationDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.apache.commons.io.FilenameUtils;
@@ -281,7 +282,7 @@ public class GISHurricaneUtils {
                 performProcess(cmdStr);
                 System.out.println("performProcess complete");
                 //TODO Get the creator - pass a param?
-                HurricaneSimulationDataset simDataset = HurricaneUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid Snapshot",
+                HurricaneSimulationDataset simDataset = HurricaneWindfieldsUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid Snapshot",
                     username,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                     (String) tempHurricane.get("absTime"));
                 hsDatasets.add(simDataset);
@@ -297,7 +298,7 @@ public class GISHurricaneUtils {
                 tempDir + "/hurricane_all.dbf", tempDir + "/hurricane_all.fix", tempDir + "/hurricane_all.prj");
 
             System.out.println("createHurricaneDataSetFromFiles begins");
-            HurricaneSimulationDataset simDatasetAll = HurricaneUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane Full Snapshot",
+            HurricaneSimulationDataset simDatasetAll = HurricaneWindfieldsUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane Full Snapshot",
                 username,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
                 "full time range");
             hsDatasets.add(simDatasetAll);
@@ -909,13 +910,13 @@ public class GISHurricaneUtils {
             double a = pow(sin(deltaPhi / 2), 2);
             double c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
-            double deltaY = HurricaneUtil.R_EARTH * c * signum(deltaPhi);
+            double deltaY = HurricaneWindfieldsUtil.R_EARTH * c * signum(deltaPhi);
 
-            double a1 = pow(cos(HurricaneUtil.PARA / 180 * PI), 2) * pow(sin(deltaLamda / 2), 2);
+            double a1 = pow(cos(HurricaneWindfieldsUtil.PARA / 180 * PI), 2) * pow(sin(deltaLamda / 2), 2);
 
             double c1 = 2 * atan2(sqrt(a1), sqrt(1 - a1));
 
-            double deltaX = HurricaneUtil.R_EARTH * c1 * signum(deltaLamda);
+            double deltaX = HurricaneWindfieldsUtil.R_EARTH * c1 * signum(deltaLamda);
 
             distance = sqrt(pow(deltaY, 2) + pow(deltaX, 2));
         }
