@@ -11,18 +11,16 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
-import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.Query;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
+import org.bson.types.ObjectId;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfieldsRepository {
+public class MongoDBHurricaneRepository implements IHurricaneRepository {
     private String hostUri;
     private String databaseName;
     private int port;
@@ -31,19 +29,19 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     private Datastore dataStore;
 
     // TODO I believe we can just use the URI and remove this later
-    public MongoDBHurricaneWindfieldsRepository() {
+    public MongoDBHurricaneRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
         this.databaseName = "hazarddb";
     }
 
-    public MongoDBHurricaneWindfieldsRepository(String hostUri, String databaseName, int port) {
+    public MongoDBHurricaneRepository(String hostUri, String databaseName, int port) {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
     }
 
-    public MongoDBHurricaneWindfieldsRepository(MongoClientURI mongoClientURI) {
+    public MongoDBHurricaneRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
         this.databaseName = mongoClientURI.getDatabase();
     }
@@ -58,23 +56,23 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
         Set<Class> classesToMap = new HashSet<>();
         Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(HurricaneWindfields.class);
+        classesToMap.add(Hurricane.class);
         Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
 
     @Override
-    public HurricaneWindfields addHurricaneWindfields(HurricaneWindfields hurricane) {
+    public Hurricane addHurricane(Hurricane hurricane) {
         String id = this.dataStore.save(hurricane).getId().toString();
-        return getHurricaneWindfieldsById(id);
+        return getHurricaneById(id);
     }
 
     @Override
-    public HurricaneWindfields deleteHurricaneWindfieldsById(String id) {
-        HurricaneWindfields hurricane = this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
+    public Hurricane deleteHurricaneById(String id) {
+        Hurricane hurricane = this.dataStore.get(Hurricane.class, new ObjectId(id));
         if (hurricane != null) {
-            Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+            Query<Hurricane> query = this.dataStore.createQuery(Hurricane.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -82,18 +80,25 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     }
 
     @Override
-    public HurricaneWindfields getHurricaneWindfieldsById(String id) {
+    public Hurricane getHurricaneById(String id) {
         if (!ObjectId.isValid(id)) {
             return null;
         }
 
-        return this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
+        Hurricane hurricane = this.dataStore.get(HurricaneDataset.class, new ObjectId(id));
+        // TODO this will need to be updated if there are model based hurricanes
+
+        return hurricane;
     }
 
     @Override
-    public List<HurricaneWindfields> getHurricaneWindfields() {
-        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.createQuery(HurricaneWindfields.class).asList();
-        return hurricaneWindfields;
+    public List<Hurricane> getHurricanes() {
+        List<Hurricane> hurricanes = new LinkedList<>();
+        List<HurricaneDataset> hurricaneDatasets = this.dataStore.createQuery(HurricaneDataset.class).asList();
+        hurricanes.addAll(hurricaneDatasets);
+        // TODO this will need to be updated if there are model based hurricanes
+
+        return hurricanes;
 
     }
 
@@ -103,8 +108,8 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     }
 
     @Override
-    public List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue) {
-        List<HurricaneWindfields> hurricanes = this.dataStore.createQuery(HurricaneWindfields.class)
+    public List<Hurricane> queryHurricanes(String attributeType, String attributeValue) {
+        List<Hurricane> hurricanes = this.dataStore.createQuery(Hurricane.class)
             .filter(attributeType, attributeValue)
             .asList();
 
@@ -112,26 +117,26 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     }
 
     @Override
-    public List<HurricaneWindfields> queryHurricaneWindfields(Map<String, String> queryMap) {
-        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+    public List<Hurricane> queryHurricanes(Map<String, String> queryMap) {
+        Query<Hurricane> query = this.dataStore.createQuery(Hurricane.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<HurricaneWindfields> hurricanes = query.asList();
+        List<Hurricane> hurricanes = query.asList();
 
         return hurricanes;
     }
 
     @Override
-    public List<HurricaneWindfields> searchHurricaneWindfields(String text) {
-        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+    public List<Hurricane> searchHurricanes(String text) {
+        Query<Hurricane> query = this.dataStore.createQuery(Hurricane.class);
 
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<HurricaneWindfields> hurricanes = query.asList();
+        List<Hurricane> hurricanes = query.asList();
 
         return hurricanes;
     }

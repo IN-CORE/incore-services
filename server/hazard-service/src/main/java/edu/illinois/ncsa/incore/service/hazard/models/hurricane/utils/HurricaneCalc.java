@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
@@ -22,6 +23,7 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import org.opengis.coverage.PointOutsideCoverageException;
 import org.opengis.coverage.grid.GridCoverage;
 
+import javax.ws.rs.core.Response;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,11 +43,18 @@ public class HurricaneCalc {
                     hazardValue = HurricaneUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
                 } catch (PointOutsideCoverageException e) {
                     log.debug("Point outside tiff image.");
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedOperationException e){
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Requested demand type or units is not accepted");
                 }
             }
             return new HurricaneHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType, demandUnits);
 
         } else {
+            log.debug("Received hurricane is not of dataset type");
             throw new UnsupportedHazardException("Hurricane hazard values can only be obtained from datasets.");
         }
     }

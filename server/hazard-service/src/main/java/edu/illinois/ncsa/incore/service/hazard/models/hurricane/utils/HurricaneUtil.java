@@ -9,85 +9,86 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
+import java.util.Arrays;
+import java.util.List;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneConstants;
+import java.lang.reflect.*;
 
 public class HurricaneUtil {
     // Metric
     private static final String units_m = "m";
     private static final String units_cm = "cm";
-    private static final String units_cm_per_s = "cm/s";
-    private static final String units_m_per_s = "m/s";
-    private static final String units_m3_per_s2 = "m^3/s^2";
 
     // Imperial
     private static final String units_in = "in";
     private static final String units_ft = "ft";
-    private static final String units_in_per_s = "in/s";
-    private static final String units_ft3_per_s2 = "ft^3/s^2";
 
-    private static final double meters_to_cm = 100.0;
-    private static final double meters_to_inches = 39.3701;
-    private static final double meters_to_feet = 3.28084;
+    // Time
+    private static final String units_hr = "hr";
+    private static final String units_min = "min";
 
-    private static final double inches_to_cm = 2.54;
-    private static final double inches_to_meter = 0.0254;
-    private static final double inches_to_feet = 0.0833333;
+    public static final List<String> distanceUnits = Arrays.asList(new String[]{units_cm, units_m, units_in, units_ft});
+    public static final List<String> durationUnits = Arrays.asList(new String[]{units_hr, units_min});
 
-    public static double convertHazard(double hazardValue, String demandType, String originalDemandUnits, String requestedDemandUnits) throws UnsupportedOperationException {
-        // We'll need to update this method over time if new units become common for a demand type
+    private static final double m_to_cm = 100.0;
+    private static final double m_to_in = 39.3701;
+    private static final double m_to_ft = 3.28084;
+
+    private static final double in_to_cm = 2.54;
+    private static final double in_to_m = 0.0254;
+    private static final double in_to_ft = 0.0833333;
+
+    private static final double cm_to_m = 0.01;
+    private static final double cm_to_in = 0.3937;
+    private static final double cm_to_ft = 0.0328;
+
+    private static final double ft_to_cm = 30.48;
+    private static final double ft_to_in = 12;
+    private static final double ft_to_m = 0.3048;
+
+    private static final double hr_to_min = 60;
+    private static final double min_to_hr = 0.01666;
+
+    public static double convertHazard(double hazardValue, String demandType, String originalDemandUnits,
+                                String requestedDemandUnits) throws UnsupportedOperationException, IllegalAccessException, NoSuchFieldException {
         double convertedHazardValue = hazardValue;
-        if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
-//            if (demandType.equalsIgnoreCase(TsunamiConstants.MMAX) || demandType.equalsIgnoreCase(TsunamiConstants.LEGACY_MMAX)) {
-//                convertedHazardValue = getCorrectUnitsOfMMAX(convertedHazardValue, originalDemandUnits, requestedDemandUnits);
-//            } else {
-//                throw new UnsupportedOperationException("Cannot convert from " + originalDemandUnits + " to " + requestedDemandUnits);
-//            }
+        if(demandType.equalsIgnoreCase(HurricaneConstants.HS) || demandType.equalsIgnoreCase(HurricaneConstants.SURGE)){
+            if(distanceUnits.contains(requestedDemandUnits.toLowerCase())){
+                if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
+                    String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
+                    double conversionValue = HurricaneUtil.getVariableValue(conversion);
+                    convertedHazardValue = conversionValue * hazardValue;
+                }
+            }
+            else{
+                throw new UnsupportedOperationException("Invalid demandUnits provided" + requestedDemandUnits);
+            }
         }
-
+        else if( demandType.equalsIgnoreCase(HurricaneConstants.DUR_Q)){
+            if(durationUnits.contains(requestedDemandUnits.toLowerCase())){
+                if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
+                    String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
+                    double conversionValue = HurricaneUtil.getVariableValue(conversion);
+                    convertedHazardValue = conversionValue * hazardValue;
+                }
+            }
+            else{
+                throw new UnsupportedOperationException("Invalid demandUnits provided" + requestedDemandUnits);
+            }
+        }
+        else{
+            throw new UnsupportedOperationException("Invalid demandType provided" + demandType);
+        }
         return convertedHazardValue;
     }
 
-    public static double getCorrectUnitsOfHMAX(double hazardValue, String originalDemandUnits, String requestedDemandUnits) {
-        // There may be missing conversion we'll eventually need to support, but added a bunch of common ones for now
-        if (originalDemandUnits.equalsIgnoreCase(units_m) && requestedDemandUnits.equalsIgnoreCase(units_ft)) {
-            return hazardValue * meters_to_feet;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_m) && requestedDemandUnits.equalsIgnoreCase(units_in)) {
-            return hazardValue * meters_to_inches;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_m) && requestedDemandUnits.equalsIgnoreCase(units_cm)) {
-            return hazardValue * meters_to_cm;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_in) && requestedDemandUnits.equalsIgnoreCase(units_m)) {
-            return hazardValue * inches_to_meter;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_in) && requestedDemandUnits.equalsIgnoreCase(units_cm)) {
-            return hazardValue * inches_to_cm;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_in) && requestedDemandUnits.equalsIgnoreCase(units_ft)) {
-            return hazardValue * inches_to_feet;
-        } else {
-            throw new UnsupportedOperationException("Cannot convert Hmax from " + originalDemandUnits + " to " + requestedDemandUnits);
-        }
+    /*
+    Get values dynamically from variable name. ex: "cm_to_in"
+     */
+    public static double getVariableValue(String variableName) throws IllegalAccessException, NoSuchFieldException {
+        Field field = HurricaneUtil.class.getDeclaredField(variableName);
+        return field.getDouble(null);
     }
 
-    public static double getCorrectUnitsOfVMAX(double hazardValue, String originalDemandUnits, String requestedDemandUnits) {
-        if (originalDemandUnits.equalsIgnoreCase(units_m_per_s) && requestedDemandUnits.equalsIgnoreCase(units_cm_per_s)) {
-            return hazardValue * meters_to_cm;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_m_per_s) && requestedDemandUnits.equalsIgnoreCase(units_in_per_s)) {
-            return hazardValue * meters_to_inches;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_in_per_s) && requestedDemandUnits.equalsIgnoreCase(units_m_per_s)) {
-            return hazardValue * inches_to_meter;
-        } else if (originalDemandUnits.equalsIgnoreCase(units_in_per_s) && requestedDemandUnits.equalsIgnoreCase(units_cm_per_s)) {
-            return hazardValue * inches_to_cm;
-        } else {
-            throw new UnsupportedOperationException("Cannot convert Vmax from " + originalDemandUnits + " to " + requestedDemandUnits);
-        }
-    }
-
-    public static double getCorrectUnitsOfMMAX(double hazardValue, String originalDemandUnits, String requestedDemandUnits) {
-        if (originalDemandUnits.equalsIgnoreCase(units_m3_per_s2) && requestedDemandUnits.equalsIgnoreCase(units_ft3_per_s2)) {
-            return hazardValue * Math.pow(meters_to_feet, 3);
-        } else if (originalDemandUnits.equalsIgnoreCase(units_ft3_per_s2) && requestedDemandUnits.equalsIgnoreCase(units_m3_per_s2)) {
-            return hazardValue / Math.pow(meters_to_feet, 3);
-        } else {
-            throw new UnsupportedOperationException("Cannot convert Mmax from " + originalDemandUnits + " to " + requestedDemandUnits);
-        }
-    }
 
 }
