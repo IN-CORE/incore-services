@@ -50,9 +50,11 @@ public class HurricaneCalc {
                 } catch (UnsupportedOperationException e){
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Requested demand type or units is not accepted");
                 }
+                return new HurricaneHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType, demandUnits);
             }
-            return new HurricaneHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType, demandUnits);
-
+            else {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dataset found for the hazard. Check if requested demand type is valid");
+            }
         } else {
             log.debug("Received hurricane is not of dataset type");
             throw new UnsupportedHazardException("Hurricane hazard values can only be obtained from datasets.");
