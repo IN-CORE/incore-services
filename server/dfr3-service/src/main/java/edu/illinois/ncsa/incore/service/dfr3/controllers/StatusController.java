@@ -25,7 +25,6 @@ import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.PeriodBuildingFragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.StandardFragilityCurve;
-import edu.illinois.ncsa.incore.common.config.Config;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -118,7 +117,7 @@ public class StatusController {
         HashMap<String, String> retHash = new HashMap<String, String>();
         String mongodbUri = "mongodb://localhost:27017/dfr3db";
 
-        String mongodbUriProp = Config.getConfigProperties().getProperty("dfr3.mongodbURI");
+        String mongodbUriProp = System.getenv("dfr3.mongodbURI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
