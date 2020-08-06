@@ -7,11 +7,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.*;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -21,10 +17,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
-import edu.illinois.ncsa.incore.service.dfr3.models.PeriodStandardFragilityCurve;
-import edu.illinois.ncsa.incore.service.dfr3.models.PeriodBuildingFragilityCurve;
-import edu.illinois.ncsa.incore.service.dfr3.models.StandardFragilityCurve;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -43,7 +35,7 @@ public class StatusController {
     private HashMap<String, String> tests = new HashMap<String, String>();
     private String user = "incrtest";
     private int period = 5;
-    private static final String version = System.getenv("service_version");
+    private static final String VERSION = System.getenv("SERVICE_VERSION");
 
     public StatusController() {
         tests.put("dbconn", "unknown");
@@ -108,16 +100,22 @@ public class StatusController {
         if (errorMatch.find()) {
             code = "1";
         }
-        statusJson += "},\"status\":\"" + status + "\",\"code\":" + code + ", \"version\":\"" + version + "\"}";
+        statusJson += "},\"status\":\"" + status + "\",\"code\":" + code + ", \"version\":\"" + VERSION + "\"}";
         return statusJson;
     }
 
     public String testDB() {
         long startTime = System.nanoTime();
         HashMap<String, String> retHash = new HashMap<String, String>();
-        String mongodbUri = "mongodb://localhost:27017/dfr3db";
+        int connTimeout = 3000;
+        int connTimeoutProp = System.getenv("connectionTimeout");
+        if (connTimeoutProp != null && connTimeoutProp > 0) {
+            //This allows the environment variable to be set in seconds, though we need ms
+            connTimeout = connTimeoutProp * 1000;
+        }
+        String mongodbUri = "mongodb://localhost:27017/dfr3db/?connectionTimeoutMS=" + connTimeout;
 
-        String mongodbUriProp = System.getenv("dfr3.mongodbURI");
+        String mongodbUriProp = System.getenv("DFR3_MONGODB_URI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
@@ -136,7 +134,7 @@ public class StatusController {
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
-        retHash.put("exectime", Long.toString(elapsedTime));
+        retHash.put("execTime", Long.toString(elapsedTime));
         String ret = retHash.get("code");
         try {
             ret = new ObjectMapper().writeValueAsString(retHash);
@@ -145,7 +143,7 @@ public class StatusController {
         }
         //Strip the quotes from code and execTime
         ret = ret.replaceAll("\"code\":\"(\\d+)\"", "\"code\":$1");
-        ret = ret.replaceAll("\"exectime\":\"(\\d+)\"", "\"exectime\":$1");
+        ret = ret.replaceAll("\"execTime\":\"(\\d+)\"", "\"execTime\":$1");
         return ret;
     }
 }
