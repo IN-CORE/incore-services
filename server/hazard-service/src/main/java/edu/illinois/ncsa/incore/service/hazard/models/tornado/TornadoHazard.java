@@ -9,6 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
+
 public interface TornadoHazard {
     // Defined Parameters
     public static double[] efWindSpeed = {65, 86, 111, 136, 166, 200}; // used operational EF scale (mph)
@@ -38,7 +40,7 @@ public interface TornadoHazard {
     public static String WIND_MPS = "mps";
 
     // Shapefile schema fields for tornado wind field ef boxes
-    public static final String TORNADO_SCHEMA_NAME = "tornadowindfield"; //$NON-NLS-1$
+    public static final String TORNADO_SCHEMA_NAME = HazardConstants.TORNADO_WINDFIELD_SCHEMA; //$NON-NLS-1$
     public static final String TORNADO_HAZARD_TYPE = "http://localhost:8080/semantics/edu.illinois.ncsa.incore.tornado.hazard.schemas.tornadohazard.v1.0";
     public static final String SHAPEFILE_FORMAT = "shapefile";
     public static final String SIMULATION = "simulation"; //$NON-NLS-1$
