@@ -20,6 +20,7 @@ public class HazardConstants {
     public static final String DETERMINISTIC_TSUNAMI_HAZARD_SCHEMA = "incore:deterministicTsunamiRaster";
     public static final String PROBABILISTIC_HURRICANE_HAZARD_SCHEMA = "incore:probabilisticHurricaneRaster";
     public static final String DETERMINISTIC_HURRICANE_HAZARD_SCHEMA = "incore:deterministicHurricaneRaster";
+    public static final String HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA = "incore:hurricaneGridSnapshot";
     public static final String DETERMINISTIC_HAZARD_TYPE = "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.deterministicHazardRaster.v1.0";
     public static final String RASTER_FORMAT = "raster";
     public static final String HAZARD_TIF = "hazard.tif";
