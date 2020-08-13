@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5'
     //mongo
     compile('org.mongodb:mongo-java-driver:3.12.5')
     compile('dev.morphia.morphia:core:1.5.8')
@@ -19,12 +19,14 @@ dependencies {
     compile group: 'com.google.inject', name: 'guice', version: '3.0'
 
     //base jersey and jackson
-    compile('javax.ws.rs:javax.ws.rs-api:2.0.1')
-    compile('org.glassfish.jersey.core:jersey-server:2.25.1')
-    compile('org.glassfish.jersey.containers:jersey-container-servlet:2.25.1')
-    compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1')
-    compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1')
+    compile('javax.ws.rs:javax.ws.rs-api:2.1.1')
+    compile('org.glassfish.jersey.core:jersey-server:2.31')
+    compile('org.glassfish.jersey.containers:jersey-container-servlet:2.31')
+    compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.31')
+    compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.31')
+    compile(group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.31')
+    compile(group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.31')
+
     compile(group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13')
-    compile(group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.25.1')
     
 }

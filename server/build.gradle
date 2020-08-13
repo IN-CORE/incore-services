@@ -124,8 +124,8 @@ test {
 
         dependencies {
             //incore-common local subproject library
-            compile project(':incore-common');
-            compile project(':tools-common');
+            compile project(':incore-common')
+            compile project(':tools-common')
 
             //mongo
             compile('org.mongodb:mongo-java-driver:3.12.5')
@@ -150,17 +150,19 @@ test {
             compile('org.jamel.dbf:dbf-reader:0.2.0')
 
             //base jersey and jackson
-            compile('javax.ws.rs:javax.ws.rs-api:2.0.1')
-            compile('org.glassfish.jersey.core:jersey-server:2.25.1')
-            compile('org.glassfish.jersey.containers:jersey-container-servlet:2.25.1')
-            compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1')
-            compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.25.1')
+            compile('javax.ws.rs:javax.ws.rs-api:2.1.1')
+            compile('org.glassfish.jersey.core:jersey-server:2.31')
+            compile('org.glassfish.jersey.containers:jersey-container-servlet:2.31')
+            compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.31')
+            compile('org.glassfish.jersey.media:jersey-media-json-jackson:2.31')
+            compile(group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.31')
+            compile(group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.31')
+
             compile(group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13')
-            compile(group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.25.1')
 
             // Libraries for testing jersey controller actions
-            testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version: '2.25.1')
-            testCompile(group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-servlet', version: '2.25.1')
+            testCompile(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version: '2.31')
+            testCompile(group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-servlet', version: '2.31')
 
             // Temporary requirement for optional junit dependency that should not be optional
             testCompileOnly(group: 'org.apiguardian', name: 'apiguardian-api', version: '1.0.0')
