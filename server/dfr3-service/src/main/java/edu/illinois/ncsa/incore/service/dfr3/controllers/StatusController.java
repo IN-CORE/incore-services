@@ -108,8 +108,14 @@ public class StatusController {
         long startTime = System.nanoTime();
         HashMap<String, String> retHash = new HashMap<String, String>();
         int connTimeout = 3000;
-        int connTimeoutProp = System.getenv("connectionTimeout");
-        if (connTimeoutProp != null && connTimeoutProp > 0) {
+        int connTimeoutProp = 0;
+        try {
+            connTimeoutProp = Integer.parseInt(System.getenv("connectionTimeout"));
+        }
+        catch (NumberFormatException e) {
+            connTimeoutProp = 0;
+        }
+        if (connTimeoutProp > 0) {
             //This allows the environment variable to be set in seconds, though we need ms
             connTimeout = connTimeoutProp * 1000;
         }
