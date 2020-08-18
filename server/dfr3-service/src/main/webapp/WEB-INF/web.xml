@@ -14,8 +14,7 @@
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>
                 edu.illinois.ncsa.incore.service.dfr3.controllers,
-                io.swagger.jaxrs.listing,
-                org.codehaus.jackson.jaxrs
+                io.swagger.jaxrs.listing
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
