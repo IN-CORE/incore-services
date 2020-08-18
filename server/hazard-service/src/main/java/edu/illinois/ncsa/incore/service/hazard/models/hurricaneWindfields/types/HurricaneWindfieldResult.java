@@ -7,7 +7,7 @@
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
+package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types;
 
 public class HurricaneWindfieldResult {
     private String demandType;

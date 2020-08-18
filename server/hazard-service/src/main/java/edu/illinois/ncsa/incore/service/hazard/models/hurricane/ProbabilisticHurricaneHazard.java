@@ -7,27 +7,8 @@
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.dao;
+package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
-import dev.morphia.Datastore;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
-
-import java.util.List;
-import java.util.Map;
-
-public interface IHurricaneRepository {
-    void initialize();
-
-    Hurricane getHurricaneById(String id);
-
-    Hurricane addHurricane(Hurricane hurricane);
-
-    Hurricane deleteHurricaneById(String id);
-
-    List<Hurricane> getHurricanes();
-
-    List<Hurricane> searchHurricanes(String text);
-
-    Datastore getDataStore();
-
-}
+public class ProbabilisticHurricaneHazard extends HurricaneHazardDataset {
+    // Empty class right now until we have an example Probabilistic dataset
+   }

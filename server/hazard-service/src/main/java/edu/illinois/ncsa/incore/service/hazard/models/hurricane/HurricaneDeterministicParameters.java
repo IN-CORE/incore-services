@@ -3,36 +3,22 @@
  * This program and the accompanying materials are made available under the
  * terms of the Mozilla Public License v2.0 which accompanies this distribution,
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
+ *
+ * Contributors:
+ * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
-import org.json.simple.JSONObject;
+public class HurricaneDeterministicParameters {
+    private String model = "Kriging"; // remove default when more models are added
 
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
-public class HistoricHurricane {
-
-    @XmlID
-    private String model;
-
-    private JSONObject parameters;
-
-    public String getHurricaneModel() {
+    public String getModel() {
         return model;
     }
 
-    public void setHurricaneModel(String model) {
+    public void setModel(String model) {
         this.model = model;
     }
 
-    public JSONObject getHurricaneParameters() {
-        return parameters;
-    }
-
-    public void setHurricaneParameters(JSONObject parameters) {
-        this.parameters = parameters;
-    }
-
 }
+

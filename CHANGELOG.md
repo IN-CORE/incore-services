@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Alter the dfr3 status endpoint to include service version and database connection test.
 
+## [0.7.0] - 2020-07-31
+
+### Added 
+- Hurricane endpoints to accept dataset based deterministic hurricanes. This also involved refactoring current hurricaneWindfields code into separate route. [INCORE1-690](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-690)
+
 ## [0.6.7] - 2020-06-30
 
 ### Changed
