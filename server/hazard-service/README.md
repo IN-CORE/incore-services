@@ -345,3 +345,44 @@ GET http://localhost:8080/hazard/api/hurricaneWindfields/5bcfe8a82d2ad516bb7ebac
 
 The converted json model files are also in box:
 https://uofi.box.com/s/ycneuzlzyt8rqwuu03gfeq4srbhucpch
+
+## Floods 
+
+### Create Flood Dataset
+
+POST http://localhost:8080/hazard/api/floods
+
+Content-Type: multipart/form-data
+
+#### Create deterministic flood
+
+###### Form Parameter: "flood" should hold the Flood JSON
+###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
+
+When creating a flood dataset, the files must be included in the POST **in the order** found in the JSON
+so the correct dataset and metadata are associated.
+
+##### Sample Flood Json
+{
+	"name": "Lumberton Deterministic Flood - riverine flooding",
+	"description": "Lumberton dataset based deterministic hazard - 3 datasets",
+	"floodType": "dataset",
+	"hazardDatasets": [
+        {
+            "hazardType": "deterministic",
+            "demandType": "floodDepth",
+            "demandUnits": "m",
+            "floodParameters": {
+                "model": "riverine flooding"
+            }
+        },
+       {
+            "hazardType": "deterministic",
+            "demandType": "waterSurfaceElevation",
+            "demandUnits": "m",
+            "floodParameters": {
+                "model": "riverine flooding"
+            }
+        }
+	]
+}
