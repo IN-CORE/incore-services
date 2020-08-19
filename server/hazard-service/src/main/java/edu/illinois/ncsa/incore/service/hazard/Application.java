@@ -46,6 +46,9 @@ public class Application extends ResourceConfig {
         IHurricaneRepository hurricaneRepository = new MongoDBHurricaneRepository(new MongoClientURI(mongodbUri));
         hurricaneRepository.initialize();
 
+        IFloodRepository floodRepository = new MongoDBFloodRepository(new MongoClientURI(mongodbUri));
+        floodRepository.initialize();
+
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
         String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
@@ -71,6 +74,7 @@ public class Application extends ResourceConfig {
                 super.bind(tornadoRepository).to(ITornadoRepository.class);
                 super.bind(hurricaneRepository).to(IHurricaneRepository.class);
                 super.bind(hurricaneWindfieldsRepository).to(IHurricaneWindfieldsRepository.class);
+                super.bind(floodRepository).to(IFloodRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
                 super.bind(tsunamiRepository).to(ITsunamiRepository.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
