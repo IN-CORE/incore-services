@@ -13,9 +13,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hazardType")
-@JsonSubTypes({@JsonSubTypes.Type(value = ProbabilisticFloodHazard.class, name = "probabilistic")})
-//TODO add deterministic flood hazard when available
-// @JsonSubTypes.Type(value = DeterministicFloodHazard.class, name = "deterministic")})
+@JsonSubTypes({@JsonSubTypes.Type(value = ProbabilisticFloodHazard.class, name = "probabilistic"),
+    @JsonSubTypes.Type(value = DeterministicFloodHazard.class, name = "deterministic")})
 public abstract class FloodHazardDataset {
     private String datasetId;
     private String demandType;

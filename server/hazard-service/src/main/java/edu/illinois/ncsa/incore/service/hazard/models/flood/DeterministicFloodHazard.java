@@ -9,11 +9,15 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
-public class FloodConstants {
+public class DeterministicFloodHazard extends FloodHazardDataset {
+    private FloodDeterministicParameters floodParameters;
 
-    public static final String FLOOD_POST_PARAMETER_NAME = "flood";
+    public FloodDeterministicParameters getFloodParameters() {
+        return floodParameters;
+    }
 
-    public static final String DEPTH = "floodDepth";
-    public static final String ELEVATION = "waterSurfaceElevation";
+    public void setFloodParameters(FloodDeterministicParameters floodParameters) {
+        this.floodParameters = floodParameters;
+    }
 
 }

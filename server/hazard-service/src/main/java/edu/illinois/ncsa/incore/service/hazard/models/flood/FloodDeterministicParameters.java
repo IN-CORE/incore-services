@@ -9,11 +9,16 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
-public class FloodConstants {
+public class FloodDeterministicParameters {
+    private String model = "riverine flooding"; // remove default when more models are added
 
-    public static final String FLOOD_POST_PARAMETER_NAME = "flood";
+    public String getModel() {
+        return model;
+    }
 
-    public static final String DEPTH = "floodDepth";
-    public static final String ELEVATION = "waterSurfaceElevation";
+    public void setModel(String model) {
+        this.model = model;
+    }
 
 }
+

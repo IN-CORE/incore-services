@@ -29,7 +29,6 @@ public class FloodUtil {
     private static final String units_min = "min";
 
     public static final List<String> distanceUnits = Arrays.asList(new String[]{units_cm, units_m, units_in, units_ft});
-    public static final List<String> durationUnits = Arrays.asList(new String[]{units_hr, units_min});
 
     private static final double m_to_cm = 100.0;
     private static final double m_to_in = 39.3701;
@@ -47,13 +46,10 @@ public class FloodUtil {
     private static final double ft_to_in = 12;
     private static final double ft_to_m = 0.3048;
 
-    private static final double hr_to_min = 60;
-    private static final double min_to_hr = 0.01666;
-
     public static double convertHazard(double hazardValue, String demandType, String originalDemandUnits,
                                 String requestedDemandUnits) throws UnsupportedOperationException, IllegalAccessException, NoSuchFieldException {
         double convertedHazardValue = hazardValue;
-        if(demandType.equalsIgnoreCase(FloodConstants.DEPTH)){
+        if(demandType.equalsIgnoreCase(FloodConstants.DEPTH) || demandType.equalsIgnoreCase(FloodConstants.ELEVATION)){
             if(distanceUnits.contains(requestedDemandUnits.toLowerCase())){
                 if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
                     String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;

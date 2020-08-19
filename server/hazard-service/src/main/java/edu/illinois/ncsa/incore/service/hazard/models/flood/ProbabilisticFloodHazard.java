@@ -9,8 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneHazardDataset;
 
-public class ProbabilisticFloodHazard extends HurricaneHazardDataset {
+public class ProbabilisticFloodHazard extends FloodHazardDataset {
     // Empty class right now until we have an example Probabilistic dataset
    }
