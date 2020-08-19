@@ -49,7 +49,7 @@ public class FloodUtil {
     public static double convertHazard(double hazardValue, String demandType, String originalDemandUnits,
                                 String requestedDemandUnits) throws UnsupportedOperationException, IllegalAccessException, NoSuchFieldException {
         double convertedHazardValue = hazardValue;
-        if(demandType.equalsIgnoreCase(FloodConstants.DEPTH) || demandType.equalsIgnoreCase(FloodConstants.ELEVATION)){
+        if(demandType.equalsIgnoreCase(FloodConstants.DEPTH) || demandType.equalsIgnoreCase(FloodConstants.WSE)){
             if(distanceUnits.contains(requestedDemandUnits.toLowerCase())){
                 if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
                     String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
