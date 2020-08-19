@@ -32,9 +32,9 @@ public class FloodCalc {
 
     public static FloodHazardResult getFloodHazardValue(Flood flood, String demandType, String demandUnits,
         IncorePoint location, String user) throws UnsupportedHazardException {
-        if (flood instanceof FloodHazardDataset) {
+        if (flood instanceof FloodDataset) {
             FloodDataset floodDataset = (FloodDataset) flood;
-            FloodHazardDataset hazardDataset = findHazard(FloodDataset.getHazardDatasets(), demandType);
+            FloodHazardDataset hazardDataset = findHazard(floodDataset.getHazardDatasets(), demandType);
             double hazardValue = 0.0;
             if (hazardDataset != null) {
                 GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
