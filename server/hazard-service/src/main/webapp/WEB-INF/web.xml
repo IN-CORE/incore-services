@@ -19,8 +19,7 @@
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>
                 edu.illinois.ncsa.incore.service.hazard.controllers,
-                io.swagger.jaxrs.listing,
-                org.codehaus.jackson.jaxrs
+                io.swagger.jaxrs.listing
             </param-value>
         </init-param>
         <init-param>
