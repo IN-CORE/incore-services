@@ -386,3 +386,10 @@ so the correct dataset and metadata are associated.
         }
 	]
 }
+
+### Get Value from Flood
+
+GET /values
+
+http://localhost:8080/hazard/api/floods/{id}/values?point=29.22,-95.06&demandType=floodDepth&demandUnits=m
+http://localhost:8080/hazard/api/floods/{id}/values?point=29.22,-95.06&demandType=waterSurfaceElevation&demandUnits=m
