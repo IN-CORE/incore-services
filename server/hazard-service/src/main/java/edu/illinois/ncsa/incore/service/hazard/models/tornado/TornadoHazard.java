@@ -40,7 +40,6 @@ public interface TornadoHazard {
     public static String WIND_MPS = "mps";
 
     // Shapefile schema fields for tornado wind field ef boxes
-    public static final String TORNADO_SCHEMA_NAME = HazardConstants.TORNADO_WINDFIELD_SCHEMA; //$NON-NLS-1$
     public static final String TORNADO_HAZARD_TYPE = "http://localhost:8080/semantics/edu.illinois.ncsa.incore.tornado.hazard.schemas.tornadohazard.v1.0";
     public static final String SHAPEFILE_FORMAT = "shapefile";
     public static final String SIMULATION = "simulation"; //$NON-NLS-1$

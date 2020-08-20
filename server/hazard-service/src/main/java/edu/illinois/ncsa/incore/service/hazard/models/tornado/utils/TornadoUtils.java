@@ -439,7 +439,7 @@ public class TornadoUtils {
         GeometryType geomType = attBuilder.buildGeometryType();
         GeometryDescriptor geomDesc = attBuilder.buildDescriptor("the_geom", geomType); //$NON-NLS-1$
 
-        builder.setName(TornadoHazard.TORNADO_SCHEMA_NAME);
+        builder.setName(HazardConstants.TORNADO_WINDFIELD_SCHEMA);
         builder.add(geomDesc);
         builder.add(TornadoHazard.SIMULATION, Integer.class);
         builder.add(TornadoHazard.EF_RATING_FIELD, String.class);
@@ -544,7 +544,7 @@ public class TornadoUtils {
 
     public static JSONObject getTornadoDatasetObject(String title, String description) {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardConstants.DATA_TYPE, TornadoHazard.TORNADO_SCHEMA_NAME);
+        jsonObject.put(HazardConstants.DATA_TYPE, HazardConstants.TORNADO_WINDFIELD_SCHEMA);
         jsonObject.put(HazardConstants.TITLE, title);
         jsonObject.put(HazardConstants.SOURCE_DATASET, "");
         jsonObject.put(HazardConstants.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
