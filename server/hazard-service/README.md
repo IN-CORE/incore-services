@@ -391,5 +391,5 @@ so the correct dataset and metadata are associated.
 
 GET /values
 
-http://localhost:8080/hazard/api/floods/{id}/values?point=29.22,-95.06&demandType=floodDepth&demandUnits=m
-http://localhost:8080/hazard/api/floods/{id}/values?point=29.22,-95.06&demandType=waterSurfaceElevation&demandUnits=m
+http://localhost:8080/hazard/api/floods/{id}/values?point=34.60,-79.16&demandType=floodDepth&demandUnits=m
+http://localhost:8080/hazard/api/floods/{id}/values?point=34.60,-79.16&demandType=waterSurfaceElevation&demandUnits=m
