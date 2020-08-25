@@ -52,7 +52,7 @@ public class StatusController {
         String messageRE = "(?i).*message\"?\\s*:[^\"]*\"([^\"]*)\".*";
         Pattern messagePat = Pattern.compile(messageRE);
         String status = "responding";
-        String statusJson = "{\"time\":\"" + time + "\",\"specifictests\":{";
+        String statusJson = "{\"time\":\"" + time + "\",\"specificTests\":{";
         for (Map.Entry<String, String> test : tests.entrySet()) {
             String key = test.getKey();
             String value = test.getValue();
@@ -126,7 +126,7 @@ public class StatusController {
             mongodbUri = mongodbUriProp;
         }
         // Add connection timeouts to the uri string to force a quick timeout
-        mongodbUri += "?connetTimeoutMS=" + connTimeout + "&socketTimeoutMS=" + connTimeout +
+        mongodbUri += "?connectTimeoutMS=" + connTimeout + "&socketTimeoutMS=" + connTimeout +
             "&serverSelectionTimeoutMS=" + connTimeout;
         MongoClientURI mongoURI = new MongoClientURI(mongodbUri);
 
