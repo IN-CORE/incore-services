@@ -126,7 +126,7 @@ public class StatusController {
             mongodbUri = mongodbUriProp;
         }
         // Add connection timeouts to the uri string to force a quick timeout
-        if (mongodbUri.matches(".*?[^/]*")) {
+        if (mongodbUri.matches(".*?[^/]*$")) {
             mongodbUri += "?";
         } else {
             mongodbUri += "&";
