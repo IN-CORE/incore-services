@@ -119,17 +119,17 @@ public class StatusController {
             //This allows the environment variable to be set in seconds, though we need ms
             connTimeout = connTimeoutProp * 1000;
         }
-        String mongodbUri = "mongodb://localhost:27017/dfr3db";
+        String mongodbUri = "mongodb://localhost:27017/dfr3db?maxpoolsize=100";
 
         String mongodbUriProp = System.getenv("DFR3_MONGODB_URI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
         // Add connection timeouts to the uri string to force a quick timeout
-        if (mongodbUri.matches(".*?[^/]*")) {
-            mongodbUri += "?";
-        } else {
+        if (mongodbUri.matches(".*\\?[^/]*$")) {
             mongodbUri += "&";
+        } else {
+            mongodbUri += "?";
         }
         mongodbUri += "connectTimeoutMS=" + connTimeout + "&socketTimeoutMS=" + connTimeout +
             "&serverSelectionTimeoutMS=" + connTimeout;
