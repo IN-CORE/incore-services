@@ -110,7 +110,7 @@ public class StatusController {
         int connTimeout = 3000;
         int connTimeoutProp = 0;
         try {
-            connTimeoutProp = Integer.parseInt(System.getenv("connectionTimeout"));
+            connTimeoutProp = Integer.parseInt(System.getenv("MONGO_STATUS_CONN_TIMEOUT"));
         }
         catch (NumberFormatException e) {
             connTimeoutProp = 0;
@@ -119,7 +119,7 @@ public class StatusController {
             //This allows the environment variable to be set in seconds, though we need ms
             connTimeout = connTimeoutProp * 1000;
         }
-        String mongodbUri = "mongodb://localhost:27017/dfr3db/?connectionTimeoutMS=" + connTimeout;
+        String mongodbUri = "mongodb://localhost:27017/dfr3db?connectionTimeoutMS=" + connTimeout;
 
         String mongodbUriProp = System.getenv("DFR3_MONGODB_URI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
