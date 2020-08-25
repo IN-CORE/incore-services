@@ -126,7 +126,12 @@ public class StatusController {
             mongodbUri = mongodbUriProp;
         }
         // Add connection timeouts to the uri string to force a quick timeout
-        mongodbUri += "?connectTimeoutMS=" + connTimeout + "&socketTimeoutMS=" + connTimeout +
+        if (mongodbUri.matches(".*?[^/]*")) {
+            mongodbUri += "?";
+        } else {
+            mongodbUri += "&";
+        }
+        mongodbUri += "connectTimeoutMS=" + connTimeout + "&socketTimeoutMS=" + connTimeout +
             "&serverSelectionTimeoutMS=" + connTimeout;
         MongoClientURI mongoURI = new MongoClientURI(mongodbUri);
 
