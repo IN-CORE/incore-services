@@ -365,7 +365,7 @@ so the correct dataset and metadata are associated.
 ##### Sample Flood Json
 {
 	"name": "Lumberton Deterministic Flood - riverine flooding",
-	"description": "Lumberton dataset based deterministic hazard - 3 datasets",
+	"description": "Lumberton dataset based deterministic hazard - 2 datasets",
 	"floodType": "dataset",
 	"hazardDatasets": [
         {
