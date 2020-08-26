@@ -26,6 +26,8 @@ import java.io.IOException;
 
 public class DBHurricaneRepository {
 
+    public static final Logger log = Logger.getLogger(DBHurricaneRepository.class);
+
     //@Override
     public HistoricHurricane getHurricaneByModel(String model) {
         JSONParser parser = new JSONParser();
@@ -42,12 +44,12 @@ public class DBHurricaneRepository {
             jsonParams =  (JSONObject) obj;
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            log.debug("File Not Found.", e)
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Model not found in the database");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.debug("IO Exception.", e)
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.debug("Parse Exception.", e)
         }
 
         hurricane.setHurricaneParameters(jsonParams);
