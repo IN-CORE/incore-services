@@ -152,6 +152,7 @@ public class FloodController {
                         FloodHazardDataset hazardDataset = floodDataset.getHazardDatasets().get(hazardDatasetIndex);
                         String datasetType = HazardConstants.DETERMINISTIC_FLOOD_HAZARD_SCHEMA;
                         String description = "Deterministic hazard raster";
+//                        TODO if we have probabilistic flood in the future
 //                        if (hazardDataset instanceof ProbabilisticFloodHazard) {
 //                              //enable this when we get a probabilistic flood
 //                            description = "Probabilistic hazard raster";
