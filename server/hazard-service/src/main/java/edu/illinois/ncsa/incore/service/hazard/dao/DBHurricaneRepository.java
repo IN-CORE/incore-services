@@ -44,12 +44,12 @@ public class DBHurricaneRepository {
             jsonParams =  (JSONObject) obj;
 
         } catch (FileNotFoundException e) {
-            log.debug("File Not Found.", e)
+            log.debug("File Not Found.", e);
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Model not found in the database");
         } catch (IOException e) {
-            log.debug("IO Exception.", e)
+            log.debug("IO Exception.", e);
         } catch (ParseException e) {
-            log.debug("Parse Exception.", e)
+            log.debug("Parse Exception.", e);
         }
 
         hurricane.setHurricaneParameters(jsonParams);

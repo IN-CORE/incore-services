@@ -44,9 +44,9 @@ public class FloodCalc {
                 } catch (PointOutsideCoverageException e) {
                     log.debug("Point outside tiff image.");
                 } catch (IllegalAccessException e) {
-                    log.debug("Illegal Access.", e)
+                    log.debug("Illegal Access.", e);
                 } catch (NoSuchFieldException e) {
-                    log.debug("No Such Field", e)
+                    log.debug("No Such Field", e);
                 } catch (UnsupportedOperationException e){
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Requested demand type or units is not accepted");
                 }
