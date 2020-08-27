@@ -12,7 +12,7 @@ public class FloodConstants {
 
     public static final String FLOOD_POST_PARAMETER_NAME = "flood";
 
-    public static final String DEPTH = "floodDepth";
+    public static final String DEPTH = "inundationDepth";
     public static final String WSE = "waterSurfaceElevation";
 
 }

@@ -370,7 +370,7 @@ so the correct dataset and metadata are associated.
 	"hazardDatasets": [
         {
             "hazardType": "deterministic",
-            "demandType": "floodDepth",
+            "demandType": "inundationDepth",
             "demandUnits": "m",
             "floodParameters": {
                 "model": "riverine flooding"
@@ -391,5 +391,5 @@ so the correct dataset and metadata are associated.
 
 GET /values
 
-http://localhost:8080/hazard/api/floods/{id}/values?point=34.60,-79.16&demandType=floodDepth&demandUnits=m
+http://localhost:8080/hazard/api/floods/{id}/values?point=34.60,-79.16&demandType=inundationDepth&demandUnits=m
 http://localhost:8080/hazard/api/floods/{id}/values?point=34.60,-79.16&demandType=waterSurfaceElevation&demandUnits=m

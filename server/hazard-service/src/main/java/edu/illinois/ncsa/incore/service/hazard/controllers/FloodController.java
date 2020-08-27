@@ -200,7 +200,7 @@ public class FloodController {
     @ApiOperation(value = "Returns the specified flood values.")
     public List<FloodHazardResult> getFloodHazardValues(
         @ApiParam(value = "Flood dataset guid from data service.", required = true) @PathParam("flood-id") String floodId,
-        @ApiParam(value = "Flood demand type. Ex: 'floodDepth, waterSurfaceElevation'.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Flood demand type. Ex: 'inundationDepth, waterSurfaceElevation'.", required = true) @QueryParam("demandType") String demandType,
         @ApiParam(value = "Flood demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '46.01,-123.94'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
