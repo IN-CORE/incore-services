@@ -23,6 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 
 public class DBHurricaneRepository {
 
@@ -37,11 +39,11 @@ public class DBHurricaneRepository {
 
         try {
 
-            String fileName = model+".json";
+            String fileName = model + ".json";
             URL modelURL = this.getClass().getClassLoader().getResource("/hazard/hurricane/models/" + fileName);
             Object obj = parser.parse(new FileReader(modelURL.getFile()));
 
-            jsonParams =  (JSONObject) obj;
+            jsonParams = (JSONObject) obj;
 
         } catch (FileNotFoundException e) {
             log.debug("File Not Found.", e);
