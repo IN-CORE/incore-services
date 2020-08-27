@@ -189,8 +189,10 @@ public class FloodController {
 
         } catch (IOException e) {
             log.error("Error mapping the request to a supported flood type.", e);
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported flood type. " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument has been passed in.", e);
         }
+
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, check the format of your request.");
     }
 
