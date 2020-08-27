@@ -191,7 +191,10 @@ public class TornadoController {
             }
         } catch (IOException e) {
             logger.error("Error mapping the request to a supported Tornado type.", e);
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument has been passed in.", e);
         }
+
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado, check the format of your request.");
 
     }
