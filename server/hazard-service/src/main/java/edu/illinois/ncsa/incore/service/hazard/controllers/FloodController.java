@@ -1,11 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2020 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
  * terms of the Mozilla Public License v2.0 which accompanies this distribution,
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
- * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
@@ -17,12 +16,12 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
-import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
+import edu.illinois.ncsa.incore.service.hazard.dao.IFloodRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneHazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
+import edu.illinois.ncsa.incore.service.hazard.models.flood.*;
+import edu.illinois.ncsa.incore.service.hazard.models.flood.types.FloodHazardResult;
+import edu.illinois.ncsa.incore.service.hazard.models.flood.utils.FloodCalc;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
@@ -39,18 +38,18 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value = "hurricanes", authorizations = {})
+@Api(value = "floods", authorizations = {})
 
-@Path("hurricanes")
+@Path("floods")
 @ApiResponses(value = {
     @ApiResponse(code = 500, message = "Internal Server Error")
 })
-public class HurricaneController {
-    private static final Logger log = Logger.getLogger(HurricaneController.class);
+public class FloodController {
+    private static final Logger log = Logger.getLogger(FloodController.class);
     private String username;
 
     @Inject
-    private IHurricaneRepository repository;
+    private IFloodRepository repository;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -59,20 +58,20 @@ public class HurricaneController {
     private IAuthorizer authorizer;
 
     @Inject
-    public HurricaneController(
+    public FloodController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all hurricanes.")
-    public List<Hurricane> getHurricanes(
+    @ApiOperation(value = "Returns all floods.")
+    public List<Flood> getFloods(
         @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
-        List<Hurricane> hurricanes = repository.getHurricanes();
+        List<Flood> floods = repository.getFloods();
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
@@ -82,81 +81,82 @@ public class HurricaneController {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
-            hurricanes = hurricanes.stream()
-                .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+            floods = floods.stream()
+                .filter(flood -> spaceMembers.contains(flood.getId()))
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
-            return hurricanes;
+            return floods;
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
-        List<Hurricane> accessibleHurricanes = hurricanes.stream()
-            .filter(hurricane -> membersSet.contains(hurricane.getId()))
+        List<Flood> accessibleFloods = floods.stream()
+            .filter(flood -> membersSet.contains(flood.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
 
-        return accessibleHurricanes;
+        return accessibleFloods;
     }
 
     @GET
-    @Path("{hurricane-id}")
+    @Path("{flood-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the hurricane with matching id.")
-    public Hurricane getHurricaneById(
-        @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId) {
+    @ApiOperation(value = "Returns the flood with matching id.")
+    public Flood getFloodById(
+        @ApiParam(value = "Flood dataset guid from data service.", required = true) @PathParam("flood-id") String floodId) {
 
-        Hurricane hurricane = repository.getHurricaneById(hurricaneId);
-        if (hurricane == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a hurricane with id " + hurricaneId);
+        Flood flood = repository.getFloodById(floodId);
+        if (flood == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a flood with id " + floodId);
         }
 
-        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
-            return hurricane;
+        if (authorizer.canUserReadMember(this.username, floodId, spaceRepository.getAllSpaces())) {
+            return flood;
         }
 
-        throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You are not authorized to access the hurricane " + hurricaneId);
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You are not authorized to access the flood " + floodId);
     }
 
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a new hurricane, the newly created hurricane is returned.",
+    @ApiOperation(value = "Creates a new flood, the newly created flood is returned.",
         notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
-            "User can create dataset-based hurricanes only.")
+            "User can create dataset-based floods only.")
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "hurricane", value = "Hurricane json.", required = true, dataType = "string", paramType = "form"),
-        @ApiImplicitParam(name = "file", value = "Hurricane files.", required = true, dataType = "string", paramType = "form")
+        @ApiImplicitParam(name = "flood", value = "Flood json.", required = true, dataType = "string", paramType = "form"),
+        @ApiImplicitParam(name = "file", value = "Flood files.", required = true, dataType = "string", paramType = "form")
     })
-    public Hurricane createHurricane(
-        @ApiParam(hidden = true) @FormDataParam("hurricane") String hurricaneJson,
+    public Flood createFlood(
+        @ApiParam(hidden = true) @FormDataParam("flood") String floodJson,
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
         ObjectMapper mapper = new ObjectMapper();
-        Hurricane hurricane = null;
+        Flood flood = null;
         try {
-            hurricane = mapper.readValue(hurricaneJson, Hurricane.class);
+            flood = mapper.readValue(floodJson, Flood.class);
 
             // Create temporary working directory
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");
             incoreWorkDirectory.delete();
             incoreWorkDirectory.mkdirs();
 
-            if (hurricane != null && hurricane instanceof HurricaneDataset) {
-                HurricaneDataset hurricaneDataset = (HurricaneDataset) hurricane;
+            if (flood != null && flood instanceof FloodDataset) {
+                FloodDataset floodDataset = (FloodDataset) flood;
 
-                // We assume the input files in the request are in the same order listed in the hurricane dataset object
+                // We assume the input files in the request are in the same order listed in the flood dataset object
                 int hazardDatasetIndex = 0;
                 if (fileParts != null && !fileParts.isEmpty()) {
                     for (FormDataBodyPart filePart : fileParts) {
-                        HurricaneHazardDataset hazardDataset = hurricaneDataset.getHazardDatasets().get(hazardDatasetIndex);
-                        String datasetType = HazardConstants.DETERMINISTIC_HURRICANE_HAZARD_SCHEMA;
+                        FloodHazardDataset hazardDataset = floodDataset.getHazardDatasets().get(hazardDatasetIndex);
+                        String datasetType = HazardConstants.DETERMINISTIC_FLOOD_HAZARD_SCHEMA;
                         String description = "Deterministic hazard raster";
-//                        if (hazardDataset instanceof ProbabilisticHurricaneHazard) {
-//                              //enable this when we get a probabilistic hurricane
+//                        TODO if we have probabilistic flood in the future
+//                        if (hazardDataset instanceof ProbabilisticFloodHazard) {
+//                              //enable this when we get a probabilistic flood
 //                            description = "Probabilistic hazard raster";
-//                            datasetType = HazardConstants.PROBABILISTIC_HURRICANE_HAZARD_SCHEMA;
+//                            datasetType = HazardConstants.PROBABILISTIC_FLOOD_HAZARD_SCHEMA;
 //                        }
                         hazardDatasetIndex++;
 
@@ -166,52 +166,52 @@ public class HurricaneController {
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
-                            hurricaneDataset.getName() + " " + datasetName, this.username, description, datasetType);
+                            floodDataset.getName() + " " + datasetName, this.username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 
-                    hurricane.setCreator(this.username);
-                    hurricane = repository.addHurricane(hurricane);
+                    flood.setCreator(this.username);
+                    flood = repository.addFlood(flood);
 
                     Space space = spaceRepository.getSpaceByName(this.username);
                     if(space == null) {
                         space = new Space(this.username);
                         space.setPrivileges(Privileges.newWithSingleOwner(this.username));
                     }
-                    space.addMember(hurricane.getId());
+                    space.addMember(flood.getId());
                     spaceRepository.addSpace(space);
 
-                    return hurricane;
+                    return flood;
                 } else {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create hurricane, no files were attached with your request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, no files were attached with your request.");
                 }
             }
 
         } catch (IOException e) {
-            log.error("Error mapping the request to a supported hurricane type.", e);
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported hurricane type. " + e.getMessage());
+            log.error("Error mapping the request to a supported flood type.", e);
         } catch (IllegalArgumentException e) {
             log.error("Illegal Argument has been passed in.", e);
         }
-        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create hurricane, check the format of your request.");
+
+        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, check the format of your request.");
     }
 
     @GET
-    @Path("{hurricane-id}/values")
+    @Path("{flood-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the specified hurricane values.")
-    public List<HurricaneHazardResult> getHurricaneHazardValues(
-        @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId,
-        @ApiParam(value = "Hurricane demand type. Ex: 'waveHeight, surgeLevel, inundationDuration'.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Hurricane demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+    @ApiOperation(value = "Returns the specified flood values.")
+    public List<FloodHazardResult> getFloodHazardValues(
+        @ApiParam(value = "Flood dataset guid from data service.", required = true) @PathParam("flood-id") String floodId,
+        @ApiParam(value = "Flood demand type. Ex: 'inundationDepth, waterSurfaceElevation'.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Flood demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '46.01,-123.94'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 
-        Hurricane hurricane = getHurricaneById(hurricaneId);
-        List<HurricaneHazardResult> hurricaneResults = new LinkedList<>();
-        if (hurricane != null) {
+        Flood flood = getFloodById(floodId);
+        List<FloodHazardResult> floodResults = new LinkedList<>();
+        if (flood != null) {
             for (IncorePoint point : points) {
                 try {
-                    hurricaneResults.add(HurricaneCalc.getHurricaneHazardValue(hurricane, demandType,
+                    floodResults.add(FloodCalc.getFloodHazardValue(flood, demandType,
                         demandUnits, point, this.username));
                 } catch (UnsupportedHazardException e) {
                     log.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
@@ -219,37 +219,37 @@ public class HurricaneController {
             }
         }
 
-        return hurricaneResults;
+        return floodResults;
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{hurricane-id}")
-    @ApiOperation(value = "Deletes a Hurricane", notes = "Also deletes attached datasets and related files")
-    public Hurricane deleteHurricaneWindfields(@ApiParam(value = "Hurricane Id", required = true) @PathParam("hurricane-id") String hurricaneId) {
-        Hurricane hurricane = getHurricaneById(hurricaneId);
+    @Path("{flood-id}")
+    @ApiOperation(value = "Deletes a Flood", notes = "Also deletes attached datasets and related files")
+    public Flood deleteFloodWindfields(@ApiParam(value = "Flood Id", required = true) @PathParam("flood-id") String floodId) {
+        Flood flood = getFloodById(floodId);
 
-        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, floodId, spaceRepository.getAllSpaces())) {
             // delete associated datasets
-            if (hurricane != null && hurricane instanceof HurricaneDataset) {
-                HurricaneDataset hurrDataset = (HurricaneDataset) hurricane;
-                for (HurricaneHazardDataset dataset : hurrDataset.getHazardDatasets()) {
+            if (flood != null && flood instanceof FloodDataset) {
+                FloodDataset hurrDataset = (FloodDataset) flood;
+                for (FloodHazardDataset dataset : hurrDataset.getHazardDatasets()) {
                     if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
                         spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                     }
                 }
             }
-//            else if(hurricane != null && hurricane instanceof HurricaneModel){
-//                // add this when ready to migrate HurricaneWindfields
+//            else if(flood != null && flood instanceof FloodModel){
+//                // add this when ready to migrate FloodWindfields
 //            }
 
-            Hurricane deletedHurr = repository.deleteHurricaneById(hurricaneId); // remove hurricane json
+            Flood deletedHurr = repository.deleteFloodById(floodId); // remove flood json
 
             //remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
-                if (space.hasMember(hurricaneId)) {
-                    space.removeMember(hurricaneId);
+                if (space.hasMember(floodId)) {
+                    space.removeMember(floodId);
                     spaceRepository.addSpace(space);
                 }
             }
@@ -257,41 +257,41 @@ public class HurricaneController {
             return deletedHurr;
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
-                " hurricane " + hurricaneId);
+                " flood " + floodId);
         }
     }
 
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all hurricanes", notes = "Gets all hurricanes that contain a specific text")
+    @ApiOperation(value = "Search for a text in all floods", notes = "Gets all floods that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No hurricanes found with the searched text")
+        @ApiResponse(code = 404, message = "No floods found with the searched text")
     })
-    public List<Hurricane> findHurricanes(
+    public List<Flood> findFloods(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
-        List<Hurricane> hurricanes;
-        Hurricane hurricane = repository.getHurricaneById(text);
-        if (hurricane != null) {
-            hurricanes = new ArrayList<Hurricane>() {{
-                add(hurricane);
+        List<Flood> floods;
+        Flood flood = repository.getFloodById(text);
+        if (flood != null) {
+            floods = new ArrayList<Flood>() {{
+                add(flood);
             }};
         } else {
-            hurricanes = this.repository.searchHurricanes(text);
+            floods = this.repository.searchFloods(text);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
 
-        hurricanes = hurricanes.stream()
+        floods = floods.stream()
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
 
-        return hurricanes;
+        return floods;
     }
 
 }

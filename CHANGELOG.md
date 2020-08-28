@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Security
 - Updated jax-rs and jersey dependencies to the latest versions [INCORE1-653](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-653)
 
+### Added
+- Flood endpoints to accept raster based deterministic flood. [INCORE1-746](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-746) 
+
+
 ## [0.7.0] - 2020-07-31
 
 ### Added 

@@ -23,8 +23,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 
 public class DBHurricaneRepository {
+
+    public static final Logger log = Logger.getLogger(DBHurricaneRepository.class);
 
     //@Override
     public HistoricHurricane getHurricaneByModel(String model) {
@@ -35,19 +39,19 @@ public class DBHurricaneRepository {
 
         try {
 
-            String fileName = model+".json";
+            String fileName = model + ".json";
             URL modelURL = this.getClass().getClassLoader().getResource("/hazard/hurricane/models/" + fileName);
             Object obj = parser.parse(new FileReader(modelURL.getFile()));
 
-            jsonParams =  (JSONObject) obj;
+            jsonParams = (JSONObject) obj;
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            log.debug("File Not Found.", e);
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Model not found in the database");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.debug("IO Exception.", e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.debug("Parse Exception.", e);
         }
 
         hurricane.setHurricaneParameters(jsonParams);
