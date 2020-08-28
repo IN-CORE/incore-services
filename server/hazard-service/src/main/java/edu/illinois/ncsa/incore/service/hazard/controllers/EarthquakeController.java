@@ -235,7 +235,7 @@ public class EarthquakeController {
         } catch (IOException e) {
             logger.error("Error mapping the request to an Earthquake object.", e);
         } catch (IllegalArgumentException e) {
-            log.error("Illegal Argument has been passed in.", e);
+            logger.error("Illegal Argument has been passed in.", e);
         }
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create earthquake, check the format of your request.");
     }
