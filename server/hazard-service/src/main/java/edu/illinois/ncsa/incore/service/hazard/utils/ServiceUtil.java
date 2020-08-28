@@ -211,12 +211,12 @@ public class ServiceUtil {
                     sb.append(line + "\n");
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.debug("IO Exception", e);
             } finally {
                 try {
                     inputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.debug("IO Exception", e);
                 }
             }
 
@@ -356,7 +356,7 @@ public class ServiceUtil {
             submission.put("datasets", datasets);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return submitWorkflowJob(submission);
@@ -392,9 +392,9 @@ public class ServiceUtil {
             }
 
         } catch (ClientProtocolException e) {
-            e.printStackTrace();
+            logger.debug("Client Protocol Exception", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return null;
@@ -427,13 +427,13 @@ public class ServiceUtil {
             logger.debug("Execution ID: "+responseStr);
             return responseStr;
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.debug("Json Processing Exception", e);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.debug("Unsupported Encoding Exception", e);
         } catch (ClientProtocolException e) {
-            e.printStackTrace();
+            logger.debug("Client Protocol Exception", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return null;
@@ -460,13 +460,13 @@ public class ServiceUtil {
             Map<String, String> jobStatusMap = mapper.readValue(responseStr, Map.class);
             return jobStatusMap;
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.debug("Json Processing Exception", e);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.debug("Unsupported Encoding Exception", e);
         } catch (ClientProtocolException e) {
-            e.printStackTrace();
+            logger.debug("Client Protocol Exception", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return null;
@@ -497,13 +497,13 @@ public class ServiceUtil {
                 datasetMap.put(datasetId, outputDatasetId);
             }
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.debug("Json Processing Exception", e);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.debug("Unsupported Encoding Exception", e);
         } catch (ClientProtocolException e) {
-            e.printStackTrace();
+            logger.debug("Client Protocol Exception", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return datasetMap;
@@ -561,7 +561,7 @@ public class ServiceUtil {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return files;

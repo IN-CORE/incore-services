@@ -10,9 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Update datatypes of hazard datasets in HazardConstant to be more accurate and reflect space prefix [INCORE1-707](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-707)
+- Alter the dfr3 status endpoint to include service version and database connection test. [INCORE-466](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-466)
 
 ### Security
 - Updated jax-rs and jersey dependencies to the latest versions [INCORE1-653](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-653)
+
+### Added
+- Flood endpoints to accept raster based deterministic flood. [INCORE1-746](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-746) 
 
 
 ## [0.7.0] - 2020-07-31

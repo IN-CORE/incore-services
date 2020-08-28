@@ -202,7 +202,7 @@ public class TornadoUtils {
             return Math.toDegrees(standardDeviation);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IO exception", e);
         }
 
         return 0;
@@ -238,7 +238,7 @@ public class TornadoUtils {
 
             return meanWidth;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception",e);
             // logger.error("Failed to read tornado historical data", e); //$NON-NLS-1$
         }
 
@@ -284,7 +284,7 @@ public class TornadoUtils {
 
             return meanSphericalAngle;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return 0;
@@ -322,7 +322,7 @@ public class TornadoUtils {
             return meanLength;
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return 0;
