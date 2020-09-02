@@ -24,7 +24,6 @@ public class HazardConstants {
     public static final String TORNADO_WINDFIELD_SCHEMA = "incore:tornadoWindfield";
     public static final String DETERMINISTIC_FLOOD_HAZARD_SCHEMA = "incore:deterministicFloodRaster";
     public static final String PROBABILISTICs_FLOOD_HAZARD_SCHEMA = "incore:deterministicFloodRaster";
-    public static final String DETERMINISTIC_HAZARD_TYPE = "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.deterministicHazardRaster.v1.0";
     public static final String RASTER_FORMAT = "raster";
     public static final String HAZARD_TIF = "hazard.tif";
 
