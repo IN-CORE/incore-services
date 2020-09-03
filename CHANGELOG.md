@@ -7,14 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Flood endpoints to accept raster based deterministic flood. [INCORE1-746](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-746) 
+
 ### Changed
 - Alter the dfr3 status endpoint to include service version and database connection test. [INCORE-466](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-466)
 
+### Fixed
+- Added validation so PUT dataset endpoint will only allow updating string fields. It will return appropriate error message with HTTP response for non-string fields [INCORE1-767](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-767)
+
 ### Security
 - Updated jax-rs and jersey dependencies to the latest versions [INCORE1-653](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-653)
-
-### Added
-- Flood endpoints to accept raster based deterministic flood. [INCORE1-746](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-746) 
 
 
 ## [0.7.0] - 2020-07-31
