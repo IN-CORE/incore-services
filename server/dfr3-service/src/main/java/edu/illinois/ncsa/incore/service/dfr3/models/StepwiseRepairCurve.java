@@ -10,13 +10,13 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.lang.UnsupportedOperationException;
 
 public class StepwiseRepairCurve extends RepairCurve {
 
     public StepwiseRepairCurve() {
         super();
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("StepwiseRepairCurve is not implemented yet.");
     }
 }
 
