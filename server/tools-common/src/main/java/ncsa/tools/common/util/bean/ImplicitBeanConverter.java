@@ -202,7 +202,7 @@ public class ImplicitBeanConverter
 			if (toRtValType == null)
 				throw new IllegalArgumentException("no target class mapping for type " + fromRtValTypeName);
 
-			Object fromRtVal = fromGet.invoke(from, null);
+			Object fromRtVal = fromGet.invoke(from);
 			Object toRtVal = convert(fromRtVal, toRtValType);
 
 			String setterName = ReflectUtils.getMethodName("set", field);
@@ -237,7 +237,7 @@ public class ImplicitBeanConverter
 			InvocationTargetException
 	{
 		Method m = ReflectUtils.getMethod(wrapper.getClass(), "getItem", null);
-		return (Object[]) m.invoke(wrapper, null);
+		return (Object[]) m.invoke(wrapper);
 	}
 
 	private static void setWrappedArray(Object[] array, Object wrapper) throws IllegalArgumentException, IllegalAccessException,

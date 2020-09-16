@@ -55,7 +55,7 @@ public class ReflectUtils
 	{
 		Method method = null;
 		try {
-			method = target.getClass().getMethod(methodName.toString(), null);
+			method = target.getClass().getMethod(methodName);
 		} catch (NoSuchMethodException nsme) {
 			throw new ReflectionException("invokeOn: " + nsme);
 		}
