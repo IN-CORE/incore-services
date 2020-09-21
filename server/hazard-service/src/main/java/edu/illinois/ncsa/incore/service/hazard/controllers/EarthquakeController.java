@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
+        description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami, Hurricane and Flood",
         version = "v0.6.3",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(

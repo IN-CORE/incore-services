@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -653,8 +654,8 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    @ApiOperation(value = "Updates the dataset's JSON associated with a dataset id", notes = "This will not upload file content of the dataset to the server, " +
-        "they should be done separately using {id}/files endpoint")
+    @ApiOperation(value = "Updates the dataset's JSON associated with a dataset id", notes = "Only allows updating string attributes of the dataset. This will " +
+        "not upload file content of the dataset to the server, they should be done separately using {id}/files endpoint")
     public Object updateObject(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
@@ -672,6 +673,19 @@ public class DatasetController {
         }
 
         String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+
+        try {
+            Field f = dataset.getClass().getDeclaredField(propName); // Get the passed field from Dataset class
+            f.setAccessible(true);
+            if (!f.getType().isAssignableFrom(String.class)) {  // check if the dataset field passed accepts strings
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The field provided in " + UPDATE_OBJECT_NAME
+                    + " is not a string. This method only allows updating properties of string type.");
+            }
+        } catch (NoSuchFieldException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The field provided in "
+                + UPDATE_OBJECT_NAME + " does not exist in the dataset. ");
+        }
+
         String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
         dataset = repository.updateDataset(datasetId, propName, propVal);
         return dataset;

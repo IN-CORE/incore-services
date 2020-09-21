@@ -225,8 +225,8 @@ public class FloodController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{flood-id}")
-    @ApiOperation(value = "Deletes a Flood", notes = "Also deletes attached datasets and related files")
-    public Flood deleteFloodWindfields(@ApiParam(value = "Flood Id", required = true) @PathParam("flood-id") String floodId) {
+    @ApiOperation(value = "Deletes a flood", notes = "Also deletes attached datasets and related files")
+    public Flood deleteFlood(@ApiParam(value = "Flood Id", required = true) @PathParam("flood-id") String floodId) {
         Flood flood = getFloodById(floodId);
 
         if (authorizer.canUserDeleteMember(this.username, floodId, spaceRepository.getAllSpaces())) {
