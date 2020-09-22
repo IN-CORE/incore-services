@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Flood endpoints to accept raster based deterministic flood. [INCORE1-746](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-746) 
 
 ### Changed
-- Update datatypes of hazard datasets in HazardConstant to be more accurate and reflect space prefix [INCORE1-707](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-707)
 - Alter the dfr3 status endpoint to include service version and database connection test. [INCORE-466](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-466)
 
 ### Fixed
