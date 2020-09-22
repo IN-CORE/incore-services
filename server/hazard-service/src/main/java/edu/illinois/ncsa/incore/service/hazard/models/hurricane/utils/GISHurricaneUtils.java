@@ -9,6 +9,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 import com.vividsolutions.jts.geom.*;
 import com.vividsolutions.jts.util.GeometricShapeFactory;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
@@ -283,7 +284,7 @@ public class GISHurricaneUtils {
                 System.out.println("performProcess complete");
                 //TODO Get the creator - pass a param?
                 HurricaneSimulationDataset simDataset = HurricaneWindfieldsUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid Snapshot",
-                    username,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                    username,"Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
                     (String) tempHurricane.get("absTime"));
                 hsDatasets.add(simDataset);
             }
@@ -299,7 +300,7 @@ public class GISHurricaneUtils {
 
             System.out.println("createHurricaneDataSetFromFiles begins");
             HurricaneSimulationDataset simDatasetAll = HurricaneWindfieldsUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane Full Snapshot",
-                username,"Created by Hurricane Windfield Simulation Service", "HurricaneDataset",
+                username,"Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
                 "full time range");
             hsDatasets.add(simDatasetAll);
             System.out.println("createHurricaneDataSetFromFiles complete");

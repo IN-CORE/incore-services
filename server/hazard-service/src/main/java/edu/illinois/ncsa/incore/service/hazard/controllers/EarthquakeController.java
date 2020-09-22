@@ -154,7 +154,7 @@ public class EarthquakeController {
                         HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
                         String description = "Earthquake visualization";
                         datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
-                            description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+                            description, HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA);
                     }
 
 
@@ -192,9 +192,9 @@ public class EarthquakeController {
                     for (FormDataBodyPart filePart : fileParts) {
                         HazardDataset hazardDataset = eqDataset.getHazardDatasets().get(hazardDatasetIndex);
                         String description = "Deterministic hazard raster";
-                        String datasetType = HazardConstants.DETERMINISTIC_HAZARD_SCHEMA;
+                        String datasetType = HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA;
                         if (hazardDataset instanceof ProbabilisticHazardDataset) {
-                            datasetType = HazardConstants.PROBABILISTIC_HAZARD_SCHEMA;
+                            datasetType = HazardConstants.PROBABILISTIC_EARTHQUAKE_HAZARD_SCHEMA;
                             description = "Probabilistic hazard raster";
                         }
                         hazardDatasetIndex++;
