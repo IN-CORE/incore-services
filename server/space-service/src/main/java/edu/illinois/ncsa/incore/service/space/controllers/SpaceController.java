@@ -65,8 +65,10 @@ public class SpaceController {
     private static final String SERVICES_URL = System.getenv("SERVICES_URL");
     private static final String EARTHQUAKE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/earthquakes/" : "/hazard/api/earthquakes/";
     private static final String TORNADO_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
-    private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
+    private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricanes/" : "/hazard/api/hurricanes/";
+    private static final String HURRICANE_WF_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/": "/hazard/api/hurricaneWindfields/";
     private static final String TSUNAMI_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
+    private static final String FLOOD_URL = SERVICES_URL.endsWith("/") ? "hazard/api/floods/" : "/hazard/api/floods/";
     private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/fragilities/" : "/dfr3/api/fragilities/";
     private static final String REPAIR_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/repairs/" : "/dfr3/api/repairs/";
     private static final String RESTORATION_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/restorations/" : "/dfr3/api/restorations/";
@@ -352,8 +354,10 @@ public class SpaceController {
             List<URL> urls = new ArrayList<>();
             urls.add(new URL(SERVICES_URL + EARTHQUAKE_URL + hazardId));
             urls.add(new URL(SERVICES_URL + TORNADO_URL + hazardId));
-            urls.add(new URL(SERVICES_URL + HURRICANE_URL + hazardId));
             urls.add(new URL(SERVICES_URL + TSUNAMI_URL + hazardId));
+            urls.add(new URL(SERVICES_URL + HURRICANE_WF_URL + hazardId));
+            urls.add(new URL(SERVICES_URL + HURRICANE_URL + hazardId));
+            urls.add(new URL(SERVICES_URL + FLOOD_URL + hazardId));
             try {
                 for (URL url : urls) {
                     con = (HttpURLConnection) url.openConnection();
