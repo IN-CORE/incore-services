@@ -23,7 +23,7 @@ public class HazardConstants {
     public static final String HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA = "incore:hurricaneGridSnapshot";
     public static final String TORNADO_WINDFIELD_SCHEMA = "incore:tornadoWindfield";
     public static final String DETERMINISTIC_FLOOD_HAZARD_SCHEMA = "incore:deterministicFloodRaster";
-    public static final String PROBABILISTIC_FLOOD_HAZARD_SCHEMA = "incore:deterministicFloodRaster";
+    public static final String PROBABILISTIC_FLOOD_HAZARD_SCHEMA = "incore:probabilisticFloodRaster";
     public static final String RASTER_FORMAT = "raster";
     public static final String HAZARD_TIF = "hazard.tif";
 
