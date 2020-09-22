@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
-import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 
 public interface TornadoHazard {
     // Defined Parameters
