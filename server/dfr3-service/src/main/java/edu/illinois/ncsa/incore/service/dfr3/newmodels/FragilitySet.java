@@ -18,7 +18,7 @@ public class FragilitySet extends DFR3Set {
 
     protected String demandType;
     protected String demandUnits;
-    private List<FragilityCurveParameters> fragilityCurveParameters
+    private List<FragilityCurveParameter> fragilityCurveParameters;
     private List<FragilityCurve> fragilityCurves;
 
     public String getDemandType() {

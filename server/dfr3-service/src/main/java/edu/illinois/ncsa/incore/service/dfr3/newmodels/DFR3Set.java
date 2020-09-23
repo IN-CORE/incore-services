@@ -1,13 +1,11 @@
 package edu.illinois.ncsa.incore.service.dfr3.newmodels;
 
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
