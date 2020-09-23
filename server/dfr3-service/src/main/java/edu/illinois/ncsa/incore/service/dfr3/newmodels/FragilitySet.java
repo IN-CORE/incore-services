@@ -18,8 +18,8 @@ public class FragilitySet extends DFR3Set {
 
     protected String demandType;
     protected String demandUnits;
-    private List<FragilityCurveParameter> fragilityCurveParameters;
-    private List<FragilityCurve> fragilityCurves;
+    protected List<FragilityCurveParameter> fragilityCurveParameters;
+    protected List<FragilityCurve> fragilityCurves;
 
     public String getDemandType() {
         return demandType;
@@ -28,6 +28,8 @@ public class FragilitySet extends DFR3Set {
     public String getDemandUnits() {
         return demandUnits;
     }
+
+    public List<FragilityCurveParameter> fragilityCurveParameters() { return fragilityCurveParameters; }
 
     public List<FragilityCurve> getFragilityCurves() {
         return fragilityCurves;
