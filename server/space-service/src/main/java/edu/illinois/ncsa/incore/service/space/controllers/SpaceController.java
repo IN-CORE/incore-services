@@ -62,16 +62,18 @@ import java.util.*;
 
 @Path("spaces")
 public class SpaceController {
-    private static final String SERVICES_URL = System.getenv("SERVICES_URL");
-    private static final String EARTHQUAKE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/earthquakes/" : "/hazard/api/earthquakes/";
-    private static final String TORNADO_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
-    private static final String HURRICANE_URL = SERVICES_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
-    private static final String TSUNAMI_URL = SERVICES_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
-    private static final String FRAGILITY_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/fragilities/" : "/dfr3/api/fragilities/";
-    private static final String REPAIR_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/repairs/" : "/dfr3/api/repairs/";
-    private static final String RESTORATION_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/restorations/" : "/dfr3/api/restorations/";
-    private static final String MAPPING_URL = SERVICES_URL.endsWith("/") ? "dfr3/api/mappings/" : "/dfr3/api/mappings/";
-    private static final String DATA_URL = SERVICES_URL.endsWith("/") ? "data/api/datasets/" : "/data/api/datasets/";
+    private static final String DATA_SERVICES_URL = System.getenv("DATA_SERVICE_URL");
+    private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
+    private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
+    private static final String EARTHQUAKE_URL = HAZARD_SERVICE_URL.endsWith("/") ? "hazard/api/earthquakes/" : "/hazard/api/earthquakes/";
+    private static final String TORNADO_URL = HAZARD_SERVICE_URL.endsWith("/") ? "hazard/api/tornadoes/" : "/hazard/api/tornadoes/";
+    private static final String HURRICANE_URL = HAZARD_SERVICE_URL.endsWith("/") ? "hazard/api/hurricaneWindfields/" : "/hazard/api/hurricaneWindfields/";
+    private static final String TSUNAMI_URL = HAZARD_SERVICE_URL.endsWith("/") ? "hazard/api/tsunamis/" : "/hazard/api/tsunamis/";
+    private static final String FRAGILITY_URL = DFR3_SERVICE_URL.endsWith("/") ? "dfr3/api/fragilities/" : "/dfr3/api/fragilities/";
+    private static final String REPAIR_URL = DFR3_SERVICE_URL.endsWith("/") ? "dfr3/api/repairs/" : "/dfr3/api/repairs/";
+    private static final String RESTORATION_URL = DFR3_SERVICE_URL.endsWith("/") ? "dfr3/api/restorations/" : "/dfr3/api/restorations/";
+    private static final String MAPPING_URL = DFR3_SERVICE_URL.endsWith("/") ? "dfr3/api/mappings/" : "/dfr3/api/mappings/";
+    private static final String DATA_URL = DATA_SERVICES_URL.endsWith("/") ? "data/api/datasets/" : "/data/api/datasets/";
 
     private static final String SPACE_MEMBERS = "members";
     private static final String SPACE_METADATA = "metadata";
@@ -350,10 +352,10 @@ public class SpaceController {
         HttpURLConnection con;
         try {
             List<URL> urls = new ArrayList<>();
-            urls.add(new URL(SERVICES_URL + EARTHQUAKE_URL + hazardId));
-            urls.add(new URL(SERVICES_URL + TORNADO_URL + hazardId));
-            urls.add(new URL(SERVICES_URL + HURRICANE_URL + hazardId));
-            urls.add(new URL(SERVICES_URL + TSUNAMI_URL + hazardId));
+            urls.add(new URL(HAZARD_SERVICE_URL + EARTHQUAKE_URL + hazardId));
+            urls.add(new URL(HAZARD_SERVICE_URL + TORNADO_URL + hazardId));
+            urls.add(new URL(HAZARD_SERVICE_URL + HURRICANE_URL + hazardId));
+            urls.add(new URL(HAZARD_SERVICE_URL + TSUNAMI_URL + hazardId));
             try {
                 for (URL url : urls) {
                     con = (HttpURLConnection) url.openConnection();
@@ -425,7 +427,7 @@ public class SpaceController {
     private String get(String serviceUrl, String memberId, String username) {
         HttpURLConnection con;
         try {
-            URL url = new URL(SERVICES_URL + serviceUrl + memberId);
+            URL url = new URL( serviceUrl + memberId);
             try {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
