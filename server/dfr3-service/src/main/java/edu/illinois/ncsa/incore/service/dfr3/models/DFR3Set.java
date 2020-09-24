@@ -23,6 +23,7 @@ public abstract class DFR3Set {
     protected List<String> authors = new ArrayList<>();
     protected PaperReference paperReference;
 
+    // TODO this field now is moved to returnType field on each curve
     protected String resultUnit;
     protected String resultType;
 
