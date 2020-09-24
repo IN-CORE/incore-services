@@ -8,8 +8,10 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
 
+//@XmlTransient
 public class FragilityCurveRe extends FragilityCurve {
     public List<Rule> rules;
     public ReturnType returnType;
@@ -22,7 +24,8 @@ public class FragilityCurveRe extends FragilityCurve {
         super();
     }
 
-    public FragilityCurveRe(List<Rule> rules, ReturnType returnType, List<FragilityCurveParameter> fragilityCurveParameters,
+    public FragilityCurveRe(List<Rule> rules, ReturnType returnType,
+                            List<FragilityCurveParameter> fragilityCurveParameters,
                             String label) {
         super(label);
 
