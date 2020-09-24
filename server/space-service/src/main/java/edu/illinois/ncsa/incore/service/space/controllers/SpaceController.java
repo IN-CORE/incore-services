@@ -62,9 +62,9 @@ import java.util.*;
 
 @Path("spaces")
 public class SpaceController {
-    private static final String DATA_SERVICES_URL = System.getenv("DATA_SERVICE_URL").endsWith("/") ? System.getenv("DATA_SERVICE_URL") : System.getenv("DATA_SERVICE_URL") + "/";
-    private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL").endsWith("/") ? System.getenv("HAZARD_SERVICE_URL") : System.getenv("HAZARD_SERVICE_URL") + "/";
-    private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL").endsWith("/") ? System.getenv("DFR3_SERVICE_URL") : System.getenv("DFR3_SERVICE_URL") + "/";
+    private static final String DATA_SERVICES_URL = System.getenv("DATA_SERVICE_URL");
+    private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
+    private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
     private static final String EARTHQUAKE_URL =  HAZARD_SERVICE_URL + "hazard/api/earthquakes/";
     private static final String TORNADO_URL = HAZARD_SERVICE_URL + "hazard/api/tornadoes/";
     private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "hazard/api/hurricaneWindfields/";
