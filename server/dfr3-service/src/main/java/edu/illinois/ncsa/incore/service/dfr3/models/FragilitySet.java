@@ -9,31 +9,16 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Entity;
-
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
 
 @Entity("FragilitySet")
-@XmlTransient
-//@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
-@XmlSeeAlso({FragilitySetLegacy.class, FragilitySetRe.class})
-public abstract class FragilitySet extends DFR3Set {
+public class FragilitySet extends DFR3Set {
     protected String demandType;
     protected String demandUnits;
     protected List<FragilityCurve> fragilityCurves;
+    protected List<FragilityCurveParameter> fragilityCurveParameters;
 
-    public FragilitySet() {
-
-    }
-
-    public FragilitySet(String demandType, String demandUnits, String description, List<FragilityCurve> fragilityCurves){
-        this.demandType = demandType;
-        this.demandUnits = demandUnits;
-        this.fragilityCurves = fragilityCurves;
-    }
 
     public String getDemandType() {
         return demandType;
@@ -44,5 +29,7 @@ public abstract class FragilitySet extends DFR3Set {
     }
 
     public List<FragilityCurve> getFragilityCurves() { return fragilityCurves; }
+
+    public List<FragilityCurveParameter> fragilityCurveParameters() { return fragilityCurveParameters; }
 
 }
