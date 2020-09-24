@@ -92,9 +92,6 @@ public class SpaceController {
     public SpaceController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
-        logger.warn(HAZARD_SERVICE_URL);
-        logger.warn(DATA_SERVICE_URL);
-        logger.warn(DFR3_SERVICE_URL);
     }
 
     @POST
@@ -355,10 +352,10 @@ public class SpaceController {
         HttpURLConnection con;
         try {
             List<URL> urls = new ArrayList<>();
-            urls.add(new URL(HAZARD_SERVICE_URL + EARTHQUAKE_URL + hazardId));
-            urls.add(new URL(HAZARD_SERVICE_URL + TORNADO_URL + hazardId));
-            urls.add(new URL(HAZARD_SERVICE_URL + HURRICANE_URL + hazardId));
-            urls.add(new URL(HAZARD_SERVICE_URL + TSUNAMI_URL + hazardId));
+            urls.add(new URL( EARTHQUAKE_URL + hazardId));
+            urls.add(new URL(  TORNADO_URL + hazardId));
+            urls.add(new URL(HURRICANE_URL + hazardId));
+            urls.add(new URL(TSUNAMI_URL + hazardId));
             try {
                 for (URL url : urls) {
                     con = (HttpURLConnection) url.openConnection();
