@@ -14,8 +14,6 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
-import edu.illinois.ncsa.incore.service.dfr3.newmodels.FragilitySet;
-import edu.illinois.ncsa.incore.service.dfr3.newmodels.FragilityCurve;
 import org.bson.types.ObjectId;
 import dev.morphia.query.Query;
 

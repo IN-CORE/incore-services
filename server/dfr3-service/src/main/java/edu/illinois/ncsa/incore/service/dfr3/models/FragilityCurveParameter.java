@@ -7,7 +7,7 @@
  * Contributors:
  *******************************************************************************/
 
-package edu.illinois.ncsa.incore.service.dfr3.newmodels;
+package edu.illinois.ncsa.incore.service.dfr3.models;
 
 public class FragilityCurveParameter {
     public String name;

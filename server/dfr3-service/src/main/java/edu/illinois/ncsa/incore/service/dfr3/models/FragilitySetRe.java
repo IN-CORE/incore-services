@@ -5,34 +5,19 @@
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
- * Omar Elabd, Nathan Tolbert
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.dfr3.newmodels;
+package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import dev.morphia.annotations.Entity;
 
 import java.util.List;
 
 @Entity("FragilitySet")
-public class FragilitySet extends DFR3Set {
+public class FragilitySetRe extends FragilitySet {
+    public List<FragilityCurveParameter> fragilityCurveParameters;
 
-    protected String demandType;
-    protected String demandUnits;
-    protected List<FragilityCurveParameter> fragilityCurveParameters;
-    protected List<FragilityCurve> fragilityCurves;
-
-    public String getDemandType() {
-        return demandType;
-    }
-
-    public String getDemandUnits() {
-        return demandUnits;
-    }
+    public FragilitySetRe() { super(); }
 
     public List<FragilityCurveParameter> fragilityCurveParameters() { return fragilityCurveParameters; }
-
-    public List<FragilityCurve> getFragilityCurves() {
-        return fragilityCurves;
-    }
 
 }
