@@ -14,15 +14,20 @@ public class FragilityCurveRe extends FragilityCurve {
     public List<Rule> rules;
     public ReturnType returnType;
 
+    // for building period fragility curve, it can over write the common fragility curve paramters outside
+    public List<FragilityCurveParameter> fragilityCurveParameters;
+
 
     public FragilityCurveRe() {
         super();
     }
 
-    public FragilityCurveRe(List<Rule> rules, ReturnType returnType, String label) {
+    public FragilityCurveRe(List<Rule> rules, ReturnType returnType, List<FragilityCurveParameter> fragilityCurveParameters,
+                            String label) {
         super(label);
 
         this.rules = rules;
         this.returnType = returnType;
+        this.fragilityCurveParameters = fragilityCurveParameters;
     }
 }
