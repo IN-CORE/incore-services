@@ -65,15 +65,15 @@ public class SpaceController {
     private static final String DATA_SERVICES_URL = System.getenv("DATA_SERVICE_URL");
     private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
     private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
-    private static final String EARTHQUAKE_URL =  HAZARD_SERVICE_URL + "hazard/api/earthquakes/";
-    private static final String TORNADO_URL = HAZARD_SERVICE_URL + "hazard/api/tornadoes/";
-    private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "hazard/api/hurricaneWindfields/";
-    private static final String TSUNAMI_URL = HAZARD_SERVICE_URL + "hazard/api/tsunamis/";
-    private static final String FRAGILITY_URL = DFR3_SERVICE_URL + "dfr3/api/fragilities/";
-    private static final String REPAIR_URL =DFR3_SERVICE_URL + "dfr3/api/repairs/";
-    private static final String RESTORATION_URL = DFR3_SERVICE_URL + "dfr3/api/restorations/";
-    private static final String MAPPING_URL = DFR3_SERVICE_URL + "dfr3/api/mappings/";
-    private static final String DATA_URL = DATA_SERVICES_URL + "data/api/datasets/";
+    private static final String EARTHQUAKE_URL =  HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
+    private static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
+    private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricaneWindfields/";
+    private static final String TSUNAMI_URL = HAZARD_SERVICE_URL + "/hazard/api/tsunamis/";
+    private static final String FRAGILITY_URL = DFR3_SERVICE_URL + "/dfr3/api/fragilities/";
+    private static final String REPAIR_URL =DFR3_SERVICE_URL + "/dfr3/api/repairs/";
+    private static final String RESTORATION_URL = DFR3_SERVICE_URL + "/dfr3/api/restorations/";
+    private static final String MAPPING_URL = DFR3_SERVICE_URL + "/dfr3/api/mappings/";
+    private static final String DATA_URL = DATA_SERVICES_URL + "/data/api/datasets/";
 
     private static final String SPACE_MEMBERS = "members";
     private static final String SPACE_METADATA = "metadata";
