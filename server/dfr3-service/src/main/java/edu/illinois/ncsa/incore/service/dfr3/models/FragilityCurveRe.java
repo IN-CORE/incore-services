@@ -6,32 +6,22 @@
  *
  * Contributors:
  *******************************************************************************/
+package edu.illinois.ncsa.incore.service.dfr3.models;
 
-package edu.illinois.ncsa.incore.service.dfr3.newmodels;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
 
-@XmlTransient
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
-public class FragilityCurve {
-
-    public String description;
+public class FragilityCurveRe {
     public List<Rule> rules;
     public ReturnType returnType;
 
-    public FragilityCurve() {
 
+    public FragilityCurveRe() {
+        super();
     }
 
-    public FragilityCurve(String label) {
-        this.description = label;
-    }
+    public FragilityCurveRe(List<Rule> rules, ReturnType returnType, String label) {
+        super(label);
 
-    public FragilityCurve(String description, List<Rule> rules, ReturnType returnType) {
-        this.description = description;
         this.rules = rules;
         this.returnType = returnType;
     }

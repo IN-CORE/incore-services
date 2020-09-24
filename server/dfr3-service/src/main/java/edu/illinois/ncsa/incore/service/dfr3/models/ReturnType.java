@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.dfr3.newmodels;
+package edu.illinois.ncsa.incore.service.dfr3.models;
 
 public class ReturnType {
     public String type;
