@@ -352,8 +352,8 @@ public class SpaceController {
         HttpURLConnection con;
         try {
             List<URL> urls = new ArrayList<>();
-            urls.add(new URL( EARTHQUAKE_URL + hazardId));
-            urls.add(new URL(  TORNADO_URL + hazardId));
+            urls.add(new URL(EARTHQUAKE_URL + hazardId));
+            urls.add(new URL(TORNADO_URL + hazardId));
             urls.add(new URL(HURRICANE_URL + hazardId));
             urls.add(new URL(TSUNAMI_URL + hazardId));
             try {
