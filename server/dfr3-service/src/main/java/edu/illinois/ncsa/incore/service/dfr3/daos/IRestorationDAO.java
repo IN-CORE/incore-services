@@ -15,6 +15,8 @@ public interface IRestorationDAO {
 
     Optional<RestorationSet> getRestorationSetById(String id);
 
+    RestorationSet deleteRestorationSetById(String id);
+
     List<RestorationSet> searchRestorations(String text);
 
     List<RestorationSet> queryRestorations(String attributeType, String attributeValue);

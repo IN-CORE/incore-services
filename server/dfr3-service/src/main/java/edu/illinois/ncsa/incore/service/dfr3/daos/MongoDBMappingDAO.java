@@ -54,6 +54,19 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
+    public MappingSet deleteMappingSetById(String id) {
+        MappingSet mappingSet = this.dataStore.get(MappingSet.class, new ObjectId(id));
+
+        if (mappingSet == null) {
+            return null;
+        } else {
+            Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        }
+    }
+
+    @Override
     public String saveMappingSet(MappingSet mappingSet) {
         if (mappingSet == null) {
             throw new IllegalArgumentException();

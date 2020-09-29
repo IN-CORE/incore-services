@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
 
@@ -64,6 +65,8 @@ public class RepairController {
     IAuthorizer authorizer;
     @Inject
     private IRepairDAO repairDAO;
+    @Inject
+    private IMappingDAO mappingDAO;
     @Inject
     private ISpaceRepository spaceRepository;
 
@@ -167,6 +170,39 @@ public class RepairController {
         }
 
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a repair with id " + id);
+    }
+
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{repairId}")
+    @ApiOperation(value = "Deletes a repair by id")
+    public RepairSet deleteRepairById(@ApiParam(value = "repair id", example = "5b47b2d8337d4a36187c6727") @PathParam("repairId") String id) {
+        Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
+
+        if (repairSet.isPresent()) {
+            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+//                Check for references in mappings, if found give 409
+                if(this.mappingDAO.isMemberPresentInMappings(id)){
+                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The repair is referenced in an DFR3 mapping. It can not be deleted until" +
+                        " all it's references are removed from mappings");
+                } else {
+//                    remove id from spaces
+                    List<Space> spaces = spaceRepository.getAllSpaces();
+                    for (Space space : spaces) {
+                        if (space.hasMember(id)) {
+                            space.removeMember(id);
+                            spaceRepository.addSpace(space);
+                        }
+                    }
+
+                    return this.repairDAO.deleteRepairSetById(id);
+                }
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the repair with id " + id);
+            }
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a repair set with id " + id);
+        }
     }
 
     @GET

@@ -191,12 +191,12 @@ public class FragilityController {
 
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
-//                Check for references in mappings, else give 409
+//                Check for references in mappings, if found give 409
                 if(this.mappingDAO.isMemberPresentInMappings(id)){
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in an DFR3 mapping. It can not be deleted until" +
                         " all it's references are removed from mappings");
                 } else {
-                    //remove id from spaces
+//                    remove id from spaces
                     List<Space> spaces = spaceRepository.getAllSpaces();
                     for (Space space : spaces) {
                         if (space.hasMember(id)) {

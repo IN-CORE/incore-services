@@ -268,6 +268,32 @@ public class MappingController {
         return mappingResponse;
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{mappingId}")
+    @ApiOperation(value = "Deletes a mapping by id")
+    public MappingSet deleteMappingById(@ApiParam(value = "mapping id", example = "5b47b2d8337d4a36187c6727") @PathParam("mappingId") String id) {
+        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
+
+        if (mappingSet.isPresent()) {
+            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+//              remove id from spaces
+                List<Space> spaces = spaceRepository.getAllSpaces();
+                for (Space space : spaces) {
+                    if (space.hasMember(id)) {
+                        space.removeMember(id);
+                        spaceRepository.addSpace(space);
+                    }
+                }
+                return this.mappingDAO.deleteMappingSetById(id);
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the mapping with id " + id);
+            }
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a mapping set with id " + id);
+        }
+    }
+
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})

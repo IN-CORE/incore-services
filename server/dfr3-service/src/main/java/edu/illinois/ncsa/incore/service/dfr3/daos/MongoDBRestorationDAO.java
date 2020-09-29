@@ -64,6 +64,19 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
     }
 
     @Override
+    public RestorationSet deleteRestorationSetById(String id) {
+        RestorationSet restorationSet = this.dataStore.get(RestorationSet.class, new ObjectId(id));
+
+        if (restorationSet == null) {
+            return null;
+        } else {
+            Query<RestorationSet> query = this.dataStore.createQuery(RestorationSet.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
+        }
+    }
+
+    @Override
     public List<RestorationSet> searchRestorations(String text) {
         Query<RestorationSet> query = this.dataStore.createQuery(RestorationSet.class);
 

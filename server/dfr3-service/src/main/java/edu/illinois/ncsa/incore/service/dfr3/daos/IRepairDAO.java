@@ -15,6 +15,8 @@ public interface IRepairDAO {
 
     Optional<RepairSet> getRepairSetById(String id);
 
+    RepairSet deleteRepairSetById(String id);
+
     List<RepairSet> searchRepairs(String text);
 
     List<RepairSet> queryRepairs(String attributeType, String attributeValue);
