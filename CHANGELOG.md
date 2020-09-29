@@ -5,7 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.6.4] - 2020-05-29
+
+## [0.8.0] - 2020-09-04
+
+### Added
+- Flood endpoints to accept raster based deterministic flood. [INCORE1-746](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-746) 
+
+### Changed
+- Alter the dfr3 status endpoint to include service version and database connection test. [INCORE-466](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-466)
+
+### Fixed
+- Added validation so PUT dataset endpoint will only allow updating string fields. It will return appropriate error message with HTTP response for non-string fields [INCORE1-767](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-767)
+
+### Security
+- Updated jax-rs and jersey dependencies to the latest versions [INCORE1-653](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-653)
+
+
+## [0.7.0] - 2020-07-31
+
+### Added 
+- Hurricane endpoints to accept dataset based deterministic hurricanes. This also involved refactoring current hurricaneWindfields code into separate route. [INCORE1-690](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-690)
+
+## [0.6.7] - 2020-06-30
+
+### Changed
+- Upgrade morphia version to 1.5.8 and upgrade mongo driver to 3.12.5 [INCORE1-670](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-670)
+- incore.properties has been removed from docker and semantics docker added. [INCORE1-671](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-671)
+- Jetty temp folder location has been changed. [INCORE1-673](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-673)
+- Docker tagging in build process has been changed to distinguish prod and dev [INCORE1-678](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-678)
+
+## [0.6.6] - 2020-06-15
+
+### Changed
+- Upgrade gradle to v6.5. Cleaned up gradle dependencies and changed geoserver related dependency links. [INCORE1-591](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-591)
+
+### Fixed
+- Resolved swagger path conflicts in delete hazard endpoints [INCORE1-659](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-659)
+
+
+## [0.6.5] - 2020-05-29
 
 ### Added
 
@@ -15,7 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - DELETE endpoints for all hazards [INCORE1-560](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-560)
 - Initial implementation of semantics service restricted to admin users [INCORE1-571](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-571)
 
-### Updated
+### Changed
 - Application properties are now initialized by system environment variables [INCORE1-587](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-587)
 
 ## [0.6.4] - 2020-03-27
@@ -23,7 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Text search endpoint to DFR3 Mappings [INCORE1-512](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-512)
 
-### Updated
+### Changed
 - Updated all controller's exceptions and its messages and added constructors to controllers that were missing one [INCORE-470](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-470)
 
 ### Fixed

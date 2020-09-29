@@ -1,39 +1,38 @@
 /*******************************************************************************
- * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2020 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
  * terms of the Mozilla Public License v2.0 which accompanies this distribution,
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
- * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
+package edu.illinois.ncsa.incore.service.hazard.models.flood.types;
 
-public class HurricaneWindfieldResult {
-    private String demandType;
-    private String demandUnits;
+public class FloodHazardResult {
+    private String demand;
+    private String units;
     private double hazardValue;
     private double latitude;
     private double longitude;
 
-    public HurricaneWindfieldResult(double latitude, double longitude, double hazardValue, String demandType, String demandUnits) {
+    public FloodHazardResult(double latitude, double longitude, double hazardValue, String demandType, String demandUnits) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.hazardValue = hazardValue;
-        this.demandType = demandType;
-        this.demandUnits = demandUnits;
+        this.demand = demandType;
+        this.units = demandUnits;
     }
 
     public double getHazardValue() {
         return hazardValue;
     }
 
-    public String getDemandUnits() {
-        return demandUnits;
+    public String getUnits() {
+        return units;
     }
 
-    public String getDemandType() {
-        return demandType;
+    public String getDemand() {
+        return demand;
     }
 
     public double getLatitude() {

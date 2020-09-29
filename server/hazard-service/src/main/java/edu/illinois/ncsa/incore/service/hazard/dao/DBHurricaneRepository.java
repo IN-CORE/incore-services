@@ -9,9 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HistoricHurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HistoricHurricane;
 
 import java.net.URL;
 
@@ -24,31 +23,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 
 public class DBHurricaneRepository {
-    private String hostUri;
-    private String databaseName;
-    private int port;
-    private MongoClientURI mongoClientURI;
 
-    private JSONObject jsonParams;
-
-    public DBHurricaneRepository() {
-        this.port = 27017;
-        this.hostUri = "localhost";
-        this.databaseName = "hazarddb";
-    }
-
-    public DBHurricaneRepository(String hostUri, String databaseName, int port) {
-        this.databaseName = databaseName;
-        this.hostUri = hostUri;
-        this.port = port;
-    }
-
-//    @Override
-//    public void initialize() {
-//        this.initializeDataStore();
-//    }
+    public static final Logger log = Logger.getLogger(DBHurricaneRepository.class);
 
     //@Override
     public HistoricHurricane getHurricaneByModel(String model) {
@@ -59,19 +39,19 @@ public class DBHurricaneRepository {
 
         try {
 
-            String fileName = model+".json";
+            String fileName = model + ".json";
             URL modelURL = this.getClass().getClassLoader().getResource("/hazard/hurricane/models/" + fileName);
             Object obj = parser.parse(new FileReader(modelURL.getFile()));
 
-            jsonParams =  (JSONObject) obj;
+            jsonParams = (JSONObject) obj;
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            log.debug("File Not Found.", e);
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Model not found in the database");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.debug("IO Exception.", e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.debug("Parse Exception.", e);
         }
 
         hurricane.setHurricaneParameters(jsonParams);

@@ -4,7 +4,6 @@ include "tools-common"
 include "dfr3-service"
 include "data-service"
 include "hazard-service"
-include "maestro-service"
 include 'incore-common'
 include "semantic-core"
 include 'semantics-service'

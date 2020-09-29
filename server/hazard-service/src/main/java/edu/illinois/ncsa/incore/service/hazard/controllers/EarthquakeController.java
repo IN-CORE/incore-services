@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami and Hurricane",
+        description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami, Hurricane and Flood",
         version = "v0.6.3",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
@@ -154,7 +154,7 @@ public class EarthquakeController {
                         HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
                         String description = "Earthquake visualization";
                         datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
-                            description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+                            description, HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA);
                     }
 
 
@@ -192,9 +192,9 @@ public class EarthquakeController {
                     for (FormDataBodyPart filePart : fileParts) {
                         HazardDataset hazardDataset = eqDataset.getHazardDatasets().get(hazardDatasetIndex);
                         String description = "Deterministic hazard raster";
-                        String datasetType = HazardConstants.DETERMINISTIC_HAZARD_SCHEMA;
+                        String datasetType = HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA;
                         if (hazardDataset instanceof ProbabilisticHazardDataset) {
-                            datasetType = HazardConstants.PROBABILISTIC_HAZARD_SCHEMA;
+                            datasetType = HazardConstants.PROBABILISTIC_EARTHQUAKE_HAZARD_SCHEMA;
                             description = "Probabilistic hazard raster";
                         }
                         hazardDatasetIndex++;
@@ -234,6 +234,8 @@ public class EarthquakeController {
 
         } catch (IOException e) {
             logger.error("Error mapping the request to an Earthquake object.", e);
+        } catch (IllegalArgumentException e) {
+            logger.error("Illegal Argument has been passed in.", e);
         }
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create earthquake, check the format of your request.");
     }
@@ -713,9 +715,9 @@ public class EarthquakeController {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{id}")
+    @Path("{earthquake-id}")
     @ApiOperation(value = "Deletes an earthquake", notes = "Also deletes attached dataset and related files")
-    public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("id") String earthquakeId) {
+    public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
         if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {

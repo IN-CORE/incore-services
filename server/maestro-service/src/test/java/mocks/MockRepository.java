@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import org.mockito.Mockito;
-import org.mongodb.morphia.Datastore;
+import dev.morphia.Datastore;
 
 import java.io.IOException;
 import java.net.URL;

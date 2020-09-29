@@ -222,15 +222,17 @@ public class TsunamiController {
         } catch (IOException e) {
             log.error("Error mapping the request to a supported Tsunami type.", e);
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported Tsunami type. " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("Illegal Argument has been passed in.", e);
         }
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, check the format of your request.");
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{id}")
+    @Path("{tsunami-id}")
     @ApiOperation(value = "Deletes a Tsunami", notes = "Also deletes attached dataset and related files")
-    public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("id") String tsunamiId) {
+    public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("tsunami-id") String tsunamiId) {
         Tsunami tsunami = getTsunami(tsunamiId);
 
         if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {

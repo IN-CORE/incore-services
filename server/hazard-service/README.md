@@ -144,7 +144,7 @@ Content-Type: multipart/form-data
 ###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
 
 When creating a tsunami dataset, the files must be included in the POST in the order found in the JSON
-so the correct dataset and metadataOld are associated.
+so the correct dataset and metadata are associated.
 
 ##### Sample Tsunami Json
 {
@@ -172,8 +172,7 @@ so the correct dataset and metadataOld are associated.
         "demandUnits" : "m", 
         "recurrenceInterval" : "100",
         "recurrenceUnit" : "years"
-    }
-   
+    }   
   ]
 }
 
@@ -257,7 +256,62 @@ value should be between 136 and 165 mph
 
 http://localhost:8080/hazard/api/tornadoes/{id}/values?demandUnits=m&point=35.027,-90.131&point=35.16,-88.88
 
+
 ## Hurricanes 
+
+### Create Hurricane Dataset
+
+POST http://localhost:8080/hazard/api/hurricanes
+
+Content-Type: multipart/form-data
+
+#### Create deterministic hurricane
+
+###### Form Parameter: "hurricane" should hold the Hurricane JSON
+###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
+
+When creating a hurricane dataset, the files must be included in the POST in the order found in the JSON
+so the correct dataset and metadata are associated.
+
+##### Sample Hurricane Json
+{
+	"name": "Galveston Deterministic Hurricane - Kriging",
+	"description": "Galveston dataset based deterministic hazard - 3 datasets",
+	"hurricaneType": "dataset",
+	"hazardDatasets": [
+        {
+            "hazardType": "deterministic",
+            "demandType": "waveHeight",
+            "demandUnits": "m",
+            "hurricaneParameters": {
+                "model": "Kriging"
+            }
+        },
+       {
+            "hazardType": "deterministic",
+            "demandType": "surgeLevel",
+            "demandUnits": "m",
+            "hurricaneParameters": {
+                "model": "Kriging"
+            }
+        },
+       {
+            "hazardType": "deterministic",
+            "demandType": "inundationDuration",
+            "demandUnits": "hr",
+            "hurricaneParameters": {
+                "model": "Kriging"
+            }
+        }
+	]
+}
+
+### Get Value from Hurricane
+
+GET /values
+
+http://localhost:8080/hazard/api/hurricanes/{id}/values?point=29.22,-95.06&demandType=inundationDuration&demandUnits=min
+http://localhost:8080/hazard/api/hurricanes/{id}/values?point=29.22,-95.06&demandType=surgeLevel&demandUnits=m
 
 ### Create Hurricane Windfield (Creates shapefiles of windfield grids in data service)
 
@@ -291,3 +345,51 @@ GET http://localhost:8080/hazard/api/hurricaneWindfields/5bcfe8a82d2ad516bb7ebac
 
 The converted json model files are also in box:
 https://uofi.box.com/s/ycneuzlzyt8rqwuu03gfeq4srbhucpch
+
+## Floods 
+
+### Create Flood Dataset
+
+POST http://localhost:8080/hazard/api/floods
+
+Content-Type: multipart/form-data
+
+#### Create deterministic flood
+
+###### Form Parameter: "flood" should hold the Flood JSON
+###### Form Parameter: "file" should contain the uploaded file(s). Multiple files can be uploaded using the same "file" parameter
+
+When creating a flood dataset, the files must be included in the POST **in the order** found in the JSON
+so the correct dataset and metadata are associated.
+
+##### Sample Flood Json
+{
+	"name": "Lumberton Deterministic Flood - riverine flooding",
+	"description": "Lumberton dataset based deterministic hazard - 2 datasets",
+	"floodType": "dataset",
+	"hazardDatasets": [
+        {
+            "hazardType": "deterministic",
+            "demandType": "inundationDepth",
+            "demandUnits": "m",
+            "floodParameters": {
+                "model": "riverine flooding"
+            }
+        },
+       {
+            "hazardType": "deterministic",
+            "demandType": "waterSurfaceElevation",
+            "demandUnits": "m",
+            "floodParameters": {
+                "model": "riverine flooding"
+            }
+        }
+	]
+}
+
+### Get Value from Flood
+
+GET /values
+
+http://localhost:8080/hazard/api/floods/{id}/values?point=34.60,-79.16&demandType=inundationDepth&demandUnits=m
+http://localhost:8080/hazard/api/floods/{id}/values?point=34.60,-79.16&demandType=waterSurfaceElevation&demandUnits=m

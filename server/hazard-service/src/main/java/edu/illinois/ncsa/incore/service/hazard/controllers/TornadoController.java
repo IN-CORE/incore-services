@@ -191,7 +191,10 @@ public class TornadoController {
             }
         } catch (IOException e) {
             logger.error("Error mapping the request to a supported Tornado type.", e);
+        } catch (IllegalArgumentException e) {
+            logger.error("Illegal Argument has been passed in.", e);
         }
+
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado, check the format of your request.");
 
     }
@@ -320,9 +323,9 @@ public class TornadoController {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{id}")
+    @Path("{tornado-id}")
     @ApiOperation(value = "Deletes a tornado", notes = "Also deletes attached dataset and related files")
-    public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("id") String tornadoId) {
+    public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
         Tornado tornado = getTornado(tornadoId);
 
         if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {

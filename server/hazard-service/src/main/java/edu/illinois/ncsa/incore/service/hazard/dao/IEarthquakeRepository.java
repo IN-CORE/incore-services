@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
-import org.mongodb.morphia.Datastore;
+import dev.morphia.Datastore;
 
 import java.util.List;
 

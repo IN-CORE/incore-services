@@ -1,20 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
+ * Copyright (c) 2020 University of Illinois and others.  All rights reserved.
  * This program and the accompanying materials are made available under the
  * terms of the Mozilla Public License v2.0 which accompanies this distribution,
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
+ *
+ * Contributors:
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
+package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
-public enum WindfieldDemandUnits {
-    mph,
-    kt,
-    mps,
-    kmph;
+public class FloodConstants {
 
-    public static WindfieldDemandUnits fromString(String unit) {
-        String lowerUnit = unit.toLowerCase();
-        return valueOf(lowerUnit);
-    }
+    public static final String FLOOD_POST_PARAMETER_NAME = "flood";
+
+    public static final String DEPTH = "inundationDepth";
+    public static final String WSE = "waterSurfaceElevation";
 
 }

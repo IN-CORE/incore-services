@@ -121,7 +121,7 @@ public class Engine {
         String description = "Earthquake visualization";
         try {
             String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", username,
-                description, HazardConstants.DETERMINISTIC_HAZARD_SCHEMA);
+                description, HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA);
             earthquake.getRasterDataset().setDatasetId(datasetId);
 
             repository.addEarthquake(earthquake);

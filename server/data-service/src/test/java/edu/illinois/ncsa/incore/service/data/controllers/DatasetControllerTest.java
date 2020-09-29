@@ -52,7 +52,7 @@ class DatasetControllerTest extends CustomJerseyTest{
     @Test
     public void testRequestWithBadUserInfoJson() {
         try {
-            String output = target("/datasets").request().header("x-auth-userinfo", "{\"username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+            String output = target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
         } catch (BadRequestException e){
             int expectedStatusCode = 400;
             int actualStatusCode = e.getResponse().getStatus();

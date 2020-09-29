@@ -1,7 +1,3 @@
-//configure the war plugin, give it a war filename
-//war {
-//	archiveName "incore-repo.war"
-//}
 
 //configuration for gretty webapp server
 gretty {
@@ -9,10 +5,8 @@ gretty {
 }
 
 repositories {
-
-	jcenter()
-	maven { url "http://repo.boundlessgeo.com/main"}
-	maven { url "http://dl.bintray.com/milton/Milton"}
+        jcenter()
+        maven { url "https://maven.geo-solutions.it/" }
 }
 
 
