@@ -67,7 +67,9 @@ public class SpaceController {
     private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
     private static final String EARTHQUAKE_URL =  HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
     private static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
-    private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricaneWindfields/";
+    private static final String HURRICANE_WF_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricaneWindfields/";
+    private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricanes/";
+    private static final String FLOOD_URL = HAZARD_SERVICE_URL + "/hazard/api/floods/";
     private static final String TSUNAMI_URL = HAZARD_SERVICE_URL + "/hazard/api/tsunamis/";
     private static final String FRAGILITY_URL = DFR3_SERVICE_URL + "/dfr3/api/fragilities/";
     private static final String REPAIR_URL = DFR3_SERVICE_URL + "/dfr3/api/repairs/";
@@ -354,7 +356,9 @@ public class SpaceController {
             List<URL> urls = new ArrayList<>();
             urls.add(new URL(EARTHQUAKE_URL + hazardId));
             urls.add(new URL(TORNADO_URL + hazardId));
+            urls.add(new URL(HURRICANE_WF_URL + hazardId));
             urls.add(new URL(HURRICANE_URL + hazardId));
+            urls.add(new URL(FLOOD_URL + hazardId));
             urls.add(new URL(TSUNAMI_URL + hazardId));
             try {
                 for (URL url : urls) {
