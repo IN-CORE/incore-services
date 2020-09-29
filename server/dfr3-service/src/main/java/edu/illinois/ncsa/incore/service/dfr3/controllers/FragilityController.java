@@ -17,6 +17,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
+import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
@@ -63,6 +64,8 @@ public class FragilityController {
     IAuthorizer authorizer;
     @Inject
     private IFragilityDAO fragilityDAO;
+    @Inject
+    private IMappingDAO mappingDAO;
     @Inject
     private ISpaceRepository spaceRepository;
 
@@ -176,7 +179,7 @@ public class FragilityController {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the fragility with id " + id);
             }
         }
-        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + fragilitySet);
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + id);
     }
 
     @DELETE
@@ -188,22 +191,28 @@ public class FragilityController {
 
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
-                //repository.del
-
-                //remove id from spaces
-                List<Space> spaces = spaceRepository.getAllSpaces();
-                for (Space space : spaces) {
-                    if (space.hasMember(id)) {
-                        space.removeMember(id);
-                        spaceRepository.addSpace(space);
+//                Check for references in mappings, else give 409
+                if(this.mappingDAO.isMemberPresentInMappings(id)){
+                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in an DFR3 mapping. It can not be deleted until" +
+                        " all it's references are removed from mappings");
+                } else {
+                    //remove id from spaces
+                    List<Space> spaces = spaceRepository.getAllSpaces();
+                    for (Space space : spaces) {
+                        if (space.hasMember(id)) {
+                            space.removeMember(id);
+                            spaceRepository.addSpace(space);
+                        }
                     }
+
+                    return this.fragilityDAO.deleteFragilitySetById(id);
                 }
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the fragility with id " + id);
             }
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + id);
         }
-
-        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + fragilitySet);
     }
 
     @GET

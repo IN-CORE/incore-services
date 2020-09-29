@@ -28,4 +28,6 @@ public interface IMappingDAO {
     String saveMappingSet(MappingSet mappingSet);
 
     List<MappingSet> searchMappings(String text, String mappingType);
+
+    Boolean isMemberPresentInMappings(String id);
 }
