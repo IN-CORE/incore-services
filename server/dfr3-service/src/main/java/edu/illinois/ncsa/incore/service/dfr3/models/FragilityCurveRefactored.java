@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
 
 //@XmlTransient
-public class FragilityCurveRe extends FragilityCurve {
+public class FragilityCurveRefactored extends FragilityCurve {
     public List<Rule> rules;
     public ReturnType returnType;
 
@@ -20,11 +20,11 @@ public class FragilityCurveRe extends FragilityCurve {
     public List<FragilityCurveParameter> fragilityCurveParameters;
 
 
-    public FragilityCurveRe() {
+    public FragilityCurveRefactored() {
         super();
     }
 
-    public FragilityCurveRe(List<Rule> rules, ReturnType returnType,
+    public FragilityCurveRefactored(List<Rule> rules, ReturnType returnType,
                             List<FragilityCurveParameter> fragilityCurveParameters,
                             String label) {
         super(label);

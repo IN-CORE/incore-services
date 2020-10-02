@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
 @XmlSeeAlso({CustomExpressionFragilityCurve.class, PeriodBuildingFragilityCurve.class,
     StandardFragilityCurve.class, PeriodStandardFragilityCurve.class, ConditionalStandardFragilityCurve.class,
-    ParametricFragilityCurve.class, FragilityCurveRe.class})
+    ParametricFragilityCurve.class, FragilityCurveRefactored.class})
 public abstract class FragilityCurve {
     public String description;
 
