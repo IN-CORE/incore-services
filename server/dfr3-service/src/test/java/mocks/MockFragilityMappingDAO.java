@@ -45,6 +45,16 @@ public class MockFragilityMappingDAO implements IMappingDAO {
     }
 
     @Override
+    public MappingSet deleteMappingSetById(String id) {
+       return this.mappingSets.get(0);
+    }
+
+    @Override
+    public Boolean isMemberPresentInMappings(String id) {
+        return true;
+    }
+
+    @Override
     public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
         return null;
     }
