@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import edu.illinois.ncsa.incore.service.data.models.DatasetType;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.mockito.Mockito;
@@ -27,6 +28,7 @@ import java.util.List;
 public class MockDataRepository implements IRepository {
     private Datastore mockDataStore;
     private List<Dataset> datasets = new ArrayList<>();
+    private List<DatasetType> datatypes = new ArrayList<>();
     private List<MvzDataset> mvzDatasets = new ArrayList<>();
 
     public MockDataRepository() {
@@ -36,10 +38,11 @@ public class MockDataRepository implements IRepository {
     @Override
     public void initialize() {
         URL datasetsPath = this.getClass().getClassLoader().getResource("json/datasets.json");
-        URL mvzDatasetsPath = this.getClass().getClassLoader().getResource("json/mvzdatasets.json");
+        URL DatatypesPath = this.getClass().getClassLoader().getResource("json/datatypes.json");
 
         try {
             this.datasets = new ObjectMapper().readValue(datasetsPath, new TypeReference<List<Dataset>>(){});
+            this.datatypes = new ObjectMapper().readValue(DatatypesPath, new TypeReference<List<DatasetType>>(){});
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -169,6 +172,11 @@ public class MockDataRepository implements IRepository {
     @Override
     public MvzDataset addMvzDataset(MvzDataset mvzDataset) {
         return null;
+    }
+
+    @Override
+    public List<DatasetType> getDatatypes(String spaceName) {
+        return this.datatypes;
     }
 
 }

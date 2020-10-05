@@ -1,0 +1,10 @@
+[
+  {
+    "dataType": "incore:testTypeOne",
+    "space": "incore"
+  },
+  {
+    "dataType": "ergo:testTypeTwo",
+    "space": "ergo"
+  }
+]
