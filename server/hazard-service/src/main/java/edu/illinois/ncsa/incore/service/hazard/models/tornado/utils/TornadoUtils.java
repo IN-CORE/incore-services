@@ -202,7 +202,7 @@ public class TornadoUtils {
             return Math.toDegrees(standardDeviation);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IO exception", e);
         }
 
         return 0;
@@ -238,7 +238,7 @@ public class TornadoUtils {
 
             return meanWidth;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception",e);
             // logger.error("Failed to read tornado historical data", e); //$NON-NLS-1$
         }
 
@@ -284,7 +284,7 @@ public class TornadoUtils {
 
             return meanSphericalAngle;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return 0;
@@ -322,7 +322,7 @@ public class TornadoUtils {
             return meanLength;
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug("IO Exception", e);
         }
 
         return 0;
@@ -439,7 +439,7 @@ public class TornadoUtils {
         GeometryType geomType = attBuilder.buildGeometryType();
         GeometryDescriptor geomDesc = attBuilder.buildDescriptor("the_geom", geomType); //$NON-NLS-1$
 
-        builder.setName(TornadoHazard.TORNADO_SCHEMA_NAME);
+        builder.setName(HazardConstants.TORNADO_WINDFIELD_SCHEMA);
         builder.add(geomDesc);
         builder.add(TornadoHazard.SIMULATION, Integer.class);
         builder.add(TornadoHazard.EF_RATING_FIELD, String.class);
@@ -544,7 +544,7 @@ public class TornadoUtils {
 
     public static JSONObject getTornadoDatasetObject(String title, String description) {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put(HazardConstants.DATA_TYPE, TornadoHazard.TORNADO_SCHEMA_NAME);
+        jsonObject.put(HazardConstants.DATA_TYPE, HazardConstants.TORNADO_WINDFIELD_SCHEMA);
         jsonObject.put(HazardConstants.TITLE, title);
         jsonObject.put(HazardConstants.SOURCE_DATASET, "");
         jsonObject.put(HazardConstants.FORMAT, TornadoHazard.SHAPEFILE_FORMAT);
