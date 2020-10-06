@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.service.dfr3.models.Mapping;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import org.bson.types.ObjectId;
 import dev.morphia.query.Query;
@@ -49,6 +50,19 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
             return Optional.empty();
         } else {
             return Optional.of(mappingSet);
+        }
+    }
+
+    @Override
+    public MappingSet deleteMappingSetById(String id) {
+        MappingSet mappingSet = this.dataStore.get(MappingSet.class, new ObjectId(id));
+
+        if (mappingSet == null) {
+            return null;
+        } else {
+            Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.dataStore.findAndDelete(query);
         }
     }
 
@@ -92,4 +106,22 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         return sets;
     }
 
+    @Override
+    public Boolean isCurvePresentInMappings(String id) {
+        if (!ObjectId.isValid(id)) {
+            return false;
+        }
+
+        List<MappingSet> mappingSets = this.dataStore.createQuery(MappingSet.class).asList();
+        for(MappingSet map: mappingSets){
+            List<Mapping> mappings =  map.getMappings();
+            for(Mapping mapping: mappings){
+                Map<String, String> entry = mapping.getEntry();
+                if(entry.containsValue(id)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

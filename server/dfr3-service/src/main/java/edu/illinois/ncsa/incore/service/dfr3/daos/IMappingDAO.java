@@ -23,9 +23,13 @@ public interface IMappingDAO {
 
     Optional<MappingSet> getMappingSetById(String id);
 
+    MappingSet deleteMappingSetById(String id);
+
     List<MappingSet> queryMappingSets(Map<String, String> queryMap);
 
     String saveMappingSet(MappingSet mappingSet);
 
     List<MappingSet> searchMappings(String text, String mappingType);
+
+    Boolean isCurvePresentInMappings(String id);
 }

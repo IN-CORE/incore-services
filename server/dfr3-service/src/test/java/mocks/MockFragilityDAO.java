@@ -92,6 +92,19 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
+    public FragilitySet deleteFragilitySetById(String id){
+        FragilitySet fragilitySet = this.mockDataStore.get(FragilitySet.class, new ObjectId(id));
+
+        if (fragilitySet == null) {
+            return null;
+        } else {
+            Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
+            query.field("_id").equal(new ObjectId(id));
+            return this.mockDataStore.findAndDelete(query);
+        }
+    }
+
+    @Override
     public List<FragilitySet> searchFragilities(String text) {
         Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
 
