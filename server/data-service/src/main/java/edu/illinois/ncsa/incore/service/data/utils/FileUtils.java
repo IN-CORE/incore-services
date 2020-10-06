@@ -837,4 +837,16 @@ public class FileUtils {
 
         return outStr;
     }
+
+    public static boolean fileUseGeoserver(File examinedFile, boolean geoserverEnabled) {
+        boolean useGeoserver = false;
+        if (geoserverEnabled) {
+            String fileExt = FilenameUtils.getExtension(examinedFile.getName());
+            if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") || fileExt.equalsIgnoreCase("tif")) {
+                useGeoserver = true;
+            }
+        }
+
+        return useGeoserver;
+    }
 }
