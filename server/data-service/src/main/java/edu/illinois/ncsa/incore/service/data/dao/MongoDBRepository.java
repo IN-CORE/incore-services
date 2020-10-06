@@ -186,18 +186,12 @@ public class MongoDBRepository implements IRepository {
     @Override
     public List<DatasetType> getDatatypes(String spaceName) {
         Query<DatasetType> query = this.dataStore.createQuery(DatasetType.class);
-        List<DatasetType> datatypes = query.asList();
 
-        if (spaceName != null) {
-            List<DatasetType> returnTypes = new ArrayList<>();
-            for (DatasetType type : datatypes) {
-                if (type.getSpace().equals(spaceName.trim())) {
-                    returnTypes.add(type);
-                }
-            }
-
-            return returnTypes;
+        if(spaceName != null){
+            query.criteria("space").equalIgnoreCase(spaceName);
         }
+
+        List<DatasetType> datatypes = query.asList();
         return datatypes;
     }
 }

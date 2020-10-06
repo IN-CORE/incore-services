@@ -21,11 +21,11 @@ public class DatasetType {
     private String space;
 
     public String getSpace() {
-        int idxColon = dataType.indexOf(":");
-        if (idxColon >= 0) {
-            return dataType.substring(0, dataType.indexOf(":"));
-        }
-        return "";
+        return space;
+    }
+
+    public void setSpace(String space) {
+        this.space = space;
     }
 
     public String getDataType() {
