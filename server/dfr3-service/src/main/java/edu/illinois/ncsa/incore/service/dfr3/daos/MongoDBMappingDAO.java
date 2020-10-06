@@ -107,7 +107,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public Boolean isMemberPresentInMappings(String id) {
+    public Boolean isCurvePresentInMappings(String id) {
         if (!ObjectId.isValid(id)) {
             return false;
         }

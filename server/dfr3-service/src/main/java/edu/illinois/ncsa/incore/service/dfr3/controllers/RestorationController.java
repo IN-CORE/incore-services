@@ -182,7 +182,7 @@ public class RestorationController {
         if (restorationSet.isPresent()) {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
 //                Check for references in mappings, if found give 409
-                if(this.mappingDAO.isMemberPresentInMappings(id)){
+                if(this.mappingDAO.isCurvePresentInMappings(id)){
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The restoration is referenced in at least one DFR3 mapping. It can not be deleted until" +
                         " all its references are removed from mappings");
                 } else {

@@ -31,5 +31,5 @@ public interface IMappingDAO {
 
     List<MappingSet> searchMappings(String text, String mappingType);
 
-    Boolean isMemberPresentInMappings(String id);
+    Boolean isCurvePresentInMappings(String id);
 }

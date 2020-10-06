@@ -50,7 +50,7 @@ public class MockFragilityMappingDAO implements IMappingDAO {
     }
 
     @Override
-    public Boolean isMemberPresentInMappings(String id) {
+    public Boolean isCurvePresentInMappings(String id) {
         return true;
     }
 
