@@ -393,8 +393,9 @@ public class DatasetController {
                     for (FileDescriptor fd : fds) {
                         File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
                         FileUtils.deleteTmpDir(file);
-                        if !(geoserverUsed) { geoserverUsed = fileUseGeoserver(file,
-                            boolean.parseBoolean(GEOSERVER_ENABLE)); }
+                        if (!geoserverUsed) {
+                            geoserverUsed = FileUtils.fileUseGeoserver(file.getName(), Boolean.parseBoolean(GEOSERVER_ENABLE));
+                        }
                     }
                 }
                 // remove geoserver layer
@@ -505,7 +506,7 @@ public class DatasetController {
                 paramName.equals(POST_PARAMETER_FILE_NODE) || paramName.equals(POST_PARAMETER_FILE_GRAPH)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                 String fileExt = FilenameUtils.getExtension(fileName);
-                if (fileUseGeoserver(fileName, enableGeoserver)) {
+                if (FileUtils.fileUseGeoserver(fileName, enableGeoserver)) {
                     isGeoserver = true;
                     if (fileExt.equalsIgnoreCase("asc")) {
                         isAsc = true;
