@@ -11,28 +11,46 @@
 
 package edu.illinois.ncsa.incore.service.data.dao;
 
-import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import dev.morphia.Datastore;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import edu.illinois.ncsa.incore.service.data.models.DatasetType;
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 
 import java.util.List;
 
 public interface IRepository {
     void initialize();
+
     List<Dataset> getAllDatasets();
+
     Dataset getDatasetById(String id);
+
     List<Dataset> getDatasetByType(String type);
+
     List<Dataset> getDatasetByTitle(String title);
+
     List<Dataset> getDatasetByTypeAndTitle(String type, String title);
+
     List<Dataset> searchDatasets(String text);
+
     Dataset addDataset(Dataset dataset);
+
     Dataset updateDataset(String datasetId, String propName, String propValue);
+
     Dataset getDatasetByFileDescriptorId(String id);
+
     Dataset deleteDataset(String id);
+
     List<FileDescriptor> getAllFileDescriptors();
+
     List<MvzDataset> getAllMvzDatasets();
+
     MvzDataset getMvzDatasetById(String id);
+
     MvzDataset addMvzDataset(MvzDataset dataset);
+
     Datastore getDataStore();
+
+    List<DatasetType> getDatatypes(String spaceName);
 }

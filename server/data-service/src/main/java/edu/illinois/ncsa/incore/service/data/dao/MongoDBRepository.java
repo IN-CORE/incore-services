@@ -15,14 +15,15 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
+import dev.morphia.query.Query;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import edu.illinois.ncsa.incore.service.data.models.DatasetType;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import dev.morphia.query.Query;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,8 +73,7 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore.createQuery(MvzDataset.class).asList();
     }
 
-    public Dataset getDatasetById(String id)
-    {
+    public Dataset getDatasetById(String id) {
         if (!ObjectId.isValid(id)) {
             return null;
         }
@@ -97,8 +97,8 @@ public class MongoDBRepository implements IRepository {
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
         datasetQuery.and(
-                datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type),
-                datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title)
+            datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type),
+            datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title)
         );
         return datasetQuery.asList();
     }
@@ -130,10 +130,10 @@ public class MongoDBRepository implements IRepository {
         return getMvzDatasetById(id);
     }
 
-    public List<FileDescriptor> getAllFileDescriptors(){
+    public List<FileDescriptor> getAllFileDescriptors() {
         List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
         List<Dataset> datasets = getAllDatasets();
-        for (Dataset dataset: datasets) {
+        for (Dataset dataset : datasets) {
             List<FileDescriptor> fds = dataset.getFileDescriptors();
             fileDescriptors.addAll(fds);
         }
@@ -181,5 +181,17 @@ public class MongoDBRepository implements IRepository {
         List<Dataset> datasets = query.asList();
 
         return datasets;
+    }
+
+    @Override
+    public List<DatasetType> getDatatypes(String spaceName) {
+        Query<DatasetType> query = this.dataStore.createQuery(DatasetType.class);
+
+        if(spaceName != null){
+            query.criteria("space").equalIgnoreCase(spaceName);
+        }
+
+        List<DatasetType> datatypes = query.asList();
+        return datatypes;
     }
 }
