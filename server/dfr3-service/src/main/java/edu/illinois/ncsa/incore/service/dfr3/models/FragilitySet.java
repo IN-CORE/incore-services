@@ -10,15 +10,14 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import dev.morphia.annotations.Entity;
-
 import java.util.List;
 
 @Entity("FragilitySet")
 public class FragilitySet extends DFR3Set {
-
     protected String demandType;
     protected String demandUnits;
-    private List<FragilityCurve> fragilityCurves;
+    protected List<FragilityCurve> fragilityCurves;
+    protected List<FragilityCurveParameter> fragilityCurveParameters;
 
     public String getDemandType() {
         return demandType;
@@ -28,8 +27,8 @@ public class FragilitySet extends DFR3Set {
         return demandUnits;
     }
 
-    public List<FragilityCurve> getFragilityCurves() {
-        return fragilityCurves;
-    }
+    public List<FragilityCurve> getFragilityCurves() { return fragilityCurves; }
+
+    public List<FragilityCurveParameter> getFragilityCurveParameters() { return fragilityCurveParameters; }
 
 }
