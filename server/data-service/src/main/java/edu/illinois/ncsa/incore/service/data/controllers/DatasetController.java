@@ -374,6 +374,7 @@ public class DatasetController {
         }
 
         String format = dataset.getFormat();
+        boolean geoserverUsed = false;
 
         if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
             // remove id from spaces
@@ -393,11 +394,13 @@ public class DatasetController {
                     for (FileDescriptor fd : fds) {
                         File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
                         FileUtils.deleteTmpDir(file);
-
+                        if (!geoserverUsed) {
+                            geoserverUsed = FileUtils.fileUseGeoserver(file.getName(), Boolean.parseBoolean(GEOSERVER_ENABLE));
+                        }
                     }
                 }
                 // remove geoserver layer
-                if (Boolean.parseBoolean(GEOSERVER_ENABLE)) {
+                if (geoserverUsed) {
                     if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
                         // remove network dataset
                         boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
@@ -504,8 +507,7 @@ public class DatasetController {
                 paramName.equals(POST_PARAMETER_FILE_NODE) || paramName.equals(POST_PARAMETER_FILE_GRAPH)) {
                 String fileName = inputs.getBodyParts().get(i).getContentDisposition().getFileName();
                 String fileExt = FilenameUtils.getExtension(fileName);
-                if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") ||
-                    fileExt.equalsIgnoreCase("tif")) {
+                if (FileUtils.fileUseGeoserver(fileName, enableGeoserver)) {
                     isGeoserver = true;
                     if (fileExt.equalsIgnoreCase("asc")) {
                         isAsc = true;
