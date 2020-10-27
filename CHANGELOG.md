@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.9.0] - 2020-10-28
+
+### Added
+- Support for Parametric fragilities with a common fragility json format [INCORE1-783](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-783)
+- DELETE endpoints for Fragilities, Repairs, Restorations & Mappings [INCORE1-614](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-614)
+- GET endpoint to fetch unique dataset datatypes [INCORE1-807](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-807)
+- Function to FileUtils, fileUseGeoserver, to take a file name string, and determine based on the extension if it should use Geoserver [INCORE1-612](https://opensource.ncsa.illinois.edu/jira/projects/INCORE1/issues/INCORE1-612)
+
+### Changed
+- Updated datatypes of hazard datasets to include space prefix (example: 'incore:') [INCORE1-707](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-707)
+
+### Fixed
+- Some of the gradle build warnings. Removed maestro service from the gradle farm [INCORE1-658](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-658)
+- Bug in adding hurricanes & floods to a space [INCORE1-790](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-790)
+- Bug in adding members to spaces [INCORE1-727](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-727)
 
 ## [0.8.0] - 2020-09-04
 
