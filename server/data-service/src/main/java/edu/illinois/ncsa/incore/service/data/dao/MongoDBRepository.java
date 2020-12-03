@@ -66,11 +66,11 @@ public class MongoDBRepository implements IRepository {
     }
 
     public List<Dataset> getAllDatasets() {
-        return this.dataStore.createQuery(Dataset.class).asList();
+        return this.dataStore.createQuery(Dataset.class).find().toList();
     }
 
     public List<MvzDataset> getAllMvzDatasets() {
-        return this.dataStore.createQuery(MvzDataset.class).asList();
+        return this.dataStore.createQuery(MvzDataset.class).find().toList();
     }
 
     public Dataset getDatasetById(String id) {
@@ -84,14 +84,14 @@ public class MongoDBRepository implements IRepository {
     public List<Dataset> getDatasetByType(String type) {
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
         datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type);
-        return datasetQuery.asList();
+        return datasetQuery.find().toList();
     }
 
     public List<Dataset> getDatasetByTitle(String title) {
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
         datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title);
         datasetQuery.getSortObject();
-        return datasetQuery.asList();
+        return datasetQuery.find().toList();
     }
 
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
@@ -100,7 +100,7 @@ public class MongoDBRepository implements IRepository {
             datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type),
             datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title)
         );
-        return datasetQuery.asList();
+        return datasetQuery.find().toList();
     }
 
     public Dataset getDatasetByFileDescriptorId(String id) {
@@ -178,7 +178,7 @@ public class MongoDBRepository implements IRepository {
             query.criteria("fileDescriptors.filename").containsIgnoreCase(text),
             query.criteria("dataType").containsIgnoreCase(text));
 
-        List<Dataset> datasets = query.asList();
+        List<Dataset> datasets = query.find().toList();
 
         return datasets;
     }
@@ -191,7 +191,7 @@ public class MongoDBRepository implements IRepository {
             query.criteria("space").equalIgnoreCase(spaceName);
         }
 
-        List<DatasetType> datatypes = query.asList();
+        List<DatasetType> datatypes = query.find().toList();
         return datatypes;
     }
 }

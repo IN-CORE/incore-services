@@ -114,7 +114,7 @@ public class MockFragilityDAO implements IFragilityDAO {
                  query.criteria("inventoryType").containsIgnoreCase(text),
                  query.criteria("authors").containsIgnoreCase(text));
 
-        List<FragilitySet> sets = query.limit(100).asList();
+        List<FragilitySet> sets = query.limit(100).find().toList();
 
         return sets;
     }
@@ -124,7 +124,7 @@ public class MockFragilityDAO implements IFragilityDAO {
         List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
                                                     .filter(attributeType, attributeValue)
                                                     .limit(100)
-                                                    .asList();
+                                                    .find().toList();
 
         return sets;
     }
@@ -137,7 +137,7 @@ public class MockFragilityDAO implements IFragilityDAO {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<FragilitySet> sets = query.asList();
+        List<FragilitySet> sets = query.find().toList();
 
         return sets;
     }
@@ -147,7 +147,7 @@ public class MockFragilityDAO implements IFragilityDAO {
         List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
                                                     .field("authors")
                                                     .contains(author)
-                                                    .asList();
+                                                    .find().toList();
 
         return sets;
     }

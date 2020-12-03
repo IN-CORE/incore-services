@@ -62,7 +62,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
     @Override
     public List<Tsunami> getTsunamis() {
         List<Tsunami> tsunamis = new LinkedList<>();
-        List<TsunamiDataset> tsunamiDatasets = this.dataStore.createQuery(TsunamiDataset.class).asList();
+        List<TsunamiDataset> tsunamiDatasets = this.dataStore.createQuery(TsunamiDataset.class).find().toList();
         tsunamis.addAll(tsunamiDatasets);
         // TODO this will need to be updated if there are model based tsunamis
 
@@ -76,7 +76,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<TsunamiDataset> tsunamiDatasets = query.asList();
+        List<TsunamiDataset> tsunamiDatasets = query.find().toList();
 
         List<Tsunami> tsunamis = new ArrayList<>();
         tsunamis.addAll(tsunamiDatasets);

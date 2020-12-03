@@ -68,7 +68,7 @@ public class MongoDBRepository implements IRepository {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List <Analysis> analyses = query.offset(offset).limit(limit).asList();
+        List <Analysis> analyses = query.offset(offset).limit(limit).find().toList();
 
         return analyses;
     }
@@ -102,7 +102,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     private void loadServices() {
-        List<Analysis> analyses = this.dataStore.createQuery(Analysis.class).asList();
+        List<Analysis> analyses = this.dataStore.createQuery(Analysis.class).find().toList();
         this.analyses = analyses;
     }
 

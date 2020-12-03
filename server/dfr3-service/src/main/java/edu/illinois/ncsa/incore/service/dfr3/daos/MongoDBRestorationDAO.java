@@ -32,7 +32,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
 
     @Override
     public List<RestorationSet> getRestorations() {
-        return this.dataStore.createQuery(RestorationSet.class).asList();
+        return this.dataStore.createQuery(RestorationSet.class).find().toList();
     }
 
     @Override
@@ -86,7 +86,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
             query.criteria("description").containsIgnoreCase(text),
             query.criteria("authors").containsIgnoreCase(text));
 
-        List<RestorationSet> sets = query.asList();
+        List<RestorationSet> sets = query.find().toList();
 
         return sets;
     }
@@ -95,7 +95,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
     public List<RestorationSet> queryRestorations(String attributeType, String attributeValue) {
         List<RestorationSet> sets = this.dataStore.createQuery(RestorationSet.class)
             .filter(attributeType, attributeValue)
-            .asList();
+            .find().toList();
 
         return sets;
     }
@@ -108,7 +108,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<RestorationSet> sets = query.asList();
+        List<RestorationSet> sets = query.find().toList();
 
         return sets;
     }

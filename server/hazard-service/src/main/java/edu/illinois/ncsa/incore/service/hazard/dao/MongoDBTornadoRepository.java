@@ -78,11 +78,11 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
 
         datasetQuery.or(datasetQuery.criteria("name").containsIgnoreCase(text),
             datasetQuery.criteria("description").containsIgnoreCase(text));
-        List<TornadoDataset> tornadoDatasets = datasetQuery.asList();
+        List<TornadoDataset> tornadoDatasets = datasetQuery.find().toList();
 
         modelQuery.or(modelQuery.criteria("name").containsIgnoreCase(text),
             modelQuery.criteria("description").containsIgnoreCase(text));
-        List<TornadoModel> tornadoModels = modelQuery.asList();
+        List<TornadoModel> tornadoModels = modelQuery.find().toList();
 
         List<Tornado> tornadoes = new ArrayList<>();
         tornadoes.addAll(tornadoDatasets);

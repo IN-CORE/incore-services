@@ -93,7 +93,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
     @Override
     public List<Flood> getFloods() {
         List<Flood> floods = new LinkedList<>();
-        List<FloodDataset> floodDatasets = this.dataStore.createQuery(FloodDataset.class).asList();
+        List<FloodDataset> floodDatasets = this.dataStore.createQuery(FloodDataset.class).find().toList();
         floods.addAll(floodDatasets);
         // TODO this will need to be updated if there are model based floods
 
@@ -113,7 +113,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<FloodDataset> floodDatasets = query.asList();
+        List<FloodDataset> floodDatasets = query.find().toList();
 
         List<Flood> floods = new ArrayList<>();
         floods.addAll(floodDatasets);

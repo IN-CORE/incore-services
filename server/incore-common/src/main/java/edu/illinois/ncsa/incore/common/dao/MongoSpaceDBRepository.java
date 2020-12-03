@@ -44,7 +44,7 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     public List<Space> getAllSpaces() {
-        return this.dataStore.createQuery(Space.class).asList();
+        return this.dataStore.createQuery(Space.class).find().toList();
     }
 
     public Space getSpaceById(String id) {

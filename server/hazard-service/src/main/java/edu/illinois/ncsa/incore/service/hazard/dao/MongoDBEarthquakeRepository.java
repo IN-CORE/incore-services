@@ -102,8 +102,8 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     @Override
     public List<Earthquake> getEarthquakes() {
         List<Earthquake> earthquakes = new LinkedList<Earthquake>();
-        List<EarthquakeModel> earthquakes1 = this.dataStore.createQuery(EarthquakeModel.class).asList();
-        List<EarthquakeDataset> earthquakes2 = this.dataStore.createQuery(EarthquakeDataset.class).asList();
+        List<EarthquakeModel> earthquakes1 = this.dataStore.createQuery(EarthquakeModel.class).find().toList();
+        List<EarthquakeDataset> earthquakes2 = this.dataStore.createQuery(EarthquakeDataset.class).find().toList();
 
         earthquakes.addAll(earthquakes1);
         earthquakes.addAll(earthquakes2);

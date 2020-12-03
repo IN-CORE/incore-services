@@ -92,7 +92,7 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
     @Override
     public List<HurricaneWindfields> getHurricaneWindfields() {
-        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.createQuery(HurricaneWindfields.class).asList();
+        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.createQuery(HurricaneWindfields.class).find().toList();
         return hurricaneWindfields;
 
     }
@@ -106,7 +106,7 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     public List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue) {
         List<HurricaneWindfields> hurricanes = this.dataStore.createQuery(HurricaneWindfields.class)
             .filter(attributeType, attributeValue)
-            .asList();
+            .find().toList();
 
         return hurricanes;
     }
@@ -119,7 +119,7 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<HurricaneWindfields> hurricanes = query.asList();
+        List<HurricaneWindfields> hurricanes = query.find().toList();
 
         return hurricanes;
     }
@@ -131,7 +131,7 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<HurricaneWindfields> hurricanes = query.asList();
+        List<HurricaneWindfields> hurricanes = query.find().toList();
 
         return hurricanes;
     }

@@ -34,7 +34,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
     @Override
     public List<MappingSet> getMappingSets() {
-        return this.dataStore.createQuery(MappingSet.class).asList();
+        return this.dataStore.createQuery(MappingSet.class).find().toList();
     }
 
     @Override
@@ -83,7 +83,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
-        return query.asList();
+        return query.find().toList();
     }
 
     @Override
@@ -101,7 +101,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
                 query.criteria("inventoryType").containsIgnoreCase(text));
         }
 
-        List<MappingSet> sets = query.asList();
+        List<MappingSet> sets = query.find().toList();
 
         return sets;
     }
@@ -112,7 +112,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
             return false;
         }
 
-        List<MappingSet> mappingSets = this.dataStore.createQuery(MappingSet.class).asList();
+        List<MappingSet> mappingSets = this.dataStore.createQuery(MappingSet.class).find().toList();
         for(MappingSet map: mappingSets){
             List<Mapping> mappings =  map.getMappings();
             for(Mapping mapping: mappings){
