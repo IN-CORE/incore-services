@@ -27,6 +27,8 @@ public class BigDecimalConverter extends TypeConverter implements SimpleValueCon
     }
 
     @Override
+//    TODO find subtitute for MappedField; since encode is decode is intend to override original type converter method
+//    TODO the type MappedField cannot be changed here unless the library updated
     public Object encode(Object value, MappedField optionalExtraInfo) {
         if (value == null) {
             return null;
@@ -47,6 +49,8 @@ public class BigDecimalConverter extends TypeConverter implements SimpleValueCon
 
     @Override
     @SuppressWarnings("rawtypes")
+//    TODO find subtitute for MappedField; since encode is decode is intend to override original type converter method
+//    TODO the type MappedField cannot be changed here unless the library updated
     public Object decode(Class targetClass, Object fromDBObject, MappedField field) throws MappingException {
         DBObject dbo = (DBObject) fromDBObject;
         if (dbo == null) {
