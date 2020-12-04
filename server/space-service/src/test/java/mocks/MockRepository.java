@@ -11,6 +11,7 @@ package mocks; /****************************************************************
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.morphia.query.FindOptions;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.mockito.Mockito;
@@ -40,9 +41,8 @@ public class MockRepository implements ISpaceRepository {
         }
 
         Mockito.when(mockDataStore.createQuery(Space.class)
-                .limit(Mockito.any(Integer.class))
-                .asList())
-                .thenReturn(this.spaces);
+            .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+            .thenReturn(this.spaces);
     }
 
 

@@ -12,6 +12,7 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.morphia.query.FindOptions;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import org.bson.types.ObjectId;
@@ -46,9 +47,9 @@ public class MockFragilityDAO implements IFragilityDAO {
         }
 
         Mockito.when(mockDataStore.createQuery(FragilitySet.class)
-                                  .limit(Mockito.any(Integer.class))
-                                  .asList())
-               .thenReturn(this.fragilitySets);
+            .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+            .thenReturn(this.fragilitySets);
+
 
         // generate mock key object with uuid once successfully saved
         Answer<Key<FragilitySet>> ans = new Answer<Key<FragilitySet>>() {
@@ -114,7 +115,7 @@ public class MockFragilityDAO implements IFragilityDAO {
                  query.criteria("inventoryType").containsIgnoreCase(text),
                  query.criteria("authors").containsIgnoreCase(text));
 
-        List<FragilitySet> sets = query.limit(100).find().toList();
+        List<FragilitySet> sets = query.find(new FindOptions().limit(100)).toList();
 
         return sets;
     }
@@ -123,8 +124,7 @@ public class MockFragilityDAO implements IFragilityDAO {
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
                                                     .filter(attributeType, attributeValue)
-                                                    .limit(100)
-                                                    .find().toList();
+                                                    .find(new FindOptions().limit(100)).toList();
 
         return sets;
     }
