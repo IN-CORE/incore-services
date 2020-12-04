@@ -128,7 +128,7 @@ test {
 
             //mongo
             compile('org.mongodb:mongo-java-driver:3.12.5')
-            compile('dev.morphia.morphia:core:1.5.8')
+            compile('dev.morphia.morphia:core:1.6.1')
             //geotools
             compile("org.geotools:gt-main:17.0")
             compile("org.geotools:gt-api:17.0")
