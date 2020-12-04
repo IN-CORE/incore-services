@@ -72,7 +72,7 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     @Override
     public Earthquake deleteEarthquakeById(String id) {
         Earthquake earthquake = this.dataStore.createQuery(EarthquakeModel.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         if (earthquake == null) {
             Query<EarthquakeDataset> query = this.dataStore.createQuery(EarthquakeDataset.class);
             query.field("_id").equal(new ObjectId(id));
@@ -94,10 +94,10 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
         }
 
         Earthquake earthquake = this.dataStore.createQuery(EarthquakeModel.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         if (earthquake == null) {
             earthquake = this.dataStore.createQuery(EarthquakeDataset.class)
-                .field("_id").equal(new ObjectId(id)).find().next();
+                .field("_id").equal(new ObjectId(id)).find().tryNext();
         }
         return earthquake;
     }

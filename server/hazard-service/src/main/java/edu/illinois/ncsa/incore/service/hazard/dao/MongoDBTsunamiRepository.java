@@ -37,7 +37,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
         }
 
         Tsunami tsunami = this.dataStore.createQuery(TsunamiDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         // TODO this will need to be updated if there are model based tsunamis
 
         return tsunami;
@@ -52,7 +52,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
     @Override
     public Tsunami deleteTsunamiById(String id) {
         Tsunami tsunami = this.dataStore.createQuery(TsunamiDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         if (tsunami != null) {
             Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
             query.field("_id").equal(new ObjectId(id));

@@ -56,7 +56,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
         }
 
         RestorationSet restorationSet = this.dataStore.createQuery(RestorationSet.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
 
         if (restorationSet == null) {
             return Optional.empty();
@@ -68,7 +68,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
     @Override
     public RestorationSet deleteRestorationSetById(String id) {
         RestorationSet restorationSet = this.dataStore.createQuery(RestorationSet.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
 
         if (restorationSet == null) {
             return null;

@@ -78,7 +78,7 @@ public class MongoDBRepository implements IRepository {
             return null;
         }
         return this.dataStore.createQuery(Dataset.class).field("_id").equal(new ObjectId(id))
-            .find().next();
+            .find().tryNext();
     }
 
     public List<Dataset> getDatasetByType(String type) {
@@ -142,7 +142,7 @@ public class MongoDBRepository implements IRepository {
 
     public MvzDataset getMvzDatasetById(String id) {
         return this.dataStore.createQuery(MvzDataset.class).field("_id").equal(new ObjectId(id))
-            .find().next();
+            .find().tryNext();
     }
 
     @Override

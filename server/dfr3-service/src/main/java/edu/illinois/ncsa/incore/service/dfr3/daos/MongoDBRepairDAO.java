@@ -56,7 +56,7 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
         }
 
         RepairSet repairSet = this.dataStore.createQuery(RepairSet.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
 
         if (repairSet == null) {
             return Optional.empty();
@@ -68,7 +68,7 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
     @Override
     public RepairSet deleteRepairSetById(String id) {
         RepairSet repairSet = this.dataStore.createQuery(RepairSet.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
 
         if (repairSet == null) {
             return null;

@@ -70,7 +70,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
     @Override
     public Flood deleteFloodById(String id) {
         Flood flood = this.dataStore.createQuery(FloodDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         if (flood != null) {
             Query<FloodDataset> query = this.dataStore.createQuery(FloodDataset.class);
             query.field("_id").equal(new ObjectId(id));
@@ -86,7 +86,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
         }
 
         Flood flood = this.dataStore.createQuery(FloodDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         // TODO this will need to be updated if there are model based floods
 
         return flood;

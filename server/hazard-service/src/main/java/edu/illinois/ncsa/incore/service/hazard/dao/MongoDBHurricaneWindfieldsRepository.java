@@ -74,7 +74,7 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     @Override
     public HurricaneWindfields deleteHurricaneWindfieldsById(String id) {
         HurricaneWindfields hurricane = this.dataStore.createQuery(HurricaneWindfields.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         if (hurricane != null) {
             Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
             query.field("_id").equal(new ObjectId(id));
@@ -90,7 +90,7 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
         }
 
         return this.dataStore.createQuery(HurricaneWindfields.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
     }
 
     @Override

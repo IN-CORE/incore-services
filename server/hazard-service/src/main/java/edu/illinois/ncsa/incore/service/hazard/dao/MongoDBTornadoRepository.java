@@ -100,7 +100,7 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     @Override
     public Tornado deleteTornadoById(String id) {
         Tornado tornado = this.dataStore.createQuery(TornadoModel.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         if (tornado == null) {
             Query<TornadoDataset> query = this.dataStore.createQuery(TornadoDataset.class);
             query.field("_id").equal(new ObjectId(id));
@@ -119,12 +119,12 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
         }
 
         Tornado tornado = this.dataStore.createQuery(TornadoModel.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
         if (tornado != null) {
             return tornado;
         }
         return this.dataStore.createQuery(TornadoDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
     }
 
     @Override

@@ -49,13 +49,13 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
 
     public Space getSpaceById(String id) {
         return this.dataStore.createQuery(Space.class)
-            .field("_id").equal(new ObjectId(id)).find().next();
+            .field("_id").equal(new ObjectId(id)).find().tryNext();
     }
 
     public Space getSpaceByName(String name) {
         Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
         spaceQuery.field(SPACE_FIELD_METADATA_NAME).equal(name);
-        Space foundSpace = spaceQuery.find().next();
+        Space foundSpace = spaceQuery.find().tryNext();
 
         return foundSpace;
     }
