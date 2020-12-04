@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
 import org.bson.types.ObjectId;
 import dev.morphia.query.Query;
@@ -54,7 +55,8 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
             return Optional.empty();
         }
 
-        RepairSet repairSet = this.dataStore.get(RepairSet.class, new ObjectId(id));
+        RepairSet repairSet = this.dataStore.createQuery(RepairSet.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
 
         if (repairSet == null) {
             return Optional.empty();
@@ -65,7 +67,8 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
     @Override
     public RepairSet deleteRepairSetById(String id) {
-        RepairSet repairSet = this.dataStore.get(RepairSet.class, new ObjectId(id));
+        RepairSet repairSet = this.dataStore.createQuery(RepairSet.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
 
         if (repairSet == null) {
             return null;

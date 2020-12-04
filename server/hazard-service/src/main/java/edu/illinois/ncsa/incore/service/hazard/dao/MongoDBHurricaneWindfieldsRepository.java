@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
@@ -72,7 +73,8 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
     @Override
     public HurricaneWindfields deleteHurricaneWindfieldsById(String id) {
-        HurricaneWindfields hurricane = this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
+        HurricaneWindfields hurricane = this.dataStore.createQuery(HurricaneWindfields.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
         if (hurricane != null) {
             Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
             query.field("_id").equal(new ObjectId(id));
@@ -87,7 +89,8 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
             return null;
         }
 
-        return this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
+        return this.dataStore.createQuery(HurricaneWindfields.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
     }
 
     @Override

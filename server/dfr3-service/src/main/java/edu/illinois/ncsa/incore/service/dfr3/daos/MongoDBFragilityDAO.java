@@ -68,7 +68,8 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
             return Optional.empty();
         }
 
-        FragilitySet fragilitySet = this.dataStore.get(FragilitySet.class, new ObjectId(id));
+        FragilitySet fragilitySet = this.dataStore.createQuery(FragilitySet.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
 
         if (fragilitySet == null) {
             return Optional.empty();
@@ -79,7 +80,8 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
 
     @Override
     public FragilitySet deleteFragilitySetById(String id) {
-        FragilitySet fragilitySet = this.dataStore.get(FragilitySet.class, new ObjectId(id));
+        FragilitySet fragilitySet = this.dataStore.createQuery(FragilitySet.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
 
         if (fragilitySet == null) {
             return null;

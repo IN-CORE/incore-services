@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationSet;
 import org.bson.types.ObjectId;
 import dev.morphia.query.Query;
@@ -54,7 +55,8 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
             return Optional.empty();
         }
 
-        RestorationSet restorationSet = this.dataStore.get(RestorationSet.class, new ObjectId(id));
+        RestorationSet restorationSet = this.dataStore.createQuery(RestorationSet.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
 
         if (restorationSet == null) {
             return Optional.empty();
@@ -65,7 +67,8 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
 
     @Override
     public RestorationSet deleteRestorationSetById(String id) {
-        RestorationSet restorationSet = this.dataStore.get(RestorationSet.class, new ObjectId(id));
+        RestorationSet restorationSet = this.dataStore.createQuery(RestorationSet.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
 
         if (restorationSet == null) {
             return null;

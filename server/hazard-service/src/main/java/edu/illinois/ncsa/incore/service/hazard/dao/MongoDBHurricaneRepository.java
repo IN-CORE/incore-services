@@ -70,7 +70,8 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
     @Override
     public Hurricane deleteHurricaneById(String id) {
-        Hurricane hurricane = this.dataStore.get(HurricaneDataset.class, new ObjectId(id));
+        Hurricane hurricane = this.dataStore.createQuery(HurricaneDataset.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
         if (hurricane != null) {
             Query<HurricaneDataset> query = this.dataStore.createQuery(HurricaneDataset.class);
             query.field("_id").equal(new ObjectId(id));
@@ -85,7 +86,8 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
             return null;
         }
 
-        Hurricane hurricane = this.dataStore.get(HurricaneDataset.class, new ObjectId(id));
+        Hurricane hurricane = this.dataStore.createQuery(HurricaneDataset.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
         // TODO this will need to be updated if there are model based hurricanes
 
         return hurricane;
