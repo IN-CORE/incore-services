@@ -67,6 +67,6 @@ public class MockFragilityMappingDAO implements IMappingDAO {
 
     @Override
     public List<MappingSet> searchMappings(String text, String mappingType) {
-        return Arrays.find().toList();
+        return Arrays.asList();
     }
 }
