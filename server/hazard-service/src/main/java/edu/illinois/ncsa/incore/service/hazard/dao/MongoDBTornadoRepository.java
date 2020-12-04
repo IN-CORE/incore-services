@@ -65,8 +65,8 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     @Override
     public List<Tornado> getTornadoes() {
         List<Tornado> tornadoes = new LinkedList<Tornado>();
-        tornadoes.addAll(this.dataStore.createQuery(TornadoModel.class).asList());
-        tornadoes.addAll(this.dataStore.createQuery(TornadoDataset.class).asList());
+        tornadoes.addAll(this.dataStore.createQuery(TornadoModel.class).find().toList());
+        tornadoes.addAll(this.dataStore.createQuery(TornadoDataset.class).find().toList());
 
         return tornadoes;
     }
@@ -99,7 +99,8 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
 
     @Override
     public Tornado deleteTornadoById(String id) {
-        Tornado tornado = this.dataStore.get(TornadoModel.class, new ObjectId(id));
+        Tornado tornado = this.dataStore.createQuery(TornadoModel.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
         if (tornado == null) {
             Query<TornadoDataset> query = this.dataStore.createQuery(TornadoDataset.class);
             query.field("_id").equal(new ObjectId(id));
@@ -117,11 +118,13 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
             return null;
         }
 
-        Tornado tornado = this.dataStore.get(TornadoModel.class, new ObjectId(id));
+        Tornado tornado = this.dataStore.createQuery(TornadoModel.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
         if (tornado != null) {
             return tornado;
         }
-        return this.dataStore.get(TornadoDataset.class, new ObjectId(id));
+        return this.dataStore.createQuery(TornadoDataset.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
     }
 
     @Override

@@ -71,7 +71,8 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
 
     @Override
     public Earthquake deleteEarthquakeById(String id) {
-        Earthquake earthquake = this.dataStore.get(EarthquakeModel.class, new ObjectId(id));
+        Earthquake earthquake = this.dataStore.createQuery(EarthquakeModel.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
         if (earthquake == null) {
             Query<EarthquakeDataset> query = this.dataStore.createQuery(EarthquakeDataset.class);
             query.field("_id").equal(new ObjectId(id));
@@ -92,9 +93,11 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
             return null;
         }
 
-        Earthquake earthquake = this.dataStore.get(EarthquakeModel.class, new ObjectId(id));
+        Earthquake earthquake = this.dataStore.createQuery(EarthquakeModel.class)
+            .field("_id").equal(new ObjectId(id)).find().next();
         if (earthquake == null) {
-            earthquake = this.dataStore.get(EarthquakeDataset.class, new ObjectId(id));
+            earthquake = this.dataStore.createQuery(EarthquakeDataset.class)
+                .field("_id").equal(new ObjectId(id)).find().next();
         }
         return earthquake;
     }
@@ -124,8 +127,8 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
             modelQuery.criteria("description").containsIgnoreCase(text));
 
         List<Earthquake> earthquakes = new ArrayList<>();
-        earthquakes.addAll(query.asList());
-        earthquakes.addAll(modelQuery.asList());
+        earthquakes.addAll(query.find().toList());
+        earthquakes.addAll(modelQuery.find().toList());
 
         return earthquakes;
     }
