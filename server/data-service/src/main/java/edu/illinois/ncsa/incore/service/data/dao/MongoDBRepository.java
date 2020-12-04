@@ -77,8 +77,8 @@ public class MongoDBRepository implements IRepository {
         if (!ObjectId.isValid(id)) {
             return null;
         }
-
-        return this.dataStore.get(Dataset.class, new ObjectId(id));
+        return this.dataStore.createQuery(Dataset.class).field("_id").equal(new ObjectId(id))
+            .find().next();
     }
 
     public List<Dataset> getDatasetByType(String type) {
@@ -90,7 +90,6 @@ public class MongoDBRepository implements IRepository {
     public List<Dataset> getDatasetByTitle(String title) {
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
         datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title);
-        datasetQuery.getSortObject();
         return datasetQuery.find().toList();
     }
 
@@ -110,7 +109,7 @@ public class MongoDBRepository implements IRepository {
 
         Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
         datasetQuery.filter(DATASET_FIELD_FILEDESCRIPTOR_ID, new ObjectId(id));
-        return datasetQuery.get();
+        return datasetQuery.first();
     }
 
 
@@ -142,7 +141,8 @@ public class MongoDBRepository implements IRepository {
     }
 
     public MvzDataset getMvzDatasetById(String id) {
-        return this.dataStore.get(MvzDataset.class, new ObjectId(id));
+        return this.dataStore.createQuery(MvzDataset.class).field("_id").equal(new ObjectId(id))
+            .find().next();
     }
 
     @Override
@@ -163,8 +163,9 @@ public class MongoDBRepository implements IRepository {
     public Dataset updateDataset(String datasetId, String propName, String propValue) {
         MongoClient client = new MongoClient(mongoClientURI);
         MongoDatabase mongodb = client.getDatabase(databaseName);
-        MongoCollection collection = mongodb.getCollection(DATASET_COLLECTION_NAME);
-        collection.updateOne(eq("_id", new ObjectId(datasetId)), new Document("$set", new Document(propName, propValue)));
+        mongodb.getCollection(DATASET_COLLECTION_NAME)
+            .updateOne(eq("_id", new ObjectId(datasetId)),
+                new Document("$set", new Document(propName, propValue)));
         return getDatasetById(datasetId);
     }
 
@@ -178,9 +179,7 @@ public class MongoDBRepository implements IRepository {
             query.criteria("fileDescriptors.filename").containsIgnoreCase(text),
             query.criteria("dataType").containsIgnoreCase(text));
 
-        List<Dataset> datasets = query.find().toList();
-
-        return datasets;
+        return query.find().toList();
     }
 
     @Override
@@ -191,7 +190,6 @@ public class MongoDBRepository implements IRepository {
             query.criteria("space").equalIgnoreCase(spaceName);
         }
 
-        List<DatasetType> datatypes = query.find().toList();
-        return datatypes;
+        return query.find().toList();
     }
 }
