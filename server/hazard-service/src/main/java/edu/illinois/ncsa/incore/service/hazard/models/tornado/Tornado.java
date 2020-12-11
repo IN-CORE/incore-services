@@ -6,6 +6,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -16,6 +17,7 @@ import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
+import java.util.List;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tornadoType")
@@ -29,6 +31,12 @@ public class Tornado {
     private String name;
     private String description;
     private String creator = null;
+
+    /**
+     * spaces the object belongs to. Calculated at runtime.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<String> spaces;
 
     private Date date = new Date();
 
@@ -57,6 +65,14 @@ public class Tornado {
     }
 
     public void setCreator(String creator) { this.creator = creator; }
+
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
+    }
 
     /**
      * Date created

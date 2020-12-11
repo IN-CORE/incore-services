@@ -94,6 +94,7 @@ public class HurricaneWindfieldsController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
+            hurricaneWindfields.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
             return hurricaneWindfields;
         }
 
@@ -112,6 +113,7 @@ public class HurricaneWindfieldsController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        accessibleHurricaneWindfields.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleHurricaneWindfields;
     }
@@ -124,6 +126,7 @@ public class HurricaneWindfieldsController {
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
 
         HurricaneWindfields hurricane = repository.getHurricaneWindfieldsById(hurricaneId);
+        hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
         if (hurricane == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a hurricane with id " + hurricaneId);
         }
@@ -256,6 +259,7 @@ public class HurricaneWindfieldsController {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error in geometry dimensions");
             }
         }
+        hurricaneWindfields.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneWindfields.getId()));
         return hurricaneWindfields;
     }
 
@@ -350,6 +354,7 @@ public class HurricaneWindfieldsController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        hurricanes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return hurricanes;
     }

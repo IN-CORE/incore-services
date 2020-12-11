@@ -93,6 +93,7 @@ public class TsunamiController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
+            tsunamis.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
             return tsunamis;
         }
         List<Tsunami> tsunamis = repository.getTsunamis();
@@ -104,6 +105,7 @@ public class TsunamiController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        accessibleTsunamis.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleTsunamis;
     }
@@ -116,6 +118,8 @@ public class TsunamiController {
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
 
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
+        tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunamiId));
+
         if (tsunami == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tsunami with id " + tsunamiId);
         }
@@ -213,6 +217,7 @@ public class TsunamiController {
                     space.addMember(tsunami.getId());
                     spaceRepository.addSpace(space);
 
+                    tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunami.getId()));
                     return tsunami;
                 } else {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, no files were attached with your request.");
@@ -293,6 +298,7 @@ public class TsunamiController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        tsunamis.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return tsunamis;
     }

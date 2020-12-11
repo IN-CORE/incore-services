@@ -95,6 +95,7 @@ public class TornadoController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
+            tornadoes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
             return tornadoes;
         }
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
@@ -104,6 +105,7 @@ public class TornadoController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        accessibleTornadoes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleTornadoes;
     }
@@ -169,8 +171,6 @@ public class TornadoController {
                 tornado.setCreator(this.username);
                 tornado = repository.addTornado(tornado);
                 addTornadoToSpace(tornado, this.username);
-
-                return tornado;
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
                 if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
@@ -183,11 +183,13 @@ public class TornadoController {
                     tornado.setCreator(this.username);
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
-                    return tornado;
                 } else {
                     logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado. Check your file extensions and the number of files in the request.");
                 }
+
+                tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornado.getId()));
+                return tornado;
             }
         } catch (IOException e) {
             logger.error("Error mapping the request to a supported Tornado type.", e);
@@ -207,6 +209,7 @@ public class TornadoController {
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         Tornado tornado = repository.getTornadoById(tornadoId);
+        tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornadoId));
 
         if (tornado == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tornado with id " + tornadoId);
@@ -317,6 +320,7 @@ public class TornadoController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        tornadoes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return tornadoes;
     }

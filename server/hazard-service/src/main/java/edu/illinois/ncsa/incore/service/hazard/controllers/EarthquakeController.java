@@ -176,7 +176,6 @@ public class EarthquakeController {
                         // Add job to create dataset to the queue
                         engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
                     }
-                    return earthquake;
                 } catch (IOException e) {
                     logger.error("Error creating raster dataset", e);
                 } catch (Exception e) {
@@ -224,13 +223,13 @@ public class EarthquakeController {
                     earthquake = repository.addEarthquake(earthquake);
 
                     addEarthquakeToSpace(earthquake, this.username);
-
-                    return earthquake;
                 } else {
                     logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Earthquake. Check your file extensions and the number of files in the request.");
                 }
             }
+            earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquake.getId()));
+            return earthquake;
 
         } catch (IOException e) {
             logger.error("Error mapping the request to an Earthquake object.", e);
@@ -266,6 +265,7 @@ public class EarthquakeController {
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
+                earthquakes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
                 return earthquakes;
             }
 
@@ -275,6 +275,8 @@ public class EarthquakeController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
+
+            accessibleEarthquakes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
             return accessibleEarthquakes;
         } catch (Exception e) {
@@ -290,6 +292,7 @@ public class EarthquakeController {
         @ApiParam(value = "Id of the earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId) {
 
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
+        earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquakeId));
         if (earthquake == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find an earthquake with id " + earthquakeId);
         }
@@ -709,6 +712,8 @@ public class EarthquakeController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+
+        earthquakes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return earthquakes;
     }

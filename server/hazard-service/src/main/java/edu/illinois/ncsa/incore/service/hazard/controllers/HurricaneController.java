@@ -87,6 +87,8 @@ public class HurricaneController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
+            hurricanes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
+
             return hurricanes;
         }
 
@@ -96,6 +98,7 @@ public class HurricaneController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        accessibleHurricanes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleHurricanes;
     }
@@ -108,6 +111,7 @@ public class HurricaneController {
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId) {
 
         Hurricane hurricane = repository.getHurricaneById(hurricaneId);
+        hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
         if (hurricane == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a hurricane with id " + hurricaneId);
         }
@@ -181,6 +185,7 @@ public class HurricaneController {
                     space.addMember(hurricane.getId());
                     spaceRepository.addSpace(space);
 
+                    hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricane.getId()));
                     return hurricane;
                 } else {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create hurricane, no files were attached with your request.");
@@ -290,6 +295,7 @@ public class HurricaneController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        hurricanes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return hurricanes;
     }

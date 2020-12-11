@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tsunami;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -19,6 +20,7 @@ import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
+import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tsunamiType")
 @JsonSubTypes({@JsonSubTypes.Type(value = TsunamiDataset.class, name = "dataset")})
@@ -32,6 +34,12 @@ public abstract class Tsunami {
     private String description;
     private Date date = new Date();
     private String creator = null;
+
+    /**
+     * spaces the object belongs to. Calculated at runtime.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<String> spaces;
 
     public void setName(String name) {
         this.name = name;
@@ -67,5 +75,13 @@ public abstract class Tsunami {
     }
 
     public void setCreator(String creator) { this.creator = creator; }
+
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
+    }
 
 }
