@@ -92,4 +92,8 @@ public class MockRepository implements ISpaceRepository {
         return null;
     }
 
+    @Override
+    public List<String> getSpaceNamesOfMember(String memberId) {
+        return null;
+    }
 }
