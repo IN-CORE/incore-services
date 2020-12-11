@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.9.1] - 2020-12-18
+## [Unreleased]
 
 ### Added
 - Included space information in the GET request jsons of datasets, hazards and DFR3 objects.  [INCORE1-889](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-889)
