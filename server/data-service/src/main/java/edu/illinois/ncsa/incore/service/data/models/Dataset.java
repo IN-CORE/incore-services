@@ -17,6 +17,7 @@ package edu.illinois.ncsa.incore.service.data.models;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
@@ -64,6 +65,12 @@ public class Dataset {
      * creator of the artifact
      */
     private String creator = null;
+
+    /**
+     * spaces the object belongs to. Calculated at runtime.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<String> spaces;
 
     /**
      * List of contributors to the artifact.
@@ -180,6 +187,14 @@ public class Dataset {
      */
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
     }
 
     /**
