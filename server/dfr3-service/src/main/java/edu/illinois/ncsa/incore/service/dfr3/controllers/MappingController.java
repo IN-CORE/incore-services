@@ -126,11 +126,14 @@ public class MappingController {
         }
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-        return mappingSets.stream()
+        List<MappingSet> accessibleMappingSets =  mappingSets.stream()
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        accessibleMappingSets.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
+
+        return accessibleMappingSets;
     }
 
     @GET
@@ -143,6 +146,7 @@ public class MappingController {
         if (mappingSet.isPresent()) {
             MappingSet actual = mappingSet.get();
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+                actual.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
                 return actual;
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You don't have authorization to access the mapping " + id);
@@ -168,6 +172,7 @@ public class MappingController {
         }
         space.addMember(id);
         spaceRepository.addSpace(space);
+        mappingSet.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
 
         return mappingSet;
     }
@@ -318,6 +323,9 @@ public class MappingController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
+
+            accessibleMappings.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
+
 
             return accessibleMappings;
         }

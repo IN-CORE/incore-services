@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
@@ -32,6 +33,12 @@ public abstract class DFR3Set {
     protected String inventoryType;
 
     protected String creator;
+
+    /**
+     * spaces the object belongs to. Calculated at runtime.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<String> spaces;
 
     // region Getters
     public String getId() {
@@ -80,5 +87,13 @@ public abstract class DFR3Set {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
     }
 }

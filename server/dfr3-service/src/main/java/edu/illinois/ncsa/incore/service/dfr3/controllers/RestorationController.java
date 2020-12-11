@@ -122,6 +122,9 @@ public class RestorationController {
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
+
+            restorationSets.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
+
             return restorationSets;
         }
 
@@ -132,6 +135,8 @@ public class RestorationController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+
+        accessibleRestorations.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleRestorations;
     }
@@ -151,6 +156,7 @@ public class RestorationController {
         }
         space.addMember(restorationId);
         spaceRepository.addSpace(space);
+        restorationSet.setSpaces(spaceRepository.getSpaceNamesOfMember(restorationId));
 
         return restorationSet;
     }
@@ -165,7 +171,9 @@ public class RestorationController {
 
         if (restorationSet.isPresent()) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
-                return restorationSet.get();
+                RestorationSet rs = restorationSet.get();
+                rs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+                return rs;
             }
         }
 
@@ -230,6 +238,7 @@ public class RestorationController {
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
+        accessibleRestorations.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleRestorations;
     }
