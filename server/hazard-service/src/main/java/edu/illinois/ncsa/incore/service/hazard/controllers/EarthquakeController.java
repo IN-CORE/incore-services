@@ -264,8 +264,9 @@ public class EarthquakeController {
                     .filter(earthquake -> spaceMembers.contains(earthquake.getId()))
                     .skip(offset)
                     .limit(limit)
+                    .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                     .collect(Collectors.toList());
-                earthquakes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
+
                 return earthquakes;
             }
 
@@ -274,9 +275,8 @@ public class EarthquakeController {
                 .filter(earthquake -> membersSet.contains(earthquake.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
-
-            accessibleEarthquakes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
             return accessibleEarthquakes;
         } catch (Exception e) {
@@ -711,9 +711,8 @@ public class EarthquakeController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-
-        earthquakes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return earthquakes;
     }

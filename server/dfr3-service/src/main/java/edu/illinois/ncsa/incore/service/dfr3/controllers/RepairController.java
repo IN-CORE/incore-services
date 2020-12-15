@@ -131,8 +131,8 @@ public class RepairController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        accessibleRepairs.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleRepairs;
     }
@@ -233,8 +233,8 @@ public class RepairController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        accessibleRepairs.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleRepairs;
     }

@@ -131,9 +131,9 @@ public class FragilityController {
                 .filter(fragility -> spaceMembers.contains(fragility.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
 
-            fragilitySets.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
             return fragilitySets;
         }
 
@@ -143,8 +143,8 @@ public class FragilityController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        accessibleFragilities.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleFragilities;
     }
@@ -245,9 +245,8 @@ public class FragilityController {
                 .filter(b -> membersSet.contains(b.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
-
-            accessibleFragilities.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
             return accessibleFragilities;
 

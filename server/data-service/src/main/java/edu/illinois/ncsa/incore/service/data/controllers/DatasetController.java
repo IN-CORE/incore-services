@@ -169,6 +169,7 @@ public class DatasetController {
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
 
             return datasets;
@@ -181,9 +182,9 @@ public class DatasetController {
             .filter(dataset -> userMembersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
-        accessibleDatasets.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
         return accessibleDatasets;
     }
 
@@ -726,9 +727,8 @@ public class DatasetController {
             .filter(dataset -> membersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-
-        datasets.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return datasets;
     }

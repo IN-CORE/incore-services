@@ -130,8 +130,8 @@ public class MappingController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        accessibleMappingSets.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleMappingSets;
     }
@@ -322,10 +322,8 @@ public class MappingController {
                 .filter(b -> membersSet.contains(b.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
-
-            accessibleMappings.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
-
 
             return accessibleMappings;
         }

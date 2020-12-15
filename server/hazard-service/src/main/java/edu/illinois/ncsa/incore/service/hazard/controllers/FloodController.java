@@ -85,8 +85,8 @@ public class FloodController {
                 .filter(flood -> spaceMembers.contains(flood.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
-            floods.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
             return floods;
         }
 
@@ -95,8 +95,8 @@ public class FloodController {
             .filter(flood -> membersSet.contains(flood.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        accessibleFloods.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
         return accessibleFloods;
     }
 
@@ -292,8 +292,8 @@ public class FloodController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        floods.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return floods;
     }

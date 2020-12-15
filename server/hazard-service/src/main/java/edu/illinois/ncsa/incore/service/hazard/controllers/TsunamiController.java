@@ -92,8 +92,8 @@ public class TsunamiController {
                 .filter(tsunami -> spaceMembers.contains(tsunami.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
-            tsunamis.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
             return tsunamis;
         }
         List<Tsunami> tsunamis = repository.getTsunamis();
@@ -104,8 +104,8 @@ public class TsunamiController {
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        accessibleTsunamis.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleTsunamis;
     }
@@ -297,8 +297,8 @@ public class TsunamiController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        tsunamis.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return tsunamis;
     }

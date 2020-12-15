@@ -93,8 +93,8 @@ public class HurricaneWindfieldsController {
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
-            hurricaneWindfields.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
             return hurricaneWindfields;
         }
 
@@ -112,8 +112,8 @@ public class HurricaneWindfieldsController {
             .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        accessibleHurricaneWindfields.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return accessibleHurricaneWindfields;
     }
@@ -353,8 +353,8 @@ public class HurricaneWindfieldsController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-        hurricanes.forEach( d ->  d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())));
 
         return hurricanes;
     }
