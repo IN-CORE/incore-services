@@ -187,10 +187,10 @@ public class TornadoController {
                     logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado. Check your file extensions and the number of files in the request.");
                 }
-
-                tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornado.getId()));
-                return tornado;
             }
+
+            tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornado.getId()));
+            return tornado;
         } catch (IOException e) {
             logger.error("Error mapping the request to a supported Tornado type.", e);
         } catch (IllegalArgumentException e) {
