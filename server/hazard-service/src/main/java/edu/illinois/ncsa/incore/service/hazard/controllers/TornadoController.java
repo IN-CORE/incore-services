@@ -209,11 +209,11 @@ public class TornadoController {
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         Tornado tornado = repository.getTornadoById(tornadoId);
-        tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornadoId));
-
         if (tornado == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tornado with id " + tornadoId);
         }
+
+        tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornadoId));
 
         Space space = spaceRepository.getSpaceByName(this.username);
         if (space != null && space.hasMember(tornadoId)) {

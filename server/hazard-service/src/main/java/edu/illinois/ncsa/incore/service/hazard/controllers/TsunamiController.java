@@ -118,11 +118,12 @@ public class TsunamiController {
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
 
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
-        tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunamiId));
 
         if (tsunami == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tsunami with id " + tsunamiId);
         }
+
+        tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunamiId));
 
         if (authorizer.canUserReadMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
             return tsunami;
