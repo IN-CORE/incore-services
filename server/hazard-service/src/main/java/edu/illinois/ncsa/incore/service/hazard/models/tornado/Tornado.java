@@ -26,7 +26,7 @@ import java.util.List;
 public class Tornado {
     @Id
     @Property("_id")
-    private ObjectId id;
+    private ObjectId id = new ObjectId();
     // Friendly name of Tornado hazard
     private String name;
     private String description;
