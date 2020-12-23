@@ -1,8 +1,8 @@
 apply plugin: 'java'
 
 compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
 }
 
 //add dependencies for plugins needed to run the build
@@ -27,7 +27,7 @@ apply plugin: 'idea'
 
 idea {
     module {
-        jdkName = '1.8'
+        jdkName = '11'
     }
 }
 
@@ -131,17 +131,17 @@ test {
             compile('dev.morphia.morphia:core:1.5.8')
 
             //geotools
-            compile("org.geotools:gt-main:17.0")
-            compile("org.geotools:gt-api:17.0")
-            compile("org.geotools:gt-opengis:17.0")
-            compile("org.geotools:gt-coverage:17.0")
-            compile("org.geotools:gt-arcgrid:17.0")
-            compile("org.geotools:gt-geotiff:17.0")
-            compile("org.geotools:gt-geojson:17.0")
-            compile("org.geotools:gt-shapefile:17.0")
-            compile("org.geotools:gt-referencing:17.0")
-            compile("org.geotools:gt-epsg-hsql:17.0")
-            compile("org.geotools:gt-process-feature:17.0")
+            compile("org.geotools:gt-main:24.1")
+            compile("org.geotools:gt-api:20.5")
+            compile("org.geotools:gt-opengis:24.1")
+            compile("org.geotools:gt-coverage:24.1")
+            compile("org.geotools:gt-arcgrid:24.1")
+            compile("org.geotools:gt-geotiff:24.1")
+            compile("org.geotools:gt-geojson:24.1")
+            compile("org.geotools:gt-shapefile:24.1")
+            compile("org.geotools:gt-referencing:24.1")
+            compile("org.geotools:gt-epsg-hsql:24.1")
+            compile("org.geotools:gt-process-feature:24.1")
 
             //misc other dependencies
             compile(group: 'javax.media', name: 'jai_core', version:'1.1.3')
