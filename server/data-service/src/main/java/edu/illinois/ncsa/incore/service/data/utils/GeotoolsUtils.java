@@ -11,8 +11,7 @@
 package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.opencsv.CSVReader;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -36,6 +35,7 @@ import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageReader;
 import org.opengis.feature.simple.SimpleFeature;
@@ -149,7 +149,7 @@ public class GeotoolsUtils {
 //        List<File> copiedFileList = copyFilesToTempDir(shpfiles);
 
         SimpleFeatureCollection sfc = getSimpleFeatureCollectionFromFile(file);
-        Envelope env = sfc.getBounds();
+        ReferencedEnvelope env = sfc.getBounds();
         double minx = env.getMinX();
         double miny = env.getMinY();
         double maxx = env.getMaxX();

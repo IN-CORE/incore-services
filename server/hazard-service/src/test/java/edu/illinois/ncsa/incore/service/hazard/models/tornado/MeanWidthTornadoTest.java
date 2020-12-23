@@ -9,9 +9,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import edu.illinois.ncsa.incore.service.hazard.CustomJerseyTest;
 import edu.illinois.ncsa.incore.service.hazard.MockApplication;
 import edu.illinois.ncsa.incore.service.hazard.controllers.TornadoController;

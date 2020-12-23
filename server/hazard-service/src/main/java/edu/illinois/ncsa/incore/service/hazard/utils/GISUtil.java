@@ -6,9 +6,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -19,7 +19,7 @@ import org.geotools.data.DataStoreFinder;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.factory.Hints;
+import org.geotools.util.factory.Hints;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffReader;
@@ -80,7 +80,7 @@ public class GISUtil {
         boolean isIn = false;
 
         ReferencedEnvelope env = inFeatures.getBounds();
-        isIn = env.contains(pt.getCoordinate());
+        isIn = env.contains((BoundingBox) pt.getCoordinate());
 
         return isIn;
     }

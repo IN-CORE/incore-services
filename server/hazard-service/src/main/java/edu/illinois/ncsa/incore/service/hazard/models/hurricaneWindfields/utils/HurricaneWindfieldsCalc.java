@@ -10,9 +10,10 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils;
 
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;

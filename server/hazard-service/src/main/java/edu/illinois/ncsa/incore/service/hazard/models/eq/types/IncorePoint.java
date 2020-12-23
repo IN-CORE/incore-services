@@ -10,10 +10,10 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.types;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Location;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Location;
+import org.locationtech.jts.geom.Point;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
