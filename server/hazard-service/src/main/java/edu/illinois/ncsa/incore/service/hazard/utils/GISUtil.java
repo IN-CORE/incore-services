@@ -77,12 +77,8 @@ public class GISUtil {
     }
 
     public static boolean IsPointInPolygonBySFC(SimpleFeatureCollection inFeatures, Point pt) {
-        boolean isIn = false;
-
         ReferencedEnvelope env = inFeatures.getBounds();
-        isIn = env.contains((BoundingBox) pt.getCoordinate());
-
-        return isIn;
+        return env.contains(pt.getCoordinate());
     }
 
     public static URL unZipShapefiles(File file, File destDirectory){
