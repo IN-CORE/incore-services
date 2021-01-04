@@ -9,9 +9,10 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.geotools;
 
-import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.linearref.LinearLocation;
-import com.vividsolutions.jts.linearref.LocationIndexedLine;
+
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.linearref.LinearLocation;
+import org.locationtech.jts.linearref.LocationIndexedLine;
 import org.apache.log4j.Logger;
 import org.geotools.data.*;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;

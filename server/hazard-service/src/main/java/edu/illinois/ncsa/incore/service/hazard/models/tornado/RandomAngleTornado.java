@@ -9,8 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 
 import java.util.ArrayList;

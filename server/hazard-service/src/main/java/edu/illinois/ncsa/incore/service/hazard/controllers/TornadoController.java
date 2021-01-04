@@ -10,9 +10,9 @@
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -94,6 +94,7 @@ public class TornadoController {
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
             return tornadoes;
         }
@@ -103,6 +104,7 @@ public class TornadoController {
             .filter(tornado -> membersSet.contains(tornado.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return accessibleTornadoes;
@@ -169,8 +171,6 @@ public class TornadoController {
                 tornado.setCreator(this.username);
                 tornado = repository.addTornado(tornado);
                 addTornadoToSpace(tornado, this.username);
-
-                return tornado;
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
                 if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
@@ -183,12 +183,14 @@ public class TornadoController {
                     tornado.setCreator(this.username);
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
-                    return tornado;
                 } else {
                     logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado. Check your file extensions and the number of files in the request.");
                 }
             }
+
+            tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornado.getId()));
+            return tornado;
         } catch (IOException e) {
             logger.error("Error mapping the request to a supported Tornado type.", e);
         } catch (IllegalArgumentException e) {
@@ -207,6 +209,7 @@ public class TornadoController {
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         Tornado tornado = repository.getTornadoById(tornadoId);
+        tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornadoId));
 
         if (tornado == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tornado with id " + tornadoId);
@@ -316,6 +319,7 @@ public class TornadoController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return tornadoes;

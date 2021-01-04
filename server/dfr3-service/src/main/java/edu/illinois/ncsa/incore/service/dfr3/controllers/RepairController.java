@@ -131,6 +131,7 @@ public class RepairController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return accessibleRepairs;
@@ -151,6 +152,7 @@ public class RepairController {
         }
         space.addMember(repairId);
         spaceRepository.addSpace(space);
+        repairSet.setSpaces(spaceRepository.getSpaceNamesOfMember(repairId));
 
         return repairSet;
     }
@@ -165,7 +167,9 @@ public class RepairController {
 
         if (repairSet.isPresent()) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
-                return repairSet.get();
+                RepairSet rs = repairSet.get();
+                rs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+                return rs;
             }
         }
 
@@ -229,6 +233,7 @@ public class RepairController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return accessibleRepairs;

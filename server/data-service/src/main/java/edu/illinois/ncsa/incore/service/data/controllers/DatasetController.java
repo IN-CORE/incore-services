@@ -118,6 +118,8 @@ public class DatasetController {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the dataset " + datasetId);
         }
 
+        dataset.setSpaces(spaceRepository.getSpaceNamesOfMember(datasetId));
+
         //feeling lucky, try to get dataset directly from user's space
         Space space = spaceRepository.getSpaceByName(this.username);
         if (space != null && space.hasMember(datasetId)) {
@@ -167,6 +169,7 @@ public class DatasetController {
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
 
             return datasets;
@@ -179,6 +182,7 @@ public class DatasetController {
             .filter(dataset -> userMembersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return accessibleDatasets;
@@ -358,6 +362,8 @@ public class DatasetController {
             }
 
         }
+
+        dataset.setSpaces(spaceRepository.getSpaceNamesOfMember(dataset.getId()));
         return dataset;
     }
 
@@ -721,6 +727,7 @@ public class DatasetController {
             .filter(dataset -> membersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return datasets;

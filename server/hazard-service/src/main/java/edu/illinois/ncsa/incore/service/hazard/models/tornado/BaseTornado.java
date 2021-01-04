@@ -10,11 +10,11 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.operation.distance.DistanceOp;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.operation.distance.DistanceOp;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import org.apache.commons.math3.distribution.UniformRealDistribution;

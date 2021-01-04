@@ -131,7 +131,9 @@ public class FragilityController {
                 .filter(fragility -> spaceMembers.contains(fragility.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
+
             return fragilitySets;
         }
 
@@ -141,6 +143,7 @@ public class FragilityController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return accessibleFragilities;
@@ -162,6 +165,8 @@ public class FragilityController {
         space.addMember(fragilityId);
         spaceRepository.addSpace(space);
 
+        fragilitySet.setSpaces(spaceRepository.getSpaceNamesOfMember(fragilitySet.getId()));
+
         return fragilitySet;
     }
 
@@ -171,10 +176,11 @@ public class FragilityController {
     @ApiOperation(value = "Gets a fragility by Id", notes = "Get a particular fragility based on the id provided")
     public FragilitySet getFragilityById(@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
-
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
-                return fragilitySet.get();
+                FragilitySet fs = fragilitySet.get();
+                fs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+                return fs;
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the fragility with id " + id);
             }
@@ -239,6 +245,7 @@ public class FragilityController {
                 .filter(b -> membersSet.contains(b.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
 
             return accessibleFragilities;

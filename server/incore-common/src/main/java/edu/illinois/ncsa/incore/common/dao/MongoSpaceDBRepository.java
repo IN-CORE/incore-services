@@ -20,6 +20,7 @@ import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.Query;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -97,6 +98,18 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
         Datastore morphiaStore = morphia.createDatastore(client, databaseName);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
+    }
+
+    public List<String> getSpaceNamesOfMember(String memberId) {
+        List<Space> allSpaces = getAllSpaces();
+        List<String> spacesWithMember = new ArrayList<>();
+        for (Space space : allSpaces) {
+            if (space.hasMember(memberId)) {
+                spacesWithMember.add(space.getName());
+            }
+        }
+
+        return spacesWithMember;
     }
 
 }

@@ -85,6 +85,7 @@ public class FloodController {
                 .filter(flood -> spaceMembers.contains(flood.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
             return floods;
         }
@@ -94,8 +95,8 @@ public class FloodController {
             .filter(flood -> membersSet.contains(flood.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
-
         return accessibleFloods;
     }
 
@@ -107,6 +108,7 @@ public class FloodController {
         @ApiParam(value = "Flood dataset guid from data service.", required = true) @PathParam("flood-id") String floodId) {
 
         Flood flood = repository.getFloodById(floodId);
+        flood.setSpaces(spaceRepository.getSpaceNamesOfMember(floodId));
         if (flood == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a flood with id " + floodId);
         }
@@ -180,11 +182,12 @@ public class FloodController {
                     }
                     space.addMember(flood.getId());
                     spaceRepository.addSpace(space);
-
-                    return flood;
                 } else {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, no files were attached with your request.");
                 }
+
+                flood.setSpaces(spaceRepository.getSpaceNamesOfMember(flood.getId()));
+                return flood;
             }
 
         } catch (IOException e) {
@@ -289,6 +292,7 @@ public class FloodController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return floods;

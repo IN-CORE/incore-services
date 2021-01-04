@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
 import com.opengamma.analytics.math.statistics.distribution.GeneralizedExtremeValueDistribution;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 
 import java.util.ArrayList;

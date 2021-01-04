@@ -6,6 +6,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.WindfieldsDemandUnits;
@@ -18,6 +19,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 
 @XmlRootElement
 public class HurricaneWindfields {
@@ -48,6 +50,11 @@ public class HurricaneWindfields {
     private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
 
     private String creator = null;
+    /**
+     * spaces the object belongs to. Calculated at runtime.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<String> spaces;
 
     public String getDemandType() { return demandType; }
     public void setDemandType(String demandType) { this.demandType = demandType; }
@@ -190,4 +197,12 @@ public class HurricaneWindfields {
     }
 
     public void setCreator(String creator) { this.creator = creator; }
+
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
+    }
 }

@@ -9,9 +9,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;

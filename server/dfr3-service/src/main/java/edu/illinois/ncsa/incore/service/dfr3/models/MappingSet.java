@@ -41,6 +41,12 @@ public class MappingSet {
     private List<Mapping> mappings = new ArrayList<>();
     private String creator;
 
+    /**
+     * spaces the object belongs to. Calculated at runtime.
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<String> spaces;
+
     public String getId() {
         if (id == null) {
             return null;
@@ -84,6 +90,14 @@ public class MappingSet {
 
     public String getCreator() {
         return creator;
+    }
+
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
     }
 
     public String getMappingType() {

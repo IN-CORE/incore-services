@@ -10,8 +10,8 @@
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -176,7 +176,6 @@ public class EarthquakeController {
                         // Add job to create dataset to the queue
                         engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
                     }
-                    return earthquake;
                 } catch (IOException e) {
                     logger.error("Error creating raster dataset", e);
                 } catch (Exception e) {
@@ -224,13 +223,13 @@ public class EarthquakeController {
                     earthquake = repository.addEarthquake(earthquake);
 
                     addEarthquakeToSpace(earthquake, this.username);
-
-                    return earthquake;
                 } else {
                     logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Earthquake. Check your file extensions and the number of files in the request.");
                 }
             }
+            earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquake.getId()));
+            return earthquake;
 
         } catch (IOException e) {
             logger.error("Error mapping the request to an Earthquake object.", e);
@@ -265,7 +264,9 @@ public class EarthquakeController {
                     .filter(earthquake -> spaceMembers.contains(earthquake.getId()))
                     .skip(offset)
                     .limit(limit)
+                    .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                     .collect(Collectors.toList());
+
                 return earthquakes;
             }
 
@@ -274,6 +275,7 @@ public class EarthquakeController {
                 .filter(earthquake -> membersSet.contains(earthquake.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
 
             return accessibleEarthquakes;
@@ -290,6 +292,7 @@ public class EarthquakeController {
         @ApiParam(value = "Id of the earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId) {
 
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
+        earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquakeId));
         if (earthquake == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find an earthquake with id " + earthquakeId);
         }
@@ -708,6 +711,7 @@ public class EarthquakeController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return earthquakes;

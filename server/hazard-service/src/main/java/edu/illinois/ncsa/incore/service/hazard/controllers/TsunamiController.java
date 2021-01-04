@@ -92,6 +92,7 @@ public class TsunamiController {
                 .filter(tsunami -> spaceMembers.contains(tsunami.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
             return tsunamis;
         }
@@ -103,6 +104,7 @@ public class TsunamiController {
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return accessibleTsunamis;
@@ -116,6 +118,8 @@ public class TsunamiController {
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId) {
 
         Tsunami tsunami = repository.getTsunamiById(tsunamiId);
+        tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunamiId));
+
         if (tsunami == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a tsunami with id " + tsunamiId);
         }
@@ -213,6 +217,7 @@ public class TsunamiController {
                     space.addMember(tsunami.getId());
                     spaceRepository.addSpace(space);
 
+                    tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunami.getId()));
                     return tsunami;
                 } else {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, no files were attached with your request.");
@@ -292,6 +297,7 @@ public class TsunamiController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return tsunamis;

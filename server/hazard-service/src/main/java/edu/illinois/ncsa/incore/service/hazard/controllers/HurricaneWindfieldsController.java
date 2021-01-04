@@ -93,6 +93,7 @@ public class HurricaneWindfieldsController {
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
+                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
                 .collect(Collectors.toList());
             return hurricaneWindfields;
         }
@@ -111,6 +112,7 @@ public class HurricaneWindfieldsController {
             .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return accessibleHurricaneWindfields;
@@ -124,6 +126,7 @@ public class HurricaneWindfieldsController {
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
 
         HurricaneWindfields hurricane = repository.getHurricaneWindfieldsById(hurricaneId);
+        hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
         if (hurricane == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a hurricane with id " + hurricaneId);
         }
@@ -256,6 +259,7 @@ public class HurricaneWindfieldsController {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error in geometry dimensions");
             }
         }
+        hurricaneWindfields.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneWindfields.getId()));
         return hurricaneWindfields;
     }
 
@@ -349,6 +353,7 @@ public class HurricaneWindfieldsController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
+            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
             .collect(Collectors.toList());
 
         return hurricanes;

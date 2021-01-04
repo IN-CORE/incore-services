@@ -24,4 +24,5 @@ public interface ISpaceRepository {
     Space deleteSpace(String id);
     Space getOrphanSpace();
     Space addToOrphansSpace(String memberId);
+    List<String> getSpaceNamesOfMember(String memberId);
 }
