@@ -45,18 +45,18 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     public List<Space> getAllSpaces() {
-        return this.dataStore.createQuery(Space.class).find().toList();
+        return this.dataStore.find(Space.class).toList();
     }
 
     public Space getSpaceById(String id) {
-        return this.dataStore.createQuery(Space.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        return this.dataStore.find(Space.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
     }
 
     public Space getSpaceByName(String name) {
-        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
+        Query<Space> spaceQuery = this.dataStore.find(Space.class);
         spaceQuery.field(SPACE_FIELD_METADATA_NAME).equal(name);
-        Space foundSpace = spaceQuery.find().tryNext();
+        Space foundSpace = spaceQuery.tryNext();
 
         return foundSpace;
     }
@@ -85,7 +85,7 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     public Space deleteSpace(String id) {
-        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
+        Query<Space> spaceQuery = this.dataStore.find(Space.class);
         spaceQuery.field("_id").equal(new ObjectId(id));
         return this.dataStore.findAndDelete(spaceQuery);
     }

@@ -36,8 +36,8 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
             return null;
         }
 
-        Tsunami tsunami = this.dataStore.createQuery(TsunamiDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        Tsunami tsunami = this.dataStore.find(TsunamiDataset.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         // TODO this will need to be updated if there are model based tsunamis
 
         return tsunami;
@@ -51,10 +51,10 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public Tsunami deleteTsunamiById(String id) {
-        Tsunami tsunami = this.dataStore.createQuery(TsunamiDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        Tsunami tsunami = this.dataStore.find(TsunamiDataset.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         if (tsunami != null) {
-            Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
+            Query<TsunamiDataset> query = this.dataStore.find(TsunamiDataset.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -64,7 +64,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
     @Override
     public List<Tsunami> getTsunamis() {
         List<Tsunami> tsunamis = new LinkedList<>();
-        List<TsunamiDataset> tsunamiDatasets = this.dataStore.createQuery(TsunamiDataset.class).find().toList();
+        List<TsunamiDataset> tsunamiDatasets = this.dataStore.find(TsunamiDataset.class).toList();
         tsunamis.addAll(tsunamiDatasets);
         // TODO this will need to be updated if there are model based tsunamis
 
@@ -73,12 +73,12 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public List<Tsunami> searchTsunamis(String text) {
-        Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
+        Query<TsunamiDataset> query = this.dataStore.find(TsunamiDataset.class);
 
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<TsunamiDataset> tsunamiDatasets = query.find().toList();
+        List<TsunamiDataset> tsunamiDatasets = query.toList();
 
         List<Tsunami> tsunamis = new ArrayList<>();
         tsunamis.addAll(tsunamiDatasets);

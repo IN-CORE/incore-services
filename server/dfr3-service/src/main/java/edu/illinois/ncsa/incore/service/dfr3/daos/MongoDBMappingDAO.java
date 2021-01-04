@@ -34,7 +34,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
     @Override
     public List<MappingSet> getMappingSets() {
-        return this.dataStore.createQuery(MappingSet.class).find().toList();
+        return this.dataStore.find(MappingSet.class).toList();
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         }
 
         MappingSet mappingSet = null;
-        mappingSet = this.dataStore.createQuery(MappingSet.class).field("_id").equal(new ObjectId(id)).find().tryNext();
+        mappingSet = this.dataStore.find(MappingSet.class).field("_id").equal(new ObjectId(id)).tryNext();
 
         if (mappingSet == null) {
             return Optional.empty();
@@ -55,13 +55,13 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
     @Override
     public MappingSet deleteMappingSetById(String id) {
-        MappingSet mappingSet = this.dataStore.createQuery(MappingSet.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        MappingSet mappingSet = this.dataStore.find(MappingSet.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
 
         if (mappingSet == null) {
             return null;
         } else {
-            Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
+            Query<MappingSet> query = this.dataStore.find(MappingSet.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -80,16 +80,16 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     @Override
     public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
 
-        Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
+        Query<MappingSet> query = this.dataStore.find(MappingSet.class);
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
-        return query.find().toList();
+        return query.toList();
     }
 
     @Override
     public List<MappingSet> searchMappings(String text, String mappingType) {
-        Query<MappingSet> query = this.dataStore.createQuery(MappingSet.class);
+        Query<MappingSet> query = this.dataStore.find(MappingSet.class);
 
         if(mappingType != null && !mappingType.trim().equals("")){
                     query.criteria("mappingType").equalIgnoreCase(mappingType).or(
@@ -102,7 +102,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
                 query.criteria("inventoryType").containsIgnoreCase(text));
         }
 
-        List<MappingSet> sets = query.find().toList();
+        List<MappingSet> sets = query.toList();
 
         return sets;
     }
@@ -113,7 +113,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
             return false;
         }
 
-        List<MappingSet> mappingSets = this.dataStore.createQuery(MappingSet.class).find().toList();
+        List<MappingSet> mappingSets = this.dataStore.find(MappingSet.class).toList();
         for(MappingSet map: mappingSets){
             List<Mapping> mappings =  map.getMappings();
             for(Mapping mapping: mappings){

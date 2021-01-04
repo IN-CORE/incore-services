@@ -46,7 +46,7 @@ public class MockFragilityDAO implements IFragilityDAO {
             ex.printStackTrace();
         }
 
-        Mockito.when(mockDataStore.createQuery(FragilitySet.class)
+        Mockito.when(mockDataStore.find(FragilitySet.class)
             .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.fragilitySets);
 
@@ -88,20 +88,20 @@ public class MockFragilityDAO implements IFragilityDAO {
 
     @Override
     public Optional<FragilitySet> getFragilitySetById(String id) {
-        FragilitySet fragilitySet = this.mockDataStore.createQuery(FragilitySet.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        FragilitySet fragilitySet = this.mockDataStore.find(FragilitySet.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         return Optional.of(fragilitySet);
     }
 
     @Override
     public FragilitySet deleteFragilitySetById(String id){
-        FragilitySet fragilitySet = this.mockDataStore.createQuery(FragilitySet.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        FragilitySet fragilitySet = this.mockDataStore.find(FragilitySet.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
 
         if (fragilitySet == null) {
             return null;
         } else {
-            Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
+            Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
             query.field("_id").equal(new ObjectId(id));
             return this.mockDataStore.findAndDelete(query);
         }
@@ -109,7 +109,7 @@ public class MockFragilityDAO implements IFragilityDAO {
 
     @Override
     public List<FragilitySet> searchFragilities(String text) {
-        Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
+        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
 
         query.or(query.criteria("demandType").containsIgnoreCase(text),
                  query.criteria("legacyId").containsIgnoreCase(text),
@@ -124,7 +124,7 @@ public class MockFragilityDAO implements IFragilityDAO {
 
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
-        List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
+        List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
                                                     .filter(attributeType, attributeValue)
                                                     .find(new FindOptions().limit(100)).toList();
 
@@ -133,23 +133,23 @@ public class MockFragilityDAO implements IFragilityDAO {
 
     @Override
     public List<FragilitySet> queryFragilities(Map<String, String> queryMap) {
-        Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
+        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<FragilitySet> sets = query.find().toList();
+        List<FragilitySet> sets = query.toList();
 
         return sets;
     }
 
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
-        List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
+        List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
                                                     .field("authors")
                                                     .contains(author)
-                                                    .find().toList();
+                                                    .toList();
 
         return sets;
     }

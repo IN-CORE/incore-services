@@ -427,7 +427,7 @@ public class RegExFilter implements UserFacing
 		// on the basis of state, update the buffer
 		if (state == NCSAConstants.UNMATCHED) {
 			matcher = untaggedPattern.matcher(buffer.toString());
-			matched = matcher.find();
+			matched = matcher;
 		}
 
 		if (!matched) {
@@ -507,7 +507,7 @@ public class RegExFilter implements UserFacing
 		int lastLine = lines.length - 1;
 		for (int i = 0; i < lastLine; i++) {
 			matcher = untaggedPattern.matcher(lines[i]);
-			matched = matcher.find();
+			matched = matcher;
 			if (matched) {
 				sb.append(lines[i]).append(NCSAConstants.LINE_SEP);
 				count++;
@@ -515,7 +515,7 @@ public class RegExFilter implements UserFacing
 		}
 
 		matcher = untaggedPattern.matcher(lines[lastLine]);
-		matched = matcher.find();
+		matched = matcher;
 		if (matched) {
 			sb.append(lines[lastLine]).append(NCSAConstants.LINE_SEP);
 			count++;
@@ -554,7 +554,7 @@ public class RegExFilter implements UserFacing
 
 			if (state == NCSAConstants.UNMATCHED) {
 				matcher = startPattern.matcher(buffer.toString());
-				matched = matcher.find();
+				matched = matcher;
 				if (matched) {
 					state = NCSAConstants.LOOKING;
 					token = matcher.group(0);
@@ -579,7 +579,7 @@ public class RegExFilter implements UserFacing
 
 			if (state == NCSAConstants.LOOKING) {
 				matcher = endPattern.matcher(buffer.toString());
-				matched = matcher.find();
+				matched = matcher;
 				if (matched) {
 					state = NCSAConstants.MATCHED;
 					token = matcher.group(0);

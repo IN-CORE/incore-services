@@ -69,10 +69,10 @@ public class MongoDBFloodRepository implements IFloodRepository {
 
     @Override
     public Flood deleteFloodById(String id) {
-        Flood flood = this.dataStore.createQuery(FloodDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        Flood flood = this.dataStore.find(FloodDataset.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         if (flood != null) {
-            Query<FloodDataset> query = this.dataStore.createQuery(FloodDataset.class);
+            Query<FloodDataset> query = this.dataStore.find(FloodDataset.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -85,8 +85,8 @@ public class MongoDBFloodRepository implements IFloodRepository {
             return null;
         }
 
-        Flood flood = this.dataStore.createQuery(FloodDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        Flood flood = this.dataStore.find(FloodDataset.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         // TODO this will need to be updated if there are model based floods
 
         return flood;
@@ -95,7 +95,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
     @Override
     public List<Flood> getFloods() {
         List<Flood> floods = new LinkedList<>();
-        List<FloodDataset> floodDatasets = this.dataStore.createQuery(FloodDataset.class).find().toList();
+        List<FloodDataset> floodDatasets = this.dataStore.find(FloodDataset.class).toList();
         floods.addAll(floodDatasets);
         // TODO this will need to be updated if there are model based floods
 
@@ -110,12 +110,12 @@ public class MongoDBFloodRepository implements IFloodRepository {
 
     @Override
     public List<Flood> searchFloods(String text) {
-        Query<FloodDataset> query = this.dataStore.createQuery(FloodDataset.class);
+        Query<FloodDataset> query = this.dataStore.find(FloodDataset.class);
 
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<FloodDataset> floodDatasets = query.find().toList();
+        List<FloodDataset> floodDatasets = query.toList();
 
         List<Flood> floods = new ArrayList<>();
         floods.addAll(floodDatasets);

@@ -73,10 +73,10 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
     @Override
     public HurricaneWindfields deleteHurricaneWindfieldsById(String id) {
-        HurricaneWindfields hurricane = this.dataStore.createQuery(HurricaneWindfields.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        HurricaneWindfields hurricane = this.dataStore.find(HurricaneWindfields.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         if (hurricane != null) {
-            Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+            Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -89,13 +89,13 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
             return null;
         }
 
-        return this.dataStore.createQuery(HurricaneWindfields.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        return this.dataStore.find(HurricaneWindfields.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
     }
 
     @Override
     public List<HurricaneWindfields> getHurricaneWindfields() {
-        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.createQuery(HurricaneWindfields.class).find().toList();
+        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.find(HurricaneWindfields.class).toList();
         return hurricaneWindfields;
 
     }
@@ -107,34 +107,34 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
     @Override
     public List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue) {
-        List<HurricaneWindfields> hurricanes = this.dataStore.createQuery(HurricaneWindfields.class)
+        List<HurricaneWindfields> hurricanes = this.dataStore.find(HurricaneWindfields.class)
             .filter(attributeType, attributeValue)
-            .find().toList();
+            .toList();
 
         return hurricanes;
     }
 
     @Override
     public List<HurricaneWindfields> queryHurricaneWindfields(Map<String, String> queryMap) {
-        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+        Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<HurricaneWindfields> hurricanes = query.find().toList();
+        List<HurricaneWindfields> hurricanes = query.toList();
 
         return hurricanes;
     }
 
     @Override
     public List<HurricaneWindfields> searchHurricaneWindfields(String text) {
-        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+        Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
 
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<HurricaneWindfields> hurricanes = query.find().toList();
+        List<HurricaneWindfields> hurricanes = query.toList();
 
         return hurricanes;
     }

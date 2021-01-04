@@ -33,8 +33,9 @@ public abstract class MongoDAO {
         Set<Class> classesToMap = new HashSet<>(Arrays.asList(classes));
 
         Morphia morphia = new Morphia(classesToMap);
+        Morphia.createDatastore()
 
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
+        Datastore morphiaStore = Morphia.createDatastore(client, databaseName);
         morphiaStore.ensureIndexes();
 
         this.dataStore = morphiaStore;

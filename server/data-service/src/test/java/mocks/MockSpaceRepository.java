@@ -41,7 +41,7 @@ public class MockSpaceRepository implements ISpaceRepository {
             ex.printStackTrace();
         }
 
-        Mockito.when(mockSpaceStore.createQuery(Space.class)
+        Mockito.when(mockSpaceStore.find(Space.class)
             .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.spaces);
     }

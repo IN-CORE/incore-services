@@ -33,7 +33,7 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
     @Override
     public List<RepairSet> getRepairs() {
-        return this.dataStore.createQuery(RepairSet.class).find().toList();
+        return this.dataStore.find(RepairSet.class).toList();
     }
 
     @Override
@@ -55,8 +55,8 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
             return Optional.empty();
         }
 
-        RepairSet repairSet = this.dataStore.createQuery(RepairSet.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        RepairSet repairSet = this.dataStore.find(RepairSet.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
 
         if (repairSet == null) {
             return Optional.empty();
@@ -67,13 +67,13 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
     @Override
     public RepairSet deleteRepairSetById(String id) {
-        RepairSet repairSet = this.dataStore.createQuery(RepairSet.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        RepairSet repairSet = this.dataStore.find(RepairSet.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
 
         if (repairSet == null) {
             return null;
         } else {
-            Query<RepairSet> query = this.dataStore.createQuery(RepairSet.class);
+            Query<RepairSet> query = this.dataStore.find(RepairSet.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -81,7 +81,7 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
     @Override
     public List<RepairSet> searchRepairs(String text) {
-        Query<RepairSet> query = this.dataStore.createQuery(RepairSet.class);
+        Query<RepairSet> query = this.dataStore.find(RepairSet.class);
 
         query.or(query.criteria("legacyId").containsIgnoreCase(text),
             query.criteria("hazardType").containsIgnoreCase(text),
@@ -89,29 +89,29 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
             query.criteria("description").containsIgnoreCase(text),
             query.criteria("authors").containsIgnoreCase(text));
 
-        List<RepairSet> sets = query.find().toList();
+        List<RepairSet> sets = query.toList();
 
         return sets;
     }
 
     @Override
     public List<RepairSet> queryRepairs(String attributeType, String attributeValue) {
-        List<RepairSet> sets = this.dataStore.createQuery(RepairSet.class)
+        List<RepairSet> sets = this.dataStore.find(RepairSet.class)
             .filter(attributeType, attributeValue)
-            .find().toList();
+            .toList();
 
         return sets;
     }
 
     @Override
     public List<RepairSet> queryRepairs(Map<String, String> queryMap) {
-        Query<RepairSet> query = this.dataStore.createQuery(RepairSet.class);
+        Query<RepairSet> query = this.dataStore.find(RepairSet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List<RepairSet> sets = query.find().toList();
+        List<RepairSet> sets = query.toList();
 
         return sets;
     }

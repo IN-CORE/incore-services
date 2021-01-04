@@ -70,10 +70,10 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
     @Override
     public Hurricane deleteHurricaneById(String id) {
-        Hurricane hurricane = this.dataStore.createQuery(HurricaneDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        Hurricane hurricane = this.dataStore.find(HurricaneDataset.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         if (hurricane != null) {
-            Query<HurricaneDataset> query = this.dataStore.createQuery(HurricaneDataset.class);
+            Query<HurricaneDataset> query = this.dataStore.find(HurricaneDataset.class);
             query.field("_id").equal(new ObjectId(id));
             return this.dataStore.findAndDelete(query);
         }
@@ -86,8 +86,8 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
             return null;
         }
 
-        Hurricane hurricane = this.dataStore.createQuery(HurricaneDataset.class)
-            .field("_id").equal(new ObjectId(id)).find().tryNext();
+        Hurricane hurricane = this.dataStore.find(HurricaneDataset.class)
+            .field("_id").equal(new ObjectId(id)).tryNext();
         // TODO this will need to be updated if there are model based hurricanes
 
         return hurricane;
@@ -96,7 +96,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     @Override
     public List<Hurricane> getHurricanes() {
         List<Hurricane> hurricanes = new LinkedList<>();
-        List<HurricaneDataset> hurricaneDatasets = this.dataStore.createQuery(HurricaneDataset.class).find().toList();
+        List<HurricaneDataset> hurricaneDatasets = this.dataStore.find(HurricaneDataset.class).toList();
         hurricanes.addAll(hurricaneDatasets);
         // TODO this will need to be updated if there are model based hurricanes
 
@@ -111,12 +111,12 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
     @Override
     public List<Hurricane> searchHurricanes(String text) {
-        Query<HurricaneDataset> query = this.dataStore.createQuery(HurricaneDataset.class);
+        Query<HurricaneDataset> query = this.dataStore.find(HurricaneDataset.class);
 
         query.or(query.criteria("name").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text));
 
-        List<HurricaneDataset> hurricaneDatasets = query.find().toList();
+        List<HurricaneDataset> hurricaneDatasets = query.toList();
 
         List<Hurricane> hurricanes = new ArrayList<>();
         hurricanes.addAll(hurricaneDatasets);

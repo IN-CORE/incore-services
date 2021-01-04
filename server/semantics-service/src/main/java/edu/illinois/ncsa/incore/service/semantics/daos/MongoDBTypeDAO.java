@@ -30,7 +30,7 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     }
 
     private void loadTypes() {
-        this.typeList = (List<Document>) this.dataStoreType.find().into(new ArrayList<Document>());
+        this.typeList = (List<Document>) this.dataStoreType.into(new ArrayList<Document>());
 
     }
 
@@ -59,7 +59,7 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
     @Override
     public Optional<List<Document>> searchType(String typeName){
-        List<Document> typeList = (List<Document>) this.dataStoreType.find().into(new ArrayList<Document>());
+        List<Document> typeList = (List<Document>) this.dataStoreType.into(new ArrayList<Document>());
         List<Document> matchTypeList = new ArrayList<Document>();
 
         for (Document datsetType : typeList){

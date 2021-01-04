@@ -48,7 +48,7 @@ public class MockDataRepository implements IRepository {
             ex.printStackTrace();
         }
 
-        Mockito.when(mockDataStore.createQuery(Dataset.class)
+        Mockito.when(mockDataStore.find(Dataset.class)
             .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.datasets);
     }

@@ -11,6 +11,7 @@
 
 package edu.illinois.ncsa.incore.service.data.dao;
 
+import com.mongodb.client.MongoClients;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
@@ -66,40 +67,40 @@ public class MongoDBRepository implements IRepository {
     }
 
     public List<Dataset> getAllDatasets() {
-        return this.dataStore.createQuery(Dataset.class).find().toList();
+        return this.dataStore.find(Dataset.class).toList();
     }
 
     public List<MvzDataset> getAllMvzDatasets() {
-        return this.dataStore.createQuery(MvzDataset.class).find().toList();
+        return this.dataStore.find(MvzDataset.class).toList();
     }
 
     public Dataset getDatasetById(String id) {
         if (!ObjectId.isValid(id)) {
             return null;
         }
-        return this.dataStore.createQuery(Dataset.class).field("_id").equal(new ObjectId(id))
-            .find().tryNext();
+        return this.dataStore.find(Dataset.class).field("_id").equal(new ObjectId(id))
+            .tryNext();
     }
 
     public List<Dataset> getDatasetByType(String type) {
-        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
         datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type);
-        return datasetQuery.find().toList();
+        return datasetQuery.toList();
     }
 
     public List<Dataset> getDatasetByTitle(String title) {
-        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
         datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title);
-        return datasetQuery.find().toList();
+        return datasetQuery.toList();
     }
 
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
-        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
         datasetQuery.and(
             datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type),
             datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title)
         );
-        return datasetQuery.find().toList();
+        return datasetQuery.toList();
     }
 
     public Dataset getDatasetByFileDescriptorId(String id) {
@@ -107,7 +108,7 @@ public class MongoDBRepository implements IRepository {
             return null;
         }
 
-        Query<Dataset> datasetQuery = this.dataStore.createQuery(Dataset.class);
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
         datasetQuery.filter(DATASET_FIELD_FILEDESCRIPTOR_ID, new ObjectId(id));
         return datasetQuery.first();
     }
@@ -119,7 +120,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     public Dataset deleteDataset(String id) {
-        Query<Dataset> query = this.dataStore.createQuery(Dataset.class);
+        Query<Dataset> query = this.dataStore.find(Dataset.class);
         query.field("_id").equal(new ObjectId(id));
         return this.dataStore.findAndDelete(query);
     }
@@ -141,8 +142,8 @@ public class MongoDBRepository implements IRepository {
     }
 
     public MvzDataset getMvzDatasetById(String id) {
-        return this.dataStore.createQuery(MvzDataset.class).field("_id").equal(new ObjectId(id))
-            .find().tryNext();
+        return this.dataStore.find(MvzDataset.class).field("_id").equal(new ObjectId(id))
+            .tryNext();
     }
 
     @Override
@@ -151,11 +152,11 @@ public class MongoDBRepository implements IRepository {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
         Set<Class> classesToMap = new HashSet<>();
-        Morphia morphia = new Morphia(classesToMap);
         classesToMap.add(Dataset.class);
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
+        // You can call MongoClients.create() without any parameters to connect to a MongoDB instance running on
+        // localhost on port 27017
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
@@ -171,7 +172,7 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public List<Dataset> searchDatasets(String text) {
-        Query<Dataset> query = this.dataStore.createQuery(Dataset.class);
+        Query<Dataset> query = this.dataStore.find(Dataset.class);
 
         query.or(query.criteria("title").containsIgnoreCase(text),
             query.criteria("description").containsIgnoreCase(text),
@@ -179,17 +180,17 @@ public class MongoDBRepository implements IRepository {
             query.criteria("fileDescriptors.filename").containsIgnoreCase(text),
             query.criteria("dataType").containsIgnoreCase(text));
 
-        return query.find().toList();
+        return query.toList();
     }
 
     @Override
     public List<DatasetType> getDatatypes(String spaceName) {
-        Query<DatasetType> query = this.dataStore.createQuery(DatasetType.class);
+        Query<DatasetType> query = this.dataStore.find(DatasetType.class);
 
         if(spaceName != null){
             query.criteria("space").equalIgnoreCase(spaceName);
         }
 
-        return query.find().toList();
+        return query.toList();
     }
 }
