@@ -132,7 +132,6 @@ test {
 
             //geotools
             compile("org.geotools:gt-main:24.1")
-            compile("org.geotools:gt-api:20.5")
             compile("org.geotools:gt-opengis:24.1")
             compile("org.geotools:gt-coverage:24.1")
             compile("org.geotools:gt-arcgrid:24.1")
