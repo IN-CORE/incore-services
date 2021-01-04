@@ -25,7 +25,7 @@ import java.util.List;
 public abstract class Earthquake {
     @Id
     @Property("_id")
-    private ObjectId id = new ObjectId();
+    private ObjectId id;
 
     public void setName(String name) {
         this.name = name;
