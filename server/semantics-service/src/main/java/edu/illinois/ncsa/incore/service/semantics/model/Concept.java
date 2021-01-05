@@ -4,7 +4,6 @@ import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Property;
-import dev.morphia.annotations.Embedded;
 
 import java.util.List;
 
@@ -18,7 +17,6 @@ public class Concept {
 
     private String url;
 
-    @Embedded
     private Columns tableSchema;
 
     // TODO how to represent @context
