@@ -14,11 +14,10 @@ package edu.illinois.ncsa.incore.service.data.dao;
 import com.mongodb.client.MongoClients;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
-import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.experimental.filters.Filters;
 import dev.morphia.query.Query;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.DatasetType;
@@ -68,40 +67,36 @@ public class MongoDBRepository implements IRepository {
     }
 
     public List<Dataset> getAllDatasets() {
-        return this.dataStore.find(Dataset.class).toList();
+        return this.dataStore.find(Dataset.class).iterator().toList();
     }
 
     public List<MvzDataset> getAllMvzDatasets() {
-        return this.dataStore.find(MvzDataset.class).toList();
+        return this.dataStore.find(MvzDataset.class).iterator().toList();
     }
 
     public Dataset getDatasetById(String id) {
         if (!ObjectId.isValid(id)) {
             return null;
         }
-        return this.dataStore.find(Dataset.class).field("_id").equal(new ObjectId(id))
-            .tryNext();
+        return this.dataStore.find(Dataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     public List<Dataset> getDatasetByType(String type) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
-        datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type);
-        return datasetQuery.toList();
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.eq(DATASET_FIELD_TYPE, type));
+        return datasetQuery.iterator().toList();
     }
 
     public List<Dataset> getDatasetByTitle(String title) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
-        datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title);
-        return datasetQuery.toList();
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.eq(DATASET_FIELD_TITLE, title));
+        return datasetQuery.iterator().toList();
     }
 
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
-        datasetQuery.and(
-            datasetQuery.criteria(DATASET_FIELD_TYPE).containsIgnoreCase(type),
-            datasetQuery.criteria(DATASET_FIELD_TITLE).containsIgnoreCase(title)
-        );
-        return datasetQuery.toList();
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+            Filters.eq(DATASET_FIELD_TYPE, type),
+            Filters.eq(DATASET_FIELD_TITLE, title)
+        ));
+        return datasetQuery.iterator().toList();
     }
 
     public Dataset getDatasetByFileDescriptorId(String id) {
@@ -109,8 +104,8 @@ public class MongoDBRepository implements IRepository {
             return null;
         }
 
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class);
-        datasetQuery.filter(DATASET_FIELD_FILEDESCRIPTOR_ID, new ObjectId(id));
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
+            .filter(Filters.eq(DATASET_FIELD_FILEDESCRIPTOR_ID, new ObjectId(id)));
         return datasetQuery.first();
     }
 
@@ -121,9 +116,8 @@ public class MongoDBRepository implements IRepository {
     }
 
     public Dataset deleteDataset(String id) {
-        Query<Dataset> query = this.dataStore.find(Dataset.class);
-        query.field("_id").equal(new ObjectId(id));
-        return this.dataStore.findAndDelete(query);
+        Query<Dataset> query = this.dataStore.find(Dataset.class).filter(Filters.eq("_id", new ObjectId(id)));
+        return query.findAndDelete();
     }
 
     public MvzDataset addMvzDataset(MvzDataset mvzDataset) {
@@ -143,8 +137,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     public MvzDataset getMvzDatasetById(String id) {
-        return this.dataStore.find(MvzDataset.class).field("_id").equal(new ObjectId(id))
-            .tryNext();
+        return this.dataStore.find(MvzDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     @Override
@@ -173,15 +166,8 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public List<Dataset> searchDatasets(String text) {
-        Query<Dataset> query = this.dataStore.find(Dataset.class);
-
-        query.or(query.criteria("title").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text),
-            query.criteria("creator").containsIgnoreCase(text),
-            query.criteria("fileDescriptors.filename").containsIgnoreCase(text),
-            query.criteria("dataType").containsIgnoreCase(text));
-
-        return query.toList();
+        Query<Dataset> query = this.dataStore.find(Dataset.class).filter(Filters.text(text));
+        return query.iterator().toList();
     }
 
     @Override
@@ -189,9 +175,9 @@ public class MongoDBRepository implements IRepository {
         Query<DatasetType> query = this.dataStore.find(DatasetType.class);
 
         if(spaceName != null){
-            query.criteria("space").equalIgnoreCase(spaceName);
+            query.filter(Filters.eq("space", spaceName));
         }
 
-        return query.toList();
+        return query.iterator().toList();
     }
 }
