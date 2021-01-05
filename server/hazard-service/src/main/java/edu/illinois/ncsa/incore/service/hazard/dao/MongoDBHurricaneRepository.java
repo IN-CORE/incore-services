@@ -53,9 +53,8 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     private void initializeDataStore() {
-//        Set<Class> classesToMap = new HashSet<>();
-//        classesToMap.add(Hurricane.class);
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
+        morphiaStore.getMapper().map(Hurricane.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

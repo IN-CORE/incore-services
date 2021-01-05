@@ -11,8 +11,10 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.Embedded;
 import org.geojson.GeoJsonObject;
 
+@Embedded
 public class MappingSubject {
     @JsonProperty("schema")
     public SchemaType schemaType;

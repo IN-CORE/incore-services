@@ -53,8 +53,8 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     }
 
     private void initializeDataStore() {
-//        classesToMap.add(HurricaneWindfields.class);
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
+        morphiaStore.getMapper().map(HurricaneWindfields.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

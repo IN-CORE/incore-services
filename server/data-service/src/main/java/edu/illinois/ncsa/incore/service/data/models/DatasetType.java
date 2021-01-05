@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.service.data.models;
 
+import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
@@ -7,6 +8,7 @@ import org.bson.types.ObjectId;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
+@Entity
 public class DatasetType {
 
     /**

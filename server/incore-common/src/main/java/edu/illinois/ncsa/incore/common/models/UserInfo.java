@@ -8,7 +8,9 @@
 package edu.illinois.ncsa.incore.common.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.Embedded;
 
+@Embedded
 public class UserInfo {
     private String sub;
 

@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.common.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.Entity;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
@@ -27,6 +28,7 @@ import java.util.List;
  */
 
 @XmlRootElement
+@Entity
 public class Space {
     @Id
     @Property("_id")

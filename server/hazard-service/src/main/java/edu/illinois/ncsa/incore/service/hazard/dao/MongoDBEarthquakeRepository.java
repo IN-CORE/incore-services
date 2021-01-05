@@ -55,9 +55,8 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     }
 
     private void initializeDataStore() {
-//        Set<Class> classesToMap = new HashSet<>();
-//        classesToMap.add(Earthquake.class);
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),  mongoClientURI.getDatabase());
+        morphiaStore.getMapper().map(Earthquake.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

@@ -89,10 +89,9 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore;
     }
 
-    private void initializeDataStore() {
-//        Set<Class> classesToMap = new HashSet<>();
-//        classesToMap.add(Analysis.class);
+    private void initializeDataStore() {;
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
+        morphiaStore.getMapper().map(Analysis.class);
         morphiaStore.ensureIndexes();
 
         this.dataStore = morphiaStore;

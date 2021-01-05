@@ -52,9 +52,8 @@ public class MongoDBFloodRepository implements IFloodRepository {
     }
 
     private void initializeDataStore() {
-//        Set<Class> classesToMap = new HashSet<>();
-//        classesToMap.add(Flood.class);
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
+        morphiaStore.getMapper().map(Flood.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

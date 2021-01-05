@@ -90,9 +90,8 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     private void initializeDataStore() {
-//        Set<Class> classesToMap = new HashSet<>();
-//        classesToMap.add(Space.class);
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
+        morphiaStore.getMapper().map(Space.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

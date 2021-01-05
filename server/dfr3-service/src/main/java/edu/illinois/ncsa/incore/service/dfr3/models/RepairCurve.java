@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import dev.morphia.annotations.Embedded;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
@@ -18,6 +19,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlTransient
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
 @XmlSeeAlso({CustomExpressionRepairCurve.class, StandardRepairCurve.class, MarkovChainRepairCurve.class})
+@Embedded
 public abstract class RepairCurve {
     public String description;
 

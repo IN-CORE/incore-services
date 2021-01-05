@@ -11,7 +11,9 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.Embedded;
 
+@Embedded
 public enum SchemaType {
     @JsonProperty("building")
     Building,

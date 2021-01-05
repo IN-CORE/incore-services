@@ -53,10 +53,8 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     }
 
     private void initializeDataStore() {
-
-//        Set<Class> classesToMap = new HashSet<>();
-//        classesToMap.add(Tornado.class);
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
+        morphiaStore.getMapper().map(Tornado.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
