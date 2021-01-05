@@ -38,7 +38,7 @@ public class MockTornadoRepository implements ITornadoRepository {
             this.tornadoes.addAll(tornadoModels);
 
             Mockito.when(mockDataStore.find(Tornado.class)
-                .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+                .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
                 .thenReturn(this.tornadoes);
         } catch (IOException e) {
             log.error("Error reading tornadoes", e);

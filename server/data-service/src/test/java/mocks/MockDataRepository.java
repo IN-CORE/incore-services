@@ -49,7 +49,7 @@ public class MockDataRepository implements IRepository {
         }
 
         Mockito.when(mockDataStore.find(Dataset.class)
-            .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+            .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.datasets);
     }
 

@@ -39,7 +39,7 @@ public class MockTsunamiRepository implements ITsunamiRepository {
 
             tsunamis.addAll(tsunamiDatasets);
             Mockito.when(mockDataStore.find(Tsunami.class)
-                .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+                .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
                 .thenReturn(this.tsunamis);
         } catch (IOException e) {
             log.error("Error reading tsunamis", e);
