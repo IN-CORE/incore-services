@@ -11,17 +11,15 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.Query;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfieldsRepository {
     private String hostUri;
@@ -70,11 +68,10 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     @Override
     public HurricaneWindfields deleteHurricaneWindfieldsById(String id) {
         HurricaneWindfields hurricane = this.dataStore.find(HurricaneWindfields.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
         if (hurricane != null) {
             Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            return query.filter(Filters.eq("_id", new ObjectId(id))).findAndDelete();
         }
         return null;
     }
@@ -85,13 +82,13 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
             return null;
         }
 
-        return this.dataStore.find(HurricaneWindfields.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+        return this.dataStore.find(HurricaneWindfields.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     @Override
     public List<HurricaneWindfields> getHurricaneWindfields() {
-        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.find(HurricaneWindfields.class).toList();
+        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.find(HurricaneWindfields.class)
+            .iterator().toList();
         return hurricaneWindfields;
 
     }
@@ -104,8 +101,8 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     @Override
     public List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue) {
         List<HurricaneWindfields> hurricanes = this.dataStore.find(HurricaneWindfields.class)
-            .filter(attributeType, attributeValue)
-            .toList();
+            .filter(Filters.eq(attributeType, attributeValue))
+            .iterator().toList();
 
         return hurricanes;
     }
@@ -115,10 +112,10 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
         Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
+            query = query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
         }
 
-        List<HurricaneWindfields> hurricanes = query.toList();
+        List<HurricaneWindfields> hurricanes = query.iterator().toList();
 
         return hurricanes;
     }
@@ -126,11 +123,9 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     @Override
     public List<HurricaneWindfields> searchHurricaneWindfields(String text) {
         Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
-
-        query.or(query.criteria("name").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text));
-
-        List<HurricaneWindfields> hurricanes = query.toList();
+        // need to set text field for name and description
+        List<HurricaneWindfields> hurricanes = query.filter(Filters.text(text).caseSensitive(false))
+            .iterator().toList();;
 
         return hurricanes;
     }

@@ -8,12 +8,12 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.morphia.annotations.*;
+import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.WindfieldsDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
@@ -22,6 +22,9 @@ import java.util.List;
 
 
 @XmlRootElement
+@Indexes(@Index(fields = {
+    @Field(value = "name", type = IndexType.TEXT),
+    @Field(value = "description", type = IndexType.TEXT)}))
 public class HurricaneWindfields {
 
     @Id
