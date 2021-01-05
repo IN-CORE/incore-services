@@ -14,6 +14,7 @@ import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.Query;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
 import org.bson.types.ObjectId;
@@ -68,11 +69,12 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     @Override
     public Hurricane deleteHurricaneById(String id) {
         Hurricane hurricane = this.dataStore.find(HurricaneDataset.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+            .filter(Filters.eq("_id", new ObjectId(id)))
+            .first();
         if (hurricane != null) {
-            Query<HurricaneDataset> query = this.dataStore.find(HurricaneDataset.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<HurricaneDataset> query = this.dataStore.find(HurricaneDataset.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
         return null;
     }
@@ -84,7 +86,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
         }
 
         Hurricane hurricane = this.dataStore.find(HurricaneDataset.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
         // TODO this will need to be updated if there are model based hurricanes
 
         return hurricane;
@@ -93,7 +95,8 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     @Override
     public List<Hurricane> getHurricanes() {
         List<Hurricane> hurricanes = new LinkedList<>();
-        List<HurricaneDataset> hurricaneDatasets = this.dataStore.find(HurricaneDataset.class).toList();
+        List<HurricaneDataset> hurricaneDatasets = this.dataStore.find(HurricaneDataset.class)
+            .iterator().toList();
         hurricanes.addAll(hurricaneDatasets);
         // TODO this will need to be updated if there are model based hurricanes
 
@@ -110,10 +113,8 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     public List<Hurricane> searchHurricanes(String text) {
         Query<HurricaneDataset> query = this.dataStore.find(HurricaneDataset.class);
 
-        query.or(query.criteria("name").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text));
-
-        List<HurricaneDataset> hurricaneDatasets = query.toList();
+        List<HurricaneDataset> hurricaneDatasets = query.filter(Filters.text(text).caseSensitive(false))
+            .iterator().toList();
 
         List<Hurricane> hurricanes = new ArrayList<>();
         hurricanes.addAll(hurricaneDatasets);

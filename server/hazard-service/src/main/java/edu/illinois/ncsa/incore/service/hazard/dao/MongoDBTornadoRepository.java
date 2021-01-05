@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
@@ -63,24 +64,19 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     @Override
     public List<Tornado> getTornadoes() {
         List<Tornado> tornadoes = new LinkedList<Tornado>();
-        tornadoes.addAll(this.dataStore.find(TornadoModel.class).toList());
-        tornadoes.addAll(this.dataStore.find(TornadoDataset.class).toList());
+        tornadoes.addAll(this.dataStore.find(TornadoModel.class).iterator().toList());
+        tornadoes.addAll(this.dataStore.find(TornadoDataset.class).iterator().toList());
 
         return tornadoes;
     }
 
     @Override
     public List<Tornado> searchTornadoes(String text) {
-        Query<TornadoDataset> datasetQuery = this.dataStore.find(TornadoDataset.class);
-        Query<TornadoModel> modelQuery = this.dataStore.find(TornadoModel.class);
+        Query<TornadoDataset> datasetQuery = this.dataStore.find(TornadoDataset.class).filter(Filters.text(text));
+        Query<TornadoModel> modelQuery = this.dataStore.find(TornadoModel.class).filter(Filters.text(text));
 
-        datasetQuery.or(datasetQuery.criteria("name").containsIgnoreCase(text),
-            datasetQuery.criteria("description").containsIgnoreCase(text));
-        List<TornadoDataset> tornadoDatasets = datasetQuery.toList();
-
-        modelQuery.or(modelQuery.criteria("name").containsIgnoreCase(text),
-            modelQuery.criteria("description").containsIgnoreCase(text));
-        List<TornadoModel> tornadoModels = modelQuery.toList();
+        List<TornadoDataset> tornadoDatasets = datasetQuery.iterator().toList();
+        List<TornadoModel> tornadoModels = modelQuery.iterator().toList();
 
         List<Tornado> tornadoes = new ArrayList<>();
         tornadoes.addAll(tornadoDatasets);
@@ -97,16 +93,16 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
 
     @Override
     public Tornado deleteTornadoById(String id) {
-        Tornado tornado = this.dataStore.find(TornadoModel.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+        Tornado tornado = this.dataStore.find(TornadoModel.class).filter(Filters.eq("_id", new ObjectId(id)))
+            .first();
         if (tornado == null) {
-            Query<TornadoDataset> query = this.dataStore.find(TornadoDataset.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<TornadoDataset> query = this.dataStore.find(TornadoDataset.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         } else {
-            Query<TornadoModel> query = this.dataStore.find(TornadoModel.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<TornadoModel> query = this.dataStore.find(TornadoModel.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
     }
 
@@ -116,13 +112,12 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
             return null;
         }
 
-        Tornado tornado = this.dataStore.find(TornadoModel.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+        Tornado tornado = this.dataStore.find(TornadoModel.class).filter(Filters.eq("_id", new ObjectId(id)))
+            .first();
         if (tornado != null) {
             return tornado;
         }
-        return this.dataStore.find(TornadoDataset.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+        return this.dataStore.find(TornadoDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     @Override

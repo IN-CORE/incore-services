@@ -13,10 +13,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.morphia.annotations.*;
+import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
@@ -25,6 +25,9 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tsunamiType")
 @JsonSubTypes({@JsonSubTypes.Type(value = TsunamiDataset.class, name = "dataset")})
 @XmlRootElement
+@Indexes(@Index(fields = {
+    @Field(value = "name", type = IndexType.TEXT),
+    @Field(value = "description", type = IndexType.TEXT)}))
 public abstract class Tsunami {
     @Id
     @Property("_id")

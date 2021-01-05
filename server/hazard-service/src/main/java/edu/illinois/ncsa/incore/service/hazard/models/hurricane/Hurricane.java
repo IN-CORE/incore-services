@@ -13,8 +13,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
+import dev.morphia.annotations.*;
+import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 
@@ -26,6 +26,9 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hurricaneType")
 @JsonSubTypes({@JsonSubTypes.Type(value = HurricaneDataset.class, name = "dataset")})
 @XmlRootElement
+@Indexes(@Index(fields = {
+    @Field(value = "name", type = IndexType.TEXT),
+    @Field(value = "description", type = IndexType.TEXT)}))
 public abstract class Hurricane {
     @Id
     @Property("_id")

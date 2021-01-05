@@ -13,6 +13,7 @@ import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.Query;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodDataset;
 import org.bson.types.ObjectId;
@@ -66,12 +67,11 @@ public class MongoDBFloodRepository implements IFloodRepository {
 
     @Override
     public Flood deleteFloodById(String id) {
-        Flood flood = this.dataStore.find(FloodDataset.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+        Flood flood = this.dataStore.find(FloodDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
         if (flood != null) {
-            Query<FloodDataset> query = this.dataStore.find(FloodDataset.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<FloodDataset> query = this.dataStore.find(FloodDataset.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
         return null;
     }
@@ -82,8 +82,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
             return null;
         }
 
-        Flood flood = this.dataStore.find(FloodDataset.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+        Flood flood = this.dataStore.find(FloodDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
         // TODO this will need to be updated if there are model based floods
 
         return flood;
@@ -92,7 +91,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
     @Override
     public List<Flood> getFloods() {
         List<Flood> floods = new LinkedList<>();
-        List<FloodDataset> floodDatasets = this.dataStore.find(FloodDataset.class).toList();
+        List<FloodDataset> floodDatasets = this.dataStore.find(FloodDataset.class).iterator().toList();
         floods.addAll(floodDatasets);
         // TODO this will need to be updated if there are model based floods
 
@@ -109,11 +108,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
     public List<Flood> searchFloods(String text) {
         Query<FloodDataset> query = this.dataStore.find(FloodDataset.class);
 
-        query.or(query.criteria("name").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text));
-
-        List<FloodDataset> floodDatasets = query.toList();
-
+        List<FloodDataset> floodDatasets = query.filter(Filters.text(text).caseSensitive(false)).iterator().toList();
         List<Flood> floods = new ArrayList<>();
         floods.addAll(floodDatasets);
 
