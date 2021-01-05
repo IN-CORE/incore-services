@@ -24,7 +24,7 @@ import org.bson.types.ObjectId;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigInteger;
 
-@XmlRootElement
+//@XmlRootElement
 @Embedded
 public class FileDescriptor {
     /**
