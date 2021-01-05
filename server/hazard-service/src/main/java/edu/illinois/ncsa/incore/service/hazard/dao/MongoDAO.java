@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 
@@ -29,13 +30,8 @@ public abstract class MongoDAO {
     }
 
     public void initializeDataStore(Class... classes) {
-        MongoClient client = new MongoClient(mongoClientURI);
-        Set<Class> classesToMap = new HashSet<>(Arrays.asList(classes));
-
-        Morphia morphia = new Morphia(classesToMap);
-        Morphia.createDatastore()
-
-        Datastore morphiaStore = Morphia.createDatastore(client, databaseName);
+//        Set<Class> classesToMap = new HashSet<>(Arrays.asList(classes));
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
         morphiaStore.ensureIndexes();
 
         this.dataStore = morphiaStore;

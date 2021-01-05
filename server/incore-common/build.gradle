@@ -14,7 +14,7 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.5'
     //mongo
     compile('org.mongodb:mongo-java-driver:3.12.5')
-    compile('dev.morphia.morphia:core:1.6.1')
+    compile('dev.morphia.morphia:morphia-core:2.1.3')
 
     compile group: 'com.google.inject', name: 'guice', version: '3.0'
 

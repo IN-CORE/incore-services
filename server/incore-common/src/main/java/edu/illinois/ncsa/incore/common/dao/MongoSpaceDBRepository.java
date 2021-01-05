@@ -13,6 +13,7 @@ package edu.illinois.ncsa.incore.common.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -91,11 +92,9 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-        Set<Class> classesToMap = new HashSet<>();
-        classesToMap.add(Space.class);
-        Morphia morphia = new Morphia(classesToMap);
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
+//        Set<Class> classesToMap = new HashSet<>();
+//        classesToMap.add(Space.class);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

@@ -9,8 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import org.bson.types.ObjectId;
@@ -55,12 +55,8 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-
-        Set<Class> classesToMap = new HashSet<>();
-        Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(HurricaneWindfields.class);
-        Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
+//        classesToMap.add(HurricaneWindfields.class);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

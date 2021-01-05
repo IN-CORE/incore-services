@@ -18,6 +18,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.DatasetType;
@@ -152,8 +153,8 @@ public class MongoDBRepository implements IRepository {
     }
 
     private void initializeDataStore() {
-        Set<Class> classesToMap = new HashSet<>();
-        classesToMap.add(Dataset.class);
+//        Set<Class> classesToMap = new HashSet<>();
+//        classesToMap.add(Dataset.class);
         // You can call MongoClients.create() without any parameters to connect to a MongoDB instance running on
         // localhost on port 27017
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);

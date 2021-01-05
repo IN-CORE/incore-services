@@ -9,8 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
@@ -52,12 +52,10 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
 
-        Set<Class> classesToMap = new HashSet<>();
-        Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(Tornado.class);
-        Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
+//        Set<Class> classesToMap = new HashSet<>();
+//        classesToMap.add(Tornado.class);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
