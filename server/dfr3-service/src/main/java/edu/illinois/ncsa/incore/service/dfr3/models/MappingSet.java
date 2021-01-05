@@ -11,13 +11,12 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.*;
+import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Entity;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
@@ -25,6 +24,12 @@ import java.util.List;
 
 @XmlRootElement
 @Entity("MappingSet")
+@Indexes(@Index(fields = {
+    @Field(value = "name", type = IndexType.TEXT),
+    @Field(value = "hazardType", type = IndexType.TEXT),
+    @Field(value = "inventoryType", type = IndexType.TEXT),
+    @Field(value = "mappingType", type = IndexType.TEXT),
+}))
 public class MappingSet {
 
     @Id

@@ -13,6 +13,7 @@ package mocks;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.query.FindOptions;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import org.bson.types.ObjectId;
@@ -47,7 +48,7 @@ public class MockFragilityDAO implements IFragilityDAO {
         }
 
         Mockito.when(mockDataStore.find(FragilitySet.class)
-            .find(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+            .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.fragilitySets);
 
 
@@ -89,35 +90,28 @@ public class MockFragilityDAO implements IFragilityDAO {
     @Override
     public Optional<FragilitySet> getFragilitySetById(String id) {
         FragilitySet fragilitySet = this.mockDataStore.find(FragilitySet.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
         return Optional.of(fragilitySet);
     }
 
     @Override
     public FragilitySet deleteFragilitySetById(String id){
         FragilitySet fragilitySet = this.mockDataStore.find(FragilitySet.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
 
         if (fragilitySet == null) {
             return null;
         } else {
             Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.mockDataStore.findAndDelete(query);
+            query.filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
     }
 
     @Override
     public List<FragilitySet> searchFragilities(String text) {
-        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
-
-        query.or(query.criteria("demandType").containsIgnoreCase(text),
-                 query.criteria("legacyId").containsIgnoreCase(text),
-                 query.criteria("hazardType").containsIgnoreCase(text),
-                 query.criteria("inventoryType").containsIgnoreCase(text),
-                 query.criteria("authors").containsIgnoreCase(text));
-
-        List<FragilitySet> sets = query.find(new FindOptions().limit(100)).toList();
+        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class).filter(Filters.text(text));
+        List<FragilitySet> sets = query.iterator(new FindOptions().limit(100)).toList();
 
         return sets;
     }
@@ -125,8 +119,8 @@ public class MockFragilityDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
-                                                    .filter(attributeType, attributeValue)
-                                                    .find(new FindOptions().limit(100)).toList();
+                                                    .filter(Filters.eq(attributeType, attributeValue))
+                                                    .iterator(new FindOptions().limit(100)).toList();
 
         return sets;
     }
@@ -136,10 +130,10 @@ public class MockFragilityDAO implements IFragilityDAO {
         Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
+            query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
         }
 
-        List<FragilitySet> sets = query.toList();
+        List<FragilitySet> sets = query.iterator().toList();
 
         return sets;
     }
@@ -147,8 +141,7 @@ public class MockFragilityDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
         List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
-                                                    .field("authors")
-                                                    .contains(author)
+                                                    .filter(Filters.all("authors", author)).iterator()
                                                     .toList();
 
         return sets;

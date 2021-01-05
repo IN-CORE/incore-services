@@ -1,6 +1,10 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.Field;
+import dev.morphia.annotations.Index;
+import dev.morphia.annotations.Indexes;
+import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
@@ -12,6 +16,13 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
+@Indexes(@Index(fields = {
+    @Field(value = "legacyId", type = IndexType.TEXT),
+    @Field(value = "description", type = IndexType.TEXT),
+    @Field(value = "authors", type = IndexType.TEXT),
+    @Field(value = "hazardType", type = IndexType.TEXT),
+    @Field(value = "inventoryType", type = IndexType.TEXT),
+}))
 public abstract class DFR3Set {
     @Id
     protected ObjectId id;

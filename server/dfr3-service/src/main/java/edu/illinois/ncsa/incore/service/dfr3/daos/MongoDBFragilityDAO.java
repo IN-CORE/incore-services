@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
@@ -34,7 +35,7 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
 
     @Override
     public List<FragilitySet> getFragilities() {
-        return this.dataStore.find(FragilitySet.class).toList();
+        return this.dataStore.find(FragilitySet.class).iterator().toList();
     }
 
     @Override
@@ -69,7 +70,7 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
         }
 
         FragilitySet fragilitySet = this.dataStore.find(FragilitySet.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
 
         if (fragilitySet == null) {
             return Optional.empty();
@@ -81,29 +82,21 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     @Override
     public FragilitySet deleteFragilitySetById(String id) {
         FragilitySet fragilitySet = this.dataStore.find(FragilitySet.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
 
         if (fragilitySet == null) {
             return null;
         } else {
-            Query<FragilitySet> query = this.dataStore.find(FragilitySet.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<FragilitySet> query = this.dataStore.find(FragilitySet.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
     }
 
     @Override
     public List<FragilitySet> searchFragilities(String text) {
-        Query<FragilitySet> query = this.dataStore.find(FragilitySet.class);
-
-        query.or(query.criteria("demandType").containsIgnoreCase(text),
-            query.criteria("legacyId").containsIgnoreCase(text),
-            query.criteria("hazardType").containsIgnoreCase(text),
-            query.criteria("inventoryType").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text),
-            query.criteria("authors").containsIgnoreCase(text));
-
-        List<FragilitySet> sets = query.toList();
+        Query<FragilitySet> query = this.dataStore.find(FragilitySet.class).filter(Filters.text(text));
+        List<FragilitySet> sets = query.iterator().toList();
 
         return sets;
     }
@@ -111,8 +104,7 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.dataStore.find(FragilitySet.class)
-            .filter(attributeType, attributeValue)
-            .toList();
+            .filter(Filters.eq(attributeType, attributeValue)).iterator().toList();
 
         return sets;
     }
@@ -122,20 +114,19 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
         Query<FragilitySet> query = this.dataStore.find(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
+            query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
         }
 
-        List<FragilitySet> sets = query.toList();
+        List<FragilitySet> sets = query.iterator().toList();
 
         return sets;
     }
 
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
-        List<FragilitySet> sets = this.dataStore.find(FragilitySet.class)
-            .field("authors")
-            .contains(author)
-            .toList();
+        // TODO need to make sure this works
+        List<FragilitySet> sets = this.dataStore.find(FragilitySet.class).filter(Filters.all("authors", author))
+            .iterator().toList();
 
         return sets;
     }

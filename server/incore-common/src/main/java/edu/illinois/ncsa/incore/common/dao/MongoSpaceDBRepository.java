@@ -14,6 +14,7 @@ package edu.illinois.ncsa.incore.common.dao;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -46,18 +47,16 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     public List<Space> getAllSpaces() {
-        return this.dataStore.find(Space.class).toList();
+        return this.dataStore.find(Space.class).iterator().toList();
     }
 
     public Space getSpaceById(String id) {
-        return this.dataStore.find(Space.class)
-            .field("_id").equal(new ObjectId(id)).tryNext();
+        return this.dataStore.find(Space.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     public Space getSpaceByName(String name) {
         Query<Space> spaceQuery = this.dataStore.find(Space.class);
-        spaceQuery.field(SPACE_FIELD_METADATA_NAME).equal(name);
-        Space foundSpace = spaceQuery.tryNext();
+        Space foundSpace = spaceQuery.filter(Filters.eq(SPACE_FIELD_METADATA_NAME, name)).first();
 
         return foundSpace;
     }
@@ -86,9 +85,8 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     public Space deleteSpace(String id) {
-        Query<Space> spaceQuery = this.dataStore.find(Space.class);
-        spaceQuery.field("_id").equal(new ObjectId(id));
-        return this.dataStore.findAndDelete(spaceQuery);
+        Query<Space> spaceQuery = this.dataStore.find(Space.class).filter(Filters.eq("_id", new ObjectId(id)));
+        return spaceQuery.findAndDelete();
     }
 
     private void initializeDataStore() {
