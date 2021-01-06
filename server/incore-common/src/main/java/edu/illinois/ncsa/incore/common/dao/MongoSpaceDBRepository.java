@@ -14,6 +14,9 @@ package edu.illinois.ncsa.incore.common.dao;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.Mapper;
+import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
@@ -90,7 +93,13 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
         morphiaStore.getMapper().map(Space.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
