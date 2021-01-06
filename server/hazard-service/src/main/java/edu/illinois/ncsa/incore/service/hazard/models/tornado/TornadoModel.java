@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
+import dev.morphia.annotations.Entity;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import org.bson.types.ObjectId;
@@ -17,6 +18,7 @@ import dev.morphia.annotations.Property;
 
 import java.util.List;
 
+@Entity("TornadoModel")
 public class TornadoModel extends Tornado {
     private String tornadoModel;
 

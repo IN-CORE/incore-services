@@ -6,12 +6,14 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import dev.morphia.annotations.Entity;
 import io.swagger.annotations.ApiModel;
 
 import java.util.LinkedList;
 import java.util.List;
 
 @ApiModel(value="Earthquake dataset", description="Contains id, description, name, privileges and the hazard datasets")
+@Entity("EarthquakeDataset")
 public class EarthquakeDataset extends Earthquake {
 
     private List<HazardDataset> hazardDatasets = new LinkedList<HazardDataset>();

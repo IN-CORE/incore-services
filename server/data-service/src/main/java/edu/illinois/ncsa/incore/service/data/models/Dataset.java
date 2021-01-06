@@ -28,13 +28,12 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
-//@Indexes(@Index(fields = {
-//    @Field(value = "title", type = IndexType.TEXT),
-//    @Field(value = "description", type = IndexType.TEXT),
-//    @Field(value = "creator", type = IndexType.TEXT),
-////    @Field(value = "fileDescriptors.filename", type = IndexType.TEXT),
-//    @Field(value = "dataType", type = IndexType.TEXT),
-//}))
+@Indexes(@Index(fields = {
+    @Field(value = "title", type = IndexType.TEXT),
+    @Field(value = "description", type = IndexType.TEXT),
+    @Field(value = "creator", type = IndexType.TEXT),
+    @Field(value = "dataType", type = IndexType.TEXT),
+}))
 @Entity("Dataset")
 public class Dataset {
     /**
