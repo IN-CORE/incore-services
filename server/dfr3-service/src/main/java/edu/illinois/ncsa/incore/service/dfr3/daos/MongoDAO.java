@@ -15,6 +15,8 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -31,7 +33,13 @@ public abstract class MongoDAO {
     }
 
     public void initializeDataStore(Class... classes) {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
         morphiaStore.getMapper().map(classes);
         morphiaStore.ensureIndexes();
 

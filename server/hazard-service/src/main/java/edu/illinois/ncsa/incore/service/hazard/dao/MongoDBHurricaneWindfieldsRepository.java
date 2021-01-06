@@ -11,6 +11,8 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import org.bson.types.ObjectId;
@@ -53,7 +55,14 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     }
 
     private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+            mongoClientURI.getDatabase(),
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
         morphiaStore.getMapper().map(HurricaneWindfields.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;

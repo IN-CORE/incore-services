@@ -12,6 +12,8 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
@@ -52,7 +54,14 @@ public class MongoDBFloodRepository implements IFloodRepository {
     }
 
     private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), mongoClientURI.getDatabase());
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+            mongoClientURI.getDatabase(),
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
         morphiaStore.getMapper().map(Flood.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;

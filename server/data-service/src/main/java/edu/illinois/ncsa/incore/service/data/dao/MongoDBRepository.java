@@ -17,6 +17,8 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import dev.morphia.query.Query;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -148,7 +150,13 @@ public class MongoDBRepository implements IRepository {
     private void initializeDataStore() {
         // You can call MongoClients.create() without any parameters to connect to a MongoDB instance running on
         // localhost on port 27017
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
