@@ -17,6 +17,7 @@ import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoRandomWidth;
 import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
@@ -63,7 +64,8 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
                 .discriminatorKey("className")
                 .build()
         );
-        morphiaStore.getMapper().map(Tornado.class);
+        morphiaStore.getMapper().map(TornadoDataset.class);
+        morphiaStore.getMapper().map(TornadoModel.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

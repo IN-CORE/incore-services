@@ -6,6 +6,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields;
 
+import dev.morphia.annotations.Embedded;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

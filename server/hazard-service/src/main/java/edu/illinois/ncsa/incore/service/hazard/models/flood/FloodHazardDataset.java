@@ -10,10 +10,12 @@ package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import dev.morphia.annotations.Embedded;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hazardType")
 @JsonSubTypes({@JsonSubTypes.Type(value = ProbabilisticFloodHazard.class, name = "probabilistic"),
     @JsonSubTypes.Type(value = DeterministicFloodHazard.class, name = "deterministic")})
+@Embedded
 public abstract class FloodHazardDataset {
     private String datasetId;
     private String demandType;

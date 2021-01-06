@@ -62,7 +62,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
                 .discriminatorKey("className")
                 .build()
         );
-        morphiaStore.getMapper().map(Flood.class);
+        morphiaStore.getMapper().map(FloodDataset.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

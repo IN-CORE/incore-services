@@ -63,7 +63,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
                 .discriminatorKey("className")
                 .build()
         );
-        morphiaStore.getMapper().map(Hurricane.class);
+        morphiaStore.getMapper().map(HurricaneDataset.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

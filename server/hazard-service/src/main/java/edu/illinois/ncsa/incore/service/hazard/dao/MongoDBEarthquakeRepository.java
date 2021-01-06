@@ -65,7 +65,8 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
                 .discriminatorKey("className")
                 .build()
         );
-        morphiaStore.getMapper().map(Earthquake.class);
+        morphiaStore.getMapper().map(EarthquakeDataset.class);
+        morphiaStore.getMapper().map(EarthquakeModel.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

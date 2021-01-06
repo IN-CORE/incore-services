@@ -8,9 +8,11 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import dev.morphia.annotations.Embedded;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hazardType")
 @JsonSubTypes({@JsonSubTypes.Type(value = DeterministicHazardDataset.class, name = "deterministic"), @JsonSubTypes.Type(value = ProbabilisticHazardDataset.class, name = "probabilistic")})
+@Embedded
 public abstract class HazardDataset {
     private String datasetId;
     private String demandType;
