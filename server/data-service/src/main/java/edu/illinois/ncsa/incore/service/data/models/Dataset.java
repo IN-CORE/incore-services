@@ -35,7 +35,7 @@ import java.util.List;
 ////    @Field(value = "fileDescriptors.filename", type = IndexType.TEXT),
 //    @Field(value = "dataType", type = IndexType.TEXT),
 //}))
-@Entity(value = "Dataset")
+@Entity
 public class Dataset {
     /**
      * Used for serialization of object

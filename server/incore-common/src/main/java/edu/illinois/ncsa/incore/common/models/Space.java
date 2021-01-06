@@ -29,7 +29,7 @@ import java.util.List;
  */
 
 @XmlRootElement
-@Entity(value = "Space")
+@Entity
 public class Space {
     @Id
     @Property("_id")
