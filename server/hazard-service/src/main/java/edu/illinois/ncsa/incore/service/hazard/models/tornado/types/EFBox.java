@@ -9,9 +9,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.types;
 
+import dev.morphia.annotations.Embedded;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Embedded
 public class EFBox {
     private List<Double> efBoxWidths = new ArrayList<Double>();
 

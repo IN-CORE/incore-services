@@ -157,6 +157,8 @@ public class MongoDBRepository implements IRepository {
                 .discriminatorKey("className")
                 .build()
         );
+        morphiaStore.getMapper().map(Dataset.class);
+        morphiaStore.getMapper().map(DatasetType.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
