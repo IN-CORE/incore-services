@@ -8,7 +8,7 @@ import org.bson.types.ObjectId;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-@Entity
+@Entity("DatasetType")
 public class DatasetType {
 
     /**

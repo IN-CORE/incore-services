@@ -28,7 +28,7 @@ import java.util.List;
 @Indexes(@Index(fields = {
     @Field(value = "name", type = IndexType.TEXT),
     @Field(value = "description", type = IndexType.TEXT)}))
-@Entity
+@Entity("Tsunami")
 public abstract class Tsunami {
     @Id
     @Property("_id")
