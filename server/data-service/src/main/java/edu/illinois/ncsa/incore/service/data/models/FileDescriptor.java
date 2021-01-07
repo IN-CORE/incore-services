@@ -25,7 +25,7 @@ import org.bson.types.ObjectId;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigInteger;
 
-//@XmlRootElement
+@XmlRootElement
 @Embedded
 @Indexes(@Index(fields = {
     @Field(value = "filename", type = IndexType.TEXT),
@@ -39,7 +39,6 @@ public class FileDescriptor {
     /**
      * Unique identifier for this bean, used by persistence layer
      */
-//    @Id
     @Property("_id")
     private ObjectId id = new ObjectId();
 
