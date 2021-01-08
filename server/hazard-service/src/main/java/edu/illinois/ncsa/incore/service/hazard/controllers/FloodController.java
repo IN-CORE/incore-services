@@ -108,10 +108,11 @@ public class FloodController {
         @ApiParam(value = "Flood dataset guid from data service.", required = true) @PathParam("flood-id") String floodId) {
 
         Flood flood = repository.getFloodById(floodId);
-        flood.setSpaces(spaceRepository.getSpaceNamesOfMember(floodId));
         if (flood == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a flood with id " + floodId);
         }
+
+        flood.setSpaces(spaceRepository.getSpaceNamesOfMember(floodId));
 
         if (authorizer.canUserReadMember(this.username, floodId, spaceRepository.getAllSpaces())) {
             return flood;

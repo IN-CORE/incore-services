@@ -292,10 +292,12 @@ public class EarthquakeController {
         @ApiParam(value = "Id of the earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId) {
 
         Earthquake earthquake = repository.getEarthquakeById(earthquakeId);
-        earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquakeId));
         if (earthquake == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find an earthquake with id " + earthquakeId);
         }
+
+        earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquakeId));
+
         //feeling lucky
         Space space = spaceRepository.getSpaceByName(this.username);
         if (space != null && space.hasMember(earthquakeId)) {

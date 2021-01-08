@@ -111,10 +111,11 @@ public class HurricaneController {
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId) {
 
         Hurricane hurricane = repository.getHurricaneById(hurricaneId);
-        hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
         if (hurricane == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a hurricane with id " + hurricaneId);
         }
+
+        hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
 
         if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
             return hurricane;
