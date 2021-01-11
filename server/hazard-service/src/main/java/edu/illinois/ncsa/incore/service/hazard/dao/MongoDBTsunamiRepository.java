@@ -94,7 +94,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public List<Tsunami> searchTsunamis(String text) {
-        Query<TsunamiDataset> query = this.dataStore.find(TsunamiDataset.class).filter(Filters.text(text));
+        Query<TsunamiDataset> query = this.dataStore.find(TsunamiDataset.class).filter(Filters.text(text).caseSensitive(false));
         List<TsunamiDataset> tsunamiDatasets = query.iterator().toList();
 
         List<Tsunami> tsunamis = new ArrayList<>();

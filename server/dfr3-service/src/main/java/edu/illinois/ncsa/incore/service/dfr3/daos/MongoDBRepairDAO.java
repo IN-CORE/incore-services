@@ -81,7 +81,7 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
     @Override
     public List<RepairSet> searchRepairs(String text) {
-        Query<RepairSet> query = this.dataStore.find(RepairSet.class).filter(Filters.text(text));
+        Query<RepairSet> query = this.dataStore.find(RepairSet.class).filter(Filters.text(text).caseSensitive(false));
         List<RepairSet> sets = query.iterator().toList();
 
         return sets;

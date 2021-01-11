@@ -110,7 +110,7 @@ public class MockFragilityDAO implements IFragilityDAO {
 
     @Override
     public List<FragilitySet> searchFragilities(String text) {
-        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class).filter(Filters.text(text));
+        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class).filter(Filters.text(text).caseSensitive(false));
         List<FragilitySet> sets = query.iterator(new FindOptions().limit(100)).toList();
 
         return sets;

@@ -89,7 +89,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
     @Override
     public List<MappingSet> searchMappings(String text, String mappingType) {
-        Query<MappingSet> query = this.dataStore.find(MappingSet.class).filter(Filters.text(text));
+        Query<MappingSet> query = this.dataStore.find(MappingSet.class).filter(Filters.text(text).caseSensitive(false));
         List<MappingSet> sets = query.iterator().toList();
 
         return sets;

@@ -82,7 +82,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
 
     @Override
     public List<RestorationSet> searchRestorations(String text) {
-        Query<RestorationSet> query = this.dataStore.find(RestorationSet.class).filter(Filters.text(text));
+        Query<RestorationSet> query = this.dataStore.find(RestorationSet.class).filter(Filters.text(text).caseSensitive(false));
         List<RestorationSet> sets = query.iterator().toList();
 
         return sets;
