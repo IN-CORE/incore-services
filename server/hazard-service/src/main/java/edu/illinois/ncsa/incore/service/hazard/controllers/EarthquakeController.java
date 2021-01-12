@@ -423,6 +423,10 @@ public class EarthquakeController {
             List<Double> hazVals = new ArrayList<>();
             List<Boolean> amplifyHazards = request.getAmplifyHazards();
 
+            List<String> resDemands = new ArrayList<>();
+            List<String> resUnits = new ArrayList<>();
+
+
             if(demands == null || units == null || request.getLoc() == null){
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST,  "Please check if demands, units and location" +
                     " are provided for every element in the request json");
@@ -454,20 +458,24 @@ public class EarthquakeController {
                         new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
                         units.get(i), 0, amplifyHazard, this.username);
 //                    periods.add(demandComponents[0]);
+                    String period = res.getPeriod() == "0.0" ? "" : res.getPeriod() + " ";
+                    resDemands.add(period + res.getDemand());
+                    resUnits.add(res.getUnits());
                     hazVals.add(res.getHazardValue());
                 }
             } catch (UnsupportedHazardException e) {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
                     " for all the locations");
             } catch (Exception ex) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Exception occured when calculating" +
+                    " hazard value. Please check if the demands and units provided are supported" +
                     " for all the locations");
             }
 
             EqValuesResponse response = new EqValuesResponse();
             response.setHazardValues(hazVals);
-            response.setDemands(request.getDemands());
-            response.setUnits(request.getUnits());
+            response.setDemands(resDemands);
+            response.setUnits(resUnits);
 //            response.setPeriods(periods);
             response.setAmplifyHazards(amplifyHazards);
             response.setLoc(request.getLoc());
