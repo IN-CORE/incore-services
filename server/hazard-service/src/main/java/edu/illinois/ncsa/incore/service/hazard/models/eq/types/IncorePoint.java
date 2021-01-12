@@ -1,13 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
- * This program and the accompanying materials are made available under the
- * terms of the Mozilla Public License v2.0 which accompanies this distribution,
- * and is available at https://www.mozilla.org/en-US/MPL/2.0/
- *
- * Contributors:
- * Gowtham Naraharisetty
- * Chris Navarro
- *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.types;
 
 import org.locationtech.jts.geom.Coordinate;
@@ -24,7 +14,7 @@ public class IncorePoint {
     public IncorePoint(String latlong) {
         String[] str = latlong.split(",");
         if (str.length != 2) {
-            throw new IllegalArgumentException("The format needs to be decimalLat,decimalLong");
+            throw new IllegalArgumentException("The format of the location needs to be decimalLat,decimalLong");
         }
         double latitude = Double.parseDouble(str[0]);
         double longitude = Double.parseDouble(str[1]);

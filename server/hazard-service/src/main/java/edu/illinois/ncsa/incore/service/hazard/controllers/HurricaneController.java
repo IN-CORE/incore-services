@@ -1,12 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2019 University of Illinois and others.  All rights reserved.
- * This program and the accompanying materials are made available under the
- * terms of the Mozilla Public License v2.0 which accompanies this distribution,
- * and is available at https://www.mozilla.org/en-US/MPL/2.0/
- *
- * Contributors:
- * Chris Navarro (NCSA) - initial API and implementation
- *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -200,6 +191,53 @@ public class HurricaneController {
             log.error("Illegal Argument has been passed in.", e);
         }
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create hurricane, check the format of your request.");
+    }
+
+    @POST
+    @Path("{hurricane-id}/values")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns hurricane values for a set of locations",
+        notes = "Outputs hazard values, demand types, units and location")
+    public List<ValuesResponse> postValues(@PathParam("hurricane-id") String hurricaneId,
+                                          List<ValuesRequest> valuesRequest) {
+        Hurricane hurricane = getHurricaneById(hurricaneId);
+        List<ValuesResponse> valResponse = new ArrayList<>();
+
+        for(ValuesRequest request: valuesRequest){
+            List<String> demands = request.getDemands();
+            List<String> units = request.getUnits();
+            List<Double> hazVals = new ArrayList<>();
+            if(demands == null || units == null || request.getLoc() == null){
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,  "Please check if demands, units and location" +
+                    " are provided for every element in the request json");
+            }
+
+            if(demands.size() == 0 || units.size() == 0 || demands.size() != units.size()){
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The demands and units for at least one of " +
+                    "the locations are either missing or not of the same size");
+            }
+
+            try {
+                for(int i=0; i < demands.size(); i++){
+                    HurricaneHazardResult res = HurricaneCalc.getHurricaneHazardValue(hurricane, demands.get(i),
+                        units.get(i), request.getLoc(), this.username);
+                    hazVals.add(res.getHazardValue());
+                }
+            } catch (UnsupportedHazardException e) {
+               throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    " for all the locations");
+            }
+
+            ValuesResponse response = new ValuesResponse();
+            response.setHazardValues(hazVals);
+            response.setDemands(request.getDemands());
+            response.setUnits(request.getUnits());
+            response.setLoc(request.getLoc());
+            valResponse.add(response);
+        }
+
+        return valResponse;
     }
 
     @GET
