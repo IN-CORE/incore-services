@@ -467,7 +467,7 @@ public class EarthquakeController {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
                     " for all the locations");
             } catch (Exception ex) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Exception occured when calculating" +
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Exception occurred when calculating" +
                     " hazard value. Please check if the demands and units provided are supported" +
                     " for all the locations");
             }
