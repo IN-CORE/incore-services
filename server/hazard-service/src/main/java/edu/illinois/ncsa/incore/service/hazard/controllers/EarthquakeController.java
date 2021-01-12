@@ -10,6 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -395,6 +396,86 @@ public class EarthquakeController {
             return results;
         }
         return null;
+    }
+
+    @POST
+    @Path("{earthquake-id}/values")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns earthquake values for a set of locations",
+        notes = "Outputs hazard values, demand types, units, periods and location.")
+    public List<EqValuesResponse> postValues(@PathParam("earthquake-id") String earthquakeId,
+                                             List<EqValuesRequest> valuesRequest) {
+        Earthquake eq = getEarthquake(earthquakeId);
+
+        Map<BaseAttenuation, Double> attenuations = null;
+        if (eq instanceof EarthquakeModel) {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
+            attenuations = attenuationProvider.getAttenuations(earthquake);
+        }
+
+        List<EqValuesResponse> valResponse = new ArrayList<>();
+
+        for(EqValuesRequest request: valuesRequest){
+            List<String> demands = request.getDemands();
+//            List<String> periods = new ArrayList<>();
+            List<String> units = request.getUnits();
+            List<Double> hazVals = new ArrayList<>();
+            List<Boolean> amplifyHazards = request.getAmplifyHazards();
+
+            if(demands == null || units == null || request.getLoc() == null){
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,  "Please check if demands, units and location" +
+                    " are provided for every element in the request json");
+            }
+
+            if(demands.size() == 0 || units.size() == 0 || demands.size() != units.size()){
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The demands and units for at least one of " +
+                    "the locations are either missing or not of the same size");
+            }
+
+            if(amplifyHazards == null){
+                amplifyHazards = new ArrayList<>(Collections.nCopies(demands.size(), true));
+            }
+
+            if(amplifyHazards.size() > 0 && demands.size() != amplifyHazards.size()){
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The demands and amplifyHazards arrays are " +
+                    "not of the same size");
+            }
+
+            try {
+                for(int i=0; i < demands.size(); i++){
+                    String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
+                    Boolean amplifyHazard = true;
+
+                    if(amplifyHazards.get(i) != null && !amplifyHazards.get(i)){
+                        amplifyHazard = false;
+                    }
+                    SeismicHazardResult res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
+                        new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
+                        units.get(i), 0, amplifyHazard, this.username);
+//                    periods.add(demandComponents[0]);
+                    hazVals.add(res.getHazardValue());
+                }
+            } catch (UnsupportedHazardException e) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    " for all the locations");
+            } catch (Exception ex) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    " for all the locations");
+            }
+
+            EqValuesResponse response = new EqValuesResponse();
+            response.setHazardValues(hazVals);
+            response.setDemands(request.getDemands());
+            response.setUnits(request.getUnits());
+//            response.setPeriods(periods);
+            response.setAmplifyHazards(amplifyHazards);
+            response.setLoc(request.getLoc());
+            valResponse.add(response);
+        }
+
+        return valResponse;
+
     }
 
     @GET

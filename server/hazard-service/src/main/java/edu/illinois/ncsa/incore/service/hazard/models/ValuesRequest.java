@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
+package edu.illinois.ncsa.incore.service.hazard.models;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 

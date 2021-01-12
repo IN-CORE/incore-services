@@ -12,6 +12,8 @@ import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import io.swagger.annotations.*;
