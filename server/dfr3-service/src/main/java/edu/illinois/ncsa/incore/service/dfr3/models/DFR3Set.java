@@ -16,13 +16,6 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
-@Indexes(@Index(fields = {
-    @Field(value = "legacyId", type = IndexType.TEXT),
-    @Field(value = "description", type = IndexType.TEXT),
-    @Field(value = "authors", type = IndexType.TEXT),
-    @Field(value = "hazardType", type = IndexType.TEXT),
-    @Field(value = "inventoryType", type = IndexType.TEXT),
-}))
 public abstract class DFR3Set {
     @Id
     protected ObjectId id;

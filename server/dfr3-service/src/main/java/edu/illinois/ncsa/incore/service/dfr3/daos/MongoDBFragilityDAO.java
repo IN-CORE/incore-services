@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
 import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.experimental.filters.RegexFilter;
 import edu.illinois.ncsa.incore.service.dfr3.models.ConditionalStandardFragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilityCurve;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
@@ -95,7 +96,14 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
 
     @Override
     public List<FragilitySet> searchFragilities(String text) {
-        Query<FragilitySet> query = this.dataStore.find(FragilitySet.class).filter(Filters.text(text).caseSensitive(false));
+        Query<FragilitySet> query = this.dataStore.find(FragilitySet.class).filter(
+            Filters.or(
+                Filters.regex("demandType").pattern(text).caseInsensitive(),
+                Filters.regex("legacyId").pattern(text).caseInsensitive(),
+                Filters.regex("hazardType").pattern(text).caseInsensitive(),
+                Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive(),
+                Filters.regex("authors").pattern(text).caseInsensitive()));
         List<FragilitySet> sets = query.iterator().toList();
 
         return sets;
