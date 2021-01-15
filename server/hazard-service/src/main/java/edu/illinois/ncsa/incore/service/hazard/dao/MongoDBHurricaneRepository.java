@@ -121,7 +121,12 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     public List<Hurricane> searchHurricanes(String text) {
         Query<HurricaneDataset> query = this.dataStore.find(HurricaneDataset.class);
 
-        List<HurricaneDataset> hurricaneDatasets = query.filter(Filters.text(text).caseSensitive(false))
+        List<HurricaneDataset> hurricaneDatasets = query.filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            )
+        )
             .iterator().toList();
 
         List<Hurricane> hurricanes = new ArrayList<>();

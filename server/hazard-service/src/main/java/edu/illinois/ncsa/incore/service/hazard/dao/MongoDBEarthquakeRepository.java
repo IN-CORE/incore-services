@@ -122,11 +122,15 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
 
     @Override
     public List<Earthquake> searchEarthquakes(String text) {
-        Query<EarthquakeDataset> query = this.dataStore.find(EarthquakeDataset.class)
-            .filter(Filters.text(text).caseSensitive(false));
+        Query<EarthquakeDataset> query = this.dataStore.find(EarthquakeDataset.class).filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()));
 
-        Query<EarthquakeModel> modelQuery = this.dataStore.find(EarthquakeModel.class)
-            .filter(Filters.text(text).caseSensitive(false));
+        Query<EarthquakeModel> modelQuery = this.dataStore.find(EarthquakeModel.class).filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()));
 
         List<Earthquake> earthquakes = new ArrayList<>();
         earthquakes.addAll(query.iterator().toList());

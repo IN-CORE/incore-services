@@ -116,7 +116,12 @@ public class MongoDBFloodRepository implements IFloodRepository {
     public List<Flood> searchFloods(String text) {
         Query<FloodDataset> query = this.dataStore.find(FloodDataset.class);
 
-        List<FloodDataset> floodDatasets = query.filter(Filters.text(text).caseSensitive(false)).iterator().toList();
+        List<FloodDataset> floodDatasets = query.filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            )
+        ).iterator().toList();
         List<Flood> floods = new ArrayList<>();
         floods.addAll(floodDatasets);
 

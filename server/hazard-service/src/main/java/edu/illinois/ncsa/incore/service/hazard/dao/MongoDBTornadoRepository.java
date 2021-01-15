@@ -81,8 +81,16 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
 
     @Override
     public List<Tornado> searchTornadoes(String text) {
-        Query<TornadoDataset> datasetQuery = this.dataStore.find(TornadoDataset.class).filter(Filters.text(text).caseSensitive(false));
-        Query<TornadoModel> modelQuery = this.dataStore.find(TornadoModel.class).filter(Filters.text(text).caseSensitive(false));
+        Query<TornadoDataset> datasetQuery = this.dataStore.find(TornadoDataset.class).filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            ));
+        Query<TornadoModel> modelQuery = this.dataStore.find(TornadoModel.class).filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            ));
 
         List<TornadoDataset> tornadoDatasets = datasetQuery.iterator().toList();
         List<TornadoModel> tornadoModels = modelQuery.iterator().toList();

@@ -174,7 +174,14 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public List<Dataset> searchDatasets(String text) {
-        Query<Dataset> query = this.dataStore.find(Dataset.class).filter(Filters.text(text).caseSensitive(false));
+        Query<Dataset> query = this.dataStore.find(Dataset.class).filter(
+            Filters.or(
+                Filters.regex("title").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive(),
+                Filters.regex("creator").pattern(text).caseInsensitive(),
+                Filters.regex("fileDescriptor.filename").pattern(text).caseInsensitive(),
+                Filters.regex("dataType").pattern(text).caseInsensitive()
+            ));
         return query.iterator().toList();
     }
 
