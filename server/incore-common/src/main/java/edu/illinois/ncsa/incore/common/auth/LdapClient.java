@@ -62,66 +62,64 @@ public class LdapClient {
     }
 
     public Set<String> getUserGroups(String user) {
-//
-//        long ldapRefreshSecs = 900;
-//        String ldapRefreshString = System.getenv("AUTH_LDAP_CACHE_REFRESH_SECS");
-//        if(ldapRefreshString != null && ldapRefreshString != "") {
-//            try {
-//                ldapRefreshSecs = Long.parseLong(ldapRefreshString);
-//            }
-//            catch(NumberFormatException e){
-//                log.error("NumberFormatException when reading the system env variables: AUTH_LDAP_CACHE_REFRESH_SECS");
-//            }
-//        }
-//        long currSecs = System.currentTimeMillis()/1000;
-//
-//        if ( userGroupCache.containsKey(user)) {
-//            if (currSecs - userGroupCache.get(user).getLastUserRefresh() < ldapRefreshSecs) {
-//                return userGroupCache.get(user).getUserGroups();
-//            }
-//        }
-//
-//        Groups groupsInfo = new Groups();
-//        Set<String> result = new HashSet<>();
-//        try {
-//            DirContext ctx = getContext();
-//            SearchControls ctls = new SearchControls();
-//            String[] attrIDs = {"memberof"};
-//            ctls.setReturningAttributes(attrIDs);
-//            ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-//
-//            if (userDn == null) {
-//                log.error("No AUTH_LDAP_USER_DN in system env");
-//            }
-//
-//            NamingEnumeration answer = ctx.search(userDn, "(uid=" + user + ")", ctls);
-//            while (answer.hasMore()) {
-//                SearchResult rslt = (SearchResult) answer.next();
-//                Attributes attrs = rslt.getAttributes();
-//                String[] groupsDns = attrs.get("memberof").toString().split(", ");
-//
-//
-//                Set<String> groups = Arrays.stream(groupsDns)
-//                    .map(this::extractCnFromDn)
-//                    .collect(Collectors.toSet());
-//
-//                result.addAll(groups);
-//
-//            }
-//            ctx.close();
-//        } catch (NamingException e) {
-//            log.error("Could not find groups for user " + user, e);
-//        }
-//
-//        groupsInfo.setUserGroups(result);
-//        groupsInfo.setLastUserRefresh(System.currentTimeMillis()/1000);
-//
-//        userGroupCache.put(user, groupsInfo);
-//
-//        return result;
 
-        Set<String> set = new HashSet<>(Arrays.asList("incore_user", "incore_admin", "prj_incore"));
-        return set;
+        long ldapRefreshSecs = 900;
+        String ldapRefreshString = System.getenv("AUTH_LDAP_CACHE_REFRESH_SECS");
+        if(ldapRefreshString != null && ldapRefreshString != "") {
+            try {
+                ldapRefreshSecs = Long.parseLong(ldapRefreshString);
+            }
+            catch(NumberFormatException e){
+                log.error("NumberFormatException when reading the system env variables: AUTH_LDAP_CACHE_REFRESH_SECS");
+            }
+        }
+        long currSecs = System.currentTimeMillis()/1000;
+
+        if ( userGroupCache.containsKey(user)) {
+            if (currSecs - userGroupCache.get(user).getLastUserRefresh() < ldapRefreshSecs) {
+                return userGroupCache.get(user).getUserGroups();
+            }
+        }
+
+        Groups groupsInfo = new Groups();
+        Set<String> result = new HashSet<>();
+        try {
+            DirContext ctx = getContext();
+            SearchControls ctls = new SearchControls();
+            String[] attrIDs = {"memberof"};
+            ctls.setReturningAttributes(attrIDs);
+            ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+
+            if (userDn == null) {
+                log.error("No AUTH_LDAP_USER_DN in system env");
+            }
+
+            NamingEnumeration answer = ctx.search(userDn, "(uid=" + user + ")", ctls);
+            while (answer.hasMore()) {
+                SearchResult rslt = (SearchResult) answer.next();
+                Attributes attrs = rslt.getAttributes();
+                String[] groupsDns = attrs.get("memberof").toString().split(", ");
+
+
+                Set<String> groups = Arrays.stream(groupsDns)
+                    .map(this::extractCnFromDn)
+                    .collect(Collectors.toSet());
+
+                result.addAll(groups);
+
+            }
+            ctx.close();
+        } catch (NamingException e) {
+            log.error("Could not find groups for user " + user, e);
+        }
+
+        groupsInfo.setUserGroups(result);
+        groupsInfo.setLastUserRefresh(System.currentTimeMillis()/1000);
+
+        userGroupCache.put(user, groupsInfo);
+
+        return result;
+
 
     }
 
