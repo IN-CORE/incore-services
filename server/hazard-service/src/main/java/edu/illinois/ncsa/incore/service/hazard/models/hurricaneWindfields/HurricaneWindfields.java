@@ -22,9 +22,6 @@ import java.util.List;
 
 
 @XmlRootElement
-@Indexes(@Index(fields = {
-    @Field(value = "name", type = IndexType.TEXT),
-    @Field(value = "description", type = IndexType.TEXT)}))
 @Entity("HurricaneWindfields")
 public class HurricaneWindfields {
 

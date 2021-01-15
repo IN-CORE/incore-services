@@ -22,9 +22,6 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "eqType")
 @JsonSubTypes({@JsonSubTypes.Type(value = EarthquakeDataset.class, name = "dataset"), @JsonSubTypes.Type(value = EarthquakeModel.class, name = "model")})
 @XmlRootElement
-@Indexes(@Index(fields = {
-    @Field(value = "name", type = IndexType.TEXT),
-    @Field(value = "description", type = IndexType.TEXT)}))
 public abstract class Earthquake {
     @Id
     @Property("_id")

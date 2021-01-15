@@ -25,9 +25,6 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "floodType")
 @JsonSubTypes({@JsonSubTypes.Type(value = FloodDataset.class, name = "dataset")})
 @XmlRootElement
-@Indexes(@Index(fields = {
-    @Field(value = "name", type = IndexType.TEXT),
-    @Field(value = "description", type = IndexType.TEXT)}))
 public abstract class Flood {
     @Id
     @Property("_id")

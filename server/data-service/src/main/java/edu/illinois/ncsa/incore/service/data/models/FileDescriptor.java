@@ -27,9 +27,6 @@ import java.math.BigInteger;
 
 @XmlRootElement
 @Embedded
-@Indexes(@Index(fields = {
-    @Field(value = "filename", type = IndexType.TEXT),
-}))
 public class FileDescriptor {
     /**
      * Used for serialization of object

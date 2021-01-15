@@ -23,9 +23,6 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tornadoType")
 @JsonSubTypes({@JsonSubTypes.Type(value = TornadoDataset.class, name = "dataset"), @JsonSubTypes.Type(value = TornadoModel.class, name = "model")})
 @XmlRootElement
-@Indexes(@Index(fields = {
-    @Field(value = "name", type = IndexType.TEXT),
-    @Field(value = "description", type = IndexType.TEXT)}))
 public class Tornado {
     @Id
     @Property("_id")

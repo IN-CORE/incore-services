@@ -24,12 +24,6 @@ import java.util.List;
 
 @XmlRootElement
 @Entity("MappingSet")
-@Indexes(@Index(fields = {
-    @Field(value = "name", type = IndexType.TEXT),
-    @Field(value = "hazardType", type = IndexType.TEXT),
-    @Field(value = "inventoryType", type = IndexType.TEXT),
-    @Field(value = "mappingType", type = IndexType.TEXT),
-}))
 public class MappingSet {
 
     @Id

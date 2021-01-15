@@ -25,9 +25,6 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tsunamiType")
 @JsonSubTypes({@JsonSubTypes.Type(value = TsunamiDataset.class, name = "dataset")})
 @XmlRootElement
-@Indexes(@Index(fields = {
-    @Field(value = "name", type = IndexType.TEXT),
-    @Field(value = "description", type = IndexType.TEXT)}))
 public abstract class Tsunami {
     @Id
     @Property("_id")
