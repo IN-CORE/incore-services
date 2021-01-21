@@ -17,7 +17,6 @@ package edu.illinois.ncsa.incore.service.data.models;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.*;
-import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.types.ObjectId;

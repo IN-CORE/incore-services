@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.*;
-import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;

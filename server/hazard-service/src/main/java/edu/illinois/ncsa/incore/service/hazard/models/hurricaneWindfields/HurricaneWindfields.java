@@ -9,7 +9,6 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.*;
-import dev.morphia.utils.IndexType;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.WindfieldsDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
