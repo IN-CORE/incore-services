@@ -1,10 +1,12 @@
 package edu.illinois.ncsa.incore.common.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.Embedded;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
+@Embedded
 public class SpaceMetadata {
     @JsonProperty("name")
     private String name;

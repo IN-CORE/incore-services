@@ -10,6 +10,9 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class MarkovChainRepairCurve extends RepairCurve {
     public double param1;
     public double param2;

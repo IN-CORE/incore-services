@@ -12,6 +12,8 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.morphia.query.FindOptions;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import org.bson.types.ObjectId;
@@ -45,10 +47,10 @@ public class MockFragilityDAO implements IFragilityDAO {
             ex.printStackTrace();
         }
 
-        Mockito.when(mockDataStore.createQuery(FragilitySet.class)
-                                  .limit(Mockito.any(Integer.class))
-                                  .asList())
-               .thenReturn(this.fragilitySets);
+        Mockito.when(mockDataStore.find(FragilitySet.class)
+            .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+            .thenReturn(this.fragilitySets);
+
 
         // generate mock key object with uuid once successfully saved
         Answer<Key<FragilitySet>> ans = new Answer<Key<FragilitySet>>() {
@@ -87,67 +89,67 @@ public class MockFragilityDAO implements IFragilityDAO {
 
     @Override
     public Optional<FragilitySet> getFragilitySetById(String id) {
-        FragilitySet fragilitySet = this.mockDataStore.get(FragilitySet.class, id);
+        FragilitySet fragilitySet = this.mockDataStore.find(FragilitySet.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
         return Optional.of(fragilitySet);
     }
 
     @Override
     public FragilitySet deleteFragilitySetById(String id){
-        FragilitySet fragilitySet = this.mockDataStore.get(FragilitySet.class, new ObjectId(id));
+        FragilitySet fragilitySet = this.mockDataStore.find(FragilitySet.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
 
         if (fragilitySet == null) {
             return null;
         } else {
-            Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.mockDataStore.findAndDelete(query);
+            Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
+            query.filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
     }
 
     @Override
     public List<FragilitySet> searchFragilities(String text) {
-        Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
-
-        query.or(query.criteria("demandType").containsIgnoreCase(text),
-                 query.criteria("legacyId").containsIgnoreCase(text),
-                 query.criteria("hazardType").containsIgnoreCase(text),
-                 query.criteria("inventoryType").containsIgnoreCase(text),
-                 query.criteria("authors").containsIgnoreCase(text));
-
-        List<FragilitySet> sets = query.limit(100).asList();
+        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class).filter(
+            Filters.or(
+                Filters.regex("demandType").pattern(text).caseInsensitive(),
+                Filters.regex("legacyId").pattern(text).caseInsensitive(),
+                Filters.regex("hazardType").pattern(text).caseInsensitive(),
+                Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive(),
+                Filters.regex("authors").pattern(text).caseInsensitive()));
+        List<FragilitySet> sets = query.iterator(new FindOptions().limit(100)).toList();
 
         return sets;
     }
 
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
-        List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
-                                                    .filter(attributeType, attributeValue)
-                                                    .limit(100)
-                                                    .asList();
+        List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
+                                                    .filter(Filters.eq(attributeType, attributeValue))
+                                                    .iterator(new FindOptions().limit(100)).toList();
 
         return sets;
     }
 
     @Override
     public List<FragilitySet> queryFragilities(Map<String, String> queryMap) {
-        Query<FragilitySet> query = this.mockDataStore.createQuery(FragilitySet.class);
+        Query<FragilitySet> query = this.mockDataStore.find(FragilitySet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
+            query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
         }
 
-        List<FragilitySet> sets = query.asList();
+        List<FragilitySet> sets = query.iterator().toList();
 
         return sets;
     }
 
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
-        List<FragilitySet> sets = this.mockDataStore.createQuery(FragilitySet.class)
-                                                    .field("authors")
-                                                    .contains(author)
-                                                    .asList();
+        List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
+                                                    .filter(Filters.all("authors", author)).iterator()
+                                                    .toList();
 
         return sets;
     }

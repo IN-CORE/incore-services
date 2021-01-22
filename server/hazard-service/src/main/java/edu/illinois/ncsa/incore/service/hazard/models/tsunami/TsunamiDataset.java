@@ -9,9 +9,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tsunami;
 
+import dev.morphia.annotations.Entity;
+
 import java.util.LinkedList;
 import java.util.List;
 
+@Entity("TsunamiDataset")
 public class TsunamiDataset extends Tsunami {
     private List<TsunamiHazardDataset> hazardDatasets = new LinkedList<TsunamiHazardDataset>();
 

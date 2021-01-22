@@ -119,6 +119,8 @@ public class LdapClient {
         userGroupCache.put(user, groupsInfo);
 
         return result;
+
+
     }
 
     public LdapUserInfo getUserInfoFor(String user) {

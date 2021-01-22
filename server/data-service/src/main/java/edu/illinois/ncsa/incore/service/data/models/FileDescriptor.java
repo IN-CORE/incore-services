@@ -18,14 +18,14 @@ package edu.illinois.ncsa.incore.service.data.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.*;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigInteger;
 
 @XmlRootElement
+@Embedded
 public class FileDescriptor {
     /**
      * Used for serialization of object
@@ -35,7 +35,6 @@ public class FileDescriptor {
     /**
      * Unique identifier for this bean, used by persistence layer
      */
-    @Id
     @Property("_id")
     private ObjectId id = new ObjectId();
 

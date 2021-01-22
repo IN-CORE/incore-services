@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.common.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.morphia.annotations.Embedded;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.util.Map;
  * know anything about the actual entity. They only care about
  * what the Privileges indicates about who is allowed to access it.
  */
+@Embedded
 public class Privileges {
 
     private static final Logger log = Logger.getLogger(Privileges.class);

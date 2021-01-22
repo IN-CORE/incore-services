@@ -12,6 +12,7 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.morphia.query.FindOptions;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.DatasetType;
@@ -47,10 +48,9 @@ public class MockDataRepository implements IRepository {
             ex.printStackTrace();
         }
 
-        Mockito.when(mockDataStore.createQuery(Dataset.class)
-                .limit(Mockito.any(Integer.class))
-                .asList())
-                .thenReturn(this.datasets);
+        Mockito.when(mockDataStore.find(Dataset.class)
+            .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+            .thenReturn(this.datasets);
     }
 
     @Override

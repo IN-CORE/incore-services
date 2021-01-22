@@ -9,6 +9,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class EqVisualization {
     private String demandType;
     private String demandUnits;

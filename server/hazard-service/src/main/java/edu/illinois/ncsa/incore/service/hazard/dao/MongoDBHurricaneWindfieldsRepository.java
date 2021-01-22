@@ -9,18 +9,19 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.query.Query;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfieldsRepository {
     private String hostUri;
@@ -54,12 +55,15 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-
-        Set<Class> classesToMap = new HashSet<>();
-        Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(HurricaneWindfields.class);
-        Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+            mongoClientURI.getDatabase(),
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(HurricaneWindfields.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
@@ -72,11 +76,11 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
     @Override
     public HurricaneWindfields deleteHurricaneWindfieldsById(String id) {
-        HurricaneWindfields hurricane = this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
+        HurricaneWindfields hurricane = this.dataStore.find(HurricaneWindfields.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
         if (hurricane != null) {
-            Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
+            return query.filter(Filters.eq("_id", new ObjectId(id))).findAndDelete();
         }
         return null;
     }
@@ -87,12 +91,13 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
             return null;
         }
 
-        return this.dataStore.get(HurricaneWindfields.class, new ObjectId(id));
+        return this.dataStore.find(HurricaneWindfields.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     @Override
     public List<HurricaneWindfields> getHurricaneWindfields() {
-        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.createQuery(HurricaneWindfields.class).asList();
+        List<HurricaneWindfields> hurricaneWindfields = this.dataStore.find(HurricaneWindfields.class)
+            .iterator().toList();
         return hurricaneWindfields;
 
     }
@@ -104,34 +109,37 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
     @Override
     public List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue) {
-        List<HurricaneWindfields> hurricanes = this.dataStore.createQuery(HurricaneWindfields.class)
-            .filter(attributeType, attributeValue)
-            .asList();
+        List<HurricaneWindfields> hurricanes = this.dataStore.find(HurricaneWindfields.class)
+            .filter(Filters.eq(attributeType, attributeValue))
+            .iterator().toList();
 
         return hurricanes;
     }
 
     @Override
     public List<HurricaneWindfields> queryHurricaneWindfields(Map<String, String> queryMap) {
-        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
+        Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
+            query = query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
         }
 
-        List<HurricaneWindfields> hurricanes = query.asList();
+        List<HurricaneWindfields> hurricanes = query.iterator().toList();
 
         return hurricanes;
     }
 
     @Override
     public List<HurricaneWindfields> searchHurricaneWindfields(String text) {
-        Query<HurricaneWindfields> query = this.dataStore.createQuery(HurricaneWindfields.class);
-
-        query.or(query.criteria("name").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text));
-
-        List<HurricaneWindfields> hurricanes = query.asList();
+        Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
+        // need to set text field for name and description
+        List<HurricaneWindfields> hurricanes = query.filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            )
+        )
+            .iterator().toList();;
 
         return hurricanes;
     }

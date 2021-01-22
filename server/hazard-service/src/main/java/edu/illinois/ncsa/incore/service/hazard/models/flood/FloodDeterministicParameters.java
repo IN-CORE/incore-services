@@ -8,6 +8,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class FloodDeterministicParameters {
     private String model = "riverine flooding"; // remove default when more models are added
 

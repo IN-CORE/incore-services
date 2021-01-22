@@ -9,6 +9,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class HurricaneDeterministicParameters {
     private String model = "Kriging"; // remove default when more models are added
 

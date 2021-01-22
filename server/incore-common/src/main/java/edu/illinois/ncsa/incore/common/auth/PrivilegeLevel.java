@@ -10,6 +10,9 @@
 
 package edu.illinois.ncsa.incore.common.auth;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public enum PrivilegeLevel {
     READ,
     WRITE,

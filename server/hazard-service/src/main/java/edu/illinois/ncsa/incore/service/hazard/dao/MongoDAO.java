@@ -11,8 +11,11 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,12 +32,14 @@ public abstract class MongoDAO {
     }
 
     public void initializeDataStore(Class... classes) {
-        MongoClient client = new MongoClient(mongoClientURI);
-        Set<Class> classesToMap = new HashSet<>(Arrays.asList(classes));
-
-        Morphia morphia = new Morphia(classesToMap);
-
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(classes);
         morphiaStore.ensureIndexes();
 
         this.dataStore = morphiaStore;

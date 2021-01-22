@@ -9,9 +9,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import dev.morphia.annotations.Embedded;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Embedded
 public class EqParameters {
     private double srcLatitude;
     private double srcLongitude;

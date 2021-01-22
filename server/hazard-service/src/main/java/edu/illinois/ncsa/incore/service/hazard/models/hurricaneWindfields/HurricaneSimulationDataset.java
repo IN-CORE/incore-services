@@ -6,6 +6,9 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class HurricaneSimulationDataset {
 
     private String absTime;

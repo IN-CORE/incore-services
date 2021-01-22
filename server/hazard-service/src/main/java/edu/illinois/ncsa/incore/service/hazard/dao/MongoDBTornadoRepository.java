@@ -9,11 +9,15 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoRandomWidth;
 import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
@@ -52,12 +56,16 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-
-        Set<Class> classesToMap = new HashSet<>();
-        Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(Tornado.class);
-        Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+            mongoClientURI.getDatabase(),
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(TornadoDataset.class);
+        morphiaStore.getMapper().map(TornadoModel.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
@@ -65,24 +73,27 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
     @Override
     public List<Tornado> getTornadoes() {
         List<Tornado> tornadoes = new LinkedList<Tornado>();
-        tornadoes.addAll(this.dataStore.createQuery(TornadoModel.class).asList());
-        tornadoes.addAll(this.dataStore.createQuery(TornadoDataset.class).asList());
+        tornadoes.addAll(this.dataStore.find(TornadoModel.class).iterator().toList());
+        tornadoes.addAll(this.dataStore.find(TornadoDataset.class).iterator().toList());
 
         return tornadoes;
     }
 
     @Override
     public List<Tornado> searchTornadoes(String text) {
-        Query<TornadoDataset> datasetQuery = this.dataStore.createQuery(TornadoDataset.class);
-        Query<TornadoModel> modelQuery = this.dataStore.createQuery(TornadoModel.class);
+        Query<TornadoDataset> datasetQuery = this.dataStore.find(TornadoDataset.class).filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            ));
+        Query<TornadoModel> modelQuery = this.dataStore.find(TornadoModel.class).filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            ));
 
-        datasetQuery.or(datasetQuery.criteria("name").containsIgnoreCase(text),
-            datasetQuery.criteria("description").containsIgnoreCase(text));
-        List<TornadoDataset> tornadoDatasets = datasetQuery.asList();
-
-        modelQuery.or(modelQuery.criteria("name").containsIgnoreCase(text),
-            modelQuery.criteria("description").containsIgnoreCase(text));
-        List<TornadoModel> tornadoModels = modelQuery.asList();
+        List<TornadoDataset> tornadoDatasets = datasetQuery.iterator().toList();
+        List<TornadoModel> tornadoModels = modelQuery.iterator().toList();
 
         List<Tornado> tornadoes = new ArrayList<>();
         tornadoes.addAll(tornadoDatasets);
@@ -99,15 +110,16 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
 
     @Override
     public Tornado deleteTornadoById(String id) {
-        Tornado tornado = this.dataStore.get(TornadoModel.class, new ObjectId(id));
+        Tornado tornado = this.dataStore.find(TornadoModel.class).filter(Filters.eq("_id", new ObjectId(id)))
+            .first();
         if (tornado == null) {
-            Query<TornadoDataset> query = this.dataStore.createQuery(TornadoDataset.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<TornadoDataset> query = this.dataStore.find(TornadoDataset.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         } else {
-            Query<TornadoModel> query = this.dataStore.createQuery(TornadoModel.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<TornadoModel> query = this.dataStore.find(TornadoModel.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
     }
 
@@ -117,11 +129,12 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
             return null;
         }
 
-        Tornado tornado = this.dataStore.get(TornadoModel.class, new ObjectId(id));
+        Tornado tornado = this.dataStore.find(TornadoModel.class).filter(Filters.eq("_id", new ObjectId(id)))
+            .first();
         if (tornado != null) {
             return tornado;
         }
-        return this.dataStore.get(TornadoDataset.class, new ObjectId(id));
+        return this.dataStore.find(TornadoDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     @Override

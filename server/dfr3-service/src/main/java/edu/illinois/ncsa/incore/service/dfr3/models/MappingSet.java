@@ -11,13 +11,11 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.*;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Entity;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;

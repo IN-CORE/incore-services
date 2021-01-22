@@ -10,6 +10,9 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class PeriodBuildingFragilityCurve extends FragilityCurve {
     public int periodEqnType;
     public double periodParam1;

@@ -9,9 +9,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
+import dev.morphia.annotations.Embedded;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Embedded
 public class TornadoParameters {
     private String efRating;
     private double maxWindSpeed = 250.0;

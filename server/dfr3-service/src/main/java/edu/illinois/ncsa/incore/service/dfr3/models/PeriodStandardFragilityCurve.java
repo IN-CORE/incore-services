@@ -10,6 +10,9 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class PeriodStandardFragilityCurve extends FragilityCurve {
     public double alpha;
     public double beta;

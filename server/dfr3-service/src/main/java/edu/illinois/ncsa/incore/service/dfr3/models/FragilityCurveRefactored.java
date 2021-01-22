@@ -8,10 +8,13 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
+
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
 
 //@XmlTransient
+@Embedded
 public class FragilityCurveRefactored extends FragilityCurve {
     public List<Rule> rules;
     public ReturnType returnType;

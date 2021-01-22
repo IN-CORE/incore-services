@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import dev.morphia.annotations.Embedded;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
@@ -20,6 +21,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlSeeAlso({CustomExpressionFragilityCurve.class, PeriodBuildingFragilityCurve.class,
     StandardFragilityCurve.class, PeriodStandardFragilityCurve.class, ConditionalStandardFragilityCurve.class,
     ParametricFragilityCurve.class, FragilityCurveRefactored.class})
+@Embedded
 public abstract class FragilityCurve {
     public String description;
 

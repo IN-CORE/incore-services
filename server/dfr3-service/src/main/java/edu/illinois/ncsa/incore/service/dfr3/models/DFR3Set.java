@@ -1,7 +1,6 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
 

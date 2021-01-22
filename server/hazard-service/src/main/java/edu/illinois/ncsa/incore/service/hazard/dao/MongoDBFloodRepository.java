@@ -8,11 +8,14 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodDataset;
 import org.bson.types.ObjectId;
@@ -51,12 +54,15 @@ public class MongoDBFloodRepository implements IFloodRepository {
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-
-        Set<Class> classesToMap = new HashSet<>();
-        Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(Flood.class);
-        Datastore morphiaStore = morphia.createDatastore(client, mongoClientURI.getDatabase());
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+            mongoClientURI.getDatabase(),
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(FloodDataset.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }
@@ -69,11 +75,11 @@ public class MongoDBFloodRepository implements IFloodRepository {
 
     @Override
     public Flood deleteFloodById(String id) {
-        Flood flood = this.dataStore.get(FloodDataset.class, new ObjectId(id));
+        Flood flood = this.dataStore.find(FloodDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
         if (flood != null) {
-            Query<FloodDataset> query = this.dataStore.createQuery(FloodDataset.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<FloodDataset> query = this.dataStore.find(FloodDataset.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
         return null;
     }
@@ -84,7 +90,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
             return null;
         }
 
-        Flood flood = this.dataStore.get(FloodDataset.class, new ObjectId(id));
+        Flood flood = this.dataStore.find(FloodDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
         // TODO this will need to be updated if there are model based floods
 
         return flood;
@@ -93,7 +99,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
     @Override
     public List<Flood> getFloods() {
         List<Flood> floods = new LinkedList<>();
-        List<FloodDataset> floodDatasets = this.dataStore.createQuery(FloodDataset.class).asList();
+        List<FloodDataset> floodDatasets = this.dataStore.find(FloodDataset.class).iterator().toList();
         floods.addAll(floodDatasets);
         // TODO this will need to be updated if there are model based floods
 
@@ -108,13 +114,14 @@ public class MongoDBFloodRepository implements IFloodRepository {
 
     @Override
     public List<Flood> searchFloods(String text) {
-        Query<FloodDataset> query = this.dataStore.createQuery(FloodDataset.class);
+        Query<FloodDataset> query = this.dataStore.find(FloodDataset.class);
 
-        query.or(query.criteria("name").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text));
-
-        List<FloodDataset> floodDatasets = query.asList();
-
+        List<FloodDataset> floodDatasets = query.filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            )
+        ).iterator().toList();
         List<Flood> floods = new ArrayList<>();
         floods.addAll(floodDatasets);
 

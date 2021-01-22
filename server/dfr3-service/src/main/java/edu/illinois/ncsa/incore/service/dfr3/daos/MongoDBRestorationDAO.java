@@ -11,6 +11,8 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
+import dev.morphia.query.experimental.filters.Filters;
+import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationSet;
 import org.bson.types.ObjectId;
 import dev.morphia.query.Query;
@@ -32,7 +34,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
 
     @Override
     public List<RestorationSet> getRestorations() {
-        return this.dataStore.createQuery(RestorationSet.class).asList();
+        return this.dataStore.find(RestorationSet.class).iterator().toList();
     }
 
     @Override
@@ -54,7 +56,8 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
             return Optional.empty();
         }
 
-        RestorationSet restorationSet = this.dataStore.get(RestorationSet.class, new ObjectId(id));
+        RestorationSet restorationSet = this.dataStore.find(RestorationSet.class)
+            .filter(Filters.eq( "_id", new ObjectId(id))).first();
 
         if (restorationSet == null) {
             return Optional.empty();
@@ -65,50 +68,52 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
 
     @Override
     public RestorationSet deleteRestorationSetById(String id) {
-        RestorationSet restorationSet = this.dataStore.get(RestorationSet.class, new ObjectId(id));
+        RestorationSet restorationSet = this.dataStore.find(RestorationSet.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
 
         if (restorationSet == null) {
             return null;
         } else {
-            Query<RestorationSet> query = this.dataStore.createQuery(RestorationSet.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<RestorationSet> query = this.dataStore.find(RestorationSet.class)
+                .filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
     }
 
     @Override
     public List<RestorationSet> searchRestorations(String text) {
-        Query<RestorationSet> query = this.dataStore.createQuery(RestorationSet.class);
-
-        query.or(query.criteria("legacyId").containsIgnoreCase(text),
-            query.criteria("hazardType").containsIgnoreCase(text),
-            query.criteria("inventoryType").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text),
-            query.criteria("authors").containsIgnoreCase(text));
-
-        List<RestorationSet> sets = query.asList();
+        Query<RestorationSet> query = this.dataStore.find(RestorationSet.class).filter(
+            Filters.or(
+                Filters.regex("demandType").pattern(text).caseInsensitive(),
+                Filters.regex("legacyId").pattern(text).caseInsensitive(),
+                Filters.regex("hazardType").pattern(text).caseInsensitive(),
+                Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive(),
+                Filters.regex("authors").pattern(text).caseInsensitive()));
+        List<RestorationSet> sets = query.iterator().toList();
 
         return sets;
     }
 
     @Override
     public List<RestorationSet> queryRestorations(String attributeType, String attributeValue) {
-        List<RestorationSet> sets = this.dataStore.createQuery(RestorationSet.class)
-            .filter(attributeType, attributeValue)
-            .asList();
+        List<RestorationSet> sets = this.dataStore.find(RestorationSet.class)
+            .filter(Filters.eq(attributeType, attributeValue)).iterator()
+            .toList();
 
         return sets;
     }
 
     @Override
     public List<RestorationSet> queryRestorations(Map<String, String> queryMap) {
-        Query<RestorationSet> query = this.dataStore.createQuery(RestorationSet.class);
+        // TODO not sure if it works
+        Query<RestorationSet> query = this.dataStore.find(RestorationSet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
+            query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
         }
 
-        List<RestorationSet> sets = query.asList();
+        List<RestorationSet> sets = query.iterator().toList();
 
         return sets;
     }

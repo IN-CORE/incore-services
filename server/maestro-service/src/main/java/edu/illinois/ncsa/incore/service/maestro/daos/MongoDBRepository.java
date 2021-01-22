@@ -62,13 +62,13 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit){
-        Query<Analysis> query = this.dataStore.createQuery(Analysis.class);
+        Query<Analysis> query = this.dataStore.find(Analysis.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List <Analysis> analyses = query.offset(offset).limit(limit).asList();
+        List <Analysis> analyses = query.offset(offset).limit(limit).toList();
 
         return analyses;
     }
@@ -89,20 +89,22 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore;
     }
 
-    private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-
-        Set<Class> classesToMap = new HashSet<>();
-        Morphia morphia = new Morphia(classesToMap);
-        classesToMap.add(Analysis.class);
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
+    private void initializeDataStore() {;
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(Analysis.class);
         morphiaStore.ensureIndexes();
 
         this.dataStore = morphiaStore;
     }
 
     private void loadServices() {
-        List<Analysis> analyses = this.dataStore.createQuery(Analysis.class).asList();
+        List<Analysis> analyses = this.dataStore.find(Analysis.class).toList();
         this.analyses = analyses;
     }
 

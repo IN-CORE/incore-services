@@ -9,9 +9,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
+import dev.morphia.annotations.Entity;
+
 import java.util.LinkedList;
 import java.util.List;
 
+@Entity("HurricaneDataset")
 public class HurricaneDataset extends Hurricane {
     private List<HurricaneHazardDataset> hazardDatasets = new LinkedList<HurricaneHazardDataset>();
 

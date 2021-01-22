@@ -10,6 +10,14 @@
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.experimental.filters.Filters;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.bson.types.ObjectId;
@@ -27,7 +35,21 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public void initialize() {
-        super.initializeDataStore(Tsunami.class);
+        this.initializeDataStore();
+    }
+
+    private void initializeDataStore() {
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+            mongoClientURI.getDatabase(),
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(TsunamiDataset.class);
+        morphiaStore.ensureIndexes();
+        this.dataStore = morphiaStore;
     }
 
     @Override
@@ -36,7 +58,8 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
             return null;
         }
 
-        Tsunami tsunami = this.dataStore.get(TsunamiDataset.class, new ObjectId(id));
+        Tsunami tsunami = this.dataStore.find(TsunamiDataset.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
         // TODO this will need to be updated if there are model based tsunamis
 
         return tsunami;
@@ -50,11 +73,11 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public Tsunami deleteTsunamiById(String id) {
-        Tsunami tsunami = this.dataStore.get(TsunamiDataset.class, new ObjectId(id));
+        Tsunami tsunami = this.dataStore.find(TsunamiDataset.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
         if (tsunami != null) {
-            Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<TsunamiDataset> query = this.dataStore.find(TsunamiDataset.class);
+            return query.filter(Filters.eq("_id", new ObjectId(id))).findAndDelete();
         }
         return null;
     }
@@ -62,7 +85,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
     @Override
     public List<Tsunami> getTsunamis() {
         List<Tsunami> tsunamis = new LinkedList<>();
-        List<TsunamiDataset> tsunamiDatasets = this.dataStore.createQuery(TsunamiDataset.class).asList();
+        List<TsunamiDataset> tsunamiDatasets = this.dataStore.find(TsunamiDataset.class).iterator().toList();
         tsunamis.addAll(tsunamiDatasets);
         // TODO this will need to be updated if there are model based tsunamis
 
@@ -71,12 +94,12 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public List<Tsunami> searchTsunamis(String text) {
-        Query<TsunamiDataset> query = this.dataStore.createQuery(TsunamiDataset.class);
-
-        query.or(query.criteria("name").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text));
-
-        List<TsunamiDataset> tsunamiDatasets = query.asList();
+        Query<TsunamiDataset> query = this.dataStore.find(TsunamiDataset.class).filter(
+            Filters.or(
+                Filters.regex("name").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive()
+            ));
+        List<TsunamiDataset> tsunamiDatasets = query.iterator().toList();
 
         List<Tsunami> tsunamis = new ArrayList<>();
         tsunamis.addAll(tsunamiDatasets);

@@ -6,8 +6,11 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import dev.morphia.annotations.Entity;
+
 import java.util.Map;
 
+@Entity("EarthquakeModel")
 public class EarthquakeModel extends Earthquake {
     // Map of attenuation models and weights
     private Map<String, Double> attenuations;

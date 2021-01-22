@@ -10,6 +10,9 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class StandardRestorationCurve extends RestorationCurve {
     public double alpha;
     public double beta;

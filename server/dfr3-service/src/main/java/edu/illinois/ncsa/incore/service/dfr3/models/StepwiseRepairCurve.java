@@ -10,8 +10,11 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
+
 import java.lang.UnsupportedOperationException;
 
+@Embedded
 public class StepwiseRepairCurve extends RepairCurve {
 
     public StepwiseRepairCurve() {

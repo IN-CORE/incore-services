@@ -10,8 +10,11 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
+
 import java.util.List;
 
+@Embedded
 public class ParametricFragilityCurve extends FragilityCurve {
     public List<LogitCurveParameter> parameters;
     public CurveType curveType;

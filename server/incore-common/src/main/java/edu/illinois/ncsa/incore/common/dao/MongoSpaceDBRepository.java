@@ -13,6 +13,11 @@ package edu.illinois.ncsa.incore.common.dao;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.Mapper;
+import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
@@ -45,17 +50,16 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     public List<Space> getAllSpaces() {
-        return this.dataStore.createQuery(Space.class).asList();
+        return this.dataStore.find(Space.class).iterator().toList();
     }
 
     public Space getSpaceById(String id) {
-        return this.dataStore.get(Space.class, new ObjectId(id));
+        return this.dataStore.find(Space.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     public Space getSpaceByName(String name) {
-        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field(SPACE_FIELD_METADATA_NAME).equal(name);
-        Space foundSpace = spaceQuery.get();
+        Query<Space> spaceQuery = this.dataStore.find(Space.class);
+        Space foundSpace = spaceQuery.filter(Filters.eq(SPACE_FIELD_METADATA_NAME, name)).first();
 
         return foundSpace;
     }
@@ -84,17 +88,19 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     public Space deleteSpace(String id) {
-        Query<Space> spaceQuery = this.dataStore.createQuery(Space.class);
-        spaceQuery.field("_id").equal(new ObjectId(id));
-        return this.dataStore.findAndDelete(spaceQuery);
+        Query<Space> spaceQuery = this.dataStore.find(Space.class).filter(Filters.eq("_id", new ObjectId(id)));
+        return spaceQuery.findAndDelete();
     }
 
     private void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-        Set<Class> classesToMap = new HashSet<>();
-        classesToMap.add(Space.class);
-        Morphia morphia = new Morphia(classesToMap);
-        Datastore morphiaStore = morphia.createDatastore(client, databaseName);
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(Space.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

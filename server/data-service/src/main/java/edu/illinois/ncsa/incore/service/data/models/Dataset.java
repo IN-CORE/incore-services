@@ -16,11 +16,10 @@ package edu.illinois.ncsa.incore.service.data.models;
  */
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.morphia.annotations.*;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
@@ -28,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 @XmlRootElement
+@Entity("Dataset")
 public class Dataset {
     /**
      * Used for serialization of object

@@ -11,6 +11,8 @@
 package edu.illinois.ncsa.incore.service.dfr3.daos;
 
 import com.mongodb.MongoClientURI;
+import dev.morphia.query.experimental.filters.Filters;
+import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
 import org.bson.types.ObjectId;
 import dev.morphia.query.Query;
@@ -32,7 +34,7 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
     @Override
     public List<RepairSet> getRepairs() {
-        return this.dataStore.createQuery(RepairSet.class).asList();
+        return this.dataStore.find(RepairSet.class).iterator().toList();
     }
 
     @Override
@@ -54,7 +56,8 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
             return Optional.empty();
         }
 
-        RepairSet repairSet = this.dataStore.get(RepairSet.class, new ObjectId(id));
+        RepairSet repairSet = this.dataStore.find(RepairSet.class).filter(Filters.eq("_id", new ObjectId(id)))
+            .first();
 
         if (repairSet == null) {
             return Optional.empty();
@@ -65,50 +68,51 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
     @Override
     public RepairSet deleteRepairSetById(String id) {
-        RepairSet repairSet = this.dataStore.get(RepairSet.class, new ObjectId(id));
+        RepairSet repairSet = this.dataStore.find(RepairSet.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
 
         if (repairSet == null) {
             return null;
         } else {
-            Query<RepairSet> query = this.dataStore.createQuery(RepairSet.class);
-            query.field("_id").equal(new ObjectId(id));
-            return this.dataStore.findAndDelete(query);
+            Query<RepairSet> query = this.dataStore.find(RepairSet.class).filter(Filters.eq("_id", new ObjectId(id)));
+            return query.findAndDelete();
         }
     }
 
     @Override
     public List<RepairSet> searchRepairs(String text) {
-        Query<RepairSet> query = this.dataStore.createQuery(RepairSet.class);
-
-        query.or(query.criteria("legacyId").containsIgnoreCase(text),
-            query.criteria("hazardType").containsIgnoreCase(text),
-            query.criteria("inventoryType").containsIgnoreCase(text),
-            query.criteria("description").containsIgnoreCase(text),
-            query.criteria("authors").containsIgnoreCase(text));
-
-        List<RepairSet> sets = query.asList();
+        Query<RepairSet> query = this.dataStore.find(RepairSet.class).filter(
+            Filters.or(
+                Filters.regex("demandType").pattern(text).caseInsensitive(),
+                Filters.regex("legacyId").pattern(text).caseInsensitive(),
+                Filters.regex("hazardType").pattern(text).caseInsensitive(),
+                Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                Filters.regex("description").pattern(text).caseInsensitive(),
+                Filters.regex("authors").pattern(text).caseInsensitive()));
+        List<RepairSet> sets = query.iterator().toList();
 
         return sets;
     }
 
     @Override
     public List<RepairSet> queryRepairs(String attributeType, String attributeValue) {
-        List<RepairSet> sets = this.dataStore.createQuery(RepairSet.class)
-            .filter(attributeType, attributeValue)
-            .asList();
+        List<RepairSet> sets = this.dataStore.find(RepairSet.class)
+            .filter(Filters.eq(attributeType, attributeValue)).iterator()
+            .toList();
 
         return sets;
     }
 
     @Override
     public List<RepairSet> queryRepairs(Map<String, String> queryMap) {
-        Query<RepairSet> query = this.dataStore.createQuery(RepairSet.class);
+        // TODO not sure this will work
+        Query<RepairSet> query = this.dataStore.find(RepairSet.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
+            query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
         }
 
-        List<RepairSet> sets = query.asList();
+        List<RepairSet> sets = query.iterator().toList();
 
         return sets;
     }

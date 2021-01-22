@@ -10,6 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import dev.morphia.annotations.Embedded;
 import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
 import ncsa.tools.common.exceptions.ParseException;
 import ncsa.tools.common.exceptions.ReflectionException;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Embedded
 public class Mapping {
     private Map<String, String> legacyEntry = new HashMap<>();
     private Map<String, String> entry = new HashMap<>();

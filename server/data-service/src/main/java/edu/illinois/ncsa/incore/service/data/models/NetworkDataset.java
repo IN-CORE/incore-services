@@ -1,5 +1,8 @@
 package edu.illinois.ncsa.incore.service.data.models;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class NetworkDataset {
     private NetworkData link;
     private NetworkData node;

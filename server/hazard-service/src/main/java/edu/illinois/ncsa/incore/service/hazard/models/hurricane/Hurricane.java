@@ -13,8 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
+import dev.morphia.annotations.*;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 
