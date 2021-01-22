@@ -93,7 +93,7 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
     }
 
     private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()), databaseName,
             MapperOptions
                 .builder()
                 .discriminator(DiscriminatorFunction.className())

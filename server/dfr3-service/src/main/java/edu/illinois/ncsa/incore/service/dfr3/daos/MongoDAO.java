@@ -33,7 +33,7 @@ public abstract class MongoDAO {
     }
 
     public void initializeDataStore(Class... classes) {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()), databaseName,
             MapperOptions
                 .builder()
                 .discriminator(DiscriminatorFunction.className())

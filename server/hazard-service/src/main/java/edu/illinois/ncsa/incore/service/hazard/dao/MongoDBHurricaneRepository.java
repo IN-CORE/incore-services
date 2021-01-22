@@ -55,7 +55,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
     }
 
     private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()),
             mongoClientURI.getDatabase(),
             MapperOptions
                 .builder()
