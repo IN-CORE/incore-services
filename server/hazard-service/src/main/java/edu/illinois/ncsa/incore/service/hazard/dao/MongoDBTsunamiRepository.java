@@ -39,7 +39,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
     }
 
     private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(),
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()),
             mongoClientURI.getDatabase(),
             MapperOptions
                 .builder()

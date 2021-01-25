@@ -150,7 +150,7 @@ public class MongoDBRepository implements IRepository {
     private void initializeDataStore() {
         // You can call MongoClients.create() without any parameters to connect to a MongoDB instance running on
         // localhost on port 27017
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(), databaseName,
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()), databaseName,
             MapperOptions
                 .builder()
                 .discriminator(DiscriminatorFunction.className())
