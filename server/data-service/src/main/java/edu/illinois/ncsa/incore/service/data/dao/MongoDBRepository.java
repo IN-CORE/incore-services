@@ -84,19 +84,21 @@ public class MongoDBRepository implements IRepository {
     }
 
     public List<Dataset> getDatasetByType(String type) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.eq(DATASET_FIELD_TYPE, type));
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
+            .filter(Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive());
         return datasetQuery.iterator().toList();
     }
 
     public List<Dataset> getDatasetByTitle(String title) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.eq(DATASET_FIELD_TITLE, title));
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
+            .filter(Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive());
         return datasetQuery.iterator().toList();
     }
 
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
         Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
-            Filters.eq(DATASET_FIELD_TYPE, type),
-            Filters.eq(DATASET_FIELD_TITLE, title)
+            Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive(),
+            Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive()
         ));
         return datasetQuery.iterator().toList();
     }
