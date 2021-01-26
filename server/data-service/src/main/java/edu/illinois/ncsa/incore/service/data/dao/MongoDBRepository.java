@@ -19,7 +19,6 @@ import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
-import dev.morphia.query.FindOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import dev.morphia.query.Query;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -29,11 +28,8 @@ import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -193,7 +189,7 @@ public class MongoDBRepository implements IRepository {
     public List<DatasetType> getDatatypes(String spaceName) {
         Query<DatasetType> query = this.dataStore.find(DatasetType.class);
 
-        if(spaceName != null){
+        if (spaceName != null) {
             query.filter(Filters.eq("space", spaceName));
         }
 
