@@ -19,6 +19,7 @@ import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.FindOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import dev.morphia.query.Query;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -28,6 +29,7 @@ import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -181,7 +183,7 @@ public class MongoDBRepository implements IRepository {
                 Filters.regex("title").pattern(text).caseInsensitive(),
                 Filters.regex("description").pattern(text).caseInsensitive(),
                 Filters.regex("creator").pattern(text).caseInsensitive(),
-                Filters.regex("fileDescriptor.filename").pattern(text).caseInsensitive(),
+                Filters.regex("fileDescriptors.filename").pattern(text).caseInsensitive(),
                 Filters.regex("dataType").pattern(text).caseInsensitive()
             ));
         return query.iterator().toList();
