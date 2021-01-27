@@ -1,6 +1,5 @@
 package edu.illinois.ncsa.incore.service.hazard.models;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 
 import java.util.List;

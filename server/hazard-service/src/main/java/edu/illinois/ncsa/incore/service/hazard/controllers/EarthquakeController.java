@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.liquefaction.LiquefactionValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -660,11 +661,83 @@ public class EarthquakeController {
         return varianceResults;
     }
 
+    @POST
+    @Path("{earthquake-id}/liquefaction/values")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns liquefaction (PGD) values, probability of liquefaction, and probability of ground failure",
+        notes = "This needs a valid susceptibility dataset as a shapefile for a set of earthquake locations.")
+    public List<LiquefactionValuesResponse> postEarthquakeLiquefactionValues(
+        @ApiParam(value = "Earthquake Id", required = true)
+        @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Json of the points along with demand types(pgd) and units",
+            required = true) @FormDataParam("points") String requestJsonStr,
+        @ApiParam(value = "Geology dataset from data service.", required = true)
+        @FormDataParam("geologyDataset") String geologyId) {
+        Earthquake eq = getEarthquake(earthquakeId);
+
+        if (!(eq instanceof EarthquakeModel)) {
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Liquefaction is only supported for model-based earthquakes. " +
+                "Please verify if the earthquake is attenuation model based");
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            EarthquakeModel earthquake = (EarthquakeModel) eq;
+            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+
+            SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId,
+                this.username);
+
+            List<LiquefactionValuesResponse> valResponse = new ArrayList<>();
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            for(ValuesRequest request: valuesRequest){
+                List<String> demands = request.getDemands();
+                List<String> units = request.getUnits();
+                List<Double> pgdVals = new ArrayList<>();
+                Double liqProb = 0.0;
+                double[] groundFailureProb = {};
+                List<String> resDemands = new ArrayList<>();
+                List<String> resUnits = new ArrayList<>();
+
+                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
+
+                for (int i = 0; i < demands.size(); i++) {
+                    Site localSite = new Site(request.getLoc().getLocation());
+                    // TODO find groundwater depth if shapefile is passed in
+                    LiquefactionHazardResult res = HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite,
+                        soilGeology, units.get(i), this.username);
+                    resDemands.add("PGD");
+                    resUnits.add(res.getPgdUnits());
+                    pgdVals.add(res.getPgd());
+                    liqProb = res.getLiqProbability();
+                    groundFailureProb = res.getGroundFailureProb();
+                }
+
+                LiquefactionValuesResponse response = new LiquefactionValuesResponse();
+                response.setPgdValues(pgdVals);
+                response.setLiqProbability(liqProb);
+                response.setGroundFailureProb(groundFailureProb);
+                response.setDemands(resDemands);
+                response.setUnits(resUnits);
+                response.setLoc(request.getLoc());
+                valResponse.add(response);
+            }
+            return valResponse;
+        }catch(IOException ex){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+        } catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+        }
+    }
+
+
     @GET
     @Path("{earthquake-id}/liquefaction/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns liquefaction (PGD) values, probability of liquefaction, and probability of ground failure.",
         notes = "This needs a valid susceptibility dataset as a shapefile for the earthquake location.")
+    @Deprecated
     public List<LiquefactionHazardResult> getEarthquakeLiquefaction(
         @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Geology dataset from data service.", required = true) @QueryParam("geologyDataset") String geologyId,
