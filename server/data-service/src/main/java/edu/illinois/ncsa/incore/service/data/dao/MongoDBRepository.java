@@ -29,9 +29,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -84,19 +82,21 @@ public class MongoDBRepository implements IRepository {
     }
 
     public List<Dataset> getDatasetByType(String type) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.eq(DATASET_FIELD_TYPE, type));
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
+            .filter(Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive());
         return datasetQuery.iterator().toList();
     }
 
     public List<Dataset> getDatasetByTitle(String title) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.eq(DATASET_FIELD_TITLE, title));
+        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
+            .filter(Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive());
         return datasetQuery.iterator().toList();
     }
 
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
         Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
-            Filters.eq(DATASET_FIELD_TYPE, type),
-            Filters.eq(DATASET_FIELD_TITLE, title)
+            Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive(),
+            Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive()
         ));
         return datasetQuery.iterator().toList();
     }
@@ -179,7 +179,7 @@ public class MongoDBRepository implements IRepository {
                 Filters.regex("title").pattern(text).caseInsensitive(),
                 Filters.regex("description").pattern(text).caseInsensitive(),
                 Filters.regex("creator").pattern(text).caseInsensitive(),
-                Filters.regex("fileDescriptor.filename").pattern(text).caseInsensitive(),
+                Filters.regex("fileDescriptors.filename").pattern(text).caseInsensitive(),
                 Filters.regex("dataType").pattern(text).caseInsensitive()
             ));
         return query.iterator().toList();
@@ -189,7 +189,7 @@ public class MongoDBRepository implements IRepository {
     public List<DatasetType> getDatatypes(String spaceName) {
         Query<DatasetType> query = this.dataStore.find(DatasetType.class);
 
-        if(spaceName != null){
+        if (spaceName != null) {
             query.filter(Filters.eq("space", spaceName));
         }
 
