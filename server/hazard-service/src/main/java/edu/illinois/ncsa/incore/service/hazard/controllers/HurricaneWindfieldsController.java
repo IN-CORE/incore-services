@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -19,6 +20,8 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneWindfieldsRepository;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationEnsemble;
@@ -28,9 +31,11 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.opengis.geometry.MismatchedDimensionException;
 
 import javax.inject.Inject;
@@ -139,10 +144,91 @@ public class HurricaneWindfieldsController {
         throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You are not authorized to access the hurricane " + hurricaneId);
     }
 
+    @POST
+    @Path("{hurricanewf-id}/values")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns hurricane wind field values for a set of locations",
+        notes = "Outputs hazard values, demand types, unit and location.")
+    public List<ValuesResponse> postHurricaneWindFieldValues(
+        @ApiParam(value = "hurricane wind field Id", required = true)
+        @PathParam("hurricanewf-id") String hurricaneId,
+        @ApiParam(value = "Json of the points along with demand types and units",
+            required = true) @FormDataParam("points") String requestJsonStr,
+        @ApiParam(value = "Elevation in meters at which wind speed has to be calculated.") @FormDataParam("elevation") @DefaultValue("10.0") double elevation,
+        @ApiParam(value = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @FormDataParam("roughness") @DefaultValue("0.03") double roughness) {
+
+        HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
+        //Get shapefile datasetid
+        String datasetId = hurricane.findFullPathDatasetId();
+        String hurrDemandType = hurricane.getDemandType();
+        String hurrDemandUnits = hurricane.getDemandUnits().toString();
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            List<ValuesResponse> valResponse = new ArrayList<>();
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            for(ValuesRequest request: valuesRequest){
+                List<String> demands = request.getDemands();
+                List<String> units = request.getUnits();
+                List<Double> hazVals = new ArrayList<>();
+                List<String> resDemands = new ArrayList<>();
+                List<String> resUnits = new ArrayList<>();
+
+                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
+
+                for (int i = 0; i < demands.size(); i++) {
+
+                    if (!demands.get(i).equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) && !demands.get(i).equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
+                        log.error("Unsupported hurricane demandType provided to GET values : " + demands.get(i));
+                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s.");
+                    }
+
+                    double lat = request.getLoc().getLocation().getY();
+                    double lon = request.getLoc().getLocation().getX();
+                    double windValue = 0;
+                    try {
+                        windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at 10m elevation
+
+                        HashMap<String, Double> convertedWf = HurricaneWindfieldsUtil.convertWindfieldVelocity(hurrDemandType, windValue, elevation, roughness);
+                        windValue = convertedWf.get(demands.get(i));
+
+                        if (!units.get(i).equals(hurrDemandUnits)) {
+                            windValue = HurricaneWindfieldsUtil.getCorrectUnitsOfVelocity(windValue, hurrDemandUnits, units.get(i));
+                        }
+                    } catch (IOException e) {
+                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+
+                    }
+
+                    HurricaneWindfieldResult res = new HurricaneWindfieldResult(lat, lon, windValue,
+                        demands.get(i), units.get(i));
+
+                    resDemands.add(res.getDemandType());
+                    resUnits.add(res.getDemandUnits());
+                    hazVals.add(res.getHazardValue());
+                }
+
+                ValuesResponse response = new ValuesResponse();
+                response.setHazardValues(hazVals);
+                response.setDemands(resDemands);
+                response.setUnits(resUnits);
+                response.setLoc(request.getLoc());
+                valResponse.add(response);
+            }
+            return valResponse;
+        }catch(IOException ex){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+        } catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+        }
+    }
+
     @GET
     @Path("{hurricaneId}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the hurricane wind field values.")
+    @Deprecated
     public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
         @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.") @QueryParam("demandType") @DefaultValue(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) String demandType,
