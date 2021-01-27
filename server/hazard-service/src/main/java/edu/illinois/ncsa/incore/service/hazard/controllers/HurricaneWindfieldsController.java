@@ -123,6 +123,78 @@ public class HurricaneWindfieldsController {
         return accessibleHurricaneWindfields;
     }
 
+    @POST
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Creates a new hurricane, simulation of hurricane windfields is returned.",
+        notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
+            "windfield's raster. Each cell represents the windspeed at 10m elevation and 3-sec wind gust by default")
+    public HurricaneWindfields createHurricaneWindfields(
+        HurricaneWindfields inputHurricane) {
+
+        HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
+        if (inputHurricane != null) {
+            String demandType = inputHurricane.getDemandType().trim();
+
+            if (!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
+                log.error("Unsupported hurricane demandType provided in POST JSON : " + demandType);
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s");
+            }
+            HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(inputHurricane.getCoast(), inputHurricane.getCategory(), inputHurricane.getTransD(),
+                new IncorePoint(inputHurricane.getLandfallLocation()), demandType, inputHurricane.getDemandUnits().toString().trim(),
+                inputHurricane.getGridResolution(), inputHurricane.getGridPoints(), inputHurricane.getRfMethod());
+
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String ensemBleString = mapper.writeValueAsString(hurricaneSimulationEnsemble);
+
+                hurricaneWindfields.setName(inputHurricane.getName());
+                hurricaneWindfields.setDescription(inputHurricane.getDescription());
+                hurricaneWindfields.setCreator(this.username);
+
+                hurricaneWindfields.setCategory(inputHurricane.getCategory());
+                hurricaneWindfields.setCoast(inputHurricane.getCoast());
+                hurricaneWindfields.setGridResolution(inputHurricane.getGridResolution());
+                hurricaneWindfields.setRasterResolution(inputHurricane.getRasterResolution());
+                hurricaneWindfields.setTransD(inputHurricane.getTransD());
+                hurricaneWindfields.setModelUsed(hurricaneSimulationEnsemble.getModelUsed());
+                hurricaneWindfields.setLandfallLocation(inputHurricane.getLandfallLocation());
+                hurricaneWindfields.setTimes(hurricaneSimulationEnsemble.getTimes());
+                hurricaneWindfields.setGridPoints(inputHurricane.getGridPoints());
+
+                hurricaneWindfields.setDemandType(inputHurricane.getDemandType());
+                hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
+
+                hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
+                    inputHurricane.getRasterResolution(), this.username));
+
+                //save hurricane
+                hurricaneWindfields = repository.addHurricaneWindfields(hurricaneWindfields);
+
+                //add hurricane to the user's space
+                Space space = spaceRepository.getSpaceByName(this.username);
+                if (space != null) {
+                    space.addMember(hurricaneWindfields.getId());
+                    spaceRepository.addSpace(space);
+                } else {
+                    space = new Space(this.username);
+                    space.setPrivileges(Privileges.newWithSingleOwner(this.username));
+                    space.addMember(hurricaneWindfields.getId());
+                    spaceRepository.addSpace(space);
+                }
+
+            } catch (JsonGenerationException e) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding a mapping for the coast and category");
+            } catch (JsonProcessingException e) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Couldn't process json");
+            } catch (MismatchedDimensionException e) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error in geometry dimensions");
+            }
+        }
+        hurricaneWindfields.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneWindfields.getId()));
+        return hurricaneWindfields;
+    }
+
     @GET
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
@@ -145,14 +217,14 @@ public class HurricaneWindfieldsController {
     }
 
     @POST
-    @Path("{hurricanewf-id}/values")
+    @Path("{hurricaneId}/values")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns hurricane wind field values for a set of locations",
         notes = "Outputs hazard values, demand types, unit and location.")
     public List<ValuesResponse> postHurricaneWindFieldValues(
         @ApiParam(value = "hurricane wind field Id", required = true)
-        @PathParam("hurricanewf-id") String hurricaneId,
+        @PathParam("hurricaneId") String hurricaneId,
         @ApiParam(value = "Json of the points along with demand types and units",
             required = true) @FormDataParam("points") String requestJsonStr,
         @ApiParam(value = "Elevation in meters at which wind speed has to be calculated.") @FormDataParam("elevation") @DefaultValue("10.0") double elevation,
@@ -278,78 +350,6 @@ public class HurricaneWindfieldsController {
         return hurrResults;
     }
 
-    @POST
-    @Consumes({MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a new hurricane, simulation of hurricane windfields is returned.",
-        notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
-            "windfield's raster. Each cell represents the windspeed at 10m elevation and 3-sec wind gust by default")
-    public HurricaneWindfields createHurricaneWindfields(
-        HurricaneWindfields inputHurricane) {
-
-        HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
-        if (inputHurricane != null) {
-            String demandType = inputHurricane.getDemandType().trim();
-
-            if (!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
-                log.error("Unsupported hurricane demandType provided in POST JSON : " + demandType);
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s");
-            }
-            HurricaneSimulationEnsemble hurricaneSimulationEnsemble = getHurricaneJsonByCategory(inputHurricane.getCoast(), inputHurricane.getCategory(), inputHurricane.getTransD(),
-                new IncorePoint(inputHurricane.getLandfallLocation()), demandType, inputHurricane.getDemandUnits().toString().trim(),
-                inputHurricane.getGridResolution(), inputHurricane.getGridPoints(), inputHurricane.getRfMethod());
-
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                String ensemBleString = mapper.writeValueAsString(hurricaneSimulationEnsemble);
-
-                hurricaneWindfields.setName(inputHurricane.getName());
-                hurricaneWindfields.setDescription(inputHurricane.getDescription());
-                hurricaneWindfields.setCreator(this.username);
-
-                hurricaneWindfields.setCategory(inputHurricane.getCategory());
-                hurricaneWindfields.setCoast(inputHurricane.getCoast());
-                hurricaneWindfields.setGridResolution(inputHurricane.getGridResolution());
-                hurricaneWindfields.setRasterResolution(inputHurricane.getRasterResolution());
-                hurricaneWindfields.setTransD(inputHurricane.getTransD());
-                hurricaneWindfields.setModelUsed(hurricaneSimulationEnsemble.getModelUsed());
-                hurricaneWindfields.setLandfallLocation(inputHurricane.getLandfallLocation());
-                hurricaneWindfields.setTimes(hurricaneSimulationEnsemble.getTimes());
-                hurricaneWindfields.setGridPoints(inputHurricane.getGridPoints());
-
-                hurricaneWindfields.setDemandType(inputHurricane.getDemandType());
-                hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
-
-                hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
-                    inputHurricane.getRasterResolution(), this.username));
-
-                //save hurricane
-                hurricaneWindfields = repository.addHurricaneWindfields(hurricaneWindfields);
-
-                //add hurricane to the user's space
-                Space space = spaceRepository.getSpaceByName(this.username);
-                if (space != null) {
-                    space.addMember(hurricaneWindfields.getId());
-                    spaceRepository.addSpace(space);
-                } else {
-                    space = new Space(this.username);
-                    space.setPrivileges(Privileges.newWithSingleOwner(this.username));
-                    space.addMember(hurricaneWindfields.getId());
-                    spaceRepository.addSpace(space);
-                }
-
-            } catch (JsonGenerationException e) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding a mapping for the coast and category");
-            } catch (JsonProcessingException e) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Couldn't process json");
-            } catch (MismatchedDimensionException e) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error in geometry dimensions");
-            }
-        }
-        hurricaneWindfields.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneWindfields.getId()));
-        return hurricaneWindfields;
-    }
-
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{hurricaneId}")
@@ -419,7 +419,7 @@ public class HurricaneWindfieldsController {
     @ApiResponses(value = {
         @ApiResponse(code = 404, message = "No hurricanes found with the searched text")
     })
-    public List<HurricaneWindfields> findHurricanes(
+    public List<HurricaneWindfields> findHurricaneWindfields(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
