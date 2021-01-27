@@ -133,8 +133,8 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
         // TODO need to make sure this works
-        List<FragilitySet> sets = this.dataStore.find(FragilitySet.class).filter(Filters.all("authors", author))
-            .iterator().toList();
+        List<FragilitySet> sets = this.dataStore.find(FragilitySet.class).filter(Filters.regex("authors")
+            .pattern(author).caseInsensitive()).iterator().toList();
 
         return sets;
     }
