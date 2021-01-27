@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -16,6 +17,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
@@ -197,55 +199,60 @@ public class HurricaneController {
 
     @POST
     @Path("{hurricane-id}/values")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns hurricane values for a set of locations",
-        notes = "Outputs hazard values, demand types, units and location")
-    public List<ValuesResponse> postValues(@PathParam("hurricane-id") String hurricaneId,
-                                          List<ValuesRequest> valuesRequest) {
+        notes = "Outputs hazard values, demand types, unit and location.")
+    public List<ValuesResponse> postHurricaneValues(
+        @ApiParam(value = "Hurricane Id", required = true)
+        @PathParam("hurricane-id") String hurricaneId,
+        @ApiParam(value = "Json of the points along with demand types and units",
+            required = true) @FormDataParam("points") String requestJsonStr) {
+
         Hurricane hurricane = getHurricaneById(hurricaneId);
-        List<ValuesResponse> valResponse = new ArrayList<>();
 
-        for(ValuesRequest request: valuesRequest){
-            List<String> demands = request.getDemands();
-            List<String> units = request.getUnits();
-            List<Double> hazVals = new ArrayList<>();
-            if(demands == null || units == null || request.getLoc() == null){
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,  "Please check if demands, units and location" +
-                    " are provided for every element in the request json");
-            }
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            List<ValuesResponse> valResponse = new ArrayList<>();
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            for(ValuesRequest request: valuesRequest){
+                List<String> demands = request.getDemands();
+                List<String> units = request.getUnits();
+                List<Double> hazVals = new ArrayList<>();
 
-            if(demands.size() == 0 || units.size() == 0 || demands.size() != units.size()){
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The demands and units for at least one of " +
-                    "the locations are either missing or not of the same size");
-            }
+                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
 
-            try {
-                for(int i=0; i < demands.size(); i++){
-                    HurricaneHazardResult res = HurricaneCalc.getHurricaneHazardValue(hurricane, demands.get(i),
-                        units.get(i), request.getLoc(), this.username);
-                    hazVals.add(res.getHazardValue());
+                try {
+                    for(int i=0; i < demands.size(); i++){
+                        HurricaneHazardResult res = HurricaneCalc.getHurricaneHazardValue(hurricane, demands.get(i),
+                            units.get(i), request.getLoc(), this.username);
+                        hazVals.add(res.getHazardValue());
+                    }
+                } catch (UnsupportedHazardException e) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                        " for all the locations");
                 }
-            } catch (UnsupportedHazardException e) {
-               throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
-                    " for all the locations");
+
+                ValuesResponse response = new ValuesResponse();
+                response.setHazardValues(hazVals);
+                response.setDemands(request.getDemands());
+                response.setUnits(request.getUnits());
+                response.setLoc(request.getLoc());
+                valResponse.add(response);
             }
-
-            ValuesResponse response = new ValuesResponse();
-            response.setHazardValues(hazVals);
-            response.setDemands(request.getDemands());
-            response.setUnits(request.getUnits());
-            response.setLoc(request.getLoc());
-            valResponse.add(response);
+            return valResponse;
+        }catch(IOException ex){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+        } catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
         }
-
-        return valResponse;
     }
 
     @GET
     @Path("{hurricane-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the specified hurricane values.")
+    @Deprecated
     public List<HurricaneHazardResult> getHurricaneHazardValues(
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId,
         @ApiParam(value = "Hurricane demand type. Ex: 'waveHeight, surgeLevel, inundationDuration'.", required = true) @QueryParam("demandType") String demandType,

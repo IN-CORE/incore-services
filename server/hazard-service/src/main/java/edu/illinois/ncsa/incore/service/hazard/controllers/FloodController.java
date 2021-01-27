@@ -8,6 +8,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -18,10 +19,13 @@ import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IFloodRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.*;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.types.FloodHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.utils.FloodCalc;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
@@ -200,10 +204,64 @@ public class FloodController {
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, check the format of your request.");
     }
 
+    @POST
+    @Path("{flood-id}/values")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns flood values for a set of locations",
+        notes = "Outputs hazard values, demand types, unit and location.")
+    public List<ValuesResponse> postFloodValues(
+        @ApiParam(value = "Glood Id", required = true)
+        @PathParam("flood-id") String floodId,
+        @ApiParam(value = "Json of the points along with demand types and units",
+            required = true) @FormDataParam("points") String requestJsonStr) {
+        Flood flood = getFloodById(floodId);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            List<ValuesResponse> valResponse = new ArrayList<>();
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            for (ValuesRequest request : valuesRequest) {
+                List<String> demands = request.getDemands();
+                List<String> units = request.getUnits();
+                List<Double> hazVals = new ArrayList<>();
+                List<String> resDemands = new ArrayList<>();
+                List<String> resUnits = new ArrayList<>();
+
+                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
+
+                try {
+                    for (int i = 0; i < demands.size(); i++) {
+                        FloodHazardResult res = FloodCalc.getFloodHazardValue(flood, demands.get(i),
+                            units.get(i), request.getLoc(), this.username);
+                        resDemands.add(res.getDemand());
+                        resUnits.add(res.getUnits());
+                        hazVals.add(res.getHazardValue());
+                    }
+                } catch (UnsupportedHazardException e) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                        " for all the locations");
+                }
+
+                ValuesResponse response = new ValuesResponse();
+                response.setHazardValues(hazVals);
+                response.setDemands(resDemands);
+                response.setUnits(resUnits);
+                response.setLoc(request.getLoc());
+                valResponse.add(response);
+            }
+            return valResponse;
+        }catch(IOException ex){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+        } catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+        }
+    }
+
     @GET
     @Path("{flood-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the specified flood values.")
+    @Deprecated
     public List<FloodHazardResult> getFloodHazardValues(
         @ApiParam(value = "Flood dataset guid from data service.", required = true) @PathParam("flood-id") String floodId,
         @ApiParam(value = "Flood demand type. Ex: 'inundationDepth, waterSurfaceElevation'.", required = true) @QueryParam("demandType") String demandType,

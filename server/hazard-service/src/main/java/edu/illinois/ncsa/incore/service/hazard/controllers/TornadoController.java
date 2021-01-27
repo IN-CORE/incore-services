@@ -9,7 +9,11 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -252,10 +256,71 @@ public class TornadoController {
         }
     }
 
+    @POST
+    @Path("{tornado-id}/values")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns tornado values for a set of locations",
+        notes = "Outputs hazard values, demand types, unit and location.")
+    public List<ValuesResponse> posttornadoValues(
+        @ApiParam(value = "Tornado Id", required = true)
+        @PathParam("tornado-id") String tornadoId,
+        @ApiParam(value = "Json of the points along with demand types and units",
+            required = true) @FormDataParam("points") String requestJsonStr,
+        @ApiParam(value = "Simulated wind hazard index. Ex: 0 for first, 1 for second and so on")
+        @FormDataParam("simulation") @DefaultValue("0") int simulation) {
+
+        Tornado tornado = getTornado(tornadoId);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            List<ValuesResponse> valResponse = new ArrayList<>();
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            for (ValuesRequest request : valuesRequest) {
+                List<String> demands = request.getDemands();
+                List<String> units = request.getUnits();
+                List<Double> hazVals = new ArrayList<>();
+                List<String> resDemands = new ArrayList<>();
+                List<String> resUnits = new ArrayList<>();
+
+                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
+
+                try {
+                    for (int i = 0; i < demands.size(); i++) {
+                        WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
+                            request.getLoc().getLocation(), units.get(i), simulation, this.username);
+                        resDemands.add(res.getDemand());
+                        resUnits.add(res.getUnits());
+                        hazVals.add(res.getHazardValue());
+                    }
+                } catch (UnsupportedHazardException e) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                        " for all the locations");
+                }
+
+                ValuesResponse response = new ValuesResponse();
+                response.setHazardValues(hazVals);
+                response.setDemands(resDemands);
+                response.setUnits(resUnits);
+                response.setLoc(request.getLoc());
+                valResponse.add(response);
+            }
+            return valResponse;
+        }catch(IOException ex){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+        }catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+        }
+        catch (Exception e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Make sure the demand types and simulations (if provided) are applicable." +
+                " Please check the format of your request.");
+        }
+    }
+
     @GET
     @Path("{tornado-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
+    @Deprecated
     public List<WindHazardResult> getTornadoHazardValues(
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
         @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,

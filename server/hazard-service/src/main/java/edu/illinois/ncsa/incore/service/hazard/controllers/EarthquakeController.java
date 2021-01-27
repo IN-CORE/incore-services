@@ -9,8 +9,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -400,12 +404,18 @@ public class EarthquakeController {
 
     @POST
     @Path("{earthquake-id}/values")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns earthquake values for a set of locations",
-        notes = "Outputs hazard values, demand types, units, periods and location.")
-    public List<EqValuesResponse> postValues(@PathParam("earthquake-id") String earthquakeId,
-                                             List<EqValuesRequest> valuesRequest) {
+        notes = "Outputs hazard values, demand types, unit and location.")
+    public List<ValuesResponse> postEarthquakeValues(
+        @ApiParam(value = "Earthquake Id", required = true)
+        @PathParam("earthquake-id") String earthquakeId,
+        @ApiParam(value = "Json of the points along with demand types and units",
+            required = true) @FormDataParam("points") String requestJsonStr,
+        @ApiParam(value = "Amplify earthquake by soil type", required = false)
+        @FormDataParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
+
         Earthquake eq = getEarthquake(earthquakeId);
 
         Map<BaseAttenuation, Double> attenuations = null;
@@ -414,76 +424,54 @@ public class EarthquakeController {
             attenuations = attenuationProvider.getAttenuations(earthquake);
         }
 
-        List<EqValuesResponse> valResponse = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            List<ValuesResponse> valResponse = new ArrayList<>();
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            for(ValuesRequest request: valuesRequest){
+                List<String> demands = request.getDemands();
+                List<String> units = request.getUnits();
+                List<Double> hazVals = new ArrayList<>();
+                List<String> resDemands = new ArrayList<>();
+                List<String> resUnits = new ArrayList<>();
 
-        for(EqValuesRequest request: valuesRequest){
-            List<String> demands = request.getDemands();
-//            List<String> periods = new ArrayList<>();
-            List<String> units = request.getUnits();
-            List<Double> hazVals = new ArrayList<>();
-            List<Boolean> amplifyHazards = request.getAmplifyHazards();
+                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
 
-            List<String> resDemands = new ArrayList<>();
-            List<String> resUnits = new ArrayList<>();
+                try {
+                    for(int i=0; i < demands.size(); i++){
+                        String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
+                        SeismicHazardResult res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
+                            new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
+                            units.get(i), 0, amplifyHazard, this.username);
 
-
-            if(demands == null || units == null || request.getLoc() == null){
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,  "Please check if demands, units and location" +
-                    " are provided for every element in the request json");
-            }
-
-            if(demands.size() == 0 || units.size() == 0 || demands.size() != units.size()){
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The demands and units for at least one of " +
-                    "the locations are either missing or not of the same size");
-            }
-
-            if(amplifyHazards == null){
-                amplifyHazards = new ArrayList<>(Collections.nCopies(demands.size(), true));
-            }
-
-            if(amplifyHazards.size() > 0 && demands.size() != amplifyHazards.size()){
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The demands and amplifyHazards arrays are " +
-                    "not of the same size");
-            }
-
-            try {
-                for(int i=0; i < demands.size(); i++){
-                    String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
-                    Boolean amplifyHazard = true;
-
-                    if(amplifyHazards.get(i) != null && !amplifyHazards.get(i)){
-                        amplifyHazard = false;
+                        //condition to only show PGA/PGV without period prepended
+                        String period = Float.parseFloat(res.getPeriod().trim()) == 0.0 ? "" : res.getPeriod().trim() + " ";
+                        resDemands.add(period + res.getDemand());
+                        resUnits.add(res.getUnits());
+                        hazVals.add(res.getHazardValue());
                     }
-                    SeismicHazardResult res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
-                        new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
-                        units.get(i), 0, amplifyHazard, this.username);
-//                    periods.add(demandComponents[0]);
-                    String period = res.getPeriod() == "0.0" ? "" : res.getPeriod() + " ";
-                    resDemands.add(period + res.getDemand());
-                    resUnits.add(res.getUnits());
-                    hazVals.add(res.getHazardValue());
+                } catch (UnsupportedHazardException e) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                        " for all the locations");
+                } catch (Exception ex) {
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Exception occurred when calculating" +
+                        " hazard value. Please check if the demands and units provided are supported" +
+                        " for all the locations");
                 }
-            } catch (UnsupportedHazardException e) {
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
-                    " for all the locations");
-            } catch (Exception ex) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Exception occurred when calculating" +
-                    " hazard value. Please check if the demands and units provided are supported" +
-                    " for all the locations");
+
+                ValuesResponse response = new ValuesResponse();
+                response.setHazardValues(hazVals);
+                response.setDemands(resDemands);
+                response.setUnits(resUnits);
+                response.setLoc(request.getLoc());
+                valResponse.add(response);
             }
-
-            EqValuesResponse response = new EqValuesResponse();
-            response.setHazardValues(hazVals);
-            response.setDemands(resDemands);
-            response.setUnits(resUnits);
-//            response.setPeriods(periods);
-            response.setAmplifyHazards(amplifyHazards);
-            response.setLoc(request.getLoc());
-            valResponse.add(response);
+            return valResponse;
+        } catch(IOException ex){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+        } catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
         }
-
-        return valResponse;
-
     }
 
     @GET
@@ -491,6 +479,7 @@ public class EarthquakeController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns hazard values for the given earthquake id.",
         notes = "The results contain ground shaking parameter (PGA, SA, etc) for specific locations.")
+    @Deprecated
     public List<SeismicHazardResult> getEarthquakeHazardValues(
         @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Ground motion demand type. Ex: PGA, PGV, 0.2 SA, etc.", required = true) @QueryParam("demandType") String demandType,
@@ -669,9 +658,7 @@ public class EarthquakeController {
         }
 
         return varianceResults;
-
     }
-
 
     @GET
     @Path("{earthquake-id}/liquefaction/values")

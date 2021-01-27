@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -19,6 +20,8 @@ import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITsunamiRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.DeterministicTsunamiHazard;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
@@ -26,6 +29,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiHazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.types.TsunamiHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.utils.TsunamiCalc;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
@@ -132,10 +136,65 @@ public class TsunamiController {
         throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have the privileges to access " + tsunamiId);
     }
 
+    @POST
+    @Path("{tsunami-id}/values")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns tsunami values for a set of locations",
+        notes = "Outputs hazard values, demand types, unit and location.")
+    public List<ValuesResponse> postTsunamiValues(
+        @ApiParam(value = "Tsunami Id", required = true)
+        @PathParam("tsunami-id") String tsunamiId,
+        @ApiParam(value = "Json of the points along with demand types and units",
+            required = true) @FormDataParam("points") String requestJsonStr) {
+
+        Tsunami tsunami = getTsunami(tsunamiId);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            List<ValuesResponse> valResponse = new ArrayList<>();
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            for (ValuesRequest request : valuesRequest) {
+                List<String> demands = request.getDemands();
+                List<String> units = request.getUnits();
+                List<Double> hazVals = new ArrayList<>();
+                List<String> resDemands = new ArrayList<>();
+                List<String> resUnits = new ArrayList<>();
+
+                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
+
+                try {
+                    for (int i = 0; i < demands.size(); i++) {
+                        TsunamiHazardResult res = TsunamiCalc.getTsunamiHazardValue(tsunami,
+                            demands.get(i), units.get(i), request.getLoc(), this.username);
+                        resDemands.add(res.getDemand());
+                        resUnits.add(res.getUnits());
+                        hazVals.add(res.getHazardValue());
+                    }
+                } catch (UnsupportedHazardException e) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                        " for all the locations");
+                }
+
+                ValuesResponse response = new ValuesResponse();
+                response.setHazardValues(hazVals);
+                response.setDemands(resDemands);
+                response.setUnits(resUnits);
+                response.setLoc(request.getLoc());
+                valResponse.add(response);
+            }
+            return valResponse;
+        }catch(IOException ex){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
+        } catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+        }
+    }
+
     @GET
     @Path("{tsunami-id}/values")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the specified tsunami values.")
+    @Deprecated
     public List<TsunamiHazardResult> getTsunamiHazardValues(
         @ApiParam(value = "Tsunami dataset guid from data service.", required = true) @PathParam("tsunami-id") String tsunamiId,
         @ApiParam(value = "Tsunami demand type. Ex: 'Hmax, Vmax, Mmax'.", required = true) @QueryParam("demandType") String demandType,
