@@ -262,7 +262,7 @@ public class TornadoController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns tornado values for a set of locations",
         notes = "Outputs hazard values, demand types, unit and location.")
-    public List<ValuesResponse> posttornadoValues(
+    public List<ValuesResponse> postTornadoValues(
         @ApiParam(value = "Tornado Id", required = true)
         @PathParam("tornado-id") String tornadoId,
         @ApiParam(value = "Json of the points along with demand types and units",

@@ -6,6 +6,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.utils;
 
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
@@ -29,6 +30,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.BoundingBox;
 
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
@@ -141,7 +143,8 @@ public class GISUtil {
             //if we still don't have it, there's a problem
             if (inSourceFileUrl == null) {
                 logger.error("Could not locate Feature Collection");
-                return null;
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unable to read the provided dataset. Please " +
+                    "check the id and dataset type");
             }
 
 
@@ -158,7 +161,8 @@ public class GISUtil {
 
         } catch (IOException e) {
             logger.error("Error reading shapefile");
-            return null;
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unable to read the provided dataset. Please " +
+                "check the id and dataset type");
         }
 
     }

@@ -677,8 +677,12 @@ public class EarthquakeController {
         Earthquake eq = getEarthquake(earthquakeId);
 
         if (!(eq instanceof EarthquakeModel)) {
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Liquefaction is only supported for model-based earthquakes. " +
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Liquefaction is only supported for model-based earthquakes. " +
                 "Please verify if the earthquake is attenuation model based");
+        }
+
+        if (geologyId == null){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Missing geology dataset in the request");
         }
 
         ObjectMapper mapper = new ObjectMapper();
