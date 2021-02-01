@@ -84,7 +84,6 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
     public List<RestorationSet> searchRestorations(String text) {
         Query<RestorationSet> query = this.dataStore.find(RestorationSet.class).filter(
             Filters.or(
-                Filters.regex("demandType").pattern(text).caseInsensitive(),
                 Filters.regex("legacyId").pattern(text).caseInsensitive(),
                 Filters.regex("hazardType").pattern(text).caseInsensitive(),
                 Filters.regex("inventoryType").pattern(text).caseInsensitive(),
