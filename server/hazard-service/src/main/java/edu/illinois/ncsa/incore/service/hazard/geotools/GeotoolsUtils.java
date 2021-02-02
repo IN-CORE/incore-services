@@ -50,6 +50,7 @@ public class GeotoolsUtils {
     private static final Logger logger = Logger.getLogger(GeotoolsUtils.class);
     private static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
     static GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+    private static final DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
     /**
      * create SimpleFeatureCollection from resource name
@@ -169,7 +170,6 @@ public class GeotoolsUtils {
      */
     public static double FindShortestDistanceFromPointToFeatures(SimpleFeatureCollection inFeatures, double lat, double lon) throws IOException {
         SpatialIndexFeatureCollection featureIndex;
-        DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
         featureIndex = new SpatialIndexFeatureCollection(inFeatures.getSchema());
         featureIndex.addAll(inFeatures);
         GeodeticCalculator gc = new GeodeticCalculator(crs);
@@ -382,7 +382,6 @@ public class GeotoolsUtils {
 //            // new method for faster iteration
 //            ////////////////////////////////////////
 //            SpatialIndexFeatureCollection featureIndex;
-//            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 //            featureIndex = new SpatialIndexFeatureCollection(dslvFeatures.getSchema());
 //            featureIndex.addAll(dslvFeatures);
 //            GeodeticCalculator gc = new GeodeticCalculator(crs);
