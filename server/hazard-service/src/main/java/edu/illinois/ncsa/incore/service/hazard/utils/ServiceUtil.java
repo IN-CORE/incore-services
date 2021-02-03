@@ -567,14 +567,15 @@ public class ServiceUtil {
         return files;
     }
 
-    public static String createDataset(String title, String creator, String description, String datasetType) throws IOException {
+    public static String createDataset(String title, String creator, String description, String datasetType,
+                                       String format) throws IOException {
         String dataEndpoint = getDataServiceEndpoint();
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(HazardConstants.DATA_TYPE, datasetType);
         jsonObject.put(HazardConstants.TITLE, title);
         jsonObject.put(HazardConstants.SOURCE_DATASET, "");
-        jsonObject.put(HazardConstants.FORMAT, HazardConstants.RASTER_FORMAT);
+        jsonObject.put(HazardConstants.FORMAT, format);
         jsonObject.put(HazardConstants.DESCRIPTION, description);
 
         HttpClientBuilder builder = HttpClientBuilder.create();
@@ -608,7 +609,7 @@ public class ServiceUtil {
     //TODO: Obsolete this and use createVisualizationDataset instead?
     public static String createRasterDataset(File rasterFile, String title, String creator,
                                              String description, String datasetType) throws IOException {
-        String datasetId = createDataset(title, creator, description, datasetType);
+        String datasetId = createDataset(title, creator, description, datasetType, HazardConstants.RASTER_FORMAT);
 
         if (datasetId != null) {
             MultipartEntityBuilder params = MultipartEntityBuilder.create();
@@ -623,7 +624,7 @@ public class ServiceUtil {
 
     public static String createVisualizationDataset(List<File> vizFiles, String title, String creator,
                                                     String description, String datasetType) throws IOException {
-        String datasetId = createDataset(title, creator, description, datasetType);
+        String datasetId = createDataset(title, creator, description, datasetType, HazardConstants.SHAPEFILE_FORMAT);
 
         if (datasetId != null) {
             MultipartEntityBuilder params = MultipartEntityBuilder.create();
@@ -639,7 +640,7 @@ public class ServiceUtil {
 
     public static String createRasterDataset(String filename, InputStream fis, String title, String creator,
                                              String description, String datasetType) throws IOException {
-        String datasetId = createDataset(title, creator, description, datasetType);
+        String datasetId = createDataset(title, creator, description, datasetType, HazardConstants.RASTER_FORMAT);
         if (datasetId != null) {
             MultipartEntityBuilder params = MultipartEntityBuilder.create();
             params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);

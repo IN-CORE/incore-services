@@ -25,6 +25,7 @@ public class HazardConstants {
     public static final String DETERMINISTIC_FLOOD_HAZARD_SCHEMA = "incore:deterministicFloodRaster";
     public static final String PROBABILISTIC_FLOOD_HAZARD_SCHEMA = "incore:probabilisticFloodRaster";
     public static final String RASTER_FORMAT = "raster";
+    public static final String SHAPEFILE_FORMAT = "shapefile";
     public static final String HAZARD_TIF = "hazard.tif";
 
     // Dataset fields
