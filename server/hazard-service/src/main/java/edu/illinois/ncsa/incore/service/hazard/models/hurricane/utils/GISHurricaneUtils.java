@@ -154,7 +154,6 @@ public class GISHurricaneUtils {
      */
     public static void CreateHurricanePointShapefile(List<Double> lats, List<Double> lons, List vals, int simNum, String inFile) throws MismatchedDimensionException, IOException {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-        DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
         AttributeTypeBuilder attBuilder = new AttributeTypeBuilder();
         attBuilder.setName("the_geom");
@@ -390,7 +389,6 @@ public class GISHurricaneUtils {
         if (inFeatures != null) {
             Coordinate coord = new Coordinate(lon, lat);
             Point startPoint = geometryFactory.createPoint(coord);
-            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
             // check if the point is in the boulding box
             boolean isPointIn = GISUtil.IsPointInPolygonBySFC(inFeatures, startPoint);

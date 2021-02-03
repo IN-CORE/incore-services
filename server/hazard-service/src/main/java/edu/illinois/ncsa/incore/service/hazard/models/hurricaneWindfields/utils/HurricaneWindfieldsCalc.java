@@ -47,6 +47,11 @@ import static java.lang.Math.*;
 public class HurricaneWindfieldsCalc {
     private static final Logger logger = Logger.getLogger(HurricaneWindfieldsCalc.class);
 
+    // This is a line to initialize DefaultGeographicCRS
+    // This had a problem after changing to java 11 and geoserver get updated,
+    // and the initilazation got failed
+    // maybe because it was a static and maybe did not had a chance to be initialized.
+    private static final DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
     public static HurricaneSimulationEnsemble simulateHurricane(String username, double transD, IncorePoint landfallLoc, String model,
                                                                 String demandType, String demandUnits, int resolution, int gridPoints, String rfMethod) {
@@ -530,7 +535,6 @@ public class HurricaneWindfieldsCalc {
             Complex[][] vsReduced = new Complex[pointSize][pointSize];
             boolean performReduction = true; // only for testing
 
-            DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
             GeodeticCalculator gc = new GeodeticCalculator(crs);
             double reductionFactor = 1;
 
