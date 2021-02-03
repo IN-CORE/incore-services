@@ -94,7 +94,7 @@ public class FragilityController {
         }
 
         if (demandType != null) {
-            queryMap.put("demandType", demandType);
+            queryMap.put("demandTypes", demandType);
         }
 
         if (hazardType != null) {

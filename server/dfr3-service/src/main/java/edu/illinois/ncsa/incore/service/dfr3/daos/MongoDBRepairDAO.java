@@ -83,7 +83,6 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
     public List<RepairSet> searchRepairs(String text) {
         Query<RepairSet> query = this.dataStore.find(RepairSet.class).filter(
             Filters.or(
-                Filters.regex("demandType").pattern(text).caseInsensitive(),
                 Filters.regex("legacyId").pattern(text).caseInsensitive(),
                 Filters.regex("hazardType").pattern(text).caseInsensitive(),
                 Filters.regex("inventoryType").pattern(text).caseInsensitive(),

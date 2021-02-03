@@ -14,17 +14,25 @@ import java.util.List;
 
 @Entity("FragilitySet")
 public class FragilitySet extends DFR3Set {
-    protected String demandType;
-    protected String demandUnits;
+    protected List<String> demandTypes;
+    protected List<String> demandUnits;
     protected List<FragilityCurve> fragilityCurves;
     protected List<FragilityCurveParameter> fragilityCurveParameters;
 
-    public String getDemandType() {
-        return demandType;
+    public List<String> getDemandTypes() {
+        return demandTypes;
     }
 
-    public String getDemandUnits() {
+    public void setDemandTypes(List<String> demandTypes) {
+        this.demandTypes = demandTypes;
+    }
+
+    public List<String> getDemandUnits() {
         return demandUnits;
+    }
+
+    public void setDemandUnits(List<String> demandUnits) {
+        this.demandUnits = demandUnits;
     }
 
     public List<FragilityCurve> getFragilityCurves() { return fragilityCurves; }

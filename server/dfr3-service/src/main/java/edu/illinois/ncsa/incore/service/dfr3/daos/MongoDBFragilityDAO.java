@@ -98,7 +98,7 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
     public List<FragilitySet> searchFragilities(String text) {
         Query<FragilitySet> query = this.dataStore.find(FragilitySet.class).filter(
             Filters.or(
-                Filters.regex("demandType").pattern(text).caseInsensitive(),
+                Filters.regex("demandTypes").pattern(text).caseInsensitive(),
                 Filters.regex("legacyId").pattern(text).caseInsensitive(),
                 Filters.regex("hazardType").pattern(text).caseInsensitive(),
                 Filters.regex("inventoryType").pattern(text).caseInsensitive(),
