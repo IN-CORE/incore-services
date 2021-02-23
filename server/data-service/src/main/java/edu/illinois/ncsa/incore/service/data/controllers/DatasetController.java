@@ -624,6 +624,10 @@ public class DatasetController {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error creating temp directory in guid creation process.");
             }
         }
+
+        // TODO: This a patch/hotfix so space is not saved when updating the dataset.
+        //  May be this endpoint should not try to addDataset, rather it should just try to update the files section of the existing dataset
+        dataset.setSpaces(null);
         repository.addDataset(dataset);
 
         if (enableGeoserver && isGeoserver) {
