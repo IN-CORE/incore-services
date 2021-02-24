@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0] - 2021-02-24
+
+### Added
+- POST endpoints to get hazard values for multiple demand types in a single call [INCORE1-921](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-921)
+
+### Changed
+- Convert demandType & demandUnits in DFR3 jsons to be arrays instead of comma separated strings [INCORE1-819](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-819)
+- Upgrade morphia from 1.5 to 2.1. Replace deprecated morphia methods [INCORE1-703](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-703)
+- Upgrade packages to be compatible with Java 11 [INCORE1-885](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-885)
+- Get mongo hostname from env [INCORE1-936](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-936)
+
+### Fixed
+- Space information is being saved in Dataset collection even though it is a read-only field [INCORE1-918](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-918)
+- Hurricane windfield full grid snapshot datasets are being saved as raster [INCORE1-926](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-926)
+
 ## [0.9.1] - 2020-12-18
 
 ### Added
