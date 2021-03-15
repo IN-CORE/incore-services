@@ -547,6 +547,56 @@ public class GeotoolsUtils {
     }
 
     /**
+     * check if GUID field is in the shapefile
+     *
+     * @param dataset
+     * @param shpfiles
+     * @return
+     * @throws IOException
+     */
+    public static boolean isGUIDinShpfile(Dataset dataset, List<File> shpfiles) throws IOException {
+        // set geometry factory
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        String outFileName = FilenameUtils.getBaseName(shpfiles.get(0).getName()) + "." + FileUtils.EXTENSION_SHP;
+
+        // create temp dir and copy files to temp dir
+        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        List<File> copiedFileList = performCopyFiles(shpfiles, tempDir, "", false, "shp");
+        boolean isGuid = false;
+
+        SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFileList(copiedFileList);
+
+        // check if there is guid exists
+        isGuid = isGuidExist(inputFeatures);
+
+        return isGuid;
+    }
+
+    /**
+     * check if GUID field is in the shapefile
+     *
+     * @param dataset
+     * @param shpfiles
+     * @param fileName
+     * @return
+     * @throws IOException
+     */
+    public static boolean isGUIDinShpfile(Dataset dataset, List<File> shpfiles, String fileName) throws IOException {
+        // create file list for file
+        List<File> files = new LinkedList<>();
+        String fileNameNoExt = FilenameUtils.removeExtension(fileName);
+        for (File infile : shpfiles) {
+            String tmpFileName = FilenameUtils.removeExtension(FilenameUtils.getName(infile.getName()));
+            if (tmpFileName.equalsIgnoreCase(fileNameNoExt)) {
+                files.add(infile);
+            }
+        }
+        boolean isGuid = isGUIDinShpfile(dataset, files);
+
+        return isGuid;
+    }
+
+    /**
      * create GUID field in the shapefile
      *
      * @param dataset

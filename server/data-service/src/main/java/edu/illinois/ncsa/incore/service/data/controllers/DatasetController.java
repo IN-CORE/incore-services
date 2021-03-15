@@ -604,24 +604,33 @@ public class DatasetController {
                 boolean isLinkGuid = true;
                 boolean isNodeGuid = true;
                 if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                    isLinkGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files, linkFileName);
+                    isLinkGuid = GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName);
                     if (isLinkGuid) {
                         logger.debug("The link shapefile already has guid field");
+                    } else {
+                        logger.debug("The shapefile does not have guid field.");
+                        throw new IOException("No GUID field.");
                     }
-                    isNodeGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files, nodeFileName);
+                    isNodeGuid = GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName);
                     if (isNodeGuid) {
                         logger.debug("The node shapefile already has guid field");
+                    } else {
+                        logger.debug("The shapefile does not have guid field.");
+                        throw new IOException("No GUID field.");
                     }
                 } else {
-                    isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
+                    isGuid = GeotoolsUtils.isGUIDinShpfile(dataset, files);
                     if (isGuid) {
                         logger.debug("The shapefile already has guid field");
+                    } else {
+                        logger.debug("The shapefile does not have guid field.");
+                        throw new IOException("No GUID field.");
                     }
                 }
-
             } catch (IOException e) {
-                logger.error("Error creating temp directory in guid creation process ", e);
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error creating temp directory in guid creation process.");
+                logger.error("The shapefile does not have guid field ", e);
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "The shapefile does not have guid field. " +
+                    "Please create a field in shapefile and upload.");
             }
         }
 
