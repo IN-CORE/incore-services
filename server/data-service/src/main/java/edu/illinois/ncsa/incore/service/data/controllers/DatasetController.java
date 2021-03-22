@@ -570,8 +570,6 @@ public class DatasetController {
             dataset.setNetworkDataset(networkDataset);
         }
 
-        repository.addDataset(dataset);
-
         // check if there is a source dataset, if so it will be joined to source dataset
         String sourceDataset = dataset.getSourceDataset();
 
@@ -608,6 +606,7 @@ public class DatasetController {
                     if (isLinkGuid) {
                         logger.debug("The link shapefile already has guid field");
                     } else {
+                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
                         throw new IOException("No GUID field.");
                     }
@@ -615,6 +614,7 @@ public class DatasetController {
                     if (isNodeGuid) {
                         logger.debug("The node shapefile already has guid field");
                     } else {
+                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
                         throw new IOException("No GUID field.");
                     }
@@ -623,6 +623,7 @@ public class DatasetController {
                     if (isGuid) {
                         logger.debug("The shapefile already has guid field");
                     } else {
+                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
                         throw new IOException("No GUID field.");
                     }
@@ -633,6 +634,8 @@ public class DatasetController {
                     "Please create a field in shapefile and upload.");
             }
         }
+
+        repository.addDataset(dataset);
 
         // TODO: This a patch/hotfix so space is not saved when updating the dataset.
         //  May be this endpoint should not try to addDataset, rather it should just try to update the files section of the existing dataset

@@ -569,6 +569,9 @@ public class GeotoolsUtils {
         // check if there is guid exists
         isGuid = isGuidExist(inputFeatures);
 
+        // remove temp dir after checking the file
+        FileUtils.deleteTmpDir(copiedFileList.get(0));
+
         return isGuid;
     }
 
