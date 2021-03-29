@@ -17,9 +17,7 @@ public class CorsFilter implements ContainerResponseFilter {
         if (requestHeadersOrigin != null && allowedOrigins.contains(requestHeadersOrigin)){
             headers.add("Access-Control-Allow-Origin", requestHeadersOrigin);
         }
-        headers.add("Access-Control-Allow-Methods", "GET");
-        headers.add("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, " +
-            "Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, auth-user, " +
-            "auth-token, x-auth-userinfo");
+        headers.add("Access-Control-Allow-Methods", System.getenv("SERVICES_ALLOW_METHODS"));
+        headers.add("Access-Control-Allow-Headers", System.getenv("SERVICES_ALLOW_HEADERS"));
     }
 }
