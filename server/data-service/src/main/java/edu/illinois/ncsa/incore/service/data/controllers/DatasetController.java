@@ -597,7 +597,7 @@ public class DatasetController {
                 }
             }
             try {
-                // create GUID if there is no GUID in the table
+                // check if GUID is in the input shapefile
                 boolean isGuid = true;
                 boolean isLinkGuid = true;
                 boolean isNodeGuid = true;
