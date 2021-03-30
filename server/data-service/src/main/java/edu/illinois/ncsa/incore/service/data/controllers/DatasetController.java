@@ -598,31 +598,15 @@ public class DatasetController {
             }
             try {
                 // check if GUID is in the input shapefile
-                boolean isGuid = true;
-                boolean isLinkGuid = true;
-                boolean isNodeGuid = true;
                 if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                    isLinkGuid = GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName);
-                    if (isLinkGuid) {
-                        logger.debug("The link shapefile already has guid field");
-                    } else {
-                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
-                        logger.debug("The shapefile does not have guid field.");
-                        throw new IOException("No GUID field.");
-                    }
-                    isNodeGuid = GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName);
-                    if (isNodeGuid) {
-                        logger.debug("The node shapefile already has guid field");
-                    } else {
+                    if(!GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName) ||
+                        !GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName)){
                         FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
                         throw new IOException("No GUID field.");
                     }
                 } else {
-                    isGuid = GeotoolsUtils.isGUIDinShpfile(dataset, files);
-                    if (isGuid) {
-                        logger.debug("The shapefile already has guid field");
-                    } else {
+                    if (!GeotoolsUtils.isGUIDinShpfile(dataset, files)) {
                         FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
                         throw new IOException("No GUID field.");
