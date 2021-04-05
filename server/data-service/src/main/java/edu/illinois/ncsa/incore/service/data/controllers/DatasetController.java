@@ -570,8 +570,6 @@ public class DatasetController {
             dataset.setNetworkDataset(networkDataset);
         }
 
-        repository.addDataset(dataset);
-
         // check if there is a source dataset, if so it will be joined to source dataset
         String sourceDataset = dataset.getSourceDataset();
 
@@ -599,31 +597,29 @@ public class DatasetController {
                 }
             }
             try {
-                // create GUID if there is no GUID in the table
-                boolean isGuid = true;
-                boolean isLinkGuid = true;
-                boolean isNodeGuid = true;
+                // check if GUID is in the input shapefile
                 if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                    isLinkGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files, linkFileName);
-                    if (isLinkGuid) {
-                        logger.debug("The link shapefile already has guid field");
-                    }
-                    isNodeGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files, nodeFileName);
-                    if (isNodeGuid) {
-                        logger.debug("The node shapefile already has guid field");
+                    if(!GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName) ||
+                        !GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName)){
+                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                        logger.debug("The shapefile does not have guid field.");
+                        throw new IOException("No GUID field.");
                     }
                 } else {
-                    isGuid = GeotoolsUtils.createGUIDinShpfile(dataset, files);
-                    if (isGuid) {
-                        logger.debug("The shapefile already has guid field");
+                    if (!GeotoolsUtils.isGUIDinShpfile(dataset, files)) {
+                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                        logger.debug("The shapefile does not have guid field.");
+                        throw new IOException("No GUID field.");
                     }
                 }
-
             } catch (IOException e) {
-                logger.error("Error creating temp directory in guid creation process ", e);
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error creating temp directory in guid creation process.");
+                logger.error("The shapefile does not have guid field ", e);
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "The shapefile does not have guid field. " +
+                    "Please create a field in shapefile and upload.");
             }
         }
+
+        repository.addDataset(dataset);
 
         // TODO: This a patch/hotfix so space is not saved when updating the dataset.
         //  May be this endpoint should not try to addDataset, rather it should just try to update the files section of the existing dataset

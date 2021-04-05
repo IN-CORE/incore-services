@@ -30,6 +30,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -848,5 +850,18 @@ public class FileUtils {
         }
 
         return useGeoserver;
+    }
+
+    public static void removeFilesFromFileDescriptor(List fdList){
+
+        for (int i = 0; i < fdList.size(); i++) {
+            FileDescriptor fd = (FileDescriptor) fdList.get(i);
+            String delFileName = FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL());
+            Path parent = Paths.get(delFileName).getParent();
+            File delFile = new File(delFileName);
+            File delParent = new File(parent.toString());
+            deleteFiles(delFile);
+            deleteFiles(delParent);
+        }
     }
 }
