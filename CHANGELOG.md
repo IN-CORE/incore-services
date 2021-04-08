@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.0] - 2021-04-14
+
+### Changed
+- Make data service to deny POSTs when GUID is not in the shapefile [INCORE1-1056](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1056)
+- For CSV datasets with source inventory dataset, the merge data is now saved as geopackage (instead of shapefiles) on the geoserver. 
+  This also fixes a limitation with shapefiles attributes to only have field names under 10 characters [INCORE1-762](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-762) 
+
+### Fixed
+- Fix CORS issue to work with the new platform. Move CORS variables to env [INCORE1-1087](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1087)
+
 ## [1.0.0] - 2021-02-24
 
 ### Added
