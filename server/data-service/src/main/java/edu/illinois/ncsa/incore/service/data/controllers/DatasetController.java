@@ -581,7 +581,8 @@ public class DatasetController {
 
         List<FileDescriptor> dataFDs = dataset.getFileDescriptors();
         List<File> files = new ArrayList<File>();
-        File zipFile = null;
+        // File zipFile = null;
+        File geoPkgFile = null;
         boolean isShpfile = false;
 
         if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE) || format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
@@ -630,15 +631,21 @@ public class DatasetController {
             if (isJoin) {
                 // todo: the join process for the network dataset should be added in here
                 try {
-                    zipFile = FileUtils.joinShpTable(dataset, repository, true);
-                    GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+                    geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
+                    if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
+                        logger.error("Fail to upload geopakcage file");
+                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
+                    }
+                    // GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
                 } catch (IOException e) {
                     logger.error("Error making temp directory in joining process ", e);
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error making temp directory in joining process.");
-                } catch (URISyntaxException e) {
-                    logger.error("Error making file using dataset's location url in table join process ", e);
-                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error making file using dataset's location uri in table join process.");
+                } catch (IncoreHTTPException e) {
+                    logger.error(e.getMessage());
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
                 }
+                // clean up
+                FileUtils.deleteTmpDir(geoPkgFile);
             } else {
                 try {
                     if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {

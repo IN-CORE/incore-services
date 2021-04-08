@@ -50,6 +50,7 @@ public class FileUtils {
     public static final String EXTENSION_SHP = "shp";
     public static final String EXTENSION_META = "mvz";
     public static final String EXTENSION_CSV = "csv";
+    public static final String EXTENSION_GEOPACKAGE = "gpkg"; // file extension of geopackage
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;
     public static final int TYPE_NUMBER_CSV = 2;
@@ -73,6 +74,7 @@ public class FileUtils {
     public static final String NETWORK_GRAPH_TYPE = "graphType";
     public static final Logger logger = Logger.getLogger(FileUtils.class);
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
+
 
     /**
      * delete temporary directory
@@ -675,19 +677,19 @@ public class FileUtils {
     }
 
     /**
-     * join csv table and shapefile and create a zip file
+     * join csv table and shapefile and create a geopackage file
      *
      * @param dataset
      * @param repository
-     * @return
+     * @return 
+     * @throws Exception
      * @throws URISyntaxException
      * @throws IOException
      */
-    public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws URISyntaxException, IOException {
+    public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws IncoreHTTPException, IOException{
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
-        File zipFile = null;
-        File shapefile = null;
+        File geoPkgFile = null;
 
         for (int i = 0; i < csvFDs.size(); i++) {
             FileDescriptor csvFd = csvFDs.get(i);
@@ -696,35 +698,43 @@ public class FileUtils {
         }
 
         Dataset sourceDataset = repository.getDatasetById(dataset.getSourceDataset());
+
+        // if source dataset doesn't exist, throw exception
+        // else perform join
         if (sourceDataset == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "There is no Dataset with given id in the repository.");
-        } else {
-            List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
-            String sourceType = sourceDataset.getDataType();
-            List<File> shpfiles = new ArrayList<File>();
-            boolean isShpfile = false;
+            String errorMsg = "There is no source Dataset with given id in the repository: " + dataset.getId();
+            logger.error(errorMsg);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, errorMsg);
+        } 
+        
+        List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
+        List<File> shpfiles = new ArrayList<File>();
+        boolean isShpfile = false;
 
-            if (!(sourceType.equalsIgnoreCase(FORMAT_SHAPEFILE))) {
-                for (int i = 0; i < sourceFDs.size(); i++) {
-                    FileDescriptor sfd = sourceFDs.get(i);
-                    String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
-                    File shpFile = new File(shpLoc);
-                    shpfiles.add(shpFile);
-                    //get file, if the file is in remote, use http downloader
-                    String fileExt = FilenameUtils.getExtension(shpLoc);
-                    if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                        shapefile = shpFile;
-                        isShpfile = true;
-                    }
-                }
-            }
-
-            if (isShpfile) {
-                zipFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
+        // check whether shp file exists or not
+        // build list of files for shapefiles
+        for (int i = 0; i < sourceFDs.size(); i++) {
+            FileDescriptor sfd = sourceFDs.get(i);
+            String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
+            File shpFile = new File(shpLoc);
+            shpfiles.add(shpFile);
+            //get file, if the file is in remote, use http downloader
+            String fileExt = FilenameUtils.getExtension(shpLoc);
+            if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                isShpfile = true;
             }
         }
 
-        return zipFile;
+        if (!isShpfile) {
+            String errorMsg = "The source dataset is not a shapefile: " + dataset.getId();
+            logger.error(errorMsg);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, errorMsg);
+
+        }   
+
+        geoPkgFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
+     
+        return geoPkgFile;
     }
 
     /**

@@ -128,17 +128,20 @@ test {
 
             //mongo
             compile('dev.morphia.morphia:morphia-core:2.1.3')
+
             //geotools
-            compile("org.geotools:gt-main:24.1")
-            compile("org.geotools:gt-opengis:24.1")
-            compile("org.geotools:gt-coverage:24.1")
-            compile("org.geotools:gt-arcgrid:24.1")
-            compile("org.geotools:gt-geotiff:24.1")
-            compile("org.geotools:gt-geojson:24.1")
-            compile("org.geotools:gt-shapefile:24.1")
-            compile("org.geotools:gt-referencing:24.1")
-            compile("org.geotools:gt-epsg-hsql:24.1")
-            compile("org.geotools:gt-process-feature:24.1")
+            def geotoolsVersion = '24.1'
+            compile("org.geotools:gt-main:$geotoolsVersion")
+            compile("org.geotools:gt-opengis:$geotoolsVersion")
+            compile("org.geotools:gt-coverage:$geotoolsVersion")
+            compile("org.geotools:gt-arcgrid:$geotoolsVersion")
+            compile("org.geotools:gt-geotiff:$geotoolsVersion")
+            compile("org.geotools:gt-geojson:$geotoolsVersion")
+            compile("org.geotools:gt-shapefile:$geotoolsVersion")
+            compile("org.geotools:gt-referencing:$geotoolsVersion")
+            compile("org.geotools:gt-epsg-hsql:$geotoolsVersion")
+            compile("org.geotools:gt-process-feature:$geotoolsVersion")
+            compile("org.geotools:gt-geopkg:$geotoolsVersion")
 
             //misc other dependencies
             compile(group: 'javax.media', name: 'jai_core', version:'1.1.3')

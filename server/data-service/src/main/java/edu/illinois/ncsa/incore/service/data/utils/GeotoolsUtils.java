@@ -36,6 +36,8 @@ import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.geopkg.FeatureEntry;
+import org.geotools.geopkg.GeoPackage;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageReader;
 import org.opengis.feature.simple.SimpleFeature;
@@ -202,7 +204,7 @@ public class GeotoolsUtils {
     }
 
     /**
-     * join csv file to shapefile and create a new shapefile
+     * join csv file to shapefile and create a new geopackage file
      *
      * @param shpfiles
      * @param csvFile
@@ -249,6 +251,9 @@ public class GeotoolsUtils {
         SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
         sftBuilder.init(sft);
 
+        // make sure that name of feature type is matched with name file file
+        sftBuilder.setName(dataset.getId());
+        
         for (int i = 0; i < csvHeaders.length; i++) {
             if (i != csvIdLoc) {
                 AttributeTypeBuilder build = new AttributeTypeBuilder();
@@ -302,7 +307,8 @@ public class GeotoolsUtils {
             inputFeatureIterator.close();
         }
 
-        return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
+        // return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
+        return outToGpkgFile(new File(tempDir + File.separator + dataset.getId()+"."+FileUtils.EXTENSION_GEOPACKAGE), newCollection);
     }
 
     /**
@@ -446,6 +452,7 @@ public class GeotoolsUtils {
         return prepareShpZipFile(pathFile);
     }
 
+
     /**
      * create a zip file of the shapefile related ones
      *
@@ -486,6 +493,30 @@ public class GeotoolsUtils {
         map.put("enable spatial index", spatialIndex);
 
         return DataStoreFinder.getDataStore(map);
+    }
+
+    /**
+     * create actual output geopackage in the directory
+     *
+     * @param geoPkgPathFile
+     * @param schema
+     * @param collection
+     * @return
+     * @throws IOException
+     */
+    public static File outToGpkgFile(File geoPkgPathFile, DefaultFeatureCollection collection)
+        throws IOException {
+        
+        GeoPackage geopkg = new GeoPackage(geoPkgPathFile);
+        geopkg.init();
+        
+        // adding features to geopkg
+        FeatureEntry entry = new FeatureEntry();
+        geopkg.add(entry, collection);
+
+        geopkg.close();
+        
+        return geoPkgPathFile;
     }
 
     /**

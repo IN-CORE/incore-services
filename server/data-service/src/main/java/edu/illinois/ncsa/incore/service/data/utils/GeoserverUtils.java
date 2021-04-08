@@ -10,16 +10,26 @@
 
 package edu.illinois.ncsa.incore.service.data.utils;
 
-import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
-import org.apache.commons.io.FilenameUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Authentication;
+import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.util.BasicAuthentication;
+import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.http.HttpStatus;
+
+import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 
 /**
  * Created by ywkim on 11/9/2017.
@@ -32,6 +42,9 @@ public class GeoserverUtils {
     public static final String GEOSERVER_USER = System.getenv("GEOSERVER_USER");
     public static final String GEOSERVER_PW = System.getenv("GEOSERVER_PW");
     public static final String GEOSERVER_WORKSPACE = System.getenv("GEOSERVER_WORKSPACE");
+
+    private static final Logger logger = Logger.getLogger(GeoserverUtils.class);
+
 
     /**
      * upload file to geoserver
@@ -171,4 +184,43 @@ public class GeoserverUtils {
     public static GeoServerRESTPublisher createPublisher() {
         return new GeoServerRESTPublisher(GEOSERVER_REST_URL, GEOSERVER_USER, GEOSERVER_PW);
     }
+
+    /**
+     * Upload geopackage file to geoserver
+     * 
+     * @param store
+     * @param gpkgFile
+     * @return
+     * @throws Exception
+     */
+    public static boolean uploadGpkgToGeoserver(String store, File gpkgFile) {
+        String url = GEOSERVER_REST_URL+"/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/"
+                + store + "/file.gpkg";
+        URI uri = URI.create(url);
+        Authentication.Result auth = new BasicAuthentication.BasicResult(uri, GEOSERVER_USER, GEOSERVER_PW);
+
+
+        HttpClient httpClient = new HttpClient();
+        try {
+            httpClient.start();
+            Request request = httpClient.newRequest(uri);
+            request.method(HttpMethod.PUT);
+            request.file(gpkgFile.toPath(), "application/x-sqlite3");
+    
+            auth.apply(request);
+            ContentResponse response = request.send();
+            int responseStatus = response.getStatus();
+            httpClient.stop();
+    
+            if ( (responseStatus == HttpStatus.CREATED_201) || (responseStatus == HttpStatus.ACCEPTED_202) || (responseStatus == HttpStatus.OK_200)) {
+                return true;
+            }            
+        } catch (Exception e) {
+            logger.error("HttpClient error", e);
+            return false;
+        }
+
+        return false;
+    }
+
 }
