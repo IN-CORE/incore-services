@@ -41,6 +41,8 @@ import java.util.zip.ZipInputStream;
 public class GISUtil {
     private static final Logger logger = Logger.getLogger(GISUtil.class);
 
+    public static String GUID = "GUID";
+
     public static SimpleFeature getPointInPolygon(Point point, SimpleFeatureCollection featureCollection) {
         SimpleFeature feature = null;
         boolean found = false;

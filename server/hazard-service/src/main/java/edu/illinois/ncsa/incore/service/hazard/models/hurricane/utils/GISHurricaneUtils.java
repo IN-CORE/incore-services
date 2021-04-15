@@ -167,6 +167,7 @@ public class GISHurricaneUtils {
         builder.add(geomDesc);
         builder.add(HURRICANE_FLD_VELOCITY, Double.class);
         builder.add(HURRICANE_FLD_SIM, Integer.class);
+        builder.add(GISUtil.GUID, String.class);
 
         //build the type
         final SimpleFeatureType schema = builder.buildFeatureType();
@@ -182,6 +183,7 @@ public class GISHurricaneUtils {
                 featureBuilder.add(point);
                 featureBuilder.add(tmpList.get(j));
                 featureBuilder.add(simNum);
+                featureBuilder.add(UUID.randomUUID());
                 SimpleFeature feature = featureBuilder.buildFeature(null);
                 dfc.add(feature);
                 allDfc.add(feature);

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.1] - 2021-04-15
+
+### Fixed
+- Tornado model shapefile needed to include a GUID [INCORE1-1120](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1120)
+
 ## [1.1.0] - 2021-04-14
 
 ### Changed

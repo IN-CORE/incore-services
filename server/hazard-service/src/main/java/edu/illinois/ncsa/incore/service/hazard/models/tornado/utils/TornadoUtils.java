@@ -10,6 +10,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.operation.buffer.BufferOp;
 import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class TornadoUtils {
 
@@ -430,7 +432,6 @@ public class TornadoUtils {
 
         DefaultFeatureCollection collection = new DefaultFeatureCollection();
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-        // FeatureTypeBuilder builder = FeatureTypeBuilder.newInstance("Tornado output"); //$NON-NLS-1$
 
         AttributeTypeBuilder attBuilder = new AttributeTypeBuilder();
         attBuilder.setName("the_geom"); //$NON-NLS-1$
@@ -443,6 +444,7 @@ public class TornadoUtils {
         builder.add(geomDesc);
         builder.add(TornadoHazard.SIMULATION, Integer.class);
         builder.add(TornadoHazard.EF_RATING_FIELD, String.class);
+        builder.add(GISUtil.GUID, String.class);
 
         SimpleFeatureType schema = builder.buildFeatureType();
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(schema);
@@ -463,6 +465,7 @@ public class TornadoUtils {
                 featureBuilder.add(geometry.get(index));
                 featureBuilder.add(simulation);
                 featureBuilder.add("EF" + (geometry.size() - index - 1));
+                featureBuilder.add(UUID.randomUUID());
                 SimpleFeature feature = featureBuilder.buildFeature(null);
                 collection.add(feature);
             }
