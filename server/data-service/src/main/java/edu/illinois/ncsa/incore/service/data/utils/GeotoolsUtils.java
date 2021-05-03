@@ -51,6 +51,8 @@ import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Created by ywkim on 10/5/2017.
@@ -405,6 +407,77 @@ public class GeotoolsUtils {
     }
 
     /**
+     * copy file in the list to the temporary directory
+     *
+     * @param sourceFile
+     * @param tempDir
+     * @return
+     * @throws IOException
+     */
+    public static List<File> performUnzipShpFile(File sourceFile, String tempDir) throws IOException {
+        String fileName = FilenameUtils.getName(sourceFile.getName());
+        File destFile = new File(tempDir + File.separator + fileName);
+        org.apache.commons.io.FileUtils.copyFile(sourceFile, destFile);
+
+        List<File>  outList = unzipShapefiles(destFile, new File(destFile.getParent()));
+
+        return outList;
+    }
+
+    /**
+     * unzip zipped shapefile and check if it is complete shapefile
+     * @param file
+     * @param destDirectory
+     * @return
+     */
+    public static List<File> unzipShapefiles(File file, File destDirectory){
+        int shapefileCompoentIndex = 0;
+        List<File> outList = new ArrayList<File>();
+        byte[] buffer = new byte[1024];
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
+            ZipEntry zipEntry = zis.getNextEntry();
+
+            while (zipEntry != null) {
+                String fileName = zipEntry.getName();
+                File newFile = new File(destDirectory, fileName);
+                FileOutputStream fos = new FileOutputStream(newFile);
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.close();
+
+                // check shapefile components
+                String fileExt = FilenameUtils.getExtension(newFile.getName());
+                if (fileExt.equalsIgnoreCase("shp")) {
+                    shapefileCompoentIndex += 1;
+                } else if (fileExt.equalsIgnoreCase("shx")) {
+                    shapefileCompoentIndex += 1;
+                } else if (fileExt.equalsIgnoreCase("dbf")) {
+                    shapefileCompoentIndex += 1;
+                } else if (fileExt.equalsIgnoreCase("prj")) {
+                    shapefileCompoentIndex ++;
+                }
+
+                outList.add(newFile);
+                zipEntry = zis.getNextEntry();
+            }
+        } catch (IOException e) {
+            logger.error("Error unzipping shapefile", e);
+            return null;
+        }
+
+        // check if there are all the shapefile components
+        if (shapefileCompoentIndex != 4) {
+            FileUtils.deleteTmpDir(outList.get(0));
+            logger.error("The zipfile is not a complete shapefile");
+            return null;
+        } else {
+            return outList;
+        }
+    }
+
+    /**
      * create actual output shapefile in the directory
      *
      * @param pathFile
@@ -499,7 +572,6 @@ public class GeotoolsUtils {
      * create actual output geopackage in the directory
      *
      * @param geoPkgPathFile
-     * @param schema
      * @param collection
      * @return
      * @throws IOException

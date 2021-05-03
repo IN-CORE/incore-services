@@ -32,22 +32,28 @@ import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.locationtech.jts.geom.GeometryFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -501,6 +507,7 @@ public class DatasetController {
         boolean isAsc = false;
         boolean isShp = false;
         boolean isTif = false;
+        boolean isZip = false;
         boolean isJoin = false;
 
         int file_counter = 0;
@@ -521,8 +528,29 @@ public class DatasetController {
                         isTif = true;
                     } else if (fileExt.equalsIgnoreCase("shp")) {
                         isShp = true;
+                    } else if (fileExt.equalsIgnoreCase("zip")) {
+                        isZip = true;
                     }
                 }
+
+                // process zip file
+                if (isZip) {
+                    // TODO: we need to decide the logic about uploading zip file.
+                    // for now, the following logic will be applied in handling zip file uploading
+                    // when uploading zip file, it should be only one file (zip file) uploaded
+                    // the zip file uploaded should be the zipped shapefile
+                    // the zip file should contain all the shapefile componetns (shp, shx, dbf, prj)
+                    // the dataset should not have any FileDescriptor entry
+
+                    // check how many files are uploaded, if it is more than one file, then raise an error
+                    if (bodyPartSize > 1) {
+                        logger.error("There should be only one file uploaded when it comes with zip file ");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                            "There are more than one file uploaded with zip file. " +
+                            "Please upload only single zip file.");
+                    }
+                }
+
                 InputStream is = null;
                 if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE)) {
                     is = (InputStream) inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
@@ -581,7 +609,7 @@ public class DatasetController {
 
         List<FileDescriptor> dataFDs = dataset.getFileDescriptors();
         List<File> files = new ArrayList<File>();
-        // File zipFile = null;
+
         File geoPkgFile = null;
         boolean isShpfile = false;
 
@@ -598,25 +626,88 @@ public class DatasetController {
                 }
             }
             try {
-                // check if GUID is in the input shapefile
-                if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                    if(!GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName) ||
-                        !GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName)){
+                if (isZip) {
+                    // when it is zip file the dataset should not have any files attached yet.
+                    // todo: check if it is okay to add zip file with the datset that already has files
+                    //  if so, modify and add the code for handling that
+                    if (files.size() != 1) {
+                        logger.error("The dataset should not have any files when uploading zip file ");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                            "The dataset already has file(s). " +
+                                "The zip file uploading is only allowed. with the dataset with no files.");
+                    }
+                    File zipFile = files.get(0);
+
+                    // create temp dir and copy zip files to temp dir
+                    String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+                    List<File> copiedFileList = GeotoolsUtils.performUnzipShpFile(zipFile, tempDir);
+
+                    // remove existing zip file from file descriptor
+                    FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                    dataset.getFileDescriptors().remove(0);
+
+                    // unzip zip file and add to file descriptor
+                    if (copiedFileList != null) {
+                        for (File shpFile : copiedFileList) {
+                            FileDescriptor fd = new FileDescriptor();
+                            FileStorageDisk fsDisk = new FileStorageDisk();
+
+                            fsDisk.setFolder(DATA_REPO_FOLDER);
+                            try {
+                                InputStream is = new FileInputStream(shpFile);
+                                String fileName = shpFile.getName();
+                                fd = fsDisk.storeFile(fileName, is);
+                                fd.setFilename(fileName);
+                            } catch (IOException e) {
+                                logger.error("Error storing files of the dataset with the id of " + datasetId);
+                                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                            }
+                            dataset.addFileDescriptor(fd);
+                        }
+                        // after adding files to FileDescriptor, remove tempDir
+                        FileUtils.deleteTmpDir(copiedFileList.get(0));
+                    } else {
+                        logger.debug("Unzipping zip file failed");
+                        throw new IOException("Unzipping zip file failed.");
+                    }
+
+                    // if the unzip was successful, that means that it is a complete shapefile
+                    isShp = true;
+
+                    List<FileDescriptor> unzippedFDs = dataset.getFileDescriptors();
+                    List<File> unzippedFiles = new ArrayList<File>();
+                    for (int i = 0; i < unzippedFDs.size(); i++) {
+                        FileDescriptor sfd = unzippedFDs.get(i);
+                        String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
+                        File shpFile = new File(shpLoc);
+                        unzippedFiles.add(shpFile);
+                    }
+                    if (!GeotoolsUtils.isGUIDinShpfile(dataset, unzippedFiles)) {
                         FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
                         throw new IOException("No GUID field.");
                     }
                 } else {
-                    if (!GeotoolsUtils.isGUIDinShpfile(dataset, files)) {
-                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
-                        logger.debug("The shapefile does not have guid field.");
-                        throw new IOException("No GUID field.");
+                    // check if GUID is in the input shapefile
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                        if (!GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName) ||
+                            !GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName)) {
+                            FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                            logger.debug("The shapefile does not have guid field.");
+                            throw new IOException("No GUID field.");
+                        }
+                    } else {
+                        if (!GeotoolsUtils.isGUIDinShpfile(dataset, files)) {
+                            FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                            logger.debug("The shapefile does not have guid field.");
+                            throw new IOException("No GUID field.");
+                        }
                     }
                 }
             } catch (IOException e) {
-                logger.error("The shapefile does not have guid field ", e);
-                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "The shapefile does not have guid field. " +
-                    "Please create a field in shapefile and upload.");
+                logger.error("The shapefile does not have guid field or not a complete shapefile ", e);
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "The shapefile does not have guid field " +
+                    "or not a complete shapefile. Please check the shapefile.");
             }
         }
 
@@ -629,7 +720,8 @@ public class DatasetController {
 
         if (enableGeoserver && isGeoserver) {
             if (isJoin) {
-                // todo: the join process for the network dataset should be added in here
+                // todo: the join process for the network dataset should be added in here.
+                //  the join process for the zipped shapefile should be added in here
                 try {
                     geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
                     if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
