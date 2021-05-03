@@ -32,11 +32,8 @@ import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.locationtech.jts.geom.GeometryFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -53,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.nio.file.Files;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -674,6 +670,7 @@ public class DatasetController {
                     // if the unzip was successful, that means that it is a complete shapefile
                     isShp = true;
 
+                    // create and add FileDescriptor for unzipped shapefiles
                     List<FileDescriptor> unzippedFDs = dataset.getFileDescriptors();
                     List<File> unzippedFiles = new ArrayList<File>();
                     for (int i = 0; i < unzippedFDs.size(); i++) {
@@ -682,6 +679,8 @@ public class DatasetController {
                         File shpFile = new File(shpLoc);
                         unzippedFiles.add(shpFile);
                     }
+
+                    // check if unzipped shapefile has GUID
                     if (!GeotoolsUtils.isGUIDinShpfile(dataset, unzippedFiles)) {
                         FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
