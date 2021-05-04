@@ -720,7 +720,6 @@ public class DatasetController {
         if (enableGeoserver && isGeoserver) {
             if (isJoin) {
                 // todo: the join process for the network dataset should be added in here.
-                //  the join process for the zipped shapefile should be added in here
                 try {
                     geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
                     if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
