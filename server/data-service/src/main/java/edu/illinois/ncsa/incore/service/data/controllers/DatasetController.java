@@ -535,7 +535,7 @@ public class DatasetController {
                     // for now, the following logic will be applied in handling zip file uploading
                     // when uploading zip file, it should be only one file (zip file) uploaded
                     // the zip file uploaded should be the zipped shapefile
-                    // the zip file should contain all the shapefile componetns (shp, shx, dbf, prj)
+                    // the zip file should contain all the shapefile components (shp, shx, dbf, prj)
                     // the dataset should not have any FileDescriptor entry
 
                     // check how many files are uploaded, if it is more than one file, then raise an error
