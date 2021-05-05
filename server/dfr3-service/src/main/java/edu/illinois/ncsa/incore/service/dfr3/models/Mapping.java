@@ -26,7 +26,7 @@ import java.util.Map;
 public class Mapping {
     private Map<String, String> legacyEntry = new HashMap<>();
     private Map<String, String> entry = new HashMap<>();
-    private List<List<String>> rules = new ArrayList<>();
+    private Object rules = new Object();
 
     public Map<String, String> getLegacyEntry() {
         return legacyEntry;
@@ -36,28 +36,8 @@ public class Mapping {
         return entry;
     }
 
-    public List<List<String>> getRules() {
+    public Object getRules() {
         return rules;
     }
 
-    public PropertyMatch asPropertyMatch() throws ParseException {
-        // Construct MatchFilter from string
-        List<String> andClauses = new ArrayList<>();
-
-        for (List<String> subRules : this.rules) {
-            andClauses.add(String.join(" && ", subRules));
-        }
-
-        String rulesString = String.join(" || ", andClauses);
-
-        try {
-            MatchFilter matchFilter = FilterUtils.buildFilter(rulesString);
-            // Construct PropertyMatch
-            PropertyMatch propertyMatch = new PropertyMatch(this.entry, matchFilter);
-
-            return propertyMatch;
-        } catch (ReflectionException | ClassNotFoundException ex) {
-            throw new ParseException("Could not parse rules string", ex);
-        }
-    }
 }

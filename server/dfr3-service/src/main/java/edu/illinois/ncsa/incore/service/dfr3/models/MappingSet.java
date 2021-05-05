@@ -69,19 +69,6 @@ public class MappingSet {
         return mappings;
     }
 
-    public MatchFilterMap asMatchFilterMap() throws ParseException {
-        List<PropertyMatch> propertyMatches = new ArrayList<>();
-
-        for (Mapping mapping : mappings) {
-            PropertyMatch propertyMatch = mapping.asPropertyMatch();
-            propertyMatches.add(propertyMatch);
-        }
-
-        MatchFilterMap matchFilterMap = new MatchFilterMap(propertyMatches);
-
-        return matchFilterMap;
-    }
-
     public void setCreator(String creator) {
         this.creator = creator;
     }

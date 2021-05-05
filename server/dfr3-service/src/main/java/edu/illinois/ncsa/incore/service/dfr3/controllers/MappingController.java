@@ -161,6 +161,30 @@ public class MappingController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create an inventory mapping", notes = "Post a json that represents mapping between inventory's attributes and DFR3 object sets")
     public MappingSet uploadMapping(@ApiParam(value = "json representing the fragility mapping") MappingSet mappingSet) {
+
+        List<Mapping> mappings = mappingSet.getMappings();
+        int idx = 0;
+        String prevRuleClassName = "";
+        // This validates if the format of the "rules" being submitted is an Array or Hash. It is needed because we made "rules" attribute
+        // accept any Object in INCORE1-1153. This can be removed when the existing mappings in DFR3 database are updated to new format
+        // and we need not support backward compatibility. Also, validates if all rules are of the same format (either Array or HashMap)
+        for (Mapping mapping: mappings){
+            if (! (mapping.getRules() instanceof java.util.ArrayList) && !(mapping.getRules() instanceof java.util.HashMap)){
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "At least one of the provided mapping rules' format is incorrect");
+            }
+
+            if (idx == 0){
+                prevRuleClassName = mapping.getRules().getClass().getName();
+            }
+            else {
+                if (!prevRuleClassName.equals(mapping.getRules().getClass().getName())){
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "All rules in the mapping should be in the same format");
+                }
+                prevRuleClassName = mapping.getRules().getClass().getName();
+            }
+            idx++;
+        }
+
         mappingSet.setCreator(username);
 
         String id = this.mappingDAO.saveMappingSet(mappingSet);
@@ -175,102 +199,6 @@ public class MappingController {
         mappingSet.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
 
         return mappingSet;
-    }
-
-    @POST
-    @Path("{mappingSetId}/matched")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Map each inventory to a DFR3 object Id based on the input mapping Id",
-        notes = "Returns a json where key is the inventory id that is mapped to a DFR3 object id based on the input mapping id")
-    public MappingResponse mapFragilities(@PathParam("mappingSetId") String mappingSetId,
-                                          MappingRequest mappingRequest) throws ParseException {
-        Map<String, DFR3Set> setJsonMap = new HashMap<>();
-        Map<String, String> setIdMap = new HashMap<>();
-
-        List<Space> allSpaces = spaceRepository.getAllSpaces();
-
-        Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(mappingSetId);
-        if (!mappingSet.isPresent()) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a mapping set with id " + mappingSetId);
-        }
-
-        boolean canReadMapping = authorizer.canUserReadMember(username, mappingSetId, allSpaces);
-        if (!canReadMapping) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You can't access the mapping set " + mappingSetId);
-        }
-
-        String mappingType = mappingSet.get().getMappingType();
-
-        MatchFilterMap matchFilterMap = mappingSet.get().asMatchFilterMap();
-
-        Dfr3Mapper mapper = new Dfr3Mapper();
-
-        mapper.addMappingSet(matchFilterMap);
-
-        List<Feature> features = new ArrayList<>();
-
-        if (mappingRequest.mappingSubject.inventory instanceof FeatureCollection) {
-            features = ((FeatureCollection) mappingRequest.mappingSubject.inventory).getFeatures();
-        }
-
-        if (mappingRequest.mappingSubject.inventory instanceof Feature) {
-            features = new ArrayList<>();
-            features.add((Feature) mappingRequest.mappingSubject.inventory);
-        }
-
-        Map<String, DFR3Set> queriedDfr3Set = new HashMap<>();
-        for (Feature feature : features) {
-            String setKey = mapper.getDfr3CurveFor(mappingRequest.mappingSubject.schemaType.toString(),
-                feature.getProperties(), mappingRequest.parameters);
-
-            if (ObjectId.isValid(setKey)) {
-                DFR3Set currSet = null;
-                if (queriedDfr3Set.containsKey(setKey)) {
-                    currSet = queriedDfr3Set.get(setKey);
-                } else {
-                    if (mappingType.equalsIgnoreCase("fragility")) {
-                        Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(setKey);
-
-                        if (fragilitySet.isPresent()) {
-                            if (authorizer.canUserReadMember(username, setKey, allSpaces)) {
-                                currSet = fragilitySet.get();
-                            }
-                            queriedDfr3Set.put(setKey, currSet);
-                        }
-                    } else if (mappingType.equalsIgnoreCase("repair")) {
-                        Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(setKey);
-
-                        if (repairSet.isPresent()) {
-                            if (authorizer.canUserReadMember(username, setKey, allSpaces)) {
-                                currSet = repairSet.get();
-                            }
-                            queriedDfr3Set.put(setKey, currSet);
-                        }
-                    } else if (mappingType.equalsIgnoreCase("restoration")) {
-                        Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(setKey);
-
-                        if (restorationSet.isPresent()) {
-                            if (authorizer.canUserReadMember(username, setKey, allSpaces)) {
-                                currSet = restorationSet.get();
-                            }
-                            queriedDfr3Set.put(setKey, currSet);
-                        }
-                    }
-                }
-
-                // If we found a matching object and user has read access to it
-                if (currSet != null) {
-                    setJsonMap.put(setKey, currSet);
-                    setIdMap.put(feature.getId(), setKey);
-                }
-            }
-        }
-
-        // Construct response
-        MappingResponse mappingResponse = new MappingResponse(setJsonMap, setIdMap);
-
-        return mappingResponse;
     }
 
     @DELETE
