@@ -549,16 +549,16 @@ public class DatasetController {
 
                 InputStream is = null;
                 if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE)) {
-                    is = (InputStream) inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
                     file_counter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_LINK)) {
-                    is = (InputStream) inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
                     link_counter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_NODE)) {
-                    is = (InputStream) inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
                     node_counter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_GRAPH)) {
-                    is = (InputStream) inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
                     graph_counter++;
                 }
 
@@ -664,7 +664,7 @@ public class DatasetController {
                         FileUtils.deleteTmpDir(copiedFileList.get(0));
                     } else {
                         logger.debug("Unzipping zip file failed");
-                        throw new IOException("Unzipping zip file failed.");
+                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Unzipping zip file failed.");
                     }
 
                     // if the unzip was successful, that means that it is a complete shapefile
@@ -684,7 +684,7 @@ public class DatasetController {
                     if (!GeotoolsUtils.isGUIDinShpfile(dataset, unzippedFiles)) {
                         FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
-                        throw new IOException("No GUID field.");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
                     }
                 } else {
                     // check if GUID is in the input shapefile
@@ -693,13 +693,13 @@ public class DatasetController {
                             !GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName)) {
                             FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                             logger.debug("The shapefile does not have guid field.");
-                            throw new IOException("No GUID field.");
+                            throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
                         }
                     } else {
                         if (!GeotoolsUtils.isGUIDinShpfile(dataset, files)) {
                             FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                             logger.debug("The shapefile does not have guid field.");
-                            throw new IOException("No GUID field.");
+                            throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
                         }
                     }
                 }
@@ -723,7 +723,7 @@ public class DatasetController {
                 try {
                     geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
                     if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
-                        logger.error("Fail to upload geopakcage file");
+                        logger.error("Fail to upload geopackage file");
                         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
                     }
                     // GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
