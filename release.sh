@@ -6,15 +6,11 @@ set -e
 # use DEBUG=echo ./release-all.sh to print all commands
 export DEBUG=${DEBUG:-""}
 
-#TODO remove this after review - this prevents pushing the images until we are finished with the review
-export DEBUG="echo"
-
 export SERVER=${SERVER:-"hub.ncsa.illinois.edu"}
 $DEBUG docker login ${SERVER}
 
 # Find out what branch we are on
 BRANCH=${BRANCH:-"$(git rev-parse --abbrev-ref HEAD)"}
-BRANCH=master
 
 #PKG_VERSION=$(cat server/build.gradle | grep \"version\" | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,",]//g' | tr -d '[[:space:]]')
 PKG_VERSION=$(cat server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
