@@ -14,6 +14,7 @@ $DEBUG docker login ${SERVER}
 
 # Find out what branch we are on
 BRANCH=${BRANCH:-"$(git rev-parse --abbrev-ref HEAD)"}
+BRANCH=master
 
 #PKG_VERSION=$(cat server/build.gradle | grep \"version\" | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,",]//g' | tr -d '[[:space:]]')
 PKG_VERSION=$(cat server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
@@ -21,11 +22,11 @@ PKG_VERSION=$(cat server/build.gradle | grep "archiveVersion" | head -1 | awk -F
 # Find out the version
 if [ "$BRANCH" = "master" ]; then
     echo "Detected version ${PKG_VERSION}"
-    VERSIONS=""
+    VERSIONS="latest"
     OLDVERSION=""
     TMPVERSION=$PKG_VERSION
     while [ "$OLDVERSION" != "$TMPVERSION" ]; do
-	VERSIONS="${VERSIONS} ${TMPVERSION}"
+        VERSIONS="${VERSIONS} ${TMPVERSION}"
         OLDVERSION="${TMPVERSION}"
         TMPVERSION=$(echo ${OLDVERSION} | sed 's/\.[0-9]*$//')
     done
