@@ -6,24 +6,48 @@ set -e
 # use DEBUG=echo ./release-all.sh to print all commands
 export DEBUG=${DEBUG:-""}
 
-$DEBUG docker login hub.ncsa.illinois.edu
+#TODO remove this after review - this prevents pushing the images until we are finished with the review
+export DEBUG="echo"
+
+export SERVER=${SERVER:-"hub.ncsa.illinois.edu"}
+$DEBUG docker login ${SERVER}
 
 # Find out what branch we are on
 BRANCH=${BRANCH:-"$(git rev-parse --abbrev-ref HEAD)"}
 
+#PKG_VERSION=$(cat server/build.gradle | grep \"version\" | head -1 | awk -F= "{ print $2 }" | sed 's/[version:,",]//g' | tr -d '[[:space:]]')
+PKG_VERSION=$(cat server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
+
 # Find out the version
 if [ "$BRANCH" = "master" ]; then
-    VERSION=""
+    echo "Detected version ${PKG_VERSION}"
+    VERSIONS=""
+    OLDVERSION=""
+    TMPVERSION=$PKG_VERSION
+    while [ "$OLDVERSION" != "$TMPVERSION" ]; do
+	VERSIONS="${VERSIONS} ${TMPVERSION}"
+        OLDVERSION="${TMPVERSION}"
+        TMPVERSION=$(echo ${OLDVERSION} | sed 's/\.[0-9]*$//')
+    done
+
+    TAG=$VERSIONS
 elif [ "${BRANCH}" = "develop" ]; then
-    VERSION="-dev"
+    TAG="develop"
 else
-    exit 0
+    # Get the issue number for tagging
+    TAG=$(echo $BRANCH | sed -e 's/^.*INCORE1-\([0-9]*\).*/INCORE-\1/' -e 's/^\(.\{15\}\).*/\1/')
 fi
 
-#TODO this should be replaced with tagging
-# Push all images
-docker push hub.ncsa.illinois.edu/incore/data-jetty:latest$VERSION
-docker push hub.ncsa.illinois.edu/incore/dfr3-jetty:latest$VERSION
-docker push hub.ncsa.illinois.edu/incore/hazard-jetty:latest$VERSION
-docker push hub.ncsa.illinois.edu/incore/space-jetty:latest$VERSION
-docker push hub.ncsa.illinois.edu/incore/semantics-jetty:latest$VERSION
+for v in ${TAG}; do
+    ${DEBUG} docker tag incore/data-jetty hub.ncsa.illinois.edu/incore/data-jetty:${v}
+    ${DEBUG} docker tag incore/dfr3-jetty hub.ncsa.illinois.edu/incore/dfr3-jetty:${v}
+    ${DEBUG} docker tag incore/hazard-jetty hub.ncsa.illinois.edu/incore/hazard-jetty:${v}
+    ${DEBUG} docker tag incore/space-jetty hub.ncsa.illinois.edu/incore/space-jetty:${v}
+    ${DEBUG} docker tag incore/semantics-jetty hub.ncsa.illinois.edu/incore/semantics-jetty:${v}
+
+    ${DEBUG} docker push ${SERVER}/incore/data-jetty:${v}
+    ${DEBUG} docker push ${SERVER}/incore/dfr3-jetty:${v}
+    ${DEBUG} docker push ${SERVER}/incore/hazard-jetty:${v}
+    ${DEBUG} docker push ${SERVER}/incore/space-jetty:${v}
+    ${DEBUG} docker push ${SERVER}/incore/semantics-jetty:${v}
+done

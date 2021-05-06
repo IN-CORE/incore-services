@@ -47,6 +47,12 @@ repositories {
 
 apply plugin: 'war'
 
+// This will not apply to the war files we build unless we put it within project loop
+// at the end of this file. This is only for the docker build to pull a version
+war {
+    archiveVersion = '1.1.0'
+}
+
 apply plugin: 'org.gretty'
 
 // if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
@@ -112,6 +118,7 @@ test {
     project(":$name") {
 
         apply plugin: 'war'
+
         apply plugin: 'org.gretty'
         // if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin)) {
         //     project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
