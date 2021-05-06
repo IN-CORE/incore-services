@@ -518,15 +518,15 @@ public class DatasetController {
                 String fileExt = FilenameUtils.getExtension(fileName);
                 if (FileUtils.fileUseGeoserver(fileName, enableGeoserver)) {
                     isGeoserver = true;
-                    if (fileExt.equalsIgnoreCase("asc")) {
-                        isAsc = true;
-                    } else if (fileExt.equalsIgnoreCase("tif")) {
-                        isTif = true;
-                    } else if (fileExt.equalsIgnoreCase("shp")) {
-                        isShp = true;
-                    } else if (fileExt.equalsIgnoreCase("zip")) {
-                        isZip = true;
-                    }
+                }
+                if (fileExt.equalsIgnoreCase("asc")) {
+                    isAsc = true;
+                } else if (fileExt.equalsIgnoreCase("tif")) {
+                    isTif = true;
+                } else if (fileExt.equalsIgnoreCase("shp")) {
+                    isShp = true;
+                } else if (fileExt.equalsIgnoreCase("zip")) {
+                    isZip = true;
                 }
 
                 // process zip file
