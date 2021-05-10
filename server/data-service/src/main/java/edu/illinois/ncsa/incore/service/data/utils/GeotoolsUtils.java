@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.opencsv.CSVReader;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import org.apache.commons.io.FilenameUtils;
@@ -47,6 +48,7 @@ import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
@@ -463,15 +465,18 @@ public class GeotoolsUtils {
                 zipEntry = zis.getNextEntry();
             }
         } catch (IOException e) {
-            logger.error("Error unzipping shapefile", e);
-            return null;
+            logger.error("Failed to process zip file. " +
+                "Zip file structure might not be flat with folder tree structure.", e);
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to process zip file. " +
+                "Please check if the zip file structure is flat without no folders or tree structure.");
         }
 
         // check if there are all the shapefile components
         if (shapefileCompoentIndex != 4) {
             FileUtils.deleteTmpDir(outList.get(0));
-            logger.error("The zipfile is not a complete shapefile");
-            return null;
+            logger.error("The zipfile is not a complete shapefile.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The zipfile is not a complete shapefile. " +
+                "Please check if there is .shp, .shx, .dbf, and .prj file is in the zip file");
         } else {
             return outList;
         }
