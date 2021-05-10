@@ -636,7 +636,7 @@ public class DatasetController {
 
                     // create temp dir and copy zip files to temp dir
                     String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-                    List<File> copiedFileList = GeotoolsUtils.performUnzipShpFile(zipFile, tempDir);
+                    List<File> copiedFileList = GeotoolsUtils.performUnzipShpFile(zipFile, tempDir, dataset);
 
                     // remove existing zip file from file descriptor
                     FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());

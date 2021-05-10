@@ -416,12 +416,12 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static List<File> performUnzipShpFile(File sourceFile, String tempDir) throws IOException {
+    public static List<File> performUnzipShpFile(File sourceFile, String tempDir, Dataset dataset) throws IOException {
         String fileName = FilenameUtils.getName(sourceFile.getName());
         File destFile = new File(tempDir + File.separator + fileName);
         org.apache.commons.io.FileUtils.copyFile(sourceFile, destFile);
 
-        List<File>  outList = unzipShapefiles(destFile, new File(destFile.getParent()));
+        List<File>  outList = unzipShapefiles(destFile, new File(destFile.getParent()), dataset);
 
         return outList;
     }
@@ -432,7 +432,7 @@ public class GeotoolsUtils {
      * @param destDirectory
      * @return
      */
-    public static List<File> unzipShapefiles(File file, File destDirectory){
+    public static List<File> unzipShapefiles(File file, File destDirectory, Dataset dataset){
         int shapefileCompoentIndex = 0;
         List<File> outList = new ArrayList<File>();
         byte[] buffer = new byte[1024];
@@ -465,6 +465,14 @@ public class GeotoolsUtils {
                 zipEntry = zis.getNextEntry();
             }
         } catch (IOException e) {
+            // remove existing zip file from file descriptor
+            FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+            dataset.getFileDescriptors().remove(0);
+
+            // remove temp directory used for unzip
+            ArrayList<File> files = new ArrayList<File>(Arrays.asList(destDirectory.listFiles()));
+            FileUtils.deleteTmpDir(files);
+
             logger.error("Failed to process zip file. " +
                 "Zip file structure might not be flat with folder tree structure.", e);
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to process zip file. " +
@@ -474,6 +482,11 @@ public class GeotoolsUtils {
         // check if there are all the shapefile components
         if (shapefileCompoentIndex != 4) {
             FileUtils.deleteTmpDir(outList.get(0));
+
+            // remove existing zip file from file descriptor
+            FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+            dataset.getFileDescriptors().remove(0);
+
             logger.error("The zipfile is not a complete shapefile.");
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The zipfile is not a complete shapefile. " +
                 "Please check if there is .shp, .shx, .dbf, and .prj file is in the zip file");
