@@ -46,10 +46,19 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.ws.rs.core.Response;
+import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -448,7 +457,6 @@ public class DatasetController {
 
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
-        String inJson = "";
         String paramName = "";
         Dataset dataset = getDatasetbyId(objIdStr);
 
@@ -498,7 +506,6 @@ public class DatasetController {
             }
         }
 
-        boolean isJsonValid = false;
         boolean isGeoserver = false;
         boolean isAsc = false;
         boolean isShp = false;
@@ -510,6 +517,10 @@ public class DatasetController {
         int link_counter = 0;
         int node_counter = 0;
         int graph_counter = 0;
+
+        File savedZipFile = null;
+        String tempDir = null;
+
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMETER_NAME);
             if (paramName.equals(POST_PARAMETER_FILE) || paramName.equals(POST_PARAMETER_FILE_LINK) ||
@@ -563,18 +574,52 @@ public class DatasetController {
                 }
 
                 if (is != null) {
-                    FileDescriptor fd = new FileDescriptor();
-                    FileStorageDisk fsDisk = new FileStorageDisk();
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE) && isZip) {
+                        // try saving zip file in temp directory
+                        try {
+                            // create tempDir
+                            tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
 
-                    fsDisk.setFolder(DATA_REPO_FOLDER);
-                    try {
-                        fd = fsDisk.storeFile(fileName, is);
-                        fd.setFilename(fileName);
-                    } catch (IOException e) {
-                        logger.error("Error storing files of the dataset with the id of " + datasetId);
-                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                            // create the output file
+                            savedZipFile = new File(tempDir, fileName);
+                            if (!savedZipFile.getParentFile().isDirectory()) {
+                                new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing zip file");
+                            }
+
+                            // Write the file to disk, storing the md5sum
+                            FileOutputStream fos = null;
+
+                            try {
+                                fos = new FileOutputStream(savedZipFile);
+                                byte[] buf = new byte[10240];
+                                int len = 0;
+                                while ((len = is.read(buf)) >= 0) {
+                                    fos.write(buf, 0, len);
+                                }
+                            } finally {
+                                if (fos != null) {
+                                    fos.close();
+                                }
+                                is.close();
+                            }
+                        } catch (IOException e) {
+                            logger.error("Error storing files of the dataset with the id of " + datasetId);
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                        }
+                    } else {
+                        FileDescriptor fd = new FileDescriptor();
+                        FileStorageDisk fsDisk = new FileStorageDisk();
+
+                        fsDisk.setFolder(DATA_REPO_FOLDER);
+                        try {
+                            fd = fsDisk.storeFile(fileName, is);
+                            fd.setFilename(fileName);
+                        } catch (IOException e) {
+                            logger.error("Error storing files of the dataset with the id of " + datasetId);
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                        }
+                        dataset.addFileDescriptor(fd);
                     }
-                    dataset.addFileDescriptor(fd);
                 }
             }
         }
@@ -626,21 +671,18 @@ public class DatasetController {
                     // when it is zip file the dataset should not have any files attached yet.
                     // todo: check if it is okay to add zip file with the datset that already has files
                     //  if so, modify and add the code for handling that
-                    if (files.size() != 1) {
+                    if (files.size() > 0) {
+                        // remove temp directory used for unzip
+                        FileUtils.deleteTmpDir(savedZipFile);
                         logger.error("The dataset should not have any files when uploading zip file ");
                         throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
                             "The dataset already has file(s). " +
                                 "The zip file uploading is only allowed. with the dataset with no files.");
                     }
-                    File zipFile = files.get(0);
 
                     // create temp dir and copy zip files to temp dir
-                    String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-                    List<File> copiedFileList = GeotoolsUtils.performUnzipShpFile(zipFile, tempDir, dataset);
-
-                    // remove existing zip file from file descriptor
-                    FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
-                    dataset.getFileDescriptors().remove(0);
+//                    String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+                    List<File> copiedFileList = GeotoolsUtils.performUnzipShpFile(savedZipFile, tempDir);
 
                     // unzip zip file and add to file descriptor
                     if (copiedFileList != null) {
