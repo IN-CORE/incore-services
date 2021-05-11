@@ -578,20 +578,14 @@ public class DatasetController {
                                 new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing zip file");
                             }
 
-                            // Write the file to disk, storing the md5sum
-                            FileOutputStream fos = null;
-
-                            try {
-                                fos = new FileOutputStream(savedZipFile);
+                            // Write the file to disk
+                            try (FileOutputStream fos = new FileOutputStream(savedZipFile)) {
                                 byte[] buf = new byte[10240];
                                 int len = 0;
                                 while ((len = is.read(buf)) >= 0) {
                                     fos.write(buf, 0, len);
                                 }
                             } finally {
-                                if (fos != null) {
-                                    fos.close();
-                                }
                                 is.close();
                             }
                         } catch (IOException e) {
