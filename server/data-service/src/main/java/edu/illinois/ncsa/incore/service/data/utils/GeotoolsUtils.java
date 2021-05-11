@@ -485,7 +485,7 @@ public class GeotoolsUtils {
 
             logger.error("The zipfile is not a complete shapefile.");
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The zipfile is not a complete shapefile. " +
-                "Please check if there is .shp, .shx, .dbf, and .prj file is in the zip file");
+                "Please check if there is .shp, .shx, .dbf, and .prj file in the zip file");
         } else {
             return outList;
         }

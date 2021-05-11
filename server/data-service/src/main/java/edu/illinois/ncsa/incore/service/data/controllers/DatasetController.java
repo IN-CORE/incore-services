@@ -663,7 +663,7 @@ public class DatasetController {
                         logger.error("The dataset should not have any files when uploading zip file ");
                         throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
                             "The dataset already has file(s). " +
-                                "The zip file uploading is only allowed. with the dataset with no files.");
+                                "Uploading zip files is only allowed for datasets with no files.");
                     }
 
                     // create temp dir and copy zip files to temp dir
