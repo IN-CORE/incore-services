@@ -40,14 +40,17 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.io.*;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -446,7 +449,6 @@ public class DatasetController {
 
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
-        String inJson = "";
         String paramName = "";
         Dataset dataset = getDatasetbyId(objIdStr);
 
@@ -496,17 +498,21 @@ public class DatasetController {
             }
         }
 
-        boolean isJsonValid = false;
         boolean isGeoserver = false;
         boolean isAsc = false;
         boolean isShp = false;
         boolean isTif = false;
+        boolean isZip = false;
         boolean isJoin = false;
 
         int file_counter = 0;
         int link_counter = 0;
         int node_counter = 0;
         int graph_counter = 0;
+
+        File savedZipFile = null;
+        String tempDir = null;
+
         for (int i = 0; i < bodyPartSize; i++) {
             paramName = inputs.getBodyParts().get(i).getContentDisposition().getParameters().get(POST_PARAMETER_NAME);
             if (paramName.equals(POST_PARAMETER_FILE) || paramName.equals(POST_PARAMETER_FILE_LINK) ||
@@ -515,42 +521,91 @@ public class DatasetController {
                 String fileExt = FilenameUtils.getExtension(fileName);
                 if (FileUtils.fileUseGeoserver(fileName, enableGeoserver)) {
                     isGeoserver = true;
-                    if (fileExt.equalsIgnoreCase("asc")) {
-                        isAsc = true;
-                    } else if (fileExt.equalsIgnoreCase("tif")) {
-                        isTif = true;
-                    } else if (fileExt.equalsIgnoreCase("shp")) {
-                        isShp = true;
+                }
+                if (fileExt.equalsIgnoreCase("asc")) {
+                    isAsc = true;
+                } else if (fileExt.equalsIgnoreCase("tif")) {
+                    isTif = true;
+                } else if (fileExt.equalsIgnoreCase("shp")) {
+                    isShp = true;
+                } else if (fileExt.equalsIgnoreCase("zip")) {
+                    isZip = true;
+                }
+
+                // process zip file
+                if (isZip) {
+                    // TODO: we need to decide the logic about uploading zip file.
+                    // for now, the following logic will be applied in handling zip file uploading
+                    // when uploading zip file, it should be only one file (zip file) uploaded
+                    // the zip file uploaded should be the zipped shapefile
+                    // the zip file should contain all the shapefile components (shp, shx, dbf, prj)
+                    // the dataset should not have any FileDescriptor entry
+
+                    // check how many files are uploaded, if it is more than one file, then raise an error
+                    if (bodyPartSize > 1) {
+                        logger.error("There should be only one file uploaded when it comes with zip file ");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                            "There are more than one file uploaded with zip file. " +
+                            "Please upload only single zip file.");
                     }
                 }
+
                 InputStream is = null;
                 if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE)) {
-                    is = (InputStream) inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
                     file_counter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_LINK)) {
-                    is = (InputStream) inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
                     link_counter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_NODE)) {
-                    is = (InputStream) inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
                     node_counter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_GRAPH)) {
-                    is = (InputStream) inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
+                    is = inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
                     graph_counter++;
                 }
 
                 if (is != null) {
-                    FileDescriptor fd = new FileDescriptor();
-                    FileStorageDisk fsDisk = new FileStorageDisk();
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE) && isZip) {
+                        // try saving zip file in temp directory
+                        try {
+                            // create tempDir
+                            tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
 
-                    fsDisk.setFolder(DATA_REPO_FOLDER);
-                    try {
-                        fd = fsDisk.storeFile(fileName, is);
-                        fd.setFilename(fileName);
-                    } catch (IOException e) {
-                        logger.error("Error storing files of the dataset with the id of " + datasetId);
-                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                            // create the output file
+                            savedZipFile = new File(tempDir, fileName);
+                            if (!savedZipFile.getParentFile().isDirectory()) {
+                                new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing zip file");
+                            }
+
+                            // Write the file to disk
+                            try (FileOutputStream fos = new FileOutputStream(savedZipFile)) {
+                                byte[] buf = new byte[10240];
+                                int len = 0;
+                                while ((len = is.read(buf)) >= 0) {
+                                    fos.write(buf, 0, len);
+                                }
+                            } finally {
+                                is.close();
+                            }
+                        } catch (IOException e) {
+                            logger.error("Error storing files of the dataset with the id of " + datasetId);
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                        }
+                    } else {
+                        FileDescriptor fd = new FileDescriptor();
+                        FileStorageDisk fsDisk = new FileStorageDisk();
+
+                        fsDisk.setFolder(DATA_REPO_FOLDER);
+                        try {
+                            fd = fsDisk.storeFile(fileName, is);
+                            fd.setFilename(fileName);
+                        } catch (IOException e) {
+                            logger.error("Error storing files of the dataset with the id of " + datasetId);
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                        }
+                        dataset.addFileDescriptor(fd);
                     }
-                    dataset.addFileDescriptor(fd);
                 }
             }
         }
@@ -581,7 +636,7 @@ public class DatasetController {
 
         List<FileDescriptor> dataFDs = dataset.getFileDescriptors();
         List<File> files = new ArrayList<File>();
-        // File zipFile = null;
+
         File geoPkgFile = null;
         boolean isShpfile = false;
 
@@ -598,25 +653,88 @@ public class DatasetController {
                 }
             }
             try {
-                // check if GUID is in the input shapefile
-                if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                    if(!GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName) ||
-                        !GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName)){
+                if (isZip) {
+                    // when it is zip file the dataset should not have any files attached yet.
+                    // todo: check if it is okay to add zip file with the datset that already has files
+                    //  if so, modify and add the code for handling that
+                    if (files.size() > 0) {
+                        // remove temp directory used for unzip
+                        FileUtils.deleteTmpDir(savedZipFile);
+                        logger.error("The dataset should not have any files when uploading zip file ");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                            "The dataset already has file(s). " +
+                                "Uploading zip files is only allowed for datasets with no files.");
+                    }
+
+                    // create temp dir and copy zip files to temp dir
+//                    String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+                    List<File> copiedFileList = GeotoolsUtils.performUnzipShpFile(savedZipFile, tempDir);
+
+                    // unzip zip file and add to file descriptor
+                    if (copiedFileList != null) {
+                        for (File shpFile : copiedFileList) {
+                            FileDescriptor fd = new FileDescriptor();
+                            FileStorageDisk fsDisk = new FileStorageDisk();
+
+                            fsDisk.setFolder(DATA_REPO_FOLDER);
+                            try {
+                                InputStream is = new FileInputStream(shpFile);
+                                String fileName = shpFile.getName();
+                                fd = fsDisk.storeFile(fileName, is);
+                                fd.setFilename(fileName);
+                            } catch (IOException e) {
+                                logger.error("Error storing files of the dataset with the id of " + datasetId);
+                                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                            }
+                            dataset.addFileDescriptor(fd);
+                        }
+                        // after adding files to FileDescriptor, remove tempDir
+                        FileUtils.deleteTmpDir(copiedFileList.get(0));
+                    } else {
+                        logger.debug("Unzipping zip file failed");
+                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Unzipping zip file failed.");
+                    }
+
+                    // if the unzip was successful, that means that it is a complete shapefile
+                    isShp = true;
+
+                    // create and add FileDescriptor for unzipped shapefiles
+                    List<FileDescriptor> unzippedFDs = dataset.getFileDescriptors();
+                    List<File> unzippedFiles = new ArrayList<File>();
+                    for (int i = 0; i < unzippedFDs.size(); i++) {
+                        FileDescriptor sfd = unzippedFDs.get(i);
+                        String shpLoc = FilenameUtils.concat(DATA_REPO_FOLDER, sfd.getDataURL());
+                        File shpFile = new File(shpLoc);
+                        unzippedFiles.add(shpFile);
+                    }
+
+                    // check if unzipped shapefile has GUID
+                    if (!GeotoolsUtils.isGUIDinShpfile(dataset, unzippedFiles)) {
                         FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
                         logger.debug("The shapefile does not have guid field.");
-                        throw new IOException("No GUID field.");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
                     }
                 } else {
-                    if (!GeotoolsUtils.isGUIDinShpfile(dataset, files)) {
-                        FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
-                        logger.debug("The shapefile does not have guid field.");
-                        throw new IOException("No GUID field.");
+                    // check if GUID is in the input shapefile
+                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
+                        if (!GeotoolsUtils.isGUIDinShpfile(dataset, files, linkFileName) ||
+                            !GeotoolsUtils.isGUIDinShpfile(dataset, files, nodeFileName)) {
+                            FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                            logger.debug("The shapefile does not have guid field.");
+                            throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
+                        }
+                    } else {
+                        if (!GeotoolsUtils.isGUIDinShpfile(dataset, files)) {
+                            FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                            logger.debug("The shapefile does not have guid field.");
+                            throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
+                        }
                     }
                 }
             } catch (IOException e) {
-                logger.error("The shapefile does not have guid field ", e);
-                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "The shapefile does not have guid field. " +
-                    "Please create a field in shapefile and upload.");
+                logger.error("The shapefile does not have guid field or not a complete shapefile ", e);
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "The shapefile does not have guid field " +
+                    "or not a complete shapefile. Please check the shapefile.");
             }
         }
 
@@ -629,11 +747,11 @@ public class DatasetController {
 
         if (enableGeoserver && isGeoserver) {
             if (isJoin) {
-                // todo: the join process for the network dataset should be added in here
+                // todo: the join process for the network dataset should be added in here.
                 try {
                     geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
                     if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
-                        logger.error("Fail to upload geopakcage file");
+                        logger.error("Fail to upload geopackage file");
                         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
                     }
                     // GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);

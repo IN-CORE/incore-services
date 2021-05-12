@@ -50,6 +50,7 @@ public class FileUtils {
     public static final String EXTENSION_SHP = "shp";
     public static final String EXTENSION_META = "mvz";
     public static final String EXTENSION_CSV = "csv";
+    public static final String EXTENSION_ZIP = "zip";
     public static final String EXTENSION_GEOPACKAGE = "gpkg"; // file extension of geopackage
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;
@@ -62,7 +63,6 @@ public class FileUtils {
     public static final String DATASET_FORMAT = "format";
     public static final String DATASET_DESCRIPTION = "description";
     public static final String DATASET_FILE_NAME = "fileName";
-    public static final String FILE_ZIP_EXTENSION = "zip";
     public static final String FORMAT_SHAPEFILE = "shapefile";
     public static final String FORMAT_NETWORK = "shp-network";
     public static final String NETWORK_COMPONENT = "networkDataset";
@@ -854,7 +854,8 @@ public class FileUtils {
         boolean useGeoserver = false;
         if (geoserverEnabled) {
             String fileExt = FilenameUtils.getExtension(examinedFile);
-            if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc") || fileExt.equalsIgnoreCase("tif")) {
+            if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc")
+                || fileExt.equalsIgnoreCase("tif") || fileExt.equalsIgnoreCase("zip")) {
                 useGeoserver = true;
             }
         }
