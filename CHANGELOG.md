@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Update versioning and tagging of docker images [INCORE1-1154](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1154)
+- Updated model based tornado to use seed value for uniform random distribution [INCORE1-1187](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1187)
 
 ## [1.1.1] - 2021-04-15
 

@@ -160,7 +160,13 @@ public abstract class BaseTornado {
         }
 
         // CMN: We could make the random number generator a class field to avoid creating it for each calculation
-        UniformRealDistribution windDistribution = new UniformRealDistribution(new MersenneTwister(), bottomSpeed, topSpeed);
+        int seed = parameters.getRandomSeed();
+        UniformRealDistribution windDistribution = null;
+        if(seed == -1) {
+            windDistribution = new UniformRealDistribution(new MersenneTwister(), bottomSpeed, topSpeed);
+        } else {
+            windDistribution = new UniformRealDistribution(new MersenneTwister(seed), bottomSpeed, topSpeed);
+        }
 
         return windDistribution.sample();
     }

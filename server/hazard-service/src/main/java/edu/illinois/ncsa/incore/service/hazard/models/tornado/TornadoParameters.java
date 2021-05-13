@@ -20,7 +20,7 @@ public class TornadoParameters {
     private double maxWindSpeed = 250.0;
     private double startLatitude;
     private double startLongitude;
-    private int randomSeed;
+    private int randomSeed = -1;
     private int windSpeedMethod = 1;
     private int numSimulations = 1;
     private List<Double> endLatitude = new ArrayList<Double>();
