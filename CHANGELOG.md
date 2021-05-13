@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.0] - 2021-05-19
+
+### Added
+- Zipped shapefile upload to data service [INCORE1-1047](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1047)
+- Allow mapping "rules" to be an Array or HashMap [INCORE1-1153](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1153)
+
+### Changed
+- Update versioning and tagging of docker images [INCORE1-1154](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1154)
+
 ## [1.1.1] - 2021-04-15
 
 ### Fixed
