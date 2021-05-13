@@ -31,7 +31,7 @@ elif [ "${BRANCH}" = "develop" ]; then
     TAG="develop"
 else
     # Get the issue number for tagging
-    TAG=$(echo $BRANCH | sed -e 's/^.*INCORE1-\([0-9]*\).*/INCORE-\1/' -e 's/^\(.\{15\}\).*/\1/')
+    TAG=$(echo $BRANCH | sed -e 's/^.*INCORE1-\([0-9]*\).*/INCORE-\1/' -e 's/^\(.\{15\}\).*/\1/' -e 's|/|-|g')
 fi
 
 for v in ${TAG}; do
