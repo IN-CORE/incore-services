@@ -165,7 +165,8 @@ public abstract class BaseTornado {
         if(seed == -1) {
             windDistribution = new UniformRealDistribution(new MersenneTwister(), bottomSpeed, topSpeed);
         } else {
-            windDistribution = new UniformRealDistribution(new MersenneTwister(seed), bottomSpeed, topSpeed);
+            // Add 1 to avoid interference
+            windDistribution = new UniformRealDistribution(new MersenneTwister(seed + 1), bottomSpeed, topSpeed);
         }
 
         return windDistribution.sample();
