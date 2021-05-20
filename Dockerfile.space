@@ -14,4 +14,4 @@ RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
 ENV JETTY_PORT 8080
 
 EXPOSE 8080
-CMD ["java", "-Xmx512m", "-Djava.io.tmpdir=/home/incore/", "-jar", "lib/jetty-runner.jar", "--port", "8888", "conf/space.xml"]
+CMD ["java", "-Xmx1024m", "-Djava.io.tmpdir=/home/incore/", "-jar", "lib/jetty-runner.jar", "--port", "8888", "conf/space.xml"]
