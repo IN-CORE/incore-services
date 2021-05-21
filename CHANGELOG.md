@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.2.1] - 2021-05-21
 
 ### Changed
-- Increased memory size for the service containsers [INCORE1-1201](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1201)
+- Increased memory size for the service containers [INCORE1-1201](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1201)
 
 ## [1.2.0] - 2021-05-19
 
