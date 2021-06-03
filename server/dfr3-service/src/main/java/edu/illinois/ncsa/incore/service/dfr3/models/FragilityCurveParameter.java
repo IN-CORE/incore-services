@@ -16,15 +16,17 @@ public class FragilityCurveParameter {
     public String name;
     public String unit;
     public String description;
+    public String fullName;
     public String expression;
 
     public FragilityCurveParameter() {
     }
 
-    public FragilityCurveParameter(String name, String unit, String description, String expression) {
+    public FragilityCurveParameter(String name, String unit, String description, String fullName, String expression) {
         this.name = name;
         this.unit = unit;
         this.description = description;
+        this.fullName = fullName;
         this.expression = expression;
     }
 }
