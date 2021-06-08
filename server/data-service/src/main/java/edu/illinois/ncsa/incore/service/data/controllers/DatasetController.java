@@ -377,13 +377,18 @@ public class DatasetController {
     @ApiOperation(value = "Deletes a dataset", notes = "Also deletes attached information like files and geoserver layer")
     public Dataset deleteDataset(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         Dataset dataset = getDatasetbyId(datasetId);
+        boolean geoserverUsed = false;
 
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the dataset " + datasetId);
         }
 
         String format = dataset.getFormat();
-        boolean geoserverUsed = false;
+        String sourceDataset = dataset.getSourceDataset();
+        // if there is a source dataset, it will be have a geopkg file uploaded to geoserver
+        if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
+            geoserverUsed = true;
+        }
 
         if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
             // remove id from spaces
@@ -417,6 +422,7 @@ public class DatasetController {
                         boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
                     } else {
                         boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
+                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
                     }
                 }
             }
