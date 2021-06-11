@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.3.0] - 2021-06-16
+
+### Added
+- Ability to create tornados by uploading a zip file with shapefiles [INCORE1-830](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-830)
+- New field to DFR3 curve paramters to support an equation-friendly short name and a full name [INCORE1-1220](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1220)
+
+### Changed
+- Migrated all fragilities in the DFR3 database to new equation based format [INCORE1-869](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-869)
+
+### Fixed
+- Fix the mappings in the database without any rules defined [INCORE1-1215](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1215)
+- Delete geoserver layer when deleting geopkg datasets [INCORE1-1208](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1208)
+
 ## [1.2.1] - 2021-05-21
 
 ### Changed
