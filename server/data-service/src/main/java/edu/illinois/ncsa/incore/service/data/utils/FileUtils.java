@@ -850,6 +850,9 @@ public class FileUtils {
         return outStr;
     }
 
+    // Note that this method does not consider geopkg datasets which store csv files in the data folder but creates a
+    // geopkg file on geoserver. Consider renaming this method and/or overloading the method with "format" field so
+    // it can also handle geopkg datasets.
     public static boolean fileUseGeoserver(String examinedFile, boolean geoserverEnabled) {
         boolean useGeoserver = false;
         if (geoserverEnabled) {
