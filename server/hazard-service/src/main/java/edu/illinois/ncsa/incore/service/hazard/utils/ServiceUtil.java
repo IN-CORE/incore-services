@@ -35,33 +35,28 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class ServiceUtil {
 
     private static final Logger logger = Logger.getLogger(ServiceUtil.class);
 
     /**
-     * Utility for the hazard service to save files to the dataset repository
+     * util for creating a tornado dataset based on input json
      *
      * @param datasetObject
      * @param creator
-     * @param fileParts
      * @return
      * @throws IOException
      */
-    public static String createDataset(JSONObject datasetObject, String creator,
-                                       List<FormDataBodyPart> fileParts) throws IOException {
+    public static String createDataset(JSONObject datasetObject, String creator)
+        throws IOException {
         // TODO cleanup duplicate code
         // CMN: we could go through Kong, but then we would need a token
-        String dataEndpoint = "http://localhost:8080/";
-        String dataEndpointProp = System.getenv("SERVICES_URL");
-        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
-            dataEndpoint = dataEndpointProp;
-            if (!dataEndpoint.endsWith("/")) {
-                dataEndpoint += "/";
-            }
-        }
+        String dataEndpoint = createDataEndpoint();
 
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
@@ -81,33 +76,72 @@ public class ServiceUtil {
         response = httpclient.execute(httpPost);
         responseStr = responseHandler.handleResponse(response);
 
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-            JSONObject object = new JSONObject(responseStr);
+        JSONObject object = new JSONObject(responseStr);
+        String datasetId = object.getString("id");
 
-            String datasetId = object.getString("id");
-            requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
+        return datasetId;
+    }
 
-            params = MultipartEntityBuilder.create();
-            params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+    /**
+     * util for attaching tornado shapefile or zipfile to tornado dataset created
+     * @param datasetId
+     * @param creator
+     * @param fileParts
+     * @return
+     * @throws IOException
+     */
+    public static int attachFileToTornadoDataset(String datasetId, String creator, List<FormDataBodyPart> fileParts) throws IOException {
+        String dataEndpoint = createDataEndpoint();
 
-            for (FormDataBodyPart filePart : fileParts) {
-                BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
-                params.addBinaryBody(HazardConstants.FILE_PARAMETER_, bodyPartEntity.getInputStream(), ContentType.DEFAULT_BINARY, filePart.getContentDisposition().getFileName());
-            }
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
 
-            // Attach file
-            httpPost = new HttpPost(requestUrl);
-            httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
-            httpPost.setEntity(params.build());
+        String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
+        requestUrl += "/" + datasetId + "/" + HazardConstants.DATASETS_FILES;
 
-            response = httpclient.execute(httpPost);
-            responseStr = responseHandler.handleResponse(response);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return datasetId;
+        MultipartEntityBuilder params = MultipartEntityBuilder.create();
+        params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+        for (FormDataBodyPart filePart : fileParts) {
+            BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
+            params.addBinaryBody(HazardConstants.FILE_PARAMETER_, bodyPartEntity.getInputStream(), ContentType.DEFAULT_BINARY, filePart.getContentDisposition().getFileName());
+        }
+
+        // Attach file
+        HttpPost httpPost = new HttpPost(requestUrl);
+        httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
+        httpPost.setEntity(params.build());
+
+        HttpResponse response = null;
+        String responseStr = null;
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+        response = httpclient.execute(httpPost);
+        responseStr = responseHandler.handleResponse(response);
+
+//        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+//            return datasetId;
+//        }
+
+        return response.getStatusLine().getStatusCode();
+    }
+
+    /**
+     * utility for creating data endpoint string
+     *
+     * @return
+     */
+    public static String createDataEndpoint(){
+        String dataEndpoint = "http://localhost:8080/";
+        String dataEndpointProp = System.getenv("SERVICES_URL");
+        if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
+            dataEndpoint = dataEndpointProp;
+            if (!dataEndpoint.endsWith("/")) {
+                dataEndpoint += "/";
             }
         }
 
-        return null;
+        return dataEndpoint;
     }
 
     /**

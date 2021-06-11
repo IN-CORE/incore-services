@@ -11,12 +11,6 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
-import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
-import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -25,19 +19,26 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
+import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONObject;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -128,8 +129,14 @@ public class TornadoController {
         @ApiParam(hidden = true) @FormDataParam("tornado") String tornadoJson,
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
+        // error messages for tornado creation
+        String tornadoErrorMsg = "Could not create Tornado, check the format and files of your request. " +
+            "For dataset based tornado, the shapefile needs to have a GUID";
+        String tornadoJsonErrorMsg = "Could not create Tornado. Check your tornado json.";
+
         ObjectMapper mapper = new ObjectMapper();
         Tornado tornado = null;
+        String datasetId = null;
         try {
             tornado = mapper.readValue(tornadoJson, Tornado.class);
 
@@ -169,7 +176,7 @@ public class TornadoController {
                 JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
-                String datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
+                datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);
@@ -177,19 +184,33 @@ public class TornadoController {
                 addTornadoToSpace(tornado, this.username);
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
+                datasetId = null;
                 if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
                     // Create dataset object representation for storing shapefile
                     JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
-                    String datasetId = ServiceUtil.createDataset(datasetObject, this.username, fileParts);
+                    datasetId = ServiceUtil.createDataset(datasetObject, this.username);
+                    if (datasetId != null){
+                        // attach files to the dataset
+                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, fileParts);
+                        if (statusCode != HttpStatus.SC_OK) {
+                            ServiceUtil.deleteDataset(datasetId, this.username);
+                            logger.error(tornadoErrorMsg);
+                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
+                        }
+                    } else {
+                        logger.error(tornadoJsonErrorMsg);
+                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoJsonErrorMsg);
+                    }
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
                     tornado.setCreator(this.username);
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
                 } else {
-                    logger.error("Could not create Tornado. Check your file extensions and the number of files in the request.");
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado. Check your file extensions and the number of files in the request.");
+                    ServiceUtil.deleteDataset(datasetId, this.username);
+                    logger.error(tornadoErrorMsg);
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                 }
             }
 
@@ -200,8 +221,8 @@ public class TornadoController {
         } catch (IllegalArgumentException e) {
             logger.error("Illegal Argument has been passed in.", e);
         }
-
-        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tornado, check the format of your request.");
+        ServiceUtil.deleteDataset(datasetId, this.username);
+        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
 
     }
 
