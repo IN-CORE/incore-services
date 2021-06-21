@@ -187,10 +187,6 @@ public class GeoserverUtils {
         return isRemoved;
     }
 
-    public static boolean removeCoverageStoreFromGeoserver(String id){
-        return true;
-    }
-
     public static GeoServerRESTPublisher createPublisher() {
         return new GeoServerRESTPublisher(GEOSERVER_REST_URL, GEOSERVER_USER, GEOSERVER_PW);
     }
