@@ -52,11 +52,13 @@ public class HazardUtil {
     private static final String units_percg = "%g";
     // Metric
     private static final String units_m = "meters";
+    private static final String units_m_abbr = "m";
     private static final String units_cms = "cm/s";
     private static final String units_ins = "in/s";
     // English
     public static final String units_in = "in";
     private static final String units_ft = "feet";
+    private static final String units_ft_abbr = "ft";
     private static final String sa_pgv = "sapgv";
     private static final String pga_pgd = "pgapgd";
     private static final String pga_pga = "pgapga";
@@ -271,18 +273,26 @@ public class HazardUtil {
     }
 
     /**
-     * @param sd
-     * @param units0
-     * @param units1
-     * @return
+     * @param sd - spectral displacement
+     * @param units0 - original units
+     * @param units1 - requested units
+     * @return - converted spectral displacement
      */
     public static double getCorrectUnitsOfSD(double sd, String units0, String units1) {
         if (units1 != null && units1.equalsIgnoreCase(units0)) {
             return sd;
         } else if (units_in.equalsIgnoreCase(units1) && units_cm.equalsIgnoreCase(units0)) {
             return sd / 2.54;
+        } else if (units_m_abbr.equalsIgnoreCase(units1) && units_cm.equalsIgnoreCase(units0)) {
+            return sd / 100.0;
+        } else if (units_ft_abbr.equalsIgnoreCase(units1) && units_cm.equalsIgnoreCase(units0)) {
+            return sd / 30.48;
         } else if (units_cm.equalsIgnoreCase(units1) && units_in.equalsIgnoreCase(units0)) {
             return sd * 2.54;
+        } else if (units_m_abbr.equalsIgnoreCase(units1) && units_in.equalsIgnoreCase(units0)) {
+            return sd * 0.0254;
+        } else if (units_ft_abbr.equalsIgnoreCase(units1) && units_in.equalsIgnoreCase(units0)) {
+            return sd / 12.0;
         } else {
             // Unknown type
             logger.warn("Unknown SD unit, returning unconverted sd value");
@@ -497,11 +507,38 @@ public class HazardUtil {
             return demandParts;
         } else {
             String[] demandSplit = fullDemandType.split(" ");
-            demandParts[0] = demandSplit[0].trim();
-            demandParts[1] = demandSplit[1].trim();
-
-            return demandParts;
+            if( demandSplit.length == 2) {
+                demandParts[0] = demandSplit[0].trim();
+                demandParts[1] = demandSplit[1].trim();
+            } else if(demandSplit.length == 3) {
+                // The assumption here is something like 0.3 Sec SA, 0.3 Sec SD, etc
+                demandParts[0] = demandSplit[0].trim();
+                demandParts[1] = demandSplit[2].trim();
+            } else {
+                // Unexpected format
+                demandParts = null;
+            }
         }
+        return demandParts;
+    }
+
+    public static boolean verifyHazardDemandUnits(String demandType, String demandUnits) {
+        if (demandType.equalsIgnoreCase(HazardUtil.PGA) || demandType.equalsIgnoreCase(HazardUtil.SA)) {
+            if (demandUnits.equalsIgnoreCase(HazardUtil.units_percg) || demandUnits.equalsIgnoreCase(HazardUtil.units_g)) {
+                return true;
+            }
+        } else if (demandType.equalsIgnoreCase(HazardUtil.PGV) || demandType.equalsIgnoreCase(HazardUtil.SV) ) {
+            if (demandUnits.equalsIgnoreCase(HazardUtil.units_cms) || demandUnits.equalsIgnoreCase(HazardUtil.units_ins)) {
+                return true;
+            }
+        } else if (demandType.equalsIgnoreCase(HazardUtil.PGD) || demandType.equalsIgnoreCase(HazardUtil.SD)) {
+            if (demandUnits.equalsIgnoreCase(HazardUtil.units_cm) || demandUnits.equalsIgnoreCase(HazardUtil.units_m_abbr) ||
+                demandUnits.equalsIgnoreCase(HazardUtil.units_in) || demandUnits.equalsIgnoreCase(HazardUtil.units_ft_abbr))  {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static String getFullDemandType(String period, String demandType) {
