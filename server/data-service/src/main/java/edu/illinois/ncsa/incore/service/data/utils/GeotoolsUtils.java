@@ -684,7 +684,7 @@ public class GeotoolsUtils {
         SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFileList(copiedFileList);
 
         // check if there is guid exists
-        isGuid = isGuidExist(inputFeatures);
+        isGuid = doesGuidExist(inputFeatures);
 
         // remove temp dir after checking the file
         FileUtils.deleteTmpDir(copiedFileList.get(0));
@@ -737,7 +737,7 @@ public class GeotoolsUtils {
         SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFileList(copiedFileList);
 
         // check if there is guid exists
-        isGuid = isGuidExist(inputFeatures);
+        isGuid = doesGuidExist(inputFeatures);
         // creaste new dbf in the temp dir and move it to data repo directory
         if (isGuid != true) {
             logger.debug("Creating GUID field in the dataset for " + outFileName);
@@ -790,7 +790,7 @@ public class GeotoolsUtils {
      * @param inputFeatures
      * @return
      */
-    public static boolean isGuidExist(SimpleFeatureCollection inputFeatures) {
+    public static boolean doesGuidExist(SimpleFeatureCollection inputFeatures) {
         boolean isGuid = false;
         SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
         try {
