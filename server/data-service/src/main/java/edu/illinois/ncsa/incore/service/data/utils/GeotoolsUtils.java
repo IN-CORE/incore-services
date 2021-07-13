@@ -794,13 +794,12 @@ public class GeotoolsUtils {
         boolean isGuid = false;
         SimpleFeatureIterator inputFeatureIterator = inputFeatures.features();
         try {
-            while (inputFeatureIterator.hasNext()) {
-                SimpleFeature inputFeature = inputFeatureIterator.next();
-                for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
-                    AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
-                    if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
-                        isGuid = true;
-                    }
+            SimpleFeature inputFeature = inputFeatureIterator.next();
+            for (int i = 0; i < inputFeature.getAttributeCount(); i++) {
+                AttributeDescriptor attributeType = inputFeature.getFeatureType().getDescriptor(i);
+                if (attributeType.getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
+                    isGuid = true;
+                    break;
                 }
             }
         } finally {
