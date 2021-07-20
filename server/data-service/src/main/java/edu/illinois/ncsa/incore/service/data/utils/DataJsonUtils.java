@@ -13,11 +13,10 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
-import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
-import edu.illinois.ncsa.incore.service.data.models.NetworkData;
-import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
+import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.models.*;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -28,7 +27,10 @@ import org.geotools.geojson.feature.FeatureJSON;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -248,5 +250,91 @@ public class DataJsonUtils {
 
         }
         return "";
+    }
+
+    public static String parseUserName(String userInfo) {
+        String userName = null;
+        try {
+            JSONParser parser = new JSONParser();
+            org.json.simple.JSONObject userInfoJson = (org.json.simple.JSONObject) parser.parse(userInfo);
+            userName = (String) userInfoJson.get("preferred_username");
+
+        } catch (ParseException e) {
+            logger.error("Unable to parse userInfo", e);
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unable to parse userInfo");
+        }
+
+        return userName;
+    }
+
+    public static JSONObject createUserStatusJson(String userInfo, IRepository repository, String keyDatabase) throws ParseException{
+        List<Dataset> datasets = null;
+        String userName = parseUserName(userInfo);
+
+        if (userName == null) {
+            logger.error("Error finding username");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the username");
+        }
+
+        if (keyDatabase.equalsIgnoreCase("hazard")) {
+            datasets = repository.getDatasetByCreator(userName, true);
+        } else if (keyDatabase.equalsIgnoreCase("dataset")) {
+            datasets = repository.getDatasetByCreator(userName, false);
+        }
+
+        if (datasets == null) {
+            logger.error("Error finding dataset");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find any datasets");
+        }
+
+        int total_num_dataset = datasets.size();
+        int total_file_size = 0;
+
+        // add the file size of all files in fileDescriptors
+        for (Dataset dataset : datasets) {
+            List<FileDescriptor> fds = dataset.getFileDescriptors();
+            for (FileDescriptor fd: fds) {
+                total_file_size += fd.getSize();
+            }
+        }
+
+        String out_file_size;
+
+        double size_kb = total_file_size /1024;
+        double size_mb = size_kb / 1024;
+        double size_gb = size_mb / 1024 ;
+
+        // round values
+        size_kb = Math.round(size_kb * 100.0) / 100.0;
+        size_mb = Math.round(size_mb * 100.0) / 100.0;
+        size_gb = Math.round(size_gb * 100.0) / 100.0;
+
+        if (size_gb >= 1){
+            out_file_size = size_gb + " GB";
+        }else if(size_mb >= 1){
+            out_file_size = size_mb + " MB";
+        }else{
+            out_file_size = size_kb + " KB";
+        }
+
+        JSONObject outJson = new JSONObject();
+        outJson.put("user", userName);
+        outJson.put("total_number_of_datasets", total_num_dataset);
+        outJson.put("total_file_size", out_file_size);
+        outJson.put("total_file_size_byte", total_file_size);
+
+        return outJson;
+    }
+
+    public static int getNumHazardFromJson(String inJsonStr) {
+        int hazardNum = 0;
+        JSONArray jsonArray = new JSONArray(inJsonStr);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            int tmpNum = jsonObject.getInt("total_number_of_hazard");
+            hazardNum = hazardNum + tmpNum;
+        }
+
+        return hazardNum;
     }
 }

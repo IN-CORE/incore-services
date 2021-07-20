@@ -11,16 +11,17 @@
 
 package edu.illinois.ncsa.incore.service.data.dao;
 
-import com.mongodb.client.MongoClients;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
-import dev.morphia.query.experimental.filters.Filters;
 import dev.morphia.query.Query;
+import dev.morphia.query.experimental.filters.Filters;
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.DatasetType;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
@@ -37,6 +38,7 @@ public class MongoDBRepository implements IRepository {
     private final String DATASET_COLLECTION_NAME = "Dataset";
     private final String DATASET_FIELD_TYPE = "dataType";
     private final String DATASET_FIELD_TITLE = "title";
+    private final String DATASET_FIELD_CREATOR = "creator";
     private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";
     private String hostUri;
     private String databaseName;
@@ -93,6 +95,22 @@ public class MongoDBRepository implements IRepository {
         return datasetQuery.iterator().toList();
     }
 
+    public List<Dataset> getDatasetByCreator(String creator, Boolean withHazard) {
+        Query<Dataset> datasetQuery = null;
+        if (withHazard) {
+            datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+            Filters.regex(DATASET_FIELD_CREATOR).pattern(creator).caseInsensitive(),
+            Filters.in(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
+        ));
+        } else {
+            datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+                Filters.regex(DATASET_FIELD_CREATOR).pattern(creator).caseInsensitive(),
+                Filters.nin(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
+            ));
+        }
+        return datasetQuery.iterator().toList();
+    }
+
     public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
         Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
             Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive(),
@@ -110,7 +128,6 @@ public class MongoDBRepository implements IRepository {
             .filter(Filters.eq(DATASET_FIELD_FILEDESCRIPTOR_ID, new ObjectId(id)));
         return datasetQuery.first();
     }
-
 
     public Dataset addDataset(Dataset dataset) {
         String id = this.dataStore.save(dataset).getId().toString();

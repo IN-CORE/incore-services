@@ -75,7 +75,6 @@ public class FileUtils {
     public static final Logger logger = Logger.getLogger(FileUtils.class);
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
 
-
     /**
      * delete temporary directory
      *

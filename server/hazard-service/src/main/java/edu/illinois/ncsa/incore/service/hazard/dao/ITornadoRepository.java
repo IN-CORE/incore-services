@@ -27,5 +27,9 @@ public interface ITornadoRepository {
 
     List<Tornado> searchTornadoes(String text);
 
+    List<Tornado> getTornadoesByCreator(String creator);
+
+    int getTornadoesCountByCreator(String creator);
+
     Datastore getDataStore();
 }

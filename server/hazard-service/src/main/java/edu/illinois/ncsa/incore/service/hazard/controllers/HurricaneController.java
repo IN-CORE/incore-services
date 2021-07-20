@@ -8,22 +8,24 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
-import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.*;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneHazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -31,7 +33,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Api(value = "hurricanes", authorizations = {})
@@ -342,7 +347,10 @@ public class HurricaneController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return hurricanes;

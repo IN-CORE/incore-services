@@ -7,8 +7,9 @@
  * Contributors:
  * Chris Navarro (NCSA) - initial API and implementation
  *******************************************************************************/
-package edu.illinois.ncsa.incore.service.hazard;
+package edu.illinois.ncsa.incore.common;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +29,21 @@ public class HazardConstants {
     public static final String SHAPEFILE_FORMAT = "shapefile";
     public static final String HAZARD_TIF = "hazard.tif";
 
+    private static String PROBABILISTIC_EARTHQUAKE_HAZARD_SCHEM;
+
+    public static final List<String> DATA_TYPE_HAZARD = new ArrayList<>(Arrays.asList(
+        PROBABILISTIC_EARTHQUAKE_HAZARD_SCHEM,
+        DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA,
+        PROBABILISTIC_TSUNAMI_HAZARD_SCHEMA,
+        DETERMINISTIC_TSUNAMI_HAZARD_SCHEMA,
+        PROBABILISTIC_HURRICANE_HAZARD_SCHEMA,
+        DETERMINISTIC_HURRICANE_HAZARD_SCHEMA,
+        HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
+        TORNADO_WINDFIELD_SCHEMA,
+        DETERMINISTIC_FLOOD_HAZARD_SCHEMA,
+        PROBABILISTIC_FLOOD_HAZARD_SCHEMA,
+        "ergo:hazardRaster"));
+
     // Dataset fields
     public static final String DATA_TYPE = "dataType";
     public static final String TITLE = "title";
@@ -46,4 +62,5 @@ public class HazardConstants {
 
     public static List<String> EQ_DATASET_TYPES_ALLOWED = Arrays.asList("tif", "tiff");
     public static List<String> TORNADO_DATASET_TYPES_ALLOWED = Arrays.asList("shp", "zip");
+
 }

@@ -21,7 +21,9 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
 import org.bson.types.ObjectId;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MongoDBHurricaneRepository implements IHurricaneRepository {
     private String hostUri;
@@ -133,5 +135,27 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
         hurricanes.addAll(hurricaneDatasets);
 
         return hurricanes;
+    }
+
+    @Override
+    public List<Hurricane> getHurricanesByCreator(String creator) {
+        Query<HurricaneDataset> query = this.dataStore.find(HurricaneDataset.class);
+
+        List<HurricaneDataset> hurricaneDatasets = query.filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive()
+        ).iterator().toList();
+
+        List<Hurricane> hurricanes = new ArrayList<>();
+        hurricanes.addAll(hurricaneDatasets);
+
+        return hurricanes;
+    }
+
+    @Override
+    public int getHurricanesCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(HurricaneDataset.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
     }
 }

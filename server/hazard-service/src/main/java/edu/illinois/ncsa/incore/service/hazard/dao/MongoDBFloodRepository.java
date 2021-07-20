@@ -20,7 +20,9 @@ import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodDataset;
 import org.bson.types.ObjectId;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MongoDBFloodRepository implements IFloodRepository {
     private String hostUri;
@@ -126,5 +128,26 @@ public class MongoDBFloodRepository implements IFloodRepository {
         floods.addAll(floodDatasets);
 
         return floods;
+    }
+
+    @Override
+    public List<Flood> getFloodsByCreator(String creator) {
+        Query<FloodDataset> query = this.dataStore.find(FloodDataset.class);
+
+        List<FloodDataset> floodDatasets = query.filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive()
+        ).iterator().toList();
+        List<Flood> floods = new ArrayList<>();
+        floods.addAll(floodDatasets);
+
+        return floods;
+    }
+
+    @Override
+    public int getFloodsCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(FloodDataset.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
     }
 }

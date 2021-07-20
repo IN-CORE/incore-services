@@ -15,13 +15,11 @@ import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoDataset;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.bson.types.ObjectId;
-import dev.morphia.query.Query;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -105,5 +103,26 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
         tsunamis.addAll(tsunamiDatasets);
 
         return tsunamis;
+    }
+
+    @Override
+    public List<Tsunami> getTsunamisByCreator(String creator) {
+        Query<TsunamiDataset> query = this.dataStore.find(TsunamiDataset.class).filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive()
+        );
+        List<TsunamiDataset> tsunamiDatasets = query.iterator().toList();
+
+        List<Tsunami> tsunamis = new ArrayList<>();
+        tsunamis.addAll(tsunamiDatasets);
+
+        return tsunamis;
+    }
+
+    @Override
+    public int getTsunamisCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(TsunamiDataset.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
     }
 }

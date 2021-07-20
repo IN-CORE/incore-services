@@ -30,6 +30,8 @@ public interface IRepository {
 
     List<Dataset> getDatasetByTitle(String title);
 
+    List<Dataset> getDatasetByCreator(String creator, Boolean withHazard);
+
     List<Dataset> getDatasetByTypeAndTitle(String type, String title);
 
     List<Dataset> searchDatasets(String text);

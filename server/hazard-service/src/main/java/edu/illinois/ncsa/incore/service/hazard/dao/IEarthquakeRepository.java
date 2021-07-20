@@ -27,5 +27,9 @@ public interface IEarthquakeRepository {
 
     List<Earthquake> searchEarthquakes(String text);
 
+    List<Earthquake> getEarthquakesByCreator(String creator);
+
+    int getEarthquakesCountByCreator(String creator);
+
     Datastore getDataStore();
 }

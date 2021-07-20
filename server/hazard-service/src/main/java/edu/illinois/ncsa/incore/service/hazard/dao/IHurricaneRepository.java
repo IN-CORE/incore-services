@@ -13,7 +13,6 @@ import dev.morphia.Datastore;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
 
 import java.util.List;
-import java.util.Map;
 
 public interface IHurricaneRepository {
     void initialize();
@@ -27,6 +26,10 @@ public interface IHurricaneRepository {
     List<Hurricane> getHurricanes();
 
     List<Hurricane> searchHurricanes(String text);
+
+    List<Hurricane> getHurricanesByCreator(String creator);
+
+    int getHurricanesCountByCreator(String creator);
 
     Datastore getDataStore();
 

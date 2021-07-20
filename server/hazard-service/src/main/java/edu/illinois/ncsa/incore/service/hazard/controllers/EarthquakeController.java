@@ -11,13 +11,6 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
-import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
-import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.liquefaction.LiquefactionValuesResponse;
-import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -25,16 +18,21 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.Engine;
-import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.Job;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
+import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
+import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.liquefaction.LiquefactionValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.NEHRPSiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.site.SiteAmplification;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
@@ -43,6 +41,8 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.coverage.grid.GridCoverage;
 
 import javax.inject.Inject;
@@ -912,7 +912,6 @@ public class EarthquakeController {
                 " earthquake " + earthquakeId);
         }
     }
-
 
     // Helper functions
 
