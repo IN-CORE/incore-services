@@ -416,7 +416,7 @@ public class HazardUtil {
         point.y = location.getY();
         DirectPosition dp = new DirectPosition2D(location.getX(), location.getY());
         dest = gc.evaluate(dp, dest);
-        if (Double.isNaN(dest[0])) {
+        if (Double.isNaN(dest[0]) || dest[0] == -9999) {
             return null;
         }
 
