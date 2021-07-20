@@ -10,6 +10,8 @@
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
 import java.util.List;
+
+import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import org.json.JSONObject;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
@@ -62,13 +64,22 @@ public class TornadoCalc {
             windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0);
         }
 
-        // wind hazard value is always calculated in mph. Conversion not needed.
-        Double threshold = ((JSONObject)TORNADO_THRESHOLDS.get(demandType)).getDouble("value");
-        if (windHazard != null && threshold != null && windHazard < threshold){
-            windHazard = null;
-        }
-        else if (demandUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)) {
-            windHazard *= getConversionFactor(demandUnits);
+        if (windHazard != null) {
+            // convert demand type in keys to lower case and check for threshold limits
+            JSONObject tornadoThresholds = HazardUtil.toLowerKey(HazardUtil.TORNADO_THRESHOLDS);
+            if (tornadoThresholds.has(demandType.toLowerCase())) {
+                JSONObject demandThreshold = (JSONObject) tornadoThresholds.get(demandType.toLowerCase());
+                Double threshold = demandThreshold.get("value") == JSONObject.NULL ? null : demandThreshold.getDouble("value");
+                // wind hazard value is always calculated in mph. Conversion not needed.
+                if (threshold != null && windHazard < threshold) {
+                    windHazard = null;
+                }
+            }
+
+            // Perform unit conversion if requested in mps
+            if (windHazard != null && demandUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)) {
+                windHazard *= getConversionFactor(demandUnits);
+            }
         }
 
         return new WindHazardResult(demandUnits, windHazard);

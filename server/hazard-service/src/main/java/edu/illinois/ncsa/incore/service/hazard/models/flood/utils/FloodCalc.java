@@ -54,9 +54,8 @@ public class FloodCalc {
                         JSONObject floodThresholds = HazardUtil.toLowerKey(HazardUtil.FLOOD_THRESHOLDS);
 
                         if (floodThresholds.has(demandType.toLowerCase())) {
-                            Double threshold;
                             JSONObject demandThreshold = ((JSONObject) floodThresholds.get(demandType.toLowerCase()));
-                            threshold = demandThreshold.get("value") == JSONObject.NULL ? null : demandThreshold.getDouble("value");
+                            Double threshold = demandThreshold.get("value") == JSONObject.NULL ? null : demandThreshold.getDouble("value");
                             // ignore threshold if null
                             if (threshold != null) {
                                 threshold = FloodUtil.convertHazard(threshold, demandType, demandThreshold.getString("unit"), demandUnits);
