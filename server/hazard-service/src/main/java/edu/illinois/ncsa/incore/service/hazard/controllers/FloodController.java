@@ -238,6 +238,7 @@ public class FloodController {
                         hazVals.add(res.getHazardValue());
                     }
                 } catch (UnsupportedHazardException e) {
+                    log.error("Exception in calculating flood values", e);
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
                         " for all the locations");
                 }

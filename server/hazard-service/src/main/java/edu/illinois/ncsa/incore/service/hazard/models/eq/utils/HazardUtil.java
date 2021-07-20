@@ -29,6 +29,7 @@ import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
 
 import java.awt.geom.Point2D;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -82,10 +83,25 @@ public class HazardUtil {
         "'wind': {'value': 50, 'unit': 'mph'}" +
         "}");
 
+    // Provide null to ignore threshold value. Demand Type key is case insensitive
     public final static JSONObject FLOOD_THRESHOLDS = new JSONObject("{ " +
         "'inundationDepth': {'value': 0.3, 'unit': 'm'}, " +
         "'waterSurfaceElevation': {'value': null, 'unit': 'm'}" +
         "}");
+
+    public static JSONObject toLowerKey(JSONObject thresholds){
+        /***
+         * Converts keys of a JSONObject to lower case.
+         */
+        Iterator<String> keys= thresholds.keySet().iterator();
+        JSONObject lowerThresholds = new JSONObject();
+
+        while(keys.hasNext()) {
+            String key = keys.next();
+            lowerThresholds.put(key.toLowerCase(), thresholds.get(key));
+        }
+        return lowerThresholds;
+    };
 
     public static int getSiteClassAsInt(String siteClass) {
         int siteClassInt = -1;
@@ -393,7 +409,7 @@ public class HazardUtil {
      * @return
      * @throws PointOutsideCoverageException
      */
-    public static double findRasterPoint(Point location, GridCoverage2D gc) throws PointOutsideCoverageException {
+    public static Double findRasterPoint(Point location, GridCoverage2D gc) throws PointOutsideCoverageException {
         double[] dest = null;
         final Point2D.Double point = new Point2D.Double();
         point.x = location.getX();
@@ -401,7 +417,7 @@ public class HazardUtil {
         DirectPosition dp = new DirectPosition2D(location.getX(), location.getY());
         dest = gc.evaluate(dp, dest);
         if (Double.isNaN(dest[0])) {
-            dest[0] = 0.0;
+            return null;
         }
 
         return dest[0];
