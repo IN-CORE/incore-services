@@ -332,6 +332,7 @@ public class TornadoController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
         }
         catch (Exception e) {
+            logger.error("Exception when calculating tornado hazard value", e);
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Make sure the demand types and simulations (if provided) are applicable." +
                 " Please check the format of your request.");
         }

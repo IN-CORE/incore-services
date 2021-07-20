@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
+import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -76,6 +77,15 @@ public class HazardUtil {
     static double[][] long_period = {{0.8, 1.0, 1.7, 2.4, 3.5}, {0.8, 1.0, 1.6, 2.0, 3.2}, {0.8, 1.0, 1.5, 1.8, 2.8},
         {0.8, 1.0, 1.4, 1.6, 2.4}, {0.8, 1.0, 1.3, 1.5, 2.4}};
     static double[] longPeriodIntervals = {0.1, 0.2, 0.3, 0.4, 0.5};
+
+    public final static JSONObject TORNADO_THRESHOLDS = new JSONObject("{ " +
+        "'wind': {'value': 50, 'unit': 'mph'}" +
+        "}");
+
+    public final static JSONObject FLOOD_THRESHOLDS = new JSONObject("{ " +
+        "'inundationDepth': {'value': 0.3, 'unit': 'm'}, " +
+        "'waterSurfaceElevation': {'value': null, 'unit': 'm'}" +
+        "}");
 
     public static int getSiteClassAsInt(String siteClass) {
         int siteClassInt = -1;

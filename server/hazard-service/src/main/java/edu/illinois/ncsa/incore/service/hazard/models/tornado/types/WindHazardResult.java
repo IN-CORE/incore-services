@@ -17,14 +17,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class WindHazardResult {
     private String demand = "Wind";
     private String units;
-    private double hazardValue;
+    private Double hazardValue;
 
-    public WindHazardResult(String units, double hazardValue) {
+    public WindHazardResult(String units, Double hazardValue) {
         this.hazardValue = hazardValue;
         this.units = units;
     }
 
-    public double getHazardValue() {
+    public Double getHazardValue() {
         return hazardValue;
     }
 

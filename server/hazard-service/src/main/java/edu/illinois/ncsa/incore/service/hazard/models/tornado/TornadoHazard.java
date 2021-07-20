@@ -38,6 +38,8 @@ public interface TornadoHazard {
     // Meters per second
     public static String WIND_MPS = "mps";
 
+    public static String DEMAND_TYPE = "wind";
+
     // Shapefile schema fields for tornado wind field ef boxes
     public static final String SHAPEFILE_FORMAT = "shapefile";
     public static final String SIMULATION = "simulation"; //$NON-NLS-1$

@@ -9,6 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
+import java.util.List;
+import org.json.JSONObject;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
@@ -23,7 +25,7 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
-import java.util.List;
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.TORNADO_THRESHOLDS;
 
 public class TornadoCalc {
     private static final Logger logger = Logger.getLogger(TornadoCalc.class);
@@ -41,6 +43,8 @@ public class TornadoCalc {
     public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation,
                                                        String username) throws Exception {
 
+        Double windHazard;
+        String demandType = TornadoHazard.DEMAND_TYPE;
         if (tornado instanceof TornadoModel) {
             TornadoModel scenarioTornado = (TornadoModel) tornado;
             EFBox simulationEfBoxWidths = scenarioTornado.getEfBoxes().get(simulation);
@@ -49,26 +53,25 @@ public class TornadoCalc {
             LineString tornadoPath = TornadoUtils.createTornadoPath(scenarioTornado.getTornadoParameters(), simulation);
             List<Geometry> efBoxPolygons = TornadoUtils.createTornadoGeometry(scenarioTornado.getTornadoParameters(), efBoxWidths, tornadoPath);
 
-            double windHazard = BaseTornado.calculateWindSpeed(localSite, tornadoPath, efBoxPolygons, efBoxWidths, scenarioTornado.getTornadoParameters());
-            if (demandUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)) {
-                // TODO this was previously handled by UnitUtil in version 1.0
-                windHazard *= getConversionFactor(demandUnits);
-            }
-
-            return new WindHazardResult(demandUnits, windHazard);
+            windHazard = BaseTornado.calculateWindSpeed(localSite, tornadoPath, efBoxPolygons, efBoxWidths, scenarioTornado.getTornadoParameters());
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
             Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username);
             SimpleFeatureCollection efBoxPolygons = (SimpleFeatureCollection) obj;
             // TODO this should probably be exposed as a parameter in the request
-            double windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0);
-            if (demandUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)) {
-                // TODO this was previously handled by UnitUtil in version 1.0
-                windHazard *= getConversionFactor(demandUnits);
-            }
-
-            return new WindHazardResult(demandUnits, windHazard);
+            windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0);
         }
+
+        // wind hazard value is always calculated in mph. Conversion not needed.
+        Double threshold = ((JSONObject)TORNADO_THRESHOLDS.get(demandType)).getDouble("value");
+        if (windHazard != null && threshold != null && windHazard < threshold){
+            windHazard = null;
+        }
+        else if (demandUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)) {
+            windHazard *= getConversionFactor(demandUnits);
+        }
+
+        return new WindHazardResult(demandUnits, windHazard);
     }
 
     /**
@@ -79,7 +82,7 @@ public class TornadoCalc {
      * @param maxWindSpeed  Maximum wind speed for EF5
      * @return Random wind speed for location or 0.0 if outside tornado boundary
      */
-    public static double calculateWindSpeedUniformRandomDist(Point location, SimpleFeatureCollection efBoxPolygons, double maxWindSpeed) {
+    public static Double calculateWindSpeedUniformRandomDist(Point location, SimpleFeatureCollection efBoxPolygons, double maxWindSpeed) {
         // check which EF box the point is in
         int efBox = -1;
         SimpleFeatureIterator iterator = null;
@@ -103,7 +106,7 @@ public class TornadoCalc {
         }
         // If point is not in the path of the tornado return 0 mph
         if (efBox < 0) {
-            return 0.0;
+            return null;
         }
 
         double bottomSpeed = 0;

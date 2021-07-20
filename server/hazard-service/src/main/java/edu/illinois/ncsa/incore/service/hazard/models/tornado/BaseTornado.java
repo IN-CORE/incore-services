@@ -42,7 +42,7 @@ public abstract class BaseTornado {
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    public static double calculateWindSpeed(Point location, LineString tornadoPath, List<Geometry> efBoxPolygons, List<Double> efBoxWidths, TornadoParameters parameters
+    public static Double calculateWindSpeed(Point location, LineString tornadoPath, List<Geometry> efBoxPolygons, List<Double> efBoxWidths, TornadoParameters parameters
     ) throws MismatchedDimensionException, TransformException {
         // TODO consider exposing the computational method so it can be overridden
         if (parameters.getWindSpeedMethod() == 0) {
@@ -63,7 +63,7 @@ public abstract class BaseTornado {
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    public static double calculateWindSpeedLinearInterpolation(Point location, LineString tornadoPath, List<Geometry> efBoxes,
+    public static Double calculateWindSpeedLinearInterpolation(Point location, LineString tornadoPath, List<Geometry> efBoxes,
                                                                List<Double> efBoxWidths, TornadoParameters parameters) throws MismatchedDimensionException, TransformException {
         // check which EF box the point is in
         int containerBox = -1;
@@ -76,9 +76,7 @@ public abstract class BaseTornado {
 
         // If point is not in the path of the tornado return 0 mph
         if (containerBox < 0) {
-            // TODO we should create a raster version of this method if using this to create raster maps
-            // return -9999; // return nodata value for arc grid format ascii grid
-            return 0.0;
+            return null;
         }
 
         // calc shortest distance between path and location
@@ -121,7 +119,7 @@ public abstract class BaseTornado {
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    public static double calculateWindSpeedUniformRandomDist(Point location, LineString tornadoPath, List<Geometry> efBoxes,
+    public static Double calculateWindSpeedUniformRandomDist(Point location, LineString tornadoPath, List<Geometry> efBoxes,
                                                              List<Double> efBoxWidths, TornadoParameters parameters) throws MismatchedDimensionException, TransformException {
         // check which EF box the point is in
         int containerBox = -1;
@@ -141,9 +139,7 @@ public abstract class BaseTornado {
 
         // If point is not in the path of the tornado return 0 mph
         if (containerBox < 0) {
-            // TODO we should create a raster version of this method if using this to create raster maps
-            // return -9999; // return nodata value for arc grid format ascii grid
-            return 0.0;
+            return null;
         }
 
         double bottomSpeed = 0;
