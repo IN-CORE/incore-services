@@ -23,12 +23,12 @@ import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneWindfieldsRepositor
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationEnsemble;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.HurricaneWindfieldResult;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.WindfieldsDemandUnits;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;

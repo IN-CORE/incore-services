@@ -9,21 +9,22 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeModel;
 import org.bson.types.ObjectId;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import dev.morphia.query.Query;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     private String hostUri;
@@ -106,6 +107,33 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
                 .filter(Filters.eq("_id", new ObjectId(id))).first();
         }
         return earthquake;
+    }
+
+    @Override
+    public List<Earthquake> getEarthquakesByCreator(String creator) {
+        // TODO Look into this later to see if there is a better way to handle this
+        Query<EarthquakeDataset> query = this.dataStore.find(EarthquakeDataset.class).filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive());
+
+        Query<EarthquakeModel> modelQuery = this.dataStore.find(EarthquakeModel.class).filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive());
+
+        List<Earthquake> earthquakes = new ArrayList<>();
+        earthquakes.addAll(query.iterator().toList());
+        earthquakes.addAll(modelQuery.iterator().toList());
+
+        return earthquakes;
+    }
+
+    @Override
+    public int getEarthquakesCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(EarthquakeDataset.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        int modelCount = (int) (this.dataStore.find(EarthquakeModel.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count + modelCount;
     }
 
     @Override

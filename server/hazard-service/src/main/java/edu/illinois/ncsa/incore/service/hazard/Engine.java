@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard;
 
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EarthquakeModel;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;

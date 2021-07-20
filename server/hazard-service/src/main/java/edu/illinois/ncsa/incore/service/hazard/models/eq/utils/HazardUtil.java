@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import edu.illinois.ncsa.incore.service.hazard.HazardConstants;
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.HazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;

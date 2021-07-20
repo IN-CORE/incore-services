@@ -12,6 +12,7 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -19,7 +20,6 @@ import edu.illinois.ncsa.incore.service.data.models.DatasetType;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
 import org.mockito.Mockito;
-import dev.morphia.Datastore;
 
 import java.io.IOException;
 import java.net.URL;
@@ -96,6 +96,17 @@ public class MockDataRepository implements IRepository {
         List<Dataset> outlist = new ArrayList<>();
         for(int i = 0; i <this.datasets.size(); i++) {
             if(this.datasets.get(i).getTitle().equalsIgnoreCase(title)) {
+                outlist.add(datasets.get(i));
+            }
+        }
+        return outlist;
+    }
+
+    @Override
+    public List<Dataset> getDatasetByCreator(String creator, Boolean withHazard) {
+        List<Dataset> outlist = new ArrayList<>();
+        for(int i = 0; i <this.datasets.size(); i++) {
+            if(this.datasets.get(i).getTitle().equalsIgnoreCase(creator)) {
                 outlist.add(datasets.get(i));
             }
         }

@@ -26,6 +26,10 @@ public interface IFloodRepository {
 
     List<Flood> searchFloods(String text);
 
+    List<Flood> getFloodsByCreator(String creator);
+
+    int getFloodsCountByCreator(String creator);
+
     Datastore getDataStore();
 
 }

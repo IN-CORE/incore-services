@@ -11,19 +11,20 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoRandomWidth;
 import org.bson.types.ObjectId;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import dev.morphia.query.Query;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MongoDBTornadoRepository implements ITornadoRepository {
     private String hostUri;
@@ -135,6 +136,37 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
             return tornado;
         }
         return this.dataStore.find(TornadoDataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
+    }
+
+    @Override
+    public List<Tornado> getTornadoesByCreator(String creator) {
+        Query<TornadoDataset> datasetQuery = this.dataStore.find(TornadoDataset.class).filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive()
+        );
+
+        Query<TornadoModel> modelQuery = this.dataStore.find(TornadoModel.class).filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive()
+        );
+
+        List<TornadoDataset> tornadoDatasets = datasetQuery.iterator().toList();
+        List<TornadoModel> tornadoModels = modelQuery.iterator().toList();
+
+        List<Tornado> tornadoes = new ArrayList<>();
+        tornadoes.addAll(tornadoDatasets);
+        tornadoes.addAll(tornadoModels);
+
+        return tornadoes;
+    }
+
+    @Override
+    public int getTornadoesCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(TornadoDataset.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        int modelCount = (int) (this.dataStore.find(TornadoModel.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count + modelCount;
     }
 
     @Override

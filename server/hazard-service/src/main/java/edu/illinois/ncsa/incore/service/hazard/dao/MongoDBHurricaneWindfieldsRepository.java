@@ -11,14 +11,14 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import org.bson.types.ObjectId;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import dev.morphia.query.Query;
 
 import java.util.List;
 import java.util.Map;
@@ -142,5 +142,24 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
             .iterator().toList();;
 
         return hurricanes;
+    }
+
+    @Override
+    public List<HurricaneWindfields> getHurricaneWindfieldsByCreator(String creator) {
+        Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
+        // need to set text field for name and description
+        List<HurricaneWindfields> hurricanes = query.filter(
+            Filters.regex("creator").pattern(creator).caseInsensitive()
+        ).iterator().toList();;
+
+        return hurricanes;
+    }
+
+    @Override
+    public int getHurricaneWindfieldsCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(HurricaneWindfields.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
     }
 }

@@ -2,6 +2,7 @@ package edu.illinois.ncsa.incore.service.hazard.utils;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import org.json.simple.JSONObject;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -19,5 +20,14 @@ public class CommonUtil {
                 "the locations are either missing or not of the same size");
         }
 
+    }
+
+    public static JSONObject createUserStatusJson(String creator, String keyDatabase, int numHazard) {
+        JSONObject outJson = new JSONObject();
+        outJson.put("creator", creator);
+        outJson.put("hazard_type", keyDatabase);
+        outJson.put("total_number_of_hazard", numHazard);
+
+        return outJson;
     }
 }

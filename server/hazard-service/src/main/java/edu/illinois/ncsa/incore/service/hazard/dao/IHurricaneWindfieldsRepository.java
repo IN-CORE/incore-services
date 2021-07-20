@@ -9,11 +9,11 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import dev.morphia.Datastore;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 public interface IHurricaneWindfieldsRepository {
     void initialize();
@@ -27,6 +27,10 @@ public interface IHurricaneWindfieldsRepository {
     List<HurricaneWindfields> getHurricaneWindfields();
 
     List<HurricaneWindfields> searchHurricaneWindfields(String text);
+
+    List<HurricaneWindfields> getHurricaneWindfieldsByCreator(String creator);
+
+    int getHurricaneWindfieldsCountByCreator(String creator);
 
     Datastore getDataStore();
 

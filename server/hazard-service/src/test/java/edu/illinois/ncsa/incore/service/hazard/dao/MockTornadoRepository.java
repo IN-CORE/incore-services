@@ -77,6 +77,16 @@ public class MockTornadoRepository implements ITornadoRepository {
     }
 
     @Override
+    public List<Tornado> getTornadoesByCreator(String creator) {
+        return null;
+    }
+
+    @Override
+    public int getTornadoesCountByCreator(String creator) {
+        return 0;
+    }
+
+    @Override
     public Datastore getDataStore() {
         return this.mockDataStore;
     }

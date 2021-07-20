@@ -8,13 +8,12 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
+import dev.morphia.Datastore;
+import dev.morphia.query.FindOptions;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.TsunamiDataset;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
-import dev.morphia.Datastore;
-import dev.morphia.query.FindOptions;
 
 import java.io.IOException;
 import java.net.URL;
@@ -76,5 +75,11 @@ public class MockTsunamiRepository implements ITsunamiRepository {
         }
         return outList;
     }
+
+    @Override
+    public List<Tsunami> getTsunamisByCreator(String creator){ return null; }
+
+    @Override
+    public int getTsunamisCountByCreator(String creator){ return 0; }
 
 }

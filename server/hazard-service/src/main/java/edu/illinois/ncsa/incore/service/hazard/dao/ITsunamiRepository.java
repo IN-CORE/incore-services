@@ -25,4 +25,8 @@ public interface ITsunamiRepository {
     List<Tsunami> getTsunamis();
 
     List<Tsunami> searchTsunamis(String text);
+
+    List<Tsunami> getTsunamisByCreator(String creator);
+
+    int getTsunamisCountByCreator(String creator);
 }
