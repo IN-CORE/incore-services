@@ -10,13 +10,9 @@
 
 package edu.illinois.ncsa.incore.service.data.utils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
+import edu.illinois.ncsa.incore.service.data.dao.IRepository;
+import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.client.HttpClient;
@@ -27,9 +23,12 @@ import org.eclipse.jetty.client.util.BasicAuthentication;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 
-import edu.illinois.ncsa.incore.service.data.dao.IRepository;
-import edu.illinois.ncsa.incore.service.data.models.Dataset;
-import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Created by ywkim on 11/9/2017.
@@ -177,7 +176,14 @@ public class GeoserverUtils {
 
     public static boolean removeStoreFromGeoserver(String id) {
         GeoServerRESTPublisher publisher = createPublisher();
-        boolean isRemoved = publisher.removeCoverageStore(GEOSERVER_WORKSPACE, id, false, GeoServerRESTPublisher.Purge.ALL);
+        // remove data store
+        boolean isRemoved = publisher.removeDatastore(GEOSERVER_WORKSPACE, id, true);
+
+        // if data store removal fails, try removing coverage store
+        if (!isRemoved) {
+            isRemoved = publisher.removeCoverageStore(GEOSERVER_WORKSPACE, id, true);
+        }
+
         return isRemoved;
     }
 
