@@ -11,11 +11,11 @@ package edu.illinois.ncsa.incore.service.hazard.models.flood.types;
 public class FloodHazardResult {
     private String demand;
     private String units;
-    private double hazardValue;
+    private Double hazardValue;
     private double latitude;
     private double longitude;
 
-    public FloodHazardResult(double latitude, double longitude, double hazardValue, String demandType, String demandUnits) {
+    public FloodHazardResult(double latitude, double longitude, Double hazardValue, String demandType, String demandUnits) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.hazardValue = hazardValue;
@@ -23,7 +23,7 @@ public class FloodHazardResult {
         this.units = demandUnits;
     }
 
-    public double getHazardValue() {
+    public Double getHazardValue() {
         return hazardValue;
     }
 

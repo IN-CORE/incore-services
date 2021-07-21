@@ -20,6 +20,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.flood.types.FloodHazardRes
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
+import org.json.JSONObject;
 import org.opengis.coverage.PointOutsideCoverageException;
 import org.opengis.coverage.grid.GridCoverage;
 
@@ -35,14 +36,35 @@ public class FloodCalc {
         if (flood instanceof FloodDataset) {
             FloodDataset floodDataset = (FloodDataset) flood;
             FloodHazardDataset hazardDataset = findHazard(floodDataset.getHazardDatasets(), demandType);
-            double hazardValue = 0.0;
+            Double hazardValue;
             if (hazardDataset != null) {
                 GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
                 try {
                     hazardValue = HazardUtil.findRasterPoint(location.getLocation(), (GridCoverage2D) gc);
-                    hazardValue = FloodUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
                 } catch (PointOutsideCoverageException e) {
+                    hazardValue = null;
                     log.debug("Point outside tiff image.");
+                }
+
+                try {
+                    if (hazardValue != null) {
+                        hazardValue = FloodUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
+
+                        // convert demand type in keys to lower case
+                        JSONObject floodThresholds = HazardUtil.toLowerKey(HazardUtil.FLOOD_THRESHOLDS);
+
+                        if (floodThresholds.has(demandType.toLowerCase())) {
+                            JSONObject demandThreshold = ((JSONObject) floodThresholds.get(demandType.toLowerCase()));
+                            Double threshold = demandThreshold.get("value") == JSONObject.NULL ? null : demandThreshold.getDouble("value");
+                            // ignore threshold if null
+                            if (threshold != null) {
+                                threshold = FloodUtil.convertHazard(threshold, demandType, demandThreshold.getString("unit"), demandUnits);
+                                if (hazardValue < threshold) {
+                                    hazardValue = null;
+                                }
+                            }
+                        }
+                    }
                 } catch (IllegalAccessException e) {
                     log.debug("Illegal Access.", e);
                 } catch (NoSuchFieldException e) {

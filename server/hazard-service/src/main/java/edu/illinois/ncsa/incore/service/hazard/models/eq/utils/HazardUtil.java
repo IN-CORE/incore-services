@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
+import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -28,6 +29,7 @@ import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
 
 import java.awt.geom.Point2D;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -76,6 +78,30 @@ public class HazardUtil {
     static double[][] long_period = {{0.8, 1.0, 1.7, 2.4, 3.5}, {0.8, 1.0, 1.6, 2.0, 3.2}, {0.8, 1.0, 1.5, 1.8, 2.8},
         {0.8, 1.0, 1.4, 1.6, 2.4}, {0.8, 1.0, 1.3, 1.5, 2.4}};
     static double[] longPeriodIntervals = {0.1, 0.2, 0.3, 0.4, 0.5};
+
+    public final static JSONObject TORNADO_THRESHOLDS = new JSONObject("{ " +
+        "'wind': {'value': 50, 'unit': 'mph'}" +
+        "}");
+
+    // Provide null to ignore threshold value. Demand Type key is case insensitive
+    public final static JSONObject FLOOD_THRESHOLDS = new JSONObject("{ " +
+        "'inundationDepth': {'value': 0.3, 'unit': 'm'}, " +
+        "'waterSurfaceElevation': {'value': null, 'unit': 'm'}" +
+        "}");
+
+    public static JSONObject toLowerKey(JSONObject thresholds){
+        /***
+         * Converts keys of a JSONObject to lower case.
+         */
+        Iterator<String> keys= thresholds.keySet().iterator();
+        JSONObject lowerThresholds = new JSONObject();
+
+        while(keys.hasNext()) {
+            String key = keys.next();
+            lowerThresholds.put(key.toLowerCase(), thresholds.get(key));
+        }
+        return lowerThresholds;
+    };
 
     public static int getSiteClassAsInt(String siteClass) {
         int siteClassInt = -1;
@@ -383,15 +409,15 @@ public class HazardUtil {
      * @return
      * @throws PointOutsideCoverageException
      */
-    public static double findRasterPoint(Point location, GridCoverage2D gc) throws PointOutsideCoverageException {
+    public static Double findRasterPoint(Point location, GridCoverage2D gc) throws PointOutsideCoverageException {
         double[] dest = null;
         final Point2D.Double point = new Point2D.Double();
         point.x = location.getX();
         point.y = location.getY();
         DirectPosition dp = new DirectPosition2D(location.getX(), location.getY());
         dest = gc.evaluate(dp, dest);
-        if (Double.isNaN(dest[0])) {
-            dest[0] = 0.0;
+        if (Double.isNaN(dest[0]) || dest[0] == -9999) {
+            return null;
         }
 
         return dest[0];
