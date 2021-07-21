@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
+import com.google.common.math.LongMath;
 import java.util.List;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
@@ -27,8 +28,6 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 
-import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.TORNADO_THRESHOLDS;
-
 public class TornadoCalc {
     private static final Logger logger = Logger.getLogger(TornadoCalc.class);
 
@@ -39,11 +38,12 @@ public class TornadoCalc {
      * @param localSite   - location to compute hazard
      * @param demandUnits - hazard units
      * @param simulation  - simulation number
+     * @param initialSeed - initial seed
      * @return wind hazard at the specified location
      * @throws Exception
      */
     public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation,
-                                                       String username) throws Exception {
+                                                       int initialSeed, String username) throws Exception {
 
         Double windHazard;
         String demandType = TornadoHazard.DEMAND_TYPE;
@@ -55,13 +55,15 @@ public class TornadoCalc {
             LineString tornadoPath = TornadoUtils.createTornadoPath(scenarioTornado.getTornadoParameters(), simulation);
             List<Geometry> efBoxPolygons = TornadoUtils.createTornadoGeometry(scenarioTornado.getTornadoParameters(), efBoxWidths, tornadoPath);
 
-            windHazard = BaseTornado.calculateWindSpeed(localSite, tornadoPath, efBoxPolygons, efBoxWidths, scenarioTornado.getTornadoParameters());
+            long seed = getRandomSeed(scenarioTornado.getTornadoParameters(), initialSeed, localSite);
+            windHazard = BaseTornado.calculateWindSpeed(localSite, tornadoPath, efBoxPolygons, efBoxWidths, scenarioTornado.getTornadoParameters(), seed);
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
             Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username);
             SimpleFeatureCollection efBoxPolygons = (SimpleFeatureCollection) obj;
-            // TODO this should probably be exposed as a parameter in the request
-            windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0);
+
+            long seed = getRandomSeed(null, initialSeed, localSite);
+            windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0, seed);
         }
 
         if (windHazard != null) {
@@ -93,7 +95,7 @@ public class TornadoCalc {
      * @param maxWindSpeed  Maximum wind speed for EF5
      * @return Random wind speed for location or 0.0 if outside tornado boundary
      */
-    public static Double calculateWindSpeedUniformRandomDist(Point location, SimpleFeatureCollection efBoxPolygons, double maxWindSpeed) {
+    public static Double calculateWindSpeedUniformRandomDist(Point location, SimpleFeatureCollection efBoxPolygons, double maxWindSpeed, long seed) {
         // check which EF box the point is in
         int efBox = -1;
         SimpleFeatureIterator iterator = null;
@@ -132,7 +134,7 @@ public class TornadoCalc {
             topSpeed = TornadoHazard.efWindSpeed[efBox + 1];
         }
 
-        UniformRealDistribution windDistribution = new UniformRealDistribution(new MersenneTwister(), bottomSpeed, topSpeed);
+        UniformRealDistribution windDistribution = new UniformRealDistribution(new MersenneTwister(seed), bottomSpeed, topSpeed);
 
         return windDistribution.sample();
     }
@@ -149,5 +151,37 @@ public class TornadoCalc {
         }
 
         throw new UnsupportedOperationException("Cannot convert from miles per hour to " + targetUnits);
+    }
+
+    /**
+     * Get a unique random seed for a location using an initial seed (or system time) and the lat/long
+     *
+     * @param parameters - Tornado parameters
+     * @param initialSeed - initial seed value
+     * @param location - lat/long location
+     * @return unique seed for a location
+     */
+    public static long getRandomSeed(TornadoParameters parameters, int initialSeed, Point location) {
+        long seed = initialSeed;
+
+        // Get seed from the model and override if no value specified
+        if(seed == -1 && parameters != null) {
+            seed = parameters.getRandomSeed();
+        }
+
+        // If no seed value provided OR model seed value was never set by the user, use current system time
+        if(seed == -1) {
+            seed = System.currentTimeMillis();
+        }
+
+        // Use 4 decimal places for getting unique seed values from lat/long
+        try {
+            seed = LongMath.checkedAdd(seed, (long) Math.abs((location.getX() + location.getY()) * 10000));
+        } catch(ArithmeticException exception) {
+            logger.warn("Seed + Math.abs((location.getX() + location.getY()) * 10000 exceeds max value, capping at Maximum value");
+            seed = Long.MAX_VALUE;
+        }
+
+        return seed;
     }
 }
