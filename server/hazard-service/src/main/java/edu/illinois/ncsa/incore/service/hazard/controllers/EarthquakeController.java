@@ -154,7 +154,7 @@ public class EarthquakeController {
 
                     String datasetId = null;
                     if(!useWorkflow) {
-                        System.out.println("don't use workflow");
+                        logger.debug("don't use workflow to create earthquake");
                         File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
                         GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
                         HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
@@ -178,7 +178,7 @@ public class EarthquakeController {
                     addEarthquakeToSpace(earthquake, this.username);
 
                     if(useWorkflow) {
-                        System.out.println("use workflow");
+                        logger.debug("use workflow to create earthquake");
                         // Add job to create dataset to the queue
                         engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
                     }
@@ -441,6 +441,16 @@ public class EarthquakeController {
                 try {
                     for(int i=0; i < demands.size(); i++){
                         String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
+
+                        if (demandComponents == null) {
+                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type "+demands.get(i) + ", please check the format. It should be in a form similar to 0.2 SA or 0.2 Sec SA.");
+                        }
+
+                        // Check units to verify requested units matches the demand type
+                        if(!HazardUtil.verifyHazardDemandUnits(demandComponents[1], units.get(i))) {
+                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + units.get(i) + " is not supported for " + demands.get(i) + ", please check requested units.");
+                        }
+
                         SeismicHazardResult res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
                             new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
                             units.get(i), 0, amplifyHazard, this.username);
@@ -491,6 +501,14 @@ public class EarthquakeController {
         Earthquake eq = getEarthquake(earthquakeId);
 
         String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
+        if (demandComponents == null) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type " + demandType + ", please check the format. It should be in a form similar to 0.2 SA or 0.2 Sec SA.");
+        }
+
+        // Check units to verify requested units matches the demand type
+        if(!HazardUtil.verifyHazardDemandUnits(demandComponents[1], demandUnits)) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + demandUnits + " is not supported for " + demandType + ", please check requested units.");
+        }
 
         List<SeismicHazardResult> hazardResults = new LinkedList<SeismicHazardResult>();
         if (eq != null) {
