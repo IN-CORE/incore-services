@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.4.0] - 2021-07-28
+
+### Added
+- User status endpoints for data and hazard services. It returns the no of entities and data usage for each user. [INCORE1-1155](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1155)
+- New parameter "seed" value to the endpoint that gets tornado values to generate uniform random values. [INCORE1-1226](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1226)
+
+### Changed
+- Return no exposure (null) when the hazard value is out of bounds or below a threshold. Only supported for tornado & floods. [INCORE1-973](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-973)
+- Migrated all fragilities in the DFR3 database to new format. [INCORE1-869](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-869)
+- Deprecated the fragility curve formats that are not used anymore. [INCORE1-1269](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1241)
+
+### Fixed
+- Remove geoserver store when deleting a dataset. [INCORE1-1225](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1225)
+- Hazard service was giving wrong values when demand type is of the format "x.x sec SD". [INCORE1-1258](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1258)
+- Errors on GUID validation when uploading datasets. [INCORE1-1282](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1282)
+
 ## [1.3.0] - 2021-06-16
 
 ### Added
