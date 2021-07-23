@@ -73,7 +73,7 @@ public class TornadoCalc {
                 JSONObject demandThreshold = (JSONObject) tornadoThresholds.get(demandType.toLowerCase());
                 Double threshold = demandThreshold.get("value") == JSONObject.NULL ? null : demandThreshold.getDouble("value");
                 // wind hazard value is always calculated in mph. Conversion not needed.
-                if (threshold != null && windHazard < threshold) {
+                if (threshold != null && windHazard <= threshold) {
                     windHazard = null;
                 }
             }

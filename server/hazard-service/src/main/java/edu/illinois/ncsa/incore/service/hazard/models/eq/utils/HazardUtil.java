@@ -87,7 +87,7 @@ public class HazardUtil {
 
     // Provide null to ignore threshold value. Demand Type key is case insensitive
     public final static JSONObject FLOOD_THRESHOLDS = new JSONObject("{ " +
-        "'inundationDepth': {'value': 0.3, 'unit': 'm'}, " +
+        "'inundationDepth': {'value': 0, 'unit': 'm'}, " +
         "'waterSurfaceElevation': {'value': null, 'unit': 'm'}" +
         "}");
 

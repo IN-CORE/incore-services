@@ -59,7 +59,7 @@ public class FloodCalc {
                             // ignore threshold if null
                             if (threshold != null) {
                                 threshold = FloodUtil.convertHazard(threshold, demandType, demandThreshold.getString("unit"), demandUnits);
-                                if (hazardValue < threshold) {
+                                if (hazardValue <= threshold) {
                                     hazardValue = null;
                                 }
                             }
