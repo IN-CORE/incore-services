@@ -261,14 +261,15 @@ public class TornadoController {
         @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "Latitude of a site. Ex: 35.027.", required = true) @QueryParam("siteLat") double siteLat,
         @ApiParam(value = "Longitude of a site. Ex: -90.131.", required = true) @QueryParam("siteLong") double siteLong,
-        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation,
+        @ApiParam(value = "Seed value for random values. Ex: 1000") @FormDataParam("seed") @DefaultValue("-1") int seed) throws Exception {
 
         Tornado tornado = getTornado(tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, this.username);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, seed, this.username);
             } catch (Exception e) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard." + e.getMessage());
             }
@@ -289,7 +290,9 @@ public class TornadoController {
         @ApiParam(value = "Json of the points along with demand types and units",
             required = true) @FormDataParam("points") String requestJsonStr,
         @ApiParam(value = "Simulated wind hazard index. Ex: 0 for first, 1 for second and so on")
-        @FormDataParam("simulation") @DefaultValue("0") int simulation) {
+        @FormDataParam("simulation") @DefaultValue("0") int simulation,
+        @ApiParam(value = "Seed value for random values. Ex: 1000")
+        @FormDataParam("seed") @DefaultValue("-1") int seed) {
 
         Tornado tornado = getTornado(tornadoId);
         ObjectMapper mapper = new ObjectMapper();
@@ -308,7 +311,7 @@ public class TornadoController {
                 try {
                     for (int i = 0; i < demands.size(); i++) {
                         WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
-                            request.getLoc().getLocation(), units.get(i), simulation, this.username);
+                            request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
                         resDemands.add(res.getDemand());
                         resUnits.add(res.getUnits());
                         hazVals.add(res.getHazardValue());
@@ -347,14 +350,15 @@ public class TornadoController {
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
         @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '35.027,-90.131'.", required = true) @QueryParam("point") List<IncorePoint> points,
-        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation) throws Exception {
+        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation,
+        @ApiParam(value = "Seed value for random values. Ex: 1000") @FormDataParam("seed") @DefaultValue("-1") int seed) throws Exception {
 
         Tornado tornado = getTornado(tornadoId);
         List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
         if (tornado != null) {
             for (IncorePoint point : points) {
                 try {
-                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, this.username));
+                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, seed, this.username));
                 } catch (UnsupportedHazardException e) {
                     logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are supported", e);
                     // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
