@@ -262,7 +262,7 @@ public class TornadoController {
         @ApiParam(value = "Latitude of a site. Ex: 35.027.", required = true) @QueryParam("siteLat") double siteLat,
         @ApiParam(value = "Longitude of a site. Ex: -90.131.", required = true) @QueryParam("siteLong") double siteLong,
         @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation,
-        @ApiParam(value = "Seed value for random values. Ex: 1000") @FormDataParam("seed") @DefaultValue("-1") int seed) throws Exception {
+        @ApiParam(value = "Seed value for random values. Ex: 1000") @QueryParam("seed") @DefaultValue("-1") int seed) throws Exception {
 
         Tornado tornado = getTornado(tornadoId);
         if (tornado != null) {
@@ -351,7 +351,7 @@ public class TornadoController {
         @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '35.027,-90.131'.", required = true) @QueryParam("point") List<IncorePoint> points,
         @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation,
-        @ApiParam(value = "Seed value for random values. Ex: 1000") @FormDataParam("seed") @DefaultValue("-1") int seed) throws Exception {
+        @ApiParam(value = "Seed value for random values. Ex: 1000") @QueryParam("seed") @DefaultValue("-1") int seed) throws Exception {
 
         Tornado tornado = getTornado(tornadoId);
         List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
