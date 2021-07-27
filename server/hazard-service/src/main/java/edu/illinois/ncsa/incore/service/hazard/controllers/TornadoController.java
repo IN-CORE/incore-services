@@ -256,6 +256,7 @@ public class TornadoController {
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
+    @Deprecated
     public WindHazardResult getTornadoHazard(
         @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
         @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
