@@ -20,7 +20,8 @@ import java.util.List;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "tornadoType")
-@JsonSubTypes({@JsonSubTypes.Type(value = TornadoDataset.class, name = "dataset"), @JsonSubTypes.Type(value = TornadoModel.class, name = "model")})
+@JsonSubTypes({@JsonSubTypes.Type(value = TornadoDataset.class, name = "dataset"), @JsonSubTypes.Type(value = TornadoModel.class, name =
+    "model")})
 @XmlRootElement
 public class Tornado {
     @Id
@@ -63,7 +64,9 @@ public class Tornado {
         return creator;
     }
 
-    public void setCreator(String creator) { this.creator = creator; }
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
 
     public List<String> getSpaces() {
         return spaces;

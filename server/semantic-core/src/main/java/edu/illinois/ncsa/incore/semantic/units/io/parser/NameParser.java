@@ -60,8 +60,8 @@ public class NameParser {
 
         // check if the unit symbol already exists in the existing units
         List<Unit> initialMatches = allUnits.stream()
-                                            .filter(unit -> unit.getName().equals(name) || unit.getUnicodeName().equals(name))
-                                            .collect(Collectors.toList());
+            .filter(unit -> unit.getName().equals(name) || unit.getUnicodeName().equals(name))
+            .collect(Collectors.toList());
 
         if (initialMatches.size() > 0) {
             return Optional.of(initialMatches.get(0));
@@ -126,8 +126,8 @@ public class NameParser {
 
         // Parse Prefixed Unit
         Optional<Prefix> prefixMatch = Prefixes.All.stream()
-                                                   .filter(p -> name.startsWith(p.getName()))
-                                                   .findFirst();
+            .filter(p -> name.startsWith(p.getName()))
+            .findFirst();
         if (prefixMatch.isPresent()) {
             Prefix prefix = prefixMatch.get();
             int index = name.lastIndexOf(prefix.getName()) + prefix.getName().length();
@@ -198,8 +198,8 @@ public class NameParser {
 
         // Parse Prefixed Unit
         Optional<Prefix> prefixMatch = Prefixes.All.stream()
-                                                   .filter(p -> name.startsWith(p.getName()))
-                                                   .findFirst();
+            .filter(p -> name.startsWith(p.getName()))
+            .findFirst();
         if (prefixMatch.isPresent()) {
             Prefix prefix = prefixMatch.get();
             int index = name.lastIndexOf(prefix.getName()) + prefix.getName().length();

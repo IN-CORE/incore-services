@@ -18,7 +18,7 @@ import java.util.List;
 
 
 @XmlRootElement
-public class Analysis extends AnalysisMetadata{
+public class Analysis extends AnalysisMetadata {
 
     private String tag;
     private List<AnalysisDataset> datasets;
@@ -26,10 +26,11 @@ public class Analysis extends AnalysisMetadata{
     private List<AnalysisOutput> outputs;
 
 
-    public Analysis() {}
+    public Analysis() {
+    }
 
     public Analysis(String name, String description, String category, String url, List<AnalysisDataset> datasets,
-                    List<AnalysisOutput> outputs, String tag, String helpContext, List<AnalysisParameter> parameters){
+                    List<AnalysisOutput> outputs, String tag, String helpContext, List<AnalysisParameter> parameters) {
         super.setName(name);
         super.setDescription(description);
         super.setUrl(url);

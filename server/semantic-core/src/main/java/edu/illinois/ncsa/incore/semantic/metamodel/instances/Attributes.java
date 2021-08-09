@@ -17,7 +17,8 @@ public final class Attributes {
     public final static UnitAttribute<Integer> sq_foot = new UnitAttribute<>();
     public final static MonetaryAttribute<Double> appr_bldg = new MonetaryAttribute<>();
 
-    private Attributes() {}
+    private Attributes() {
+    }
 
     static {
         sq_foot.unit = ImperialUnits.squareFoot;

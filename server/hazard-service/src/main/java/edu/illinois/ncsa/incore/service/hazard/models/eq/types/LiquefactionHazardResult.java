@@ -17,7 +17,8 @@ public class LiquefactionHazardResult {
     private double liqProbability;
     private double[] groundFailureProb;
 
-    public LiquefactionHazardResult(double latitude, double longitude, double pgd, String pgdUnits, double liqProbability, double[] groundFailureProb) {
+    public LiquefactionHazardResult(double latitude, double longitude, double pgd, String pgdUnits, double liqProbability,
+                                    double[] groundFailureProb) {
         this.longitude = longitude;
         this.latitude = latitude;
         this.pgd = pgd;

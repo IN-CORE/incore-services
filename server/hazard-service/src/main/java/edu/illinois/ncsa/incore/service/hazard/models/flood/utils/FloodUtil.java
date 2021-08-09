@@ -46,21 +46,20 @@ public class FloodUtil {
     private static final double ft_to_m = 0.3048;
 
     public static double convertHazard(double hazardValue, String demandType, String originalDemandUnits,
-                                String requestedDemandUnits) throws UnsupportedOperationException, IllegalAccessException, NoSuchFieldException {
+                                       String requestedDemandUnits) throws UnsupportedOperationException, IllegalAccessException,
+        NoSuchFieldException {
         double convertedHazardValue = hazardValue;
-        if(demandType.equalsIgnoreCase(FloodConstants.DEPTH) || demandType.equalsIgnoreCase(FloodConstants.WSE)){
-            if(distanceUnits.contains(requestedDemandUnits.toLowerCase())){
+        if (demandType.equalsIgnoreCase(FloodConstants.DEPTH) || demandType.equalsIgnoreCase(FloodConstants.WSE)) {
+            if (distanceUnits.contains(requestedDemandUnits.toLowerCase())) {
                 if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
                     String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
                     double conversionValue = FloodUtil.getVariableValue(conversion);
                     convertedHazardValue = conversionValue * hazardValue;
                 }
-            }
-            else{
+            } else {
                 throw new UnsupportedOperationException("Invalid demandUnits provided" + requestedDemandUnits);
             }
-        }
-        else{
+        } else {
             throw new UnsupportedOperationException("Invalid demandType provided" + demandType);
         }
         return convertedHazardValue;

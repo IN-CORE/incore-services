@@ -1,6 +1,6 @@
 {
   "tornadoModel": "MeanLengthWidthAngleTornado",
-  "tornadoParameters":{
+  "tornadoParameters": {
     "efRating": "EF5",
     "maxWindSpeed": 250,
     "startLatitude": 35.02704146461473,

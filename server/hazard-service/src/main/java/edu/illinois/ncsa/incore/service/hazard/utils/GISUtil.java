@@ -85,7 +85,7 @@ public class GISUtil {
         return env.contains(pt.getCoordinate());
     }
 
-    public static URL unZipShapefiles(File file, File destDirectory){
+    public static URL unZipShapefiles(File file, File destDirectory) {
         URL inSourceFileUrl = null;
         byte[] buffer = new byte[1024];
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
@@ -125,14 +125,14 @@ public class GISUtil {
         try {
             //first see if the cache has the .shp file in it
             File cacheDir = ServiceUtil.getCacheDirectory("dataset-" + datasetId);
-            if (cacheDir.exists()){
+            if (cacheDir.exists()) {
                 String[] shpFiles = cacheDir.list(new FilenameFilter() {
                     @Override
                     public boolean accept(File dir, String name) {
                         return name.toLowerCase().endsWith(".shp");
                     }
                 });
-                if (shpFiles != null && shpFiles.length > 0){
+                if (shpFiles != null && shpFiles.length > 0) {
                     inSourceFileUrl = new File(cacheDir, shpFiles[0]).toURI().toURL();
                 }
             }

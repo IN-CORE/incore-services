@@ -43,7 +43,8 @@ public abstract class BaseTornado {
      * @throws MismatchedDimensionException
      * @throws TransformException
      */
-    public static Double calculateWindSpeed(Point location, LineString tornadoPath, List<Geometry> efBoxPolygons, List<Double> efBoxWidths, TornadoParameters parameters, long seed
+    public static Double calculateWindSpeed(Point location, LineString tornadoPath, List<Geometry> efBoxPolygons,
+                                            List<Double> efBoxWidths, TornadoParameters parameters, long seed
     ) throws MismatchedDimensionException, TransformException {
         // TODO consider exposing the computational method so it can be overridden
         if (parameters.getWindSpeedMethod() == 0) {
@@ -158,7 +159,7 @@ public abstract class BaseTornado {
         }
 
         UniformRealDistribution windDistribution = null;
-        if(seed == -1) {
+        if (seed == -1) {
             windDistribution = new UniformRealDistribution(new MersenneTwister(), bottomSpeed, topSpeed);
         } else {
             // Add 1 to avoid interference

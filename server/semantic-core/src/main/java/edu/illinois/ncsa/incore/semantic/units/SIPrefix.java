@@ -40,16 +40,16 @@ public final class SIPrefix extends Prefix {
     public static SIPrefix yocto = new SIPrefix("yocto", "y", "y", "septillionth", "quadrillionth", -24);
 
     public static List<Prefix> positivePrefixes = new ArrayList<>(Arrays.asList(
-            yotta, zetta, exa, peta, tera, giga, mega, kilo, hecto, deka
+        yotta, zetta, exa, peta, tera, giga, mega, kilo, hecto, deka
     ));
 
     public static List<Prefix> negativePrefixes = new ArrayList<>(Arrays.asList(
-            yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci
+        yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci
     ));
 
     public static List<Prefix> allPrefixes = new ArrayList<>(Arrays.asList(
-            yotta, zetta, exa, peta, tera, giga, mega, kilo, hecto, deka,
-            yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci
+        yotta, zetta, exa, peta, tera, giga, mega, kilo, hecto, deka,
+        yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci
     ));
 
     private SIPrefix(String name, String asciiSymbol, String unicodeSymbol, String word, int scale) {

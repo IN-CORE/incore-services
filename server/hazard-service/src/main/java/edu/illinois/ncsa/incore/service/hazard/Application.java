@@ -40,7 +40,8 @@ public class Application extends ResourceConfig {
         ITsunamiRepository tsunamiRepository = new MongoDBTsunamiRepository(new MongoClientURI(mongodbUri));
         tsunamiRepository.initialize();
 
-        IHurricaneWindfieldsRepository hurricaneWindfieldsRepository = new MongoDBHurricaneWindfieldsRepository(new MongoClientURI(mongodbUri));
+        IHurricaneWindfieldsRepository hurricaneWindfieldsRepository =
+            new MongoDBHurricaneWindfieldsRepository(new MongoClientURI(mongodbUri));
         hurricaneWindfieldsRepository.initialize();
 
         IHurricaneRepository hurricaneRepository = new MongoDBHurricaneRepository(new MongoClientURI(mongodbUri));
@@ -52,7 +53,7 @@ public class Application extends ResourceConfig {
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
         String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
-        if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
+        if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }
 

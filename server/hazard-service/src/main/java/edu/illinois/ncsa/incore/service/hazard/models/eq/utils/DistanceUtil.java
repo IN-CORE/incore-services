@@ -12,14 +12,12 @@ public class DistanceUtil {
     private static final Logger logger = Logger.getLogger(DistanceUtil.class);
 
     /**
-     *
      * @param azimuthAngle
      * @param dipAngle
      * @param originalDistances
      * @return
      */
-    public static double[] computeTransformedDistance(double azimuthAngle, double dipAngle, double[] originalDistances)
-    {
+    public static double[] computeTransformedDistance(double azimuthAngle, double dipAngle, double[] originalDistances) {
         // Convert to radians
         double azimuth = Math.toRadians(azimuthAngle);// azimuthAngle * Math.PI
         // / 180.0;
@@ -40,14 +38,12 @@ public class DistanceUtil {
     }
 
     /**
-     *
      * @param transformedDistances
      * @param ruptureWidth
      * @param ruptureLength
      * @return
      */
-    public static double computeDistanceToRupturePlane(double[] transformedDistances, double ruptureWidth, double ruptureLength)
-    {
+    public static double computeDistanceToRupturePlane(double[] transformedDistances, double ruptureWidth, double ruptureLength) {
         double x_new = transformedDistances[0];
         double y_new = transformedDistances[1];
         double z_new = transformedDistances[2];
@@ -73,7 +69,6 @@ public class DistanceUtil {
     }
 
     /**
-     *
      * @param transformedDistances
      * @param ruptureWidth
      * @param ruptureLength
@@ -81,8 +76,7 @@ public class DistanceUtil {
      * @return
      */
     public static double computeJoynerBooreDistance(double[] transformedDistances, double ruptureWidth, double ruptureLength,
-                                                    double dipAngle)
-    {
+                                                    double dipAngle) {
         double r_jb = 0.0;
         double dipAngleRadians = Math.toRadians(dipAngle);
         double x_new = transformedDistances[0];
@@ -110,23 +104,16 @@ public class DistanceUtil {
      * rupture plane measured perpendicular to its average strike [km]. Based on the paper "Estimating Unknown Input Parameters
      * when Implementing the NGA Ground-Motion Prediction Equations in Engineering Practice"
      *
-     * @param Rjb
-     *            The closest distance to the surface projection of the coseismic rupture plane (Joyner-Boore distance) in km.
-     * @param Ztor
-     *            The depth to the top of the coseismic rupture plane in km.
-     * @param W
-     *            Down-dip width of the rupture plane in km.
-     * @param dip
-     *            The average dip of the rupture plane in degrees.
-     * @param azimuth
-     *            Azimuth Angle in degrees.
-     * @param Rrup
-     *            The closest distance to the coseismic rupture plane in km.
+     * @param Rjb     The closest distance to the surface projection of the coseismic rupture plane (Joyner-Boore distance) in km.
+     * @param Ztor    The depth to the top of the coseismic rupture plane in km.
+     * @param W       Down-dip width of the rupture plane in km.
+     * @param dip     The average dip of the rupture plane in degrees.
+     * @param azimuth Azimuth Angle in degrees.
+     * @param Rrup    The closest distance to the coseismic rupture plane in km.
      * @return The closest distance to the surface projection of the top edge of the coseismic rupture plane measured perpendicular
-     *         to its average strike in km.
+     * to its average strike in km.
      */
-    public static double computeRx(double Rjb, double Ztor, double W, double dip, double azimuth, double Rrup)
-    {
+    public static double computeRx(double Rjb, double Ztor, double W, double dip, double azimuth, double Rrup) {
         // Validate Azimuth ranges from -180 to 180 [-180, 180]
         // Validate dip 0 - 90 [0, 90)
         // Validate Ztor > 0

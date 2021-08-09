@@ -23,9 +23,10 @@ public class ColumnMetadata {
     private boolean isNumeric;
     private boolean isResult;
 
-    public String getFriendlyName(){
+    public String getFriendlyName() {
         return friendlyName;
     }
+
     public void setFriendlyName(String friendlyName) {
         this.friendlyName = friendlyName;
     }
@@ -33,13 +34,15 @@ public class ColumnMetadata {
     public int getFieldLength() {
         return fieldLength;
     }
+
     public void setFieldLength(int fieldLength) {
         this.fieldLength = fieldLength;
     }
 
-    public String getUnit(){
+    public String getUnit() {
         return unit;
     }
+
     public void setUnit(String unit) {
         this.unit = unit;
     }
@@ -47,6 +50,7 @@ public class ColumnMetadata {
     public String getColumnId() {
         return columnId;
     }
+
     public void setColumnId(String columnId) {
         this.columnId = columnId;
     }
@@ -54,6 +58,7 @@ public class ColumnMetadata {
     public int getSigFigs() {
         return sigFigs;
     }
+
     public void setSigFigs(int sigFigs) {
         this.sigFigs = sigFigs;
     }
@@ -61,6 +66,7 @@ public class ColumnMetadata {
     public String getUnitType() {
         return unitType;
     }
+
     public void setUnitType(String unitType) {
         this.unitType = unitType;
     }
@@ -68,14 +74,16 @@ public class ColumnMetadata {
     public boolean getIsNumeric() {
         return isNumeric;
     }
-    public void setIsNumeric(boolean isNumeric){
+
+    public void setIsNumeric(boolean isNumeric) {
         this.isNumeric = isNumeric;
     }
 
     public boolean getIsResult() {
         return isResult;
     }
-    public void setIsResult(boolean isResult){
+
+    public void setIsResult(boolean isResult) {
         this.isResult = isResult;
     }
 }

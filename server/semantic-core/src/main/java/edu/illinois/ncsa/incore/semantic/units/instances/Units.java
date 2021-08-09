@@ -77,8 +77,8 @@ public final class Units {
      */
     public static List<Unit> getUnitsByDimension(Dimension dimension) {
         List<Unit> matches = Units.All.stream()
-                                      .filter(unit -> unit.getDimension().equals(dimension))
-                                      .collect(Collectors.toList());
+            .filter(unit -> unit.getDimension().equals(dimension))
+            .collect(Collectors.toList());
 
         return matches;
     }

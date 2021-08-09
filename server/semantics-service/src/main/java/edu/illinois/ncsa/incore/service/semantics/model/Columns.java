@@ -5,9 +5,10 @@ import java.util.List;
 public class Columns {
     private List<Column> columns;
 
-    public Columns() { }
+    public Columns() {
+    }
 
-    public Columns(List<Column> columns){
+    public Columns(List<Column> columns) {
         this.columns = columns;
     }
 

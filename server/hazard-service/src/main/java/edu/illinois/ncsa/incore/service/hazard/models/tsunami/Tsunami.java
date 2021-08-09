@@ -73,7 +73,9 @@ public abstract class Tsunami {
         return creator;
     }
 
-    public void setCreator(String creator) { this.creator = creator; }
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
 
     public List<String> getSpaces() {
         return spaces;

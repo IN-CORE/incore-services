@@ -18,7 +18,6 @@ import javax.ws.rs.core.Response;
  * and whether it is a temporary or permanent
  * condition. As specified in HTTP/1.1
  * https://tools.ietf.org/html/rfc7231#section-6.5
- *
  */
 public class IncoreHTTPException extends WebApplicationException {
     /**
@@ -36,7 +35,7 @@ public class IncoreHTTPException extends WebApplicationException {
     /**
      * Construct a new instance with the supplied HTTP status.
      *
-     * @param status  the HTTP status code that will be returned to the client.
+     * @param status the HTTP status code that will be returned to the client.
      * @throws IllegalArgumentException if status is {@code null}.
      */
     public IncoreHTTPException(Response.Status status) {

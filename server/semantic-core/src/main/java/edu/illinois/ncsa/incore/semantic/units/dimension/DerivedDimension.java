@@ -200,9 +200,9 @@ public class DerivedDimension extends Dimension {
         List<PowerDimension> powerDimensions = this.getPowerDimensions();
 
         List<PowerDimension> sortedDimensions = powerDimensions.stream()
-                                                               .sorted(Comparator.comparingInt(
-                                                                       dim -> dim.getBaseDimension().getSortOrder()))
-                                                               .collect(Collectors.toList());
+            .sorted(Comparator.comparingInt(
+                dim -> dim.getBaseDimension().getSortOrder()))
+            .collect(Collectors.toList());
 
         for (PowerDimension sortedDimension : sortedDimensions) {
             symbols.add(sortedDimension.getSymbol());
@@ -220,9 +220,9 @@ public class DerivedDimension extends Dimension {
         List<PowerDimension> powerDimensions = this.getPowerDimensions();
 
         List<PowerDimension> sortedDimensions = powerDimensions.stream()
-                                                               .sorted(Comparator.comparingInt(
-                                                                       dim -> dim.getBaseDimension().getSortOrder()))
-                                                               .collect(Collectors.toList());
+            .sorted(Comparator.comparingInt(
+                dim -> dim.getBaseDimension().getSortOrder()))
+            .collect(Collectors.toList());
 
         for (PowerDimension sortedDimension : sortedDimensions) {
             symbols.add(sortedDimension.getUnicodeSymbol());

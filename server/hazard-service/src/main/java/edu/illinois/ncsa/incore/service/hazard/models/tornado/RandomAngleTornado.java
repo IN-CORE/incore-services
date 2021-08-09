@@ -20,12 +20,12 @@ import java.util.Random;
 public class RandomAngleTornado extends BaseTornado {
 
     @Override
-    public boolean requiresEndPoint(){
+    public boolean requiresEndPoint() {
         return true;
     }
 
     @Override
-    public void createTornado(TornadoParameters tornadoParameters){
+    public void createTornado(TornadoParameters tornadoParameters) {
         // generate random
         int randomSeed = tornadoParameters.getRandomSeed();
         Random randomAngleGenerator = new Random(randomSeed);
@@ -46,7 +46,7 @@ public class RandomAngleTornado extends BaseTornado {
         List<Double> endLongitude = new ArrayList<Double>();
         List<Double> endLatitude = new ArrayList<Double>();
 
-        for (int i = 0; i < tornadoParameters.getNumSimulations(); i++){
+        for (int i = 0; i < tornadoParameters.getNumSimulations(); i++) {
             // Get a random angle following the normal distribution
             randomAngle = (randomAngleGenerator.nextGaussian() * stdDevAngle) + meanAngle;
             double normalizedAngle = (randomAngle + 360) % 360;

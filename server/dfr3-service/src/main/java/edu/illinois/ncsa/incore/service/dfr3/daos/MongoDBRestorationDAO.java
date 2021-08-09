@@ -57,7 +57,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
         }
 
         RestorationSet restorationSet = this.dataStore.find(RestorationSet.class)
-            .filter(Filters.eq( "_id", new ObjectId(id))).first();
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
 
         if (restorationSet == null) {
             return Optional.empty();

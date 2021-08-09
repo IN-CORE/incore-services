@@ -31,7 +31,7 @@ public final class BaseDimension extends Dimension {
     public static final BaseDimension luminousIntensity = new BaseDimension("Luminous intensity", "J", "J", 7);
 
     public static final List<BaseDimension> All = Arrays.asList(length, mass, time, electricCurrent,
-                                                                temperature, amountOfSubstance, luminousIntensity);
+        temperature, amountOfSubstance, luminousIntensity);
 
     private BaseDimension(String name, String symbol, String unicodeSymbol, int sortOrder) {
         super(name, symbol, unicodeSymbol);
@@ -45,7 +45,7 @@ public final class BaseDimension extends Dimension {
 
     public static Optional<BaseDimension> tryGetBySymbol(String symbol) {
         return All.stream().filter(dimension -> dimension.getSymbol().equals(symbol) || dimension.getUnicodeSymbol().equals(symbol))
-                  .findFirst();
+            .findFirst();
     }
     //endregion
 

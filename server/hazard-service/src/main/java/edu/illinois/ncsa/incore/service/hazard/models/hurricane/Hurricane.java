@@ -74,7 +74,9 @@ public abstract class Hurricane {
         return creator;
     }
 
-    public void setCreator(String creator) { this.creator = creator; }
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
 
     public List<String> getSpaces() {
         return spaces;

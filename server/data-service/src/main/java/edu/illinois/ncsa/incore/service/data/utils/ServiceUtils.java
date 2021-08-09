@@ -30,7 +30,7 @@ public class ServiceUtils {
      *
      * @return
      */
-    public static String createHazardEndpoint(){
+    public static String createHazardEndpoint() {
         String dataEndpoint = "http://localhost:8080/";
         String dataEndpointProp = System.getenv("HAZARD_SERVICE_URL");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {

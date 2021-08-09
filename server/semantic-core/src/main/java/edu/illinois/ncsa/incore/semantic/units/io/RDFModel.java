@@ -11,7 +11,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 
 public final class RDFModel {
-    private RDFModel() {}
+    private RDFModel() {
+    }
 
     // URI - Instances
     public static final String unitURI = "http://incore.ncsa.illinois.edu/semantic/elements/units/";

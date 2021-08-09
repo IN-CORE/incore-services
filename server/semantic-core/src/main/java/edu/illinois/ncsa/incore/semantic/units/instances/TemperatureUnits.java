@@ -14,14 +14,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class TemperatureUnits {
-    private TemperatureUnits() {}
+    private TemperatureUnits() {
+    }
 
     public static void initialize() {
 
     }
 
     public static final NamedUnit celsius = new NamedUnit("Degree Celsius", "Degrees Celsius", "degC", "°C", Dimensions.temperature);
-    public static final NamedUnit fahrenheit = new NamedUnit("Degree Fahrenheit", "Degrees Fahrenheit", "degF", "°F", Dimensions.temperature);
+    public static final NamedUnit fahrenheit = new NamedUnit("Degree Fahrenheit", "Degrees Fahrenheit", "degF", "°F",
+        Dimensions.temperature);
     public static final NamedUnit rankine = new NamedUnit("Degree Rankine", "Degrees Rankine", "degRa", "°Ra", Dimensions.temperature);
     public static final NamedUnit romer = new NamedUnit("Degree Romer", "Degrees Romer", "degRo", "°Rø", Dimensions.temperature);
     public static final NamedUnit newton = new NamedUnit("Degree Newton", "Degrees Newton", "degN", "°N", Dimensions.temperature);

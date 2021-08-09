@@ -34,7 +34,7 @@ public class Application extends ResourceConfig {
         conceptDAO.initialize();
 
         String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
-        if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
+        if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }
 

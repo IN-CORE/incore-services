@@ -16,7 +16,8 @@ public class EnumerableAttribute<T> extends Attribute<T> {
     public EnumerableConcept conceptReference;
     public List<Enumeration<T>> enumerations = new ArrayList<>();
 
-    public EnumerableAttribute() {}
+    public EnumerableAttribute() {
+    }
 
     public EnumerableAttribute(String name, String description, List<Enumeration<T>> enumerations) {
         super.name = name;

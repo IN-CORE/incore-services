@@ -22,11 +22,15 @@ public class MaevizMapping {
     public String getSchema() {
         return schema;
     }
-    public void setSchema(String schema){
+
+    public void setSchema(String schema) {
         this.schema = schema;
     }
 
-    public List<Mapping> getMapping() { return mapping; }
+    public List<Mapping> getMapping() {
+        return mapping;
+    }
+
     public void setMapping(List<Mapping> mapping) {
         this.mapping = mapping;
     }

@@ -39,5 +39,5 @@ public class BinaryPrefix extends Prefix {
     public static List<Prefix> JEDEC = Arrays.asList(kilo, mega, giga, tera, peta, exa, zeta, yotta);
 
     public static List<Prefix> All = Arrays.asList(kibi, kilo, mebi, mega, gibi, giga, tebi, tera,
-                                                   pebi, peta, exbi, exa, zebi, zeta, yobi, yotta);
+        pebi, peta, exbi, exa, zebi, zeta, yobi, yotta);
 }

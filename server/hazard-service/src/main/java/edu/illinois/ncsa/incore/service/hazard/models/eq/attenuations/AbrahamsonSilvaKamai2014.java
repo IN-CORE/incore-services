@@ -42,7 +42,8 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
     private String region;
 
     public AbrahamsonSilvaKamai2014() {
-        InputStream coefficientURL = AbrahamsonSilvaKamai2014.class.getResourceAsStream("/hazard/earthquake/coefficients/AbrahamsonSilvaKamai2014.csv");
+        InputStream coefficientURL = AbrahamsonSilvaKamai2014.class.getResourceAsStream("/hazard/earthquake/coefficients" +
+            "/AbrahamsonSilvaKamai2014.csv");
         readCoefficients(coefficientURL);
     }
 
@@ -278,7 +279,8 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
         } else {
             // Should only occur if coefficients were not setup properly (R1 > R2)
             logger.debug(
-                "An error occured, caused by an invalid state in the software, please contact ergo-user@ncsa.illinois.edu for further assistance");
+                "An error occured, caused by an invalid state in the software, please contact ergo-user@ncsa.illinois.edu for further " +
+                    "assistance");
             throw new IllegalStateException("The specified coefficients resulted in an invalid execution state where M1 > M2");
         }
 
@@ -603,8 +605,7 @@ public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
     }
 
     // Convenience method, consider moving to BaseAttenuation if it's used elsewhere
-    private double square(double x)
-    {
+    private double square(double x) {
         return Math.pow(x, 2);
     }
 

@@ -15,7 +15,8 @@ public class AnalysisOutput {
     private String type;
     private String description;
 
-    public AnalysisOutput(){}
+    public AnalysisOutput() {
+    }
 
     public AnalysisOutput(String name, String type, String description) {
         this.name = name;

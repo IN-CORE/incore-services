@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
  */
 public class DataJsonUtils {
     public static final Logger logger = Logger.getLogger(DataJsonUtils.class);
+
     // create json from the csv file
     public static String getCsvJson(String typeId, String datasetId, String repoUrl) {
         File dataset = null;
@@ -104,10 +105,10 @@ public class DataJsonUtils {
         return outJson;
     }
 
-    public static HashMap<String, Object> extractMapFromJsonString(String inJson){
+    public static HashMap<String, Object> extractMapFromJsonString(String inJson) {
         try {
             return new ObjectMapper().readValue(inJson, HashMap.class);
-        } catch (IOException e){
+        } catch (IOException e) {
             return null;
         }
     }
@@ -118,7 +119,7 @@ public class DataJsonUtils {
         if (jsonObj.has(inId)) {
             try {
                 JSONArray inArray = (JSONArray) jsonObj.get(inId);
-                for (Object jObj: inArray) {
+                for (Object jObj : inArray) {
                     outList.add(jObj.toString());
                 }
                 return outList;
@@ -230,13 +231,15 @@ public class DataJsonUtils {
                     try {
                         if (fileExtStr.equals(FileUtils.EXTENSION_SHP)) {
                             String combinedId = typeUrl + "/" + datasetId + "/converted/";
-                            String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_SHP, FileUtils.REPO_DS_URL);
+                            String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_SHP,
+                                FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatDatasetAsGeoJson(dataset);
                             return outJson;
                         } else if (fileExtStr.equals(FileUtils.EXTENSION_CSV)) {
                             String combinedId = typeUrl + "/" + datasetId + "/converted/";
-                            String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_CSV, FileUtils.REPO_DS_URL);
+                            String localFileName = FileUtils.loadFileNameFromRepository(combinedId, FileUtils.EXTENSION_CSV,
+                                FileUtils.REPO_DS_URL);
                             File dataset = new File(localFileName);
                             outJson = formatCsvAsJson(dataset, datasetId);
                             return outJson;
@@ -267,7 +270,7 @@ public class DataJsonUtils {
         return userName;
     }
 
-    public static JSONObject createUserStatusJson(String userInfo, IRepository repository, String keyDatabase) throws ParseException{
+    public static JSONObject createUserStatusJson(String userInfo, IRepository repository, String keyDatabase) throws ParseException {
         List<Dataset> datasets = null;
         String userName = parseUserName(userInfo);
 
@@ -293,27 +296,27 @@ public class DataJsonUtils {
         // add the file size of all files in fileDescriptors
         for (Dataset dataset : datasets) {
             List<FileDescriptor> fds = dataset.getFileDescriptors();
-            for (FileDescriptor fd: fds) {
+            for (FileDescriptor fd : fds) {
                 total_file_size += fd.getSize();
             }
         }
 
         String out_file_size;
 
-        double size_kb = total_file_size /1024;
+        double size_kb = total_file_size / 1024;
         double size_mb = size_kb / 1024;
-        double size_gb = size_mb / 1024 ;
+        double size_gb = size_mb / 1024;
 
         // round values
         size_kb = Math.round(size_kb * 100.0) / 100.0;
         size_mb = Math.round(size_mb * 100.0) / 100.0;
         size_gb = Math.round(size_gb * 100.0) / 100.0;
 
-        if (size_gb >= 1){
+        if (size_gb >= 1) {
             out_file_size = size_gb + " GB";
-        }else if(size_mb >= 1){
+        } else if (size_mb >= 1) {
             out_file_size = size_mb + " MB";
-        }else{
+        } else {
             out_file_size = size_kb + " KB";
         }
 

@@ -32,6 +32,6 @@ public class IncorePoint {
     }
 
     public String toString() {
-        return  this.location.getY()+", "+this.location.getX();
+        return this.location.getY() + ", " + this.location.getX();
     }
 }

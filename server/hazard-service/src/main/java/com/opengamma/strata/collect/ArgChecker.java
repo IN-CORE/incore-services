@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2009 - present by OpenGamma Inc. and the OpenGamma group of companies
- *
+ * <p>
  * Please see distribution for license.
  */
 package com.opengamma.strata.collect;
@@ -34,6 +34,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the specified boolean is true.
      * <p>
@@ -225,6 +226,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the specified argument is non-null.
      * <p>
@@ -277,6 +279,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the specified argument is non-null and matches the specified pattern.
      * <p>
@@ -308,6 +311,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the specified argument is non-null and not blank.
      * <p>
@@ -341,6 +345,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the specified argument is non-null and not empty.
      * <p>
@@ -560,6 +565,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the specified argument array is non-null and contains no nulls.
      * <p>
@@ -642,6 +648,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the argument is not negative.
      * <p>
@@ -711,6 +718,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the argument is not negative or zero.
      * <p>
@@ -806,6 +814,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the argument is not equal to zero to within a given accuracy.
      * <p>
@@ -830,6 +839,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the argument is within the range defined by {@code low <= x < high}.
      * <p>
@@ -904,6 +914,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the argument is within the range defined by {@code low <= x < high}.
      * <p>
@@ -978,6 +989,7 @@ public final class ArgChecker {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Checks that the two values are in order and not equal.
      * <p>

@@ -18,9 +18,10 @@ public class AnalysisDataset {
     private Boolean multiple;
     private String[] type;
 
-    public AnalysisDataset() {}
+    public AnalysisDataset() {
+    }
 
-    public AnalysisDataset(String name, String description, String[] type, Boolean required, Boolean advanced, Boolean multiple){
+    public AnalysisDataset(String name, String description, String[] type, Boolean required, Boolean advanced, Boolean multiple) {
         this.name = name;
         this.description = description;
         this.type = type;

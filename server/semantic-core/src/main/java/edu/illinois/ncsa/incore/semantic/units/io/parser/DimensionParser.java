@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class DimensionParser {
-    private DimensionParser() {}
+    private DimensionParser() {
+    }
 
     public static Map<BaseDimension, Integer> parseSymbol(String symbol) {
         Map<BaseDimension, Integer> parsedDimensions = new HashMap<>();

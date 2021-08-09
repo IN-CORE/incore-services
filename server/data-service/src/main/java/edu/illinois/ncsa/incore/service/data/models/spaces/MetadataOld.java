@@ -9,25 +9,25 @@ public class MetadataOld {
     @JsonProperty("name")
     private String name;
 
-    public MetadataOld(){
+    public MetadataOld() {
         this.name = "";
     }
 
-    public MetadataOld(String name){
+    public MetadataOld(String name) {
         this.name = name;
     }
 
-    public String getName(){
+    public String getName() {
         return this.name;
     }
 
     @JsonProperty("name")
-    public void setName(String name){
+    public void setName(String name) {
         this.name = name;
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return "{\"name\":" + this.name;
     }
 

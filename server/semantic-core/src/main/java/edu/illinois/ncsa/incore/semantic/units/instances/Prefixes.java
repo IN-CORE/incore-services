@@ -62,7 +62,7 @@ public final class Prefixes {
     public static final List<Prefix> None = new ArrayList<>();
 
     public static final List<Prefix> SI = Arrays.asList(yotta, zetta, exa, peta, tera, giga, mega, kilo, hecto, deka,
-                                                        yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci);
+        yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci);
 
     public static final List<Prefix> SIPositive = Arrays.asList(yotta, zetta, exa, peta, tera, giga, mega, kilo, hecto, deka);
 
@@ -74,30 +74,30 @@ public final class Prefixes {
     public static final List<Prefix> JEDEC = Arrays.asList(jedecKilo, jedecMega, jedecGiga);
 
     public static final List<Prefix> Binary = Arrays.asList(kibi, mebi, gibi, tebi, pebi, exbi, zebi, yobi, // IEC
-                                                            jedecKilo, jedecMega, jedecGiga, // JEDEC
-                                                            kilo, mega, giga, tera, peta, exa, zetta, yotta); // SI
+        jedecKilo, jedecMega, jedecGiga, // JEDEC
+        kilo, mega, giga, tera, peta, exa, zetta, yotta); // SI
 
     public static final List<Prefix> All = Arrays.asList(yotta, zetta, exa, peta, tera, giga, mega, kilo, hecto, deka,
-                                                         yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci,
-                                                         jedecKilo, jedecMega, jedecGiga,
-                                                         kibi, mebi, gibi, tebi, pebi, exbi, zebi, yobi);
+        yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci,
+        jedecKilo, jedecMega, jedecGiga,
+        kibi, mebi, gibi, tebi, pebi, exbi, zebi, yobi);
 
     public static final String[] AllNames = new String[]{"yotta", "zetta", "exa", "peta", "tera", "giga", "mega", "kilo", "hecto", "deka",
-                                                           "yocto", "zepto", "atto", "femto", "pico", "nano", "micro", "milli", "centi", "deci",
-                                                           "kibi", "mebi", "gibi", "tebi", "pebi", "exbi", "zebi", "yobi"};
+        "yocto", "zepto", "atto", "femto", "pico", "nano", "micro", "milli", "centi", "deci",
+        "kibi", "mebi", "gibi", "tebi", "pebi", "exbi", "zebi", "yobi"};
 
     public static Optional<Prefix> tryGetByResourceName(String resourceName) {
         return All.stream().filter(prefix -> prefix.getResourceName().equals(resourceName))
-                  .findFirst();
+            .findFirst();
     }
 
     public static Optional<Prefix> tryGetByName(String name) {
         return All.stream().filter(prefix -> prefix.getName().equals(name))
-                  .findFirst();
+            .findFirst();
     }
 
     public static Optional<Prefix> tryGetBySymbol(String symbol) {
         return All.stream().filter(prefix -> prefix.getSymbol().equals(symbol) || prefix.getUnicodeSymbol().equals(symbol))
-                  .findFirst();
+            .findFirst();
     }
 }

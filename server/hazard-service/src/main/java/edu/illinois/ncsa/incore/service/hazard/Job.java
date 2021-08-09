@@ -20,6 +20,7 @@ public class Job {
     public enum State {
         WAITING, RUNNING, QUEUED, FINISHED, ABORTED, FAILED, UNKNOWN
     }
+
     private State state = null;
 
     public Job() {

@@ -54,7 +54,8 @@ public class HurricaneWindfieldsCalc {
     private static final DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 
     public static HurricaneSimulationEnsemble simulateHurricane(String username, double transD, IncorePoint landfallLoc, String model,
-                                                                String demandType, String demandUnits, int resolution, int gridPoints, String rfMethod) {
+                                                                String demandType, String demandUnits, int resolution, int gridPoints,
+                                                                String rfMethod) {
         //TODO: Comeup with a better name for gridPoints
         //TODO: Can resolution be double? It's being hardcoded in Grid calculation
         //This function simulates wind fields for the selected data-driven model
@@ -165,7 +166,8 @@ public class HurricaneWindfieldsCalc {
     }
 
     public static final HurricaneSimulation setSimulationWithWindfield(JSONObject para, String time, IncorePoint center,
-                                                                       String demandType, String demandUnits, int resolution, int gridPoints,
+                                                                       String demandType, String demandUnits, int resolution,
+                                                                       int gridPoints,
                                                                        Complex VTsSimu, JSONArray omegaFitted, JSONArray zonesFitted,
                                                                        JSONArray radiusM, String rfMethod) {
         HurricaneSimulation hsim = new HurricaneSimulation();
@@ -201,7 +203,8 @@ public class HurricaneWindfieldsCalc {
 
 
     public static final Complex[][] simulateWindfieldWithCores(JSONObject para, HurricaneGrid grid, Complex vTs,
-                                                               JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM, String rfMethod) {
+                                                               JSONArray omegaFitted, JSONArray zonesFitted, JSONArray radiusM,
+                                                               String rfMethod) {
 
         ArrayList<Double> thetaRadians = new ArrayList<Double>();
 
@@ -283,7 +286,8 @@ public class HurricaneWindfieldsCalc {
             int noOfLoops = zonesFittedInts.get(zoneI - 1).get(1);
 
             for (int j = 0; j < noOfLoops; j++) {
-                rmThetaVspInnerRi.add((List<Complex>) rmThetaVspInner.get(j)); // Casting to List<Complex> is only casting as list of strings
+                rmThetaVspInnerRi.add((List<Complex>) rmThetaVspInner.get(j)); // Casting to List<Complex> is only casting as list of
+                // strings
                 rmThetaVspOuterRi.add((List<Complex>) rmThetaVspOuter.get(j));
                 List<Double> vgI = (List<Double>) vgInner.get(j);
                 List<Double> vgO = (List<Double>) vgOuter.get(j);
@@ -620,7 +624,8 @@ public class HurricaneWindfieldsCalc {
 
                                 // get shortest km distance to coastal line
                                 if (ar.size() > 0) {
-                                    double shortestDist = GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.continentFeatureIndex,
+                                    double shortestDist =
+                                        GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.continentFeatureIndex,
                                         lat, lon, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
                                     zone = getZone(shortestDist);
                                     reductionFactor = (Double) ar.get(zone);

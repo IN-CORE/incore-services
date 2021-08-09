@@ -4,7 +4,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 
 import java.util.List;
 
-public class ValuesRequest  {
+public class ValuesRequest {
     private List<String> demands;
     private List<String> units;
     private IncorePoint loc;

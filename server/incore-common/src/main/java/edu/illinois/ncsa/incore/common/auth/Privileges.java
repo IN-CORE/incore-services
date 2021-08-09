@@ -29,8 +29,8 @@ public class Privileges {
     private static final Logger log = Logger.getLogger(Privileges.class);
 
 
-    public Map<String,PrivilegeLevel> userPrivileges;
-    public Map<String,PrivilegeLevel> groupPrivileges;
+    public Map<String, PrivilegeLevel> userPrivileges;
+    public Map<String, PrivilegeLevel> groupPrivileges;
 
     public Privileges() {
         userPrivileges = new HashMap<String, PrivilegeLevel>();
@@ -65,11 +65,10 @@ public class Privileges {
         return this.groupPrivileges;
     }
 
-    public void addUserPrivileges(String owner, PrivilegeLevel privilegeLevel){
-        if(userPrivileges != null){
+    public void addUserPrivileges(String owner, PrivilegeLevel privilegeLevel) {
+        if (userPrivileges != null) {
             this.userPrivileges.put(owner, privilegeLevel);
-        }
-        else{
+        } else {
             throw new NullPointerException("userPrivileges was not instantiated");
         }
     }

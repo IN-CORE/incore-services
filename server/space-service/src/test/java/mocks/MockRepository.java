@@ -35,13 +35,14 @@ public class MockRepository implements ISpaceRepository {
         URL spacesPath = this.getClass().getClassLoader().getResource("json/spaces.json");
 
         try {
-            this.spaces = new ObjectMapper().readValue(spacesPath, new TypeReference<List<Space>>(){});
+            this.spaces = new ObjectMapper().readValue(spacesPath, new TypeReference<List<Space>>() {
+            });
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         Mockito.when(mockDataStore.find(Space.class)
-            .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+                .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.spaces);
     }
 
@@ -53,8 +54,8 @@ public class MockRepository implements ISpaceRepository {
 
     @Override
     public Space getSpaceById(String id) {
-        for(int i = 0; i <this.spaces.size(); i++) {
-            if(this.spaces.get(i).getId().equalsIgnoreCase(id)) {
+        for (int i = 0; i < this.spaces.size(); i++) {
+            if (this.spaces.get(i).getId().equalsIgnoreCase(id)) {
                 return this.spaces.get(i);
             }
         }
@@ -63,8 +64,8 @@ public class MockRepository implements ISpaceRepository {
 
     @Override
     public Space getSpaceByName(String name) {
-        for(int i = 0; i <this.spaces.size(); i++) {
-            if(this.spaces.get(i).getName().equalsIgnoreCase(name)) {
+        for (int i = 0; i < this.spaces.size(); i++) {
+            if (this.spaces.get(i).getName().equalsIgnoreCase(name)) {
                 return this.spaces.get(i);
             }
         }
@@ -78,17 +79,17 @@ public class MockRepository implements ISpaceRepository {
     }
 
     @Override
-    public Space getOrphanSpace(){
+    public Space getOrphanSpace() {
         return getSpaceByName("orphans");
     }
 
     @Override
-    public Space addToOrphansSpace(String memberId){
+    public Space addToOrphansSpace(String memberId) {
         return getSpaceByName("orphans");
     }
 
     @Override
-    public Space deleteSpace(String id){
+    public Space deleteSpace(String id) {
         return null;
     }
 

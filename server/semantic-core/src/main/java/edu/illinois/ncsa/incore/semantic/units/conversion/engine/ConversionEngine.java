@@ -122,7 +122,7 @@ public final class ConversionEngine {
             return Optional.of(convertedValue);
         }
 
-        if(fromUnit.dimensionEquivalent(toUnit)) {
+        if (fromUnit.dimensionEquivalent(toUnit)) {
             double convertedValue = value.doubleValue() * getFactor(fromUnit.getBaseNormalForm(), toUnit.getBaseNormalForm());
             return Optional.of(convertedValue);
         }

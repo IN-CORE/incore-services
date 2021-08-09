@@ -134,12 +134,13 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
         Query<HurricaneWindfields> query = this.dataStore.find(HurricaneWindfields.class);
         // need to set text field for name and description
         List<HurricaneWindfields> hurricanes = query.filter(
-            Filters.or(
-                Filters.regex("name").pattern(text).caseInsensitive(),
-                Filters.regex("description").pattern(text).caseInsensitive()
+                Filters.or(
+                    Filters.regex("name").pattern(text).caseInsensitive(),
+                    Filters.regex("description").pattern(text).caseInsensitive()
+                )
             )
-        )
-            .iterator().toList();;
+            .iterator().toList();
+        ;
 
         return hurricanes;
     }
@@ -150,7 +151,8 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
         // need to set text field for name and description
         List<HurricaneWindfields> hurricanes = query.filter(
             Filters.regex("creator").pattern(creator).caseInsensitive()
-        ).iterator().toList();;
+        ).iterator().toList();
+        ;
 
         return hurricanes;
     }

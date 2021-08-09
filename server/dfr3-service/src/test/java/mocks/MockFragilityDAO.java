@@ -42,13 +42,14 @@ public class MockFragilityDAO implements IFragilityDAO {
         URL fragilityPath = this.getClass().getClassLoader().getResource("fragility.json");
 
         try {
-            this.fragilitySets = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<FragilitySet>>() {});
+            this.fragilitySets = new ObjectMapper().readValue(fragilityPath, new TypeReference<List<FragilitySet>>() {
+            });
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         Mockito.when(mockDataStore.find(FragilitySet.class)
-            .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+                .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.fragilitySets);
 
 
@@ -95,7 +96,7 @@ public class MockFragilityDAO implements IFragilityDAO {
     }
 
     @Override
-    public FragilitySet deleteFragilitySetById(String id){
+    public FragilitySet deleteFragilitySetById(String id) {
         FragilitySet fragilitySet = this.mockDataStore.find(FragilitySet.class)
             .filter(Filters.eq("_id", new ObjectId(id))).first();
 
@@ -126,8 +127,8 @@ public class MockFragilityDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilities(String attributeType, String attributeValue) {
         List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
-                                                    .filter(Filters.eq(attributeType, attributeValue))
-                                                    .iterator(new FindOptions().limit(100)).toList();
+            .filter(Filters.eq(attributeType, attributeValue))
+            .iterator(new FindOptions().limit(100)).toList();
 
         return sets;
     }
@@ -148,8 +149,8 @@ public class MockFragilityDAO implements IFragilityDAO {
     @Override
     public List<FragilitySet> queryFragilityAuthor(String author) {
         List<FragilitySet> sets = this.mockDataStore.find(FragilitySet.class)
-                                                    .filter(Filters.all("authors", author)).iterator()
-                                                    .toList();
+            .filter(Filters.all("authors", author)).iterator()
+            .toList();
 
         return sets;
     }

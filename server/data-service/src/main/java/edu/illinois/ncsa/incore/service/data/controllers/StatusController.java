@@ -56,7 +56,7 @@ public class StatusController {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
         }
 
-        return  outJson.toString();
+        return outJson.toString();
     }
 
     @GET
@@ -87,6 +87,6 @@ public class StatusController {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
         }
 
-        return  outJson.toString();
+        return outJson.toString();
     }
 }

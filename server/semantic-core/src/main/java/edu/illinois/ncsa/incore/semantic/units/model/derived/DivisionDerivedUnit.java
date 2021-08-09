@@ -14,10 +14,10 @@ import edu.illinois.ncsa.incore.semantic.units.model.Unit;
 public final class DivisionDerivedUnit extends OperatorDerivedUnit {
     public DivisionDerivedUnit(Unit numerator, Unit denominator, Dimension dimension) {
         super(numerator.getName() + " per " + denominator.getName(),
-              numerator.getPlural() + " per " + denominator.getName(),
-              getSymbol(numerator, denominator),
-              getUnicodeSymbol(numerator, denominator),
-              dimension, numerator, denominator);
+            numerator.getPlural() + " per " + denominator.getName(),
+            getSymbol(numerator, denominator),
+            getUnicodeSymbol(numerator, denominator),
+            dimension, numerator, denominator);
 
         super.baseNormalForm = computeBaseNormalForm();
         super.coherentNormalForm = computeCoherentNormalForm();

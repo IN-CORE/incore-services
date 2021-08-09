@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /*
 In some cases, we want to be able to return relevant information for an analysis but not including the
 datasets, parameters and outputs. Using this class and extends in the Analysis class allows for returning
-from the same method either AnalysisMetadata or Analysis depending on the full query parameter. 
+from the same method either AnalysisMetadata or Analysis depending on the full query parameter.
  */
 @XmlRootElement
 public class AnalysisMetadata {
@@ -50,9 +50,10 @@ public class AnalysisMetadata {
     private String category;
     private String helpContext;
 
-    public AnalysisMetadata() {}
+    public AnalysisMetadata() {
+    }
 
-    public AnalysisMetadata(ObjectId id, String name, String description, String category, String url, String helpContext){
+    public AnalysisMetadata(ObjectId id, String name, String description, String category, String url, String helpContext) {
         this.id = id;
         this.name = name;
         this.description = description;

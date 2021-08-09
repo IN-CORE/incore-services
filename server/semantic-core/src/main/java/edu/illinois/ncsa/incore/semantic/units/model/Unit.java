@@ -52,7 +52,8 @@ public abstract class Unit implements ISymbol, ISerializable {
         this.unitSystem = system;
     }
 
-    protected Unit() {}
+    protected Unit() {
+    }
 
     public Unit(String name, String unicodeName, String plural, String unicodePlural, String symbol,
                 String unicodeSymbol, Dimension dimension) {
@@ -248,12 +249,12 @@ public abstract class Unit implements ISymbol, ISerializable {
 
         Unit unit = (Unit) obj;
         return Objects.equals(name, unit.name) &&
-                Objects.equals(unicodeName, unit.unicodeName) &&
-                Objects.equals(plural, unit.plural) &&
-                Objects.equals(unicodePlural, unit.unicodePlural) &&
-                Objects.equals(symbol, unit.symbol) &&
-                Objects.equals(unicodeSymbol, unit.unicodeSymbol);
-                // && Objects.equals(dimension, unit.dimension);
+            Objects.equals(unicodeName, unit.unicodeName) &&
+            Objects.equals(plural, unit.plural) &&
+            Objects.equals(unicodePlural, unit.unicodePlural) &&
+            Objects.equals(symbol, unit.symbol) &&
+            Objects.equals(unicodeSymbol, unit.unicodeSymbol);
+        // && Objects.equals(dimension, unit.dimension);
     }
 
     @Override

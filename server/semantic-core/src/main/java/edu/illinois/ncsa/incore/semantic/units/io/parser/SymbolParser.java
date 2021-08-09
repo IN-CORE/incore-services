@@ -29,7 +29,8 @@ import java.util.stream.Collectors;
  * Utility class for parsing a unit from a name or symbol string
  */
 public final class SymbolParser {
-    private SymbolParser() {}
+    private SymbolParser() {
+    }
 
     public static Unit parseSymbol(String symbol) throws ParseException {
         Optional<Unit> result = tryParseSymbol(symbol);
@@ -47,8 +48,8 @@ public final class SymbolParser {
 
         // check if the unit symbol already exists in the existing units
         List<Unit> initialMatches = allUnits.stream()
-                                            .filter(unit -> unit.getSymbol().equals(symbol) || unit.getUnicodeSymbol().equals(symbol))
-                                            .collect(Collectors.toList());
+            .filter(unit -> unit.getSymbol().equals(symbol) || unit.getUnicodeSymbol().equals(symbol))
+            .collect(Collectors.toList());
 
         if (initialMatches.size() > 0) {
             return Optional.of(initialMatches.get(0));

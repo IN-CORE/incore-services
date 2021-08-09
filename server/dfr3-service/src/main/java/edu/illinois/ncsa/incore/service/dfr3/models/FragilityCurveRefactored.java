@@ -28,8 +28,8 @@ public class FragilityCurveRefactored extends FragilityCurve {
     }
 
     public FragilityCurveRefactored(List<Rule> rules, ReturnType returnType,
-                            List<FragilityCurveParameter> fragilityCurveParameters,
-                            String label) {
+                                    List<FragilityCurveParameter> fragilityCurveParameters,
+                                    String label) {
         super(label);
 
         this.rules = rules;

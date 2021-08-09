@@ -91,19 +91,21 @@ public class HazardUtil {
         "'waterSurfaceElevation': {'value': null, 'unit': 'm'}" +
         "}");
 
-    public static JSONObject toLowerKey(JSONObject thresholds){
+    public static JSONObject toLowerKey(JSONObject thresholds) {
         /***
          * Converts keys of a JSONObject to lower case.
          */
-        Iterator<String> keys= thresholds.keySet().iterator();
+        Iterator<String> keys = thresholds.keySet().iterator();
         JSONObject lowerThresholds = new JSONObject();
 
-        while(keys.hasNext()) {
+        while (keys.hasNext()) {
             String key = keys.next();
             lowerThresholds.put(key.toLowerCase(), thresholds.get(key));
         }
         return lowerThresholds;
-    };
+    }
+
+    ;
 
     public static int getSiteClassAsInt(String siteClass) {
         int siteClassInt = -1;
@@ -299,7 +301,7 @@ public class HazardUtil {
     }
 
     /**
-     * @param sd - spectral displacement
+     * @param sd     - spectral displacement
      * @param units0 - original units
      * @param units1 - requested units
      * @return - converted spectral displacement
@@ -533,10 +535,10 @@ public class HazardUtil {
             return demandParts;
         } else {
             String[] demandSplit = fullDemandType.split(" ");
-            if( demandSplit.length == 2) {
+            if (demandSplit.length == 2) {
                 demandParts[0] = demandSplit[0].trim();
                 demandParts[1] = demandSplit[1].trim();
-            } else if(demandSplit.length == 3) {
+            } else if (demandSplit.length == 3) {
                 // The assumption here is something like 0.3 Sec SA, 0.3 Sec SD, etc
                 demandParts[0] = demandSplit[0].trim();
                 demandParts[1] = demandSplit[2].trim();
@@ -553,13 +555,13 @@ public class HazardUtil {
             if (demandUnits.equalsIgnoreCase(HazardUtil.units_percg) || demandUnits.equalsIgnoreCase(HazardUtil.units_g)) {
                 return true;
             }
-        } else if (demandType.equalsIgnoreCase(HazardUtil.PGV) || demandType.equalsIgnoreCase(HazardUtil.SV) ) {
+        } else if (demandType.equalsIgnoreCase(HazardUtil.PGV) || demandType.equalsIgnoreCase(HazardUtil.SV)) {
             if (demandUnits.equalsIgnoreCase(HazardUtil.units_cms) || demandUnits.equalsIgnoreCase(HazardUtil.units_ins)) {
                 return true;
             }
         } else if (demandType.equalsIgnoreCase(HazardUtil.PGD) || demandType.equalsIgnoreCase(HazardUtil.SD)) {
             if (demandUnits.equalsIgnoreCase(HazardUtil.units_cm) || demandUnits.equalsIgnoreCase(HazardUtil.units_m_abbr) ||
-                demandUnits.equalsIgnoreCase(HazardUtil.units_in) || demandUnits.equalsIgnoreCase(HazardUtil.units_ft_abbr))  {
+                demandUnits.equalsIgnoreCase(HazardUtil.units_in) || demandUnits.equalsIgnoreCase(HazardUtil.units_ft_abbr)) {
                 return true;
             }
         }
@@ -580,7 +582,6 @@ public class HazardUtil {
     }
 
     /**
-     *
      * @param site
      * @param sourceSite
      * @return
@@ -605,10 +606,10 @@ public class HazardUtil {
      * @param fileParts
      * @return
      */
-    public static boolean validateEqDatasetTypes(List<FormDataBodyPart> fileParts){
-        for (FormDataBodyPart filePart:fileParts) {
+    public static boolean validateEqDatasetTypes(List<FormDataBodyPart> fileParts) {
+        for (FormDataBodyPart filePart : fileParts) {
             String fileExt = FilenameUtils.getExtension(filePart.getContentDisposition().getFileName());
-            if(!HazardConstants.EQ_DATASET_TYPES_ALLOWED.contains(fileExt)){
+            if (!HazardConstants.EQ_DATASET_TYPES_ALLOWED.contains(fileExt)) {
                 return false;
             }
         }
@@ -624,8 +625,7 @@ public class HazardUtil {
         return sourceSite;
     }
 
-    public static int getReverseFaultingFactorFlag(double rakeAngle)
-    {
+    public static int getReverseFaultingFactorFlag(double rakeAngle) {
         if (rakeAngle > 30 && rakeAngle < 150) {
             return 1;
         } else {
@@ -633,8 +633,7 @@ public class HazardUtil {
         }
     }
 
-    public static int getNormalFaultingFactorFlag(double rakeAngle)
-    {
+    public static int getNormalFaultingFactorFlag(double rakeAngle) {
         if (rakeAngle > -150.0 && rakeAngle < -30.0) {
             return 1;
         } else {

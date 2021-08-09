@@ -7,7 +7,13 @@
       },
       "groupPrivileges": {}
     },
-    "members": ["5a207b29beefa40740e87c93", "5a207b29beefa40740e87c9d", "5ac4ef37f9ebf2057a08f566", "5a393841c7d30d044d9b66ec", "5ac4eefdf9ebf2057a08f54d"],
+    "members": [
+      "5a207b29beefa40740e87c93",
+      "5a207b29beefa40740e87c9d",
+      "5ac4ef37f9ebf2057a08f566",
+      "5a393841c7d30d044d9b66ec",
+      "5ac4eefdf9ebf2057a08f54d"
+    ],
     "metadata": {
       "name": "test"
     }

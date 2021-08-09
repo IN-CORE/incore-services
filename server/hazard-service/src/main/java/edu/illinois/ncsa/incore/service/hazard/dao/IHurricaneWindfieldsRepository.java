@@ -35,6 +35,7 @@ public interface IHurricaneWindfieldsRepository {
     Datastore getDataStore();
 
     List<HurricaneWindfields> queryHurricaneWindfields(String attributeType, String attributeValue);
+
     List<HurricaneWindfields> queryHurricaneWindfields(Map<String, String> queryMap);
 
 }

@@ -49,13 +49,19 @@ public class MockRepository implements IEarthquakeRepository {
     }
 
     @Override
-    public List<Earthquake> searchEarthquakes(String text) {return null;}
+    public List<Earthquake> searchEarthquakes(String text) {
+        return null;
+    }
 
     @Override
-    public List<Earthquake> getEarthquakesByCreator(String creator) {return null;}
+    public List<Earthquake> getEarthquakesByCreator(String creator) {
+        return null;
+    }
 
     @Override
-    public int getEarthquakesCountByCreator(String creator) {return 0;}
+    public int getEarthquakesCountByCreator(String creator) {
+        return 0;
+    }
 
     @Override
     public Datastore getDataStore() {

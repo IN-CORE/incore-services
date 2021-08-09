@@ -13,6 +13,8 @@ import java.io.Writer;
 
 public interface ISerializable {
     String serialize();
+
     String serialize(ISerializer serializer);
+
     void serialize(ISerializer serialize, Writer writer);
 }

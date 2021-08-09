@@ -28,7 +28,8 @@ public class Column {
     @Property("incore:unit")
     private String unit;
 
-    public Column() { }
+    public Column() {
+    }
 
     public Column(String name, String titles, String dataType, String aggType, Integer fieldLength,
                   String importance, String isNumeric, String isResult, String unit) {
@@ -43,15 +44,15 @@ public class Column {
         this.unit = unit;
     }
 
-    public String getName(){
+    public String getName() {
         return this.name;
     }
 
-    public String getTitles(){
+    public String getTitles() {
         return this.titles;
     }
 
-    public String getDataType(){
+    public String getDataType() {
         return this.dataType;
     }
 

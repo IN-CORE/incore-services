@@ -26,17 +26,20 @@ public class EqParameters {
     private double seismogenicDepth;
     private double depth;
 
-    /** Depth to 2.5 km/sec shear wave velocity */
+    /**
+     * Depth to 2.5 km/sec shear wave velocity
+     */
     private double depth2p5KmPerSecShearWaveVelocity;
-    /** Depth to the 1.0 km/sec shear wave velocity, in meters */
+    /**
+     * Depth to the 1.0 km/sec shear wave velocity, in meters
+     */
     private double shearWaveDepth1p0;
 
     // private double vs_30;
     private Map<String, String> faultTypeMap;
     private String region;
 
-    public EqParameters()
-    {
+    public EqParameters() {
         region = "Global";
         magnitude = 0.0;
         coseismicRuptureDepth = 0.0;
@@ -54,166 +57,130 @@ public class EqParameters {
 
 
     /**
-     *
      * @return
      */
-    public double getMagnitude()
-    {
+    public double getMagnitude() {
         return magnitude;
     }
 
     /**
-     *
      * @param magnitude
      */
-    public void setMagnitude(double magnitude)
-    {
+    public void setMagnitude(double magnitude) {
         this.magnitude = magnitude;
     }
 
     /**
-     *
      * @return Depth to the top of the rupture (km)
      */
-    public double getCoseismicRuptureDepth()
-    {
+    public double getCoseismicRuptureDepth() {
         return coseismicRuptureDepth;
     }
 
     /**
-     *
      * @param coseismicRuptureDepth
      */
-    public void setCoseismicRuptureDepth(double coseismicRuptureDepth)
-    {
+    public void setCoseismicRuptureDepth(double coseismicRuptureDepth) {
         this.coseismicRuptureDepth = coseismicRuptureDepth;
     }
 
     /**
-     *
      * @return
      */
-    public double getDipAngle()
-    {
+    public double getDipAngle() {
         return dipAngle;
     }
 
     /**
-     *
      * @param dipAngle
      */
-    public void setDipAngle(double dipAngle)
-    {
+    public void setDipAngle(double dipAngle) {
         this.dipAngle = dipAngle;
     }
 
     /**
-     *
      * @return
      */
-    public double getAzimuthAngle()
-    {
+    public double getAzimuthAngle() {
         return azimuthAngle;
     }
 
     /**
-     *
      * @param azimuthAngle
      */
-    public void setAzimuthAngle(double azimuthAngle)
-    {
+    public void setAzimuthAngle(double azimuthAngle) {
         this.azimuthAngle = azimuthAngle;
     }
 
     /**
-     *
      * @return
      */
-    public double getRakeAngle()
-    {
+    public double getRakeAngle() {
         return rakeAngle;
     }
 
     /**
-     *
      * @param rakeAngle
      */
-    public void setRakeAngle(double rakeAngle)
-    {
+    public void setRakeAngle(double rakeAngle) {
         this.rakeAngle = rakeAngle;
     }
 
     /**
-     *
      * @return
      */
-    public double getSeismogenicDepth()
-    {
+    public double getSeismogenicDepth() {
         return seismogenicDepth;
     }
 
     /**
-     *
      * @param seismogenicDepth
      */
-    public void setSeismogenicDepth(double seismogenicDepth)
-    {
+    public void setSeismogenicDepth(double seismogenicDepth) {
         this.seismogenicDepth = seismogenicDepth;
     }
 
     /**
-     *
      * @return
      */
-    public double getDepth2p5KmPerSecShearWaveVelocity()
-    {
+    public double getDepth2p5KmPerSecShearWaveVelocity() {
         return depth2p5KmPerSecShearWaveVelocity;
     }
 
     /**
-     *
      * @param depth2p5KmPerSecShearWaveVelocity
      */
-    public void setDepth2p5KmPerSecShearWaveVelocity(double depth2p5KmPerSecShearWaveVelocity)
-    {
+    public void setDepth2p5KmPerSecShearWaveVelocity(double depth2p5KmPerSecShearWaveVelocity) {
         this.depth2p5KmPerSecShearWaveVelocity = depth2p5KmPerSecShearWaveVelocity;
     }
 
-    public String getRegion()
-    {
+    public String getRegion() {
         return region;
     }
 
-    public void setRegion(String region)
-    {
+    public void setRegion(String region) {
         this.region = region;
     }
 
     /**
-     *
      * @return
      */
-    public Map<String, String> getFaultTypeMap()
-    {
+    public Map<String, String> getFaultTypeMap() {
         return faultTypeMap;
     }
 
     /**
-     *
      * @param faultTypeMap
      */
-    public void setFaultTypeMap(Map<String, String> faultTypeMap)
-    {
+    public void setFaultTypeMap(Map<String, String> faultTypeMap) {
         this.faultTypeMap = faultTypeMap;
     }
 
     /**
-     *
      * @param attenuationId
      * @return
      */
-    public String getFaultType(String attenuationId)
-    {
+    public String getFaultType(String attenuationId) {
         if (faultTypeMap.containsKey(attenuationId)) {
             return faultTypeMap.get(attenuationId);
         } else {
@@ -222,20 +189,16 @@ public class EqParameters {
     }
 
     /**
-     *
      * @return
      */
-    public double getShearWaveDepth1p0()
-    {
+    public double getShearWaveDepth1p0() {
         return shearWaveDepth1p0;
     }
 
     /**
-     *
      * @param shearWaveDepth1p0
      */
-    public void setShearWaveDepth1p0(double shearWaveDepth1p0)
-    {
+    public void setShearWaveDepth1p0(double shearWaveDepth1p0) {
         this.shearWaveDepth1p0 = shearWaveDepth1p0;
     }
 

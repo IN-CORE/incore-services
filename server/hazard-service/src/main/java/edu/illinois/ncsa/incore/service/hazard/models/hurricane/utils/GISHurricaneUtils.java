@@ -71,7 +71,8 @@ public class GISHurricaneUtils {
 //    public static final String cmdGdalGrid = "cmd /c \"C:\\Program Files\\GDAL\\gdal_grid\" "; // for windows
     public static final String cmdGdalGrid = "gdal_grid ";  // for mac/linux
     public static final String cmdZField = "-zfield velocity ";
-    public static final String cmdAlgo = "-a invdist:power=2.0:smoothing=0.0:radius1=0.0:radius2=0.0:angle=0.0:max_points=0:min_points=0:nodata=0.0 ";
+    public static final String cmdAlgo = "-a invdist:power=2.0:smoothing=0.0:radius1=0.0:radius2=0.0:angle=0" +
+        ".0:max_points=0:min_points=0:nodata=0.0 ";
     public static final String cmdType = "-of GTiff ";
     // hurrican shapefile field name
     public static final String HURRICANE_FLD_SIM = "simulation";
@@ -284,8 +285,9 @@ public class GISHurricaneUtils {
                 performProcess(cmdStr);
                 System.out.println("performProcess complete");
                 //TODO Get the creator - pass a param?
-                HurricaneSimulationDataset simDataset = HurricaneWindfieldsUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid Snapshot",
-                    username,"Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
+                HurricaneSimulationDataset simDataset = HurricaneWindfieldsUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid " +
+                        "Snapshot",
+                    username, "Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
                     (String) tempHurricane.get("absTime"));
                 hsDatasets.add(simDataset);
             }
@@ -300,8 +302,9 @@ public class GISHurricaneUtils {
                 tempDir + "/hurricane_all.dbf", tempDir + "/hurricane_all.fix", tempDir + "/hurricane_all.prj");
 
             System.out.println("createHurricaneDataSetFromFiles begins");
-            HurricaneSimulationDataset simDatasetAll = HurricaneWindfieldsUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane Full Snapshot",
-                username,"Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
+            HurricaneSimulationDataset simDatasetAll = HurricaneWindfieldsUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane " +
+                    "Full Snapshot",
+                username, "Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
                 "full time range");
             hsDatasets.add(simDatasetAll);
             System.out.println("createHurricaneDataSetFromFiles complete");
@@ -442,7 +445,7 @@ public class GISHurricaneUtils {
             int n = 12;
 
             // check if sfArr has more than needed number of point which is n
-            while(sfArr.length < n) {
+            while (sfArr.length < n) {
                 searchLimitDistVariable += 1;
                 searchDistLimit = (Math.abs(firstX - secondX)) * searchLimitDistVariable;
                 sfArr = createClipper(refEnv, searchDistLimit, inFeatures);
@@ -510,12 +513,13 @@ public class GISHurricaneUtils {
 
         // make sfc clip
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
-        Coordinate[] coords  =
-            new Coordinate[] {new Coordinate(refEnv.getMinX(), refEnv.getMinY()), new Coordinate(refEnv.getMaxX(), refEnv.getMinY()),
-                new Coordinate(refEnv.getMaxX(), refEnv.getMaxY()), new Coordinate(refEnv.getMinX(), refEnv.getMaxY()), new Coordinate(refEnv.getMinX(), refEnv.getMinY()) };
-        LinearRing ring = geometryFactory.createLinearRing( coords );
+        Coordinate[] coords =
+            new Coordinate[]{new Coordinate(refEnv.getMinX(), refEnv.getMinY()), new Coordinate(refEnv.getMaxX(), refEnv.getMinY()),
+                new Coordinate(refEnv.getMaxX(), refEnv.getMaxY()), new Coordinate(refEnv.getMinX(), refEnv.getMaxY()),
+                new Coordinate(refEnv.getMinX(), refEnv.getMinY())};
+        LinearRing ring = geometryFactory.createLinearRing(coords);
         LinearRing holes[] = null; // use LinearRing[] to represent holes
-        Polygon clip_zone = geometryFactory.createPolygon(ring, holes );
+        Polygon clip_zone = geometryFactory.createPolygon(ring, holes);
 
         ClipProcess cp = new ClipProcess();
         SimpleFeatureCollection sfc = cp.execute(inFeatures, clip_zone, false);
@@ -633,7 +637,7 @@ public class GISHurricaneUtils {
      * @param sfArr
      * @return
      */
-    public static int selectAnotherSimNum(int simNum, SimpleFeature[] sfArr)  {
+    public static int selectAnotherSimNum(int simNum, SimpleFeature[] sfArr) {
         // the simnum that should be selected should be either simnum + 1 or simnum - 1
         List<SimpleFeature> sfList = new LinkedList<SimpleFeature>();
 

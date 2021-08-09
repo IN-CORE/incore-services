@@ -23,14 +23,15 @@ import java.util.stream.Collectors;
  * Utility class for parsing a unit from a name or symbol string
  */
 public final class UnitParser {
-    private UnitParser() {}
+    private UnitParser() {
+    }
 
     public static Optional<Unit> parseName(String unitStr) {
         List<Unit> allUnits = Units.All;
 
         List<Unit> initialMatches = allUnits.stream()
-                                            .filter(unit -> unit.getSymbol().equals(unitStr))
-                                            .collect(Collectors.toList());
+            .filter(unit -> unit.getSymbol().equals(unitStr))
+            .collect(Collectors.toList());
 
         if (initialMatches.size() > 0) {
             return Optional.of(initialMatches.get(0));
@@ -45,8 +46,8 @@ public final class UnitParser {
         List<Unit> allUnits = Units.All;
 
         List<Unit> initialMatches = allUnits.stream()
-                                            .filter(unit -> unit.getSymbol().equals(unitStr))
-                                            .collect(Collectors.toList());
+            .filter(unit -> unit.getSymbol().equals(unitStr))
+            .collect(Collectors.toList());
 
         if (initialMatches.size() > 0) {
             return Optional.of(initialMatches.get(0));

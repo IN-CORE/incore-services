@@ -1,4 +1,5 @@
-/******************************************************************************* (c) 2019 University of Illinois and others.  All rights reserved.
+/******************************************************************************* (c) 2019 University of Illinois and others.  All rights
+ * reserved.
  * This program and the accompanying materials are made available under the
  * terms of the Mozilla Public License v2.0 which accompanies this distribution,
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
@@ -24,7 +25,7 @@ public class CorsFilter implements ContainerResponseFilter {
         // if header origin is in the allowed origin list; add it to access-control-allow-origin header
         String allowedOrigins = System.getenv("SERVICES_ALLOW_ORIGIN");
         String requestHeadersOrigin = requestContext.getHeaderString("Origin");
-        if (requestHeadersOrigin != null && allowedOrigins.contains(requestHeadersOrigin)){
+        if (requestHeadersOrigin != null && allowedOrigins.contains(requestHeadersOrigin)) {
             headers.add("Access-Control-Allow-Origin", requestHeadersOrigin);
         }
         headers.add("Access-Control-Allow-Methods", System.getenv("SERVICES_ALLOW_METHODS"));

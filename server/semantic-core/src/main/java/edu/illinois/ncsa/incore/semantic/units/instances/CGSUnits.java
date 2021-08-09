@@ -19,9 +19,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class CGSUnits {
-    private CGSUnits() {}
+    private CGSUnits() {
+    }
 
-    public static void initialize() {}
+    public static void initialize() {
+    }
 
     // Aliases
     public static final NamedUnit centimetre = SIUnits.centimetre;
@@ -34,49 +36,50 @@ public final class CGSUnits {
 
     // Named Derived
     public static final CoherentDerivedUnit dyne = new CoherentDerivedUnit("dyne", "dynes", "dyn", "dyn",
-                                                                           Dimensions.force, UnitSystem.CentimetreGramSecond, Prefixes.None,
-                                                                           new ProductDerivedUnit(gram, centimetrePerSecondSquared));
+        Dimensions.force, UnitSystem.CentimetreGramSecond, Prefixes.None,
+        new ProductDerivedUnit(gram, centimetrePerSecondSquared));
 
     public static final CoherentDerivedUnit erg = new CoherentDerivedUnit("erg", "ergs", "erg", "erg",
-                                                                          Dimensions.energy, UnitSystem.CentimetreGramSecond, Prefixes.None,
-                                                                          new ProductDerivedUnit(dyne, centimetre));
+        Dimensions.energy, UnitSystem.CentimetreGramSecond, Prefixes.None,
+        new ProductDerivedUnit(dyne, centimetre));
 
     public static final NamedUnit poise = new NamedUnit("poise", "poises", "P", "P",
-                                                        Dimensions.dynamicViscosity, UnitSystem.CentimetreGramSecond);
+        Dimensions.dynamicViscosity, UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit stokes = new NamedUnit("strokes", "strokes", "St", "St",
-                                                         Dimensions.kinematicViscosity, UnitSystem.CentimetreGramSecond);
+        Dimensions.kinematicViscosity, UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit stilb = new NamedUnit("stilb", "stilbs", "sb", "sb", Dimensions.luminance,
-                                                        UnitSystem.CentimetreGramSecond);
+        UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit phot = new NamedUnit("phot", "phots", "ph", "ph", Dimensions.illuminance,
-                                                       UnitSystem.CentimetreGramSecond);
+        UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit gal = new NamedUnit("gal", "gals", "Gal", "Gal", Dimensions.acceleration,
-                                                      UnitSystem.CentimetreGramSecond);
+        UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit maxwell = new NamedUnit("maxwell", "maxwells", "Mx", "Mx",
-                                                          Dimensions.magneticFlux, UnitSystem.CentimetreGramSecond);
+        Dimensions.magneticFlux, UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit gauss = new NamedUnit("gauss", "gauss", "G", "G",
-                                                        Dimensions.magneticFluxDensity, UnitSystem.CentimetreGramSecond);
+        Dimensions.magneticFluxDensity, UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit oersted = new NamedUnit("oersted", "\u0153rsted", "oersted", "\u0153rsted", "Oe", "Oe",
-                                                          Dimensions.magneticFieldStrength, UnitSystem.CentimetreGramSecond);
+        Dimensions.magneticFieldStrength, UnitSystem.CentimetreGramSecond);
 
     public static final NamedUnit kayser = new NamedUnit("kayser", "kayers", "K", "K", Dimensions.waveNumber,
-                                                         UnitSystem.CentimetreGramSecond);
+        UnitSystem.CentimetreGramSecond);
 
     // Electromagnetic
     // Abampere
     public static final NamedUnit abampere = new NamedUnit("abampere", "abamperes", "abA", Dimensions.electricCurrent,
-                                                           UnitSystem.CentimetreGramSecond);
+        UnitSystem.CentimetreGramSecond);
 
-    //    public static final DivisionDerivedUnit abcoulomb = new DivisionDerivedUnit("abcoulomb", "abcoulombs", "abA", Dimensions.electricCurrent,
+    //    public static final DivisionDerivedUnit abcoulomb = new DivisionDerivedUnit("abcoulomb", "abcoulombs", "abA", Dimensions
+    //    .electricCurrent,
     //                                                                        UnitSystem.CentimetreGramSecond);
 
 
     public static final List<Unit> All = Arrays.asList(centimetre, gram, second, /*erg, dyne,*/ poise, stokes, stilb, phot, gal, maxwell,
-                                                       gauss, oersted, kayser);
+        gauss, oersted, kayser);
 }

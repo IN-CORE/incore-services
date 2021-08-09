@@ -92,14 +92,18 @@ public class TornadoController {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
             if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             tornadoes = tornadoes.stream()
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
             return tornadoes;
         }
@@ -109,7 +113,10 @@ public class TornadoController {
             .filter(tornado -> membersSet.contains(tornado.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleTornadoes;
@@ -158,7 +165,8 @@ public class TornadoController {
                     newTornado = new RandomAngleTornado();
                 } else {
                     logger.error("Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
-                    throw new IncoreHTTPException(Response.Status.NOT_IMPLEMENTED, "Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
+                    throw new IncoreHTTPException(Response.Status.NOT_IMPLEMENTED,
+                        "Requested tornado model, " + tornadoModel.getTornadoModel() + " is not yet implemented.");
                 }
 
                 // Run the model
@@ -190,7 +198,7 @@ public class TornadoController {
                     JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
                     datasetId = ServiceUtil.createDataset(datasetObject, this.username);
-                    if (datasetId != null){
+                    if (datasetId != null) {
                         // attach files to the dataset
                         int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, fileParts);
                         if (statusCode != HttpStatus.SC_OK) {
@@ -249,7 +257,8 @@ public class TornadoController {
             return tornado;
         }
 
-        throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have the privileges to access the tornado " +tornadoId);
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+            this.username + " does not have the privileges to access the tornado " + tornadoId);
     }
 
     @GET
@@ -299,7 +308,8 @@ public class TornadoController {
         ObjectMapper mapper = new ObjectMapper();
         try {
             List<ValuesResponse> valResponse = new ArrayList<>();
-            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
+            });
             for (ValuesRequest request : valuesRequest) {
                 List<String> demands = request.getDemands();
                 List<String> units = request.getUnits();
@@ -318,7 +328,8 @@ public class TornadoController {
                         hazVals.add(res.getHazardValue());
                     }
                 } catch (UnsupportedHazardException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
+                        "demands and units provided are supported" +
                         " for all the locations");
                 }
 
@@ -330,14 +341,15 @@ public class TornadoController {
                 valResponse.add(response);
             }
             return valResponse;
-        }catch(IOException ex){
+        } catch (IOException ex) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
-        }catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
-        }
-        catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
+                "request.");
+        } catch (Exception e) {
             logger.error("Exception when calculating tornado hazard value", e);
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Make sure the demand types and simulations (if provided) are applicable." +
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Make sure the demand types and simulations (if provided) are " +
+                "applicable." +
                 " Please check the format of your request.");
         }
     }
@@ -359,10 +371,13 @@ public class TornadoController {
         if (tornado != null) {
             for (IncorePoint point : points) {
                 try {
-                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, seed, this.username));
+                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, seed,
+                        this.username));
                 } catch (UnsupportedHazardException e) {
-                    logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are supported", e);
-                    // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
+                    logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are " +
+                        "supported", e);
+                    // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " +
+                    // demandUnits + " are supported", e);
                 }
             }
 
@@ -411,7 +426,10 @@ public class TornadoController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return tornadoes;

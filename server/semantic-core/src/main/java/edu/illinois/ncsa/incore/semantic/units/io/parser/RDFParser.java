@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class RDFParser {
-    private RDFParser() {}
+    private RDFParser() {
+    }
 
     /**
      *

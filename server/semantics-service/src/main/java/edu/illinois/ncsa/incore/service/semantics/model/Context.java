@@ -15,10 +15,11 @@ public class Context {
     private String xlink;
     private String xsd;
 
-    public Context(){ }
+    public Context() {
+    }
 
     public Context(String language, String gml, String incore, String iwfs,
-                   String xlink, String xsd){
+                   String xlink, String xsd) {
         this.language = language;
         this.gml = gml;
         this.incore = incore;

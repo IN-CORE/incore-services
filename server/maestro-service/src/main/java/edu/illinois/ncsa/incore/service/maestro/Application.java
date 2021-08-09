@@ -23,14 +23,14 @@ public class Application extends ResourceConfig {
         String mongodbUri = "mongodb://localhost:27017/maestrodb2";
 
         String mongodbUriProp = System.getenv("MAESTRO_MONGODB_URI");
-        if(mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
+        if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
 
         IRepository mongoRepository = new MongoDBRepository(new MongoClientURI(mongodbUri));
         mongoRepository.initialize();
 
-        super.register(new AbstractBinder () {
+        super.register(new AbstractBinder() {
 
             @Override
             protected void configure() {

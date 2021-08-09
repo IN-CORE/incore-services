@@ -27,7 +27,8 @@ public class MockFragilityMappingDAO implements IMappingDAO {
         URL mappingPath = this.getClass().getClassLoader().getResource("building_mapping.json");
 
         try {
-            MappingSet mappingSet = new ObjectMapper().readValue(mappingPath, new TypeReference<MappingSet>() {});
+            MappingSet mappingSet = new ObjectMapper().readValue(mappingPath, new TypeReference<MappingSet>() {
+            });
             this.mappingSets = Arrays.asList(mappingSet);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -46,7 +47,7 @@ public class MockFragilityMappingDAO implements IMappingDAO {
 
     @Override
     public MappingSet deleteMappingSetById(String id) {
-       return this.mappingSets.get(0);
+        return this.mappingSets.get(0);
     }
 
     @Override

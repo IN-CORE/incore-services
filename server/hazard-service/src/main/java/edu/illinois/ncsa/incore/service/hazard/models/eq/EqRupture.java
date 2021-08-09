@@ -29,18 +29,18 @@ public class EqRupture {
         coefficientRecords = new LinkedList<CSVRecord>();
         InputStream coefficientURL = EqRupture.class.getResourceAsStream("/hazard/earthquake/RuptureRegressionCoefficients.csv");
         CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader();
-            try (Reader csvFileReader = new InputStreamReader(coefficientURL)) {
-                CSVParser csvParser = new CSVParser(csvFileReader, csvFormat);
-                Iterator<CSVRecord> csvIterator = csvParser.iterator();
-                while (csvIterator.hasNext()) {
-                    CSVRecord csvLine = csvIterator.next();
-                    coefficientRecords.add(csvLine);
-                }
-            } catch (FileNotFoundException e) {
-                log.error("Could not find rupture regression coefficients.", e);
-            } catch (IOException e) {
-                log.error("Error reading rupture regression coefficients.", e);
+        try (Reader csvFileReader = new InputStreamReader(coefficientURL)) {
+            CSVParser csvParser = new CSVParser(csvFileReader, csvFormat);
+            Iterator<CSVRecord> csvIterator = csvParser.iterator();
+            while (csvIterator.hasNext()) {
+                CSVRecord csvLine = csvIterator.next();
+                coefficientRecords.add(csvLine);
             }
+        } catch (FileNotFoundException e) {
+            log.error("Could not find rupture regression coefficients.", e);
+        } catch (IOException e) {
+            log.error("Error reading rupture regression coefficients.", e);
+        }
     }
 
     /**

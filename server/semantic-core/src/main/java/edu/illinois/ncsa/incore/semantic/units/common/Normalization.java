@@ -67,12 +67,12 @@ public class Normalization {
 
     public Unit toSimpleForm() {
         List<PowerDerivedUnit> positiveOperands = this.productOperands.stream()
-                                                                      .filter(op -> op.getPower() > 0)
-                                                                      .collect(Collectors.toList());
+            .filter(op -> op.getPower() > 0)
+            .collect(Collectors.toList());
 
         List<PowerDerivedUnit> negativeOperands = this.productOperands.stream()
-                                                                      .filter(op -> op.getPower() < 0)
-                                                                      .collect(Collectors.toList());
+            .filter(op -> op.getPower() < 0)
+            .collect(Collectors.toList());
 
         Unit result = null;
 
@@ -123,7 +123,8 @@ public class Normalization {
                         temp = new ProductDerivedUnit(denominator, current);
                     } else {
                         // negative sign becomes positive
-                        temp = new ProductDerivedUnit(denominator, new PowerDerivedUnit(current.getOperand(), Math.abs(current.getPower())));
+                        temp = new ProductDerivedUnit(denominator, new PowerDerivedUnit(current.getOperand(),
+                            Math.abs(current.getPower())));
                     }
 
                     denominator = temp;
@@ -243,8 +244,8 @@ public class Normalization {
         // drop operands with power of 0
         // e.g. (m^7, s^0, w^1) => (m^7, w^1)
         List<PowerDerivedUnit> mergedOperands = newOperands.stream()
-                                                           .filter(x -> x.getPower() != 0)
-                                                           .collect(Collectors.toList());
+            .filter(x -> x.getPower() != 0)
+            .collect(Collectors.toList());
 
         this.productOperands = mergedOperands;
     }

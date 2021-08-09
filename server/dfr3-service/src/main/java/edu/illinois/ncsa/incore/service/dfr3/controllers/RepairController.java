@@ -113,7 +113,8 @@ public class RepairController {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
             if (!authorizer.canRead(username, space.getPrivileges())) {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You don't have the required permissions to access the space " + spaceName);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    "You don't have the required permissions to access the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
 
@@ -131,7 +132,10 @@ public class RepairController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleRepairs;
@@ -186,8 +190,9 @@ public class RepairController {
         if (repairSet.isPresent()) {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
 //                Check for references in mappings, if found give 409
-                if(this.mappingDAO.isCurvePresentInMappings(id)){
-                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The repair is referenced in at least one DFR3 mapping. It can not be deleted until" +
+                if (this.mappingDAO.isCurvePresentInMappings(id)) {
+                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The repair is referenced in at least one DFR3 mapping. It " +
+                        "can not be deleted until" +
                         " all its references are removed from mappings");
                 } else {
 //                    remove id from spaces
@@ -202,7 +207,8 @@ public class RepairController {
                     return this.repairDAO.deleteRepairSetById(id);
                 }
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the repair with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the repair " +
+                    "with id " + id);
             }
         } else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a repair set with id " + id);
@@ -233,7 +239,10 @@ public class RepairController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleRepairs;

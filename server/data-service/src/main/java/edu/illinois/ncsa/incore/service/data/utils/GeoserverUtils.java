@@ -193,15 +193,15 @@ public class GeoserverUtils {
 
     /**
      * Upload geopackage file to geoserver
-     * 
+     *
      * @param store
      * @param gpkgFile
      * @return
      * @throws Exception
      */
     public static boolean uploadGpkgToGeoserver(String store, File gpkgFile) {
-        String url = GEOSERVER_REST_URL+"/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/"
-                + store + "/file.gpkg";
+        String url = GEOSERVER_REST_URL + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/"
+            + store + "/file.gpkg";
         URI uri = URI.create(url);
         Authentication.Result auth = new BasicAuthentication.BasicResult(uri, GEOSERVER_USER, GEOSERVER_PW);
 
@@ -212,15 +212,15 @@ public class GeoserverUtils {
             Request request = httpClient.newRequest(uri);
             request.method(HttpMethod.PUT);
             request.file(gpkgFile.toPath(), "application/x-sqlite3");
-    
+
             auth.apply(request);
             ContentResponse response = request.send();
             int responseStatus = response.getStatus();
             httpClient.stop();
-    
-            if ( (responseStatus == HttpStatus.CREATED_201) || (responseStatus == HttpStatus.ACCEPTED_202) || (responseStatus == HttpStatus.OK_200)) {
+
+            if ((responseStatus == HttpStatus.CREATED_201) || (responseStatus == HttpStatus.ACCEPTED_202) || (responseStatus == HttpStatus.OK_200)) {
                 return true;
-            }            
+            }
         } catch (Exception e) {
             logger.error("HttpClient error", e);
             return false;

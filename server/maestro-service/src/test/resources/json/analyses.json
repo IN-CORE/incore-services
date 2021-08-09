@@ -82,7 +82,9 @@
       {
         "name": "Roadway Damage",
         "description": "The damaged roadway inventory dataset.",
-        "type": ["edu.illinois.ncsa.incore.roadwayDamage"],
+        "type": [
+          "edu.illinois.ncsa.incore.roadwayDamage"
+        ],
         "required": true,
         "advanced": false,
         "multiple": false
@@ -90,7 +92,9 @@
       {
         "name": "Restoration Curve",
         "description": "The damaged roadway inventory dataset.",
-        "type": ["edu.illinois.ncsa.incore.restorationCurve"],
+        "type": [
+          "edu.illinois.ncsa.incore.restorationCurve"
+        ],
         "required": false,
         "advanced": true,
         "multiple": false
@@ -127,7 +131,9 @@
       {
         "name": "Electric Power Network",
         "description": "Search and/or create the electric power network to analyze.",
-        "type": ["edu.illinois.ncsa.incore.epn"],
+        "type": [
+          "edu.illinois.ncsa.incore.epn"
+        ],
         "required": true,
         "advanced": false,
         "multiple": false
@@ -135,7 +141,9 @@
       {
         "name": "Tornado Hazard",
         "description": "Search and/or create the tornado hazard that causes the damage",
-        "type": ["edu.illinois.ncsa.incore.tornado"],
+        "type": [
+          "edu.illinois.ncsa.incore.tornado"
+        ],
         "required": true,
         "advanced": false,
         "multiple": false

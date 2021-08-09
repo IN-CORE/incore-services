@@ -42,14 +42,16 @@ public class MockDataRepository implements IRepository {
         URL DatatypesPath = this.getClass().getClassLoader().getResource("json/datatypes.json");
 
         try {
-            this.datasets = new ObjectMapper().readValue(datasetsPath, new TypeReference<List<Dataset>>(){});
-            this.datatypes = new ObjectMapper().readValue(DatatypesPath, new TypeReference<List<DatasetType>>(){});
+            this.datasets = new ObjectMapper().readValue(datasetsPath, new TypeReference<List<Dataset>>() {
+            });
+            this.datatypes = new ObjectMapper().readValue(DatatypesPath, new TypeReference<List<DatasetType>>() {
+            });
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         Mockito.when(mockDataStore.find(Dataset.class)
-            .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+                .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
             .thenReturn(this.datasets);
     }
 
@@ -61,14 +63,13 @@ public class MockDataRepository implements IRepository {
     @Override
     public List<Dataset> searchDatasets(String text) {
         List<Dataset> outList = new ArrayList<>();
-        for(int i = 0; i <this.datasets.size(); i++) {
-            if(this.datasets.get(i).getDescription().contains(text)) {
+        for (int i = 0; i < this.datasets.size(); i++) {
+            if (this.datasets.get(i).getDescription().contains(text)) {
                 outList.add(datasets.get(i));
             }
         }
         return outList;
     }
-
 
 
     @Override
@@ -83,8 +84,8 @@ public class MockDataRepository implements IRepository {
 
     @Override
     public Dataset getDatasetById(String id) {
-        for(int i = 0; i <this.datasets.size(); i++) {
-            if(this.datasets.get(i).getId().equalsIgnoreCase(id)) {
+        for (int i = 0; i < this.datasets.size(); i++) {
+            if (this.datasets.get(i).getId().equalsIgnoreCase(id)) {
                 return this.datasets.get(i);
             }
         }
@@ -94,8 +95,8 @@ public class MockDataRepository implements IRepository {
     @Override
     public List<Dataset> getDatasetByTitle(String title) {
         List<Dataset> outlist = new ArrayList<>();
-        for(int i = 0; i <this.datasets.size(); i++) {
-            if(this.datasets.get(i).getTitle().equalsIgnoreCase(title)) {
+        for (int i = 0; i < this.datasets.size(); i++) {
+            if (this.datasets.get(i).getTitle().equalsIgnoreCase(title)) {
                 outlist.add(datasets.get(i));
             }
         }
@@ -105,8 +106,8 @@ public class MockDataRepository implements IRepository {
     @Override
     public List<Dataset> getDatasetByCreator(String creator, Boolean withHazard) {
         List<Dataset> outlist = new ArrayList<>();
-        for(int i = 0; i <this.datasets.size(); i++) {
-            if(this.datasets.get(i).getTitle().equalsIgnoreCase(creator)) {
+        for (int i = 0; i < this.datasets.size(); i++) {
+            if (this.datasets.get(i).getTitle().equalsIgnoreCase(creator)) {
                 outlist.add(datasets.get(i));
             }
         }
@@ -114,10 +115,10 @@ public class MockDataRepository implements IRepository {
     }
 
     @Override
-    public List<Dataset> getDatasetByType(String type){
+    public List<Dataset> getDatasetByType(String type) {
         List<Dataset> outlist = new ArrayList<>();
-        for(int i = 0; i <this.datasets.size(); i++) {
-            if(this.datasets.get(i).getDataType().equalsIgnoreCase(type)) {
+        for (int i = 0; i < this.datasets.size(); i++) {
+            if (this.datasets.get(i).getDataType().equalsIgnoreCase(type)) {
                 outlist.add(datasets.get(i));
             }
         }
@@ -132,7 +133,7 @@ public class MockDataRepository implements IRepository {
 
     @Override
     public Dataset getDatasetByFileDescriptorId(String id) {
-        for(int i = 0; i <this.datasets.size(); i++) {
+        for (int i = 0; i < this.datasets.size(); i++) {
             List<FileDescriptor> fileDescriptors = new ArrayList<>();
             fileDescriptors = this.datasets.get(i).getFileDescriptors();
             for (int j = 0; j < fileDescriptors.size(); j++) {
@@ -164,9 +165,9 @@ public class MockDataRepository implements IRepository {
     }
 
     @Override
-    public List<FileDescriptor> getAllFileDescriptors(){
+    public List<FileDescriptor> getAllFileDescriptors() {
         List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
-        for (Dataset dataset: this.datasets) {
+        for (Dataset dataset : this.datasets) {
             List<FileDescriptor> fds = dataset.getFileDescriptors();
             fileDescriptors.addAll(fds);
         }

@@ -1,4 +1,3 @@
-
 //configuration for gretty webapp server
 gretty {
     contextPath '/space'

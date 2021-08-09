@@ -1,8 +1,8 @@
 [
   {
     "id": "5a207b29beefa40740e87c9a",
-    "metadata" : {
-        "name" : "ergo"
+    "metadata": {
+      "name": "ergo"
     },
     "members": [
       "5a207b8bbeefa40740e88ae3",
@@ -229,16 +229,16 @@
       "5a29bade7d6b0c249c0fe8d0",
       "5a7329b73342c42648bb9abb"
     ],
-    "privileges" : {
-      "userPrivileges" : {
-        "test" : "ADMIN"
+    "privileges": {
+      "userPrivileges": {
+        "test": "ADMIN"
       }
     }
   },
   {
     "id": "5a25853ebeefa41458c3e5b7",
     "metadata": {
-        "name" :"ywkim"
+      "name": "ywkim"
     },
     "members": [
       "5a25853ebeefa41458c3e5b5",
@@ -256,49 +256,49 @@
       "5a29bade7d6b0c249c0fe8d0",
       "5a7329b73342c42648bb9abb"
     ],
-    "privileges" : {
-      "userPrivileges" : {
-        "test" : "ADMIN"
+    "privileges": {
+      "userPrivileges": {
+        "test": "ADMIN"
       }
     }
   },
   {
     "id": "5a25853ebeefa414583212b7",
     "metadata": {
-        "name" : "tester"
+      "name": "tester"
     },
     "members": [
       "5a29bade7d6b0c24e70fe8d0",
       "5a7329b73342c42646cb9abb"
     ],
-    "privileges" : {
-      "userPrivileges" : {
-        "test" : "ADMIN"
+    "privileges": {
+      "userPrivileges": {
+        "test": "ADMIN"
       }
     }
   },
   {
     "id": "5a25853ebeefaa1a583212b7",
     "metadata": {
-        "name" : "vnarah2"
+      "name": "vnarah2"
     },
     "members": [
       "5a29bade7d3e0c24e70fe8d0",
       "5a207b8bbeefa40740e88ae3",
       "5a7329b733423e2646cb9abb"
     ],
-    "privileges" : {
-      "userPrivileges" : {
-        "test" : "ADMIN"
+    "privileges": {
+      "userPrivileges": {
+        "test": "ADMIN"
       }
     }
   },
   {
     "id": "5d081106b9219c065b4cdfc0",
-    "metadata" : {
-      "name" : "orphans"
+    "metadata": {
+      "name": "orphans"
     },
-    "members" : [
+    "members": [
       "5ebdb828ce3ddf27ce6a12b5",
       "5ebdb82ace3ddf27ce6a12d8",
       "5ebdb82ace3ddf27ce6a12fb",

@@ -12,8 +12,7 @@ public class Definition {
     public String unicodeText;
     public String htmlText;
 
-    public Definition(String plainText)
-    {
+    public Definition(String plainText) {
 
     }
 }

@@ -31,9 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AnalysesControllerTest extends CustomJerseyTest{
+class AnalysesControllerTest extends CustomJerseyTest {
 
-    public AnalysesControllerTest() { super();}
+    public AnalysesControllerTest() {
+        super();
+    }
 
     @Override
     public ResourceConfig configure() {
@@ -41,7 +43,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application  = new MockApplication(AnalysesController.class);
+        MockApplication application = new MockApplication(AnalysesController.class);
 
         return application;
     }
@@ -49,21 +51,21 @@ class AnalysesControllerTest extends CustomJerseyTest{
     @Test
     public void testListAnalysis() {
 
-       String output = target("/analyses").queryParam("full", "true").request().accept(MediaType.APPLICATION_JSON).get(String.class);
-       JSONArray parsedObject = new JSONArray(output);
+        String output = target("/analyses").queryParam("full", "true").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        JSONArray parsedObject = new JSONArray(output);
 
-       assertEquals(4, parsedObject.length());
-       JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
+        assertEquals(4, parsedObject.length());
+        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
 
-       assertNotEquals(0, firstObject.get("datasets").toString().length());
-       assertNotEquals(0, firstObject.get("parameters").toString().length());
-       assertNotEquals(0, firstObject.get("outputs").toString().length());
+        assertNotEquals(0, firstObject.get("datasets").toString().length());
+        assertNotEquals(0, firstObject.get("parameters").toString().length());
+        assertNotEquals(0, firstObject.get("outputs").toString().length());
 
-       output = target("/analyses").queryParam("full", "false").request().accept(MediaType.APPLICATION_JSON).get(String.class);
-       parsedObject = new JSONArray(output);
+        output = target("/analyses").queryParam("full", "false").request().accept(MediaType.APPLICATION_JSON).get(String.class);
+        parsedObject = new JSONArray(output);
 
-       assertEquals(4, parsedObject.length());
-       firstObject = new JSONObject(parsedObject.get(0).toString());
+        assertEquals(4, parsedObject.length());
+        firstObject = new JSONObject(parsedObject.get(0).toString());
         assertFalse(firstObject.has("datasets"));
         assertFalse(firstObject.has("parameters"));
         assertFalse(firstObject.has("outputs"));
@@ -71,7 +73,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
     }
 
     @Test
-    public void testListAnalysis2(){
+    public void testListAnalysis2() {
         String output = target("/analyses").queryParam("full", "true")
             .queryParam("category", "hazard").request().accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
@@ -97,7 +99,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
     }
 
     @Test
-    public void testListAnalysis3(){
+    public void testListAnalysis3() {
         String output = target("/analyses").queryParam("full", "true")
             .queryParam("name", "Electric Power Network Damage, Tornado")
             .request().accept(MediaType.APPLICATION_JSON).get(String.class);
@@ -124,7 +126,7 @@ class AnalysesControllerTest extends CustomJerseyTest{
     }
 
     @Test
-    public void testListAnalysis4(){
+    public void testListAnalysis4() {
         String output = target("/analyses").queryParam("full", "true")
             .queryParam("category", "Building")
             .queryParam("name", "Electric Power Network Damage, Tornado")
@@ -153,9 +155,9 @@ class AnalysesControllerTest extends CustomJerseyTest{
     public void testGetAnalysisById() {
 
         String id = "5894ebee1a743941f0c4a4e8";
-        Analysis output = target("/analyses/"+id).request().accept(MediaType.APPLICATION_JSON).get(Analysis.class);
+        Analysis output = target("/analyses/" + id).request().accept(MediaType.APPLICATION_JSON).get(Analysis.class);
 
-        assertEquals(id,output.getId());
+        assertEquals(id, output.getId());
         assertEquals(2, output.getDatasets().size());
         assertEquals(1, output.getOutputs().size());
         assertEquals(1, output.getParameters().size());

@@ -90,7 +90,7 @@ public class FileController {
     @GET
     @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @ApiOperation(value = "Returns a file linked to the FileDescriptor Object", notes="")
+    @ApiOperation(value = "Returns a file linked to the FileDescriptor Object", notes = "")
     public Response getFileByFileDescriptorId(@ApiParam(value = "FileDescriptor Object Id") @PathParam("id") String id) {
         File outFile = null;
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
@@ -119,7 +119,8 @@ public class FileController {
         }
 
         if (outFile != null) {
-            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
+            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition",
+                "attachment; filename=\"" + fileName + "\"").build();
         } else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find file with id " + id);
         }

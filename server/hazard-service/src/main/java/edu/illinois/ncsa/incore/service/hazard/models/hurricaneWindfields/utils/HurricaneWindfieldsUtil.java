@@ -181,12 +181,12 @@ public class HurricaneWindfieldsUtil {
             for (int col = 0; col < cols; col++) {
                 //rowList.add(cArr[row][col].abs());
                 double windVal = cArr[row][col].abs();
-                if(!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)){
+                if (!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
                     windVal = convertWindfieldVelocity(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS, windVal, WINDFIELD_DEFAULT_ELEVATION,
                         STANDARD_OPEN_TERRAIN_ROUGHNESS).get(demandType);
                 }
 
-                if(!demandUnits.equalsIgnoreCase(UNITS_KT)){
+                if (!demandUnits.equalsIgnoreCase(UNITS_KT)) {
                     windVal = getCorrectUnitsOfVelocity(windVal, UNITS_KT, demandUnits);
                 }
 
@@ -208,12 +208,12 @@ public class HurricaneWindfieldsUtil {
         }
 
         double factor = 1.0;
-        if(!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)){
+        if (!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
             factor = convertWindfieldVelocity(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS, factor, WINDFIELD_DEFAULT_ELEVATION,
                 STANDARD_OPEN_TERRAIN_ROUGHNESS).get(demandType);
         }
 
-        if(!demandUnits.equalsIgnoreCase(UNITS_KT)){
+        if (!demandUnits.equalsIgnoreCase(UNITS_KT)) {
             factor = getCorrectUnitsOfVelocity(factor, UNITS_KT, demandUnits);
         }
 
@@ -296,7 +296,8 @@ public class HurricaneWindfieldsUtil {
      * @param indexLandfall
      * @return
      */
-    public static final List<IncorePoint> locateNewTrack(List<Double> timeNewRadii, List<Complex> VTsSimu, IncorePoint LandfallLoc, int indexLandfall) {
+    public static final List<IncorePoint> locateNewTrack(List<Double> timeNewRadii, List<Complex> VTsSimu, IncorePoint LandfallLoc,
+                                                         int indexLandfall) {
 
         List<IncorePoint> centers = new ArrayList<IncorePoint>(indexLandfall + 1);
 
@@ -495,7 +496,8 @@ public class HurricaneWindfieldsUtil {
             } else {
                 for (int k = 0; k < sepsSize; k++) {
                     if (k == 0) {
-                        temp2 = ListUtils.union(temp2, Arrays.asList(temp.get(0), temp.get(allSeps.get(k))));    //ncsa.tools.common.utils.ListUtils is also available?!
+                        temp2 = ListUtils.union(temp2, Arrays.asList(temp.get(0), temp.get(allSeps.get(k))));    //ncsa.tools.common
+                        // .utils.ListUtils is also available?!
                     } else {
                         temp2 = ListUtils.union(temp2, Arrays.asList(temp.get(allSeps.get(k - 1) + 1), temp.get(allSeps.get(k))));
                     }
@@ -729,10 +731,9 @@ public class HurricaneWindfieldsUtil {
 
 
     public static double getCorrectUnitsOfVelocity(double hazardValue, String originalDemandUnits, String requestedDemandUnits) {
-        if (originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)){
+        if (originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
             return hazardValue;
-        }
-        else if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPS)) {
+        } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_MPS)) {
             return hazardValue * KT2MS;
         } else if (originalDemandUnits.equalsIgnoreCase(UNITS_KT) && requestedDemandUnits.equalsIgnoreCase(UNITS_KMPH)) {
             return hazardValue * KT2KMPH;
@@ -756,8 +757,7 @@ public class HurricaneWindfieldsUtil {
             return hazardValue * MS2MPH;
         } else if (originalDemandUnits.equalsIgnoreCase(UNITS_MPS) && requestedDemandUnits.equalsIgnoreCase(UNITS_KMPH)) {
             return hazardValue * MS2KMPH;
-        }
-        else {
+        } else {
             throw new UnsupportedOperationException("Cannot convert Velocity from " + originalDemandUnits + " to " + requestedDemandUnits);
         }
     }
@@ -823,7 +823,8 @@ public class HurricaneWindfieldsUtil {
      * @param srcDemand Specifies if input windspeed is 60s or 3s
      * @param windAt10m 1-min sustained wind speed at 10 m elevation for standard open terrain exopsure
      * @param elevation elevation to calculate the wind speed at
-     * @param roughness user specified exposure or roughness length, roughness can take values from 0.003 to 2.5 m, values out of the range are not applicable.
+     * @param roughness user specified exposure or roughness length, roughness can take values from 0.003 to 2.5 m, values out of the
+     *                  range are not applicable.
      *           For sparsely built-up suburbs roughness~0.2-0.4, for densely built-up suburbs, towns, roughness~0.8-1.2)
      * @return 1-min sustained wind speed and 3-s gust wind speed at specified elevation and roughness
      */
@@ -841,12 +842,12 @@ public class HurricaneWindfieldsUtil {
         double beta = interpLinear(zoSs, betaS, new double[]{zos})[0];
         double factorA = 1;
         //convert 1-min sustained wind velocity to hourly mean wind velocity for open terrain and 10 m elevation
-        if(srcDemand.equalsIgnoreCase(WIND_VELOCITY_60SECS)) {
+        if (srcDemand.equalsIgnoreCase(WIND_VELOCITY_60SECS)) {
             factorA = 1 + pow(beta, 0.5) * ct60 / 2.5 / log(elevation / zos);
-        } else if(srcDemand.equalsIgnoreCase(WIND_VELOCITY_3SECS)){
+        } else if (srcDemand.equalsIgnoreCase(WIND_VELOCITY_3SECS)) {
             factorA = 1 + pow(beta, 0.5) * ct3 / 2.5 / log(elevation / zos);
-        } else{
-            log.error("Error in convertWindfieldVelocity. Provided input demand "+ srcDemand + " is not valid");
+        } else {
+            log.error("Error in convertWindfieldVelocity. Provided input demand " + srcDemand + " is not valid");
         }
 
         double wfAt3600s10m = windAt10m / factorA;
@@ -854,7 +855,8 @@ public class HurricaneWindfieldsUtil {
         //convert hourly mean wind velocity from standard exposure to user specified exposure
         Double wfStarS = wfAt3600s10m * k / log(10 / zos); // friction velocity for the standard exposure
         Double wfStar = wfStarS / pow(zos / roughness, 0.0706); // friction velocity for the user specified exposure
-        Double wf3600 = wfStar / k * log(elevation / roughness); //adjusted mean wind speed at height elevation for the user specified exposure
+        Double wf3600 = wfStar / k * log(elevation / roughness); //adjusted mean wind speed at height elevation for the user specified
+        // exposure
 
         //covert hourly mean wind velocity for user specifed exposure to 1-min sustained wind velocity
         beta = (roughness < zoSs[0]) ? 6.5 : interpLinear(zoSs, betaS, new double[]{roughness})[0];

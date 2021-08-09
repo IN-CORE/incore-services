@@ -27,5 +27,5 @@ dependencies {
     compile(group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.31')
 
     compile(group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13')
-    
+
 }

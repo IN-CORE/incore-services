@@ -48,15 +48,26 @@ public class MvzDataset {
     private Metadata metadata;
     private List<FileDescriptor> fileDescriptors = null;
 
-    public String getId() {return id.toString();}
-    public void setId(String id) { this.id = new ObjectId(id); }
+    public String getId() {
+        return id.toString();
+    }
 
-    public String getDatasetPropertyName() { return datasetPropertyName; }
-    public void setDatasetPropertyName(String datasetPropertyName) { this.datasetPropertyName = datasetPropertyName; }
+    public void setId(String id) {
+        this.id = new ObjectId(id);
+    }
+
+    public String getDatasetPropertyName() {
+        return datasetPropertyName;
+    }
+
+    public void setDatasetPropertyName(String datasetPropertyName) {
+        this.datasetPropertyName = datasetPropertyName;
+    }
 
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -64,41 +75,47 @@ public class MvzDataset {
     public String getVersion() {
         return version;
     }
+
     public void setVersion(String version) {
         this.version = version;
     }
 
-    public String getDataFormat(){
+    public String getDataFormat() {
         return dataFormat;
     }
-    public void setDataFormat(String dataFormat){
+
+    public void setDataFormat(String dataFormat) {
         this.dataFormat = dataFormat;
     }
 
-    public String getTypeId(){
+    public String getTypeId() {
         return typeId;
     }
+
     public void setTypeId(String typeId) {
         this.typeId = typeId;
     }
 
-    public String getFeaturetypeName(){
+    public String getFeaturetypeName() {
         return featuretypeName;
     }
+
     public void setFeaturetypeName(String featuretypeName) {
         this.featuretypeName = featuretypeName;
     }
 
-    public String getConvertedFeatureTypeName(){
+    public String getConvertedFeatureTypeName() {
         return convertedFeatureTypeName;
     }
+
     public void setConvertedFeatureTypeName(String convertedFeatureTypeName) {
         this.convertedFeatureTypeName = convertedFeatureTypeName;
     }
 
-    public String getGeometryType(){
+    public String getGeometryType() {
         return geometryType;
     }
+
     public void setGeometryType(String geometryType) {
         this.geometryType = geometryType;
     }
@@ -106,6 +123,7 @@ public class MvzDataset {
     public DatasetId getDatasetId() {
         return datasetId;
     }
+
     public void setDatasetId(DatasetId datasetId) {
         this.datasetId = datasetId;
     }
@@ -113,21 +131,26 @@ public class MvzDataset {
     public List<URI> getReplicaLocations() {
         return replicaLocations;
     }
+
     public void setReplicaLocations(List<URI> replicaLocations) {
         this.replicaLocations = replicaLocations;
     }
 
-    public List<Property> getProperties(){
+    public List<Property> getProperties() {
         return properties;
     }
+
     public void setProperties(List<Property> properties) {
         this.properties = properties;
     }
 
-    public Metadata getMetadata(){
+    public Metadata getMetadata() {
         return metadata;
     }
-    public void setMetadata(Metadata metadata) { this.metadata = metadata; }
+
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
 
     public List<FileDescriptor> getFileDescriptors() {
         if (fileDescriptors == null) {

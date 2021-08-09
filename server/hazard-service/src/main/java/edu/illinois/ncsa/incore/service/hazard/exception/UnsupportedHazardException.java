@@ -14,8 +14,7 @@ public class UnsupportedHazardException extends Exception {
 
     }
 
-    public UnsupportedHazardException(String message)
-    {
+    public UnsupportedHazardException(String message) {
         super(message);
     }
 

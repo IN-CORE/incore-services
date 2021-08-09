@@ -18,10 +18,10 @@ public class PrefixedUnit extends NamedUnit implements IPrefixComparable {
 
     public PrefixedUnit(Prefix prefix, PrefixableUnit unit) {
         super(prefix.getName() + unit.name,
-              prefix.getName() + unit.plural,
-              prefix.getSymbol() + unit.symbol,
-              prefix.getUnicodeSymbol() + unit.unicodeSymbol,
-              unit.dimension);
+            prefix.getName() + unit.plural,
+            prefix.getSymbol() + unit.symbol,
+            prefix.getUnicodeSymbol() + unit.unicodeSymbol,
+            unit.dimension);
 
         this.prefix = prefix;
         this.baseUnit = unit;
@@ -29,7 +29,7 @@ public class PrefixedUnit extends NamedUnit implements IPrefixComparable {
 
         if (!unit.applicablePrefixes.contains(prefix)) {
             throw new IllegalArgumentException(
-                    "edu.illinois.ncsa.incore.semantic.units.SIPrefix " + prefix.getName() + " is not an applicable prefix to the unit " + unit.name);
+                "edu.illinois.ncsa.incore.semantic.units.SIPrefix " + prefix.getName() + " is not an applicable prefix to the unit " + unit.name);
         }
     }
 
@@ -42,7 +42,7 @@ public class PrefixedUnit extends NamedUnit implements IPrefixComparable {
 
         if (!unit.applicablePrefixes.contains(prefix)) {
             throw new IllegalArgumentException(
-                    "edu.illinois.ncsa.incore.semantic.units.SIPrefix " + prefix.getName() + " is not an applicable prefix to the unit " + unit.name);
+                "edu.illinois.ncsa.incore.semantic.units.SIPrefix " + prefix.getName() + " is not an applicable prefix to the unit " + unit.name);
         }
     }
 
@@ -82,7 +82,7 @@ public class PrefixedUnit extends NamedUnit implements IPrefixComparable {
         PrefixedUnit unit = (PrefixedUnit) obj;
 
         return Objects.equals(prefix, unit.prefix) &&
-                Objects.equals(baseUnit, unit.baseUnit);
+            Objects.equals(baseUnit, unit.baseUnit);
     }
 
     @Override

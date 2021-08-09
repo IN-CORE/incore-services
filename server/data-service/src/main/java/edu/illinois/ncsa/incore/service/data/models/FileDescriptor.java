@@ -105,12 +105,13 @@ public class FileDescriptor {
      */
     @Override
     public int hashCode() {
-        if (getId()!= null) {
+        if (getId() != null) {
             return getId().hashCode();
         } else {
             return super.hashCode();
         }
     }
+
     /**
      * Original filename
      */

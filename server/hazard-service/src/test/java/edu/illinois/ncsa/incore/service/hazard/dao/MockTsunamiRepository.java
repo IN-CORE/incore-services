@@ -38,7 +38,7 @@ public class MockTsunamiRepository implements ITsunamiRepository {
 
             tsunamis.addAll(tsunamiDatasets);
             Mockito.when(mockDataStore.find(Tsunami.class)
-                .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+                    .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
                 .thenReturn(this.tsunamis);
         } catch (IOException e) {
             log.error("Error reading tsunamis", e);
@@ -68,8 +68,8 @@ public class MockTsunamiRepository implements ITsunamiRepository {
     @Override
     public List<Tsunami> searchTsunamis(String text) {
         List<Tsunami> outList = new ArrayList<>();
-        for(int i = 0; i <this.tsunamis.size(); i++) {
-            if(this.tsunamis.get(i).getDescription().contains(text)) {
+        for (int i = 0; i < this.tsunamis.size(); i++) {
+            if (this.tsunamis.get(i).getDescription().contains(text)) {
                 outList.add(tsunamis.get(i));
             }
         }
@@ -77,9 +77,13 @@ public class MockTsunamiRepository implements ITsunamiRepository {
     }
 
     @Override
-    public List<Tsunami> getTsunamisByCreator(String creator){ return null; }
+    public List<Tsunami> getTsunamisByCreator(String creator) {
+        return null;
+    }
 
     @Override
-    public int getTsunamisCountByCreator(String creator){ return 0; }
+    public int getTsunamisCountByCreator(String creator) {
+        return 0;
+    }
 
 }

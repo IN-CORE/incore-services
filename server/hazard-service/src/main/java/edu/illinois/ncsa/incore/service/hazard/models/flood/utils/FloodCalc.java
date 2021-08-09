@@ -32,7 +32,7 @@ public class FloodCalc {
     public static final Logger log = Logger.getLogger(FloodCalc.class);
 
     public static FloodHazardResult getFloodHazardValue(Flood flood, String demandType, String demandUnits,
-        IncorePoint location, String user) throws UnsupportedHazardException {
+                                                        IncorePoint location, String user) throws UnsupportedHazardException {
         if (flood instanceof FloodDataset) {
             FloodDataset floodDataset = (FloodDataset) flood;
             FloodHazardDataset hazardDataset = findHazard(floodDataset.getHazardDatasets(), demandType);
@@ -69,13 +69,14 @@ public class FloodCalc {
                     log.debug("Illegal Access.", e);
                 } catch (NoSuchFieldException e) {
                     log.debug("No Such Field", e);
-                } catch (UnsupportedOperationException e){
+                } catch (UnsupportedOperationException e) {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Requested demand type or units is not accepted");
                 }
-                return new FloodHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType, demandUnits);
-            }
-            else {
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dataset found for the hazard. Check if requested demand type is valid");
+                return new FloodHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType,
+                    demandUnits);
+            } else {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dataset found for the hazard. Check if requested demand " +
+                    "type is valid");
             }
         } else {
             log.debug("Received flood is not of dataset type");

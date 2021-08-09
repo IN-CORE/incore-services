@@ -50,7 +50,7 @@ public class Engine {
     class WorkerThread extends Thread {
         public void run() {
             List<Job> dequeue = new ArrayList<Job>();
-            while(true) {
+            while (true) {
                 // little sleep
                 try {
                     Thread.sleep(3000);
@@ -64,7 +64,8 @@ public class Engine {
                         // TODO - consider associating workflow executions by user, currently we associate with a generic incore-dw user
                         // TODO - create user if they don't exist
                         String username = System.getenv("DATAWOLF_USER");
-                        String executionId = ServiceUtil.submitCreateEarthquakeJob("a5e77b9c-5d8a-4052-b1bb-9b260a6c5102", username, "create eq", "Create earthquake dataset", job.getEqJson());
+                        String executionId = ServiceUtil.submitCreateEarthquakeJob("a5e77b9c-5d8a-4052-b1bb-9b260a6c5102", username,
+                            "create eq", "Create earthquake dataset", job.getEqJson());
                         job.setExecutionId(executionId);
                     } else {
                         // check on job status
@@ -75,20 +76,20 @@ public class Engine {
                         String key = iterator.next();
                         String status = jobStatus.get(key);
                         job.setState(Job.State.valueOf(status));
-                        log.debug("job id = "+job.getExecutionId() + ", state is " + job.getState());
-                        if(status.equalsIgnoreCase("FINISHED")) {
+                        log.debug("job id = " + job.getExecutionId() + ", state is " + job.getState());
+                        if (status.equalsIgnoreCase("FINISHED")) {
                             dequeue.add(job);
                             storeResults(job);
-                        } else if(status.equalsIgnoreCase("ABORTED") || status.equalsIgnoreCase("FAILED")) {
+                        } else if (status.equalsIgnoreCase("ABORTED") || status.equalsIgnoreCase("FAILED")) {
                             // remove from queue
                             dequeue.add(job);
                             // notify failure
-                            log.debug("Create earthquake job failed for "+job.getObjectId());
+                            log.debug("Create earthquake job failed for " + job.getObjectId());
                         }
                     }
                 }
 
-                for(Job job : dequeue) {
+                for (Job job : dequeue) {
                     queue.remove(job);
                 }
                 dequeue.clear();
@@ -97,10 +98,10 @@ public class Engine {
     }
 
     private void storeResults(Job job) {
-        if(job.getService() == "earthquake") {
+        if (job.getService() == "earthquake") {
             storeEarthquakeResults(job);
         } else {
-            log.warn("Storing jobs for "+job.getService() + " is not yet implemented");
+            log.warn("Storing jobs for " + job.getService() + " is not yet implemented");
         }
     }
 
@@ -113,10 +114,10 @@ public class Engine {
 
         File hazardFile = datasetFiles.get(0);
 
-        IEarthquakeRepository repository = (IEarthquakeRepository)serviceRepositories.get("earthquake");
+        IEarthquakeRepository repository = (IEarthquakeRepository) serviceRepositories.get("earthquake");
         String earthquakeId = job.getObjectId();
 
-        EarthquakeModel earthquake = (EarthquakeModel)repository.getEarthquakeById(earthquakeId);
+        EarthquakeModel earthquake = (EarthquakeModel) repository.getEarthquakeById(earthquakeId);
         String demandType = earthquake.getRasterDataset().getDemandType();
         String username = earthquake.getCreator();
         String description = "Earthquake visualization";
@@ -126,7 +127,7 @@ public class Engine {
             earthquake.getRasterDataset().setDatasetId(datasetId);
 
             repository.addEarthquake(earthquake);
-            log.debug("eq id is = "+earthquakeId);
+            log.debug("eq id is = " + earthquakeId);
         } catch (IOException e) {
             log.error("Could not store earthquake dataset", e);
         }

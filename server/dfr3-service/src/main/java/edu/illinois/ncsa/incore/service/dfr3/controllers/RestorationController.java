@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 public class RestorationController {
     private static final Logger logger = Logger.getLogger(RestorationController.class);
 
-    private  String username;
+    private String username;
 
     @Inject
     IAuthorizer authorizer;
@@ -84,7 +84,8 @@ public class RestorationController {
                                                 @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
                                                 @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                                 @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                                @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam(
+                                                    "limit") int limit) {
         Map<String, String> queryMap = new HashMap<>();
 
         if (hazardType != null) {
@@ -121,7 +122,10 @@ public class RestorationController {
                 .filter(restoration -> spaceMembers.contains(restoration.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
 
             return restorationSets;
@@ -133,7 +137,10 @@ public class RestorationController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleRestorations;
@@ -182,14 +189,16 @@ public class RestorationController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{restorationId}")
     @ApiOperation(value = "Deletes a restoration by id")
-    public RestorationSet deleteRestorationById(@ApiParam(value = "restoration id", example = "5b47b2d8337d4a36187c6727") @PathParam("restorationId") String id) {
+    public RestorationSet deleteRestorationById(@ApiParam(value = "restoration id", example = "5b47b2d8337d4a36187c6727") @PathParam(
+        "restorationId") String id) {
         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
         if (restorationSet.isPresent()) {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
 //                Check for references in mappings, if found give 409
-                if(this.mappingDAO.isCurvePresentInMappings(id)){
-                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The restoration is referenced in at least one DFR3 mapping. It can not be deleted until" +
+                if (this.mappingDAO.isCurvePresentInMappings(id)) {
+                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The restoration is referenced in at least one DFR3 mapping. " +
+                        "It can not be deleted until" +
                         " all its references are removed from mappings");
                 } else {
 //                    remove id from spaces
@@ -204,7 +213,8 @@ public class RestorationController {
                     return this.restorationDAO.deleteRestorationSetById(id);
                 }
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the restoration with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the " +
+                    "restoration with id " + id);
             }
         } else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a restoration set with id " + id);
@@ -220,7 +230,8 @@ public class RestorationController {
     })
     public List<RestorationSet> findRestorations(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
                                                  @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                 @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                                 @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam(
+                                                     "limit") int limit) {
         List<RestorationSet> sets = new ArrayList<>();
         Optional<RestorationSet> fs = this.restorationDAO.getRestorationSetById(text);
         if (fs.isPresent()) {
@@ -235,7 +246,10 @@ public class RestorationController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleRestorations;

@@ -38,7 +38,7 @@ public class JsonUtils {
         if (jsonObj.has(inId)) {
             try {
                 JSONArray inArray = (JSONArray) jsonObj.get(inId);
-                for (Object jObj: inArray) {
+                for (Object jObj : inArray) {
                     outList.add(jObj.toString());
                 }
                 return outList;

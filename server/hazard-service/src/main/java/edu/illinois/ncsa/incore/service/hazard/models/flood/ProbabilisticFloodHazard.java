@@ -11,4 +11,4 @@ package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
 public class ProbabilisticFloodHazard extends FloodHazardDataset {
     // Empty class right now until we have an example Probabilistic dataset
-   }
+}

@@ -16,9 +16,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class ImperialUnits {
-    private ImperialUnits() {}
+    private ImperialUnits() {
+    }
 
-    public static void initialize() {}
+    public static void initialize() {
+    }
 
     // Length
     public static final NamedUnit thou = new NamedUnit("thou", "thou", "th", Dimensions.length, UnitSystem.Imperial);
@@ -34,7 +36,7 @@ public final class ImperialUnits {
     public static final NamedUnit fathom = new NamedUnit("fathom", "fathoms", "ftm", Dimensions.length, UnitSystem.Imperial);
     public static final NamedUnit cable = new NamedUnit("cable", "cables", Dimensions.length, UnitSystem.Imperial);
     public static final NamedUnit nauticalMile = new NamedUnit("nautical mile", "nautical miles", Dimensions.length,
-                                                               UnitSystem.Imperial);
+        UnitSystem.Imperial);
 
     // Area
     public static final PowerDerivedUnit squareFoot = new PowerDerivedUnit(foot, 2, Dimensions.area);
@@ -46,7 +48,7 @@ public final class ImperialUnits {
 
     // Volume
     public static final NamedUnit fluidOunce = new NamedUnit("fluid ounce", "fluid ounces", "fl oz", Dimensions.volume,
-                                                             UnitSystem.Imperial);
+        UnitSystem.Imperial);
     public static final NamedUnit gill = new NamedUnit("gill", "gills", "gi", Dimensions.volume, UnitSystem.Imperial);
     public static final NamedUnit pint = new NamedUnit("pint", "pints", "pt", Dimensions.volume, UnitSystem.Imperial);
     public static final NamedUnit quart = new NamedUnit("quart", "quarts", "qt", Dimensions.volume, UnitSystem.Imperial);
@@ -60,7 +62,7 @@ public final class ImperialUnits {
     public static final NamedUnit stone = new NamedUnit("stone", "stone", "st", Dimensions.mass, UnitSystem.Imperial);
     public static final NamedUnit quarter = new NamedUnit("quarter", "quarters", "quarter", Dimensions.mass, UnitSystem.Imperial);
     public static final NamedUnit hundredweight = new NamedUnit("hundredweight", "hundredweights", "cwt", Dimensions.mass,
-                                                                UnitSystem.Imperial);
+        UnitSystem.Imperial);
     public static final NamedUnit ton = new NamedUnit("ton", "tons", "t", Dimensions.mass, UnitSystem.Imperial);
     public static final NamedUnit slug = new NamedUnit("slug", "slugs", "slug", Dimensions.mass, UnitSystem.Imperial);
 

@@ -1,4 +1,5 @@
-{ "dataType": "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0",
+{
+  "dataType": "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingInventoryVer4.v1.0",
   "title": "Shelby_County_Essential_Facilities",
   "sourceDataset": "",
   "format": "shapefile"

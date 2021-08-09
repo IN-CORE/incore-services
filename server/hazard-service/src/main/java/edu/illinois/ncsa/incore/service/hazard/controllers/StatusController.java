@@ -135,7 +135,7 @@ public class StatusController {
         hazardJson.add(tornadoJson);
         hazardJson.add(tsunamiJson);
 
-        return  hazardJson.toString();
+        return hazardJson.toString();
     }
 
 }

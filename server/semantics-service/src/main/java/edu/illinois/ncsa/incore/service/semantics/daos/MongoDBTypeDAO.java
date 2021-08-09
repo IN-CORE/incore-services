@@ -1,4 +1,5 @@
 package edu.illinois.ncsa.incore.service.semantics.daos;
+
 import com.mongodb.MongoClientURI;
 
 import java.util.*;
@@ -58,25 +59,25 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     }
 
     @Override
-    public Optional<List<Document>> searchType(String typeName){
+    public Optional<List<Document>> searchType(String typeName) {
         List<Document> typeList = (List<Document>) this.dataStoreType.find().into(new ArrayList<Document>());
         List<Document> matchTypeList = new ArrayList<Document>();
 
-        for (Document datsetType : typeList){
+        for (Document datsetType : typeList) {
             String title = datsetType.get("dc:title").toString();
-            if (title.toLowerCase().contains(typeName.toLowerCase())){
+            if (title.toLowerCase().contains(typeName.toLowerCase())) {
                 matchTypeList.add(datsetType);
             }
         }
 
-        if (matchTypeList.isEmpty()){
+        if (matchTypeList.isEmpty()) {
             return Optional.empty();
         } else {
             return Optional.of(matchTypeList);
         }
     }
 
-    private Boolean checkNewType(Document newType){
+    private Boolean checkNewType(Document newType) {
 
         if (newType.get("@context") != null
             && newType.get("dc:license") != null
@@ -84,11 +85,10 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
             && newType.get("dc:description") != null
             && newType.get("url") != null
             && newType.get("openvocab:versionnumber") != null
-            && newType.get("tableSchema") != null){
+            && newType.get("tableSchema") != null) {
 
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }

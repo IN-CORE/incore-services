@@ -16,5 +16,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface Element {
     String baseURI();
+
     String value();
 }

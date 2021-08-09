@@ -31,7 +31,7 @@ public class HurricaneCalc {
     public static final Logger log = Logger.getLogger(HurricaneCalc.class);
 
     public static HurricaneHazardResult getHurricaneHazardValue(Hurricane hurricane, String demandType, String demandUnits,
-        IncorePoint location, String user) throws UnsupportedHazardException {
+                                                                IncorePoint location, String user) throws UnsupportedHazardException {
         if (hurricane instanceof HurricaneDataset) {
             HurricaneDataset hurricaneDataset = (HurricaneDataset) hurricane;
             HurricaneHazardDataset hazardDataset = findHazard(hurricaneDataset.getHazardDatasets(), demandType);
@@ -44,16 +44,17 @@ public class HurricaneCalc {
                 } catch (PointOutsideCoverageException e) {
                     log.debug("Point outside tiff image.");
                 } catch (IllegalAccessException e) {
-                    log.debug("Illegal Access Exception.",e);
+                    log.debug("Illegal Access Exception.", e);
                 } catch (NoSuchFieldException e) {
                     log.debug("No Such Field Exception", e);
-                } catch (UnsupportedOperationException e){
+                } catch (UnsupportedOperationException e) {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Requested demand type or units is not accepted");
                 }
-                return new HurricaneHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType, demandUnits);
-            }
-            else {
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dataset found for the hazard. Check if requested demand type is valid");
+                return new HurricaneHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType,
+                    demandUnits);
+            } else {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dataset found for the hazard. Check if requested demand " +
+                    "type is valid");
             }
         } else {
             log.debug("Received hurricane is not of dataset type");

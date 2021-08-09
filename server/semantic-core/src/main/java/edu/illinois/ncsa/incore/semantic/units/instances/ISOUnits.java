@@ -14,15 +14,17 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class ISOUnits {
-    private ISOUnits() {}
+    private ISOUnits() {
+    }
 
-    public static void initialize() {}
+    public static void initialize() {
+    }
 
     public static final PrefixableUnit bit = new PrefixableUnit("bit", "bits", "b", Dimensions.informationEntropy,
-                                                                Prefixes.Binary);
+        Prefixes.Binary);
 
     public static final PrefixableUnit bytes = new PrefixableUnit("byte", "bytes", "B", Dimensions.informationEntropy,
-                                                                  Prefixes.Binary);
+        Prefixes.Binary);
 
     // public static final DivisionDerivedUnit bitsPerSecond = new DivisionDerivedUnit(bit, second, Dimensions.informationTransfer);
     // public static final DivisionDerivedUnit bytesPerSecond = new DivisionDerivedUnit(bytes, second, Dimensions.informationTransfer);

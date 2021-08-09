@@ -6,27 +6,22 @@
  *******************************************************************************/
 package ncsa.tools.common.exceptions;
 
-public class FileWriteException extends BaseCommonException
-{
-	private static final long serialVersionUID = 2010L;
+public class FileWriteException extends BaseCommonException {
+    private static final long serialVersionUID = 2010L;
 
-	public FileWriteException()
-	{
-		super();
-	}
+    public FileWriteException() {
+        super();
+    }
 
-	public FileWriteException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
+    public FileWriteException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public FileWriteException(String message)
-	{
-		super(message);
-	}
+    public FileWriteException(String message) {
+        super(message);
+    }
 
-	public FileWriteException(Throwable cause)
-	{
-		super(cause);
-	}
+    public FileWriteException(Throwable cause) {
+        super(cause);
+    }
 }

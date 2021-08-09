@@ -458,7 +458,8 @@ public class FileUtils {
      * @throws IOException
      * @throws URISyntaxException
      */
-    public static File loadFileFromService(Dataset dataset, IRepository repository, boolean isGeoserver, String inExt) throws IOException, URISyntaxException {
+    public static File loadFileFromService(Dataset dataset, IRepository repository, boolean isGeoserver, String inExt) throws IOException
+        , URISyntaxException {
         String datasetId = dataset.getId();
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         List<File> fileList = new ArrayList<File>();
@@ -680,12 +681,12 @@ public class FileUtils {
      *
      * @param dataset
      * @param repository
-     * @return 
+     * @return
      * @throws Exception
      * @throws URISyntaxException
      * @throws IOException
      */
-    public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws IncoreHTTPException, IOException{
+    public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws IncoreHTTPException, IOException {
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
         File geoPkgFile = null;
@@ -704,8 +705,8 @@ public class FileUtils {
             String errorMsg = "There is no source Dataset with given id in the repository: " + dataset.getId();
             logger.error(errorMsg);
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, errorMsg);
-        } 
-        
+        }
+
         List<FileDescriptor> sourceFDs = sourceDataset.getFileDescriptors();
         List<File> shpfiles = new ArrayList<File>();
         boolean isShpfile = false;
@@ -729,10 +730,10 @@ public class FileUtils {
             logger.error(errorMsg);
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, errorMsg);
 
-        }   
+        }
 
         geoPkgFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
-     
+
         return geoPkgFile;
     }
 
@@ -865,7 +866,7 @@ public class FileUtils {
         return useGeoserver;
     }
 
-    public static void removeFilesFromFileDescriptor(List fdList){
+    public static void removeFilesFromFileDescriptor(List fdList) {
 
         for (int i = 0; i < fdList.size(); i++) {
             FileDescriptor fd = (FileDescriptor) fdList.get(i);

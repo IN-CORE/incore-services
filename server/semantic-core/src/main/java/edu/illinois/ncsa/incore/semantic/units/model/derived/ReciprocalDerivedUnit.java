@@ -14,10 +14,10 @@ import edu.illinois.ncsa.incore.semantic.units.model.Unit;
 public final class ReciprocalDerivedUnit extends PowerDerivedUnit {
     public ReciprocalDerivedUnit(NamedUnit operand) {
         super(operand, -1,
-              "reciprocal " + operand.getName(),
-              "reciprocal " + operand.getPlural(),
-              computeSymbol(operand),
-              computeUnicodeSymbol(operand));
+            "reciprocal " + operand.getName(),
+            "reciprocal " + operand.getPlural(),
+            computeSymbol(operand),
+            computeUnicodeSymbol(operand));
 
         super.dimension = Dimension.reciprocal(operand.getDimension());
         super.unitSystem = operand.getUnitSystem();
@@ -25,10 +25,10 @@ public final class ReciprocalDerivedUnit extends PowerDerivedUnit {
 
     public ReciprocalDerivedUnit(NamedUnit operand, Dimension dimension) {
         super(operand, -1,
-              "reciprocal " + operand.getName(),
-              "reciprocal " + operand.getPlural(),
-              computeSymbol(operand),
-              computeUnicodeSymbol(operand));
+            "reciprocal " + operand.getName(),
+            "reciprocal " + operand.getPlural(),
+            computeSymbol(operand),
+            computeUnicodeSymbol(operand));
 
         super.dimension = dimension;
         super.unitSystem = operand.getUnitSystem();

@@ -36,31 +36,31 @@ public class AnalysesController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<? extends AnalysisMetadata> getAnalyses(@QueryParam("category") String category,
-                                      @QueryParam("name") String name,
-                                      @DefaultValue("false") @QueryParam("full") Boolean full,
-                                      @QueryParam("skip") int offset,
-                                      @DefaultValue("100") @QueryParam("limit") int limit) {
+                                                        @QueryParam("name") String name,
+                                                        @DefaultValue("false") @QueryParam("full") Boolean full,
+                                                        @QueryParam("skip") int offset,
+                                                        @DefaultValue("100") @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
-        if(category != null) {
-            queryMap. put("category", category);
+        if (category != null) {
+            queryMap.put("category", category);
         }
 
-        if(name != null) {
+        if (name != null) {
             queryMap.put("name", name);
         }
 
         List<? extends AnalysisMetadata> analyses;
-        if(queryMap.isEmpty() && full) {
+        if (queryMap.isEmpty() && full) {
             analyses = repository.getAllAnalyses();
         } else {
             analyses = repository.getAnalysis(queryMap, offset, limit);
-            if(!full) {
+            if (!full) {
                 List<AnalysisMetadata> metadata = new ArrayList<>();
 
-                for( AnalysisMetadata analysis: analyses) {
-                    AnalysisMetadata metadataItem =  new AnalysisMetadata(new ObjectId(analysis.getId()),
+                for (AnalysisMetadata analysis : analyses) {
+                    AnalysisMetadata metadataItem = new AnalysisMetadata(new ObjectId(analysis.getId()),
                         analysis.getName(), analysis.getDescription(),
                         analysis.getCategory(), analysis.getUrl(), analysis.getHelpContext());
                     metadata.add(metadataItem);
@@ -79,18 +79,18 @@ public class AnalysesController {
     public AnalysisMetadata getAnalysisById(@PathParam("analysisId") String id,
                                             @DefaultValue("true") @QueryParam("full") Boolean full) {
         Analysis analysis = repository.getAnalysisById(id);
-        if(analysis != null) {
-            if(full) {
+        if (analysis != null) {
+            if (full) {
                 return analysis;
             } else {
-               AnalysisMetadata metadata = new AnalysisMetadata(new ObjectId(analysis.getId()),
-                   analysis.getName(), analysis.getDescription(),
-                   analysis.getCategory(), analysis.getUrl(), analysis.getHelpContext());
+                AnalysisMetadata metadata = new AnalysisMetadata(new ObjectId(analysis.getId()),
+                    analysis.getName(), analysis.getDescription(),
+                    analysis.getCategory(), analysis.getUrl(), analysis.getHelpContext());
                 return metadata;
             }
 
         } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No analysis with id: "+ id);
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "No analysis with id: " + id);
         }
 
     }

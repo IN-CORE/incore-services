@@ -41,12 +41,12 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
     private double Vs30, Sa1100;
 
     public CampbellBozorgnia2014() {
-        InputStream coefficientURL = CampbellBozorgnia2014.class.getResourceAsStream("/hazard/earthquake/coefficients/CampbellBozorgnia2014.csv");
+        InputStream coefficientURL = CampbellBozorgnia2014.class.getResourceAsStream("/hazard/earthquake/coefficients" +
+            "/CampbellBozorgnia2014.csv");
         readCoefficients(coefficientURL);
     }
 
-    public double getValue(String period, Site site) throws Exception
-    {
+    public double getValue(String period, Site site) throws Exception {
         // Median predicated value of PGA on rock with Vs30 = 1100 m/sec [g] (rock PGA)
         Sa1100 = getSa1100(site);
 
@@ -67,8 +67,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return y;
     }
 
-    public double calculateCBAttenuation(String period, Site site)
-    {
+    public double calculateCBAttenuation(String period, Site site) {
         loadCoefficients(period);
         EqRupture rupture = EqRupture.getInstance();
 
@@ -141,8 +140,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return y;
     }
 
-    private void loadCoefficients(String period)
-    {
+    private void loadCoefficients(String period) {
         List<Double> periodCoefficients = getCoefficients(period);
         List<Double> pgaCoefficients = getCoefficients(HazardUtil.PGA);
 
@@ -157,12 +155,12 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
 
         // H1 to H6
         for (int i = 0; i < 6; i++) {
-            h[i] = periodCoefficients.get(i+25);
+            h[i] = periodCoefficients.get(i + 25);
         }
 
         // K1 to K3
         for (int i = 0; i < 3; i++) {
-            k[i] = periodCoefficients.get(i+31);
+            k[i] = periodCoefficients.get(i + 31);
         }
 
         C = periodCoefficients.get(34);
@@ -184,8 +182,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         rhoLnPGA_LnY = periodCoefficients.get(42);
     }
 
-    private double calculateMagnitudeTerm(double M)
-    {
+    private double calculateMagnitudeTerm(double M) {
         if (M <= 4.5) {
             return c[0] + (c[1] * M);
         } else if (M > 4.5 && M <= 5.5) {
@@ -197,15 +194,13 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         }
     }
 
-    private double calculateGeometricAttentuationTerm(double magnitude, double rRup)
-    {
+    private double calculateGeometricAttentuationTerm(double magnitude, double rRup) {
         double fDis = (c[5] + (c[6] * magnitude)) * Math.log(Math.sqrt((rRup * rRup) + (c[7] * c[7])));
 
         return fDis;
     }
 
-    private double calculateStyleOfFaultingTerm(double magnitude, double rakeAngle)
-    {
+    private double calculateStyleOfFaultingTerm(double magnitude, double rakeAngle) {
         // Calculate fFlt,M
         double fFltM = 0.0;
 
@@ -230,8 +225,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return fFlt;
     }
 
-    private double calculateHangingWallTerm(double M, double W, double Rrup, double dipAngle, double Rx, double Rjb, double Ztor)
-    {
+    private double calculateHangingWallTerm(double M, double W, double Rrup, double dipAngle, double Rx, double Rjb, double Ztor) {
         double fHngRx = 0;
 
         double R1 = W * Math.cos(Math.toRadians(dipAngle));
@@ -278,8 +272,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return fHng;
     }
 
-    private double getSa1100(Site site)
-    {
+    private double getSa1100(Site site) {
         double originalVs30 = site.getVs30();
 
         try {
@@ -293,8 +286,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return Sa1100;
     }
 
-    private double calculateShallowSiteResponseTerm(double Vs30, double Sj)
-    {
+    private double calculateShallowSiteResponseTerm(double Vs30, double Sj) {
         // if k[PGD] >= 1180 this can cause issues
 
         double fSiteG, fSiteJ;
@@ -318,8 +310,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return fSite;
     }
 
-    private double calculateBasinResponseTerm(double Z2p5, double Sj)
-    {
+    private double calculateBasinResponseTerm(double Z2p5, double Sj) {
         double fSed = 0.0;
 
         if (Z2p5 < 1.0) {
@@ -333,8 +324,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return fSed;
     }
 
-    private double calculateHypocentralDepthTerm(double M, double Zhyp)
-    {
+    private double calculateHypocentralDepthTerm(double M, double Zhyp) {
         double fHypH = 0;
         double fHypM = c[17];
 
@@ -361,8 +351,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return fHyp;
     }
 
-    private double calculateRuptureDipTerm(double M, double dipAngle)
-    {
+    private double calculateRuptureDipTerm(double M, double dipAngle) {
         double fDip = 0;
 
         if (M <= 4.5) {
@@ -376,8 +365,7 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return fDip;
     }
 
-    private double calculateAnelasticAttentuationTerm(double Rrup)
-    {
+    private double calculateAnelasticAttentuationTerm(double Rrup) {
         double fAtn = 0;
 
         if (region.equalsIgnoreCase("Japan") || region.equals("Italy")) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -401,14 +389,12 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return null;
     }
 
-    public double getAleatoricStdDev(String period, Site site) throws Exception
-    {
+    public double getAleatoricStdDev(String period, Site site) throws Exception {
         return 0;
     }
 
-    
-    public double getStandardDeviation(double median_hazard, String period, Site site) throws Exception
-    {
+
+    public double getStandardDeviation(double median_hazard, String period, Site site) throws Exception {
         // This will load up the required values such as Sa1100 and Vs30
         double y = getValue(period, site);
 
@@ -458,13 +444,11 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
     }
 
     // Convenience method, consider moving to BaseAttenuation if it's used elsewhere
-    private double square(double x)
-    {
+    private double square(double x) {
         return Math.pow(x, 2);
     }
 
-    private double getHypocentralDepth(double M, double dip, double Ztor, double Zbor)
-    {
+    private double getHypocentralDepth(double M, double dip, double Ztor, double Zbor) {
         double fDeltaZ_M, fDeltaZ_Dip;
 
         if (M < 6.75) {
@@ -486,93 +470,80 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
         return Zhyp;
     }
 
-    
-    public boolean isRegionRequired()
-    {
+
+    public boolean isRegionRequired() {
         return true;
     }
 
-    
-    public String[] getRegions()
-    {
-        return new String[] { "California", "Japan", "China", "Turkey", "Italy" };
-    };
 
-    
-    public boolean canProduceStandardDeviation()
-    {
+    public String[] getRegions() {
+        return new String[]{"California", "Japan", "China", "Turkey", "Italy"};
+    }
+
+    ;
+
+
+    public boolean canProduceStandardDeviation() {
         return false;
     }
 
-    
-    public String[] getFaultMechanisms()
-    {
-        return new String[] { FaultMechanism.STRIKE_SLIP, FaultMechanism.REVERSE, FaultMechanism.NORMAL };
+
+    public String[] getFaultMechanisms() {
+        return new String[]{FaultMechanism.STRIKE_SLIP, FaultMechanism.REVERSE, FaultMechanism.NORMAL};
     }
 
-    
-    public boolean isFaultTypeRequired()
-    {
+
+    public boolean isFaultTypeRequired() {
         return true;
     }
 
-    
-    public boolean isGeologyRequired()
-    {
+
+    public boolean isGeologyRequired() {
         return false;
     }
 
-    
-    public boolean isDipAngleRequired()
-    {
+
+    public boolean isDipAngleRequired() {
         return true;
     }
 
-    
-    public boolean isAzimuthAngleRequired()
-    {
+
+    public boolean isAzimuthAngleRequired() {
         return true;
     }
 
-    
-    public boolean isCoseismicRuptureDepthRequired()
-    {
+
+    public boolean isCoseismicRuptureDepthRequired() {
         return true;
     }
 
-    
-    public boolean isShearWaveDepthRequired()
-    {
+
+    public boolean isShearWaveDepthRequired() {
         return true;
     }
 
-    
-    public boolean isShearWaveDepth10Required()
-    {
+
+    public boolean isShearWaveDepth10Required() {
         return false;
     }
 
-    
-    public boolean isRakeAngleRequired()
-    {
+
+    public boolean isRakeAngleRequired() {
         return true;
     }
 
-    
-    public boolean isSeismogenicDepthRequired()
-    {
+
+    public boolean isSeismogenicDepthRequired() {
         return false;
     }
 
-    
-    public boolean isSoilMapRequired()
-    {
+
+    public boolean isSoilMapRequired() {
         return false;
     }
 
-    
-    public boolean isSoilTypeRequired()
-    {
+
+    public boolean isSoilTypeRequired() {
         return true;
     }
 }

@@ -44,12 +44,14 @@ public final class Concepts {
     public final static MonetaryConcept contentValue = new MonetaryConcept();
     public final static MonetaryConcept structuralCost = new MonetaryConcept();
 
-    private Concepts() {}
+    private Concepts() {
+    }
 
     static {
         // General Concepts
         latitude.resourceName = "latitude";
-        latitude.description = "Latitude is an angle (defined below) which ranges from 0° at the Equator to 90° (North or South) at the poles.";
+        latitude.description = "Latitude is an angle (defined below) which ranges from 0° at the Equator to 90° (North or South) at the " +
+            "poles.";
         // Validation 0 - 90
 
         // decimal degrees, angles, degree minute second
@@ -149,44 +151,45 @@ public final class Concepts {
         structureType.resourceName = "structure_type";
         structureType.resourceNameShort = "struct_typ";
         structureType.namespace = "hazus/building";
-        structureType.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 45);
+        structureType.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm" +
+            ".pdf", 45);
         structureType.description = "Building Structure Type";
         structureType.aliases = Arrays.asList("struct_type", "struct_typ", "structure_type");
         structureType.enumerations = Arrays.asList(
-                new Enumeration<>("W1", "Wood, Light Frame (\u2264 5,000 sq. ft.)"),
-                new Enumeration<>("W2", "Wood, Commercial and Industrial (> 5,000 sq. ft.)"),
-                new Enumeration<>("S1L", "Steel Moment Frame"),
-                new Enumeration<>("S1M", "Steel Moment Frame"),
-                new Enumeration<>("S1H", "Steel Moment Frame"),
-                new Enumeration<>("S2L", "Steel Braced Frame"),
-                new Enumeration<>("S2M", "Steel Braced Frame"),
-                new Enumeration<>("S2H", "Steel Braced Frame"),
-                new Enumeration<>("S3", "Steel Light Frame"),
-                new Enumeration<>("S4L", "Steel Frame with Cast-in-Place Concrete Shear Walls"),
-                new Enumeration<>("S4M", "Steel Frame with Cast-in-Place Concrete Shear Walls"),
-                new Enumeration<>("S4H", "Steel Frame with Cast-in-Place Concrete Shear Walls"),
-                new Enumeration<>("S5L", "Steel Frame with Unreinforced Masonry Infill Walls"),
-                new Enumeration<>("S5M", "Steel Frame with Unreinforced Masonry Infill Walls"),
-                new Enumeration<>("S5H", "Steel Frame with Unreinforced Masonry Infill Walls"),
-                new Enumeration<>("C1L", "Concrete Moment Frame"),
-                new Enumeration<>("C1M", "Concrete Moment Frame"),
-                new Enumeration<>("C1H", "Concrete Moment Frame"),
-                new Enumeration<>("C2L", "Concrete Shear Walls"),
-                new Enumeration<>("C2M", "Concrete Shear Walls"),
-                new Enumeration<>("C2H", "Concrete Shear Walls"),
-                new Enumeration<>("C3L", "Concrete Frame with Unreinforced Masonry Infill Walls"),
-                new Enumeration<>("C3M", "Concrete Frame with Unreinforced Masonry Infill Walls"),
-                new Enumeration<>("C3H", "Concrete Frame with Unreinforced Masonry Infill Walls"),
-                new Enumeration<>("PC1", "Precast Concrete Tilt-Up Walls"),
-                new Enumeration<>("PC2L", "Precast Concrete Frames with Concrete Shear Walls"),
-                new Enumeration<>("PC2M", "Precast Concrete Frames with Concrete Shear Walls"),
-                new Enumeration<>("PC2H", "Precast Concrete Frames with Concrete Shear Walls"),
-                new Enumeration<>("RM1L", "Reinforced Masonry Bearing Walls with Wood or Metal Deck Diaphragms"),
-                new Enumeration<>("RM1M", "Reinforced Masonry Bearing Walls with Wood or Metal Deck Diaphragms"),
-                new Enumeration<>("RM2L", "Reinforced Masonry Bearing Walls with Precast Concrete Diaphragms"),
-                new Enumeration<>("URML", "Unreinforced Masonry Bearing Walls"),
-                new Enumeration<>("URMM", "Unreinforced Masonry Bearing Walls"),
-                new Enumeration<>("MH", "Mobile Homes")
+            new Enumeration<>("W1", "Wood, Light Frame (\u2264 5,000 sq. ft.)"),
+            new Enumeration<>("W2", "Wood, Commercial and Industrial (> 5,000 sq. ft.)"),
+            new Enumeration<>("S1L", "Steel Moment Frame"),
+            new Enumeration<>("S1M", "Steel Moment Frame"),
+            new Enumeration<>("S1H", "Steel Moment Frame"),
+            new Enumeration<>("S2L", "Steel Braced Frame"),
+            new Enumeration<>("S2M", "Steel Braced Frame"),
+            new Enumeration<>("S2H", "Steel Braced Frame"),
+            new Enumeration<>("S3", "Steel Light Frame"),
+            new Enumeration<>("S4L", "Steel Frame with Cast-in-Place Concrete Shear Walls"),
+            new Enumeration<>("S4M", "Steel Frame with Cast-in-Place Concrete Shear Walls"),
+            new Enumeration<>("S4H", "Steel Frame with Cast-in-Place Concrete Shear Walls"),
+            new Enumeration<>("S5L", "Steel Frame with Unreinforced Masonry Infill Walls"),
+            new Enumeration<>("S5M", "Steel Frame with Unreinforced Masonry Infill Walls"),
+            new Enumeration<>("S5H", "Steel Frame with Unreinforced Masonry Infill Walls"),
+            new Enumeration<>("C1L", "Concrete Moment Frame"),
+            new Enumeration<>("C1M", "Concrete Moment Frame"),
+            new Enumeration<>("C1H", "Concrete Moment Frame"),
+            new Enumeration<>("C2L", "Concrete Shear Walls"),
+            new Enumeration<>("C2M", "Concrete Shear Walls"),
+            new Enumeration<>("C2H", "Concrete Shear Walls"),
+            new Enumeration<>("C3L", "Concrete Frame with Unreinforced Masonry Infill Walls"),
+            new Enumeration<>("C3M", "Concrete Frame with Unreinforced Masonry Infill Walls"),
+            new Enumeration<>("C3H", "Concrete Frame with Unreinforced Masonry Infill Walls"),
+            new Enumeration<>("PC1", "Precast Concrete Tilt-Up Walls"),
+            new Enumeration<>("PC2L", "Precast Concrete Frames with Concrete Shear Walls"),
+            new Enumeration<>("PC2M", "Precast Concrete Frames with Concrete Shear Walls"),
+            new Enumeration<>("PC2H", "Precast Concrete Frames with Concrete Shear Walls"),
+            new Enumeration<>("RM1L", "Reinforced Masonry Bearing Walls with Wood or Metal Deck Diaphragms"),
+            new Enumeration<>("RM1M", "Reinforced Masonry Bearing Walls with Wood or Metal Deck Diaphragms"),
+            new Enumeration<>("RM2L", "Reinforced Masonry Bearing Walls with Precast Concrete Diaphragms"),
+            new Enumeration<>("URML", "Unreinforced Masonry Bearing Walls"),
+            new Enumeration<>("URMM", "Unreinforced Masonry Bearing Walls"),
+            new Enumeration<>("MH", "Mobile Homes")
         );
 
         // Occupancy Type
@@ -194,36 +197,37 @@ public final class Concepts {
         occupancyType.resourceNameShort = "occ_type";
         occupancyType.namespace = "hazus/building";
         occupancyType.aliases = Arrays.asList("occu_type", "occ_typ", "occupancy");
-        occupancyType.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 46);
+        occupancyType.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm" +
+            ".pdf", 46);
         occupancyType.description = "HAZUS MR-3 Building Occupancy Categories";
         occupancyType.enumerations = Arrays.asList(
-                new Enumeration<>("RES1", "Residential - Single Family Dwelling (e.g. House)"),
-                new Enumeration<>("RES2", "Residential - Mobile Home"),
-                new Enumeration<>("RES3", "Residential - Multi-Family Dwelling (e.g. Apartment/Condominium)"),
-                new Enumeration<>("RES4", "Residential - Temporary Lodging (e.g. Hotel/Motel)"),
-                new Enumeration<>("RES5", "Residential - Institutional Dormitory (e.g. Group Housing (military, college), Jails)"),
-                new Enumeration<>("RES6", "Residential - Nursing Home"),
-                new Enumeration<>("COM1", "Commercial - Retail Trade (e.g. Store)"),
-                new Enumeration<>("COM2", "Commercial - Wholesale Trade (e.g. Warehouse)"),
-                new Enumeration<>("COM3", "Commercial - Personal and Repair Services (e.g. Service Station/Shop)"),
-                new Enumeration<>("COM4", "Commercial - Professional/Technical Services (e.g. Offices)"),
-                new Enumeration<>("COM5", "Commercial - Banks"),
-                new Enumeration<>("COM6", "Commercial - Hospitals"),
-                new Enumeration<>("COM7", "Commercial - Medical Office/Clinic"),
-                new Enumeration<>("COM8", "Commercial - Entertainment & Recreation (e.g. Restaurants/Bars)"),
-                new Enumeration<>("COM9", "Commercial - Theaters"),
-                new Enumeration<>("COM10", "Commercial - Parking (e.g. Garages)"),
-                new Enumeration<>("IND1", "Industrial - Heavy (e.g. Factory)"),
-                new Enumeration<>("IND2", "Industrial - Light (e.g. Factory)"),
-                new Enumeration<>("IND3", "Industrial - Food/Drugs/Chemical (e.g. Factory)"),
-                new Enumeration<>("IND4", "Industrial - Metals/Minerals Processing (e.g. Factory)"),
-                new Enumeration<>("IND5", "Industrial - High Technology (e.g. Factory)"),
-                new Enumeration<>("IND6", "Industrial - Construction (e.g. Office)"),
-                new Enumeration<>("AGR1", "Agriculture"),
-                new Enumeration<>("GOV1", "Government - General Services (e.g. Office)"),
-                new Enumeration<>("GOV2", "Government - Emergency Response (e.g. Police/Fire Station/EOC)"),
-                new Enumeration<>("EDU1", "Education - Grade Schools"),
-                new Enumeration<>("EDU2", "Education - Colleges/Universities")
+            new Enumeration<>("RES1", "Residential - Single Family Dwelling (e.g. House)"),
+            new Enumeration<>("RES2", "Residential - Mobile Home"),
+            new Enumeration<>("RES3", "Residential - Multi-Family Dwelling (e.g. Apartment/Condominium)"),
+            new Enumeration<>("RES4", "Residential - Temporary Lodging (e.g. Hotel/Motel)"),
+            new Enumeration<>("RES5", "Residential - Institutional Dormitory (e.g. Group Housing (military, college), Jails)"),
+            new Enumeration<>("RES6", "Residential - Nursing Home"),
+            new Enumeration<>("COM1", "Commercial - Retail Trade (e.g. Store)"),
+            new Enumeration<>("COM2", "Commercial - Wholesale Trade (e.g. Warehouse)"),
+            new Enumeration<>("COM3", "Commercial - Personal and Repair Services (e.g. Service Station/Shop)"),
+            new Enumeration<>("COM4", "Commercial - Professional/Technical Services (e.g. Offices)"),
+            new Enumeration<>("COM5", "Commercial - Banks"),
+            new Enumeration<>("COM6", "Commercial - Hospitals"),
+            new Enumeration<>("COM7", "Commercial - Medical Office/Clinic"),
+            new Enumeration<>("COM8", "Commercial - Entertainment & Recreation (e.g. Restaurants/Bars)"),
+            new Enumeration<>("COM9", "Commercial - Theaters"),
+            new Enumeration<>("COM10", "Commercial - Parking (e.g. Garages)"),
+            new Enumeration<>("IND1", "Industrial - Heavy (e.g. Factory)"),
+            new Enumeration<>("IND2", "Industrial - Light (e.g. Factory)"),
+            new Enumeration<>("IND3", "Industrial - Food/Drugs/Chemical (e.g. Factory)"),
+            new Enumeration<>("IND4", "Industrial - Metals/Minerals Processing (e.g. Factory)"),
+            new Enumeration<>("IND5", "Industrial - High Technology (e.g. Factory)"),
+            new Enumeration<>("IND6", "Industrial - Construction (e.g. Office)"),
+            new Enumeration<>("AGR1", "Agriculture"),
+            new Enumeration<>("GOV1", "Government - General Services (e.g. Office)"),
+            new Enumeration<>("GOV2", "Government - Emergency Response (e.g. Police/Fire Station/EOC)"),
+            new Enumeration<>("EDU1", "Education - Grade Schools"),
+            new Enumeration<>("EDU2", "Education - Colleges/Universities")
         );
 
         // Foundation Type
@@ -234,12 +238,12 @@ public final class Concepts {
         basementType.aliases = Arrays.asList("bsmt_type", "bsmt_typ");
         basementType.description = "Specifies the type of basement for the building";
         basementType.enumerations = Arrays.asList(
-                new Enumeration<>("COMMERCIAL BSMT", "Commercial Basement"),
-                new Enumeration<>("CRAWL=0-24%", "Crawlspace Basement"),
-                new Enumeration<>("PART=25-75%", "Part basement"),
-                new Enumeration<>("FULL>=75%", "Full basement"),
-                new Enumeration<>("SLAB", "Slab Foundation"),
-                new Enumeration<>("NONE", "No basement")
+            new Enumeration<>("COMMERCIAL BSMT", "Commercial Basement"),
+            new Enumeration<>("CRAWL=0-24%", "Crawlspace Basement"),
+            new Enumeration<>("PART=25-75%", "Part basement"),
+            new Enumeration<>("FULL>=75%", "Full basement"),
+            new Enumeration<>("SLAB", "Slab Foundation"),
+            new Enumeration<>("NONE", "No basement")
         );
 
         // Appraised Building Value
@@ -255,7 +259,8 @@ public final class Concepts {
         replacementCost.resourceNameShort = "repl_cost";
         replacementCost.description = "Replacement cost for the building";
         replacementCost.namespace = "building";
-        replacementCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 59);
+        replacementCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm" +
+            ".pdf", 59);
         replacementCost.aliases = Arrays.asList("repl_cst");
         replacementCost.commonCurrencies = Arrays.asList(Currency.getInstance("USD"), Currency.getInstance("CAD"));
 
@@ -263,7 +268,8 @@ public final class Concepts {
         accelerationSensitiveCost.resourceNameShort = "as_repl_cst";
         accelerationSensitiveCost.description = "Acceleration-sensitive Non-structural Component of the Replacement cost for the building";
         accelerationSensitiveCost.namespace = "building";
-        accelerationSensitiveCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 59);
+        accelerationSensitiveCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286" +
+            "/hzmh2_1_eq_tm.pdf", 59);
         accelerationSensitiveCost.aliases = Arrays.asList("cnsa", "acc_repl_cst", "nstra_cst");
         accelerationSensitiveCost.commonCurrencies = Arrays.asList(Currency.getInstance("USD"), Currency.getInstance("CAD"));
 
@@ -271,7 +277,8 @@ public final class Concepts {
         displacementSensitiveCost.resourceNameShort = "ds_repl_cst";
         displacementSensitiveCost.description = "Drift-sensitive Non-structural Component of the Replacement cost for the building";
         displacementSensitiveCost.namespace = "building";
-        displacementSensitiveCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 59);
+        displacementSensitiveCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286" +
+            "/hzmh2_1_eq_tm.pdf", 59);
         displacementSensitiveCost.aliases = Arrays.asList("cnsd", "nstrd_cst");
         displacementSensitiveCost.commonCurrencies = Arrays.asList(Currency.getInstance("USD"), Currency.getInstance("CAD"));
 
@@ -279,7 +286,8 @@ public final class Concepts {
         contentValue.resourceNameShort = "cont_cost";
         contentValue.description = "Replacement value for contents in the building";
         contentValue.namespace = "building";
-        contentValue.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 70);
+        contentValue.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf"
+            , 70);
         contentValue.aliases = Arrays.asList("crv", "content_replacement_value", "con_repl_val", "cont_val");
         contentValue.commonCurrencies = Arrays.asList(Currency.getInstance("USD"), Currency.getInstance("CAD"));
 
@@ -287,7 +295,8 @@ public final class Concepts {
         structuralCost.resourceNameShort = "struct_cst";
         structuralCost.description = "Replacement cost for the Structural Component of the building";
         structuralCost.namespace = "building";
-        structuralCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 59);
+        structuralCost.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm" +
+            ".pdf", 59);
         structuralCost.aliases = Arrays.asList("src", "srv", "structural_replacement_value", "str_val", "str_cst");
         structuralCost.commonCurrencies = Arrays.asList(Currency.getInstance("USD"), Currency.getInstance("CAD"));
 
@@ -295,8 +304,10 @@ public final class Concepts {
         buildingDesignType.resourceNameShort = "bldg_dsgn";
         buildingDesignType.description = "HAZUS MR-3 Building Design Code";
         buildingDesignType.namespace = "hazus/building";
-        buildingDesignType.aliases = Arrays.asList("dsgn_level", "design_level", "dsgn_lvl", "design_lvl", "bld_typ", "build_type", "bldg_type", "dgn_lvl");
-        buildingDesignType.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286/hzmh2_1_eq_tm.pdf", 168);
+        buildingDesignType.aliases = Arrays.asList("dsgn_level", "design_level", "dsgn_lvl", "design_lvl", "bld_typ", "build_type",
+            "bldg_type", "dgn_lvl");
+        buildingDesignType.reference = new PdfWebReference("https://www.fema.gov/media-library-data/20130726-1820-25045-6286" +
+            "/hzmh2_1_eq_tm.pdf", 168);
         buildingDesignType.namespace = "building";
         buildingDesignType.enumerations = Arrays.asList(
             new Enumeration<>("High - Code", "High Strength, High Ductility"),
@@ -307,14 +318,14 @@ public final class Concepts {
     }
 
     public static List<Concept> All = Arrays.asList(buildingArea, numberOfStories, structureType, appraisedBuildingValue, basementType,
-                                                    aboveGroundStories, belowGroundStories, buildingAreaGround, occupancyType, yearConstructed,
-                                                    parcelId, buildingId, replacementCost, contentValue, accelerationSensitiveCost,
-                                                    displacementSensitiveCost, buildingDesignType, structuralCost);
+        aboveGroundStories, belowGroundStories, buildingAreaGround, occupancyType, yearConstructed,
+        parcelId, buildingId, replacementCost, contentValue, accelerationSensitiveCost,
+        displacementSensitiveCost, buildingDesignType, structuralCost);
 
     public static Optional<Concept> getByName(String name) {
         return All.stream()
-                  .filter(concept -> concept.getResourceName().equals(name) || concept.getResourceNameShort().equals(name))
-                  .findFirst();
+            .filter(concept -> concept.getResourceName().equals(name) || concept.getResourceNameShort().equals(name))
+            .findFirst();
     }
 
     public static Optional<Concept> getByNameOrAlias(String name) {
@@ -324,8 +335,8 @@ public final class Concepts {
             return result;
         } else {
             return All.stream()
-                      .filter(concept -> concept.getAliases().contains(name))
-                      .findFirst();
+                .filter(concept -> concept.getAliases().contains(name))
+                .findFirst();
         }
     }
 }

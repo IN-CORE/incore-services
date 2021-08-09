@@ -16,34 +16,36 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class SIUnits {
-    private SIUnits() {}
+    private SIUnits() {
+    }
 
-    public static void initialize() {}
+    public static void initialize() {
+    }
 
     public static final PrefixableUnit metre = new PrefixableUnit("metre", "metres", "m",
-                                                                  Dimensions.length, UnitSystem.SI);
+        Dimensions.length, UnitSystem.SI);
 
     public static final PrefixedUnit centimetre = new PrefixedUnit(Prefixes.centi, metre);
 
     public static final PrefixableUnit gram = new PrefixableUnit("gram", "grams", "g",
-                                                                 Dimensions.mass, UnitSystem.SI);
+        Dimensions.mass, UnitSystem.SI);
 
     public static final PrefixedUnit kilogram = new PrefixedUnit(Prefixes.kilo, gram);
 
     public static final PrefixableUnit second = new PrefixableUnit("second", "seconds", "s",
-                                                                   Dimensions.time, UnitSystem.SI);
+        Dimensions.time, UnitSystem.SI);
 
     public static final PrefixableUnit ampere = new PrefixableUnit("ampere", "amperes", "A",
-                                                                   Dimensions.electricCurrent, UnitSystem.SI);
+        Dimensions.electricCurrent, UnitSystem.SI);
 
     public static final PrefixableUnit kelvin = new PrefixableUnit("kelvin", "kelvin", "K",
-                                                                   Dimensions.temperature, UnitSystem.SI);
+        Dimensions.temperature, UnitSystem.SI);
 
     public static final PrefixableUnit mole = new PrefixableUnit("mole", "moles", "mol",
-                                                                 Dimensions.amountOfSubstance, UnitSystem.SI);
+        Dimensions.amountOfSubstance, UnitSystem.SI);
 
     public static final PrefixableUnit candela = new PrefixableUnit("candela", "candela", "cd",
-                                                                    Dimensions.luminousIntensity, UnitSystem.SI);
+        Dimensions.luminousIntensity, UnitSystem.SI);
 
     // Aliases
     public static final PrefixableUnit meter = metre;

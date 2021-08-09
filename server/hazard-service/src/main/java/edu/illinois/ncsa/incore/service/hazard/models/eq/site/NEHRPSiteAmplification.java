@@ -23,15 +23,14 @@ public class NEHRPSiteAmplification extends SiteAmplification {
         initializeNEHRPSiteFactors();
     }
 
-    private void initializeNEHRPSiteFactors()
-    {
-        shortPeriodFactors = new double[][] { { 0.8, 1.0, 1.2, 1.6, 2.5 }, { 0.8, 1.0, 1.2, 1.4, 1.7 }, { 0.8, 1.0, 1.1, 1.2, 1.2 },
-                { 0.8, 1.0, 1.0, 1.1, 0.9 }, { 0.8, 1.0, 1.0, 1.0, 0.9 } };
-        shortPeriodIntervals = new double[] { 0.25, 0.5, 0.75, 1.0, 1.25 };
+    private void initializeNEHRPSiteFactors() {
+        shortPeriodFactors = new double[][]{{0.8, 1.0, 1.2, 1.6, 2.5}, {0.8, 1.0, 1.2, 1.4, 1.7}, {0.8, 1.0, 1.1, 1.2, 1.2},
+            {0.8, 1.0, 1.0, 1.1, 0.9}, {0.8, 1.0, 1.0, 1.0, 0.9}};
+        shortPeriodIntervals = new double[]{0.25, 0.5, 0.75, 1.0, 1.25};
 
-        longPeriodFactors = new double[][] { { 0.8, 1.0, 1.7, 2.4, 3.5 }, { 0.8, 1.0, 1.6, 2.0, 3.2 }, { 0.8, 1.0, 1.5, 1.8, 2.8 },
-                { 0.8, 1.0, 1.4, 1.6, 2.4 }, { 0.8, 1.0, 1.3, 1.5, 2.4 } };
-        longPeriodIntervals = new double[] { 0.1, 0.2, 0.3, 0.4, 0.5 };
+        longPeriodFactors = new double[][]{{0.8, 1.0, 1.7, 2.4, 3.5}, {0.8, 1.0, 1.6, 2.0, 3.2}, {0.8, 1.0, 1.5, 1.8, 2.8},
+            {0.8, 1.0, 1.4, 1.6, 2.4}, {0.8, 1.0, 1.3, 1.5, 2.4}};
+        longPeriodIntervals = new double[]{0.1, 0.2, 0.3, 0.4, 0.5};
     }
 
     @Override
@@ -40,23 +39,24 @@ public class NEHRPSiteAmplification extends SiteAmplification {
             period = "0.0"; //$NON-NLS-1$
         }
 
-        if (period.equalsIgnoreCase("0.0") || period.equalsIgnoreCase("0.2") || period.equals("0.3")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if (period.equalsIgnoreCase("0.0") || period.equalsIgnoreCase("0.2") || period.equals("0.3")) { //$NON-NLS-1$ //$NON-NLS-2$
+            // $NON-NLS-3$
             return getShortPeriodAmplificationFactor(siteClass, hazardValue);
-        } else if (period.equalsIgnoreCase("1.0") || period.equalsIgnoreCase("1") || period.equalsIgnoreCase(HazardUtil.PGV)) { //$NON-NLS-1$ //$NON-NLS-2$
+        } else if (period.equalsIgnoreCase("1.0") || period.equalsIgnoreCase("1") || period.equalsIgnoreCase(HazardUtil.PGV)) { //$NON
+            // -NLS-1$ //$NON-NLS-2$
             return getLongPeriodAmplificationFactor(siteClass, hazardValue);
         }
         return 1.0;
     }
 
-    private double getShortPeriodAmplificationFactor(int siteClass, double hazardValue)
-    {
+    private double getShortPeriodAmplificationFactor(int siteClass, double hazardValue) {
         if (siteClass == 5) {
             int[] rows = getShortPeriodRows(hazardValue);
             if (rows[0] == rows[1]) {
                 return shortPeriodFactors[rows[0]][4];
             } else {
                 return linearInterpolateAmplification(shortPeriodIntervals[rows[0]], shortPeriodFactors[rows[0]][4],
-                        shortPeriodIntervals[rows[1]], shortPeriodFactors[rows[1]][4], hazardValue);
+                    shortPeriodIntervals[rows[1]], shortPeriodFactors[rows[1]][4], hazardValue);
             }
         } else {
             int[] rows = getShortPeriodRows(hazardValue);
@@ -64,13 +64,12 @@ public class NEHRPSiteAmplification extends SiteAmplification {
                 return shortPeriodFactors[rows[0]][siteClass];
             } else {
                 return linearInterpolateAmplification(shortPeriodIntervals[rows[0]], shortPeriodFactors[rows[0]][siteClass],
-                        shortPeriodIntervals[rows[1]], shortPeriodFactors[rows[1]][siteClass], hazardValue);
+                    shortPeriodIntervals[rows[1]], shortPeriodFactors[rows[1]][siteClass], hazardValue);
             }
         }
     }
 
-    private int[] getShortPeriodRows(double hazard)
-    {
+    private int[] getShortPeriodRows(double hazard) {
         int[] rows = new int[2];
         for (int index = 0; index < shortPeriodIntervals.length; index++) {
             double lowerBound = shortPeriodIntervals[index];
@@ -105,15 +104,14 @@ public class NEHRPSiteAmplification extends SiteAmplification {
         return rows;
     }
 
-    private double getLongPeriodAmplificationFactor(int siteClass, double hazardValue)
-    {
+    private double getLongPeriodAmplificationFactor(int siteClass, double hazardValue) {
         if (siteClass == 5) {
             int[] rows = getLongPeriodRows(hazardValue);
             if (rows[0] == rows[1]) {
                 return longPeriodFactors[rows[0]][4];
             } else {
                 return linearInterpolateAmplification(longPeriodIntervals[rows[0]], longPeriodFactors[rows[0]][4],
-                        longPeriodIntervals[rows[1]], longPeriodFactors[rows[1]][4], hazardValue);
+                    longPeriodIntervals[rows[1]], longPeriodFactors[rows[1]][4], hazardValue);
             }
         } else {
             int[] rows = getLongPeriodRows(hazardValue);
@@ -121,13 +119,12 @@ public class NEHRPSiteAmplification extends SiteAmplification {
                 return longPeriodFactors[rows[0]][siteClass];
             } else {
                 return linearInterpolateAmplification(longPeriodIntervals[rows[0]], longPeriodFactors[rows[0]][siteClass],
-                        longPeriodIntervals[rows[1]], longPeriodFactors[rows[1]][siteClass], hazardValue);
+                    longPeriodIntervals[rows[1]], longPeriodFactors[rows[1]][siteClass], hazardValue);
             }
         }
     }
 
-    private int[] getLongPeriodRows(double hazard)
-    {
+    private int[] getLongPeriodRows(double hazard) {
         int[] rows = new int[2];
 
         for (int index = 0; index < longPeriodIntervals.length; index++) {
@@ -163,8 +160,7 @@ public class NEHRPSiteAmplification extends SiteAmplification {
         return rows;
     }
 
-    private double linearInterpolateAmplification(double x0, double y0, double x1, double y1, double x)
-    {
+    private double linearInterpolateAmplification(double x0, double y0, double x1, double y1, double x) {
         // alpha is the same for both magnitudes since they share the same
         // distances
         double alpha = (x - x0) / (x1 - x0);

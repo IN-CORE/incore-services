@@ -19,7 +19,8 @@ public final class StringRepresentationUtil {
     public static final Map<Integer, String> PowerToNames = new HashMap<>();
     public static final Map<String, Integer> NamesToPower = new HashMap<>();
 
-    private StringRepresentationUtil() {}
+    private StringRepresentationUtil() {
+    }
 
     static {
         PowerToNames.put(2, "square");
@@ -99,7 +100,7 @@ public final class StringRepresentationUtil {
      */
     public static int indexOfUnicodePower(String str) {
         String[] powers = new String[]{"\u207A", "\u207B", "\u2070", "\u00B9", "\u00B2", "\u00B3",
-                "\u2074", "\u2075", "\u2076", "\u2077", "\u2078", "\u2079"};
+            "\u2074", "\u2075", "\u2076", "\u2077", "\u2078", "\u2079"};
 
         int index = StringUtils.indexOfAny(str, powers);
 
@@ -162,9 +163,9 @@ public final class StringRepresentationUtil {
     public static String convertToResourceName(String name) {
         // replace any character not in a-z
         String resourceName = name.toLowerCase()
-                                  .replace("'", "")
-                                  .replaceAll("\\s+", "_")
-                                  .replaceAll("[^\\w]", "");
+            .replace("'", "")
+            .replaceAll("\\s+", "_")
+            .replaceAll("[^\\w]", "");
 
         return resourceName;
     }

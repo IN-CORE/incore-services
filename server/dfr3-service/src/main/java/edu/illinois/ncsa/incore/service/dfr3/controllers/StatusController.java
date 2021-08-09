@@ -111,8 +111,7 @@ public class StatusController {
         int connTimeoutProp = 0;
         try {
             connTimeoutProp = Integer.parseInt(System.getenv("MONGO_STATUS_CONN_TIMEOUT"));
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             connTimeoutProp = 0;
         }
         if (connTimeoutProp > 0) {

@@ -24,7 +24,8 @@ public abstract class Dimension implements ISymbol, ISerializable {
     protected String symbol;
     protected String unicodeSymbol;
 
-    protected Dimension() {}
+    protected Dimension() {
+    }
 
     protected Dimension(String name) {
         this.name = name;
@@ -171,8 +172,8 @@ public abstract class Dimension implements ISymbol, ISerializable {
         Dimension dimension = (Dimension) obj;
 
         return Objects.equals(name, dimension.name) &&
-                Objects.equals(symbol, dimension.symbol) &&
-                Objects.equals(unicodeSymbol, dimension.unicodeSymbol);
+            Objects.equals(symbol, dimension.symbol) &&
+            Objects.equals(unicodeSymbol, dimension.unicodeSymbol);
     }
 
     @Override

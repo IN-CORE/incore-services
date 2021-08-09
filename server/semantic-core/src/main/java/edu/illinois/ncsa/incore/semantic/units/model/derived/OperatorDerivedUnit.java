@@ -67,7 +67,7 @@ public abstract class OperatorDerivedUnit extends DerivedUnit {
         OperatorDerivedUnit unit = (OperatorDerivedUnit) obj;
 
         return Objects.equals(leftOperand, unit.leftOperand) &&
-                Objects.equals(rightOperand, unit.rightOperand);
+            Objects.equals(rightOperand, unit.rightOperand);
     }
 
     @Override

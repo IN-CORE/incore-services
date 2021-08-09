@@ -99,9 +99,9 @@ public class MongoDBRepository implements IRepository {
         Query<Dataset> datasetQuery = null;
         if (withHazard) {
             datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
-            Filters.regex(DATASET_FIELD_CREATOR).pattern(creator).caseInsensitive(),
-            Filters.in(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
-        ));
+                Filters.regex(DATASET_FIELD_CREATOR).pattern(creator).caseInsensitive(),
+                Filters.in(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
+            ));
         } else {
             datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
                 Filters.regex(DATASET_FIELD_CREATOR).pattern(creator).caseInsensitive(),

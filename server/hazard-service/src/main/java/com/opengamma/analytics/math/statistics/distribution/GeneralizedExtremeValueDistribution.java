@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2009 - present by OpenGamma Inc. and the OpenGamma group of companies
- *
+ * <p>
  * Modifications copyright (C) 2017 NCSA
- *
+ * <p>
  * Please see distribution for license.
  */
 package com.opengamma.analytics.math.statistics.distribution;
@@ -62,8 +62,7 @@ import com.opengamma.strata.collect.ArgChecker;
  * $$
  *
  */
-public class GeneralizedExtremeValueDistribution implements ProbabilityDistribution<Double>
-{
+public class GeneralizedExtremeValueDistribution implements ProbabilityDistribution<Double> {
     // Added by NCSA to complete implementation of nextRandom()
     private MersenneTwister random = new MersenneTwister();
     private ExponentialDistribution distribution;
@@ -82,8 +81,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
      * @param ksi
      *            The shape parameter
      */
-    public GeneralizedExtremeValueDistribution(final double mu, final double sigma, final double ksi)
-    {
+    public GeneralizedExtremeValueDistribution(final double mu, final double sigma, final double ksi) {
         ArgChecker.isTrue(sigma >= 0, "sigma must be >= 0");
         _mu = mu;
         _sigma = sigma;
@@ -102,8 +100,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
      * @param seed
      *            The random seed parameter
      */
-    public GeneralizedExtremeValueDistribution(final double mu, final double sigma, final double ksi, final int seed)
-    {
+    public GeneralizedExtremeValueDistribution(final double mu, final double sigma, final double ksi, final int seed) {
         ArgChecker.isTrue(sigma >= 0, "sigma must be >= 0");
         _mu = mu;
         _sigma = sigma;
@@ -120,8 +117,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
      *             If $x \not\in$ support
      */
     @Override
-    public double getCDF(final Double x)
-    {
+    public double getCDF(final Double x) {
         ArgChecker.notNull(x, "x");
         return Math.exp(-getT(x));
     }
@@ -134,8 +130,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
      *             always
      */
     @Override
-    public double getInverseCDF(final Double p)
-    {
+    public double getInverseCDF(final Double p) {
         throw new UnsupportedOperationException();
     }
 
@@ -146,8 +141,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
      *             If $x \not\in$ support
      */
     @Override
-    public double getPDF(final Double x)
-    {
+    public double getPDF(final Double x) {
         ArgChecker.notNull(x, "x");
         final double t = getT(x);
         return Math.pow(t, _ksi + 1) * Math.exp(-t) / _sigma;
@@ -158,8 +152,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
      * @return
      */
     @Override
-    public double nextRandom()
-    {
+    public double nextRandom() {
         if (distribution == null) {
             distribution = new ExponentialDistribution(random, 1.0);
         }
@@ -168,35 +161,32 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
             return Double.NaN;
         }
 
-        return _ksi == 0 ? (_mu - _sigma * Math.log(distribution.sample())) : (_mu + _sigma * ((Math.pow(distribution.sample(), -1 * _ksi) - 1) / _ksi));
+        return _ksi == 0 ? (_mu - _sigma * Math.log(distribution.sample())) : (_mu + _sigma * ((Math.pow(distribution.sample(),
+            -1 * _ksi) - 1) / _ksi));
     }
 
     /**
      * @return The location parameter
      */
-    public double getMu()
-    {
+    public double getMu() {
         return _mu;
     }
 
     /**
      * @return The scale parameter
      */
-    public double getSigma()
-    {
+    public double getSigma() {
         return _sigma;
     }
 
     /**
      * @return The shape parameter
      */
-    public double getKsi()
-    {
+    public double getKsi() {
         return _ksi;
     }
 
-    private double getT(final double x)
-    {
+    private double getT(final double x) {
         if (_ksiIsZero) {
             return Math.exp(-(x - _mu) / _sigma);
         }
@@ -210,8 +200,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         final int prime = 31;
         int result = 1;
         long temp;
@@ -225,8 +214,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
     }
 
     @Override
-    public boolean equals(final Object obj)
-    {
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }

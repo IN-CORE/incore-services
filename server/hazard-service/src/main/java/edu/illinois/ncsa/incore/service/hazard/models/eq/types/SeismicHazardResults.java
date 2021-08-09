@@ -8,6 +8,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.types;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
+
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 
 @XmlRootElement

@@ -131,7 +131,10 @@ public class FragilityController {
                 .filter(fragility -> spaceMembers.contains(fragility.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
 
             return fragilitySets;
@@ -143,7 +146,10 @@ public class FragilityController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleFragilities;
@@ -182,7 +188,8 @@ public class FragilityController {
                 fs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
                 return fs;
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the fragility with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "fragility with id " + id);
             }
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + id);
@@ -192,14 +199,16 @@ public class FragilityController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{fragilityId}")
     @ApiOperation(value = "Deletes a fragility by id")
-    public FragilitySet deleteFragilityById(@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
+    public FragilitySet deleteFragilityById(@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam(
+        "fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
 //                Check for references in mappings, if found give 409
-                if(this.mappingDAO.isCurvePresentInMappings(id)){
-                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping. It can not be deleted until" +
+                if (this.mappingDAO.isCurvePresentInMappings(id)) {
+                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping. It" +
+                        " can not be deleted until" +
                         " all its references are removed from mappings");
                 } else {
 //                    remove id from spaces
@@ -214,7 +223,8 @@ public class FragilityController {
                     return this.fragilityDAO.deleteFragilitySetById(id);
                 }
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the fragility with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the " +
+                    "fragility with id " + id);
             }
         } else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + id);
@@ -231,24 +241,27 @@ public class FragilityController {
     public List<FragilitySet> findFragilities(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
                                               @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                               @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-            List<FragilitySet> sets = new ArrayList<>();
-            Optional<FragilitySet> fs = this.fragilityDAO.getFragilitySetById(text);
-            if (fs.isPresent()) {
-                sets.add(fs.get());
-            } else {
-                sets = this.fragilityDAO.searchFragilities(text);
-            }
+        List<FragilitySet> sets = new ArrayList<>();
+        Optional<FragilitySet> fs = this.fragilityDAO.getFragilitySetById(text);
+        if (fs.isPresent()) {
+            sets.add(fs.get());
+        } else {
+            sets = this.fragilityDAO.searchFragilities(text);
+        }
 
-            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-            List<FragilitySet> accessibleFragilities = sets.stream()
-                .filter(b -> membersSet.contains(b.getId()))
-                .skip(offset)
-                .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
-                .collect(Collectors.toList());
+        List<FragilitySet> accessibleFragilities = sets.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
+            .collect(Collectors.toList());
 
-            return accessibleFragilities;
+        return accessibleFragilities;
 
     }
 

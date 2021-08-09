@@ -11,19 +11,19 @@ public class Members {
     @JsonProperty("members")
     private List<String> members;
 
-    public Members(){
+    public Members() {
         this.members = new ArrayList<>();
     }
 
-    public Members(List<String> members){
+    public Members(List<String> members) {
         this.members = members;
     }
 
-    public List<String> getMembers(){
+    public List<String> getMembers() {
         return this.members;
     }
 
-    public void setMembers(List<String> members){
+    public void setMembers(List<String> members) {
         this.members = members;
     }
 
@@ -32,8 +32,8 @@ public class Members {
     }
 
     public boolean hasMember(String member) {
-        if(this.members == null) return false;
-        for(String datasetId : this.members){
+        if (this.members == null) return false;
+        for (String datasetId : this.members) {
             if (datasetId.equals(member))
                 return true;
         }

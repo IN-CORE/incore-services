@@ -22,6 +22,7 @@ public class TableMetadata {
     public List<ColumnMetadata> getColumnMetadata() {
         return columnMetadata;
     }
+
     public void setColumnMetadata(List<ColumnMetadata> columnMetadata) {
         this.columnMetadata = columnMetadata;
     }

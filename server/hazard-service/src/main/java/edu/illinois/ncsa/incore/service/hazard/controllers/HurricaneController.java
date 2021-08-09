@@ -79,14 +79,18 @@ public class HurricaneController {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find any space with name " + spaceName);
             }
             if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             hurricanes = hurricanes.stream()
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
 
             return hurricanes;
@@ -97,7 +101,10 @@ public class HurricaneController {
             .filter(hurricane -> membersSet.contains(hurricane.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleHurricanes;
@@ -128,7 +135,7 @@ public class HurricaneController {
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new hurricane, the newly created hurricane is returned.",
-        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create dataset-based hurricanes only.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "hurricane", value = "Hurricane json.", required = true, dataType = "string", paramType = "form"),
@@ -167,7 +174,7 @@ public class HurricaneController {
 
                         String demandType = hazardDataset.getDemandType();
                         String datasetName = demandType;
-                        BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
+                        BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
@@ -179,7 +186,7 @@ public class HurricaneController {
                     hurricane = repository.addHurricane(hurricane);
 
                     Space space = spaceRepository.getSpaceByName(this.username);
-                    if(space == null) {
+                    if (space == null) {
                         space = new Space(this.username);
                         space.setPrivileges(Privileges.newWithSingleOwner(this.username));
                     }
@@ -189,13 +196,15 @@ public class HurricaneController {
                     hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricane.getId()));
                     return hurricane;
                 } else {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create hurricane, no files were attached with your request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create hurricane, no files were attached with " +
+                        "your request.");
                 }
             }
 
         } catch (IOException e) {
             log.error("Error mapping the request to a supported hurricane type.", e);
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported hurricane type. " + e.getMessage());
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported hurricane type" +
+                ". " + e.getMessage());
         } catch (IllegalArgumentException e) {
             log.error("Illegal Argument has been passed in.", e);
         }
@@ -219,8 +228,9 @@ public class HurricaneController {
         ObjectMapper mapper = new ObjectMapper();
         try {
             List<ValuesResponse> valResponse = new ArrayList<>();
-            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
-            for(ValuesRequest request: valuesRequest){
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
+            });
+            for (ValuesRequest request : valuesRequest) {
                 List<String> demands = request.getDemands();
                 List<String> units = request.getUnits();
                 List<Double> hazVals = new ArrayList<>();
@@ -228,13 +238,14 @@ public class HurricaneController {
                 CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
 
                 try {
-                    for(int i=0; i < demands.size(); i++){
+                    for (int i = 0; i < demands.size(); i++) {
                         HurricaneHazardResult res = HurricaneCalc.getHurricaneHazardValue(hurricane, demands.get(i),
                             units.get(i), request.getLoc(), this.username);
                         hazVals.add(res.getHazardValue());
                     }
                 } catch (UnsupportedHazardException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
+                        "demands and units provided are supported" +
                         " for all the locations");
                 }
 
@@ -246,10 +257,11 @@ public class HurricaneController {
                 valResponse.add(response);
             }
             return valResponse;
-        }catch(IOException ex){
+        } catch (IOException ex) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
         } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
+                "request.");
         }
     }
 
@@ -260,7 +272,8 @@ public class HurricaneController {
     @Deprecated
     public List<HurricaneHazardResult> getHurricaneHazardValues(
         @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId,
-        @ApiParam(value = "Hurricane demand type. Ex: 'waveHeight, surgeLevel, inundationDuration'.", required = true) @QueryParam("demandType") String demandType,
+        @ApiParam(value = "Hurricane demand type. Ex: 'waveHeight, surgeLevel, inundationDuration'.", required = true) @QueryParam(
+            "demandType") String demandType,
         @ApiParam(value = "Hurricane demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
         @ApiParam(value = "List of points provided as lat,long. Ex: '46.01,-123.94'.", required = true) @QueryParam("point") List<IncorePoint> points) {
 

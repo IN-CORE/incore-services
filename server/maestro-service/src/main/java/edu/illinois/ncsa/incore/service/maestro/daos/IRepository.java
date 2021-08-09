@@ -18,9 +18,14 @@ import java.util.Map;
 
 public interface IRepository {
     void initialize();
+
     List<Analysis> getAllAnalyses();
+
     List<Analysis> getAnalysis(Map<String, String> queryParams, int offset, int limit);
+
     Analysis getAnalysisById(String id);
+
     Analysis addAnalysis(Analysis analysis);
+
     Datastore getDataStore();
 }

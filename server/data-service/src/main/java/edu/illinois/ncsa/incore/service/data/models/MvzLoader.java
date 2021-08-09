@@ -38,7 +38,7 @@ public class MvzLoader {
     public static final String TAG_FEATURE_TYPE_NAME = "feature-type-name";
     public static final String TAG_CONVERTED_FEATURE_TYPE_NAME = "converted-feature-type-name";
     public static final String TAG_GEOMETRY_TYPE = "geometry-type";
-    public static final String TAG_LOCATION ="location";
+    public static final String TAG_LOCATION = "location";
     public static final String TAG_DESCRIPTION = "desription";
     public static final String TAG_DATASET_ID = "dataset-id";
     public static final String TAG_MAEVIZ_MAPPING = "maeviz-mapping";
@@ -61,14 +61,15 @@ public class MvzLoader {
 
     public static final Logger logger = Logger.getLogger(MvzLoader.class);
 
-    public static MvzDataset createMvzDatasetFromMetadata(String inUrl){
+    public static MvzDataset createMvzDatasetFromMetadata(String inUrl) {
         MvzDataset mvzDataset = new MvzDataset();
         try {
             File metadata = FileUtils.loadMetadataFromRepository(inUrl);
             mvzDataset = setMvzDatasetFromMetadata(metadata, inUrl);
 
         } catch (IOException e) {
-            e.printStackTrace();;
+            e.printStackTrace();
+            ;
             String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
 
@@ -225,7 +226,8 @@ public class MvzLoader {
                         if (!(metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA) instanceof String)) {
                             if (((JSONObject) (metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA))).has(TAG_COLUMN_METADATA)) {
                                 if (((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA) instanceof JSONObject) {
-                                    JSONObject columnMetadataObj = (JSONObject) ((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA);
+                                    JSONObject columnMetadataObj =
+                                        (JSONObject) ((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA);
                                     Metadata metadata = new Metadata();
                                     ColumnMetadata columnMetadata = new ColumnMetadata();
                                     if (columnMetadataObj.has(TAG_FRIENDLY_NAME)) {
@@ -256,7 +258,8 @@ public class MvzLoader {
                                     metadata.tableMetadata.setColumnMetadata(columnMetadatas);
                                     mvzDataset.setMetadata(metadata);
                                 } else if (((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA) instanceof JSONArray) {
-                                    JSONArray columnMetadataArray = (JSONArray) ((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA);
+                                    JSONArray columnMetadataArray =
+                                        (JSONArray) ((JSONObject) metaInfoObj.getJSONObject(TAG_METADATA).get(TAG_TABLE_METADATA)).get(TAG_COLUMN_METADATA);
                                     Metadata metadata = new Metadata();
                                     TableMetadata tableMetadata = new TableMetadata();
                                     for (int i = 0; i < columnMetadataArray.length(); i++) {

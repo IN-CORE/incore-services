@@ -55,20 +55,20 @@ public class MongoDBRepository implements IRepository {
     }
 
     @Override
-    public List<Analysis> getAllAnalyses(){
+    public List<Analysis> getAllAnalyses() {
         this.loadServices();
         return this.analyses;
     }
 
     @Override
-    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit){
+    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit) {
         Query<Analysis> query = this.dataStore.find(Analysis.class);
 
         for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
             query.filter(queryEntry.getKey(), queryEntry.getValue());
         }
 
-        List <Analysis> analyses = query.offset(offset).limit(limit).toList();
+        List<Analysis> analyses = query.offset(offset).limit(limit).toList();
 
         return analyses;
     }
@@ -80,8 +80,8 @@ public class MongoDBRepository implements IRepository {
 
     @Override
     public Analysis addAnalysis(Analysis analysis) {
-         String id = this.dataStore.save(analysis).getId().toString();
-         return getAnalysisById(id);
+        String id = this.dataStore.save(analysis).getId().toString();
+        return getAnalysisById(id);
     }
 
     @Override
@@ -89,7 +89,8 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore;
     }
 
-    private void initializeDataStore() {;
+    private void initializeDataStore() {
+        ;
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()), databaseName,
             MapperOptions
                 .builder()

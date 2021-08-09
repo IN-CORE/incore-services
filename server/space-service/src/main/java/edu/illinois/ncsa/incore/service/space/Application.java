@@ -27,7 +27,7 @@ public class Application extends ResourceConfig {
         String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
 
         String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
-        if(mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
+        if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
             mongodbSpaceUri = mongodbSpaceUriProp;
         }
 
@@ -36,7 +36,7 @@ public class Application extends ResourceConfig {
 
         IAuthorizer authorizer = Authorizer.getInstance();
 
-        super.register(new AbstractBinder () {
+        super.register(new AbstractBinder() {
 
             @Override
             protected void configure() {

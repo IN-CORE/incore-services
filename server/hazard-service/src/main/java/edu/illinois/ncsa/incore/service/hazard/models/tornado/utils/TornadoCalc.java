@@ -10,6 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
 import com.google.common.math.LongMath;
+
 import java.util.List;
 
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
@@ -53,10 +54,12 @@ public class TornadoCalc {
             List<Double> efBoxWidths = simulationEfBoxWidths.getEfBoxWidths();
 
             LineString tornadoPath = TornadoUtils.createTornadoPath(scenarioTornado.getTornadoParameters(), simulation);
-            List<Geometry> efBoxPolygons = TornadoUtils.createTornadoGeometry(scenarioTornado.getTornadoParameters(), efBoxWidths, tornadoPath);
+            List<Geometry> efBoxPolygons = TornadoUtils.createTornadoGeometry(scenarioTornado.getTornadoParameters(), efBoxWidths,
+                tornadoPath);
 
             long seed = getRandomSeed(scenarioTornado.getTornadoParameters(), initialSeed, localSite);
-            windHazard = BaseTornado.calculateWindSpeed(localSite, tornadoPath, efBoxPolygons, efBoxWidths, scenarioTornado.getTornadoParameters(), seed);
+            windHazard = BaseTornado.calculateWindSpeed(localSite, tornadoPath, efBoxPolygons, efBoxWidths,
+                scenarioTornado.getTornadoParameters(), seed);
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
             Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username);
@@ -95,7 +98,8 @@ public class TornadoCalc {
      * @param maxWindSpeed  Maximum wind speed for EF5
      * @return Random wind speed for location or 0.0 if outside tornado boundary
      */
-    public static Double calculateWindSpeedUniformRandomDist(Point location, SimpleFeatureCollection efBoxPolygons, double maxWindSpeed, long seed) {
+    public static Double calculateWindSpeedUniformRandomDist(Point location, SimpleFeatureCollection efBoxPolygons, double maxWindSpeed,
+                                                             long seed) {
         // check which EF box the point is in
         int efBox = -1;
         SimpleFeatureIterator iterator = null;
@@ -156,28 +160,28 @@ public class TornadoCalc {
     /**
      * Get a unique random seed for a location using an initial seed (or system time) and the lat/long
      *
-     * @param parameters - Tornado parameters
+     * @param parameters  - Tornado parameters
      * @param initialSeed - initial seed value
-     * @param location - lat/long location
+     * @param location    - lat/long location
      * @return unique seed for a location
      */
     public static long getRandomSeed(TornadoParameters parameters, int initialSeed, Point location) {
         long seed = initialSeed;
 
         // Get seed from the model and override if no value specified
-        if(seed == -1 && parameters != null) {
+        if (seed == -1 && parameters != null) {
             seed = parameters.getRandomSeed();
         }
 
         // If no seed value provided OR model seed value was never set by the user, use current system time
-        if(seed == -1) {
+        if (seed == -1) {
             seed = System.currentTimeMillis();
         }
 
         // Use 4 decimal places for getting unique seed values from lat/long
         try {
             seed = LongMath.checkedAdd(seed, (long) Math.abs((location.getX() + location.getY()) * 10000));
-        } catch(ArithmeticException exception) {
+        } catch (ArithmeticException exception) {
             logger.warn("Seed + Math.abs((location.getX() + location.getY()) * 10000 exceeds max value, capping at Maximum value");
             seed = Long.MAX_VALUE;
         }

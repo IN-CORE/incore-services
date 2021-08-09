@@ -11,4 +11,4 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane;
 
 public class ProbabilisticHurricaneHazard extends HurricaneHazardDataset {
     // Empty class right now until we have an example Probabilistic dataset
-   }
+}

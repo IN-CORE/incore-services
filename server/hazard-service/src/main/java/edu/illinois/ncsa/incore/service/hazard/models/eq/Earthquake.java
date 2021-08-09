@@ -19,7 +19,8 @@ import java.util.Date;
 import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "eqType")
-@JsonSubTypes({@JsonSubTypes.Type(value = EarthquakeDataset.class, name = "dataset"), @JsonSubTypes.Type(value = EarthquakeModel.class, name = "model")})
+@JsonSubTypes({@JsonSubTypes.Type(value = EarthquakeDataset.class, name = "dataset"), @JsonSubTypes.Type(value = EarthquakeModel.class,
+    name = "model")})
 @XmlRootElement
 public abstract class Earthquake {
     @Id
@@ -73,7 +74,9 @@ public abstract class Earthquake {
         return creator;
     }
 
-    public void setCreator(String creator) { this.creator = creator; }
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
 
     public List<String> getSpaces() {
         return spaces;

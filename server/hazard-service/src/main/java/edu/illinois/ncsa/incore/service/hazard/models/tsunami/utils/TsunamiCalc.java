@@ -29,7 +29,7 @@ public class TsunamiCalc {
     public static final Logger log = Logger.getLogger(TsunamiCalc.class);
 
     public static TsunamiHazardResult getTsunamiHazardValue(Tsunami tsunami, String demandType, String demandUnits,
-        IncorePoint location, String user) throws UnsupportedHazardException {
+                                                            IncorePoint location, String user) throws UnsupportedHazardException {
         if (tsunami instanceof TsunamiDataset) {
             TsunamiDataset tsunamiDataset = (TsunamiDataset) tsunami;
             TsunamiHazardDataset hazardDataset = findHazard(tsunamiDataset.getHazardDatasets(), demandType);
@@ -43,7 +43,8 @@ public class TsunamiCalc {
                     log.debug("Point outside tiff image.");
                 }
             }
-            return new TsunamiHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType, demandUnits);
+            return new TsunamiHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType,
+                demandUnits);
 
         } else {
             throw new UnsupportedHazardException("Tsunami hazard values can only be obtained from datasets.");

@@ -239,7 +239,7 @@ public class TornadoUtils {
 
             return meanWidth;
         } catch (IOException e) {
-            logger.debug("IO Exception",e);
+            logger.debug("IO Exception", e);
             // logger.error("Failed to read tornado historical data", e); //$NON-NLS-1$
         }
 
@@ -418,7 +418,8 @@ public class TornadoUtils {
 
         Coordinate endPtCoordinate = null;
         if (tornadoParameters.getEndLatitude().size() == tornadoParameters.getNumSimulations()) {
-            endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation), tornadoParameters.getEndLatitude().get(numSimulation));
+            endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(numSimulation),
+                tornadoParameters.getEndLatitude().get(numSimulation));
         } else {
             endPtCoordinate = new Coordinate(tornadoParameters.getEndLongitude().get(0), tornadoParameters.getEndLatitude().get(0));
         }
@@ -474,7 +475,8 @@ public class TornadoUtils {
         return collection;
     }
 
-    public static List<Geometry> createTornadoGeometry(TornadoParameters tornadoParameters, List<Double> efBoxWidths, LineString tornadoPath) {
+    public static List<Geometry> createTornadoGeometry(TornadoParameters tornadoParameters, List<Double> efBoxWidths,
+                                                       LineString tornadoPath) {
 
         // Tornado Parameters
         String efRating = tornadoParameters.getEfRating();
@@ -484,7 +486,8 @@ public class TornadoUtils {
 
         double boxLength = TornadoUtils.calcDistanceCoords(tornadoPath);
 
-        // TODO Either get this from the model in case it overrides the parent class length multipliers or if model stores polygons, this method can be removed
+        // TODO Either get this from the model in case it overrides the parent class length multipliers or if model stores polygons, this
+        //  method can be removed
         // EF box length multipliers
         double[] efLengthRate = TornadoUtils.getLengthMultiplier(efRating);
 

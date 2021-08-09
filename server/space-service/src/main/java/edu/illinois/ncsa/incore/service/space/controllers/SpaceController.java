@@ -6,6 +6,7 @@ package edu.illinois.ncsa.incore.service.space.controllers;
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *******************************************************************************
  */
+
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,7 +66,7 @@ public class SpaceController {
     private static final String DATA_SERVICE_URL = System.getenv("DATA_SERVICE_URL");
     private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
     private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
-    private static final String EARTHQUAKE_URL =  HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
+    private static final String EARTHQUAKE_URL = HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
     private static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
     private static final String HURRICANE_WF_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricaneWindfields/";
     private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricanes/";
@@ -132,12 +133,14 @@ public class SpaceController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of all available spaces", notes = "Return spaces that the user has read/write/admin privileges on. If a member Id is passed, it will return all spaces that contains the member.")
+    @ApiOperation(value = "Gets the list of all available spaces", notes = "Return spaces that the user has read/write/admin privileges " +
+        "on. If a member Id is passed, it will return all spaces that contains the member.")
     public List<Space> getSpacesList(@ApiParam(value = "Member Id") @QueryParam("member") String memberId) {
 
         if (memberId != null) {
             if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces())) {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "does not have the privileges to access " + memberId);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    this.username + "does not have the privileges to access " + memberId);
             }
             List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
             List<Space> spacesWithMember = new ArrayList<>();
@@ -162,7 +165,8 @@ public class SpaceController {
         Space space = getSpace(spaceId);
 
         if (!(authorizer.canRead(this.username, space.getPrivileges()))) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access " + space.getName() + "'s space");
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access " + space.getName() +
+                "'s space");
         }
 
         return space;
@@ -175,8 +179,7 @@ public class SpaceController {
     @ApiOperation(value = "Updates a space.")
     public Space updateSpace(@ApiParam(value = "Space id.", required = true) @PathParam("id") String spaceId,
                              @ApiParam(value = "JSON representing a space") @FormDataParam("space") String spaceJson,
-                             @ApiParam(value = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson)
-    {
+                             @ApiParam(value = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson) {
         Space space = getSpace(spaceId);
 
         //modify space by changing name or adding a list of members
@@ -237,7 +240,7 @@ public class SpaceController {
         }
         boolean spaceContainsMembers = false;
         List<String> members = membersToDelete.getMembers();
-        for (String member: members) {
+        for (String member : members) {
             if (space.hasMember(member)) {
                 spaceContainsMembers = true;
                 break;
@@ -256,12 +259,12 @@ public class SpaceController {
     @ApiOperation(value = "Adds a member to a space")
     public Space addMembersToSpace(
         @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-        @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId)
-    {
+        @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId) {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges())) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not allowed to update the space " + space.getName());
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                this.username + " is not allowed to update the space " + space.getName());
         }
 
         if (addMembers(space, this.username, memberId)) {
@@ -278,8 +281,7 @@ public class SpaceController {
     @ApiOperation(value = "Grants new privileges to a space")
     public Space grantPrivilegesToSpace(
         @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson)
-    {
+        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges())) {
@@ -306,8 +308,7 @@ public class SpaceController {
     @ApiOperation("Removes a member from a space")
     public Space removeMemberFromSpace(
         @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId,
-        @ApiParam(value = "Member id", required = true) @PathParam("memberId") String memberId)
-    {
+        @ApiParam(value = "Member id", required = true) @PathParam("memberId") String memberId) {
 
         if (memberId == null) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "User must provide a member Id or a list of member ids");
@@ -376,7 +377,8 @@ public class SpaceController {
                                 datasets.add(id);
                             }
                         }
-                        //scenario tornado, tornado model, and scenario earthquake have different fields for dataset ids, we need to check all
+                        //scenario tornado, tornado model, and scenario earthquake have different fields for dataset ids, we need to
+                        // check all
                         if (hazardDatasets.size() == 0) {
                             String tornadoDataset = JsonUtils.extractValueFromJsonString("tornadoDatasetId", content);
                             if (!tornadoDataset.equalsIgnoreCase("")) {
@@ -431,7 +433,7 @@ public class SpaceController {
     private String get(String serviceUrl, String memberId, String username) {
         HttpURLConnection con;
         try {
-            URL url = new URL( serviceUrl + memberId);
+            URL url = new URL(serviceUrl + memberId);
             try {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
@@ -491,17 +493,17 @@ public class SpaceController {
 
         if (get(DATA_URL, memberId, username) != null) {
             isValidNonHazardMember = true;
-        } else if(get(FRAGILITY_URL, memberId, username) != null){
+        } else if (get(FRAGILITY_URL, memberId, username) != null) {
             isValidNonHazardMember = true;
-        } else if(get(REPAIR_URL, memberId, username) != null){
+        } else if (get(REPAIR_URL, memberId, username) != null) {
             isValidNonHazardMember = true;
-        } else if(get(RESTORATION_URL, memberId, username) != null){
+        } else if (get(RESTORATION_URL, memberId, username) != null) {
             isValidNonHazardMember = true;
-        } else if(get(MAPPING_URL, memberId, username) != null){
+        } else if (get(MAPPING_URL, memberId, username) != null) {
             isValidNonHazardMember = true;
         }
 
-        if(isValidNonHazardMember) {
+        if (isValidNonHazardMember) {
             space.addMember(memberId);
             spaceRepository.addSpace(space);
             return true;

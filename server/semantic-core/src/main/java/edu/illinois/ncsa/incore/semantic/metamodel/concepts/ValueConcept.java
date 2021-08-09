@@ -10,7 +10,8 @@ package edu.illinois.ncsa.incore.semantic.metamodel.concepts;
 import java.util.List;
 
 public class ValueConcept<T> extends Concept<T> {
-    public ValueConcept() {}
+    public ValueConcept() {
+    }
 
     // Typical Range (Value)
 

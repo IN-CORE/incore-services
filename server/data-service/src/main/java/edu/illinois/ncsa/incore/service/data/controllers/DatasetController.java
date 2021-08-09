@@ -128,13 +128,15 @@ public class DatasetController {
         if (authorizer.canUserReadMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
             return dataset;
         }
-        throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " does not have the privileges to access the dataset " + datasetId);
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+            username + " does not have the privileges to access the dataset " + datasetId);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets a list of datasets", notes = "Can filter by type, title, creator etc.")
-    public List<Dataset> getDatasets(@ApiParam(value = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: ergo:buildingInventoryVer5, ergo:census", required = false) @QueryParam("type") String typeStr,
+    public List<Dataset> getDatasets(@ApiParam(value = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: " +
+        "ergo:buildingInventoryVer5, ergo:census", required = false) @QueryParam("type") String typeStr,
                                      @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
                                      @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
                                      @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
@@ -168,7 +170,10 @@ public class DatasetController {
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
 
             return datasets;
@@ -181,7 +186,10 @@ public class DatasetController {
             .filter(dataset -> userMembersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleDatasets;
@@ -256,7 +264,8 @@ public class DatasetController {
         }
 
         if (outFile != null) {
-            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "attachment; filename=\"" + fileName + "\"").build();
+            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition",
+                "attachment; filename=\"" + fileName + "\"").build();
         } else {
             logger.error("Error finding output file.");
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the output file.");
@@ -268,8 +277,10 @@ public class DatasetController {
     @Path("{id}/files/{file_id}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets metadata of a file associated to a dataset", notes = "")
-    public FileDescriptor getFileByDatasetIdFileDescriptor(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
-                                                           @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
+    public FileDescriptor getFileByDatasetIdFileDescriptor(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam(
+        "id") String id,
+                                                           @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam(
+                                                               "file_id") String fileId) {
         Dataset dataset = getDatasetbyId(id);
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
@@ -295,12 +306,14 @@ public class DatasetController {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Ingest dataset object as json", notes = "Files have to uploaded to the dataset separately using {id}/files endpoint")
+    @ApiOperation(value = "Ingest dataset object as json", notes = "Files have to uploaded to the dataset separately using {id}/files " +
+        "endpoint")
     public Dataset ingestDataset(@ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("dataset") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
             logger.error("Posted json is not a valid json.");
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid JSON.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid " +
+                "JSON.");
         }
 
         boolean isDatasetParameterValid = DataJsonUtils.isDatasetParameterValid(inDatasetJson);
@@ -342,7 +355,8 @@ public class DatasetController {
             dataset = repository.addDataset(dataset);
             if (dataset == null) {
                 logger.error("Error posting dataset");
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add a dataset to the data repository.");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add a " +
+                    "dataset to the data repository.");
             }
 
             String id = dataset.getId();
@@ -357,7 +371,8 @@ public class DatasetController {
             }
             Space updated_space = spaceRepository.addSpace(space);
             if (updated_space == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add the dataset to user's space.");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
+                    "the dataset to user's space.");
             }
 
         }
@@ -423,7 +438,8 @@ public class DatasetController {
                 }
             }
         } else {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the dataset " +datasetId);
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                this.username + " is not authorized to delete the dataset " + datasetId);
         }
 
         return dataset;
@@ -435,12 +451,15 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/files")
-    @ApiOperation(value = "Upload file(s) to attach to a dataset", notes = "GIS files like shp, tif etc. are also uploaded to IN-CORE geoserver")
+    @ApiOperation(value = "Upload file(s) to attach to a dataset", notes = "GIS files like shp, tif etc. are also uploaded to IN-CORE " +
+        "geoserver")
     public Dataset uploadFiles(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
-                               @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'", required = true)
+                               @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'",
+                                   required = true)
                                    FormDataMultiPart inputs) {
         if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " has no permission to modify the dataset " + datasetId);
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                this.username + " has no permission to modify the dataset " + datasetId);
         }
         // adding geoserver flag
         // if this flas is false, the data will not be uploaded to geoserver
@@ -548,7 +567,7 @@ public class DatasetController {
                         logger.error("There should be only one file uploaded when it comes with zip file ");
                         throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
                             "There are more than one file uploaded with zip file. " +
-                            "Please upload only single zip file.");
+                                "Please upload only single zip file.");
                     }
                 }
 
@@ -592,7 +611,8 @@ public class DatasetController {
                             }
                         } catch (IOException e) {
                             logger.error("Error storing files of the dataset with the id of " + datasetId);
-                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with" +
+                                " the id of " + datasetId);
                         }
                     } else {
                         FileDescriptor fd = new FileDescriptor();
@@ -604,7 +624,8 @@ public class DatasetController {
                             fd.setFilename(fileName);
                         } catch (IOException e) {
                             logger.error("Error storing files of the dataset with the id of " + datasetId);
-                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with" +
+                                " the id of " + datasetId);
                         }
                         dataset.addFileDescriptor(fd);
                     }
@@ -686,7 +707,8 @@ public class DatasetController {
                                 fd.setFilename(fileName);
                             } catch (IOException e) {
                                 logger.error("Error storing files of the dataset with the id of " + datasetId);
-                                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset with the id of " + datasetId);
+                                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error storing files of the dataset " +
+                                    "with the id of " + datasetId);
                             }
                             dataset.addFileDescriptor(fd);
                         }
@@ -789,17 +811,20 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    @ApiOperation(value = "Updates the dataset's JSON associated with a dataset id", notes = "Only allows updating string attributes of the dataset. This will " +
+    @ApiOperation(value = "Updates the dataset's JSON associated with a dataset id", notes = "Only allows updating string attributes of " +
+        "the dataset. This will " +
         "not upload file content of the dataset to the server, they should be done separately using {id}/files endpoint")
     public Object updateObject(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (!isJsonValid) {
             logger.error("Invalid json provided.");
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid JSON.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid " +
+                "JSON.");
         }
         if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " has no permission to modify the dataset " + datasetId);
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                this.username + " has no permission to modify the dataset " + datasetId);
         }
 
         Dataset dataset = repository.getDatasetById(datasetId);
@@ -854,7 +879,10 @@ public class DatasetController {
             .filter(dataset -> membersSet.contains(dataset.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return datasets;

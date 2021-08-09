@@ -11,25 +11,25 @@ public class SpaceMetadata {
     @JsonProperty("name")
     private String name;
 
-    public SpaceMetadata(){
+    public SpaceMetadata() {
         this.name = "";
     }
 
-    public SpaceMetadata(String name){
+    public SpaceMetadata(String name) {
         this.name = name;
     }
 
-    public String getName(){
+    public String getName() {
         return this.name;
     }
 
     @JsonProperty("name")
-    public void setName(String name){
+    public void setName(String name) {
         this.name = name;
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return "{\"name\":" + this.name;
     }
 

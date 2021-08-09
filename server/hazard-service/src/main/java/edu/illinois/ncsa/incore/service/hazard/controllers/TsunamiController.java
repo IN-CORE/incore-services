@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Api(value="tsunamis", authorizations = {})
+@Api(value = "tsunamis", authorizations = {})
 
 @Path("tsunamis")
 @ApiResponses(value = {
@@ -71,7 +71,7 @@ public class TsunamiController {
     @Inject
     public TsunamiController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
-            this.username = UserInfoUtils.getUsername(userInfo);
+        this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @GET
@@ -88,7 +88,8 @@ public class TsunamiController {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
             if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             List<Tsunami> tsunamis = repository.getTsunamis();
@@ -96,7 +97,10 @@ public class TsunamiController {
                 .filter(tsunami -> spaceMembers.contains(tsunami.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
             return tsunamis;
         }
@@ -108,7 +112,10 @@ public class TsunamiController {
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleTsunamis;
@@ -152,7 +159,8 @@ public class TsunamiController {
         ObjectMapper mapper = new ObjectMapper();
         try {
             List<ValuesResponse> valResponse = new ArrayList<>();
-            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
+            });
             for (ValuesRequest request : valuesRequest) {
                 List<String> demands = request.getDemands();
                 List<String> units = request.getUnits();
@@ -171,7 +179,8 @@ public class TsunamiController {
                         hazVals.add(res.getHazardValue());
                     }
                 } catch (UnsupportedHazardException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
+                        "demands and units provided are supported" +
                         " for all the locations");
                 }
 
@@ -183,10 +192,11 @@ public class TsunamiController {
                 valResponse.add(response);
             }
             return valResponse;
-        }catch(IOException ex){
+        } catch (IOException ex) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
         } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
+                "request.");
         }
     }
 
@@ -220,7 +230,7 @@ public class TsunamiController {
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new tsunami, the newly created tsunami is returned.",
-        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create dataset-based tsunamis only.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "tsunami", value = "Tsunami json.", required = true, dataType = "string", paramType = "form"),
@@ -258,10 +268,11 @@ public class TsunamiController {
 
                         String demandType = hazardDataset.getDemandType();
                         String datasetName = demandType;
-                        BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
+                        BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
                         String filename = filePart.getContentDisposition().getFileName();
 
-                        String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(), tsunamiDataset.getName() + " " + datasetName,
+                        String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
+                            tsunamiDataset.getName() + " " + datasetName,
                             this.username, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
@@ -270,7 +281,7 @@ public class TsunamiController {
                     tsunami = repository.addTsunami(tsunami);
 
                     Space space = spaceRepository.getSpaceByName(this.username);
-                    if(space == null) {
+                    if (space == null) {
                         space = new Space(this.username);
                         space.setPrivileges(Privileges.newWithSingleOwner(this.username));
                     }
@@ -280,13 +291,15 @@ public class TsunamiController {
                     tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunami.getId()));
                     return tsunami;
                 } else {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, no files were attached with your request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Tsunami, no files were attached with " +
+                        "your request.");
                 }
             }
 
         } catch (IOException e) {
             log.error("Error mapping the request to a supported Tsunami type.", e);
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported Tsunami type. " + e.getMessage());
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported Tsunami type. "
+                + e.getMessage());
         } catch (IllegalArgumentException e) {
             log.error("Illegal Argument has been passed in.", e);
         }
@@ -332,12 +345,12 @@ public class TsunamiController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all tsunamis", notes="Gets all tsunamis that contain a specific text")
+    @ApiOperation(value = "Search for a text in all tsunamis", notes = "Gets all tsunamis that contain a specific text")
     @ApiResponses(value = {
         @ApiResponse(code = 404, message = "No tsunamis found with the searched text")
     })
     public List<Tsunami> findTsunamis(
-        @ApiParam(value="Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
@@ -357,7 +370,10 @@ public class TsunamiController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return tsunamis;

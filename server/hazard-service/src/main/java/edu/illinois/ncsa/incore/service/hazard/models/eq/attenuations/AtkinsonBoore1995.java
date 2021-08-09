@@ -82,7 +82,8 @@ public class AtkinsonBoore1995 extends BaseAttenuation {
             r = 10.0;
 
         // System.out.println("R_hypo = "+r);
-        double val = coeff.get(0) + coeff.get(1) * (magnitude - 6) + coeff.get(2) * Math.pow((magnitude - 6), 2) - Math.log10(r) - coeff.get(3) * r;
+        double val =
+            coeff.get(0) + coeff.get(1) * (magnitude - 6) + coeff.get(2) * Math.pow((magnitude - 6), 2) - Math.log10(r) - coeff.get(3) * r;
 
         // Site A motions with units of g
         val = Math.pow(10, val) * 0.001019716;

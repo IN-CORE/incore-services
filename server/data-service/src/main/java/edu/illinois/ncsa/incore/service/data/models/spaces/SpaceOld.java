@@ -39,13 +39,13 @@ public class SpaceOld {
 
     private List<String> members;
 
-    public SpaceOld(){
+    public SpaceOld() {
         this.metadataOld = new MetadataOld("");
         this.members = new ArrayList<>();
-        this.privileges  = new Privileges();
+        this.privileges = new Privileges();
     }
 
-    public SpaceOld(String name){
+    public SpaceOld(String name) {
         this.metadataOld = new MetadataOld(name);
         this.members = new ArrayList<>();
         this.privileges = new Privileges();
@@ -78,7 +78,7 @@ public class SpaceOld {
         this.privileges.addGroupPrivilegesMap(privileges.getGroupPrivileges());
     }
 
-    public void addUserPrivileges(String username, PrivilegeLevel privilegeLevel){
+    public void addUserPrivileges(String username, PrivilegeLevel privilegeLevel) {
         this.privileges.addUserPrivileges(username, privilegeLevel);
     }
 
@@ -99,9 +99,9 @@ public class SpaceOld {
         }
     }
 
-    public boolean hasMember(String id){
-        if(this.members == null) return false;
-        for(String datasetId : this.members){
+    public boolean hasMember(String id) {
+        if (this.members == null) return false;
+        for (String datasetId : this.members) {
             if (datasetId.equals(id))
                 return true;
         }
@@ -114,7 +114,7 @@ public class SpaceOld {
         }
     }
 
-    public void setMetadataOld(MetadataOld metadataOld){
+    public void setMetadataOld(MetadataOld metadataOld) {
         this.metadataOld = metadataOld;
     }
 

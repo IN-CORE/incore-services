@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MockAuthorizer implements IAuthorizer{
+public class MockAuthorizer implements IAuthorizer {
 
     private boolean canRead = false;
     private boolean canWrite = false;
@@ -72,14 +72,16 @@ public class MockAuthorizer implements IAuthorizer{
     }
 
     @Override
-    public boolean canDelete(String user, Privileges privileges) {return canDelete;}
+    public boolean canDelete(String user, Privileges privileges) {
+        return canDelete;
+    }
 
     @Override
     public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {
         // Simplified version
         // TODO: update this to reflect the actual method
         Set<String> members = new HashSet<>();
-        for (Space space : spaces){
+        for (Space space : spaces) {
             if (space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN) {
                 members.addAll(space.getMembers());
             }
@@ -91,7 +93,7 @@ public class MockAuthorizer implements IAuthorizer{
     public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {
         // simplified version (checking if username is the owner of the space
         // TODO: update this to reflect the actual method
-        for (Space space : spaces){
+        for (Space space : spaces) {
             if (space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN) {
                 if (space.hasMember(memberId)) {
                     return true;
@@ -102,7 +104,9 @@ public class MockAuthorizer implements IAuthorizer{
     }
 
     @Override
-    public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {return false;}
+    public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {
+        return false;
+    }
 
     @Override
     public boolean isUserAdmin(String user) {
@@ -110,11 +114,14 @@ public class MockAuthorizer implements IAuthorizer{
     }
 
     @Override
-    public boolean canUserWriteMember(String username, String memberId, List<Space> spaces) {return false;}
+    public boolean canUserWriteMember(String username, String memberId, List<Space> spaces) {
+        return false;
+    }
 
     @Override
-    public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {return null;}
-
+    public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {
+        return null;
+    }
 
 
 }

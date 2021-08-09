@@ -20,10 +20,11 @@ public class AnalysisParameter {
     private Boolean hidden;
     private String type;
 
-    public AnalysisParameter() {}
+    public AnalysisParameter() {
+    }
 
     public AnalysisParameter(String name, String description, String type, Boolean required, Boolean advanced,
-                             Boolean hidden, Boolean multiple){
+                             Boolean hidden, Boolean multiple) {
         this.name = name;
         this.description = description;
         this.type = type;
@@ -44,6 +45,7 @@ public class AnalysisParameter {
     public Boolean getRequired() {
         return required;
     }
+
     public Boolean getAdvanced() {
         return advanced;
     }

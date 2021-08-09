@@ -128,8 +128,7 @@ public class EarthquakeController {
     public Earthquake createEarthquake(
         @ApiParam(hidden = true) @FormDataParam("earthquake") String eqJson,
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts,
-        @ApiParam(value = "Use workflow service.", required = false) @QueryParam("useWorkflow") @DefaultValue("false") boolean useWorkflow)
-    {
+        @ApiParam(value = "Use workflow service.", required = false) @QueryParam("useWorkflow") @DefaultValue("false") boolean useWorkflow) {
         // TODO finish adding log statements
         // First, get the Earthquake object from the form
         // TODO what should be done if a user sends multiple earthquake objects?
@@ -153,7 +152,7 @@ public class EarthquakeController {
                     String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
 
                     String datasetId = null;
-                    if(!useWorkflow) {
+                    if (!useWorkflow) {
                         logger.debug("don't use workflow to create earthquake");
                         File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
                         GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
@@ -177,7 +176,7 @@ public class EarthquakeController {
                     earthquake = repository.addEarthquake(earthquake);
                     addEarthquakeToSpace(earthquake, this.username);
 
-                    if(useWorkflow) {
+                    if (useWorkflow) {
                         logger.debug("use workflow to create earthquake");
                         // Add job to create dataset to the queue
                         engine.addJob(new Job(this.username, "earthquake", earthquake.getId(), eqJson));
@@ -231,7 +230,8 @@ public class EarthquakeController {
                     addEarthquakeToSpace(earthquake, this.username);
                 } else {
                     logger.error("Could not create Earthquake. Check your file extensions and the number of files in the request.");
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Earthquake. Check your file extensions and the number of files in the request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create Earthquake. Check your file extensions " +
+                        "and the number of files in the request.");
                 }
             }
             earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquake.getId()));
@@ -262,7 +262,8 @@ public class EarthquakeController {
                     throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find space " + spaceName);
                 }
                 if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, this.username + " is not authorized to read the space " + spaceName);
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND,
+                        this.username + " is not authorized to read the space " + spaceName);
                 }
                 List<String> spaceMembers = space.getMembers();
 
@@ -270,7 +271,10 @@ public class EarthquakeController {
                     .filter(earthquake -> spaceMembers.contains(earthquake.getId()))
                     .skip(offset)
                     .limit(limit)
-                    .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                    .map(d -> {
+                        d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                        return d;
+                    })
                     .collect(Collectors.toList());
 
                 return earthquakes;
@@ -281,7 +285,10 @@ public class EarthquakeController {
                 .filter(earthquake -> membersSet.contains(earthquake.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
 
             return accessibleEarthquakes;
@@ -314,7 +321,8 @@ public class EarthquakeController {
             return earthquake;
         }
 
-        throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You don't have permission to access the earthquake with id" + earthquakeId);
+        throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+            "You don't have permission to access the earthquake with id" + earthquakeId);
     }
 
     @GET
@@ -428,8 +436,9 @@ public class EarthquakeController {
         ObjectMapper mapper = new ObjectMapper();
         try {
             List<ValuesResponse> valResponse = new ArrayList<>();
-            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
-            for(ValuesRequest request: valuesRequest){
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
+            });
+            for (ValuesRequest request : valuesRequest) {
                 List<String> demands = request.getDemands();
                 List<String> units = request.getUnits();
                 List<Double> hazVals = new ArrayList<>();
@@ -439,16 +448,18 @@ public class EarthquakeController {
                 CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
 
                 try {
-                    for(int i=0; i < demands.size(); i++){
+                    for (int i = 0; i < demands.size(); i++) {
                         String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
 
                         if (demandComponents == null) {
-                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type "+demands.get(i) + ", please check the format. It should be in a form similar to 0.2 SA or 0.2 Sec SA.");
+                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type " + demands.get(i) +
+                                ", please check the format. It should be in a form similar to 0.2 SA or 0.2 Sec SA.");
                         }
 
                         // Check units to verify requested units matches the demand type
-                        if(!HazardUtil.verifyHazardDemandUnits(demandComponents[1], units.get(i))) {
-                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + units.get(i) + " is not supported for " + demands.get(i) + ", please check requested units.");
+                        if (!HazardUtil.verifyHazardDemandUnits(demandComponents[1], units.get(i))) {
+                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + units.get(i) + " " +
+                                "is not supported for " + demands.get(i) + ", please check requested units.");
                         }
 
                         SeismicHazardResult res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
@@ -462,7 +473,8 @@ public class EarthquakeController {
                         hazVals.add(res.getHazardValue());
                     }
                 } catch (UnsupportedHazardException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
+                        "demands and units provided are supported" +
                         " for all the locations");
                 } catch (Exception ex) {
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Exception occurred when calculating" +
@@ -478,10 +490,11 @@ public class EarthquakeController {
                 valResponse.add(response);
             }
             return valResponse;
-        } catch(IOException ex){
+        } catch (IOException ex) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
         } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
+                "request.");
         }
     }
 
@@ -502,12 +515,14 @@ public class EarthquakeController {
 
         String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
         if (demandComponents == null) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type " + demandType + ", please check the format. It should be in a form similar to 0.2 SA or 0.2 Sec SA.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type " + demandType + ", please check the " +
+                "format. It should be in a form similar to 0.2 SA or 0.2 Sec SA.");
         }
 
         // Check units to verify requested units matches the demand type
-        if(!HazardUtil.verifyHazardDemandUnits(demandComponents[1], demandUnits)) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + demandUnits + " is not supported for " + demandType + ", please check requested units.");
+        if (!HazardUtil.verifyHazardDemandUnits(demandComponents[1], demandUnits)) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + demandUnits + " is not supported " +
+                "for " + demandType + ", please check requested units.");
         }
 
         List<SeismicHazardResult> hazardResults = new LinkedList<SeismicHazardResult>();
@@ -544,7 +559,7 @@ public class EarthquakeController {
     public Map<String, Double> getEarthquakeAleatoricUncertainties(
         @ApiParam(value = "ID of the Earthquake.", required = true) @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Demand Type. Ex: PGA.", required = true) @QueryParam("demandType") String demandType) {
-         Earthquake eq = getEarthquake(earthquakeId);
+        Earthquake eq = getEarthquake(earthquakeId);
         if (eq != null && eq instanceof EarthquakeModel) {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
             Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
@@ -589,7 +604,8 @@ public class EarthquakeController {
             return cumulativeAleatoryUncertainties;
         } else {
             logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Earthquake with id " + earthquakeId + " is not attenuation model " +
+                "based");
         }
     }
 
@@ -652,11 +668,13 @@ public class EarthquakeController {
                     } else {
                         if (aleatoricUncertainties != null && aleatoricUncertainties.containsKey(demandType.trim().toUpperCase())) {
                             Double aleatoricUncertainty = aleatoricUncertainties.get(demandType.trim().toUpperCase());
-                            cumulativeTotalVariance = Math.sqrt(Math.pow(aleatoricUncertainty, 2) + Math.pow(cumulativeEpistemicVariance, 2));
+                            cumulativeTotalVariance = Math.sqrt(Math.pow(aleatoricUncertainty, 2) + Math.pow(cumulativeEpistemicVariance,
+                                2));
 
                         } else {
                             logger.error("Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
-                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Earthquake with id " + earthquakeId + " does not have valid attenuation uncertainties set");
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Earthquake with id " + earthquakeId +
+                                " does not have valid attenuation uncertainties set");
                         }
                     }
                     varianceResults.add(new VarianceResult(localSite.getLocation().getY(), localSite.getLocation().getX(),
@@ -667,13 +685,15 @@ public class EarthquakeController {
 
                 } else {
                     logger.error("Input variance type " + varianceType + " is not implemented");
-                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Input variance type " + varianceType + " is not implemented");
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Input variance type " + varianceType + " is not" +
+                        " implemented");
                 }
             }
 
         } else {
             logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Earthquake with id " + earthquakeId + " is not attenuation model based");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Earthquake with id " + earthquakeId + " is not " +
+                "attenuation model based");
         }
 
         return varianceResults;
@@ -699,7 +719,7 @@ public class EarthquakeController {
                 "Please verify if the earthquake is attenuation model based");
         }
 
-        if (geologyId == null){
+        if (geologyId == null) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Missing geology dataset in the request");
         }
 
@@ -712,8 +732,9 @@ public class EarthquakeController {
                 this.username);
 
             List<LiquefactionValuesResponse> valResponse = new ArrayList<>();
-            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
-            for(ValuesRequest request: valuesRequest){
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
+            });
+            for (ValuesRequest request : valuesRequest) {
                 List<String> demands = request.getDemands();
                 List<String> units = request.getUnits();
                 List<Double> pgdVals = new ArrayList<>();
@@ -746,10 +767,11 @@ public class EarthquakeController {
                 valResponse.add(response);
             }
             return valResponse;
-        }catch(IOException ex){
+        } catch (IOException ex) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
         } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
+                "request.");
         }
     }
 
@@ -884,7 +906,10 @@ public class EarthquakeController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return earthquakes;

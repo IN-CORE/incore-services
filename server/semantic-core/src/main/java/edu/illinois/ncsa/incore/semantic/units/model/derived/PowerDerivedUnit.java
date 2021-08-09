@@ -30,9 +30,9 @@ public class PowerDerivedUnit extends DerivedUnit {
 
     public PowerDerivedUnit(NamedUnit operand, int power) {
         super(StringRepresentationUtil.getRaisedPowerName(operand.getName(), power),
-              StringRepresentationUtil.getRaisedPowerPlural(operand.getPlural(), power),
-              computeSymbol(operand, power),
-              computeUnicodeSymbol(operand, power));
+            StringRepresentationUtil.getRaisedPowerPlural(operand.getPlural(), power),
+            computeSymbol(operand, power),
+            computeUnicodeSymbol(operand, power));
 
         this.operand = operand;
         this.power = power;
@@ -46,10 +46,10 @@ public class PowerDerivedUnit extends DerivedUnit {
 
     public PowerDerivedUnit(NamedUnit operand, int power, Dimension dimension) {
         super(StringRepresentationUtil.getRaisedPowerName(operand.getName(), power),
-              StringRepresentationUtil.getRaisedPowerPlural(operand.getPlural(), power),
-              computeSymbol(operand, power),
-              computeUnicodeSymbol(operand, power),
-              dimension);
+            StringRepresentationUtil.getRaisedPowerPlural(operand.getPlural(), power),
+            computeSymbol(operand, power),
+            computeUnicodeSymbol(operand, power),
+            dimension);
 
         this.operand = operand;
         this.power = power;
@@ -114,7 +114,7 @@ public class PowerDerivedUnit extends DerivedUnit {
 
         PowerDerivedUnit unit = (PowerDerivedUnit) obj;
         return power == unit.power &&
-                Objects.equals(operand, unit.operand);
+            Objects.equals(operand, unit.operand);
     }
 
     @Override

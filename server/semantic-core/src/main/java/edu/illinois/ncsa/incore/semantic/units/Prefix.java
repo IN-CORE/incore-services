@@ -106,11 +106,11 @@ public class Prefix implements ISymbol, ISerializable {
         Prefix prefix = (Prefix) obj;
 
         return base == prefix.base &&
-                scale == prefix.scale &&
-                Objects.equals(resourceName, prefix.resourceName) &&
-                Objects.equals(name, prefix.name) &&
-                Objects.equals(symbol, prefix.symbol) &&
-                Objects.equals(unicodeSymbol, prefix.unicodeSymbol);
+            scale == prefix.scale &&
+            Objects.equals(resourceName, prefix.resourceName) &&
+            Objects.equals(name, prefix.name) &&
+            Objects.equals(symbol, prefix.symbol) &&
+            Objects.equals(unicodeSymbol, prefix.unicodeSymbol);
     }
 
     @Override

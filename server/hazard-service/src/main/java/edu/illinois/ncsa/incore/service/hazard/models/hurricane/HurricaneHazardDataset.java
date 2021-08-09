@@ -14,7 +14,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hazardType")
-@JsonSubTypes({@JsonSubTypes.Type(value = ProbabilisticHurricaneHazard.class, name = "probabilistic"), @JsonSubTypes.Type(value = DeterministicHurricaneHazard.class, name = "deterministic")})
+@JsonSubTypes({@JsonSubTypes.Type(value = ProbabilisticHurricaneHazard.class, name = "probabilistic"), @JsonSubTypes.Type(value =
+    DeterministicHurricaneHazard.class, name = "deterministic")})
 @Embedded
 public abstract class HurricaneHazardDataset {
     private String datasetId;

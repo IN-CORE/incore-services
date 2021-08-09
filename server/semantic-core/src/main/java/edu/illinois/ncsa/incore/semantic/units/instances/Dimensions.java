@@ -20,9 +20,11 @@ import java.util.Optional;
  * This class contains the list of physical quantities which are associated with units.
  */
 public final class Dimensions {
-    private Dimensions() {}
+    private Dimensions() {
+    }
 
-    public static void initialize() {}
+    public static void initialize() {
+    }
 
     public static final Dimensionless unspecified = new Dimensionless("Unspecified");
     public static final Dimensionless Dimensionless = new Dimensionless("Dimensionless");
@@ -59,7 +61,8 @@ public final class Dimensions {
     public static final DerivedDimension areaDensity = new DerivedDimension("Area density", M, L, -2);
     public static final DerivedDimension electricalCapacitance = new DerivedDimension("Capacitance", I, 2, T, 4, M, -1, L, -2);
     public static final DerivedDimension catalyticActivity = new DerivedDimension("Catalytic activity", N, T, -1);
-    public static final DerivedDimension catalyticActivityConcentration = new DerivedDimension("Catalytic activity concentration", N, L, -3, T, -1);
+    public static final DerivedDimension catalyticActivityConcentration = new DerivedDimension("Catalytic activity concentration", N, L,
+        -3, T, -1);
     public static final DerivedDimension catalyticEfficiency = new DerivedDimension("Catalytic efficiency", L, 3, T, -1, N, -1);
 
     public static final DerivedDimension chemicalPotential = new DerivedDimension("Chemical potential", M, L, 2, T, -2, N, -1);
@@ -185,43 +188,43 @@ public final class Dimensions {
     //endregion
 
     public static final List<BaseDimension> BaseDimensions = Arrays.asList(length, mass, time, electricCurrent, temperature,
-                                                                           amountOfSubstance, luminousIntensity);
+        amountOfSubstance, luminousIntensity);
 
     public static final List<Dimension> All = Arrays.asList(length, mass, time, electricCurrent, temperature,
-                                                            amountOfSubstance, luminousIntensity,
-                                                            acceleration, angularAcceleration, angularVelocity, angularMomentum, area,
-                                                            areaDensity, electricalCapacitance, catalyticActivity,
-                                                            catalyticActivityConcentration, chemicalPotential, molarConcentration, crackle,
-                                                            electricCurrentDensity, dynamicViscosity, kinematicViscosity, electricCharge,
-                                                            electricChargeDensity, electricDisplacement, electricFieldStrength,
-                                                            electricalConductance, electricPotential, electricalResistance, energy,
-                                                            energyDensity, entropy, force, fuelEfficiency, impulse, frequency, halflife,
-                                                            heat, heatCapacity, heatFluxDensity, impedance, inductance, irradiance,
-                                                            intensity, jerk, jounce, linearDensity, magneticFieldStrength, magneticFlux,
-                                                            magneticFluxDensity, magnetization, density, meanLifetime, molarity,
-                                                            molarVolume, molarEnergy, molarEntropy, molarHeatCapacity, momentOfInertia,
-                                                            momentum, permeability, permittivity, power, pressure, pop, reactionRate,
-                                                            velocity, specificEnergy, specificHeatCapacity, specificVolume, spin, stress,
-                                                            stiffness, surfaceTension, thermalConductivity, torque, volume, volumetricFlow,
-                                                            waveLength, waveNumber, weight, work, yank, youngsModulus, action,
-                                                            compressibility, magneticReluctance, magneticMoment, magneticVectorPotential,
-                                                            magneticRigidity, magneticSusceptibility, frequencyDrift,
-                                                            specificAngularMomentum, radiantEnergy, radiantEnergyDensity, radiantFlux,
-                                                            radiantExposure, doseEquivalent, absorbedDoseRate, radioActivity, absorbedDose,
-                                                            radiance, radiantIntensity, luminousEnergy, luminousFlux, luminousEfficacy,
-                                                            illuminance, luminance, luminousExitance, luminousExposure,
-                                                            luminousEnergyDensity, luminousEfficiency, magnetomotiveForce, spectralPower,
-                                                            spectralRadiance, spectralIntensity, planeAngle, solidAngle, indexOfRefraction,
-                                                            machNumber, massFraction, refractiveIndex, angle, strain, fieldRatio,
-                                                            informationEntropy);
+        amountOfSubstance, luminousIntensity,
+        acceleration, angularAcceleration, angularVelocity, angularMomentum, area,
+        areaDensity, electricalCapacitance, catalyticActivity,
+        catalyticActivityConcentration, chemicalPotential, molarConcentration, crackle,
+        electricCurrentDensity, dynamicViscosity, kinematicViscosity, electricCharge,
+        electricChargeDensity, electricDisplacement, electricFieldStrength,
+        electricalConductance, electricPotential, electricalResistance, energy,
+        energyDensity, entropy, force, fuelEfficiency, impulse, frequency, halflife,
+        heat, heatCapacity, heatFluxDensity, impedance, inductance, irradiance,
+        intensity, jerk, jounce, linearDensity, magneticFieldStrength, magneticFlux,
+        magneticFluxDensity, magnetization, density, meanLifetime, molarity,
+        molarVolume, molarEnergy, molarEntropy, molarHeatCapacity, momentOfInertia,
+        momentum, permeability, permittivity, power, pressure, pop, reactionRate,
+        velocity, specificEnergy, specificHeatCapacity, specificVolume, spin, stress,
+        stiffness, surfaceTension, thermalConductivity, torque, volume, volumetricFlow,
+        waveLength, waveNumber, weight, work, yank, youngsModulus, action,
+        compressibility, magneticReluctance, magneticMoment, magneticVectorPotential,
+        magneticRigidity, magneticSusceptibility, frequencyDrift,
+        specificAngularMomentum, radiantEnergy, radiantEnergyDensity, radiantFlux,
+        radiantExposure, doseEquivalent, absorbedDoseRate, radioActivity, absorbedDose,
+        radiance, radiantIntensity, luminousEnergy, luminousFlux, luminousEfficacy,
+        illuminance, luminance, luminousExitance, luminousExposure,
+        luminousEnergyDensity, luminousEfficiency, magnetomotiveForce, spectralPower,
+        spectralRadiance, spectralIntensity, planeAngle, solidAngle, indexOfRefraction,
+        machNumber, massFraction, refractiveIndex, angle, strain, fieldRatio,
+        informationEntropy);
 
     /**
      * Returns a dimension from the current list of dimensions by resource name
      */
     public static Optional<Dimension> getByResourceName(String resourceName) {
         return All.stream()
-                  .filter(dimension -> dimension.getResourceName().equals(resourceName))
-                  .findFirst();
+            .filter(dimension -> dimension.getResourceName().equals(resourceName))
+            .findFirst();
     }
 
     /**
@@ -229,8 +232,8 @@ public final class Dimensions {
      */
     public static Optional<Dimension> getByName(String name) {
         return All.stream()
-                  .filter(dimension -> dimension.getResourceName().equals(name))
-                  .findFirst();
+            .filter(dimension -> dimension.getResourceName().equals(name))
+            .findFirst();
     }
 
     //region Operators

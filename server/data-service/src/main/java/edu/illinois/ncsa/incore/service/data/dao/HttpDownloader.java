@@ -24,12 +24,13 @@ public class HttpDownloader {
 
     /**
      * Downloads a file from a URL
+     *
      * @param fileURL HTTP URL of the file to be downloaded
      * @param saveDir path of the directory to save the file
      * @throws IOException
      */
     public static void downloadFile(String fileURL, String saveDir)
-            throws IOException {
+        throws IOException {
         URL url = new URL(fileURL);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         int responseCode = httpConn.getResponseCode();
@@ -46,12 +47,12 @@ public class HttpDownloader {
                 int index = disposition.indexOf("filename=");
                 if (index > 0) {
                     fileName = disposition.substring(index + 10,
-                            disposition.length() - 1);
+                        disposition.length() - 1);
                 }
             } else {
                 // extracts file name from URL
                 fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
-                        fileURL.length());
+                    fileURL.length());
             }
 
             // opens input stream from the HTTP connection

@@ -42,13 +42,13 @@ public class Space {
 
     private List<String> members;
 
-    public Space(){
+    public Space() {
         this.metadata = new SpaceMetadata("");
         this.members = new ArrayList<>();
-        this.privileges  = new Privileges();
+        this.privileges = new Privileges();
     }
 
-    public Space(String name){
+    public Space(String name) {
         this.metadata = new SpaceMetadata(name);
         this.members = new ArrayList<>();
         this.privileges = new Privileges();
@@ -81,7 +81,7 @@ public class Space {
         this.privileges.addGroupPrivilegesMap(privileges.getGroupPrivileges());
     }
 
-    public void addUserPrivileges(String username, PrivilegeLevel privilegeLevel){
+    public void addUserPrivileges(String username, PrivilegeLevel privilegeLevel) {
         this.privileges.addUserPrivileges(username, privilegeLevel);
     }
 
@@ -102,8 +102,8 @@ public class Space {
         }
     }
 
-    public boolean hasMember(String id){
-        for(String datasetId : this.members){
+    public boolean hasMember(String id) {
+        for (String datasetId : this.members) {
             if (datasetId.equals(id))
                 return true;
         }
@@ -114,7 +114,7 @@ public class Space {
         members.remove(id);
     }
 
-    public void setMetadata(SpaceMetadata metadata){
+    public void setMetadata(SpaceMetadata metadata) {
         this.metadata = metadata;
     }
 
@@ -122,8 +122,12 @@ public class Space {
         return this.metadata;
     }
 
-    public PrivilegeLevel getUserPrivilegeLevel(String username) { return this.privileges.getUserPrivilegeLevel(username); }
+    public PrivilegeLevel getUserPrivilegeLevel(String username) {
+        return this.privileges.getUserPrivilegeLevel(username);
+    }
 
-    public PrivilegeLevel getGroupPrivilegeLevel(String username) { return this.privileges.getGroupPrivilegeLevel(username); }
+    public PrivilegeLevel getGroupPrivilegeLevel(String username) {
+        return this.privileges.getGroupPrivilegeLevel(username);
+    }
 
 }

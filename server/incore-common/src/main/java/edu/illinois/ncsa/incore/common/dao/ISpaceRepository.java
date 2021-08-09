@@ -17,12 +17,20 @@ import java.util.List;
 
 public interface ISpaceRepository {
     void initialize();
+
     List<Space> getAllSpaces();
+
     Space addSpace(Space space);
+
     Space getSpaceById(String id);
+
     Space getSpaceByName(String name);
+
     Space deleteSpace(String id);
+
     Space getOrphanSpace();
+
     Space addToOrphansSpace(String memberId);
+
     List<String> getSpaceNamesOfMember(String memberId);
 }

@@ -17,7 +17,7 @@ public class ComparisonValidator<T extends Comparable> extends Validator<T> {
     }
 
     public boolean validate(T value) {
-        switch(comparatorType) {
+        switch (comparatorType) {
             case Equal:
                 return value.compareTo(comparisonValue) == 0;
             case NotEqual:

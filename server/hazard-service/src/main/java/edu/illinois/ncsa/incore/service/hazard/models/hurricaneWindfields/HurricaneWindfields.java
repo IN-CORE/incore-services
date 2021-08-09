@@ -56,12 +56,18 @@ public class HurricaneWindfields {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<String> spaces;
 
-    public String getDemandType() { return demandType; }
-    public void setDemandType(String demandType) { this.demandType = demandType; }
+    public String getDemandType() {
+        return demandType;
+    }
+
+    public void setDemandType(String demandType) {
+        this.demandType = demandType;
+    }
 
     public WindfieldsDemandUnits getDemandUnits() {
         return demandUnits;
     }
+
     public void setDemandUnits(WindfieldsDemandUnits demandUnits) {
         this.demandUnits = demandUnits;
     }
@@ -196,7 +202,9 @@ public class HurricaneWindfields {
         return creator;
     }
 
-    public void setCreator(String creator) { this.creator = creator; }
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
 
     public List<String> getSpaces() {
         return spaces;

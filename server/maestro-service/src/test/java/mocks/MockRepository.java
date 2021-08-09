@@ -36,15 +36,16 @@ public class MockRepository implements IRepository {
         URL analysesPath = this.getClass().getClassLoader().getResource("json/analyses.json");
 
         try {
-            this.analyses = new ObjectMapper().readValue(analysesPath, new TypeReference<List<Analysis>>(){});
+            this.analyses = new ObjectMapper().readValue(analysesPath, new TypeReference<List<Analysis>>() {
+            });
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         Mockito.when(mockDataStore.find(Analysis.class)
-                                  .limit(Mockito.any(Integer.class))
-                                  .asList())
-               .thenReturn(this.analyses);
+                .limit(Mockito.any(Integer.class))
+                .asList())
+            .thenReturn(this.analyses);
     }
 
     @Override
@@ -59,8 +60,8 @@ public class MockRepository implements IRepository {
 
     @Override
     public Analysis getAnalysisById(String id) {
-        for(int i =0; i <this.analyses.size(); i++) {
-            if(this.analyses.get(i).getId().equalsIgnoreCase(id)) {
+        for (int i = 0; i < this.analyses.size(); i++) {
+            if (this.analyses.get(i).getId().equalsIgnoreCase(id)) {
                 return this.analyses.get(i);
             }
         }
@@ -74,21 +75,21 @@ public class MockRepository implements IRepository {
     }
 
     @Override
-    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit){
+    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit) {
         List<Analysis> analyses = this.analyses;
         List<Analysis> output = new ArrayList<>();
-        for(int i =0; i < analyses.size(); i++){
+        for (int i = 0; i < analyses.size(); i++) {
             boolean include = true;
             Set<String> keys = queryMap.keySet();
-            for(int j = 0; j < keys.size(); j++) {
-                if(keys.contains("name") && !analyses.get(i).getName().equals(queryMap.get("name"))) {
+            for (int j = 0; j < keys.size(); j++) {
+                if (keys.contains("name") && !analyses.get(i).getName().equals(queryMap.get("name"))) {
                     include = false;
                 }
-                if(keys.contains("category") && !analyses.get(i).getCategory().equals(queryMap.get("category"))) {
+                if (keys.contains("category") && !analyses.get(i).getCategory().equals(queryMap.get("category"))) {
                     include = false;
                 }
             }
-            if(include) {
+            if (include) {
                 output.add(analyses.get(i));
             }
         }

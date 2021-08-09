@@ -13,7 +13,7 @@ public class Rule {
 
     }
 
-    public Rule(List<String> condition, String expression){
+    public Rule(List<String> condition, String expression) {
         this.condition = condition;
         this.expression = expression;
     }

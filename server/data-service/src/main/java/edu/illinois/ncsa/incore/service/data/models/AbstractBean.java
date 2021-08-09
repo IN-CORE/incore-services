@@ -105,7 +105,7 @@ public class AbstractBean implements Serializable {
      */
     @Override
     public int hashCode() {
-        if (getId()!= null) {
+        if (getId() != null) {
             return getId().hashCode();
         } else {
             return super.hashCode();

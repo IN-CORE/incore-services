@@ -87,14 +87,18 @@ public class FloodController {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find any space with name " + spaceName);
             }
             if (!authorizer.canRead(this.username, space.getPrivileges())) {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to read the space " + spaceName);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             floods = floods.stream()
                 .filter(flood -> spaceMembers.contains(flood.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
             return floods;
         }
@@ -104,7 +108,10 @@ public class FloodController {
             .filter(flood -> membersSet.contains(flood.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
         return accessibleFloods;
     }
@@ -134,7 +141,7 @@ public class FloodController {
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Creates a new flood, the newly created flood is returned.",
-        notes="Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create dataset-based floods only.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "flood", value = "Flood json.", required = true, dataType = "string", paramType = "form"),
@@ -174,7 +181,7 @@ public class FloodController {
 
                         String demandType = hazardDataset.getDemandType();
                         String datasetName = demandType;
-                        BodyPartEntity bodyPartEntity = (BodyPartEntity)filePart.getEntity();
+                        BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
@@ -186,14 +193,15 @@ public class FloodController {
                     flood = repository.addFlood(flood);
 
                     Space space = spaceRepository.getSpaceByName(this.username);
-                    if(space == null) {
+                    if (space == null) {
                         space = new Space(this.username);
                         space.setPrivileges(Privileges.newWithSingleOwner(this.username));
                     }
                     space.addMember(flood.getId());
                     spaceRepository.addSpace(space);
                 } else {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, no files were attached with your request.");
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, no files were attached with your " +
+                        "request.");
                 }
 
                 flood.setSpaces(spaceRepository.getSpaceNamesOfMember(flood.getId()));
@@ -224,7 +232,8 @@ public class FloodController {
         ObjectMapper mapper = new ObjectMapper();
         try {
             List<ValuesResponse> valResponse = new ArrayList<>();
-            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {});
+            List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
+            });
             for (ValuesRequest request : valuesRequest) {
                 List<String> demands = request.getDemands();
                 List<String> units = request.getUnits();
@@ -244,7 +253,8 @@ public class FloodController {
                     }
                 } catch (UnsupportedHazardException e) {
                     log.error("Exception in calculating flood values", e);
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the demands and units provided are supported" +
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
+                        "demands and units provided are supported" +
                         " for all the locations");
                 }
 
@@ -256,10 +266,11 @@ public class FloodController {
                 valResponse.add(response);
             }
             return valResponse;
-        }catch(IOException ex){
+        } catch (IOException ex) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
         } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your request.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
+                "request.");
         }
     }
 
@@ -357,7 +368,10 @@ public class FloodController {
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return floods;

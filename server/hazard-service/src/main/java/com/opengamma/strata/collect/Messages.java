@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2014 - present by OpenGamma Inc. and the OpenGamma group of companies
- *
+ * <p>
  * Please see distribution for license.
  */
 package com.opengamma.strata.collect;
@@ -17,6 +17,7 @@ public final class Messages {
     }
 
     //-------------------------------------------------------------------------
+
     /**
      * Formats a templated message inserting a single argument.
      * <p>

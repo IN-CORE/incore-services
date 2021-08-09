@@ -19,8 +19,7 @@ public class JerseyMapperProvider implements ContextResolver<ObjectMapper> {
     private static ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public ObjectMapper getContext(Class<?> type)
-    {
+    public ObjectMapper getContext(Class<?> type) {
         SimpleModule module = new SimpleModule();
         module.addSerializer(Unit.class, new JsonUnitSerializer());
         mapper.registerModule(module);

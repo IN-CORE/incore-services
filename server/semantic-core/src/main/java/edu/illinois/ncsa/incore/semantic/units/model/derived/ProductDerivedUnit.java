@@ -16,10 +16,10 @@ import edu.illinois.ncsa.incore.semantic.units.utils.StringRepresentationUtil;
 public final class ProductDerivedUnit extends OperatorDerivedUnit {
     public ProductDerivedUnit(Unit leftOperand, Unit rightOperand) {
         super(computeName(leftOperand, rightOperand),
-              computePlural(leftOperand, rightOperand),
-              computeSymbol(leftOperand, rightOperand),
-              computeUnicodeSymbol(leftOperand, rightOperand),
-              leftOperand, rightOperand);
+            computePlural(leftOperand, rightOperand),
+            computeSymbol(leftOperand, rightOperand),
+            computeUnicodeSymbol(leftOperand, rightOperand),
+            leftOperand, rightOperand);
 
         super.dimension = Dimension.multiply(leftOperand.getDimension(), rightOperand.getDimension());
 
@@ -29,10 +29,10 @@ public final class ProductDerivedUnit extends OperatorDerivedUnit {
 
     public ProductDerivedUnit(Unit leftOperand, Unit rightOperand, Dimension dimension) {
         super(computeName(leftOperand, rightOperand),
-              computePlural(leftOperand, rightOperand),
-              computeSymbol(leftOperand, rightOperand),
-              computeUnicodeSymbol(leftOperand, rightOperand),
-              dimension, leftOperand, rightOperand);
+            computePlural(leftOperand, rightOperand),
+            computeSymbol(leftOperand, rightOperand),
+            computeUnicodeSymbol(leftOperand, rightOperand),
+            dimension, leftOperand, rightOperand);
 
         super.baseNormalForm = computeBaseNormalForm();
         super.coherentNormalForm = computeCoherentNormalForm();

@@ -21,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-class Groups{
+class Groups {
     private long lastUserRefresh = 0;
     private Set<String> userGroups;
 
@@ -50,7 +50,7 @@ public class LdapClient {
     public static String ldapUri = System.getenv("AUTH_LDAP_URL");
     public static String userDn = System.getenv("AUTH_LDAP_USERDN");
 
-    public Map<String,Groups> userGroupCache = new HashMap<>();
+    public Map<String, Groups> userGroupCache = new HashMap<>();
 
     private DirContext getContext() throws NamingException {
 
@@ -65,17 +65,16 @@ public class LdapClient {
 
         long ldapRefreshSecs = 900;
         String ldapRefreshString = System.getenv("AUTH_LDAP_CACHE_REFRESH_SECS");
-        if(ldapRefreshString != null && ldapRefreshString != "") {
+        if (ldapRefreshString != null && ldapRefreshString != "") {
             try {
                 ldapRefreshSecs = Long.parseLong(ldapRefreshString);
-            }
-            catch(NumberFormatException e){
+            } catch (NumberFormatException e) {
                 log.error("NumberFormatException when reading the system env variables: AUTH_LDAP_CACHE_REFRESH_SECS");
             }
         }
-        long currSecs = System.currentTimeMillis()/1000;
+        long currSecs = System.currentTimeMillis() / 1000;
 
-        if ( userGroupCache.containsKey(user)) {
+        if (userGroupCache.containsKey(user)) {
             if (currSecs - userGroupCache.get(user).getLastUserRefresh() < ldapRefreshSecs) {
                 return userGroupCache.get(user).getUserGroups();
             }
@@ -114,7 +113,7 @@ public class LdapClient {
         }
 
         groupsInfo.setUserGroups(result);
-        groupsInfo.setLastUserRefresh(System.currentTimeMillis()/1000);
+        groupsInfo.setLastUserRefresh(System.currentTimeMillis() / 1000);
 
         userGroupCache.put(user, groupsInfo);
 
@@ -140,7 +139,6 @@ public class LdapClient {
             while (answer.hasMore()) {
                 SearchResult rslt = (SearchResult) answer.next();
                 Attributes attrs = rslt.getAttributes();
-
 
 
                 userInfo = new LdapUserInfo();

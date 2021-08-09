@@ -68,7 +68,7 @@ public class TypeController {
     @Path("types")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "list all types belong user has access to.")
-    public Response listTypes(){
+    public Response listTypes() {
         List<Document> typeList = this.typeDAO.getTypes();
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
         //return the intersection between all types and the ones the user can read
@@ -84,7 +84,7 @@ public class TypeController {
     @GET
     @Path("types/{uri}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value="Show specific types by uri.")
+    @ApiOperation(value = "Show specific types by uri.")
     public Response getType(
         @ApiParam(value = "Type uri (name).", required = true) @PathParam("uri") String uri,
         @ApiParam(value = "version number.") @QueryParam("version") String version) {
@@ -105,10 +105,14 @@ public class TypeController {
             if (version.equals("latest")) {
                 Optional<Document> latestMatched = results.stream()
                     .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
-                if (latestMatched.isPresent()) { matchedTypeList = new ArrayList<Document>() {{ add(latestMatched.get()); }}; }
-                else { matchedTypeList = new ArrayList<>(); }
-            }
-            else{
+                if (latestMatched.isPresent()) {
+                    matchedTypeList = new ArrayList<Document>() {{
+                        add(latestMatched.get());
+                    }};
+                } else {
+                    matchedTypeList = new ArrayList<>();
+                }
+            } else {
                 matchedTypeList = results;
             }
 
@@ -123,7 +127,7 @@ public class TypeController {
     @GET
     @Path("types/search")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value="Search type by partial match of text.")
+    @ApiOperation(value = "Search type by partial match of text.")
     public Response searchType(
         @ApiParam(value = "Type uri (name).") @QueryParam("text") String text) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
@@ -146,7 +150,7 @@ public class TypeController {
     @Path("/types")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value="Publish new type.")
+    @ApiOperation(value = "Publish new type.")
     public Response publishType(
         @ApiParam(value = "Type uri (name).") Document type) {
         Space space = spaceRepository.getSpaceByName(this.username);

@@ -77,7 +77,8 @@ public class MappingController {
     @ApiOperation(value = "Gets list of all inventory mappings", notes = "Apply filters to get the desired set of mappings")
     public List<MappingSet> getMappings(@ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
                                         @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                        @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam("mappingType") String mappingType,
+                                        @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
+                                            "mappingType") String mappingType,
                                         @ApiParam(value = "Creator's username") @QueryParam("creator") String creator,
                                         @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
@@ -126,11 +127,14 @@ public class MappingController {
         }
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
 
-        List<MappingSet> accessibleMappingSets =  mappingSets.stream()
+        List<MappingSet> accessibleMappingSets = mappingSets.stream()
             .filter(b -> membersSet.contains(b.getId()))
             .skip(offset)
             .limit(limit)
-            .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
             .collect(Collectors.toList());
 
         return accessibleMappingSets;
@@ -159,7 +163,8 @@ public class MappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create an inventory mapping", notes = "Post a json that represents mapping between inventory's attributes and DFR3 object sets")
+    @ApiOperation(value = "Create an inventory mapping", notes = "Post a json that represents mapping between inventory's attributes and " +
+        "DFR3 object sets")
     public MappingSet uploadMapping(@ApiParam(value = "json representing the fragility mapping") MappingSet mappingSet) {
 
         List<Mapping> mappings = mappingSet.getMappings();
@@ -168,16 +173,16 @@ public class MappingController {
         // This validates if the format of the "rules" being submitted is an Array or Hash. It is needed because we made "rules" attribute
         // accept any Object in INCORE1-1153. This can be removed when the existing mappings in DFR3 database are updated to new format
         // and we need not support backward compatibility. Also, validates if all rules are of the same format (either Array or HashMap)
-        for (Mapping mapping: mappings){
-            if (! (mapping.getRules() instanceof java.util.ArrayList) && !(mapping.getRules() instanceof java.util.HashMap)){
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "At least one of the provided mapping rules' format is incorrect");
+        for (Mapping mapping : mappings) {
+            if (!(mapping.getRules() instanceof java.util.ArrayList) && !(mapping.getRules() instanceof java.util.HashMap)) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "At least one of the provided mapping rules' format is " +
+                    "incorrect");
             }
 
-            if (idx == 0){
+            if (idx == 0) {
                 prevRuleClassName = mapping.getRules().getClass().getName();
-            }
-            else {
-                if (!prevRuleClassName.equals(mapping.getRules().getClass().getName())){
+            } else {
+                if (!prevRuleClassName.equals(mapping.getRules().getClass().getName())) {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "All rules in the mapping should be in the same format");
                 }
                 prevRuleClassName = mapping.getRules().getClass().getName();
@@ -220,7 +225,8 @@ public class MappingController {
                 }
                 return this.mappingDAO.deleteMappingSetById(id);
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the mapping with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the mapping" +
+                    " with id " + id);
             }
         } else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a mapping set with id " + id);
@@ -232,9 +238,10 @@ public class MappingController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Search for a text in all mappings", notes = "Gets all mappings that contain a specific text")
     public List<MappingSet> findMappings(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
-                                              @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam("mappingType") String mappingType,
-                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                         @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
+                                             "mappingType") String mappingType,
+                                         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
+                                         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         try {
             List<MappingSet> sets = new ArrayList<>();
             Optional<MappingSet> ms = this.mappingDAO.getMappingSetById(text);
@@ -250,12 +257,14 @@ public class MappingController {
                 .filter(b -> membersSet.contains(b.getId()))
                 .skip(offset)
                 .limit(limit)
-                .map(d -> {d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId())); return d;})
+                .map(d -> {
+                    d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                    return d;
+                })
                 .collect(Collectors.toList());
 
             return accessibleMappings;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Unknown Server error occured");
         }
     }

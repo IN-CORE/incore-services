@@ -33,9 +33,11 @@ import java.net.URL;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class DatasetControllerTest extends CustomJerseyTest{
+class DatasetControllerTest extends CustomJerseyTest {
 
-    public DatasetControllerTest() { super();}
+    public DatasetControllerTest() {
+        super();
+    }
 
     @Override
     public ResourceConfig configure() {
@@ -44,7 +46,7 @@ class DatasetControllerTest extends CustomJerseyTest{
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application  = new MockApplication(DatasetController.class);
+        MockApplication application = new MockApplication(DatasetController.class);
 
         return application;
     }
@@ -52,8 +54,9 @@ class DatasetControllerTest extends CustomJerseyTest{
     @Test
     public void testRequestWithBadUserInfoJson() {
         try {
-            String output = target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
-        } catch (BadRequestException e){
+            String output =
+                target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+        } catch (BadRequestException e) {
             int expectedStatusCode = 400;
             int actualStatusCode = e.getResponse().getStatus();
 
@@ -63,7 +66,8 @@ class DatasetControllerTest extends CustomJerseyTest{
 
     @Test
     public void testListDataset() {
-        String output = target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output =
+            target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(5, parsedObject.length());
@@ -78,7 +82,8 @@ class DatasetControllerTest extends CustomJerseyTest{
     @Test
     public void testDatasetById() {
         String id = "5a207b29beefa40740e87c93";
-        Dataset dataset = target("/datasets/" + id).request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(Dataset.class);
+        Dataset dataset =
+            target("/datasets/" + id).request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(Dataset.class);
 
         assertNotNull(dataset.getId());
     }
@@ -89,7 +94,8 @@ class DatasetControllerTest extends CustomJerseyTest{
         InputStream inputStream = jsonURL.openStream();
         String jsontext = IOUtils.toString(inputStream);
         final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("dataset", jsontext);
-        Response response = target("/datasets").register(MultiPartWriter.class).request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+        Response response = target("/datasets").register(MultiPartWriter.class).request().header("x-auth-userinfo",
+            "{\"preferred_username\": \"test\"}").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
         Dataset output = response.readEntity(Dataset.class);
 
         assertNotNull(output.getId());
@@ -100,7 +106,8 @@ class DatasetControllerTest extends CustomJerseyTest{
     public void testGetDatasetFiles() throws IOException {
         String id = "5ac4ef37f9ebf2057a08f566";
 
-        String output = target("/datasets/" + id + "/files").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output =
+            target("/datasets/" + id + "/files").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(1, parsedObject.length());
@@ -108,18 +115,18 @@ class DatasetControllerTest extends CustomJerseyTest{
         assertNotNull(firstObject.get("id").toString());
     }
 
-    @Test void getGetDatasetFileById() throws IOException{
+    @Test
+    void getGetDatasetFileById() throws IOException {
         String dsId = "5ac4ef37f9ebf2057a08f566";
         String fileId = "5a393841c7d30d044d9b66f4";
 
-        String output = target("/datasets/" + dsId+ "/files/"+fileId).request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+        String output = target("/datasets/" + dsId + "/files/" + fileId).request().header("x-auth-userinfo", "{\"preferred_username\": " +
+            "\"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONObject parsedObject = new JSONObject(output);
 
         //assertEquals(1, parsedObject.length());
         assertNotNull(parsedObject.get("id").toString());
     }
-
-
 
 
 }

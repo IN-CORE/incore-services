@@ -23,7 +23,8 @@ public class Concept {
     // @Embedded("@context")
     // private List<Context> context;
 
-    public Concept() { }
+    public Concept() {
+    }
 
     public Concept(String url, String title, Columns tableSchema, List<Context> context) {
         this.url = url;
@@ -36,15 +37,15 @@ public class Concept {
         return id.toHexString();
     }
 
-    public String getUrl(){
+    public String getUrl() {
         return url;
     }
 
-    public String getTitle(){
+    public String getTitle() {
         return title;
     }
 
-    public Columns getTableSchema(){
+    public Columns getTableSchema() {
         return tableSchema;
     }
 

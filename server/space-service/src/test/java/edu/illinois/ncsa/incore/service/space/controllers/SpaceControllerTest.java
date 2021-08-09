@@ -51,7 +51,8 @@ class SpaceControllerTest extends CustomJerseyTest {
 
 //    @Test
 //    public void testGetSpaceList() {
-//        String output = target("/spaces").request().header("X-Credential-Username", "test").accept(MediaType.APPLICATION_JSON).get(String.class);
+//        String output = target("/spaces").request().header("X-Credential-Username", "test").accept(MediaType.APPLICATION_JSON).get
+//        (String.class);
 //        JSONArray parsedObject = new JSONArray(output);
 //
 //        for(int i = 0; i < parsedObject.length(); i++){
@@ -71,7 +72,8 @@ class SpaceControllerTest extends CustomJerseyTest {
 
         Response response = target("/spaces").register(MultiPartWriter.class).request()
             .header("x-auth-userinfo",
-                "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\",\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
+                "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\"," +
+                    "\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
             .post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
 
         String output = response.readEntity(String.class);
@@ -92,7 +94,8 @@ class SpaceControllerTest extends CustomJerseyTest {
 
         Response response = target("/spaces/" + id + "/grant").register(MultiPartWriter.class).request()
             .header("x-auth-userinfo",
-            "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\",\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
+                "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\"," +
+                    "\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
             .post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
 
         String output = response.readEntity(String.class);

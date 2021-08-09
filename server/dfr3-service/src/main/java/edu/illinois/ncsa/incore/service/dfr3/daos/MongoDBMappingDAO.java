@@ -91,7 +91,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     public List<MappingSet> searchMappings(String text, String mappingType) {
         Query<MappingSet> query = this.dataStore.find(MappingSet.class);
 
-        if(mappingType != null && !mappingType.trim().equals("")){
+        if (mappingType != null && !mappingType.trim().equals("")) {
             query.filter(Filters.or(
                 Filters.regex("mappingType").pattern(mappingType).caseInsensitive(),
                 Filters.regex("name").pattern(text).caseInsensitive(),
@@ -116,11 +116,11 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         }
 
         List<MappingSet> mappingSets = this.dataStore.find(MappingSet.class).iterator().toList();
-        for(MappingSet map: mappingSets){
-            List<Mapping> mappings =  map.getMappings();
-            for(Mapping mapping: mappings){
+        for (MappingSet map : mappingSets) {
+            List<Mapping> mappings = map.getMappings();
+            for (Mapping mapping : mappings) {
                 Map<String, String> entry = mapping.getEntry();
-                if(entry.containsValue(id)){
+                if (entry.containsValue(id)) {
                     return true;
                 }
             }

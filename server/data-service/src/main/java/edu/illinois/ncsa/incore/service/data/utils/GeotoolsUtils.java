@@ -257,7 +257,7 @@ public class GeotoolsUtils {
 
         // make sure that name of feature type is matched with name file file
         sftBuilder.setName(dataset.getId());
-        
+
         for (int i = 0; i < csvHeaders.length; i++) {
             if (i != csvIdLoc) {
                 AttributeTypeBuilder build = new AttributeTypeBuilder();
@@ -312,7 +312,7 @@ public class GeotoolsUtils {
         }
 
         // return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
-        return outToGpkgFile(new File(tempDir + File.separator + dataset.getId()+"."+FileUtils.EXTENSION_GEOPACKAGE), newCollection);
+        return outToGpkgFile(new File(tempDir + File.separator + dataset.getId() + "." + FileUtils.EXTENSION_GEOPACKAGE), newCollection);
     }
 
     /**
@@ -366,7 +366,8 @@ public class GeotoolsUtils {
         return outList;
     }
 
-    public static List<File> performCopyNetworkFiles(Dataset dataset, List<File> fileList, String tempDir, String datasetId, boolean isGeoserver, String inExt) throws IOException {
+    public static List<File> performCopyNetworkFiles(Dataset dataset, List<File> fileList, String tempDir, String datasetId,
+                                                     boolean isGeoserver, String inExt) throws IOException {
         List<File> outList = new ArrayList<File>();
         String linkName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getLink().getFileName());
         String nodeName = FilenameUtils.removeExtension(dataset.getNetworkDataset().getNode().getFileName());
@@ -424,18 +425,19 @@ public class GeotoolsUtils {
         // org.apache.commons.io.FileUtils.copyFile(sourceFile, destFile);
         // List<File>  outList = unzipShapefiles(destFile, new File(destFile.getParent()));
 
-        List<File>  outList = unzipShapefiles(sourceFile, new File(sourceFile.getParent()));
+        List<File> outList = unzipShapefiles(sourceFile, new File(sourceFile.getParent()));
 
         return outList;
     }
 
     /**
      * unzip zipped shapefile and check if it is complete shapefile
+     *
      * @param file
      * @param destDirectory
      * @return
      */
-    public static List<File> unzipShapefiles(File file, File destDirectory){
+    public static List<File> unzipShapefiles(File file, File destDirectory) {
         int shapefileCompoentIndex = 0;
         List<File> outList = new ArrayList<File>();
         byte[] buffer = new byte[1024];
@@ -461,7 +463,7 @@ public class GeotoolsUtils {
                 } else if (fileExt.equalsIgnoreCase("dbf")) {
                     shapefileCompoentIndex += 1;
                 } else if (fileExt.equalsIgnoreCase("prj")) {
-                    shapefileCompoentIndex ++;
+                    shapefileCompoentIndex++;
                 }
 
                 outList.add(newFile);
@@ -592,16 +594,16 @@ public class GeotoolsUtils {
      */
     public static File outToGpkgFile(File geoPkgPathFile, DefaultFeatureCollection collection)
         throws IOException {
-        
+
         GeoPackage geopkg = new GeoPackage(geoPkgPathFile);
         geopkg.init();
-        
+
         // adding features to geopkg
         FeatureEntry entry = new FeatureEntry();
         geopkg.add(entry, collection);
 
         geopkg.close();
-        
+
         return geoPkgPathFile;
     }
 

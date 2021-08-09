@@ -84,6 +84,7 @@ public class ServiceUtil {
 
     /**
      * util for attaching tornado shapefile or zipfile to tornado dataset created
+     *
      * @param datasetId
      * @param creator
      * @param fileParts
@@ -104,7 +105,8 @@ public class ServiceUtil {
 
         for (FormDataBodyPart filePart : fileParts) {
             BodyPartEntity bodyPartEntity = (BodyPartEntity) filePart.getEntity();
-            params.addBinaryBody(HazardConstants.FILE_PARAMETER_, bodyPartEntity.getInputStream(), ContentType.DEFAULT_BINARY, filePart.getContentDisposition().getFileName());
+            params.addBinaryBody(HazardConstants.FILE_PARAMETER_, bodyPartEntity.getInputStream(), ContentType.DEFAULT_BINARY,
+                filePart.getContentDisposition().getFileName());
         }
 
         // Attach file
@@ -131,7 +133,7 @@ public class ServiceUtil {
      *
      * @return
      */
-    public static String createDataEndpoint(){
+    public static String createDataEndpoint() {
         String dataEndpoint = "http://localhost:8080/";
         String dataEndpointProp = System.getenv("SERVICES_URL");
         if (dataEndpointProp != null && !dataEndpointProp.isEmpty()) {
@@ -457,8 +459,8 @@ public class ServiceUtil {
             response = httpclient.execute(httpPost);
             responseStr = responseHandler.handleResponse(response);
 
-            logger.debug("Job submission HTTP response: "+response);
-            logger.debug("Execution ID: "+responseStr);
+            logger.debug("Job submission HTTP response: " + response);
+            logger.debug("Execution ID: " + responseStr);
             return responseStr;
         } catch (JsonProcessingException e) {
             logger.debug("Json Processing Exception", e);
@@ -487,8 +489,8 @@ public class ServiceUtil {
             HttpResponse response = httpclient.execute(httpGet);
             responseStr = responseHandler.handleResponse(response);
 
-            logger.debug("Job status HTTP response: "+response);
-            logger.debug("Job status: "+responseStr);
+            logger.debug("Job status HTTP response: " + response);
+            logger.debug("Job status: " + responseStr);
 
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> jobStatusMap = mapper.readValue(responseStr, Map.class);
@@ -520,13 +522,13 @@ public class ServiceUtil {
             HttpResponse response = httpclient.execute(httpGet);
             responseStr = responseHandler.handleResponse(response);
 
-            logger.debug("Get execution HTTP response: "+response);
-            logger.debug("Get execution json: "+responseStr);
+            logger.debug("Get execution HTTP response: " + response);
+            logger.debug("Get execution json: " + responseStr);
 
             JSONObject execution = new JSONObject(responseStr);
-            JSONObject datasetObj = (JSONObject)execution.get("datasets");
+            JSONObject datasetObj = (JSONObject) execution.get("datasets");
 
-            for(String datasetId : datasetIds) {
+            for (String datasetId : datasetIds) {
                 String outputDatasetId = datasetObj.getString(datasetId);
                 datasetMap.put(datasetId, outputDatasetId);
             }
@@ -559,18 +561,18 @@ public class ServiceUtil {
             response = httpclient.execute(httpGet);
             responseStr = responseHandler.handleResponse(response);
 
-            logger.debug("Job dataset HTTP response: "+response);
-            logger.debug("Job dataset object: "+responseStr);
+            logger.debug("Job dataset HTTP response: " + response);
+            logger.debug("Job dataset object: " + responseStr);
 
             JSONObject dataset = new JSONObject(responseStr);
-            JSONArray fileDescriptors = (JSONArray)dataset.get("fileDescriptors");
+            JSONArray fileDescriptors = (JSONArray) dataset.get("fileDescriptors");
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");
 
             incoreWorkDirectory.delete();
             incoreWorkDirectory.mkdirs();
 
             // Get dataset files - these needs to be generalized
-            for(int index = 0; index < fileDescriptors.length(); index++) {
+            for (int index = 0; index < fileDescriptors.length(); index++) {
                 JSONObject fileDescriptor = fileDescriptors.getJSONObject(index);
                 String descriptorId = fileDescriptor.getString("id");
                 String filename = fileDescriptor.getString("filename");
@@ -767,6 +769,7 @@ public class ServiceUtil {
 
     /**
      * DataWolf Service Endpoint
+     *
      * @return
      */
     public static String getDataWolfService() {

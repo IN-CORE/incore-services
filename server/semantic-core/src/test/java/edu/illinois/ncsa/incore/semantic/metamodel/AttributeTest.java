@@ -16,8 +16,8 @@ public class AttributeTest {
     @Test
     public void test() {
         EnumerableAttribute vacancy = new EnumerableAttribute<Integer>("VACANCY", "Type of Vacancy", Arrays.asList(
-                new Enumeration<Integer>(0, "N/A"),
-                new Enumeration<Integer>(1, "For rent (H0050002)")
+            new Enumeration<Integer>(0, "N/A"),
+            new Enumeration<Integer>(1, "For rent (H0050002)")
         ));
 
         //
