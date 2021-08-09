@@ -6,10 +6,9 @@
  *******************************************************************************/
 package ncsa.tools.common.types.filters;
 
-import org.apache.commons.lang.StringUtils;
-
 import ncsa.tools.common.types.Predicate;
 import ncsa.tools.common.util.TypeUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Object to be used in the context of a MatchClause.

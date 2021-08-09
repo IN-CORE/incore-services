@@ -10,13 +10,10 @@
 
 package edu.illinois.ncsa.incore.service.data.models.mvz;
 
-import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.mvz.DatasetId;
-import edu.illinois.ncsa.incore.service.data.models.mvz.MaevizMapping;
-import edu.illinois.ncsa.incore.service.data.models.mvz.Metadata;
-import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;

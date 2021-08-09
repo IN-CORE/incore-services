@@ -9,10 +9,10 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
+import dev.morphia.Datastore;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import org.apache.log4j.Logger;
 import org.mockito.Mockito;
-import dev.morphia.Datastore;
 
 import java.util.List;
 

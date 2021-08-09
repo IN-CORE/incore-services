@@ -10,14 +10,7 @@
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
 import com.google.common.math.LongMath;
-
-import java.util.List;
-
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import org.json.JSONObject;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
@@ -27,7 +20,13 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.json.JSONObject;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
 import org.opengis.feature.simple.SimpleFeature;
+
+import java.util.List;
 
 public class TornadoCalc {
     private static final Logger logger = Logger.getLogger(TornadoCalc.class);

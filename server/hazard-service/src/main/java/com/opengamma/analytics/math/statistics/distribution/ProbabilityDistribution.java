@@ -7,6 +7,7 @@ package com.opengamma.analytics.math.statistics.distribution;
 
 /**
  * Interface for probability distributions.
+ *
  * @param <T> Type of the parameters of the distribution
  */
 public interface ProbabilityDistribution<T> {
@@ -18,6 +19,7 @@ public interface ProbabilityDistribution<T> {
 
     /**
      * Return the probability density function for a value
+     *
      * @param x The value, not null
      * @return The pdf
      */
@@ -25,6 +27,7 @@ public interface ProbabilityDistribution<T> {
 
     /**
      * Returns the cumulative distribution function for a value
+     *
      * @param x The value, not null
      * @return The cdf
      */
@@ -32,6 +35,7 @@ public interface ProbabilityDistribution<T> {
 
     /**
      * Given a probability, return the value that returns this cdf
+     *
      * @param p The probability, not null. $0 \geq p \geq 1$
      * @return The inverse cdf
      */

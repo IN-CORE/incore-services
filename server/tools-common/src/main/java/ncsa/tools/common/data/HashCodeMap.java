@@ -6,14 +6,9 @@
  *******************************************************************************/
 package ncsa.tools.common.data;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang.ObjectUtils;
+
+import java.util.*;
 
 /**
  * Composes a synchronized HashMap. Overrides the <code>put</code> method

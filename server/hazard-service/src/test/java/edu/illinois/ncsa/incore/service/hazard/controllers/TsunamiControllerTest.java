@@ -10,13 +10,7 @@ import edu.illinois.ncsa.incore.service.hazard.CustomJerseyTest;
 import edu.illinois.ncsa.incore.service.hazard.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
-import org.json.JSONArray;
-import org.junit.Test;
 import org.junit.jupiter.api.TestInstance;
-
-import javax.ws.rs.core.MediaType;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TsunamiControllerTest extends CustomJerseyTest {

@@ -9,13 +9,13 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import com.opengamma.analytics.math.statistics.distribution.GeneralizedExtremeValueDistribution;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import org.locationtech.jts.geom.Coordinate;
 
-import java.util.Random;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class RandomLengthWidthAngleTornado extends BaseTornado {
 

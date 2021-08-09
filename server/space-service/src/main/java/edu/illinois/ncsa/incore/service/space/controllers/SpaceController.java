@@ -7,15 +7,15 @@ package edu.illinois.ncsa.incore.service.space.controllers;
  *******************************************************************************
  */
 
-import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.SpaceMetadata;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.space.models.Members;
 import io.swagger.annotations.*;
@@ -32,7 +32,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ywkim on 7/26/2017.

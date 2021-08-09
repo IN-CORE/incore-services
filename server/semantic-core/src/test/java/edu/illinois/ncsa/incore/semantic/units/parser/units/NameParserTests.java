@@ -23,9 +23,7 @@ import java.text.ParseException;
 
 import static edu.illinois.ncsa.incore.semantic.units.instances.Prefixes.*;
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.*;
-import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.kilogram;
-import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.metre;
-import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.second;
+import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NameParserTests {

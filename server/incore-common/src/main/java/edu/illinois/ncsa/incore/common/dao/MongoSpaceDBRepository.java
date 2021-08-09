@@ -11,24 +11,20 @@
 
 package edu.illinois.ncsa.incore.common.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
-import dev.morphia.mapping.Mapper;
 import dev.morphia.mapping.MapperOptions;
+import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.common.models.Space;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import dev.morphia.query.Query;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 public class MongoSpaceDBRepository implements ISpaceRepository {

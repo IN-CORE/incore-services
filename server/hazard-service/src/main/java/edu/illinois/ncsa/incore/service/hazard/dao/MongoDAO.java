@@ -9,17 +9,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public abstract class MongoDAO {
     protected MongoClientURI mongoClientURI;

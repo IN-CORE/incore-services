@@ -9,9 +9,7 @@ package edu.illinois.ncsa.incore.semantic.units.equivalence;
 
 import org.junit.jupiter.api.Test;
 
-import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.joule;
-import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.squareMetre;
-import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.watt;
+import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.*;
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 

@@ -11,7 +11,6 @@ import edu.illinois.ncsa.incore.semantic.units.io.serializer.JsonSerializer;
 import org.junit.jupiter.api.Test;
 
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.squareMetre;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JsonSerializerTests {

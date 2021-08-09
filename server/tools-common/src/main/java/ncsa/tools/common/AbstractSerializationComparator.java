@@ -6,11 +6,11 @@
  *******************************************************************************/
 package ncsa.tools.common;
 
+import org.apache.commons.lang.ObjectUtils;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
-
-import org.apache.commons.lang.ObjectUtils;
 
 public abstract class AbstractSerializationComparator implements Comparator {
     public int compare(Object arg0, Object arg1) {

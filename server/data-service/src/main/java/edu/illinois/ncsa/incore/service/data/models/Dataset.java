@@ -15,10 +15,12 @@ package edu.illinois.ncsa.incore.service.data.models;
  * This is from NCSA's DataWolf
  */
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dev.morphia.annotations.*;
-import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;

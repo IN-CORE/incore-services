@@ -6,19 +6,15 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import ncsa.tools.common.NCSAConstants;
 import ncsa.tools.common.comparators.MethodComparator;
 import ncsa.tools.common.comparators.ToStringComparator;
 import ncsa.tools.common.exceptions.ScanException;
 import ncsa.tools.common.types.MethodPattern;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 /**
  * Does introspection of a given class for methods matching the

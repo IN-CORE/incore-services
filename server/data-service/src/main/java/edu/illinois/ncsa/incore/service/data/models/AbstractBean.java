@@ -15,9 +15,9 @@ package edu.illinois.ncsa.incore.service.data.models;
  * This is from NCSA's DataWolf
  */
 
-import org.bson.types.ObjectId;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
+import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 

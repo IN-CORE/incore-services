@@ -10,19 +10,11 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
-import javax.ws.rs.core.MediaType;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FileControllerTest extends CustomJerseyTest {

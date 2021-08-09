@@ -6,20 +6,19 @@
  *******************************************************************************/
 package ncsa.tools.common.types.filters;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import ncsa.tools.common.NCSAConstants;
+import ncsa.tools.common.UserFacing;
+import ncsa.tools.common.util.SystemUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.Attribute;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
-import ncsa.tools.common.NCSAConstants;
-import ncsa.tools.common.UserFacing;
-import ncsa.tools.common.util.SystemUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * There are two options for usage:

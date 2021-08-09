@@ -6,10 +6,10 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.types;
 
+import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
-
-import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 
 @XmlRootElement
 public class SeismicHazardResults {

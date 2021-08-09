@@ -6,6 +6,8 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
+import io.swagger.annotations.*;
+import org.bson.Document;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -13,9 +15,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import io.swagger.annotations.*;
-import org.bson.Document;
 
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
 @SwaggerDefinition(

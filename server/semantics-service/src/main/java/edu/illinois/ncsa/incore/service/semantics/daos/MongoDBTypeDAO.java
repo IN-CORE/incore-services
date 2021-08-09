@@ -1,13 +1,15 @@
 package edu.illinois.ncsa.incore.service.semantics.daos;
 
 import com.mongodb.MongoClientURI;
-
-import java.util.*;
-
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import static com.mongodb.client.model.Filters.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 
 public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {

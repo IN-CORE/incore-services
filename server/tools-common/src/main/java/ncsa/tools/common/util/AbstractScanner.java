@@ -6,12 +6,11 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 import ncsa.tools.common.exceptions.InitializationException;
 import ncsa.tools.common.exceptions.ScanException;
+import org.apache.log4j.Logger;
+
+import java.util.List;
 
 /**
  * Functionality adapted and modified from org.apache.tools.ant.FileScanner

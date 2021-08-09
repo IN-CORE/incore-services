@@ -6,12 +6,12 @@
  *******************************************************************************/
 package ncsa.tools.common.types;
 
-import java.io.Serializable;
-
 import ncsa.tools.common.UserFacing;
 import ncsa.tools.common.util.ReflectUtils;
 import ncsa.tools.common.util.TypeUtils;
 import ncsa.tools.common.util.XmlUtils;
+
+import java.io.Serializable;
 
 /**
  * A general attribute descriptor. Will also work inside an ogre script.

@@ -6,32 +6,13 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.lang.reflect.Array;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import ncsa.tools.common.AbstractSerializationComparator;
+import ncsa.tools.common.UserFacing;
+import ncsa.tools.common.exceptions.DeserializationException;
+import ncsa.tools.common.exceptions.ParseException;
+import ncsa.tools.common.exceptions.SerializationException;
+import ncsa.tools.common.util.bean.ImplicitJBeanDeserializer;
+import ncsa.tools.common.util.bean.ImplicitJBeanSerializer;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -40,13 +21,12 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 import org.xml.sax.InputSource;
 
-import ncsa.tools.common.AbstractSerializationComparator;
-import ncsa.tools.common.UserFacing;
-import ncsa.tools.common.exceptions.DeserializationException;
-import ncsa.tools.common.exceptions.ParseException;
-import ncsa.tools.common.exceptions.SerializationException;
-import ncsa.tools.common.util.bean.ImplicitJBeanDeserializer;
-import ncsa.tools.common.util.bean.ImplicitJBeanSerializer;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.*;
+import java.lang.reflect.Array;
+import java.net.URL;
+import java.util.*;
 
 /**
  * A few utility methods for processing or handling xml. Wraps both Bean and

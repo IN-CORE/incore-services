@@ -6,15 +6,14 @@
  *******************************************************************************/
 package ncsa.tools.common.types;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import ncsa.tools.common.UserFacing;
 import org.dom4j.Attribute;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
-import ncsa.tools.common.UserFacing;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ProfileDescription implements UserFacing {
     private static final long serialVersionUID = 10022L;

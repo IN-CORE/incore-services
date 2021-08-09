@@ -6,14 +6,9 @@
  *******************************************************************************/
 package ncsa.tools.common.types;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import ncsa.tools.common.Filter;
+
+import java.util.*;
 
 public class Profile implements Filter {
     public static final String TAG_SELF = "profile";

@@ -6,23 +6,19 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
+import ncsa.tools.common.NCSAConstants;
+import ncsa.tools.common.exceptions.FailedComparisonException;
+import ncsa.tools.common.exceptions.FileReadException;
+import ncsa.tools.common.exceptions.TypeConversionException;
+import ncsa.tools.common.types.Predicate;
+import ncsa.tools.common.types.filters.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-
-import ncsa.tools.common.NCSAConstants;
-import ncsa.tools.common.exceptions.FailedComparisonException;
-import ncsa.tools.common.exceptions.FileReadException;
-import ncsa.tools.common.exceptions.TypeConversionException;
-import ncsa.tools.common.types.Predicate;
-import ncsa.tools.common.types.filters.ClassFilter;
-import ncsa.tools.common.types.filters.MatchClause;
-import ncsa.tools.common.types.filters.MatchFilter;
-import ncsa.tools.common.types.filters.MatchStatement;
-import ncsa.tools.common.types.filters.TypeFilter;
 
 /**
  * Wrapper static methods for doing arbitrary object comparisons. Also includes

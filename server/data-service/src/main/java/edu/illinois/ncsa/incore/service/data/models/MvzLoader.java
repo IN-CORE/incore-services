@@ -10,8 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.data.models;
 
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.models.mvz.*;
+import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;

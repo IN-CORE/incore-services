@@ -15,9 +15,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MappingControllerTest extends CustomJerseyTest {
     public MappingControllerTest() {

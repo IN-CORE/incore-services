@@ -11,9 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.dao;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HistoricHurricane;
-
-import java.net.URL;
-
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -22,8 +20,7 @@ import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-import org.apache.log4j.Logger;
+import java.net.URL;
 
 
 public class DBHurricaneRepository {

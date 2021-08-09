@@ -6,12 +6,12 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
+import ncsa.tools.common.exceptions.TypeConversionException;
+
 import java.io.File;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
-
-import ncsa.tools.common.exceptions.TypeConversionException;
 
 /**
  * Various type-checking, primitive conversion and class lookup

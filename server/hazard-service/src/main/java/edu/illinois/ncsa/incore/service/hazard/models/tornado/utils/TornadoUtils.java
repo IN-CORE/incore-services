@@ -10,14 +10,12 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
-import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
-import org.locationtech.jts.geom.*;
-import org.locationtech.jts.operation.buffer.BufferOp;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoHazard;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoModel;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
+import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.DataStore;
@@ -32,6 +30,8 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.json.JSONObject;
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.operation.buffer.BufferOp;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.GeometryDescriptor;

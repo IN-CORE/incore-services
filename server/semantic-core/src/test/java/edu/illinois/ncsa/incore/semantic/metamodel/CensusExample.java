@@ -6,13 +6,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.semantic.metamodel;
 
-import edu.illinois.ncsa.incore.semantic.metamodel.attributes.Attribute;
-import edu.illinois.ncsa.incore.semantic.metamodel.attributes.EnumerableAttribute;
-import edu.illinois.ncsa.incore.semantic.metamodel.common.Enumeration;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class CensusExample {
     @Test

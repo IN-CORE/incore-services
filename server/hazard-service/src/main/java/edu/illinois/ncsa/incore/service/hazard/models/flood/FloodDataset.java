@@ -8,7 +8,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
-import dev.morphia.annotations.Embedded;
 import dev.morphia.annotations.Entity;
 
 import java.util.LinkedList;

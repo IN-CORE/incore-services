@@ -34,8 +34,8 @@ public final class Messages {
      * This method is null tolerant to ensure that use in exception construction will
      * not throw another exception, which might hide the intended exception.
      *
-     * @param messageTemplate  the message template with "{}" placeholders, null returns empty string
-     * @param arg  the message argument, null treated as string "null"
+     * @param messageTemplate the message template with "{}" placeholders, null returns empty string
+     * @param arg             the message argument, null treated as string "null"
      * @return the formatted message
      */
     public static String format(String messageTemplate, Object arg) {
@@ -72,8 +72,8 @@ public final class Messages {
      * This method is null tolerant to ensure that use in exception construction will
      * not throw another exception, which might hide the intended exception.
      *
-     * @param messageTemplate  the message template with "{}" placeholders, null returns empty string
-     * @param args  the message arguments, null treated as empty array
+     * @param messageTemplate the message template with "{}" placeholders, null returns empty string
+     * @param args            the message arguments, null treated as empty array
      * @return the formatted message
      */
     public static String format(String messageTemplate, Object... args) {

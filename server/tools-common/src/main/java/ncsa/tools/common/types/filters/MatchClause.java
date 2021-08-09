@@ -6,11 +6,11 @@
  *******************************************************************************/
 package ncsa.tools.common.types.filters;
 
+import ncsa.tools.common.util.ListUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-
-import ncsa.tools.common.util.ListUtils;
 
 /**
  * Object to be used in the context of a MatchFilter.

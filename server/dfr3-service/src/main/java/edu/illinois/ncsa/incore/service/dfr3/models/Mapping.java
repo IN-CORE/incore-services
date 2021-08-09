@@ -11,15 +11,8 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import dev.morphia.annotations.Embedded;
-import edu.illinois.ncsa.incore.service.dfr3.models.mapping.PropertyMatch;
-import ncsa.tools.common.exceptions.ParseException;
-import ncsa.tools.common.exceptions.ReflectionException;
-import ncsa.tools.common.types.filters.MatchFilter;
-import ncsa.tools.common.util.FilterUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Embedded

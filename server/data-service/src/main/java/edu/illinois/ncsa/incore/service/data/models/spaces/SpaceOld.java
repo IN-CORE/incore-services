@@ -11,11 +11,11 @@
 package edu.illinois.ncsa.incore.service.data.models.spaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 import edu.illinois.ncsa.incore.common.auth.PrivilegeLevel;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;

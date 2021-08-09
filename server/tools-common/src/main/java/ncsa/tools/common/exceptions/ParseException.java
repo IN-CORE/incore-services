@@ -6,8 +6,6 @@
  *******************************************************************************/
 package ncsa.tools.common.exceptions;
 
-import ncsa.tools.common.exceptions.BaseCommonException;
-
 public class ParseException extends BaseCommonException {
     private static final long serialVersionUID = 2013L;
 

@@ -6,11 +6,11 @@
  *******************************************************************************/
 package ncsa.tools.common.types;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import ncsa.tools.common.NCSAConstants;
 import ncsa.tools.common.util.TypeUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MethodPattern {
     private Class clzz;

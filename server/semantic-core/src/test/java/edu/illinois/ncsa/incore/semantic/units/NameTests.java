@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.*;
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.metre;
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.second;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NameTests {

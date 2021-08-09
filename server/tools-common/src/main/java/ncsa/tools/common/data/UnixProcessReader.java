@@ -6,19 +6,14 @@
  *******************************************************************************/
 package ncsa.tools.common.data;
 
+import ncsa.tools.common.util.SystemUtils;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-
-import ncsa.tools.common.util.SystemUtils;
+import java.util.*;
 
 public class UnixProcessReader {
     private String user;

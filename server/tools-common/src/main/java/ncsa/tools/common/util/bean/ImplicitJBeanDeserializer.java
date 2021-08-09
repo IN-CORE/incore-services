@@ -6,22 +6,21 @@
  *******************************************************************************/
 package ncsa.tools.common.util.bean;
 
+import ncsa.tools.common.exceptions.DeserializationException;
+import ncsa.tools.common.exceptions.ReflectionException;
+import ncsa.tools.common.exceptions.TypeConversionException;
+import ncsa.tools.common.util.ReflectUtils;
+import ncsa.tools.common.util.TypeUtils;
+import org.dom4j.Attribute;
+import org.dom4j.Element;
+import org.dom4j.QName;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.dom4j.Attribute;
-import org.dom4j.Element;
-import org.dom4j.QName;
-
-import ncsa.tools.common.exceptions.DeserializationException;
-import ncsa.tools.common.exceptions.ReflectionException;
-import ncsa.tools.common.exceptions.TypeConversionException;
-import ncsa.tools.common.util.ReflectUtils;
-import ncsa.tools.common.util.TypeUtils;
 
 public class ImplicitJBeanDeserializer {
     private Map ancestorRefs = null;

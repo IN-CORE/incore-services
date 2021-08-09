@@ -17,6 +17,16 @@ package edu.illinois.ncsa.incore.service.data.models.impl;
  *
  */
 
+import com.google.inject.name.Named;
+import edu.illinois.ncsa.incore.service.data.dao.FileDescriptorDao;
+import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
+import edu.illinois.ncsa.incore.service.data.models.FileStorage;
+import edu.illinois.ncsa.incore.service.data.models.Person;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.activation.MimetypesFileTypeMap;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,19 +34,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import javax.activation.MimetypesFileTypeMap;
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.name.Named;
-
-import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import edu.illinois.ncsa.incore.service.data.models.FileStorage;
-import edu.illinois.ncsa.incore.service.data.models.Person;
-import edu.illinois.ncsa.incore.service.data.dao.FileDescriptorDao;
 
 /**
  * Stores files on disk. This class has 2 parameters, level and folder. The

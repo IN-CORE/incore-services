@@ -6,15 +6,10 @@
  *******************************************************************************/
 package ncsa.tools.common.data;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-
 import ncsa.tools.common.NCSAConstants;
-
 import org.apache.log4j.Logger;
+
+import java.io.*;
 
 /**
  * General-purpose pipe for capturing data written to an output stream.

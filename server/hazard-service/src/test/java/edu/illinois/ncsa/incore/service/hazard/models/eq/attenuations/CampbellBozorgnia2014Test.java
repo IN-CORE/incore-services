@@ -1,13 +1,13 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.FaultMechanism;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 
 import java.util.HashMap;
 import java.util.Map;

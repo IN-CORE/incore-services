@@ -6,36 +6,18 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
-import java.io.BufferedReader;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-
 import ncsa.tools.common.NCSAConstants;
 import ncsa.tools.common.concurrent.ExceptionPreservingThread;
 import ncsa.tools.common.data.UnixProcessReader;
 import ncsa.tools.common.types.Profile;
 import ncsa.tools.common.types.Property;
+import org.apache.log4j.Logger;
+
+import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.util.*;
 
 /**
  * Utility methods for System-related functionality.

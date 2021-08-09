@@ -12,7 +12,6 @@ package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.opencsv.CSVReader;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import org.locationtech.jts.geom.GeometryFactory;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -39,6 +38,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.geopkg.FeatureEntry;
 import org.geotools.geopkg.GeoPackage;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.coverage.grid.GridCoverageReader;
 import org.opengis.feature.simple.SimpleFeature;

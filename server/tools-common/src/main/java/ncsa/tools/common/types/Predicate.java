@@ -6,12 +6,12 @@
  *******************************************************************************/
 package ncsa.tools.common.types;
 
-import java.io.File;
-
 import ncsa.tools.common.NCSAConstants;
 import ncsa.tools.common.exceptions.FailedComparisonException;
 import ncsa.tools.common.util.ComparisonUtils;
 import ncsa.tools.common.util.TypeUtils;
+
+import java.io.File;
 
 /**
  * Combines a comparator with an object to use in the comparison.

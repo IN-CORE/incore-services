@@ -10,9 +10,6 @@
 package edu.illinois.ncsa.incore.service.hazard.geotools;
 
 
-import org.locationtech.jts.geom.*;
-import org.locationtech.jts.linearref.LinearLocation;
-import org.locationtech.jts.linearref.LocationIndexedLine;
 import org.apache.log4j.Logger;
 import org.geotools.data.*;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
@@ -29,6 +26,9 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.linearref.LinearLocation;
+import org.locationtech.jts.linearref.LocationIndexedLine;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;

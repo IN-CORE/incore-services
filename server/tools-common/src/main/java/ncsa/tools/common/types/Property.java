@@ -6,15 +6,14 @@
  *******************************************************************************/
 package ncsa.tools.common.types;
 
-import java.io.Serializable;
-import java.util.Comparator;
-
+import ncsa.tools.common.Updateable;
 import org.apache.commons.lang.StringUtils;
 import org.dom4j.Attribute;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
-import ncsa.tools.common.Updateable;
+import java.io.Serializable;
+import java.util.Comparator;
 
 public class Property implements Updateable, Serializable {
     private static final long serialVersionUID = 1033L;

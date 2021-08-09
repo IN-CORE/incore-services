@@ -6,6 +6,8 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
+import ncsa.tools.common.types.Property;
+
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
@@ -17,8 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import ncsa.tools.common.types.Property;
 
 /**
  * Convenience wrappers around some Java String functionality.

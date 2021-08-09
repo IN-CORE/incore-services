@@ -9,8 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado.types;
 
-import dev.morphia.annotations.Embedded;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement

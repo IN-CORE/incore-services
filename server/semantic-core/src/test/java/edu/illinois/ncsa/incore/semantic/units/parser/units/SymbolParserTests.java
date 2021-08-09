@@ -8,7 +8,6 @@
 package edu.illinois.ncsa.incore.semantic.units.parser.units;
 
 import edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits;
-import edu.illinois.ncsa.incore.semantic.units.instances.SIUnits;
 import edu.illinois.ncsa.incore.semantic.units.instances.Units;
 import edu.illinois.ncsa.incore.semantic.units.model.PrefixedUnit;
 import edu.illinois.ncsa.incore.semantic.units.model.Unit;

@@ -6,21 +6,6 @@
  *******************************************************************************/
 package ncsa.tools.common.util.bean;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.Namespace;
-import org.dom4j.QName;
-
 import ncsa.tools.common.AbstractSerializationComparator;
 import ncsa.tools.common.comparators.DefaultSerializationComparator;
 import ncsa.tools.common.exceptions.ReflectionException;
@@ -28,6 +13,15 @@ import ncsa.tools.common.exceptions.SerializationException;
 import ncsa.tools.common.util.ReflectUtils;
 import ncsa.tools.common.util.StringUtils;
 import ncsa.tools.common.util.TypeUtils;
+import org.apache.commons.lang.ObjectUtils;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.Namespace;
+import org.dom4j.QName;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class ImplicitJBeanSerializer {
     static Namespace namespace = new Namespace("meta", "ncsa.common.util");

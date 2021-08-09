@@ -9,10 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq.utils;
 
-import org.json.JSONObject;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.EqParameters;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.HazardDataset;
@@ -24,6 +20,10 @@ import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.json.JSONObject;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.opengis.coverage.PointOutsideCoverageException;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;

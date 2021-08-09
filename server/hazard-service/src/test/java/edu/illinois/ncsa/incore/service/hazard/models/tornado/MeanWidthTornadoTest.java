@@ -9,22 +9,13 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import edu.illinois.ncsa.incore.service.hazard.CustomJerseyTest;
 import edu.illinois.ncsa.incore.service.hazard.MockApplication;
 import edu.illinois.ncsa.incore.service.hazard.controllers.TornadoController;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
-import javax.ws.rs.core.MediaType;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.locationtech.jts.geom.GeometryFactory;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MeanWidthTornadoTest extends CustomJerseyTest {

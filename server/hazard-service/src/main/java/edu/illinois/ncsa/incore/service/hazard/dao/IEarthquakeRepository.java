@@ -9,8 +9,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.dao;
 
-import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import dev.morphia.Datastore;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 
 import java.util.List;
 

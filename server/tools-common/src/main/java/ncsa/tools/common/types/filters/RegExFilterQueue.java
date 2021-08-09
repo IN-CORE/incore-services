@@ -6,16 +6,11 @@
  *******************************************************************************/
 package ncsa.tools.common.types.filters;
 
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-
-import org.apache.log4j.Logger;
-
 import ncsa.tools.common.NCSAConstants;
 import ncsa.tools.common.util.ExceptionUtils;
+import org.apache.log4j.Logger;
+
+import java.util.*;
 
 /**
  * Three types of queue configuration are available:

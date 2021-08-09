@@ -20,20 +20,12 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
-import edu.illinois.ncsa.incore.service.dfr3.models.*;
-import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingRequest;
-import edu.illinois.ncsa.incore.service.dfr3.models.dto.MappingResponse;
-import edu.illinois.ncsa.incore.service.dfr3.models.mapping.Dfr3Mapper;
-import edu.illinois.ncsa.incore.service.dfr3.models.mapping.MatchFilterMap;
-
+import edu.illinois.ncsa.incore.service.dfr3.models.Mapping;
+import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import ncsa.tools.common.exceptions.ParseException;
 import org.apache.log4j.Logger;
-import org.bson.types.ObjectId;
-import org.geojson.Feature;
-import org.geojson.FeatureCollection;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;

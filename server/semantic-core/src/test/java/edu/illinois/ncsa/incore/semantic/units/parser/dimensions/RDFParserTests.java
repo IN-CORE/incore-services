@@ -13,9 +13,8 @@ import edu.illinois.ncsa.incore.semantic.units.dimension.Dimension;
 import edu.illinois.ncsa.incore.semantic.units.dimension.Dimensionless;
 import edu.illinois.ncsa.incore.semantic.units.instances.Dimensions;
 import edu.illinois.ncsa.incore.semantic.units.io.parser.RDFParser;
-import org.junit.jupiter.api.Test;
-
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;

@@ -6,14 +6,14 @@
  *******************************************************************************/
 package ncsa.tools.common.types.filters;
 
+import ncsa.tools.common.Filter;
+import ncsa.tools.common.exceptions.FailedComparisonException;
+import ncsa.tools.common.util.ComparisonUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-
-import ncsa.tools.common.Filter;
-import ncsa.tools.common.exceptions.FailedComparisonException;
-import ncsa.tools.common.util.ComparisonUtils;
 
 /**
  * A filter object which should be general enough for use in multiple situations

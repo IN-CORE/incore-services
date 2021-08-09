@@ -6,10 +6,10 @@
  *******************************************************************************/
 package ncsa.tools.common.data;
 
+import ncsa.tools.common.util.SystemUtils;
+
 import java.util.Map;
 import java.util.TreeMap;
-
-import ncsa.tools.common.util.SystemUtils;
 
 public class MapTrie {
     private static final String END_OF_WORD = "NULL";

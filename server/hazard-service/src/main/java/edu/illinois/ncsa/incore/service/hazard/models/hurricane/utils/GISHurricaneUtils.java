@@ -6,15 +6,13 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
-import org.locationtech.jts.geom.*;
-import org.locationtech.jts.util.GeometricShapeFactory;
-import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
-import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
+import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.data.collection.SpatialIndexFeatureCollection;
@@ -34,6 +32,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.util.GeometricShapeFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.GeometryDescriptor;

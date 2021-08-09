@@ -7,15 +7,15 @@
 
 package edu.illinois.ncsa.incore.semantic.units.equivalence;
 
+import edu.illinois.ncsa.incore.semantic.units.common.Normalization;
 import edu.illinois.ncsa.incore.semantic.units.model.derived.DivisionDerivedUnit;
 import edu.illinois.ncsa.incore.semantic.units.model.derived.PowerDerivedUnit;
 import edu.illinois.ncsa.incore.semantic.units.model.derived.ProductDerivedUnit;
-import edu.illinois.ncsa.incore.semantic.units.common.Normalization;
 import org.junit.jupiter.api.Test;
 
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.*;
-import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.*;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.metre;
+import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.second;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EquivalenceTests {

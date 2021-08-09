@@ -7,14 +7,12 @@
  */
 package com.opengamma.analytics.math.statistics.distribution;
 
+import com.google.common.math.DoubleMath;
+import com.opengamma.strata.collect.ArgChecker;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 
-import com.google.common.math.DoubleMath;
-import com.opengamma.strata.collect.ArgChecker;
-
 /**
- *
  * The generalized extreme value distribution is a family of continuous probability distributions that combines the Gumbel (type I),
  * Fr&eacute;chet (type II) and Weibull (type III) families of distributions.
  * <p>
@@ -60,7 +58,6 @@ import com.opengamma.strata.collect.ArgChecker;
  * \end{cases}
  * \end{align*}
  * $$
- *
  */
 public class GeneralizedExtremeValueDistribution implements ProbabilityDistribution<Double> {
     // Added by NCSA to complete implementation of nextRandom()
@@ -73,13 +70,9 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
     private final boolean _ksiIsZero;
 
     /**
-     *
-     * @param mu
-     *            The location parameter
-     * @param sigma
-     *            The scale parameter, not negative or zero
-     * @param ksi
-     *            The shape parameter
+     * @param mu    The location parameter
+     * @param sigma The scale parameter, not negative or zero
+     * @param ksi   The shape parameter
      */
     public GeneralizedExtremeValueDistribution(final double mu, final double sigma, final double ksi) {
         ArgChecker.isTrue(sigma >= 0, "sigma must be >= 0");
@@ -90,15 +83,10 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
     }
 
     /**
-     *
-     * @param mu
-     *            The location parameter
-     * @param sigma
-     *            The scale parameter, not negative or zero
-     * @param ksi
-     *            The shape parameter
-     * @param seed
-     *            The random seed parameter
+     * @param mu    The location parameter
+     * @param sigma The scale parameter, not negative or zero
+     * @param ksi   The shape parameter
+     * @param seed  The random seed parameter
      */
     public GeneralizedExtremeValueDistribution(final double mu, final double sigma, final double ksi, final int seed) {
         ArgChecker.isTrue(sigma >= 0, "sigma must be >= 0");
@@ -113,8 +101,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
     /**
      * {@inheritDoc}
      *
-     * @throws IllegalArgumentException
-     *             If $x \not\in$ support
+     * @throws IllegalArgumentException If $x \not\in$ support
      */
     @Override
     public double getCDF(final Double x) {
@@ -126,8 +113,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
      * {@inheritDoc}
      *
      * @return Not supported
-     * @throws UnsupportedOperationException
-     *             always
+     * @throws UnsupportedOperationException always
      */
     @Override
     public double getInverseCDF(final Double p) {
@@ -137,8 +123,7 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
     /**
      * {@inheritDoc}
      *
-     * @throws IllegalArgumentException
-     *             If $x \not\in$ support
+     * @throws IllegalArgumentException If $x \not\in$ support
      */
     @Override
     public double getPDF(final Double x) {
@@ -148,7 +133,6 @@ public class GeneralizedExtremeValueDistribution implements ProbabilityDistribut
     }
 
     /**
-     *
      * @return
      */
     @Override

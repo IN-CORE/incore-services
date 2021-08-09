@@ -6,24 +6,6 @@
  *******************************************************************************/
 package ncsa.tools.common.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.zip.CRC32;
-import java.util.zip.Checksum;
-
 import ncsa.tools.common.NCSAConstants;
 import ncsa.tools.common.exceptions.FileReadException;
 import ncsa.tools.common.exceptions.FileWriteException;
@@ -31,6 +13,13 @@ import ncsa.tools.common.exceptions.VerificationException;
 import ncsa.tools.common.types.FileFormatType;
 import ncsa.tools.common.types.filters.RegExFilter;
 import ncsa.tools.common.types.filters.RegExFilterQueue;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 /**
  * Wrapper static methods for doing reads and writes using RandomAccessFile

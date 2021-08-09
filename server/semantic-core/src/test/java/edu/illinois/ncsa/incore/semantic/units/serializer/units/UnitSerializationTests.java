@@ -9,10 +9,9 @@ package edu.illinois.ncsa.incore.semantic.units.serializer.units;
 
 import edu.illinois.ncsa.incore.semantic.units.model.PrefixedUnit;
 import edu.illinois.ncsa.incore.semantic.units.model.Unit;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;

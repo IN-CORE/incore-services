@@ -1,10 +1,10 @@
 package edu.illinois.ncsa.incore.common.exceptions;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * ClientErrorTest

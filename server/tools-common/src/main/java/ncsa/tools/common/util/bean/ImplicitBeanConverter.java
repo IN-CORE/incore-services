@@ -6,6 +6,12 @@
  *******************************************************************************/
 package ncsa.tools.common.util.bean;
 
+import ncsa.tools.common.exceptions.TypeConversionException;
+import ncsa.tools.common.util.ReflectUtils;
+import ncsa.tools.common.util.TypeUtils;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.log4j.Logger;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,13 +19,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.log4j.Logger;
-
-import ncsa.tools.common.exceptions.TypeConversionException;
-import ncsa.tools.common.util.ReflectUtils;
-import ncsa.tools.common.util.TypeUtils;
 
 public class ImplicitBeanConverter {
     private static Logger logger = Logger.getLogger(ImplicitBeanConverter.class);

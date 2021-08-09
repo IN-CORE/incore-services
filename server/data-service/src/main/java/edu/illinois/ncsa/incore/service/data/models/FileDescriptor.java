@@ -18,7 +18,8 @@ package edu.illinois.ncsa.incore.service.data.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dev.morphia.annotations.*;
+import dev.morphia.annotations.Embedded;
+import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;

@@ -10,10 +10,6 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils;
 
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.dao.DBHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.geotools.GeotoolsUtils;
@@ -30,6 +26,9 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
@@ -626,7 +625,7 @@ public class HurricaneWindfieldsCalc {
                                 if (ar.size() > 0) {
                                     double shortestDist =
                                         GeotoolsUtils.CalcShortestDistanceFromPointToFeatures(GISHurricaneUtils.continentFeatureIndex,
-                                        lat, lon, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
+                                            lat, lon, gc, crs, GISHurricaneUtils.searchDistLimit, GISHurricaneUtils.minSearchDist);
                                     zone = getZone(shortestDist);
                                     reductionFactor = (Double) ar.get(zone);
                                 }
