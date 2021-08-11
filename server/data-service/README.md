@@ -29,8 +29,8 @@ To start the service
 
    Data (Repository) Service (http://hostname/data/api/datasets)
 
-   | Route | Method | Description |
-                   | ----- | ------ | ----------- | 
+   | Route | Method | Description | 
+      | ----- | ------ | ----------- | 
    | / | GET | Returns a list of datasets in the Dataset collection | 
    | /{id}    | GET | Returns Dataset about a particular dataset specified by {id} |
    | /{id}/blob |    GET    | Returns a zip file that contains all the files attached to a dataset specified by {id} using FileDescriptor in the dataset |
