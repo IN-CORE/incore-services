@@ -12,9 +12,9 @@ import edu.illinois.ncsa.incore.semantic.units.conversion.operations.Operation;
 import edu.illinois.ncsa.incore.semantic.units.model.Unit;
 
 public class UnitConversion {
-    private Unit convertFrom;
-    private Unit convertTo;
-    private Operation operation;
+    private final Unit convertFrom;
+    private final Unit convertTo;
+    private final Operation operation;
 
     public UnitConversion(Unit convertFrom, Unit convertTo, Operation operation) {
         this.convertFrom = convertFrom;

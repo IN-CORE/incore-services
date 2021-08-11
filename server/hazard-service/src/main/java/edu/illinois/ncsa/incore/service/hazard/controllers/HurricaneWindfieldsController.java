@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 })
 public class HurricaneWindfieldsController {
     private static final Logger log = Logger.getLogger(HurricaneWindfieldsController.class);
-    private String username;
+    private final String username;
 
     @Inject
     private IHurricaneWindfieldsRepository repository;

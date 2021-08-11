@@ -16,9 +16,9 @@ public enum RDFFormat {
     N3("N3"),
     RDFJSON("RDF/JSON");
 
-    private String value;
+    private final String value;
 
-    private RDFFormat(String value) {
+    RDFFormat(String value) {
         this.value = value;
     }
 

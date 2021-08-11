@@ -32,7 +32,7 @@ public interface FileStorage {
      * @return FileDescriptor for the stored file
      * @throws IOException if an I/O error occurs
      */
-    public FileDescriptor storeFile(InputStream is) throws IOException;
+    FileDescriptor storeFile(InputStream is) throws IOException;
 
     /**
      * Store file in file storage system
@@ -42,7 +42,7 @@ public interface FileStorage {
      * @return FileDescriptor for the stored file
      * @throws IOException if an I/O error occurs
      */
-    public FileDescriptor storeFile(String filename, InputStream is) throws IOException;
+    FileDescriptor storeFile(String filename, InputStream is) throws IOException;
 
     /**
      * Store file in file storage system
@@ -53,7 +53,7 @@ public interface FileStorage {
      * @return FileDescriptor for the stored file
      * @throws IOException if an I/O error occurs
      */
-    public FileDescriptor storeFile(String filename, InputStream is, Person creator) throws IOException;
+    FileDescriptor storeFile(String filename, InputStream is, Person creator) throws IOException;
 
     /**
      * Store file in file storage system
@@ -63,7 +63,7 @@ public interface FileStorage {
      * @return URL of stored file
      * @throws IOException if an I/O error occurs
      */
-    public URL storeFile(FileDescriptor fd, InputStream is) throws IOException;
+    URL storeFile(FileDescriptor fd, InputStream is) throws IOException;
 
     /**
      * Store file in file storage system
@@ -74,7 +74,7 @@ public interface FileStorage {
      * @return FileDescriptor for the stored file
      * @throws IOException if an I/O error occurs
      */
-    public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException;
+    FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException;
 
     /**
      * Store file in file storage system
@@ -86,7 +86,7 @@ public interface FileStorage {
      * @return FileDescriptor for the stored file
      * @throws IOException if an I/O error occurs
      */
-    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator) throws IOException;
+    FileDescriptor storeFile(String id, String filename, InputStream is, Person creator) throws IOException;
 
     /**
      * Read file from storage
@@ -95,7 +95,7 @@ public interface FileStorage {
      * @return Inpustream of the file
      * @throws IOException if an I/O error occurs
      */
-    public InputStream readFile(FileDescriptor fd) throws IOException;
+    InputStream readFile(FileDescriptor fd) throws IOException;
 
     /**
      * Deletes file from storage
@@ -103,7 +103,7 @@ public interface FileStorage {
      * @param fd - File descriptor representing the file to delete
      * @return true if the delete operation was successful.
      */
-    public boolean deleteFile(FileDescriptor fd);
+    boolean deleteFile(FileDescriptor fd);
 
     /**
      * Deletes file from storage
@@ -112,5 +112,5 @@ public interface FileStorage {
      * @param creator - file creator
      * @return true if the delete operation was successful.
      */
-    public boolean deleteFile(FileDescriptor fd, Person creator);
+    boolean deleteFile(FileDescriptor fd, Person creator);
 }

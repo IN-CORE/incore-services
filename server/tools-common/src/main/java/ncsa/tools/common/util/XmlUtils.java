@@ -26,6 +26,7 @@ import java.beans.XMLEncoder;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -58,12 +59,12 @@ public class XmlUtils {
     }
 
     private static class CDataParser {
-        private String xml;
+        private final String xml;
         private LinkedList cdataStack;
         private StringBuffer buffer;
         private StringBuffer normalized;
         private StringBuffer tag;
-        private int len;
+        private final int len;
         private int end;
         private int index;
         private char token;
@@ -98,7 +99,7 @@ public class XmlUtils {
                     index++;
                 }
                 if (buffer.length() > 0)
-                    normalized.append(buffer.toString());
+                    normalized.append(buffer);
                 result = normalized.toString();
             } finally {
                 clear();
@@ -171,7 +172,7 @@ public class XmlUtils {
                 if (!cdataStack.isEmpty()) {
                     throw new ParseException("problem at char " + index + "; unmatched CDATA: " + cdataStack);
                 }
-                normalized.append(buffer.toString()).append(xml.substring(index, len));
+                normalized.append(buffer.toString()).append(xml, index, len);
                 buffer.setLength(0);
                 index = len;
             }
@@ -204,7 +205,7 @@ public class XmlUtils {
                     buffer.insert(0, head);
                     if (cdataStack.isEmpty()) {
                         buffer.append(tag);
-                        normalized.append(buffer.toString());
+                        normalized.append(buffer);
                     } else {
                         tag.append(CDATA_START);
                         buffer.insert(0, cdataStack.removeFirst());
@@ -219,7 +220,7 @@ public class XmlUtils {
                 if (!cdataStack.isEmpty()) {
                     throw new ParseException("problem at char " + index + "; unmatched CDATA: " + cdataStack);
                 }
-                normalized.append(buffer.toString()).append(xml.substring(index, len));
+                normalized.append(buffer.toString()).append(xml, index, len);
                 buffer.setLength(0);
                 index = len;
             }
@@ -403,7 +404,7 @@ public class XmlUtils {
         try {
             // first try unicode....
             FileInputStream is = new FileInputStream(xmlPath);
-            InputStreamReader isReader = new InputStreamReader(is, "UTF-16");
+            InputStreamReader isReader = new InputStreamReader(is, StandardCharsets.UTF_16);
 
             Document document = reader.read(isReader);
             return document.getRootElement();
@@ -412,7 +413,7 @@ public class XmlUtils {
             try {
                 // first try unicode....
                 FileInputStream is = new FileInputStream(xmlPath);
-                InputStreamReader isReader = new InputStreamReader(is, "UTF-8");
+                InputStreamReader isReader = new InputStreamReader(is, StandardCharsets.UTF_8);
 
                 Document document = reader.read(isReader);
                 return document.getRootElement();
@@ -637,7 +638,7 @@ public class XmlUtils {
 
     // //HELPER////
 
-    private static OutputStreamWriter getUnicodeFileWriter(String filename, boolean append) throws FileNotFoundException, IOException {
+    private static OutputStreamWriter getUnicodeFileWriter(String filename, boolean append) throws IOException {
         FileOutputStream os = new FileOutputStream(filename, false);
         OutputStreamWriter writer;
         try {

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MockSpaceRepository implements ISpaceRepository {
-    private Datastore mockSpaceStore;
+    private final Datastore mockSpaceStore;
     private List<Space> spaces = new ArrayList<>();
 
     public MockSpaceRepository() {

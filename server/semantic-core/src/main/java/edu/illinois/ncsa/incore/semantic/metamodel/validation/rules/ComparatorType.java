@@ -15,12 +15,12 @@ public enum ComparatorType {
     LessThanOrEqual("LE", "Less Than or Equal", "<=", "\u2264"),
     NotEqual("NE", "Not Equal", "!=", "\u2260");
 
-    private String shortName;
-    private String name;
-    private String symbol;
-    private String unicodeSymbol;
+    private final String shortName;
+    private final String name;
+    private final String symbol;
+    private final String unicodeSymbol;
 
-    private ComparatorType(String shortName, String name, String symbol, String unicodeSymbol) {
+    ComparatorType(String shortName, String name, String symbol, String unicodeSymbol) {
         this.shortName = shortName;
         this.name = name;
         this.symbol = symbol;

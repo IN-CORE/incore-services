@@ -20,7 +20,7 @@ import java.util.Optional;
  * new BaseDimensions need to be created (I can't imagine a scenario that would involve constructing new BaseDimensions).
  */
 public final class BaseDimension extends Dimension {
-    private int sortOrder;
+    private final int sortOrder;
 
     public static final BaseDimension length = new BaseDimension("Length", "L", "L", 1);
     public static final BaseDimension mass = new BaseDimension("Mass", "M", "M", 2);

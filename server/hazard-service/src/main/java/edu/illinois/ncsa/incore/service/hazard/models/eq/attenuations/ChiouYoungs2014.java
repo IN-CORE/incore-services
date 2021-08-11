@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ChiouYoungs2014 extends BaseAttenuation {
-    private double[] c = new double[12];
+    private final double[] c = new double[12];
     private double c4a, cRB, c1a, c1b, c1c, c1d, cn, cM, cHM, c7b, c8a, c8b, c9a, c9b, c11b, cg1, cg2, cg3;
 
     private double phi1, phi2, phi3, phi4, phi5, phi6;

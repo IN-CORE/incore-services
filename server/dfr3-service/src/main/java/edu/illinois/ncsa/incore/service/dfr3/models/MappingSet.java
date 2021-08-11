@@ -35,7 +35,7 @@ public class MappingSet {
     @JsonProperty("mappingType")
     private String mappingType;
 
-    private List<Mapping> mappings = new ArrayList<>();
+    private final List<Mapping> mappings = new ArrayList<>();
     private String creator;
 
     /**

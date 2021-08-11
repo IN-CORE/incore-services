@@ -8,8 +8,8 @@
 package edu.illinois.ncsa.incore.semantic.units.conversion.operations;
 
 public class ScaleOperation extends ReversibleOperation {
-    private int scaleFactor;
-    private int inverseScaleFactor;
+    private final int scaleFactor;
+    private final int inverseScaleFactor;
 
     public ScaleOperation(int scaleFactor) {
         this.scaleFactor = scaleFactor;

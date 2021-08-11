@@ -18,7 +18,7 @@ import java.util.List;
 
 public class MockRepository implements IEarthquakeRepository {
     private static final Logger log = Logger.getLogger(MockRepository.class);
-    private Datastore mockDataStore;
+    private final Datastore mockDataStore;
 
     public MockRepository() {
         this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);

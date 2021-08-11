@@ -28,7 +28,7 @@ import java.util.List;
 
 public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
     private String hostUri;
-    private String databaseName;
+    private final String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
 
@@ -74,7 +74,7 @@ public class MongoDBEarthquakeRepository implements IEarthquakeRepository {
 
     @Override
     public Earthquake addEarthquake(Earthquake earthquake) {
-        String id = this.dataStore.save(earthquake).getId().toString();
+        String id = this.dataStore.save(earthquake).getId();
         return getEarthquakeById(id);
     }
 

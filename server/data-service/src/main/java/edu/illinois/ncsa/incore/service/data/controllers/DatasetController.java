@@ -88,7 +88,7 @@ public class DatasetController {
     private static final String UPDATE_OBJECT_VALUE = "property value";
     private static final Logger logger = Logger.getLogger(DatasetController.class);
 
-    private String username;
+    private final String username;
 
     @Inject
     private IRepository repository;
@@ -463,10 +463,7 @@ public class DatasetController {
         }
         // adding geoserver flag
         // if this flas is false, the data will not be uploaded to geoserver
-        boolean enableGeoserver = false;
-        if (GEOSERVER_ENABLE.equalsIgnoreCase("true")) {
-            enableGeoserver = true;
-        }
+        boolean enableGeoserver = GEOSERVER_ENABLE.equalsIgnoreCase("true");
 
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;

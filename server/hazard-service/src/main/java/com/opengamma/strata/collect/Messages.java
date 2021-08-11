@@ -42,12 +42,12 @@ public final class Messages {
         if (messageTemplate == null) {
             return format("", arg);
         }
-        int placeholderPos = messageTemplate.indexOf("{}", 0);
+        int placeholderPos = messageTemplate.indexOf("{}");
         String argStr = String.valueOf(arg);
         StringBuilder builder = new StringBuilder(messageTemplate.length() + argStr.length() + 3);
         if (placeholderPos >= 0) {
             builder
-                .append(messageTemplate.substring(0, placeholderPos))
+                .append(messageTemplate, 0, placeholderPos)
                 .append(argStr)
                 .append(messageTemplate.substring(placeholderPos + 2));
         } else {
@@ -81,7 +81,7 @@ public final class Messages {
             return format("", args);
         }
         if (args == null) {
-            return format(messageTemplate, new Object[0]);
+            return format(messageTemplate);
         }
         // try to make builder big enough for the message and the args
         StringBuilder builder = new StringBuilder(messageTemplate.length() + args.length * 20);
@@ -90,7 +90,7 @@ public final class Messages {
         int curPos = 0;
         int nextPlaceholderPos = messageTemplate.indexOf("{}", curPos);
         while (nextPlaceholderPos >= 0 && argIndex < args.length) {
-            builder.append(messageTemplate.substring(curPos, nextPlaceholderPos)).append(args[argIndex]);
+            builder.append(messageTemplate, curPos, nextPlaceholderPos).append(args[argIndex]);
             argIndex++;
             curPos = nextPlaceholderPos + 2;
             nextPlaceholderPos = messageTemplate.indexOf("{}", curPos);

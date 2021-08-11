@@ -16,7 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtils {
-    private static Logger logger = Logger.getLogger(DateUtils.class);
+    private static final Logger logger = Logger.getLogger(DateUtils.class);
 
     public static Date now() {
         return Calendar.getInstance().getTime();

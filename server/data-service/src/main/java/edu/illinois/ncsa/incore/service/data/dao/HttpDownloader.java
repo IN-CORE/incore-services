@@ -51,8 +51,8 @@ public class HttpDownloader {
                 }
             } else {
                 // extracts file name from URL
-                fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
-                    fileURL.length());
+                fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1
+                );
             }
 
             // opens input stream from the HTTP connection

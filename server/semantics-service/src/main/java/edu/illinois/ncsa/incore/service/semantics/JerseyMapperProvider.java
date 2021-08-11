@@ -16,7 +16,7 @@ import javax.ws.rs.ext.Provider;
 
 @Provider
 public class JerseyMapperProvider implements ContextResolver<ObjectMapper> {
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public ObjectMapper getContext(Class<?> type) {

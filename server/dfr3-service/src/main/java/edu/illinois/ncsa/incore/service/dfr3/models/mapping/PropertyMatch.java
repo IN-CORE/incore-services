@@ -172,7 +172,7 @@ public class PropertyMatch implements UserFacing {
                 List<?> elements = ((MatchClause) clause).getElements();
                 for (Object element : elements) {
                     if (element instanceof MatchStatement) {
-                        toString.append(element.toString()).append(","); //$NON-NLS-1$
+                        toString.append(element).append(","); //$NON-NLS-1$
                     }
                 }
             }

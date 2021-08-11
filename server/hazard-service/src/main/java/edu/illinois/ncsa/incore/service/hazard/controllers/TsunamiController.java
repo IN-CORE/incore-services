@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 })
 public class TsunamiController {
     private static final Logger log = Logger.getLogger(TsunamiController.class);
-    private String username;
+    private final String username;
 
     @Inject
     private ITsunamiRepository repository;

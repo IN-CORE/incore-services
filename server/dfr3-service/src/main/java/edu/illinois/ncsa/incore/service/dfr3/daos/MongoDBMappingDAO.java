@@ -71,7 +71,7 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         if (mappingSet == null) {
             throw new IllegalArgumentException();
         } else {
-            String id = this.dataStore.save(mappingSet).getId().toString();
+            String id = this.dataStore.save(mappingSet).getId();
             return id;
         }
     }

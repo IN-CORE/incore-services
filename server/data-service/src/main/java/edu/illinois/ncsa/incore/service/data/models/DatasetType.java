@@ -16,7 +16,7 @@ public class DatasetType {
      */
     @Id
     @Property("_id")
-    private ObjectId id = new ObjectId();
+    private final ObjectId id = new ObjectId();
 
     private String dataType;
 

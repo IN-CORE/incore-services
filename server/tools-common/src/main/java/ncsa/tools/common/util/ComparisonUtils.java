@@ -93,19 +93,13 @@ public class ComparisonUtils {
 
         // if both arguments are null, we consider them equal
         if (arg1 == null && arg2 == null) {
-            if (comparator == NCSAConstants.EQ || comparator == NCSAConstants.EQUALS || comparator == NCSAConstants.GE
-                || comparator == NCSAConstants.LE) {
-                return true;
-            }
-            return false;
+            return comparator == NCSAConstants.EQ || comparator == NCSAConstants.EQUALS || comparator == NCSAConstants.GE
+                || comparator == NCSAConstants.LE;
         }
 
         // if one of the arguments is null, only NE / NEQUALS is true
         if (arg1 == null || arg2 == null) {
-            if (comparator == NCSAConstants.NE || comparator == NCSAConstants.NEQUALS) {
-                return true;
-            }
-            return false;
+            return comparator == NCSAConstants.NE || comparator == NCSAConstants.NEQUALS;
         }
 
         // apply comparator
@@ -307,7 +301,7 @@ public class ComparisonUtils {
                             result = new File((String) arg1).equals(arg2);
                             return result;
                         } else if (arg2 instanceof String) {
-                            result = ((File) arg1).equals(new File((String) arg2));
+                            result = arg1.equals(new File((String) arg2));
                             return result;
                         }
                         break;
@@ -316,7 +310,7 @@ public class ComparisonUtils {
                             result = !new File((String) arg1).equals(arg2);
                             return result;
                         } else if (arg2 instanceof String) {
-                            result = !((File) arg1).equals(new File((String) arg2));
+                            result = !arg1.equals(new File((String) arg2));
                             return result;
                         }
                         break;

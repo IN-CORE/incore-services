@@ -32,7 +32,7 @@ public class Profile implements Filter {
         }
     }
 
-    private static SetComparator comparator = new SetComparator();
+    private static final SetComparator comparator = new SetComparator();
 
     public static SetComparator getSetComparator() {
         return comparator;
@@ -112,9 +112,7 @@ public class Profile implements Filter {
         Profile maybeMatches = (Profile) o;
 
         if (propertyMap == null) {
-            if (maybeMatches.getPropertyMap() == null)
-                return true;
-            return false;
+            return maybeMatches.getPropertyMap() == null;
         }
 
         /*

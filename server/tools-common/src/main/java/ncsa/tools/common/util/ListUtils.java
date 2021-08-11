@@ -115,8 +115,7 @@ public class ListUtils {
         List a = l1;
         List b = l2;
         if (a == null) {
-            if (b != null)
-                return false;
+            return b == null;
         } else {
             if (b == null)
                 return false;
@@ -563,7 +562,7 @@ public class ListUtils {
      * the serialized List into their appropriate types.
      */
     private static class TypePattern {
-        private List list = new ArrayList();
+        private final List list = new ArrayList();
         private int marker = 0;
         private char cStartDelim;
         private char cEndDelim;

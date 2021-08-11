@@ -25,7 +25,7 @@ import java.util.Map;
 
 public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfieldsRepository {
     private String hostUri;
-    private String databaseName;
+    private final String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
 
@@ -70,7 +70,7 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
 
     @Override
     public HurricaneWindfields addHurricaneWindfields(HurricaneWindfields hurricane) {
-        String id = this.dataStore.save(hurricane).getId().toString();
+        String id = this.dataStore.save(hurricane).getId();
         return getHurricaneWindfieldsById(id);
     }
 
@@ -140,7 +140,6 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
                 )
             )
             .iterator().toList();
-        ;
 
         return hurricanes;
     }
@@ -152,7 +151,6 @@ public class MongoDBHurricaneWindfieldsRepository implements IHurricaneWindfield
         List<HurricaneWindfields> hurricanes = query.filter(
             Filters.regex("creator").pattern(creator).caseInsensitive()
         ).iterator().toList();
-        ;
 
         return hurricanes;
     }

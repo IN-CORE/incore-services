@@ -312,7 +312,7 @@ public class FileUtils {
                             next = new Character(raf.readChar());
                             break;
                         case NCSAConstants.UTFC:
-                            next = new String(raf.readUTF());
+                            next = raf.readUTF();
                             break;
                         case NCSAConstants.DOUB:
                             next = new Double(raf.readDouble());

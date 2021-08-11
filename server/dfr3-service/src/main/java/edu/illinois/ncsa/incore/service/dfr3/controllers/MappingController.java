@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 public class MappingController {
     private static final Logger logger = Logger.getLogger(MappingController.class);
 
-    private String username;
+    private final String username;
 
     @Inject
     private IMappingDAO mappingDAO;

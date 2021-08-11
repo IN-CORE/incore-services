@@ -16,7 +16,7 @@ import java.util.*;
 
 public class Dfr3Mapper {
 
-    private List<MatchFilterMap> mappingSets = new ArrayList<MatchFilterMap>();
+    private final List<MatchFilterMap> mappingSets = new ArrayList<MatchFilterMap>();
 
     public void addMappingSet(MatchFilterMap mappingSet) {
         mappingSets.add(mappingSet);

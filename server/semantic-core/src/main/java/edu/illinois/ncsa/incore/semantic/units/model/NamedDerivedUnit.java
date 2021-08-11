@@ -20,7 +20,7 @@ import java.util.List;
  * Pre-fixable Named Derived Unit.
  */
 public class NamedDerivedUnit extends PrefixableUnit implements IDerivableUnit {
-    private DerivedUnit derivation;
+    private final DerivedUnit derivation;
 
     public NamedDerivedUnit(String name, String unicodeName, String plural, String unicodePlural, String symbol, String unicodeSymbol,
                             List<Prefix> acceptedPrefixes, Dimension dimension, DerivedUnit derivation) {

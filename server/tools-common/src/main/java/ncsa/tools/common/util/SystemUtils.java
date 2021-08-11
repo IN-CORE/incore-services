@@ -25,7 +25,7 @@ import java.util.*;
  * @author Albert L. Rossi
  */
 public class SystemUtils {
-    private static Logger logger = Logger.getLogger(SystemUtils.class);
+    private static final Logger logger = Logger.getLogger(SystemUtils.class);
 
     public static final Random random = new Random(System.currentTimeMillis());
 
@@ -508,7 +508,7 @@ public class SystemUtils {
      * @param file to make executable.
      * @throws FileNotFoundException if chmod executable not found
      */
-    public static void makeExecutable(File file) throws FileNotFoundException, IOException {
+    public static void makeExecutable(File file) throws IOException {
         chmod("u+x", file.getAbsolutePath(), false, null);
     }
 
@@ -520,7 +520,7 @@ public class SystemUtils {
      * @param recursive   if true, changes all subdirectories and files.
      * @throws FileNotFoundException if chmod executable not found
      */
-    public static void chmod(String permissions, File path, boolean recursive) throws FileNotFoundException, IOException {
+    public static void chmod(String permissions, File path, boolean recursive) throws IOException {
         chmod(permissions, path.getAbsolutePath(), recursive, null);
     }
 
@@ -533,7 +533,7 @@ public class SystemUtils {
      * @param recursive   if true, changes all matching subdirectories and files.
      * @throws FileNotFoundException if chmod executable not found
      */
-    public static void chmod(String permissions, List paths, boolean recursive) throws FileNotFoundException, IOException {
+    public static void chmod(String permissions, List paths, boolean recursive) throws IOException {
         StringBuffer sb = new StringBuffer();
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             Object path = it.next();
@@ -554,7 +554,7 @@ public class SystemUtils {
      * @param recursive      if true, changes all matching subdirectories and files.
      * @throws FileNotFoundException if chmod executable not found
      */
-    public static void chmod(String permissions, String pathExpression, boolean recursive) throws FileNotFoundException, IOException {
+    public static void chmod(String permissions, String pathExpression, boolean recursive) throws IOException {
         chmod(permissions, pathExpression, recursive, null);
     }
 
@@ -568,7 +568,7 @@ public class SystemUtils {
      * @throws FileNotFoundException if chmod executable not found
      */
     public static void chmod(String permissions, String pathExpression, boolean recursive, List alternateShellPaths)
-        throws FileNotFoundException, IOException {
+        throws IOException {
         if (!isUNIX())
             throw new IOException("chmod only implemented on UNIX systems");
         File shell = findShell(alternateShellPaths);
@@ -583,7 +583,7 @@ public class SystemUtils {
      * @param recursive if true, changes all subdirectories and files.
      * @throws FileNotFoundException if chmod executable not found
      */
-    public static void chown(String owner, File path, boolean recursive) throws FileNotFoundException, IOException {
+    public static void chown(String owner, File path, boolean recursive) throws IOException {
         chown(owner, path.getAbsolutePath(), recursive, null);
     }
 
@@ -596,7 +596,7 @@ public class SystemUtils {
      * @param recursive if true, changes all matching subdirectories and files.
      * @throws FileNotFoundException if chmod executable not found
      */
-    public static void chown(String owner, List paths, boolean recursive) throws FileNotFoundException, IOException {
+    public static void chown(String owner, List paths, boolean recursive) throws IOException {
         StringBuffer sb = new StringBuffer();
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             Object path = it.next();
@@ -617,7 +617,7 @@ public class SystemUtils {
      * @param recursive      if true, changes all matching subdirectories and files.
      * @throws FileNotFoundException if chmod executable not found
      */
-    public static void chown(String owner, String pathExpression, boolean recursive) throws FileNotFoundException, IOException {
+    public static void chown(String owner, String pathExpression, boolean recursive) throws IOException {
         chown(owner, pathExpression, recursive, null);
     }
 
@@ -631,7 +631,7 @@ public class SystemUtils {
      * @throws FileNotFoundException if chown executable not found
      */
     public static void chown(String owner, String pathExpression, boolean recursive, List alternateShellPaths)
-        throws FileNotFoundException, IOException {
+        throws IOException {
         if (!isUNIX())
             throw new IOException("chown only implemented on UNIX systems");
         File shell = findShell(alternateShellPaths);
@@ -800,7 +800,7 @@ public class SystemUtils {
      * @param alternateShellPaths to the bash shell executable.
      */
     public static void tar(File tarPath, File tarBaseDir, String sourceExpression, boolean verbose, boolean zip, List alternateShellPaths)
-        throws FileNotFoundException, IOException {
+        throws IOException {
         File shell = findShell(alternateShellPaths);
         StringBuffer options = new StringBuffer("cf");
         if (verbose)
@@ -819,7 +819,7 @@ public class SystemUtils {
      * @param verbose        = -v
      * @param zip            = -z
      */
-    public static void untar(File tarPath, File destinationDir, boolean verbose, boolean zip) throws FileNotFoundException, IOException {
+    public static void untar(File tarPath, File destinationDir, boolean verbose, boolean zip) throws IOException {
         untar(tarPath, destinationDir, verbose, zip, null);
     }
 
@@ -833,7 +833,7 @@ public class SystemUtils {
      * @param alternateShellPaths to the bash shell executable.
      */
     public static void untar(File tarPath, File destinationDir, boolean verbose, boolean zip, List alternateShellPaths)
-        throws FileNotFoundException, IOException {
+        throws IOException {
         File shell = findShell(alternateShellPaths);
         StringBuffer options = new StringBuffer("xf");
         if (verbose)
@@ -1302,7 +1302,7 @@ public class SystemUtils {
                 if (value.indexOf(" ") > 0 || value.indexOf("*") > 0) {
                     value.insert(0, "\"").append("\"");
                 }
-                env.add(NAME.toString() + "=" + value.toString());
+                env.add(NAME + "=" + value);
                 if (b)
                     System.setProperty(name.toString(), value.toString());
                 NAME.setLength(0);
@@ -1358,7 +1358,7 @@ public class SystemUtils {
             if (tarArgument != null)
                 sb.append(" ").append(tarArgument);
             sb.append(NCSAConstants.LINE_SEP);
-            logger.debug(shell.getAbsolutePath() + " " + sb.toString());
+            logger.debug(shell.getAbsolutePath() + " " + sb);
             fw.write(sb.toString());
             fw.flush();
             Runtime r = Runtime.getRuntime();
@@ -1396,7 +1396,7 @@ public class SystemUtils {
             sb.append(" ");
             sb.append(pathExpression);
             sb.append(NCSAConstants.LINE_SEP);
-            logger.debug(shell.getAbsolutePath() + " " + sb.toString());
+            logger.debug(shell.getAbsolutePath() + " " + sb);
             fw.write(sb.toString());
             fw.flush();
             Runtime r = Runtime.getRuntime();

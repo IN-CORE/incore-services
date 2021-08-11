@@ -9,9 +9,9 @@
 package edu.illinois.ncsa.incore.service.hazard.models.flood.types;
 
 public class FloodHazardResult {
-    private String demand;
-    private String units;
-    private Double hazardValue;
+    private final String demand;
+    private final String units;
+    private final Double hazardValue;
     private double latitude;
     private double longitude;
 

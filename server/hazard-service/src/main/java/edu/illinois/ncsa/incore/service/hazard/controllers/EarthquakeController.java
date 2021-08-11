@@ -90,8 +90,8 @@ import java.util.stream.Collectors;
 })
 public class EarthquakeController {
     private static final Logger logger = Logger.getLogger(EarthquakeController.class);
-    private GeometryFactory factory = new GeometryFactory();
-    private String username;
+    private final GeometryFactory factory = new GeometryFactory();
+    private final String username;
 
     @Inject
     private IEarthquakeRepository repository;

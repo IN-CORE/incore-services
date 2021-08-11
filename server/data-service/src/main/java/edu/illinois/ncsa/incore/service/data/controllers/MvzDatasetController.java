@@ -29,7 +29,7 @@ import java.util.List;
 
 @Path("mvzdatasets")
 public class MvzDatasetController {
-    private Logger logger = Logger.getLogger(MvzDatasetController.class);
+    private final Logger logger = Logger.getLogger(MvzDatasetController.class);
 
     @Inject
     private IRepository repository;

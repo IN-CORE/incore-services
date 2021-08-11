@@ -13,10 +13,10 @@ import java.util.List;
 
 @XmlRootElement
 public class SeismicHazardResults {
-    private String period;
-    private String demandType;
-    private String units;
-    private List<HazardResult> hazardResults;
+    private final String period;
+    private final String demandType;
+    private final String units;
+    private final List<HazardResult> hazardResults;
 
     public SeismicHazardResults(String hazardType, String demandType, List<HazardResult> hazardResults) {
         this.period = hazardType;

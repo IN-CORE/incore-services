@@ -17,9 +17,9 @@ import java.util.Map;
 
 @Embedded
 public class Mapping {
-    private Map<String, String> legacyEntry = new HashMap<>();
-    private Map<String, String> entry = new HashMap<>();
-    private Object rules = new Object();
+    private final Map<String, String> legacyEntry = new HashMap<>();
+    private final Map<String, String> entry = new HashMap<>();
+    private final Object rules = new Object();
 
     public Map<String, String> getLegacyEntry() {
         return legacyEntry;

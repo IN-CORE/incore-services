@@ -99,7 +99,7 @@ public class GISHurricaneUtils {
     public static Polygon mexicoPolygon;
     public static Polygon cubaPolygon;
     public static Polygon jamaicaPolygon;
-    private static DefaultFeatureCollection allDfc = new DefaultFeatureCollection();
+    private static final DefaultFeatureCollection allDfc = new DefaultFeatureCollection();
     private static SimpleFeatureType allSchema = null;
 
     //public static GeodeticCalculator geodeticCalculator;
@@ -407,7 +407,7 @@ public class GISHurricaneUtils {
             int ifIndex = 0;
             try {
                 while (inFeatureIter.hasNext()) {
-                    inFeatureList.add((SimpleFeature) inFeatureIter.next());
+                    inFeatureList.add(inFeatureIter.next());
                     ifIndex++;
                     if (ifIndex == 2) {
                         break;
@@ -509,7 +509,7 @@ public class GISHurricaneUtils {
     public static SimpleFeature[] createClipper(ReferencedEnvelope refEnv, double searchDistLimit, SimpleFeatureCollection inFeatures) {
         FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
         refEnv.expandBy(searchDistLimit);
-        BBOX bbox = ff.bbox(ff.property(inFeatures.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
+        BBOX bbox = ff.bbox(ff.property(inFeatures.getSchema().getGeometryDescriptor().getName()), refEnv);
 
         // make sfc clip
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
@@ -518,7 +518,7 @@ public class GISHurricaneUtils {
                 new Coordinate(refEnv.getMaxX(), refEnv.getMaxY()), new Coordinate(refEnv.getMinX(), refEnv.getMaxY()),
                 new Coordinate(refEnv.getMinX(), refEnv.getMinY())};
         LinearRing ring = geometryFactory.createLinearRing(coords);
-        LinearRing holes[] = null; // use LinearRing[] to represent holes
+        LinearRing[] holes = null; // use LinearRing[] to represent holes
         Polygon clip_zone = geometryFactory.createPolygon(ring, holes);
 
         ClipProcess cp = new ClipProcess();
@@ -532,7 +532,7 @@ public class GISHurricaneUtils {
         int sfIndex = 0;
         try {
             while (sfi.hasNext()) {
-                sfArr[sfIndex] = (SimpleFeature) sfi.next();
+                sfArr[sfIndex] = sfi.next();
                 sfIndex++;
             }
         } finally {

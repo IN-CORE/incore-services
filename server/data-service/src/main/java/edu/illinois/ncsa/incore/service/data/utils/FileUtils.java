@@ -96,7 +96,7 @@ public class FileUtils {
      */
     public static void deleteTmpDir(File metadataFile, String fileExt) {
         String fileName = metadataFile.getAbsolutePath();
-        String filePath = fileName.substring(0, fileName.lastIndexOf(metadataFile.separator));
+        String filePath = fileName.substring(0, fileName.lastIndexOf(File.separator));
         int extLoc = metadataFile.getName().indexOf(".");
         String extName = metadataFile.getName().substring(extLoc);
         String fileNameWithNoExt = FilenameUtils.removeExtension(fileName);
@@ -133,7 +133,7 @@ public class FileUtils {
      */
     public static void deleteTmpDir(File shapefile, String[] fileExts) {
         String fileName = shapefile.getAbsolutePath();
-        String filePath = fileName.substring(0, fileName.lastIndexOf(shapefile.separator));
+        String filePath = fileName.substring(0, fileName.lastIndexOf(File.separator));
         int extLoc = shapefile.getName().indexOf(".");
         String extName = shapefile.getName().substring(extLoc);
         String fileNameWithNoExt = FilenameUtils.removeExtension(fileName);
@@ -212,7 +212,7 @@ public class FileUtils {
         String outfileName = "";
         if (outfileStr.length() > 0) {
             // get the base name of the shapefile
-            String shapefileNames[] = outfileStr.split("." + extStr);
+            String[] shapefileNames = outfileStr.split("." + extStr);
             String baseName = shapefileNames[0];
             String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
             if (extStr.equals(EXTENSION_SHP)) {
@@ -309,7 +309,7 @@ public class FileUtils {
      * @return
      */
     public static String getRealUrl(String inUrl) {
-        String strs[] = inUrl.split("/converted/");
+        String[] strs = inUrl.split("/converted/");
         String urlPrefix = strs[0];
         String realUrl = urlPrefix + "/converted/";
 
@@ -525,7 +525,7 @@ public class FileUtils {
     }
 
     public static File[] loadNetworkFileFromService(Dataset dataset, IRepository repository, boolean isGeoserver, String inExt) throws IOException, URISyntaxException {
-        File outFiles[] = new File[2];
+        File[] outFiles = new File[2];
         String datasetId = dataset.getId();
         List<FileDescriptor> fds = dataset.getFileDescriptors();
         List<File> fileList = new ArrayList<File>();
@@ -632,7 +632,7 @@ public class FileUtils {
         String metadataUrl = REPO_PROP_URL + urlStrs[0];
         // what if there is a dot in the basename? avoid use getBasename
         //String baseName = FilenameUtils.getBaseName(metadataUrl);
-        String baseNameStrs[] = urlStrs[0].split("/");
+        String[] baseNameStrs = urlStrs[0].split("/");
         String baseName = baseNameStrs[baseNameStrs.length - 1];
         String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
 

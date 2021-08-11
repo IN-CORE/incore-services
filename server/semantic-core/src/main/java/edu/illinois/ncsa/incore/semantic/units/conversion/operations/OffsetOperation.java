@@ -8,7 +8,7 @@
 package edu.illinois.ncsa.incore.semantic.units.conversion.operations;
 
 public class OffsetOperation extends ReversibleOperation {
-    private double offset;
+    private final double offset;
 
     public OffsetOperation(double offset) {
         this.offset = offset;

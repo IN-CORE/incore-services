@@ -64,7 +64,7 @@ public class PowerDerivedUnit extends DerivedUnit {
         if (power == 1) {
             return operand.getSymbol();
         } else {
-            return operand.getSymbol() + "^" + Integer.toString(power);
+            return operand.getSymbol() + "^" + power;
         }
     }
 

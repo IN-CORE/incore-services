@@ -140,11 +140,7 @@ public abstract class AbstractScanner {
      *                 given, all elements must be non-<code>null</code>.
      */
     protected void setIncludes(String[] includes) {
-        if (includes == null) {
-            this.includes = null;
-        } else {
-            this.includes = includes;
-        }
+        this.includes = includes;
     } // setIncludes
 
     /**
@@ -155,11 +151,7 @@ public abstract class AbstractScanner {
      *                 given, all elements must be non-<code>null</code>.
      */
     protected void setExcludes(String[] excludes) {
-        if (excludes == null) {
-            this.excludes = null;
-        } else {
-            this.excludes = excludes;
-        }
+        this.excludes = excludes;
     } // setExcludes
 
     /**

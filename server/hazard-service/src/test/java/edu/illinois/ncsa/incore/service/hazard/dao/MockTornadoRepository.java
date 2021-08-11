@@ -22,8 +22,8 @@ import java.util.List;
 
 public class MockTornadoRepository implements ITornadoRepository {
     private static final Logger log = Logger.getLogger(MockRepository.class);
-    private Datastore mockDataStore;
-    private List<Tornado> tornadoes = new ArrayList<>();
+    private final Datastore mockDataStore;
+    private final List<Tornado> tornadoes = new ArrayList<>();
 
     public MockTornadoRepository() {
         this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);

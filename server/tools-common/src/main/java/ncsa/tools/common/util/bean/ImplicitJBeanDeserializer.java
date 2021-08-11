@@ -135,7 +135,7 @@ public class ImplicitJBeanDeserializer {
                 }
             } else {
                 // there should be only one
-                Element nested = (Element) e.elements().get(0);
+                Element nested = e.elements().get(0);
                 Object o = instantiate(nested, null);
                 if (!elementType.isInstance(o))
                     throw new DeserializationException("array element " + i + " of wrong type " + o.getClass() + ", should be "
@@ -226,7 +226,7 @@ public class ImplicitJBeanDeserializer {
 
         } else {
             // there should be only one
-            Element nested = (Element) e.elements().get(0);
+            Element nested = e.elements().get(0);
             o = instantiate(nested, null);
         }
         return o;

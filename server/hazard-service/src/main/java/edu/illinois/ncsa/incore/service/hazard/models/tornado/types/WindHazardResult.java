@@ -13,9 +13,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class WindHazardResult {
-    private String demand = "Wind";
-    private String units;
-    private Double hazardValue;
+    private final String demand = "Wind";
+    private final String units;
+    private final Double hazardValue;
 
     public WindHazardResult(String units, Double hazardValue) {
         this.hazardValue = hazardValue;

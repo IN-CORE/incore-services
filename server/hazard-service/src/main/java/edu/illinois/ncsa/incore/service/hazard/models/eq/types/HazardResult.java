@@ -8,9 +8,9 @@ package edu.illinois.ncsa.incore.service.hazard.models.eq.types;
 
 public class HazardResult {
 
-    private double latitude;
-    private double longitude;
-    private double hazardValue;
+    private final double latitude;
+    private final double longitude;
+    private final double hazardValue;
 
     public HazardResult(double latitude, double longitude, double hazardValue) {
         this.latitude = latitude;

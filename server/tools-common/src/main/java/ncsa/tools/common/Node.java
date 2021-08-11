@@ -7,41 +7,41 @@
 package ncsa.tools.common;
 
 public interface Node {
-    public static final String TAG_SELF = "node";
+    String TAG_SELF = "node";
 
-    public Node[] getChildren();
+    Node[] getChildren();
 
-    public void setChildren(Node[] children);
+    void setChildren(Node[] children);
 
-    public Node[] getDependencies();
+    Node[] getDependencies();
 
-    public void setDependencies(Node[] dependencies);
+    void setDependencies(Node[] dependencies);
 
-    public String getName();
+    String getName();
 
-    public void setName(String name);
+    void setName(String name);
 
-    public void setChildNames(String[] names);
+    void setChildNames(String[] names);
 
-    public void setDependencyNames(String[] names);
+    void setDependencyNames(String[] names);
 
-    public String[] getChildNames();
+    String[] getChildNames();
 
-    public String[] getDependencyNames();
+    String[] getDependencyNames();
 
-    public void addChild(Node child) throws IllegalArgumentException;
+    void addChild(Node child) throws IllegalArgumentException;
 
-    public void addDependency(Node dependency) throws IllegalArgumentException;
+    void addDependency(Node dependency) throws IllegalArgumentException;
 
-    public void addChildName(String name);
+    void addChildName(String name);
 
-    public void addDependencyName(String name);
+    void addDependencyName(String name);
 
-    public void removeChild(Node child);
+    void removeChild(Node child);
 
-    public void removeDependency(Node dependency);
+    void removeDependency(Node dependency);
 
-    public void removeChildName(String name);
+    void removeChildName(String name);
 
-    public void removeDependencyName(String name);
+    void removeDependencyName(String name);
 }

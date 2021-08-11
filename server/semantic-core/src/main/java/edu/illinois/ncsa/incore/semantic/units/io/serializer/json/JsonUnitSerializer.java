@@ -18,7 +18,7 @@ import java.io.IOException;
 public class JsonUnitSerializer extends JsonSerializer<Unit> {
 
     @Override
-    public void serialize(Unit unit, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+    public void serialize(Unit unit, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
 
         gen.writeStringField("name", unit.getName());

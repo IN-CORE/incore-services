@@ -26,7 +26,7 @@ import java.util.*;
 public class ImplicitJBeanSerializer {
     static Namespace namespace = new Namespace("meta", "ncsa.common.util");
 
-    private static DefaultSerializationComparator defaultComparator = new DefaultSerializationComparator();
+    private static final DefaultSerializationComparator defaultComparator = new DefaultSerializationComparator();
 
     private int count;
     private Map ancestorRefs = null;

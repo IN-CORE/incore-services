@@ -127,7 +127,7 @@ public final class StringRepresentationUtil {
         }
 
         if (power > 8 || power < -8) {
-            return unitName + " to the power of " + Integer.toString(power);
+            return unitName + " to the power of " + power;
         }
 
         String name = "";
@@ -156,7 +156,7 @@ public final class StringRepresentationUtil {
             case 3:
                 return pluralName + " cubed";
             default:
-                return pluralName + " to the power " + Integer.toString(power);
+                return pluralName + " to the power " + power;
         }
     }
 

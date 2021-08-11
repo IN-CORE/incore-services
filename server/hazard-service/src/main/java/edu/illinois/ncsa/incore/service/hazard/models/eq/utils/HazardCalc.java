@@ -52,7 +52,7 @@ import java.util.Map;
 
 public class HazardCalc {
     private static final Logger logger = Logger.getLogger(HazardCalc.class);
-    private static GeometryFactory factory = new GeometryFactory();
+    private static final GeometryFactory factory = new GeometryFactory();
 
     public static LiquefactionHazardResult getLiquefactionAtSite(Earthquake earthquake,
                                                                  Map<BaseAttenuation, Double> attenuations,
@@ -416,7 +416,7 @@ public class HazardCalc {
         params.parameter(AbstractGridFormat.GEOTOOLS_WRITE_PARAMS.getName().toString()).setValue(wp);
 
         GridCoverageWriter writer = format.getWriter(tiffFile);
-        writer.write(gridCoverage, (GeneralParameterValue[]) params.values().toArray(new GeneralParameterValue[1]));
+        writer.write(gridCoverage, params.values().toArray(new GeneralParameterValue[1]));
         writer.dispose();
     }
 

@@ -19,6 +19,7 @@ import org.json.JSONObject;
 import org.json.XML;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -69,7 +70,6 @@ public class MvzLoader {
 
         } catch (IOException e) {
             e.printStackTrace();
-            ;
             String err = "{\"error:\" + \"" + e.getLocalizedMessage() + "\"}";
         }
 
@@ -79,8 +79,8 @@ public class MvzLoader {
     public static MvzDataset setMvzDatasetFromMetadata(File metadataFile, String rUrl) throws IOException {
         String xmlString = "";
         metadataFile.setReadOnly();
-        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
-        char metaCharBuffer[] = new char[2048];
+        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), StandardCharsets.UTF_16);
+        char[] metaCharBuffer = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
             xmlString = xmlString + new String(metaCharBuffer, 0, len);
@@ -310,8 +310,8 @@ public class MvzLoader {
         // convert from UTF-16 to UTF-8
         String xmlString = "";
         metadataFile.setReadOnly();
-        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), "UTF-16");
-        char metaCharBuffer[] = new char[2048];
+        Reader metadataReader = new InputStreamReader(new FileInputStream(metadataFile), StandardCharsets.UTF_16);
+        char[] metaCharBuffer = new char[2048];
         int len;
         while ((len = metadataReader.read(metaCharBuffer, 0, metaCharBuffer.length)) != -1) {
             xmlString = xmlString + new String(metaCharBuffer, 0, len);

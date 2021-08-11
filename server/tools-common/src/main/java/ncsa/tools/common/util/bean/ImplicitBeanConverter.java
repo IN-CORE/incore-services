@@ -21,9 +21,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class ImplicitBeanConverter {
-    private static Logger logger = Logger.getLogger(ImplicitBeanConverter.class);
+    private static final Logger logger = Logger.getLogger(ImplicitBeanConverter.class);
 
-    private Map seen = new HashMap();
+    private final Map seen = new HashMap();
     private Map typeMap;
 
     /**
@@ -201,7 +201,7 @@ public class ImplicitBeanConverter {
                 throw new NoSuchMethodException("target class " + to + " has no set method for " + field + ", " + toRtValType);
 
             logger.debug("invoking " + toSet + " on " + toBean + " with " + toRtVal);
-            toSet.invoke(toBean, new Object[]{toRtVal});
+            toSet.invoke(toBean, toRtVal);
         }
         return toBean;
     }

@@ -22,8 +22,8 @@ import java.util.List;
 
 public class MockTsunamiRepository implements ITsunamiRepository {
     private static final Logger log = Logger.getLogger(MockTsunamiRepository.class);
-    private Datastore mockDataStore;
-    private List<Tsunami> tsunamis = new ArrayList<>();
+    private final Datastore mockDataStore;
+    private final List<Tsunami> tsunamis = new ArrayList<>();
 
     public MockTsunamiRepository() {
         this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);

@@ -17,8 +17,8 @@ import java.util.List;
 
 @Path("datatypes")
 public class DatatypeController {
-    private Logger logger = Logger.getLogger(DatatypeController.class);
-    private String username;
+    private final Logger logger = Logger.getLogger(DatatypeController.class);
+    private final String username;
 
     @Inject
     private IRepository repository;

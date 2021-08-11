@@ -201,10 +201,7 @@ public class Authorizer implements IAuthorizer {
             LdapClient ldapClient = getLdapClient();
             Set<String> userGroups = ldapClient.getUserGroups(username);
 
-            if (userGroups.contains(System.getenv("AUTH_LDAP_ADMINS"))) {
-                return true;
-            }
-            return false;
+            return userGroups.contains(System.getenv("AUTH_LDAP_ADMINS"));
         } catch (Exception e) {
             logger.error(e);
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Internal server error.");

@@ -21,7 +21,7 @@ import java.util.*;
  * @author Albert L. Rossi
  */
 public class HashCodeMap implements Map {
-    private Map map = Collections.synchronizedMap(new HashMap());
+    private final Map map = Collections.synchronizedMap(new HashMap());
 
     /**
      * Uses the hashcode of the object as key.

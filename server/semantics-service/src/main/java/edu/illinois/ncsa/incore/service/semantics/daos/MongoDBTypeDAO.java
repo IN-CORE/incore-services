@@ -81,18 +81,13 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
     private Boolean checkNewType(Document newType) {
 
-        if (newType.get("@context") != null
+        return newType.get("@context") != null
             && newType.get("dc:license") != null
             && newType.get("dc:title") != null
             && newType.get("dc:description") != null
             && newType.get("url") != null
             && newType.get("openvocab:versionnumber") != null
-            && newType.get("tableSchema") != null) {
-
-            return true;
-        } else {
-            return false;
-        }
+            && newType.get("tableSchema") != null;
     }
 
     @Override

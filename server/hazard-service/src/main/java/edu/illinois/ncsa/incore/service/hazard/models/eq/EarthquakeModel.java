@@ -19,8 +19,8 @@ public class EarthquakeModel extends Earthquake {
 
     private EqVisualization visualizationParameters;
     // Default site class
-    private String defaultSiteClass;
-    private String siteAmplification;
+    private final String defaultSiteClass;
+    private final String siteAmplification;
 
     // Visualization raster
     private HazardDataset rasterDataset;

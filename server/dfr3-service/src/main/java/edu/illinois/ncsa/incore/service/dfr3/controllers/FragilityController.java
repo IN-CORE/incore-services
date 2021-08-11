@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
 
-    private String username;
+    private final String username;
 
     @Inject
     IAuthorizer authorizer;

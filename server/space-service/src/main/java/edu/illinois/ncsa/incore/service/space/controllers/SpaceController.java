@@ -82,9 +82,9 @@ public class SpaceController {
     private static final String SPACE_MEMBERS = "members";
     private static final String SPACE_METADATA = "metadata";
 
-    private Logger logger = Logger.getLogger(SpaceController.class);
+    private final Logger logger = Logger.getLogger(SpaceController.class);
 
-    private String username;
+    private final String username;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -128,7 +128,7 @@ public class SpaceController {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Space already exists with name " + newSpace.getName());
             }
         } catch (Exception e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid space JSON. " + e.toString());
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid space JSON. " + e);
         }
     }
 
@@ -213,7 +213,7 @@ public class SpaceController {
                         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "New name of space already exists");
                     }
                 } catch (IOException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid metadata. " + e.toString());
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid metadata. " + e);
                 }
             }
             if (members.size() > 0) {
@@ -237,7 +237,7 @@ public class SpaceController {
         try {
             membersToDelete = memeberObjectMapper.readValue(membersToRemoveJson, Members.class);
         } catch (Exception e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid members JSON. " + e.toString());
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid members JSON. " + e);
         }
         boolean spaceContainsMembers = false;
         List<String> members = membersToDelete.getMembers();
@@ -294,7 +294,7 @@ public class SpaceController {
             Privileges privileges = privilegeObjectMapper.readValue(privilegesJson, Privileges.class);
             space.addPrivileges(privileges);
         } catch (IOException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid privileges JSON. " + e.toString());
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid privileges JSON. " + e);
         }
 
         spaceRepository.addSpace(space);

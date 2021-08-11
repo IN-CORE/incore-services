@@ -43,7 +43,7 @@ import java.security.NoSuchAlgorithmException;
  * @author Rob Kooper <kooper@illinois.edu>
  */
 public class FileStorageDisk implements FileStorage {
-    private static Logger logger = LoggerFactory.getLogger(FileStorageDisk.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileStorageDisk.class);
 
     @Inject
     @Named("disk.levels")

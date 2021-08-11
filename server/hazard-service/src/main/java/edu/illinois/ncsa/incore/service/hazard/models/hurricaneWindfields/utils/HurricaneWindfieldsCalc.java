@@ -99,7 +99,7 @@ public class HurricaneWindfieldsCalc {
 
         List<IncorePoint> track = HurricaneWindfieldsUtil.locateNewTrack(timeNewRadii, VTsSimu, landfallLoc, indexLandfall);
 
-        if (!model.toLowerCase().equals("isabel") && !model.toLowerCase().equals("frances")) {
+        if (!model.equalsIgnoreCase("isabel") && !model.equalsIgnoreCase("frances")) {
             VTsSimu.remove(indexLandfall);
             track.remove(indexLandfall);
         }
@@ -285,9 +285,9 @@ public class HurricaneWindfieldsCalc {
             int noOfLoops = zonesFittedInts.get(zoneI - 1).get(1);
 
             for (int j = 0; j < noOfLoops; j++) {
-                rmThetaVspInnerRi.add((List<Complex>) rmThetaVspInner.get(j)); // Casting to List<Complex> is only casting as list of
+                rmThetaVspInnerRi.add(rmThetaVspInner.get(j)); // Casting to List<Complex> is only casting as list of
                 // strings
-                rmThetaVspOuterRi.add((List<Complex>) rmThetaVspOuter.get(j));
+                rmThetaVspOuterRi.add(rmThetaVspOuter.get(j));
                 List<Double> vgI = (List<Double>) vgInner.get(j);
                 List<Double> vgO = (List<Double>) vgOuter.get(j);
 

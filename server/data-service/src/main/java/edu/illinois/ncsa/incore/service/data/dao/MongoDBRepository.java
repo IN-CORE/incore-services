@@ -41,7 +41,7 @@ public class MongoDBRepository implements IRepository {
     private final String DATASET_FIELD_CREATOR = "creator";
     private final String DATASET_FIELD_FILEDESCRIPTOR_ID = "fileDescriptors._id";
     private String hostUri;
-    private String databaseName;
+    private final String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
     private Datastore dataStore;
@@ -130,7 +130,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     public Dataset addDataset(Dataset dataset) {
-        String id = this.dataStore.save(dataset).getId().toString();
+        String id = this.dataStore.save(dataset).getId();
         return getDatasetById(id);
     }
 
@@ -140,7 +140,7 @@ public class MongoDBRepository implements IRepository {
     }
 
     public MvzDataset addMvzDataset(MvzDataset mvzDataset) {
-        String id = this.dataStore.save(mvzDataset).getId().toString();
+        String id = this.dataStore.save(mvzDataset).getId();
         return getMvzDatasetById(id);
     }
 

@@ -42,7 +42,7 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
             throw new IllegalArgumentException();
         } else {
             // the save method mutates the fragilitySet object with an document id
-            String id = this.dataStore.save(restorationSet).getId().toString();
+            String id = this.dataStore.save(restorationSet).getId();
 
             return id;
         }

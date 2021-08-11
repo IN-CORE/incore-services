@@ -28,8 +28,8 @@ public class HurricaneUtil {
     private static final String units_hr = "hr";
     private static final String units_min = "min";
 
-    public static final List<String> distanceUnits = Arrays.asList(new String[]{units_cm, units_m, units_in, units_ft});
-    public static final List<String> durationUnits = Arrays.asList(new String[]{units_hr, units_min});
+    public static final List<String> distanceUnits = Arrays.asList(units_cm, units_m, units_in, units_ft);
+    public static final List<String> durationUnits = Arrays.asList(units_hr, units_min);
 
     private static final double m_to_cm = 100.0;
     private static final double m_to_in = 39.3701;

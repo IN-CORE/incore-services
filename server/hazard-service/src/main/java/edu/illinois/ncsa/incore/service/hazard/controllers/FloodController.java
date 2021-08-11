@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 })
 public class FloodController {
     private static final Logger log = Logger.getLogger(FloodController.class);
-    private String username;
+    private final String username;
 
     @Inject
     private IFloodRepository repository;

@@ -83,17 +83,13 @@ public final class SelectorUtils {
             strIdxStart++;
         }
 
+        // String not exhausted, but pattern is. Failure.
+        // pattern now holds ** while string is not exhausted
+        // this will generate false positives but we can live with that.
         if (strIdxStart > strIdxEnd) {
             // String is exhausted
             return true;
-        } else if (patIdxStart > patIdxEnd) {
-            // String not exhausted, but pattern is. Failure.
-            return false;
-        } else {
-            // pattern now holds ** while string is not exhausted
-            // this will generate false positives but we can live with that.
-            return true;
-        }
+        } else return patIdxStart <= patIdxEnd;
     } // matchPatternStart
 
     /**

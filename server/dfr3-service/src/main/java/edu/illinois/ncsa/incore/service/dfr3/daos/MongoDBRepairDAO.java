@@ -42,7 +42,7 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
             throw new IllegalArgumentException();
         } else {
             // the save method mutates the fragilitySet object with an document id
-            String id = this.dataStore.save(repairSet).getId().toString();
+            String id = this.dataStore.save(repairSet).getId();
 
             return id;
         }

@@ -49,7 +49,7 @@ public class TornadoUtils {
 
     private static final Logger logger = Logger.getLogger(TornadoUtils.class);
 
-    private static GeometryFactory geometryFactory = new GeometryFactory();
+    private static final GeometryFactory geometryFactory = new GeometryFactory();
 
     /**
      * Returns the EF rating as an integer value

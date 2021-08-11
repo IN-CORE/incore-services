@@ -28,7 +28,7 @@ public class ReflectUtils {
 
     private static final String[] mutatorPrefixes = {"set", "add", "addConfigured"};
 
-    private static MethodComparator methodComparator = new MethodComparator();
+    private static final MethodComparator methodComparator = new MethodComparator();
 
     /**
      * @param methodName of null parameter method to invoke.
@@ -57,7 +57,7 @@ public class ReflectUtils {
     public static Object invokeOn(String methodName, Object target, Class[] ptypes, Object[] pvalues) throws ReflectionException {
         Method method = null;
         try {
-            method = target.getClass().getMethod(methodName.toString(), ptypes);
+            method = target.getClass().getMethod(methodName, ptypes);
         } catch (NoSuchMethodException nsme) {
             throw new ReflectionException("invokeOn: " + nsme);
         }

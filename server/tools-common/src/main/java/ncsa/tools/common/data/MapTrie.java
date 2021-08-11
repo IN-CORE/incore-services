@@ -14,7 +14,7 @@ import java.util.TreeMap;
 public class MapTrie {
     private static final String END_OF_WORD = "NULL";
 
-    private Map root;
+    private final Map root;
 
     public MapTrie() {
         root = new TreeMap();

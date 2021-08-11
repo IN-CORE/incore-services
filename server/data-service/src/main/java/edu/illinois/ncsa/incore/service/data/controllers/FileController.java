@@ -34,7 +34,7 @@ import java.util.List;
 
 @Path("files")
 public class FileController {
-    private Logger logger = Logger.getLogger(edu.illinois.ncsa.incore.service.data.controllers.FileController.class);
+    private final Logger logger = Logger.getLogger(edu.illinois.ncsa.incore.service.data.controllers.FileController.class);
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
 
     @Inject

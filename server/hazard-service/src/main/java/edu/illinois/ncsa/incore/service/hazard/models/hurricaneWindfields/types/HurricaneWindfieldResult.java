@@ -10,9 +10,9 @@
 package edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types;
 
 public class HurricaneWindfieldResult {
-    private String demandType;
-    private String demandUnits;
-    private double hazardValue;
+    private final String demandType;
+    private final String demandUnits;
+    private final double hazardValue;
     private double latitude;
     private double longitude;
 

@@ -34,9 +34,9 @@ public class StatusController {
     @Context
     private HttpServletRequest context;
     private static final Logger logger = Logger.getLogger(StatusController.class);
-    private HashMap<String, String> tests = new HashMap<String, String>();
-    private String user = "incrtest";
-    private int period = 5;
+    private final HashMap<String, String> tests = new HashMap<String, String>();
+    private final String user = "incrtest";
+    private final int period = 5;
     private static final String VERSION = System.getenv("SERVICE_VERSION");
 
     public StatusController() {

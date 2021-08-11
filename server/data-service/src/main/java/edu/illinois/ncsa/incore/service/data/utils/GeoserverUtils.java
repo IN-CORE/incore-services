@@ -157,11 +157,7 @@ public class GeoserverUtils {
 
         FileUtils.deleteTmpDir(outFiles[0]);
 
-        if (link_published == true && node_published == true) {
-            return true;
-        } else {
-            return false;
-        }
+        return link_published == true && node_published == true;
     }
 
     public static boolean removeLayerFromGeoserver(String id) {

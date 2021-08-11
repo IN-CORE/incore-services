@@ -23,8 +23,8 @@ public class UnixProcessReader {
     private String signal;
 
     // STATE
-    private List pids;
-    private Map ppids;
+    private final List pids;
+    private final Map ppids;
 
     public UnixProcessReader() throws IllegalStateException {
         if (!SystemUtils.isUNIX())

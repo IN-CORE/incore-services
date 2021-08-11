@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 })
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
-    private String username;
+    private final String username;
 
     @Inject
     private ITornadoRepository repository;
@@ -70,7 +70,7 @@ public class TornadoController {
     @Inject
     private IAuthorizer authorizer;
 
-    private GeometryFactory factory = new GeometryFactory();
+    private final GeometryFactory factory = new GeometryFactory();
 
     @Inject
     public TornadoController(

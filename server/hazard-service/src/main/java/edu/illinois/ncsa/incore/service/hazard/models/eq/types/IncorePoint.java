@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class IncorePoint {
-    private Point location;
+    private final Point location;
 
     public IncorePoint(String latlong) {
         String[] str = latlong.split(",");

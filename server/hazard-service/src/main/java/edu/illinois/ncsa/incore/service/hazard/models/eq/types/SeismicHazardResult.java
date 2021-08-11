@@ -15,10 +15,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class SeismicHazardResult {
-    private String period;
+    private final String period;
     private String demand;
-    private String units;
-    private double hazardValue;
+    private final String units;
+    private final double hazardValue;
 
     public SeismicHazardResult(double hazardValue, String hazardType, String demand, String demandUnits) {
         this.hazardValue = hazardValue;

@@ -80,7 +80,7 @@ public class GeotoolsUtils {
             ReferencedEnvelope refEnv = new ReferencedEnvelope(new Envelope(pCoord),
                 featureIndex.getSchema().getCoordinateReferenceSystem());
             refEnv.expandBy(searchDistLimit);
-            BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), (BoundingBox) refEnv);
+            BBOX bbox = ff.bbox(ff.property(featureIndex.getSchema().getGeometryDescriptor().getName()), refEnv);
             SimpleFeatureCollection sfc = featureIndex.subCollection(bbox);
             SimpleFeatureIterator sfi = sfc.features();
 

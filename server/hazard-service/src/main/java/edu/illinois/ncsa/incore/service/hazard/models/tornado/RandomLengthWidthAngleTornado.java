@@ -19,17 +19,17 @@ import java.util.Random;
 
 public class RandomLengthWidthAngleTornado extends BaseTornado {
 
-    private static double[] maxWidth = {2500.0, 3000.0, 3520.0, 3872.0, 4400.0, 3000.0}; // Maximum width for EF0 - EF5
+    private static final double[] maxWidth = {2500.0, 3000.0, 3520.0, 3872.0, 4400.0, 3000.0}; // Maximum width for EF0 - EF5
 
-    private static double[] maxLength = {103.50, 99.80, 168.50, 169.70, 148.97, 132.00}; // Maximum length for EF0 - EF5
+    private static final double[] maxLength = {103.50, 99.80, 168.50, 169.70, 148.97, 132.00}; // Maximum length for EF0 - EF5
     // GEV shape parameters, EF0 - EF5
-    private static double[] widthShape = {0.4228, 0.595078, 0.657065, 0.515384, 0.264031, 0.185012};
+    private static final double[] widthShape = {0.4228, 0.595078, 0.657065, 0.515384, 0.264031, 0.185012};
 
-    private static double[] widthScale = {16.5948, 37.1997, 81.1465, 198.266, 364.877, 421.403};
-    private static double[] widthLocation = {20.4790, 40.5151, 77.711, 197.736, 383.485, 522.085};
-    private static double[] lengthShape = {0.9741, 1.2606, 0.8398, 0.4132, 0.3927, 0.1812};
-    private static double[] lengthScale = {0.2165, 0.8913, 2.7859, 7.2996, 11.7168, 17.6212};
-    private static double[] lengthLocation = {0.1938, 0.6467, 2.2052, 7.5138, 12.4357, 20.4455};
+    private static final double[] widthScale = {16.5948, 37.1997, 81.1465, 198.266, 364.877, 421.403};
+    private static final double[] widthLocation = {20.4790, 40.5151, 77.711, 197.736, 383.485, 522.085};
+    private static final double[] lengthShape = {0.9741, 1.2606, 0.8398, 0.4132, 0.3927, 0.1812};
+    private static final double[] lengthScale = {0.2165, 0.8913, 2.7859, 7.2996, 11.7168, 17.6212};
+    private static final double[] lengthLocation = {0.1938, 0.6467, 2.2052, 7.5138, 12.4357, 20.4455};
 
     @Override
     public boolean requiresEndPoint() {

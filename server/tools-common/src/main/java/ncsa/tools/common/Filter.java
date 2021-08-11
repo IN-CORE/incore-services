@@ -18,6 +18,6 @@ public interface Filter {
      * @return true if object satisfies filter; false otherwise.
      * @throws FailedComparisonException
      */
-    public boolean matches(Object o) throws FailedComparisonException;
+    boolean matches(Object o) throws FailedComparisonException;
 
 }

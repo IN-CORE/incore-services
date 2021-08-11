@@ -14,9 +14,9 @@ public enum UnitSystem {
     SI("SI"),
     Unspecified("Unspecified");
 
-    private String name;
+    private final String name;
 
-    private UnitSystem(String name) {
+    UnitSystem(String name) {
         this.name = name;
     }
 

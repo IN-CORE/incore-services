@@ -65,7 +65,7 @@ public class MongoDBTsunamiRepository extends MongoDAO implements ITsunamiReposi
 
     @Override
     public Tsunami addTsunami(Tsunami tsunami) {
-        String id = this.dataStore.save(tsunami).getId().toString();
+        String id = this.dataStore.save(tsunami).getId();
         return getTsunamiById(id);
     }
 

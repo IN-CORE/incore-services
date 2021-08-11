@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 public class RepairController {
     private static final Logger logger = Logger.getLogger(RepairController.class);
 
-    private String username;
+    private final String username;
 
     @Inject
     IAuthorizer authorizer;

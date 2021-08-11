@@ -54,7 +54,7 @@ public class Property implements Updateable, Serializable {
         }
     }
 
-    private static SetComparator comparator = new SetComparator();
+    private static final SetComparator comparator = new SetComparator();
 
     public static SetComparator getSetComparator() {
         return comparator;

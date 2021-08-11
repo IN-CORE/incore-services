@@ -22,8 +22,8 @@ import java.util.Optional;
 // TODO use multiple graphs implemented as a Map<edu.illinois.ncsa.incore.semantic.units.Dimension, Graph>
 final class GraphSolver {
 
-    private static DirectedGraph<Unit, Operation> graph = new DefaultDirectedGraph<>(Operation.class);
-    private static DijkstraShortestPath<Unit, Operation> shortestPath = new DijkstraShortestPath<>(graph);
+    private static final DirectedGraph<Unit, Operation> graph = new DefaultDirectedGraph<>(Operation.class);
+    private static final DijkstraShortestPath<Unit, Operation> shortestPath = new DijkstraShortestPath<>(graph);
 
     private GraphSolver() {
     }

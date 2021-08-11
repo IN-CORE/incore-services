@@ -22,11 +22,11 @@ import java.util.*;
 public class Engine {
     private static final Logger log = Logger.getLogger(Engine.class);
 
-    private Map<String, Object> serviceRepositories = new HashMap<>();
+    private final Map<String, Object> serviceRepositories = new HashMap<>();
     // In the future, we should make multiple worker threads
-    private WorkerThread engineThread = new WorkerThread();
+    private final WorkerThread engineThread = new WorkerThread();
     // TODO we should persist the queue somewhere
-    private List<Job> queue = new ArrayList<>();
+    private final List<Job> queue = new ArrayList<>();
 
     public Engine() {
         engineThread.setName("EngineThread");

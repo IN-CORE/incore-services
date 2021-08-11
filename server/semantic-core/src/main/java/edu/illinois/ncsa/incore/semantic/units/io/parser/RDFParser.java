@@ -24,6 +24,7 @@ import org.apache.jena.vocabulary.RDFS;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -61,13 +62,8 @@ public final class RDFParser {
 
         Model model = ModelFactory.createDefaultModel();
 
-        try {
-            InputStream stream = new ByteArrayInputStream(rdf.getBytes("UTF-8"));
-            model.read(stream, "", "TTL");
-        } catch (UnsupportedEncodingException ex) {
-            // return empty array if there are utf-8 issues
-            return dimensions;
-        }
+        InputStream stream = new ByteArrayInputStream(rdf.getBytes(StandardCharsets.UTF_8));
+        model.read(stream, "", "TTL");
 
         for (ResIterator iterator = model.listResourcesWithProperty(RDF.type); iterator.hasNext(); ) {
             Resource resource = iterator.next();

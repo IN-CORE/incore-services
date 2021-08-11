@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 })
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
-    private String username;
+    private final String username;
 
     @Inject
     private IHurricaneRepository repository;

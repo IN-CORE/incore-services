@@ -81,7 +81,7 @@ public class NCSAOutputPipe extends OutputStream {
                 sb.append((char) bigbyte);
             }
         } catch (OutOfMemoryError oome) {
-            throw new IOException("ListInput.write: output too big to store in memory: " + oome.toString());
+            throw new IOException("ListInput.write: output too big to store in memory: " + oome);
         } catch (NullPointerException npe) {
             throw new IOException("ListInput stream has been closed; cannot write");
         }

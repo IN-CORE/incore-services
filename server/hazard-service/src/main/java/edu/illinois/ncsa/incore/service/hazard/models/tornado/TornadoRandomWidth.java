@@ -17,11 +17,11 @@ import java.util.ArrayList;
 
 public class TornadoRandomWidth extends BaseTornado {
 
-    private static double[] maxWidth = {2500.0, 3000.0, 3520.0, 3872.0, 4400.0, 3000.0}; // Maximum width for EF0 - EF5
+    private static final double[] maxWidth = {2500.0, 3000.0, 3520.0, 3872.0, 4400.0, 3000.0}; // Maximum width for EF0 - EF5
 
-    private static double[] shape = {0.4228, 0.595078, 0.657065, 0.515384, 0.264031, 0.185012}; // GEV shape parameter, EF0 - EF5
-    private static double[] scale = {16.5948, 37.1997, 81.1465, 198.266, 364.877, 421.403}; // GEV shape parameter, EF0 - EF5
-    private static double[] location = {20.4790, 40.5151, 77.711, 197.736, 383.485, 522.085}; // GEV shape parameter, EF0 - EF5
+    private static final double[] shape = {0.4228, 0.595078, 0.657065, 0.515384, 0.264031, 0.185012}; // GEV shape parameter, EF0 - EF5
+    private static final double[] scale = {16.5948, 37.1997, 81.1465, 198.266, 364.877, 421.403}; // GEV shape parameter, EF0 - EF5
+    private static final double[] location = {20.4790, 40.5151, 77.711, 197.736, 383.485, 522.085}; // GEV shape parameter, EF0 - EF5
 
     @Override
     public boolean requiresEndPoint() {

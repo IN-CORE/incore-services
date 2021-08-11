@@ -28,7 +28,7 @@ import java.util.List;
 
 public class MongoDBTornadoRepository implements ITornadoRepository {
     private String hostUri;
-    private String databaseName;
+    private final String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
 
@@ -105,7 +105,7 @@ public class MongoDBTornadoRepository implements ITornadoRepository {
 
     @Override
     public Tornado addTornado(Tornado tornado) {
-        String id = this.dataStore.save(tornado).getId().toString();
+        String id = this.dataStore.save(tornado).getId();
         return getTornadoById(id);
     }
 

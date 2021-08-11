@@ -17,12 +17,12 @@ import java.io.Writer;
 import java.util.Objects;
 
 public class Prefix implements ISymbol, ISerializable {
-    private String resourceName;
-    private String name;
-    private String symbol;
-    private String unicodeSymbol;
-    private int base;
-    private int scale;
+    private final String resourceName;
+    private final String name;
+    private final String symbol;
+    private final String unicodeSymbol;
+    private final int base;
+    private final int scale;
 
     public Prefix(String name, String symbol, String unicodeSymbol, int base, int scale) {
         this.resourceName = name;

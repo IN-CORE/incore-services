@@ -20,7 +20,7 @@ import java.util.List;
  * This class represents Derived Units with Special Names and Symbols
  */
 public class CoherentDerivedUnit extends PrefixableUnit implements IDerivableUnit {
-    private DerivedUnit derivation;
+    private final DerivedUnit derivation;
 
     public CoherentDerivedUnit(String name, String unicodeName, String plural, String unicodePlural, String symbol, String unicodeSymbol,
                                List<Prefix> applicablePrefixes, Dimension dimension, DerivedUnit derivation) {

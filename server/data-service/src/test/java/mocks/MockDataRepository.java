@@ -27,10 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MockDataRepository implements IRepository {
-    private Datastore mockDataStore;
+    private final Datastore mockDataStore;
     private List<Dataset> datasets = new ArrayList<>();
     private List<DatasetType> datatypes = new ArrayList<>();
-    private List<MvzDataset> mvzDatasets = new ArrayList<>();
+    private final List<MvzDataset> mvzDatasets = new ArrayList<>();
 
     public MockDataRepository() {
         this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);

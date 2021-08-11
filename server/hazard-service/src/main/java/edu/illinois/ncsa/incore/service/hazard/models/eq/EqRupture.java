@@ -20,7 +20,7 @@ public class EqRupture {
     private static final Logger log = Logger.getLogger(EqRupture.class);
 
     private static EqRupture instance;
-    private List<CSVRecord> coefficientRecords;
+    private final List<CSVRecord> coefficientRecords;
 
     /**
      *

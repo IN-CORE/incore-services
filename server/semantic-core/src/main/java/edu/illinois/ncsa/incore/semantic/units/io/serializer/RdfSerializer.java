@@ -26,7 +26,7 @@ import java.io.Writer;
 import java.util.List;
 
 public class RdfSerializer implements ISerializer {
-    private RDFFormat format;
+    private final RDFFormat format;
 
     public RdfSerializer() {
         this.format = RDFFormat.TURTLE;

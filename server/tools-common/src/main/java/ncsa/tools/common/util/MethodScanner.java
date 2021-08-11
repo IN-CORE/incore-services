@@ -33,7 +33,7 @@ public class MethodScanner extends AbstractScanner {
      *
      * 0 = paramter types; 1 = included modifiers; 2 = excluded modifiers.
      */
-    private List[] strongConstraints = new ArrayList[]{null, null, null};
+    private final List[] strongConstraints = new ArrayList[]{null, null, null};
 
     /*
      * Disjunctive matching:
@@ -44,7 +44,7 @@ public class MethodScanner extends AbstractScanner {
      * 2 = included exception types; 3 = excluded exception types
      * 4 = included modifiers; 5 = excluded modifiers.
      */
-    private Map[] weakConstraints = new HashMap[]{null, null, null, null, null, null};
+    private final Map[] weakConstraints = new HashMap[]{null, null, null, null, null, null};
 
     /* Results */
     private List included = null;
@@ -261,7 +261,7 @@ public class MethodScanner extends AbstractScanner {
         int index = include ? 1 : 2;
 
         if (strongConstraints[index] == null)
-            return include ? true : false;
+            return include;
 
         int modifier = NCSAConstants.UNDEFINED;
         for (int i = 0; i < strongConstraints[index].size(); i++) {
@@ -313,7 +313,7 @@ public class MethodScanner extends AbstractScanner {
         int index = include ? 4 : 5;
 
         if (weakConstraints[index] == null)
-            return include ? true : false;
+            return include;
 
         if (Modifier.isAbstract(methodModifiers) && weakConstraints[index].containsKey(new Integer(Modifier.ABSTRACT)))
             return true;
@@ -329,10 +329,7 @@ public class MethodScanner extends AbstractScanner {
             return true;
         if (Modifier.isStatic(methodModifiers) && weakConstraints[index].containsKey(new Integer(Modifier.STATIC)))
             return true;
-        if (Modifier.isSynchronized(methodModifiers) && weakConstraints[index].containsKey(new Integer(Modifier.SYNCHRONIZED)))
-            return true;
-
-        return false;
+        return Modifier.isSynchronized(methodModifiers) && weakConstraints[index].containsKey(new Integer(Modifier.SYNCHRONIZED));
     } // checkWeakModifiers
 
     /**
@@ -343,15 +340,11 @@ public class MethodScanner extends AbstractScanner {
         Class[] types = method.getParameterTypes(); // will not be null
 
         if (nullParam) {
-            if (types.length == 0)
-                return true;
-            return false;
+            return types.length == 0;
         }
 
         if (numParams != NCSAConstants.UNDEFINED) {
-            if (types.length == numParams)
-                return true;
-            return false;
+            return types.length == numParams;
         }
 
         if (strongConstraints[0] == null)
@@ -372,9 +365,7 @@ public class MethodScanner extends AbstractScanner {
      */
     private boolean includesReturn(Class type) {
         if (voidReturn) {
-            if (type == null || type.equals(Void.TYPE))
-                return true;
-            return false;
+            return type == null || type.equals(Void.TYPE);
         }
         if (weakConstraints[0] == null)
             return true;
@@ -397,9 +388,7 @@ public class MethodScanner extends AbstractScanner {
      */
     private boolean includesException(Class[] types) {
         if (noExceptions) {
-            if (types.length == 0)
-                return true;
-            return false;
+            return types.length == 0;
         }
 
         if (weakConstraints[2] == null)

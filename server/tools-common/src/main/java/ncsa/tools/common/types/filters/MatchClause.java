@@ -25,7 +25,7 @@ import java.util.ListIterator;
 public class MatchClause {
     public static final String TAG_SELF = "match-clause";
 
-    private List elements = new ArrayList();
+    private final List elements = new ArrayList();
     private MatchStatement orderedConstraint = null;
     private String key = null;
     private boolean not = false;
@@ -142,7 +142,6 @@ public class MatchClause {
             sb.append(" && ");
             sb.append(lit.next());
         }
-        sb.append("");
 
         return sb.toString();
     }

@@ -209,9 +209,7 @@ public class RegExFilter implements UserFacing {
     }
 
     public boolean getCaseInsensitive() {
-        if (caseflag == Pattern.CASE_INSENSITIVE)
-            return true;
-        return false;
+        return caseflag == Pattern.CASE_INSENSITIVE;
     }
 
     public String getLine() {

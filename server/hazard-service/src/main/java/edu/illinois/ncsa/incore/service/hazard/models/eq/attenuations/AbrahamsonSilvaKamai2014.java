@@ -24,15 +24,15 @@ import java.util.Map;
 
 public class AbrahamsonSilvaKamai2014 extends BaseAttenuation {
     private static final Logger logger = Logger.getLogger(AbrahamsonSilvaKamai2014.class);
-    private double[] a = new double[47];
+    private final double[] a = new double[47];
     private double c4;
     private double n;
     private double b;
     private double c;
     private double VLin;
-    private double[] s = new double[5];
+    private final double[] s = new double[5];
     private double M1;
-    private double M2 = 5.0;
+    private final double M2 = 5.0;
     private double Sa1180 = -999;
     private double Rrup;
     private double Ftw, Fcn, Fjp; // Regional flags for Taiwan, China and Japan

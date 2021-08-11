@@ -8,9 +8,9 @@
 package edu.illinois.ncsa.incore.semantic.units.conversion.operations;
 
 public class MultiplyOffsetOperation extends ReversibleOperation {
-    private double factor;
-    private double inverseFactor;
-    private double offset;
+    private final double factor;
+    private final double inverseFactor;
+    private final double offset;
 
     public MultiplyOffsetOperation(double factor, double offset) {
         this.factor = factor;

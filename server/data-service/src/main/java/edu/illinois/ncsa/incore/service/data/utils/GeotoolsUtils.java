@@ -78,7 +78,7 @@ public class GeotoolsUtils {
         String outTifName = FileUtils.changeFileNameExtension(tmpName, "tif");
         File outTif = new File(outTifName);
         ArcGridReader ascGrid = new ArcGridReader(inAsc);
-        GridCoverage2D gc = (GridCoverage2D) ascGrid.read(null);
+        GridCoverage2D gc = ascGrid.read(null);
 
         try {
             GeoTiffWriteParams wp = new GeoTiffWriteParams();
@@ -87,7 +87,7 @@ public class GeotoolsUtils {
             ParameterValueGroup params = new GeoTiffFormat().getWriteParameters();
             params.parameter(AbstractGridFormat.GEOTOOLS_WRITE_PARAMS.getName().toString()).setValue(wp);
             GeoTiffWriter writer = new GeoTiffWriter(outTif);
-            writer.write(gc, (GeneralParameterValue[]) params.values().toArray(new GeneralParameterValue[1]));
+            writer.write(gc, params.values().toArray(new GeneralParameterValue[1]));
         } catch (Exception e) {
             logger.error("failed to conver ascii file to geotiff.");
             throw new IOException("failed to convert ascii file to geotiff ", e);
@@ -291,7 +291,7 @@ public class GeotoolsUtils {
                 // find matching csv rows
                 String[] matchedCsvRow = null;
                 for (int j = 0; j < csvRows.size(); j++) {
-                    if (csvRows.get(j)[csvIdLoc].toString().equals(csvConnector)) {
+                    if (csvRows.get(j)[csvIdLoc].equals(csvConnector)) {
                         matchedCsvRow = csvRows.get(j);
                         csvRows.remove(j);
                     }
@@ -779,11 +779,7 @@ public class GeotoolsUtils {
 
         FileUtils.deleteTmpDir(copiedFileList.get(0));
 
-        if (isGuid) {
-            return false;
-        } else {
-            return true;
-        }
+        return !isGuid;
     }
 
     /**

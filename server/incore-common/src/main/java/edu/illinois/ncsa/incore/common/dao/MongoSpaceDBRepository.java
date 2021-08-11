@@ -29,11 +29,11 @@ import java.util.List;
 
 public class MongoSpaceDBRepository implements ISpaceRepository {
     private final String SPACE_FIELD_METADATA_NAME = "metadata.name";
-    private String databaseName;
-    private MongoClientURI mongoClientURI;
+    private final String databaseName;
+    private final MongoClientURI mongoClientURI;
     private Datastore dataStore;
 
-    private Logger logger = Logger.getLogger(MongoSpaceDBRepository.class);
+    private final Logger logger = Logger.getLogger(MongoSpaceDBRepository.class);
 
     public MongoSpaceDBRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
@@ -70,7 +70,7 @@ public class MongoSpaceDBRepository implements ISpaceRepository {
 
     //TODO: Rename to saveSpace since it updates an existing too
     public Space addSpace(Space space) {
-        String id = (this.dataStore.save(space)).getId().toString();
+        String id = (this.dataStore.save(space)).getId();
         return getSpaceById(id);
     }
 

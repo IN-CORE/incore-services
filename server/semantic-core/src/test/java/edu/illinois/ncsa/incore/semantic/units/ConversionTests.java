@@ -29,12 +29,12 @@ import static edu.illinois.ncsa.incore.semantic.units.instances.USCustomaryUnits
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConversionTests {
-    private PrefixedUnit millimetre = new PrefixedUnit(milli, SIUnits.metre);
-    private PrefixedUnit kilometre = new PrefixedUnit(kilo, SIUnits.metre);
-    private PrefixedUnit millijoule = new PrefixedUnit(milli, SIDerivedUnits.joule);
-    private PrefixedUnit kilojoule = new PrefixedUnit(kilo, SIDerivedUnits.joule);
-    private PowerDerivedUnit square_millimetre = new PowerDerivedUnit(millimetre, 2);
-    private PowerDerivedUnit square_kilometre = new PowerDerivedUnit(kilometre, 2);
+    private final PrefixedUnit millimetre = new PrefixedUnit(milli, SIUnits.metre);
+    private final PrefixedUnit kilometre = new PrefixedUnit(kilo, SIUnits.metre);
+    private final PrefixedUnit millijoule = new PrefixedUnit(milli, SIDerivedUnits.joule);
+    private final PrefixedUnit kilojoule = new PrefixedUnit(kilo, SIDerivedUnits.joule);
+    private final PowerDerivedUnit square_millimetre = new PowerDerivedUnit(millimetre, 2);
+    private final PowerDerivedUnit square_kilometre = new PowerDerivedUnit(kilometre, 2);
 
     @Test
     @DisplayName("1,000,000 mm = 1 km")

@@ -42,9 +42,9 @@ import java.util.stream.Collectors;
 @Path("")
 public class TypeController {
 
-    private String username;
+    private final String username;
 
-    private Authorizer authorizer;
+    private final Authorizer authorizer;
 
     @Inject
     private ITypeDAO typeDAO;

@@ -37,9 +37,9 @@ import java.util.*;
  * @see RegExFilter
  */
 public class RegExFilterQueue {
-    private static Logger logger = Logger.getLogger(RegExFilterQueue.class);
+    private static final Logger logger = Logger.getLogger(RegExFilterQueue.class);
 
-    private LinkedList list = new LinkedList();
+    private final LinkedList list = new LinkedList();
     private int queueType = NCSAConstants.ONE_TO_ONE;
     private RegExFilter lookingFor = null;
 

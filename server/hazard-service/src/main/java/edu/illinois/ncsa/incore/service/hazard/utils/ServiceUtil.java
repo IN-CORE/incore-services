@@ -273,7 +273,7 @@ public class ServiceUtil {
 
         JSONArray fdList = (JSONArray) (datasetJson.get("fileDescriptors"));
         for (Object fd : fdList) {
-            String filePath = restStorageDir + File.separator + (String) (((JSONObject) (fd)).get("dataURL"));
+            String filePath = restStorageDir + File.separator + ((JSONObject) (fd)).get("dataURL");
             // the following line is only for PC's testing, convert slash to file separator
 //            filePath = filePath.replace('/', '\\');
             outlist.add(new File(filePath));

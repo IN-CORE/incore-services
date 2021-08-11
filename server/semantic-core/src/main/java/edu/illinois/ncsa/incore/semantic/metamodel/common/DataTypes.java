@@ -19,8 +19,8 @@ public enum DataTypes {
     DATETIME("datetime", LocalDateTime.class),
     TIMESTAMP("timestamp", Timestamp.class);
 
-    private String name;
-    private Class clazz;
+    private final String name;
+    private final Class clazz;
 
     DataTypes(String name, Class clazz) {
         this.name = name;

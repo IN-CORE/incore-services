@@ -8,8 +8,8 @@
 package edu.illinois.ncsa.incore.semantic.units.conversion.operations;
 
 public class MultiplyOperation extends ReversibleOperation {
-    private double factor;
-    private double inverseFactor;
+    private final double factor;
+    private final double inverseFactor;
 
     public MultiplyOperation(double factor) {
         this.factor = factor;

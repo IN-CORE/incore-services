@@ -20,7 +20,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MeanWidthTornadoTest extends CustomJerseyTest {
 
-    private GeometryFactory factory = new GeometryFactory();
+    private final GeometryFactory factory = new GeometryFactory();
 
     @Override
     public ResourceConfig configure() {

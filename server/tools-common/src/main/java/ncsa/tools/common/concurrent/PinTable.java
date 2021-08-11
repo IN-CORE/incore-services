@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PinTable {
-    private Map pinned = new HashMap();
+    private final Map pinned = new HashMap();
 
     public void pin(String key) {
         if (key == null)

@@ -30,7 +30,7 @@ import java.net.URL;
 import java.util.*;
 
 public class MockFragilityDAO implements IFragilityDAO {
-    private Datastore mockDataStore;
+    private final Datastore mockDataStore;
     private List<FragilitySet> fragilitySets = new ArrayList<>();
 
     public MockFragilityDAO() {

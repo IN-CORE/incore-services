@@ -164,7 +164,7 @@ public abstract class BaseAttenuation {
         hazardType = hazardType.replaceFirst(" sec", ""); //$NON-NLS-1$ //$NON-NLS-2$
         List<String> outputs = getHazardOutputTypes();
         for (String output : outputs) {
-            if (hazardType.toLowerCase().equals(output.toLowerCase())) {
+            if (hazardType.equalsIgnoreCase(output)) {
                 return true;
             }
         }

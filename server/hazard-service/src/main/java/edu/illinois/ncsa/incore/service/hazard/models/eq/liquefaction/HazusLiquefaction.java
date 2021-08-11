@@ -20,7 +20,7 @@ public class HazusLiquefaction implements Liquefaction {
     private static final String LIQ_SUSCEPTIBILITY_HIGH = "High";
     private static final String LIQ_SUSCEPTIBILITY_VERYHIGH = "Very High";
 
-    private double defaultGroundWaterDepth = 5.0; // HAZUS Assumption
+    private final double defaultGroundWaterDepth = 5.0; // HAZUS Assumption
 
     public HazusLiquefaction() {
     }

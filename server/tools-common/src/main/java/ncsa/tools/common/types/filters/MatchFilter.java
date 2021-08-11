@@ -30,7 +30,7 @@ public class MatchFilter implements Filter {
     public static final String TAG_SELF = "match-filter";
 
     private boolean not = false;
-    private List<MatchClause> clauses = new ArrayList();
+    private final List<MatchClause> clauses = new ArrayList();
 
     /**
      * @return true if object satisfies filter; false otherwise.
@@ -167,8 +167,8 @@ public class MatchFilter implements Filter {
             MatchClause c = (MatchClause) lit.next();
             sb.append(c.toExpressionString());
         }
-        if (not)
-            sb.append("");
+        if (not) {
+        }
         if (sb.length() == 0)
             return "true";
         return sb.toString();

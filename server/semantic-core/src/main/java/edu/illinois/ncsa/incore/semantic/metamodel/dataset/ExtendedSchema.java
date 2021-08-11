@@ -8,7 +8,7 @@
 package edu.illinois.ncsa.incore.semantic.metamodel.dataset;
 
 public class ExtendedSchema extends Schema {
-    private Schema parent;
+    private final Schema parent;
 
     public ExtendedSchema(Schema parent) {
         this.parent = parent;

@@ -27,9 +27,9 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
 
     private double n = 1.18;
     private double C = 1.18;
-    private double[] c = new double[21]; // c coefficients
-    private double[] k = new double[3]; // k coefficients
-    private double[] h = new double[6]; // h coefficients
+    private final double[] c = new double[21]; // c coefficients
+    private final double[] k = new double[3]; // k coefficients
+    private final double[] h = new double[6]; // h coefficients
     private double a2; // a2 coefficient
     private double deltaC20; // regional c coefficient
     private double regionalCA, regionalJI, regionalCH; // regional coefficients for California, Japan-Italy, Eastern China
@@ -479,8 +479,6 @@ public class CampbellBozorgnia2014 extends BaseAttenuation {
     public String[] getRegions() {
         return new String[]{"California", "Japan", "China", "Turkey", "Italy"};
     }
-
-    ;
 
 
     public boolean canProduceStandardDeviation() {

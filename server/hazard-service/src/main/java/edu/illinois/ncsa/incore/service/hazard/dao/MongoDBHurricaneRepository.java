@@ -27,7 +27,7 @@ import java.util.List;
 
 public class MongoDBHurricaneRepository implements IHurricaneRepository {
     private String hostUri;
-    private String databaseName;
+    private final String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
 
@@ -72,7 +72,7 @@ public class MongoDBHurricaneRepository implements IHurricaneRepository {
 
     @Override
     public Hurricane addHurricane(Hurricane hurricane) {
-        String id = this.dataStore.save(hurricane).getId().toString();
+        String id = this.dataStore.save(hurricane).getId();
         return getHurricaneById(id);
     }
 

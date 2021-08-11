@@ -18,7 +18,7 @@ import java.util.List;
 class PowerDimension extends Dimension {
     private int power = 1;
 
-    private BaseDimension baseDimension;
+    private final BaseDimension baseDimension;
 
     protected PowerDimension(BaseDimension dimension) {
         super.name = dimension.getName();

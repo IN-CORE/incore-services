@@ -20,7 +20,7 @@ public class MockAuthorizer implements IAuthorizer {
 
     private boolean canRead = false;
     private boolean canWrite = false;
-    private boolean canDelete = false;
+    private final boolean canDelete = false;
 
     public MockAuthorizer(boolean canRead, boolean canWrite) {
         this.canRead = canRead;

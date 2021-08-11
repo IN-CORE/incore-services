@@ -105,8 +105,6 @@ public class HazardUtil {
         return lowerThresholds;
     }
 
-    ;
-
     public static int getSiteClassAsInt(String siteClass) {
         int siteClassInt = -1;
         if (siteClass.equalsIgnoreCase("A")) {
@@ -552,18 +550,12 @@ public class HazardUtil {
 
     public static boolean verifyHazardDemandUnits(String demandType, String demandUnits) {
         if (demandType.equalsIgnoreCase(HazardUtil.PGA) || demandType.equalsIgnoreCase(HazardUtil.SA)) {
-            if (demandUnits.equalsIgnoreCase(HazardUtil.units_percg) || demandUnits.equalsIgnoreCase(HazardUtil.units_g)) {
-                return true;
-            }
+            return demandUnits.equalsIgnoreCase(HazardUtil.units_percg) || demandUnits.equalsIgnoreCase(HazardUtil.units_g);
         } else if (demandType.equalsIgnoreCase(HazardUtil.PGV) || demandType.equalsIgnoreCase(HazardUtil.SV)) {
-            if (demandUnits.equalsIgnoreCase(HazardUtil.units_cms) || demandUnits.equalsIgnoreCase(HazardUtil.units_ins)) {
-                return true;
-            }
+            return demandUnits.equalsIgnoreCase(HazardUtil.units_cms) || demandUnits.equalsIgnoreCase(HazardUtil.units_ins);
         } else if (demandType.equalsIgnoreCase(HazardUtil.PGD) || demandType.equalsIgnoreCase(HazardUtil.SD)) {
-            if (demandUnits.equalsIgnoreCase(HazardUtil.units_cm) || demandUnits.equalsIgnoreCase(HazardUtil.units_m_abbr) ||
-                demandUnits.equalsIgnoreCase(HazardUtil.units_in) || demandUnits.equalsIgnoreCase(HazardUtil.units_ft_abbr)) {
-                return true;
-            }
+            return demandUnits.equalsIgnoreCase(HazardUtil.units_cm) || demandUnits.equalsIgnoreCase(HazardUtil.units_m_abbr) ||
+                demandUnits.equalsIgnoreCase(HazardUtil.units_in) || demandUnits.equalsIgnoreCase(HazardUtil.units_ft_abbr);
         }
 
         return false;
@@ -577,7 +569,7 @@ public class HazardUtil {
         if (demandType.equalsIgnoreCase(PGA) || demandType.equalsIgnoreCase(PGV) || demandType.equalsIgnoreCase(PGD)) {
             return demandType;
         } else {
-            return Double.toString(period) + " " + demandType.trim();
+            return period + " " + demandType.trim();
         }
     }
 

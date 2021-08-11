@@ -26,7 +26,7 @@ import java.util.List;
 
 public class MongoDBFloodRepository implements IFloodRepository {
     private String hostUri;
-    private String databaseName;
+    private final String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
 
@@ -71,7 +71,7 @@ public class MongoDBFloodRepository implements IFloodRepository {
 
     @Override
     public Flood addFlood(Flood flood) {
-        String id = this.dataStore.save(flood).getId().toString();
+        String id = this.dataStore.save(flood).getId();
         return getFloodById(id);
     }
 

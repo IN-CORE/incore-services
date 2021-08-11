@@ -22,7 +22,7 @@ import java.util.*;
 public class AttenuationProvider {
     private static final Logger log = Logger.getLogger(AttenuationProvider.class);
 
-    private Map<String, BaseAttenuation> attenuations = new HashMap<String, BaseAttenuation>();
+    private final Map<String, BaseAttenuation> attenuations = new HashMap<String, BaseAttenuation>();
     private static AttenuationProvider instance;
 
     private AttenuationProvider() {
