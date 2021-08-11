@@ -33,7 +33,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.spatial.BBOX;
-import org.opengis.geometry.BoundingBox;
 import org.opengis.referencing.operation.TransformException;
 
 import java.io.File;
