@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.HazardConstants;
@@ -49,12 +50,12 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
 
 
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
@@ -145,8 +146,6 @@ public class EarthquakeController {
             if (earthquake != null && earthquake instanceof EarthquakeModel) {
 
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) earthquake;
-
-                Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(scenarioEarthquake);
                 try {
                     String demandType = scenarioEarthquake.getVisualizationParameters().getDemandType();
                     String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
@@ -155,6 +154,7 @@ public class EarthquakeController {
                     if (!useWorkflow) {
                         logger.debug("don't use workflow to create earthquake");
                         File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
+                        Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(scenarioEarthquake);
                         GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
                         HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
                         String description = "Earthquake visualization";
@@ -355,7 +355,13 @@ public class EarthquakeController {
                 demand = demandSplit[1];
             }
 
-            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+            Map<BaseAttenuation, Double> attenuations;
+            try {
+                attenuations = attenuationProvider.getAttenuations(earthquake);
+            } catch (UnsupportedHazardException ex) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Attenuation model not found");
+            }
+
 
             int width = 0;
             int height = 0;
@@ -430,7 +436,11 @@ public class EarthquakeController {
         Map<BaseAttenuation, Double> attenuations = null;
         if (eq instanceof EarthquakeModel) {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
-            attenuations = attenuationProvider.getAttenuations(earthquake);
+            try {
+                attenuations = attenuationProvider.getAttenuations(earthquake);
+            } catch (UnsupportedHazardException ex) {
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "Attenuation model not found");
+            }
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -445,41 +455,56 @@ public class EarthquakeController {
                 List<String> resDemands = new ArrayList<>();
                 List<String> resUnits = new ArrayList<>();
 
-                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
-
-                try {
+                if (!CommonUtil.validateHazardValuesInputs(demands, units, request.getLoc())) {
                     for (int i = 0; i < demands.size(); i++) {
-                        String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
-
-                        if (demandComponents == null) {
-                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type " + demands.get(i) +
-                                ", please check the format. It should be in a form similar to 0.2 SA or 0.2 Sec SA.");
-                        }
-
-                        // Check units to verify requested units matches the demand type
-                        if (!HazardUtil.verifyHazardDemandUnits(demandComponents[1], units.get(i))) {
-                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + units.get(i) + " " +
-                                "is not supported for " + demands.get(i) + ", please check requested units.");
-                        }
-
-                        SeismicHazardResult res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
-                            new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
-                            units.get(i), 0, amplifyHazard, this.username);
-
-                        //condition to only show PGA/PGV without period prepended
-                        String period = Float.parseFloat(res.getPeriod().trim()) == 0.0 ? "" : res.getPeriod().trim() + " ";
-                        resDemands.add(period + res.getDemand());
-                        resUnits.add(res.getUnits());
-                        hazVals.add(res.getHazardValue());
+                        hazVals.add(MISSING_REQUIRED_INPUTS);
                     }
-                } catch (UnsupportedHazardException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
-                        "demands and units provided are supported" +
-                        " for all the locations");
-                } catch (Exception ex) {
-                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Exception occurred when calculating" +
-                        " hazard value. Please check if the demands and units provided are supported" +
-                        " for all the locations");
+                    resUnits = units;
+                    resDemands = demands;
+                } else {
+                    for (int i = 0; i < demands.size(); i++) {
+                        try {
+                            String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
+
+                            if (demandComponents == null) {
+                                hazVals.add(INVALID_DEMAND);
+                                resUnits.add(units.get(i));
+                                resDemands.add(demands.get(i));
+                            } else {
+
+                                // Check units to verify requested units matches the demand type
+                                if (!HazardUtil.verifyHazardDemandUnits(demandComponents[1], units.get(i))) {
+                                    hazVals.add(INVALID_UNIT);
+                                    resUnits.add(units.get(i));
+                                    resDemands.add(demands.get(i));
+                                } else {
+                                    SeismicHazardResult res;
+                                    try {
+                                        res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
+                                            new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
+                                            units.get(i), 0, amplifyHazard, this.username);
+                                        //condition to only show PGA/PGV without period prepended
+                                        String period = Float.parseFloat(res.getPeriod().trim()) == 0.0 ? "" : res.getPeriod().trim() + " ";
+                                        resDemands.add(period + res.getDemand());
+                                        resUnits.add(res.getUnits());
+                                        hazVals.add(res.getHazardValue());
+                                    } catch (UnsupportedHazardException ex) {
+                                        hazVals.add(UNSUPPORTED_HAZARD_MODEL);
+                                        resUnits.add(units.get(i));
+                                        resDemands.add(demands.get(i));
+                                    }
+                                }
+                            }
+                        } catch (IOException ex) {
+                            hazVals.add(IO_EXCEPTION);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        } catch (Exception ex) {
+                            hazVals.add(UNHANDLED_EXCEPTION);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        }
+                    }
                 }
 
                 ValuesResponse response = new ValuesResponse();
@@ -490,11 +515,16 @@ public class EarthquakeController {
                 valResponse.add(response);
             }
             return valResponse;
-        } catch (IOException ex) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
-        } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
-                "request.");
+        } catch (JsonProcessingException ex) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "JsonProcessingException: Please check the format of the json " +
+                "request and that demands are provided for each location. This can also happen if the format of the locations are " +
+                "incorrect. The format of the location needs to be decimalLat,decimalLong");
+        } catch (Exception ex) {
+            // Return the stack trace along with the api response.
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "An unhandled error occurred when calculating" +
+                " hazard value. Please report this to dev team. \n\n More details: \n" + sw);
         }
     }
 
@@ -530,7 +560,11 @@ public class EarthquakeController {
             Map<BaseAttenuation, Double> attenuations = null;
             if (eq instanceof EarthquakeModel) {
                 EarthquakeModel earthquake = (EarthquakeModel) eq;
-                attenuations = attenuationProvider.getAttenuations(earthquake);
+                try {
+                    attenuations = attenuationProvider.getAttenuations(earthquake);
+                } catch (UnsupportedHazardException ex) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Attenuation model not found");
+                }
             }
             for (IncorePoint point : points) {
                 Site localSite = new Site(point.getLocation());
@@ -562,46 +596,50 @@ public class EarthquakeController {
         Earthquake eq = getEarthquake(earthquakeId);
         if (eq != null && eq instanceof EarthquakeModel) {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
-            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+            try {
+                Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+                Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
+                Map<String, Double> cumulativeAleatoryUncertainties = new HashMap<>();
 
-            Iterator<BaseAttenuation> iterator = attenuations.keySet().iterator();
-            Map<String, Double> cumulativeAleatoryUncertainties = new HashMap<>();
+                while (iterator.hasNext()) {
+                    BaseAttenuation model = iterator.next();
+                    Double weight = attenuations.get(model);
+                    Map<String, Double> aleatoryUncertainties = model.getAleatoricUncertainties();
 
-            while (iterator.hasNext()) {
-                BaseAttenuation model = iterator.next();
-                Double weight = attenuations.get(model);
-                Map<String, Double> aleatoryUncertainties = model.getAleatoricUncertainties();
-
-                if (aleatoryUncertainties != null) {
-                    //This logic adopted from the paper, assumes all models will have
-                    // the same set of demand types defined for their respective aleatory uncertainties
-                    aleatoryUncertainties.forEach((key, value) -> {
-                        if (cumulativeAleatoryUncertainties.containsKey(key)) {
-                            Double curVal = cumulativeAleatoryUncertainties.get(key);
-                            cumulativeAleatoryUncertainties.put(key, curVal + (weight * Math.pow(value, 2)));
-                        } else {
-                            cumulativeAleatoryUncertainties.put(key, (weight * Math.pow(value, 2)));
-                        }
-                    });
-                }
-            }
-
-            for (Map.Entry<String, Double> element : cumulativeAleatoryUncertainties.entrySet()) {
-                cumulativeAleatoryUncertainties.put(element.getKey(), Math.sqrt(element.getValue()));
-            }
-
-            if (cumulativeAleatoryUncertainties.size() > 0) {
-                if (demandType != null && demandType.trim() != "") {
-                    if (cumulativeAleatoryUncertainties.containsKey(demandType.trim().toUpperCase())) {
-                        return new HashMap<String, Double>() {
-                            {
-                                put(demandType, cumulativeAleatoryUncertainties.get(demandType.trim().toUpperCase()));
+                    if (aleatoryUncertainties != null) {
+                        //This logic adopted from the paper, assumes all models will have
+                        // the same set of demand types defined for their respective aleatory uncertainties
+                        aleatoryUncertainties.forEach((key, value) -> {
+                            if (cumulativeAleatoryUncertainties.containsKey(key)) {
+                                Double curVal = cumulativeAleatoryUncertainties.get(key);
+                                cumulativeAleatoryUncertainties.put(key, curVal + (weight * Math.pow(value, 2)));
+                            } else {
+                                cumulativeAleatoryUncertainties.put(key, (weight * Math.pow(value, 2)));
                             }
-                        };
+                        });
                     }
                 }
+
+                for (Map.Entry<String, Double> element : cumulativeAleatoryUncertainties.entrySet()) {
+                    cumulativeAleatoryUncertainties.put(element.getKey(), Math.sqrt(element.getValue()));
+                }
+
+                if (cumulativeAleatoryUncertainties.size() > 0) {
+                    if (demandType != null && demandType.trim() != "") {
+                        if (cumulativeAleatoryUncertainties.containsKey(demandType.trim().toUpperCase())) {
+                            return new HashMap<String, Double>() {
+                                {
+                                    put(demandType, cumulativeAleatoryUncertainties.get(demandType.trim().toUpperCase()));
+                                }
+                            };
+                        }
+                    }
+                }
+                return cumulativeAleatoryUncertainties;
+            } catch (UnsupportedHazardException ex) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Attenuation model not found");
             }
-            return cumulativeAleatoryUncertainties;
+
         } else {
             logger.error("Earthquake with id " + earthquakeId + " is not attenuation model based");
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Earthquake with id " + earthquakeId + " is not attenuation model " +
@@ -624,7 +662,12 @@ public class EarthquakeController {
         List<VarianceResult> varianceResults = new ArrayList<>();
         if (eq != null && eq instanceof EarthquakeModel) {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
-            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+            Map<BaseAttenuation, Double> attenuations;
+            try {
+                attenuations = attenuationProvider.getAttenuations(earthquake);
+            } catch (UnsupportedHazardException ex) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Attenuation model not found");
+            }
             List<SeismicHazardResult> seismicHazardResults = getEarthquakeHazardValues(earthquakeId, demandType, demandUnits,
                 false, points);
             Map<String, Double> aleatoricUncertainties = getEarthquakeAleatoricUncertainties(earthquakeId, demandType);
@@ -726,7 +769,13 @@ public class EarthquakeController {
         ObjectMapper mapper = new ObjectMapper();
         try {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
-            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+            Map<BaseAttenuation, Double> attenuations;
+            try {
+                attenuations = attenuationProvider.getAttenuations(earthquake);
+            } catch (UnsupportedHazardException ex) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Attenuation model not found");
+            }
+
 
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId,
                 this.username);
@@ -791,7 +840,12 @@ public class EarthquakeController {
         // TODO add logging/error for earthquake dataset that it can't be used
         if (eq != null && eq instanceof EarthquakeModel) {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
-            Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(earthquake);
+            Map<BaseAttenuation, Double> attenuations;
+            try {
+                attenuations = attenuationProvider.getAttenuations(earthquake);
+            } catch (UnsupportedHazardException ex) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Attenuation model not found");
+            }
 
             List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId,

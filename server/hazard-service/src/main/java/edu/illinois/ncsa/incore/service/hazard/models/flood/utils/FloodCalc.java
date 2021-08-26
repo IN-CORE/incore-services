@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.flood.utils;
 
-import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
@@ -24,26 +23,29 @@ import org.json.JSONObject;
 import org.opengis.coverage.PointOutsideCoverageException;
 import org.opengis.coverage.grid.GridCoverage;
 
-import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_DEMAND;
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_UNIT;
 
 public class FloodCalc {
     public static final Logger log = Logger.getLogger(FloodCalc.class);
 
     public static FloodHazardResult getFloodHazardValue(Flood flood, String demandType, String demandUnits,
-                                                        IncorePoint location, String user) throws UnsupportedHazardException {
+                                                        IncorePoint location, String user) throws UnsupportedHazardException, IOException {
         if (flood instanceof FloodDataset) {
             FloodDataset floodDataset = (FloodDataset) flood;
             FloodHazardDataset hazardDataset = findHazard(floodDataset.getHazardDatasets(), demandType);
             Double hazardValue;
             if (hazardDataset != null) {
                 GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
+
                 try {
                     hazardValue = HazardUtil.findRasterPoint(location.getLocation(), (GridCoverage2D) gc);
                 } catch (PointOutsideCoverageException e) {
                     hazardValue = null;
-                    log.debug("Point outside tiff image.");
                 }
 
                 try {
@@ -65,18 +67,14 @@ public class FloodCalc {
                             }
                         }
                     }
-                } catch (IllegalAccessException e) {
-                    log.debug("Illegal Access.", e);
-                } catch (NoSuchFieldException e) {
-                    log.debug("No Such Field", e);
-                } catch (UnsupportedOperationException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Requested demand type or units is not accepted");
+                } catch (UnsupportedOperationException | NoSuchFieldException | IllegalAccessException e) {
+                    hazardValue = INVALID_UNIT;
                 }
                 return new FloodHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType,
                     demandUnits);
             } else {
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dataset found for the hazard. Check if requested demand " +
-                    "type is valid");
+                return new FloodHazardResult(location.getLocation().getY(), location.getLocation().getX(), INVALID_DEMAND, demandType,
+                    demandUnits);
             }
         } else {
             log.debug("Received flood is not of dataset type");

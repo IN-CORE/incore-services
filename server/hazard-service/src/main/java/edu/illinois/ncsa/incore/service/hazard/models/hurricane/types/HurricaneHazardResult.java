@@ -12,11 +12,11 @@ package edu.illinois.ncsa.incore.service.hazard.models.hurricane.types;
 public class HurricaneHazardResult {
     private final String demand;
     private final String units;
-    private final double hazardValue;
+    private final Double hazardValue;
     private double latitude;
     private double longitude;
 
-    public HurricaneHazardResult(double latitude, double longitude, double hazardValue, String demandType, String demandUnits) {
+    public HurricaneHazardResult(double latitude, double longitude, Double hazardValue, String demandType, String demandUnits) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.hazardValue = hazardValue;
@@ -24,7 +24,7 @@ public class HurricaneHazardResult {
         this.units = demandUnits;
     }
 
-    public double getHazardValue() {
+    public Double getHazardValue() {
         return hazardValue;
     }
 

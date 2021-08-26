@@ -12,11 +12,11 @@ package edu.illinois.ncsa.incore.service.hazard.models.tsunami.types;
 public class TsunamiHazardResult {
     private final String demand;
     private final String units;
-    private final double hazardValue;
+    private final Double hazardValue;
     private double latitude;
     private double longitude;
 
-    public TsunamiHazardResult(double latitude, double longitude, double hazardValue, String demandType, String demandUnits) {
+    public TsunamiHazardResult(double latitude, double longitude, Double hazardValue, String demandType, String demandUnits) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.hazardValue = hazardValue;
@@ -24,7 +24,7 @@ public class TsunamiHazardResult {
         this.units = demandUnits;
     }
 
-    public double getHazardValue() {
+    public Double getHazardValue() {
         return hazardValue;
     }
 

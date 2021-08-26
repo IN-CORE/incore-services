@@ -18,29 +18,29 @@ public class SeismicHazardResult {
     private final String period;
     private String demand;
     private final String units;
-    private final double hazardValue;
+    private final Double hazardValue;
 
-    public SeismicHazardResult(double hazardValue, String hazardType, String demand, String demandUnits) {
+    public SeismicHazardResult(Double hazardValue, String hazardType, String demand, String demandUnits) {
         this.hazardValue = hazardValue;
         this.period = hazardType;
         this.units = demandUnits;
         this.demand = demand;
     }
 
-    public SeismicHazardResult(double hazardValue, String hazardType, String demand) {
+    public SeismicHazardResult(Double hazardValue, String hazardType, String demand) {
         this.hazardValue = hazardValue;
         this.period = hazardType;
         this.units = BaseAttenuation.getUnits(demand);
         this.demand = demand;
     }
 
-    public SeismicHazardResult(double hazardValue, String hazardType) {
+    public SeismicHazardResult(Double hazardValue, String hazardType) {
         this.hazardValue = hazardValue;
         this.period = hazardType;
         this.units = BaseAttenuation.getUnits(hazardType);
     }
 
-    public double getHazardValue() {
+    public Double getHazardValue() {
         return hazardValue;
     }
 

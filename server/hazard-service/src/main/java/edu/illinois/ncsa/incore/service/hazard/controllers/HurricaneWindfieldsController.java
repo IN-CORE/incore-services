@@ -28,7 +28,6 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.Hurric
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationEnsemble;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneWindfields;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.HurricaneWindfieldResult;
-import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.types.WindfieldsDemandUnits;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
@@ -308,61 +307,6 @@ public class HurricaneWindfieldsController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
                 "request.");
         }
-    }
-
-    @GET
-    @Path("{hurricaneId}/values")
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the hurricane wind field values.")
-    @Deprecated
-    public List<HurricaneWindfieldResult> getHurricaneWindfieldValues(
-        @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId,
-        @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.") @QueryParam("demandType") @DefaultValue(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) String demandType,
-        @ApiParam(value = "Hurricane demand unit.") @QueryParam("demandUnits") @DefaultValue(HurricaneWindfieldsUtil.UNITS_MPH) WindfieldsDemandUnits demandUnits,
-        @ApiParam(value = "Elevation in meters at which wind speed has to be calculated.") @QueryParam("elevation") @DefaultValue("10.0") double elevation,
-        @ApiParam(value = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @QueryParam("roughness") @DefaultValue("0.03") double roughness,
-        @ApiParam(value = "List of points provided as lat,long. Ex: '28.09,-80.62'.", required = true) @QueryParam("point") List<IncorePoint> points) {
-
-        HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
-        List<HurricaneWindfieldResult> hurrResults = new ArrayList<>();
-
-        //Get shapefile datasetid
-        String datasetId = hurricane.findFullPathDatasetId();
-        String hurrDemandType = hurricane.getDemandType();
-        String hurrDemandUnits = hurricane.getDemandUnits().toString();
-
-        if (hurricane != null) {
-
-            if (!demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) && !demandType.equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
-                log.error("Unsupported hurricane demandType provided to GET values : " + demandType);
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or 60s.");
-            }
-
-            for (IncorePoint point : points) {
-                double windValue = 0;
-                double lat = point.getLocation().getY();
-                double lon = point.getLocation().getX();
-                try {
-
-                    windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at 10m elevation
-
-                    HashMap<String, Double> convertedWf = HurricaneWindfieldsUtil.convertWindfieldVelocity(hurrDemandType, windValue,
-                        elevation, roughness);
-                    windValue = convertedWf.get(demandType);
-
-                    if (!demandUnits.toString().equals(hurrDemandUnits)) {
-                        windValue = HurricaneWindfieldsUtil.getCorrectUnitsOfVelocity(windValue, hurrDemandUnits, demandUnits.toString());
-                    }
-                } catch (IOException e) {
-                    log.error("Velocity calculation failed from the shapefile");
-                }
-
-                HurricaneWindfieldResult res = new HurricaneWindfieldResult(lat, lon, windValue, demandType, demandUnits.toString());
-                hurrResults.add(res);
-            }
-        }
-
-        return hurrResults;
     }
 
     @DELETE

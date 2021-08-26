@@ -30,6 +30,7 @@ import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
 import org.geotools.geometry.Envelope2D;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.coverage.PointOutsideCoverageException;
@@ -120,14 +121,20 @@ public class HazardCalc {
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, HazardUtil.SA,
                     spectrumOverride, amplifyHazard, creator, demandUnits);
                 // We use the result period for conversion because in the case of closest match, the requested period may not have been used
-                double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
-                    Double.parseDouble(result.getPeriod()), HazardUtil.SA, demandUnits, HazardUtil.SD);
+                Double updatedHazardValue = null;
+                if (result.getHazardValue() != null) {
+                    updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
+                        Double.parseDouble(result.getPeriod()), HazardUtil.SA, demandUnits, HazardUtil.SD);
+                }
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), HazardUtil.SD, demandUnits);
             } else {
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType,
                     spectrumOverride, amplifyHazard, creator, demandUnits);
-                double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
-                    Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+                Double updatedHazardValue = null;
+                if (result.getHazardValue() != null) {
+                    updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
+                        Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+                }
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
             }
         } else if (HazardUtil.PGV.equalsIgnoreCase(hazardType)) {
@@ -145,15 +152,22 @@ public class HazardCalc {
 
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0",
                     "Sa", spectrumOverride, amplifyHazard, creator, null);
-                double updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits,
-                    HazardUtil.PGV);
+                Double updatedHazardVal = null;
+                if (result.getHazardValue() != null) {
+                    updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits,
+                        HazardUtil.PGV);
+                }
                 return new SeismicHazardResult(updatedHazardVal, "0.0", HazardUtil.PGV, demandUnits);
             } else {
                 // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType,
                     spectrumOverride, amplifyHazard, creator, demandUnits);
-                double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
-                    Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+                Double updatedHazardValue = null;
+                if (result.getHazardValue() != null) {
+                    updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
+                        Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+                }
+
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
             }
 
@@ -168,13 +182,44 @@ public class HazardCalc {
             SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride,
                 amplifyHazard,
                 creator, demandUnits);
-            double updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
-                Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+            Double updatedHazardValue = null;
+            if (result.getHazardValue() != null) {
+                updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
+                    Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+            }
 
             // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
             return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
         }
+    }
 
+    public static Double applyEqThresholds(double hazardValue, String demand, String demandUnits, String closestHazardPeriod) {
+        Double adjustedHazardValue = hazardValue;
+        JSONObject earthquakeThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS); // convert demand type keys to lower case
+        if (earthquakeThresholds.has(demand.toLowerCase())) {
+            JSONObject demandThresholds = ((JSONObject) earthquakeThresholds.get(demand.toLowerCase()));
+            JSONObject periodThreshold;
+            String usedPeriod;
+            if (demandThresholds.has(closestHazardPeriod)) {
+                periodThreshold = ((JSONObject) demandThresholds.get(closestHazardPeriod));
+                usedPeriod = closestHazardPeriod;
+            } else {
+                // if there is no defined threshold for the period, use "0.0" as the default
+                periodThreshold = ((JSONObject) demandThresholds.get("0.0"));
+                usedPeriod = "0.0";
+            }
+
+            // ignore threshold if null
+            if (periodThreshold != null) {
+                double threshold = HazardUtil.convertHazard(periodThreshold.getDouble("value"),
+                    periodThreshold.getString("unit"), Double.parseDouble(usedPeriod), demand.toLowerCase(),
+                    demandUnits, demand.toLowerCase());
+                if (hazardValue <= threshold) {
+                    adjustedHazardValue = null;
+                }
+            }
+        }
+        return adjustedHazardValue;
     }
 
     public static SeismicHazardResult computeGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations,
@@ -182,7 +227,7 @@ public class HazardCalc {
                                                                 boolean amplifyHazard, String creator,
                                                                 String demandUnits) throws Exception {
 
-        double hazardValue = 0.0;
+        Double hazardValue = 0.0;
         String closestHazardPeriod = period;
         if (earthquake instanceof EarthquakeModel) {
             // Handles the case where PGV/PGD/PGA are all at 0.0 so coefficients are stored by demand type
@@ -227,8 +272,7 @@ public class HazardCalc {
                         hazardValue *= siteAmplification.getSiteAmplification(site, pga, siteClass, closestHazardPeriod);
                     } else {
                         // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for
-                        // amplifying PGV
-                        // and the range for interpretation is in units of g
+                        // amplifying PGV and the range for interpretation is in units of g
                         hazardValue *= siteAmplification.getSiteAmplification(site, hazardValue, siteClass, closestHazardPeriod);
                     }
                 }
@@ -240,7 +284,8 @@ public class HazardCalc {
                 closestHazardPeriod = "0.0";
             }
 
-            return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand);
+            Double adjHazardVal = HazardCalc.applyEqThresholds(hazardValue, demand, demandUnits, closestHazardPeriod);
+            return new SeismicHazardResult(adjHazardVal, closestHazardPeriod, demand);
 
         } else {
             EarthquakeDataset eqDataset = (EarthquakeDataset) earthquake;
@@ -253,15 +298,14 @@ public class HazardCalc {
                 hazardValue = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(), Double.parseDouble(period),
                     hazardDataset.getDemandType(), demandUnits, demand);
 
-                return new SeismicHazardResult(hazardValue, closestHazardPeriod, demand, demandUnits);
+                Double adjHazardVal = HazardCalc.applyEqThresholds(hazardValue, demand, demandUnits, closestHazardPeriod);
+
+                return new SeismicHazardResult(adjHazardVal, closestHazardPeriod, demand, demandUnits);
             } catch (PointOutsideCoverageException e) {
                 logger.debug("Point outside tiff image.");
-                // This might be something we clarify with researchers. If the point is outside of the grid coverage,
-                // how do we indicate the point wasn't found?
-                return new SeismicHazardResult(0.0, closestHazardPeriod, demand, demandUnits);
+                return new SeismicHazardResult(null, closestHazardPeriod, demand, demandUnits);
             }
         }
-
     }
 
     public static boolean supportsHazard(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations, String period,

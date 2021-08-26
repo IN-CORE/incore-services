@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.attenuations.BaseAttenuation;
 import org.apache.log4j.Logger;
 
@@ -66,7 +67,7 @@ public class AttenuationProvider {
      * @param scenarioEarthquake
      * @return Map of attenuation models and weights
      */
-    public Map<BaseAttenuation, Double> getAttenuations(EarthquakeModel scenarioEarthquake) {
+    public Map<BaseAttenuation, Double> getAttenuations(EarthquakeModel scenarioEarthquake) throws UnsupportedHazardException {
         Map<BaseAttenuation, Double> attenuations = new HashMap<BaseAttenuation, Double>();
         Iterator<String> modelIterator = scenarioEarthquake.getAttenuations().keySet().iterator();
         while (modelIterator.hasNext()) {
@@ -74,9 +75,12 @@ public class AttenuationProvider {
             double weight = scenarioEarthquake.getAttenuations().get(model);
 
             BaseAttenuation attenuation = AttenuationProvider.getInstance().getAttenuation(model);
-            attenuation.setRuptureParameters(scenarioEarthquake.getEqParameters());
-
-            attenuations.put(attenuation, weight);
+            if (attenuation != null) {
+                attenuation.setRuptureParameters(scenarioEarthquake.getEqParameters());
+                attenuations.put(attenuation, weight);
+            } else {
+                throw new UnsupportedHazardException("Invalid attenuation provider");
+            }
         }
 
         return attenuations;

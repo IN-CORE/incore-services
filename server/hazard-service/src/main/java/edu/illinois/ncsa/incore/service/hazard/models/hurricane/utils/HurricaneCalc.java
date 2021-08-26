@@ -9,7 +9,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils;
 
-import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
@@ -20,41 +19,63 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneH
 import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
+import org.json.JSONObject;
 import org.opengis.coverage.PointOutsideCoverageException;
 import org.opengis.coverage.grid.GridCoverage;
 
-import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_DEMAND;
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_UNIT;
 
 public class HurricaneCalc {
     public static final Logger log = Logger.getLogger(HurricaneCalc.class);
 
     public static HurricaneHazardResult getHurricaneHazardValue(Hurricane hurricane, String demandType, String demandUnits,
-                                                                IncorePoint location, String user) throws UnsupportedHazardException {
+                                                                IncorePoint location, String user) throws UnsupportedHazardException,
+        UnsupportedOperationException, IOException {
         if (hurricane instanceof HurricaneDataset) {
             HurricaneDataset hurricaneDataset = (HurricaneDataset) hurricane;
             HurricaneHazardDataset hazardDataset = findHazard(hurricaneDataset.getHazardDatasets(), demandType);
-            double hazardValue = 0.0;
+            Double hazardValue;
             if (hazardDataset != null) {
                 GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
                 try {
                     hazardValue = HazardUtil.findRasterPoint(location.getLocation(), (GridCoverage2D) gc);
-                    hazardValue = HurricaneUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
                 } catch (PointOutsideCoverageException e) {
-                    log.debug("Point outside tiff image.");
-                } catch (IllegalAccessException e) {
-                    log.debug("Illegal Access Exception.", e);
-                } catch (NoSuchFieldException e) {
-                    log.debug("No Such Field Exception", e);
-                } catch (UnsupportedOperationException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Requested demand type or units is not accepted");
+                    hazardValue = null;
                 }
+                try {
+                    if (hazardValue != null) {
+                        hazardValue = HurricaneUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
+
+                        // convert demand type in keys to lower case
+                        JSONObject hurricaneThresholds = HazardUtil.toLowerKey(HazardUtil.HURRICANE_THRESHOLDS);
+
+                        if (hurricaneThresholds.has(demandType.toLowerCase())) {
+                            JSONObject demandThreshold = ((JSONObject) hurricaneThresholds.get(demandType.toLowerCase()));
+                            Double threshold = demandThreshold.get("value") == JSONObject.NULL ? null : demandThreshold.getDouble("value");
+                            // ignore threshold if null
+                            if (threshold != null) {
+                                threshold = HurricaneUtil.convertHazard(threshold, demandType, demandThreshold.getString("unit"),
+                                    demandUnits);
+                                if (hazardValue <= threshold) {
+                                    hazardValue = null;
+                                }
+                            }
+                        }
+                    }
+                } catch (UnsupportedOperationException | NoSuchFieldException | IllegalAccessException e) {
+                    hazardValue = INVALID_UNIT;
+                }
+
                 return new HurricaneHazardResult(location.getLocation().getY(), location.getLocation().getX(), hazardValue, demandType,
                     demandUnits);
             } else {
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dataset found for the hazard. Check if requested demand " +
-                    "type is valid");
+                return new HurricaneHazardResult(location.getLocation().getY(), location.getLocation().getX(), INVALID_DEMAND, demandType,
+                    demandUnits);
             }
         } else {
             log.debug("Received hurricane is not of dataset type");
