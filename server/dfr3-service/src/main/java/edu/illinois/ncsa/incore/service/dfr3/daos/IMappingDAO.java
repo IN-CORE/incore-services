@@ -32,4 +32,6 @@ public interface IMappingDAO {
     List<MappingSet> searchMappings(String text, String mappingType);
 
     Boolean isCurvePresentInMappings(String id);
+
+    int getMappingCountByCreator(String creator);
 }

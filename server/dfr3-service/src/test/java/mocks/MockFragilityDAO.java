@@ -154,4 +154,12 @@ public class MockFragilityDAO implements IFragilityDAO {
 
         return sets;
     }
+
+    @Override
+    public int getFragilityCountByCreator(String creator) {
+        int count = (int) (this.mockDataStore.find(FragilitySet.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
+    }
 }

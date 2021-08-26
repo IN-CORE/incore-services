@@ -114,4 +114,12 @@ public class MongoDBRepairDAO extends MongoDAO implements IRepairDAO {
 
         return sets;
     }
+
+    @Override
+    public int getRepairCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(RepairSet.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
+    }
 }

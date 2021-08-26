@@ -126,4 +126,12 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         }
         return false;
     }
+
+    @Override
+    public int getMappingCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(MappingSet.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
+    }
 }

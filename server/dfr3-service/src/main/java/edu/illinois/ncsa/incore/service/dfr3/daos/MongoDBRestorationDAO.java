@@ -115,4 +115,12 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
 
         return sets;
     }
+
+    @Override
+    public int getRestorationCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(RestorationSet.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
+    }
 }

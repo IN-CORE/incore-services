@@ -34,4 +34,6 @@ public interface IFragilityDAO {
     List<FragilitySet> queryFragilities(Map<String, String> typeValueMap);
 
     List<FragilitySet> queryFragilityAuthor(String author);
+
+    int getFragilityCountByCreator(String creator);
 }

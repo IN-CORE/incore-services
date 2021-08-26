@@ -121,4 +121,12 @@ public class MongoDBFragilityDAO extends MongoDAO implements IFragilityDAO {
 
         return sets;
     }
+
+    @Override
+    public int getFragilityCountByCreator(String creator) {
+        int count = (int) (this.dataStore.find(FragilitySet.class).filter(Filters.regex("creator").
+            pattern(creator).caseInsensitive()).count());
+
+        return count;
+    }
 }

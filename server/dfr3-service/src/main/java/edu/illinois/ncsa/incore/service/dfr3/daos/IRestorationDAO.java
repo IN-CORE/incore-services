@@ -22,4 +22,6 @@ public interface IRestorationDAO {
     List<RestorationSet> queryRestorations(String attributeType, String attributeValue);
 
     List<RestorationSet> queryRestorations(Map<String, String> typeValueMap);
+
+    int getRestorationCountByCreator(String creator);
 }

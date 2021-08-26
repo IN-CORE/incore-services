@@ -56,6 +56,11 @@ public class MockFragilityMappingDAO implements IMappingDAO {
     }
 
     @Override
+    public int getMappingCountByCreator(String creator) {
+        return 0;
+    }
+
+    @Override
     public List<MappingSet> queryMappingSets(Map<String, String> queryMap) {
         return null;
     }

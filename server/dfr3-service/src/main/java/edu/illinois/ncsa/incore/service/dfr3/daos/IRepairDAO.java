@@ -22,4 +22,6 @@ public interface IRepairDAO {
     List<RepairSet> queryRepairs(String attributeType, String attributeValue);
 
     List<RepairSet> queryRepairs(Map<String, String> typeValueMap);
+
+    int getRepairCountByCreator(String creator);
 }
