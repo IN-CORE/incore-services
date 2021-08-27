@@ -29,6 +29,7 @@ import org.opengis.geometry.DirectPosition;
 import org.opengis.referencing.operation.TransformException;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -81,8 +82,69 @@ public class HazardUtil {
         {0.8, 1.0, 1.4, 1.6, 2.4}, {0.8, 1.0, 1.3, 1.5, 2.4}};
     static double[] longPeriodIntervals = {0.1, 0.2, 0.3, 0.4, 0.5};
 
+    // The demands and units for at least one of the locations are either missing or not of the same size
+    public final static double MISSING_REQUIRED_INPUTS = -9999.1;
+
+    // Could not parse demand type. It should be similar to 0.2 sec SA, 1.0 SA, PGA etc.
+    public final static double INVALID_DEMAND = -9999.2;
+
+    // The provided unit is either invalid or not applicable to the provided demand type
+    public final static double INVALID_UNIT = -9999.3;
+
+    // Unsupported hazard model. examples, ground motion types do not match. Using a dataset-based hazard when a model-based one is
+    // expected, and vice versa.
+    public final static double UNSUPPORTED_HAZARD_MODEL = -9999.4;
+
+    // An IOException occurred. Possibly because the service is not able to read the related hazard dataset files.
+    public final static double IO_EXCEPTION = -9999.5;
+
+    // An unhandled exception occurred. Please report this to the dev team
+    public final static double UNHANDLED_EXCEPTION = -9999.99;
+
+    // Every demand should have a '0.0' key to apply a default if the provided period doesn't match any of the defined threshold periods.
+    // Set the value of a particular period to null (instead of json), if we want to disable threshold checks for it.
+    // TODO: This json with period is getting hard to read. Move to a static json file - should we use the demand type and unit
+    //  definition constants defined here?.
+    public final static JSONObject EARTHQUAKE_THRESHOLDS = new JSONObject("{ " +
+        "'" + PGA + "': {'0.0' :{'value': 0.2, 'unit': '" + units_g + "'}}," +
+        "'" + PGV + "': {'0.0' :{'value': 0.2, 'unit': '" + units_ins + "'}}," +
+        "'" + PGD + "': {'0.0' :{'value': 0.2, 'unit': '" + units_in + "'}}," +
+        "'" + SA + "':{'0.2': {'value': 0.2, 'unit': '" + units_g + "'}," +
+        "'0.3': {'value': 0.2, 'unit': '" + units_g + "'}," +
+        "'1.0': {'value': 0.2, 'unit': '" + units_g + "'}," +
+        "'0.0': {'value': 0.2, 'unit': '" + units_g + "'}," +
+        "}," +
+        "'" + SD + "':{'0.2': {'value': 0.2, 'unit': '" + units_in + "'}," +
+        "'0.3': {'value': 0.2, 'unit': '" + units_in + "'}," +
+        "'1.0': {'value': 0.2, 'unit': '" + units_in + "'}," +
+        "'0.0': {'value': 0.2, 'unit': '" + units_in + "'}," +
+        "}," +
+        "'" + SV + "': {'0.0' :{'value': 0.2, 'unit': '" + units_ins + "'}}," +
+        "}");
+
+    // Provide null to ignore threshold value. Demand Type key is case insensitive
     public final static JSONObject TORNADO_THRESHOLDS = new JSONObject("{ " +
         "'wind': {'value': 50, 'unit': 'mph'}" +
+        "}");
+
+    // Provide null to ignore threshold value. Demand Type key is case insensitive
+    public final static JSONObject TSUNAMI_THRESHOLDS = new JSONObject("{ " +
+        "'Hmax': {'value': 0.3, 'unit': 'm'}," +
+        "'Vmax': {'value': 2, 'unit': 'm/s'}," +
+        "'Mmax': {'value': 5, 'unit': 'm^3/s^2'}" +
+        "}");
+
+    // Provide null to ignore threshold value. Demand Type key is case insensitive
+    // NOTE: inundationDepth, wavePeriod, waveDirection, waterVelocity & windVelocity demands are not yet supported by hazard service
+    public final static JSONObject HURRICANE_THRESHOLDS = new JSONObject("{ " +
+        "'waveHeight': {'value': 0.3, 'unit': 'm'}," +
+        "'surgeLevel': {'value': 0.3, 'unit': 'm'}," +
+        "'inundationDuration': {'value': 1, 'unit': 'hr'}," +
+        "'inundationDepth': {'value': 0.3, 'unit': 'm'}," +
+        "'wavePeriod': {'value': 3, 'unit': 's'}," +
+        "'waveDirection': {'value': null, 'unit': 'deg'}," +
+        "'waterVelocity': {'value': 0.5, 'unit': 'm/s'}," +
+        "'windVelocity': {'value': 0.5, 'unit': 'm/s'}," +
         "}");
 
     // Provide null to ignore threshold value. Demand Type key is case insensitive
@@ -124,9 +186,13 @@ public class HazardUtil {
         return siteClassInt;
     }
 
-    public static double convertHazard(double hazard, String fromUnits, double t, String fromHazardType, String toUnits,
+    public static Double convertHazard(Double hazard, String fromUnits, double t, String fromHazardType, String toUnits,
                                        String toHazardType) {
-        double hazardVal = convertHazardType(hazard, fromUnits, t, fromHazardType, toUnits, toHazardType);
+        if (hazard == null) {
+            return null;
+        }
+
+        Double hazardVal = convertHazardType(hazard, fromUnits, t, fromHazardType, toUnits, toHazardType);
         if (Double.isNaN(hazardVal)) {
             hazardVal = 0.0;
         }
@@ -419,7 +485,15 @@ public class HazardUtil {
      * @return
      * @throws PointOutsideCoverageException
      */
-    public static Double findRasterPoint(Point location, GridCoverage2D gc) throws PointOutsideCoverageException {
+    public static Double findRasterPoint(Point location, GridCoverage2D gc) throws PointOutsideCoverageException, IOException {
+
+        if (gc == null) {
+            // This exception must be thrown from GISUtil.getGridCoverage when it fails to construct the grid. This is a temporary
+            // workaround to limit the refactoring efforts
+            throw new IOException(" Could not calculate the grid coverage for the raster. Possibly because the dataset files are " +
+                "unreadable or not found.");
+        }
+
         double[] dest = null;
         final Point2D.Double point = new Point2D.Double();
         point.x = location.getX();
@@ -429,7 +503,6 @@ public class HazardUtil {
         if (Double.isNaN(dest[0]) || dest[0] == -9999) {
             return null;
         }
-
         return dest[0];
     }
 

@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -18,10 +19,8 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
-import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
@@ -46,10 +45,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
 
 @Api(value = "tornadoes", authorizations = {})
 
@@ -306,8 +309,8 @@ public class TornadoController {
 
         Tornado tornado = getTornado(tornadoId);
         ObjectMapper mapper = new ObjectMapper();
+        List<ValuesResponse> valResponse = new ArrayList<>();
         try {
-            List<ValuesResponse> valResponse = new ArrayList<>();
             List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
             });
             for (ValuesRequest request : valuesRequest) {
@@ -317,74 +320,51 @@ public class TornadoController {
                 List<String> resDemands = new ArrayList<>();
                 List<String> resUnits = new ArrayList<>();
 
-                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
-
-                try {
+                if (!CommonUtil.validateHazardValuesInputs(demands, units, request.getLoc())) {
                     for (int i = 0; i < demands.size(); i++) {
-                        WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
-                            request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
-                        resDemands.add(res.getDemand());
-                        resUnits.add(res.getUnits());
-                        hazVals.add(res.getHazardValue());
+                        hazVals.add(MISSING_REQUIRED_INPUTS);
                     }
-                } catch (UnsupportedHazardException e) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
-                        "demands and units provided are supported" +
-                        " for all the locations");
+                    resUnits = units;
+                    resDemands = demands;
+                } else {
+                    for (int i = 0; i < demands.size(); i++) {
+                        try {
+                            WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
+                                request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
+                            resDemands.add(res.getDemand());
+                            resUnits.add(res.getUnits());
+                            hazVals.add(res.getHazardValue());
+                        } catch (IOException ex) {
+                            hazVals.add(IO_EXCEPTION);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        } catch (Exception ex) {
+                            hazVals.add(UNHANDLED_EXCEPTION);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        }
+                    }
                 }
-
                 ValuesResponse response = new ValuesResponse();
                 response.setHazardValues(hazVals);
                 response.setDemands(resDemands);
                 response.setUnits(resUnits);
                 response.setLoc(request.getLoc());
+
                 valResponse.add(response);
             }
-            return valResponse;
-        } catch (IOException ex) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
-        } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
-                "request.");
-        } catch (Exception e) {
-            logger.error("Exception when calculating tornado hazard value", e);
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Make sure the demand types and simulations (if provided) are " +
-                "applicable." +
-                " Please check the format of your request.");
+        } catch (JsonProcessingException ex) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "JsonProcessingException: Please check the format of the json " +
+                "request and that demands are provided for each location. This can also happen if the format of the locations are " +
+                "incorrect. The format of the location needs to be decimalLat,decimalLong");
+        } catch (Exception ex) {
+            // Return the stack trace along with the api response.
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "An unhandled error occurred when calculating" +
+                " hazard value. Please report this to dev team. \n\n More details: \n" + sw);
         }
-    }
-
-    @GET
-    @Path("{tornado-id}/values")
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
-    @Deprecated
-    public List<WindHazardResult> getTornadoHazardValues(
-        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
-        @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "List of points provided as lat,long. Ex: '35.027,-90.131'.", required = true) @QueryParam("point") List<IncorePoint> points,
-        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation,
-        @ApiParam(value = "Seed value for random values. Ex: 1000") @QueryParam("seed") @DefaultValue("-1") int seed) throws Exception {
-
-        Tornado tornado = getTornado(tornadoId);
-        List<WindHazardResult> hazardResults = new ArrayList<WindHazardResult>();
-        if (tornado != null) {
-            for (IncorePoint point : points) {
-                try {
-                    hazardResults.add(TornadoCalc.getWindHazardAtSite(tornado, point.getLocation(), demandUnits, simulation, seed,
-                        this.username));
-                } catch (UnsupportedHazardException e) {
-                    logger.error("Could not get the requested hazard type. Check that the hazard type and units " + demandUnits + " are " +
-                        "supported", e);
-                    // logger.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " +
-                    // demandUnits + " are supported", e);
-                }
-            }
-
-            return hazardResults;
-        } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Tornado with id " + tornadoId + " was not found.");
-        }
+        return valResponse;
     }
 
     @GET

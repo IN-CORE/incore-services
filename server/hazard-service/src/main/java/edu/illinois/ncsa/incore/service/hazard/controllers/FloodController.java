@@ -8,6 +8,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.HazardConstants;
@@ -21,7 +22,6 @@ import edu.illinois.ncsa.incore.service.hazard.dao.IFloodRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
-import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodHazardDataset;
@@ -41,11 +41,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
 
 @Api(value = "floods", authorizations = {})
 
@@ -230,8 +233,8 @@ public class FloodController {
             required = true) @FormDataParam("points") String requestJsonStr) {
         Flood flood = getFloodById(floodId);
         ObjectMapper mapper = new ObjectMapper();
+        List<ValuesResponse> valResponse = new ArrayList<>();
         try {
-            List<ValuesResponse> valResponse = new ArrayList<>();
             List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
             });
             for (ValuesRequest request : valuesRequest) {
@@ -241,65 +244,58 @@ public class FloodController {
                 List<String> resDemands = new ArrayList<>();
                 List<String> resUnits = new ArrayList<>();
 
-                CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
-
-                try {
+                if (!CommonUtil.validateHazardValuesInputs(demands, units, request.getLoc())) {
                     for (int i = 0; i < demands.size(); i++) {
-                        FloodHazardResult res = FloodCalc.getFloodHazardValue(flood, demands.get(i),
-                            units.get(i), request.getLoc(), this.username);
-                        resDemands.add(res.getDemand());
-                        resUnits.add(res.getUnits());
-                        hazVals.add(res.getHazardValue());
+                        hazVals.add(MISSING_REQUIRED_INPUTS);
                     }
-                } catch (UnsupportedHazardException e) {
-                    log.error("Exception in calculating flood values", e);
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Failed to calculate hazard value. Please check if the " +
-                        "demands and units provided are supported" +
-                        " for all the locations");
+                    resUnits = units;
+                    resDemands = demands;
+                } else {
+                    for (int i = 0; i < demands.size(); i++) {
+                        try {
+                            FloodHazardResult res = FloodCalc.getFloodHazardValue(flood, demands.get(i), units.get(i), request.getLoc(),
+                                this.username);
+                            resDemands.add(res.getDemand());
+                            resUnits.add(res.getUnits());
+                            hazVals.add(res.getHazardValue());
+                        } catch (UnsupportedHazardException e) {
+                            log.error("Exception in calculating flood values", e);
+                            hazVals.add(UNSUPPORTED_HAZARD_MODEL);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        } catch (IOException ex) {
+                            hazVals.add(IO_EXCEPTION);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        } catch (Exception ex) {
+                            hazVals.add(UNHANDLED_EXCEPTION);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        }
+                    }
                 }
-
                 ValuesResponse response = new ValuesResponse();
                 response.setHazardValues(hazVals);
                 response.setDemands(resDemands);
                 response.setUnits(resUnits);
                 response.setLoc(request.getLoc());
+
                 valResponse.add(response);
             }
-            return valResponse;
-        } catch (IOException ex) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the points.");
-        } catch (IllegalArgumentException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid arguments provided to the api, check the format of your " +
-                "request.");
+        } catch (JsonProcessingException ex) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "JsonProcessingException: Please check the format of the json " +
+                "request and that demands are provided for each location. This can also happen if the format of the locations are " +
+                "incorrect. The format of the location needs to be decimalLat,decimalLong");
+        } catch (Exception ex) {
+            // Return the stack trace along with the api response.
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "An unhandled error occurred when calculating" +
+                " hazard value. Please report this to dev team. \n\n More details: \n" + sw);
         }
+        return valResponse;
     }
 
-    @GET
-    @Path("{flood-id}/values")
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the specified flood values.")
-    @Deprecated
-    public List<FloodHazardResult> getFloodHazardValues(
-        @ApiParam(value = "Flood dataset guid from data service.", required = true) @PathParam("flood-id") String floodId,
-        @ApiParam(value = "Flood demand type. Ex: 'inundationDepth, waterSurfaceElevation'.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Flood demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "List of points provided as lat,long. Ex: '46.01,-123.94'.", required = true) @QueryParam("point") List<IncorePoint> points) {
-
-        Flood flood = getFloodById(floodId);
-        List<FloodHazardResult> floodResults = new LinkedList<>();
-        if (flood != null) {
-            for (IncorePoint point : points) {
-                try {
-                    floodResults.add(FloodCalc.getFloodHazardValue(flood, demandType,
-                        demandUnits, point, this.username));
-                } catch (UnsupportedHazardException e) {
-                    log.error("Could not get the requested hazard type. Check that the hazard type " + demandType + " and units " + demandUnits + " are supported", e);
-                }
-            }
-        }
-
-        return floodResults;
-    }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)

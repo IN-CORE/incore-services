@@ -25,7 +25,9 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.referencing.operation.TransformException;
 
+import java.io.IOException;
 import java.util.List;
 
 public class TornadoCalc {
@@ -43,7 +45,7 @@ public class TornadoCalc {
      * @throws Exception
      */
     public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation,
-                                                       int initialSeed, String username) throws Exception {
+                                                       int initialSeed, String username) throws TransformException, IOException {
 
         Double windHazard;
         String demandType = TornadoHazard.DEMAND_TYPE;
@@ -62,10 +64,15 @@ public class TornadoCalc {
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
             Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username);
-            SimpleFeatureCollection efBoxPolygons = (SimpleFeatureCollection) obj;
+            if (obj == null) {
+                throw new IOException(" Could not calculate the grid coverage for the raster. Possibly because the dataset files are " +
+                    "unreadable or not found.");
+            } else {
+                SimpleFeatureCollection efBoxPolygons = (SimpleFeatureCollection) obj;
 
-            long seed = getRandomSeed(null, initialSeed, localSite);
-            windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0, seed);
+                long seed = getRandomSeed(null, initialSeed, localSite);
+                windHazard = TornadoCalc.calculateWindSpeedUniformRandomDist(localSite, efBoxPolygons, 250.0, seed);
+            }
         }
 
         if (windHazard != null) {
