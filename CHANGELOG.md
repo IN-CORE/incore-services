@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.0] - 2021-08-31
+# Added
+- User status endpoint for DFR3 Service to show usage information [INCORE1-1156](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1156)
+- Support for hazard exposure for earthquake, tornado, tsunami, tornado and hurricane. Defined hazard thresholds for each of them [INCORE1-1361](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1361)
+
+# Changed
+- Exception handling on hazard service to return specific error codes (-9999.x) on failure [INCORE1-1364](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1364)
+
+# Fixed
+- Code formatting issues and reformatted consistently accross all services [INCORE1-1335](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1335)
+
 ## [1.4.0] - 2021-07-28
 
 ### Added
