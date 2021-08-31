@@ -106,20 +106,20 @@ public class HazardUtil {
     // TODO: This json with period is getting hard to read. Move to a static json file - should we use the demand type and unit
     //  definition constants defined here?.
     public final static JSONObject EARTHQUAKE_THRESHOLDS = new JSONObject("{ " +
-        "'" + PGA + "': {'0.0' :{'value': 0.2, 'unit': '" + units_g + "'}}," +
-        "'" + PGV + "': {'0.0' :{'value': 0.2, 'unit': '" + units_ins + "'}}," +
-        "'" + PGD + "': {'0.0' :{'value': 0.2, 'unit': '" + units_in + "'}}," +
-        "'" + SA + "':{'0.2': {'value': 0.2, 'unit': '" + units_g + "'}," +
-        "'0.3': {'value': 0.2, 'unit': '" + units_g + "'}," +
-        "'1.0': {'value': 0.2, 'unit': '" + units_g + "'}," +
-        "'0.0': {'value': 0.2, 'unit': '" + units_g + "'}," +
+        "'" + PGA + "': {'0.0' :{'value': null, 'unit': '" + units_g + "'}}," +
+        "'" + PGV + "': {'0.0' :{'value': null, 'unit': '" + units_ins + "'}}," +
+        "'" + PGD + "': {'0.0' :{'value': null, 'unit': '" + units_in + "'}}," +
+        "'" + SA + "':{'0.2': {'value': null, 'unit': '" + units_g + "'}," +
+        "'0.3': {'value': null, 'unit': '" + units_g + "'}," +
+        "'1.0': {'value': null, 'unit': '" + units_g + "'}," +
+        "'0.0': {'value': null, 'unit': '" + units_g + "'}," +
         "}," +
-        "'" + SD + "':{'0.2': {'value': 0.2, 'unit': '" + units_in + "'}," +
-        "'0.3': {'value': 0.2, 'unit': '" + units_in + "'}," +
-        "'1.0': {'value': 0.2, 'unit': '" + units_in + "'}," +
-        "'0.0': {'value': 0.2, 'unit': '" + units_in + "'}," +
+        "'" + SD + "':{'0.2': {'value': null, 'unit': '" + units_in + "'}," +
+        "'0.3': {'value': null, 'unit': '" + units_in + "'}," +
+        "'1.0': {'value': null, 'unit': '" + units_in + "'}," +
+        "'0.0': {'value': null, 'unit': '" + units_in + "'}," +
         "}," +
-        "'" + SV + "': {'0.0' :{'value': 0.2, 'unit': '" + units_ins + "'}}," +
+        "'" + SV + "': {'0.0' :{'value': null, 'unit': '" + units_ins + "'}}," +
         "}");
 
     // Provide null to ignore threshold value. Demand Type key is case insensitive
@@ -131,7 +131,7 @@ public class HazardUtil {
     public final static JSONObject TSUNAMI_THRESHOLDS = new JSONObject("{ " +
         "'Hmax': {'value': 0.3, 'unit': 'm'}," +
         "'Vmax': {'value': 2, 'unit': 'm/s'}," +
-        "'Mmax': {'value': 5, 'unit': 'm^3/s^2'}" +
+        "'Mmax': {'value': null, 'unit': 'm^3/s^2'}" +
         "}");
 
     // Provide null to ignore threshold value. Demand Type key is case insensitive
