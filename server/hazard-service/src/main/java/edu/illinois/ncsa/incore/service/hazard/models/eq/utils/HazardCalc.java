@@ -198,14 +198,18 @@ public class HazardCalc {
         JSONObject earthquakeThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS); // convert demand type keys to lower case
         if (earthquakeThresholds.has(demand.toLowerCase())) {
             JSONObject demandThresholds = ((JSONObject) earthquakeThresholds.get(demand.toLowerCase()));
-            JSONObject periodThreshold;
+            JSONObject periodThreshold = null;
             String usedPeriod;
             if (demandThresholds.has(closestHazardPeriod)) {
-                periodThreshold = ((JSONObject) demandThresholds.get(closestHazardPeriod));
+                if (demandThresholds.get(closestHazardPeriod) != JSONObject.NULL) {
+                    periodThreshold = (JSONObject) demandThresholds.get(closestHazardPeriod);
+                }
                 usedPeriod = closestHazardPeriod;
             } else {
                 // if there is no defined threshold for the period, use "0.0" as the default
-                periodThreshold = ((JSONObject) demandThresholds.get("0.0"));
+                if (demandThresholds.get("0.0") != JSONObject.NULL) {
+                    periodThreshold = ((JSONObject) demandThresholds.get("0.0"));
+                }
                 usedPeriod = "0.0";
             }
 
