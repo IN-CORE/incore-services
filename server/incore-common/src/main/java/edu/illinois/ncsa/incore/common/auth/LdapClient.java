@@ -67,7 +67,7 @@ public class LdapClient {
     }
 
     public LdapUserInfo getUserInfoFor(String user) {
-        LdapUserInfo userInfo = null; //
+        LdapUserInfo userInfo = null;
         try {
             DirContext ctx = getContext();
             SearchControls ctls = new SearchControls();
