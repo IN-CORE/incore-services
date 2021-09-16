@@ -1,6 +1,6 @@
 # README #
 
-INCORE V2
+INCORE V22
 
 ### Skeleton for INCORE v2 source code ###
 
