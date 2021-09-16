@@ -67,6 +67,7 @@ farm {
     webapp ':hazard-service'
     webapp ':semantics-service'
     webapp ':space-service'
+    webapp ':maestro-service'
 }
 
 task farmWars(dependsOn: war, type: Copy) {
