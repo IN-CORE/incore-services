@@ -6,6 +6,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -32,6 +33,9 @@ public class Tornado {
     private String name;
     private String description;
     private String creator = null;
+    private Double threshold = null;
+//    TODO: It would be nice to implement ability to set units for wind threshold. Currently, Tornado code assumes the dataset sources are
+//     always in mph, we should first allow setting a unit for the entire tornado and use the same for threshold calculation
 
     /**
      * spaces the object belongs to. Calculated at runtime.
@@ -89,5 +93,18 @@ public class Tornado {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public Double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(Double threshold) {
+        this.threshold = threshold;
+    }
+
+    @JsonIgnore
+    public String getThresholdJsonString(){
+        return String.format("{'wind': {'value': %s, 'unit': 'mph'}}", this.threshold);
     }
 }

@@ -76,8 +76,12 @@ public class TornadoCalc {
         }
 
         if (windHazard != null) {
-            // convert demand type in keys to lower case and check for threshold limits
-            JSONObject tornadoThresholds = HazardUtil.toLowerKey(HazardUtil.TORNADO_THRESHOLDS);
+            JSONObject tornadoThresholds;
+            if (tornado.getThreshold() != null){
+                tornadoThresholds = HazardUtil.toLowerKey(new JSONObject(tornado.getThresholdJsonString()));
+            } else {
+                tornadoThresholds = HazardUtil.toLowerKey(HazardUtil.TORNADO_THRESHOLDS);
+            }
             if (tornadoThresholds.has(demandType.toLowerCase())) {
                 JSONObject demandThreshold = (JSONObject) tornadoThresholds.get(demandType.toLowerCase());
                 Double threshold = demandThreshold.get("value") == JSONObject.NULL ? null : demandThreshold.getDouble("value");
