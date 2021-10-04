@@ -1,21 +1,16 @@
 package edu.illinois.ncsa.incore.service.maestro.models;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
 
-//    "id": "1-1",
-//    "name": "Identify Leader",
-//    "description: "Identify resilience leader for the community",
-//    "status": ""
-//     "required"
-//      "required-steps"
-
-//    "users": ["user2", "user3"],
-//    "inputs":
-//    "hazards":
-//    "datasets": ,
-
+@XmlTransient
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
+@XmlSeeAlso({TeamSubStep.class, SituationSubStep.class, ObjectiveSubStep.class, PlanDevSubStep.class, PlanRevSubStep.class,
+    PlanImpSubStep.class,})
 @Embedded
 public class SubStep {
     public String id;

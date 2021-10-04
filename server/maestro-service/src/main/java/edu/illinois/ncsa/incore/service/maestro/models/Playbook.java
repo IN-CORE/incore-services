@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.maestro.models;
 
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 @Entity("Playbook")
 public class Playbook {
     @Id
+    @Property("_id")
     protected ObjectId id;
 
     public String name;
