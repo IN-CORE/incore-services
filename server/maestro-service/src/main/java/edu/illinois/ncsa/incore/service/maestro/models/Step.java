@@ -11,10 +11,12 @@ package edu.illinois.ncsa.incore.service.maestro.models;
 
 import dev.morphia.annotations.Embedded;
 
+import java.util.List;
+
 @Embedded
 public class Step {
     public String id;
-
+    
     public String description;
 
     public Status status;
@@ -29,15 +31,23 @@ public class Step {
         return description;
     }
 
-    public String getStatus() {
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        return this.status = status;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public List<SubStep> getSubsteps() {
         return substeps;
+    }
+
+    public void setSubsteps(List<SubStep> substeps) {
+        this.substeps = substeps;
     }
 }
