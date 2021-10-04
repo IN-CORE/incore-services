@@ -9,42 +9,37 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.daos;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
-import edu.illinois.ncsa.incore.service.maestro.models.AnalysisMetadata;
-import org.bson.types.ObjectId;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
-import dev.morphia.query.Query;
+import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
+import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
+import org.bson.types.ObjectId;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-public class MongoDBRepository implements IRepository {
+public class MongoDBPlaybookDAO implements IPlaybookDAO {
     private String hostUri;
-    private String databaseName;
+    private final String databaseName;
     private int port;
     private MongoClientURI mongoClientURI;
 
     private Datastore dataStore;
-    private List<Analysis> analyses;
+    private List<Playbook> playbooks;
 
-    public MongoDBRepository() {
+    public MongoDBPlaybookDAO() {
         this.port = 27017;
         this.hostUri = "localhost";
         this.databaseName = "maestrodb";
     }
 
-    public MongoDBRepository(String hostUri, String databaseName, int port) {
+    public MongoDBPlaybookDAO(String hostUri, String databaseName, int port) {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
     }
 
-    public MongoDBRepository(MongoClientURI mongoClientURI) {
+    public MongoDBPlaybookDAO(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
         this.databaseName = mongoClientURI.getDatabase();
     }
@@ -55,32 +50,20 @@ public class MongoDBRepository implements IRepository {
     }
 
     @Override
-    public List<Analysis> getAllAnalyses() {
+    public List<Playbook> getAllPlaybooks() {
         this.loadServices();
-        return this.analyses;
+        return this.playbooks;
     }
 
     @Override
-    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit) {
-        Query<Analysis> query = this.dataStore.find(Analysis.class);
+    public Playbook getPlaybookById(String id) {
 
-        for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
-            query.filter(queryEntry.getKey(), queryEntry.getValue());
-        }
-
-        List<Analysis> analyses = query.offset(offset).limit(limit).toList();
-
-        return analyses;
-    }
-
-    @Override
-    public Analysis getAnalysisById(String id) {
         return this.dataStore.get(Analysis.class, new ObjectId(id));
     }
 
     @Override
     public Analysis addAnalysis(Analysis analysis) {
-        String id = this.dataStore.save(analysis).getId().toString();
+        String id = this.dataStore.save(analysis).getId();
         return getAnalysisById(id);
     }
 
@@ -90,7 +73,6 @@ public class MongoDBRepository implements IRepository {
     }
 
     private void initializeDataStore() {
-        ;
         Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()), databaseName,
             MapperOptions
                 .builder()

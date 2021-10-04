@@ -11,10 +11,10 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
+import dev.morphia.Datastore;
+import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import org.mockito.Mockito;
-import dev.morphia.Datastore;
 
 import java.io.IOException;
 import java.net.URL;
@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MockRepository implements IRepository {
-    private Datastore mockDataStore;
+public class MockRepository implements IPlaybookDAO {
+    private final Datastore mockDataStore;
     private List<Analysis> analyses = new ArrayList<>();
 
     public MockRepository() {

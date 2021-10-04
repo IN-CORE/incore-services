@@ -10,8 +10,8 @@
 package edu.illinois.ncsa.incore.service.maestro;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
-import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBRepository;
+import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
+import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBPlaybookDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -27,14 +27,14 @@ public class Application extends ResourceConfig {
             mongodbUri = mongodbUriProp;
         }
 
-        IRepository mongoRepository = new MongoDBRepository(new MongoClientURI(mongodbUri));
+        IPlaybookDAO mongoRepository = new MongoDBPlaybookDAO(new MongoClientURI(mongodbUri));
         mongoRepository.initialize();
 
         super.register(new AbstractBinder() {
 
             @Override
             protected void configure() {
-                super.bind(mongoRepository).to(IRepository.class);
+                super.bind(mongoRepository).to(IPlaybookDAO.class);
             }
 
         });

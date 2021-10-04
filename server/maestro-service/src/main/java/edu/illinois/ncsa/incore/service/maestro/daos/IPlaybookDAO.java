@@ -9,23 +9,33 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.daos;
 
-import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
-import edu.illinois.ncsa.incore.service.maestro.models.AnalysisMetadata;
 import dev.morphia.Datastore;
+import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
+import edu.illinois.ncsa.incore.service.maestro.models.Step;
+import edu.illinois.ncsa.incore.service.maestro.models.SubStep;
 
 import java.util.List;
-import java.util.Map;
 
-public interface IRepository {
+public interface IPlaybookDAO {
     void initialize();
 
-    List<Analysis> getAllAnalyses();
+    List<Playbook> getAllPlaybooks();
 
-    List<Analysis> getAnalysis(Map<String, String> queryParams, int offset, int limit);
+    Playbook getPlaybookById(String playbookId);
 
-    Analysis getAnalysisById(String id);
+    Playbook addPlaybook(Playbook playbook);
 
-    Analysis addAnalysis(Analysis analysis);
+    List<Step> getAllSteps(String playbookId);
+
+    Step getStepById(String stepId);
+
+    Step addStep(Step step);
+
+    List<SubStep> getAllSubSteps(String stepId);
+
+    SubStep getSubStepById(String subStepId);
+
+    SubStep addSubStep(Step step);
 
     Datastore getDataStore();
 }
