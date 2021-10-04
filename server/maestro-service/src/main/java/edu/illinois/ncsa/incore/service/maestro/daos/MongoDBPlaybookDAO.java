@@ -19,18 +19,8 @@ import org.bson.types.ObjectId;
 import java.util.List;
 
 public class MongoDBPlaybookDAO implements IPlaybookDAO {
-    private String hostUri;
-    private final String databaseName;
-    private int port;
-    private MongoClientURI mongoClientURI;
-
-    private Datastore dataStore;
-    private List<Playbook> playbooks;
-
-    public MongoDBPlaybookDAO() {
-        this.port = 27017;
-        this.hostUri = "localhost";
-        this.databaseName = "maestrodb";
+    public MongoDBPlaybookDAO(MongoClientURI mongoClientURI) {
+        super(mongoClientURI);
     }
 
     public MongoDBPlaybookDAO(String hostUri, String databaseName, int port) {
