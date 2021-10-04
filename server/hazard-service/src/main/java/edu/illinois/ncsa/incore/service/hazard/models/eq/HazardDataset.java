@@ -6,6 +6,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
@@ -19,6 +20,7 @@ public abstract class HazardDataset {
     private String demandType;
     private String demandUnits;
     private double period;
+    private Double threshold = null;
 
     public String getDatasetId() {
         return datasetId;
@@ -50,6 +52,20 @@ public abstract class HazardDataset {
 
     public void setPeriod(double period) {
         this.period = period;
+    }
+
+    public Double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(Double threshold) {
+        this.threshold = threshold;
+    }
+
+    @JsonIgnore
+    public String getThresholdJsonString(){
+        return String.format("{'%s': {'%s': {'value': %s, 'unit': '%s'}}  }",
+            this.demandType, this.period, this.threshold, this.demandUnits);
     }
 
 }
