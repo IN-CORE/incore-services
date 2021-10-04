@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.service.maestro.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.maestro.controllers.AnalysesController;
+import edu.illinois.ncsa.incore.service.maestro.controllers.StepController;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -25,15 +25,12 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.net.URL;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AnalysesControllerTest extends CustomJerseyTest {
+class PlaybookControllerTest extends CustomJerseyTest {
 
-    public AnalysesControllerTest() {
+    public PlaybookControllerTest() {
         super();
     }
 
@@ -43,7 +40,7 @@ class AnalysesControllerTest extends CustomJerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(AnalysesController.class);
+        MockApplication application = new MockApplication(StepController.class);
 
         return application;
     }
