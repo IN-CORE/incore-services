@@ -9,18 +9,18 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.List;
 
 @SwaggerDefinition(
     info = @Info(
@@ -52,9 +52,7 @@ public class StepController {
     private final String username;
 
     @Inject
-    IAuthorizer authorizer;
-    //    @Inject
-    //    private IFragilityDAO fragilityDAO;
+    private IPlaybookDAO playbookDAO;
 
     @Inject
     public StepController(
@@ -65,7 +63,20 @@ public class StepController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets the full definition of steps")
-    public Playbook getPlaybookSteps() {
+    public List<Playbook> getPlaybookSteps() {
+        return this.playbookDAO.getAllPlaybooks();
+    }
 
+    @GET
+    @Path("{playbookId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Gets a playbook definition by Id", notes = "Get a particular playbook definition based on the id provided")
+    public Playbook getPlaybookStepById(@ApiParam(value = "playbook id") @PathParam("playbookId") String id) {
+        Playbook playbook = this.playbookDAO.getPlaybookById(id);
+        if (playbook != null) {
+            return playbook;
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + id);
+        }
     }
 }
