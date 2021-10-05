@@ -9,10 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.daos;
 
-import dev.morphia.Datastore;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
-import edu.illinois.ncsa.incore.service.maestro.models.Step;
-import edu.illinois.ncsa.incore.service.maestro.models.SubStep;
 
 import java.util.List;
 
@@ -23,19 +20,19 @@ public interface IPlaybookDAO {
 
     Playbook getPlaybookById(String playbookId);
 
-    Playbook addPlaybook(Playbook playbook);
+    //
+//    Playbook addPlaybook(Playbook playbook);
+//
+//    List<Step> getAllSteps(String playbookId);
+//
+//    Step getStepById(String stepId);
+//
+//    Step addStep(Step step);
+//
+//    List<SubStep> getAllSubSteps(String stepId);
+//
+//    SubStep getSubStepById(String subStepId);
+//
+//    SubStep addSubStep(Step step);
 
-    List<Step> getAllSteps(String playbookId);
-
-    Step getStepById(String stepId);
-
-    Step addStep(Step step);
-
-    List<SubStep> getAllSubSteps(String stepId);
-
-    SubStep getSubStepById(String subStepId);
-
-    SubStep addSubStep(Step step);
-
-    Datastore getDataStore();
 }

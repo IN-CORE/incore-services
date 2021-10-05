@@ -10,75 +10,37 @@
 package edu.illinois.ncsa.incore.service.maestro.daos;
 
 import com.mongodb.MongoClientURI;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
 import org.bson.types.ObjectId;
 
 import java.util.List;
 
-public class MongoDBPlaybookDAO implements IPlaybookDAO {
+
+public class MongoDBPlaybookDAO extends MongoDAO implements IPlaybookDAO {
     public MongoDBPlaybookDAO(MongoClientURI mongoClientURI) {
         super(mongoClientURI);
     }
 
-    public MongoDBPlaybookDAO(String hostUri, String databaseName, int port) {
-        this.databaseName = databaseName;
-        this.hostUri = hostUri;
-        this.port = port;
-    }
-
-    public MongoDBPlaybookDAO(MongoClientURI mongoClientURI) {
-        this.mongoClientURI = mongoClientURI;
-        this.databaseName = mongoClientURI.getDatabase();
-    }
-
     @Override
     public void initialize() {
-        this.initializeDataStore();
+        super.initializeDataStore(Playbook.class);
     }
 
     @Override
     public List<Playbook> getAllPlaybooks() {
-        this.loadServices();
-        return this.playbooks;
+        return this.dataStore.find(Playbook.class).iterator().toList();
     }
 
     @Override
     public Playbook getPlaybookById(String id) {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
 
-        return this.dataStore.get(Analysis.class, new ObjectId(id));
+        Playbook playbook = this.dataStore.find(Playbook.class)
+            .filter(Filters.eq("_id", new ObjectId(id))).first();
+
+        return playbook;
     }
-
-    @Override
-    public Analysis addAnalysis(Analysis analysis) {
-        String id = this.dataStore.save(analysis).getId();
-        return getAnalysisById(id);
-    }
-
-    @Override
-    public Datastore getDataStore() {
-        return this.dataStore;
-    }
-
-    private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()), databaseName,
-            MapperOptions
-                .builder()
-                .discriminator(DiscriminatorFunction.className())
-                .discriminatorKey("className")
-                .build()
-        );
-        morphiaStore.getMapper().map(Analysis.class);
-        morphiaStore.ensureIndexes();
-
-        this.dataStore = morphiaStore;
-    }
-
-    private void loadServices() {
-        List<Analysis> analyses = this.dataStore.find(Analysis.class).toList();
-        this.analyses = analyses;
-    }
-
 }
