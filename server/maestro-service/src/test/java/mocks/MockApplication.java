@@ -17,13 +17,12 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class MockApplication extends ResourceConfig {
     private static final Logger log = Logger.getLogger(MockApplication.class);
 
-    public MockApplication(Class... classes) {
-        IPlaybookDAO playbookDAO = new MockPlaybookDAO();
-        fragilityDAO.initialize();
+    public MockApplication(Class clazz) {
+        IPlaybookDAO playbookDAO = new MockRepository();
+        playbookDAO.initialize();
 
-        for (Class klass : classes) {
-            super.register(klass);
-        }
+        super.register(clazz);
+
 
         super.register(new AbstractBinder() {
             @Override
@@ -32,6 +31,4 @@ public class MockApplication extends ResourceConfig {
             }
         });
     }
-}
-
 }
