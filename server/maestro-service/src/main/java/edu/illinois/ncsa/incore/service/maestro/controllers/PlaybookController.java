@@ -44,26 +44,26 @@ import java.util.List;
     schemes = {SwaggerDefinition.Scheme.HTTP}
 )
 
-@Api(value = "steps", authorizations = {})
-@Path("steps")
-public class StepController {
+@Api(value = "playbooks", authorizations = {})
+@Path("playbooks")
+public class PlaybookController {
 
-    private static final Logger logger = Logger.getLogger(StepController.class);
+    private static final Logger logger = Logger.getLogger(PlaybookController.class);
     private final String username;
 
     @Inject
     private IPlaybookDAO playbookDAO;
 
     @Inject
-    public StepController(
+    public PlaybookController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the full definition of steps")
-    public List<Playbook> getPlaybookSteps() {
+    @ApiOperation(value = "Gets the full definition of playbooks")
+    public List<Playbook> getPlaybooks() {
         return this.playbookDAO.getAllPlaybooks();
     }
 
@@ -71,7 +71,7 @@ public class StepController {
     @Path("{playbookId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a playbook definition by Id", notes = "Get a particular playbook definition based on the id provided")
-    public Playbook getPlaybookStepById(@ApiParam(value = "playbook id") @PathParam("playbookId") String id) {
+    public Playbook getPlaybookById(@ApiParam(value = "playbook id") @PathParam("playbookId") String id) {
         Playbook playbook = this.playbookDAO.getPlaybookById(id);
         if (playbook != null) {
             return playbook;

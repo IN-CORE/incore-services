@@ -10,7 +10,7 @@
 package edu.illinois.ncsa.incore.service.maestro.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.maestro.controllers.StepController;
+import edu.illinois.ncsa.incore.service.maestro.controllers.PlaybookController;
 import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
 import mocks.MockApplication;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -40,7 +40,7 @@ class PlaybookControllerTest extends CustomJerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(StepController.class);
+        MockApplication application = new MockApplication(PlaybookController.class);
 
         return application;
     }

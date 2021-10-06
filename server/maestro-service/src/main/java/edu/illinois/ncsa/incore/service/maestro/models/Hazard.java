@@ -4,15 +4,15 @@ import dev.morphia.annotations.Embedded;
 
 @Embedded
 public class Hazard {
-    public String id;
+    public String hazardId;
     public String hazardType;
 
     public String getId() {
-        return id;
+        return hazardId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setId(String hazardId) {
+        this.hazardId = hazardId;
     }
 
     public String getHazardType() {

@@ -1,0 +1,98 @@
+{
+  "name": "Joplin Community Resilience Playbook",
+  "description": "Includes Tornado building damage",
+  "tags": [
+    "playbook",
+    "resiliency"
+  ],
+  "steps": [
+    {
+      "id": "1",
+      "description": "Form Collaborative Planning Team",
+      "status": "complete",
+      "subtasks": [
+        {
+          "id": "1-1",
+          "name": "Identify Leader",
+          "description": "Identify resilience leader for the community",
+          "users": [
+            "user1"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "1-2",
+          "name": "Identify team members",
+          "description": "Identify team members and their roles and responsibilities",
+          "users": [
+            "user2",
+            "user3"
+          ],
+          "status": "",
+          "requiredSteps": [
+            "1-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "description": "Understanding the Situation",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "2-4",
+          "name": "Characterize built environment",
+          "description": "",
+          "inputs": [
+            {
+              "dataId": "building-id",
+              "dataType": "incore:dataset"
+            },
+            {
+              "dataId": "epf-id",
+              "dataType": "incore:epf"
+            }
+          ],
+          "status": "incomplete"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "description": "Determine Goals & Objectives",
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": "3-3",
+          "name": "Define community hazards",
+          "description": "",
+          "hazards": [
+            {
+              "hazardId": "hazard-id",
+              "hazardType": "tornado"
+            }
+          ],
+          "status": "incomplete"
+        },
+        {
+          "id": "3-4",
+          "name": "Determine anticipated performance",
+          "description": "",
+          "workflows": [
+            {
+              "workflowId": "workflowId",
+              "workflowDescription": "workflowDescription"
+            }
+          ],
+          "status": "",
+          "required": true,
+          "requiredSteps": [
+            "2-4",
+            "3-3"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -9,5 +9,6 @@ import java.util.List;
 @Embedded
 public class ObjectiveSubStep extends SubStep {
     public List<Hazard> hazards;
-    public List<Dataset> inputs;
+    public List<Input> inputs;
+    public List<Workflow> workflows;
 }
