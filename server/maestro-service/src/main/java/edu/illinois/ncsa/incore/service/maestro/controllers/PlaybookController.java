@@ -9,6 +9,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.maestro.controllers;
 
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
@@ -50,14 +51,21 @@ public class PlaybookController {
 
     private static final Logger logger = Logger.getLogger(PlaybookController.class);
     private final String username;
+    private final Authorizer authorizer;
 
     @Inject
     private IPlaybookDAO playbookDAO;
 
+    //    ONLY the admin can access these endpoints
     @Inject
     public PlaybookController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        // we want to limit the maestro service to admins for now
+        this.authorizer = new Authorizer();
+        if (!this.authorizer.isUserAdmin(this.username)) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+        }
     }
 
     @GET

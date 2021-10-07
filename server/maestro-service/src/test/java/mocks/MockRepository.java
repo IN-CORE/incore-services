@@ -32,7 +32,7 @@ public class MockRepository implements IPlaybookDAO {
 
     @Override
     public void initialize() {
-        URL playbooksPath = this.getClass().getClassLoader().getResource("playbooks.json");
+        URL playbooksPath = this.getClass().getClassLoader().getResource("json/playbooks.json");
 
         try {
             this.playbooks = new ObjectMapper().readValue(playbooksPath, new TypeReference<List<Playbook>>() {
@@ -60,6 +60,16 @@ public class MockRepository implements IPlaybookDAO {
                 return this.playbooks.get(i);
             }
         }
+        return null;
+    }
+
+    @Override
+    public Playbook addPlaybook(Playbook playbook) {
+        return null;
+    }
+
+    @Override
+    public Playbook removePlaybook(String playbookId) {
         return null;
     }
 
