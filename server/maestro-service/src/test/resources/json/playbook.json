@@ -1,4 +1,5 @@
 {
+  "id": "615f0d772d387e00e68bef2d",
   "name": "Joplin Community Resilience Playbook",
   "description": "Includes Tornado building damage",
   "tags": [
@@ -10,27 +11,32 @@
       "id": "1",
       "description": "Form Collaborative Planning Team",
       "status": "complete",
-      "subtasks": [
+      "substeps": [
         {
+          "className": "TeamSubStep",
           "id": "1-1",
           "name": "Identify Leader",
           "description": "Identify resilience leader for the community",
+          "status": "pending",
+          "required": true,
+          "requiredSteps": null,
           "users": [
             "user1"
-          ],
-          "status": "pending"
+          ]
         },
         {
+          "className": "TeamSubStep",
           "id": "1-2",
           "name": "Identify team members",
           "description": "Identify team members and their roles and responsibilities",
+          "status": "pending",
+          "required": true,
+          "requiredSteps": [
+            "1-1"
+          ],
           "users": [
             "user2",
             "user3"
-          ],
-          "status": "",
-          "requiredSteps": [
-            "1-1"
           ]
         }
       ]
@@ -39,22 +45,39 @@
       "id": "2",
       "description": "Understanding the Situation",
       "status": "pending",
-      "subtasks": [
+      "substeps": [
         {
+          "className": "SituationSubStep",
           "id": "2-4",
           "name": "Characterize built environment",
           "description": "",
+          "status": "inprogress",
+          "required": true,
+          "requiredSteps": null,
           "inputs": [
             {
-              "dataId": "building-id",
-              "dataType": "incore:dataset"
+              "datasetId": "building-id",
+              "dataType": "incore:dataset",
+              "id": "building-id"
             },
             {
-              "dataId": "epf-id",
-              "dataType": "incore:epf"
+              "datasetId": "epf-id",
+              "dataType": "incore:epf",
+              "id": "epf-id"
             }
           ],
-          "status": "incomplete"
+          "datasets": [
+            {
+              "datasetId": "building-id",
+              "dataType": "incore:dataset",
+              "id": "building-id"
+            },
+            {
+              "datasetId": "epf-id",
+              "dataType": "incore:epf",
+              "id": "epf-id"
+            }
+          ]
         }
       ]
     },
@@ -62,34 +85,43 @@
       "id": "3",
       "description": "Determine Goals & Objectives",
       "status": "pending",
-      "subtasks": [
+      "substeps": [
         {
+          "className": "ObjectiveSubStep",
           "id": "3-3",
           "name": "Define community hazards",
           "description": "",
+          "status": "inprogress",
+          "required": true,
+          "requiredSteps": null,
           "hazards": [
             {
               "hazardId": "hazard-id",
-              "hazardType": "tornado"
+              "hazardType": "tornado",
+              "id": "hazard-id"
             }
           ],
-          "status": "incomplete"
+          "inputs": null,
+          "workflows": null
         },
         {
+          "className": "ObjectiveSubStep",
           "id": "3-4",
           "name": "Determine anticipated performance",
           "description": "",
+          "status": "pending",
+          "required": true,
+          "requiredSteps": [
+            "2-4",
+            "3-3"
+          ],
+          "hazards": null,
+          "inputs": null,
           "workflows": [
             {
               "workflowId": "workflowId",
               "workflowDescription": "workflowDescription"
             }
-          ],
-          "status": "",
-          "required": true,
-          "requiredSteps": [
-            "2-4",
-            "3-3"
           ]
         }
       ]

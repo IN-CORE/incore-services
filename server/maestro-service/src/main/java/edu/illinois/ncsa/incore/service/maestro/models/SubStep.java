@@ -16,6 +16,7 @@ public class SubStep {
     public String id;
     public String name;
     public String description;
+    public Status status;
     public Boolean required;
     public List<String> requiredSteps;
 
@@ -41,6 +42,14 @@ public class SubStep {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public Boolean getRequired() {
