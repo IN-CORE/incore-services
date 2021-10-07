@@ -1,7 +1,7 @@
 name: CI
 
 # This has two steps:
-#  1. Run unit tests - on any branch push
+#  1. Run unit tests - on any push to master, develop or release/* branches
 #  2. Build and push docker images, if:
 #      a. repo is IN-CORE/incore-services (excludes forked repos) AND
 #      b. Unit tests pass AND
@@ -13,7 +13,9 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - master
+      - develop
+      - 'release/*'
 
   pull_request:
     branches:
@@ -134,6 +136,7 @@ jobs:
         with:
           dockerfile: ${{ matrix.dockerfile }}
           name: ${{ matrix.hub_project }}
+          no_push: true
 
       - name: Publish docker image to NCSA hub
         if: |
