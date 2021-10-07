@@ -79,4 +79,13 @@ public class PlaybookController {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + id);
         }
     }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Create a playbook definition", notes = "Post a playbook definition")
+    public Playbook uploadPlaybook(@ApiParam(value = "json representing the playbook definition") Playbook playbook) {
+        return this.playbookDAO.addPlaybook(playbook);
+    }
+
 }

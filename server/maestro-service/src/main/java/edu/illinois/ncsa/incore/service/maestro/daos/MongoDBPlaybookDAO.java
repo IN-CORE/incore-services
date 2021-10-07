@@ -43,4 +43,13 @@ public class MongoDBPlaybookDAO extends MongoDAO implements IPlaybookDAO {
 
         return playbook;
     }
+
+    @Override
+    public Playbook addPlaybook(Playbook playbook) {
+        if (playbook == null) {
+            throw new IllegalArgumentException();
+        } else {
+            return this.dataStore.save(playbook);
+        }
+    }
 }

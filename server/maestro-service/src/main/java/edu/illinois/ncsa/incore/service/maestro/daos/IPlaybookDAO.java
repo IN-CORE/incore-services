@@ -20,9 +20,8 @@ public interface IPlaybookDAO {
 
     Playbook getPlaybookById(String playbookId);
 
-    //
-//    Playbook addPlaybook(Playbook playbook);
-//
+    Playbook addPlaybook(Playbook playbook);
+
 //    List<Step> getAllSteps(String playbookId);
 //
 //    Step getStepById(String stepId);
