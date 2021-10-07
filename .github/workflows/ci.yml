@@ -1,19 +1,21 @@
 name: CI
 
 # This has two steps:
-#  1. Run unit tests - on any branch push
+#  1. Run unit tests - on any push to master, develop or release/* branches
 #  2. Build and push docker images, if:
 #      a. repo is IN-CORE/incore-services (excludes forked repos) AND
 #      b. Unit tests pass AND
 #        c. if a PR to master, develop or release/* branch is created/updated OR
-#        d. If a push is made to master or develop branch.
+#        d. If a push is made to master, develop or release/* branch branch.
 
 # TODO: post an alert to incore-alerts slack channel when there is a failure on develop or master branches
 
 on:
   push:
     branches:
-      - '*'
+      - master
+      - develop
+      - 'release/*'
 
   pull_request:
     branches:
@@ -25,10 +27,6 @@ env:
   MAIN_REPO: IN-CORE/incore-services
 
 jobs:
-
-  # ----------------------------------------------------------------------
-  # DOCKER BUILD
-  # ----------------------------------------------------------------------
   unit_tests:
     name: Build and Run Tests
     runs-on: ubuntu-latest
@@ -75,19 +73,19 @@ jobs:
         include:
           - name: data
             dockerfile: Dockerfile.data
-            hub_project: incore/incore-services/data-jetty
+            hub_project: incore/data-jetty
           - name: hazard
             dockerfile: Dockerfile.hazard
-            hub_project: incore/incore-services/hazard-jetty
+            hub_project: incore/hazard-jetty
           - name: semantics
             dockerfile: Dockerfile.semantics
-            hub_project: incore/incore-services/semantics-jetty
+            hub_project: incore/semantics-jetty
           - name: dfr3
             dockerfile: Dockerfile.dfr3
-            hub_project: incore/incore-services/dfr3-jetty
+            hub_project: incore/dfr3-jetty
           - name: space
             dockerfile: Dockerfile.space
-            hub_project: incore/incore-services/space-jetty
+            hub_project: incore/space-jetty
 
     steps:
       - name: Download build files
@@ -99,11 +97,12 @@ jobs:
         run: |
           if [ "${{ github.event.release.target_commitish }}" != "" ]; then
             BRANCH="${{ github.event.release.target_commitish }}"
-          elif [[ $GITHUB_REF =~ pull ]]; then
-            BRANCH="$(echo $GITHUB_REF | sed 's#refs/pull/\([0-9]*\)/merge#PR-\1#')"
+          elif [[ "${{github.event_name}}" == "pull_request" ]]; then
+            BRANCH="PR-${{github.event.pull_request.number}}"
           else
             BRANCH=${GITHUB_REF##*/}
           fi
+
 
           echo "GITHUB_BRANCH=${BRANCH}" >> $GITHUB_ENV
           if [ "$BRANCH" == "master" ]; then
@@ -134,6 +133,7 @@ jobs:
         with:
           dockerfile: ${{ matrix.dockerfile }}
           name: ${{ matrix.hub_project }}
+          no_push: true
 
       - name: Publish docker image to NCSA hub
         if: |
