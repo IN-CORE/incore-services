@@ -76,7 +76,7 @@ public class PlaybookController {
         if (playbook != null) {
             return playbook;
         } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a fragility set with id " + id);
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a playbook with id " + id);
         }
     }
 
@@ -88,4 +88,18 @@ public class PlaybookController {
         return this.playbookDAO.addPlaybook(playbook);
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{playbookId}")
+    @ApiOperation(value = "Deletes a playbook by id")
+    public Playbook deletePlaybookById(@ApiParam(value = "playbook id", example = "5b47b2d8337d4a36187c6727") @PathParam(
+        "playbookId") String id) {
+        Playbook playbook = this.playbookDAO.getPlaybookById(id);
+
+        if (playbook != null) {
+            return this.playbookDAO.removePlaybook(id);
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a playbook with id " + id);
+        }
+    }
 }

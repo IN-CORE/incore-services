@@ -10,6 +10,7 @@
 package edu.illinois.ncsa.incore.service.maestro.daos;
 
 import com.mongodb.MongoClientURI;
+import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
 import org.bson.types.ObjectId;
@@ -52,4 +53,16 @@ public class MongoDBPlaybookDAO extends MongoDAO implements IPlaybookDAO {
             return this.dataStore.save(playbook);
         }
     }
+
+    @Override
+    public Playbook removePlaybook(String playbookId) {
+        if (!ObjectId.isValid(playbookId)) {
+            return null;
+        }
+
+        Query<Playbook> query = this.dataStore.find(Playbook.class)
+            .filter(Filters.eq("_id", new ObjectId(playbookId)));
+        return query.findAndDelete();
+    }
+
 }

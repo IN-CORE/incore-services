@@ -22,6 +22,8 @@ public interface IPlaybookDAO {
 
     Playbook addPlaybook(Playbook playbook);
 
+    Playbook removePlaybook(String playbookId);
+
 //    List<Step> getAllSteps(String playbookId);
 //
 //    Step getStepById(String stepId);
