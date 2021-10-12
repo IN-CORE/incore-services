@@ -19,7 +19,6 @@ import org.bson.json.JsonParseException;
 import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class Tornado {
     private String description;
     private String creator = null;
     private Double threshold = null;
-    private String thresholdUnits = TornadoHazard.WIND_MPH;
+    private String thresholdUnit = TornadoHazard.WIND_MPH;
 
     /**
      * spaces the object belongs to. Calculated at runtime.
@@ -105,14 +104,14 @@ public class Tornado {
         this.threshold = threshold;
     }
 
-    public String getThresholdUnits() {
-        return thresholdUnits;
+    public String getThresholdUnit() {
+        return thresholdUnit;
     }
 
-    public void setThresholdUnits(String thresholdUnits) {
-        thresholdUnits = thresholdUnits.trim();
-        if (thresholdUnits.equalsIgnoreCase(TornadoHazard.WIND_MPH) || thresholdUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)){
-            this.thresholdUnits = thresholdUnits;
+    public void setThresholdUnit(String thresholdUnit) {
+        thresholdUnit = thresholdUnit.trim();
+        if (thresholdUnit.equalsIgnoreCase(TornadoHazard.WIND_MPH) || thresholdUnit.equalsIgnoreCase(TornadoHazard.WIND_MPS)){
+            this.thresholdUnit = thresholdUnit;
         }
         else {
             throw new JsonParseException("Invalid thresholdUnits");
@@ -124,7 +123,7 @@ public class Tornado {
         // Always converts the threshold value to mph. This is a workaround because internally all tornado calculations happen in mph.
         String retStr = String.format("{'wind': {'value': %s, 'unit': 'mph'}}", this.threshold);
 
-        if (this.thresholdUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)  && this.threshold != null){
+        if (this.thresholdUnit.equalsIgnoreCase(TornadoHazard.WIND_MPS)  && this.threshold != null){
             retStr = String.format("{'wind': {'value': %s, 'unit': 'mph'}}",
                 this.threshold/TornadoCalc.getConversionFactor(TornadoHazard.WIND_MPS));
         }
