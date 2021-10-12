@@ -110,10 +110,11 @@ public class Tornado {
     }
 
     public void setThresholdUnits(String thresholdUnits) {
-        if (Arrays.asList(TornadoHazard.WIND_MPS, TornadoHazard.WIND_MPH).contains(thresholdUnits.trim())){
-            this.thresholdUnits = thresholdUnits.trim();
+        thresholdUnits = thresholdUnits.trim();
+        if (thresholdUnits.equalsIgnoreCase(TornadoHazard.WIND_MPH) || thresholdUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)){
+            this.thresholdUnits = thresholdUnits;
         }
-        else{
+        else {
             throw new JsonParseException("Invalid thresholdUnits");
         }
     }
