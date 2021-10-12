@@ -14,9 +14,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
+import org.bson.json.JsonParseException;
 import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -34,8 +37,7 @@ public class Tornado {
     private String description;
     private String creator = null;
     private Double threshold = null;
-//    TODO: It would be nice to implement ability to set units for wind threshold. Currently, Tornado code assumes the dataset sources are
-//     always in mph, we should first allow setting a unit for the entire tornado and use the same for threshold calculation
+    private String thresholdUnits = TornadoHazard.WIND_MPH;
 
     /**
      * spaces the object belongs to. Calculated at runtime.
@@ -103,8 +105,28 @@ public class Tornado {
         this.threshold = threshold;
     }
 
+    public String getThresholdUnits() {
+        return thresholdUnits;
+    }
+
+    public void setThresholdUnits(String thresholdUnits) {
+        if (Arrays.asList(TornadoHazard.WIND_MPS, TornadoHazard.WIND_MPH).contains(thresholdUnits.trim())){
+            this.thresholdUnits = thresholdUnits.trim();
+        }
+        else{
+            throw new JsonParseException("Invalid thresholdUnits");
+        }
+    }
+
     @JsonIgnore
     public String getThresholdJsonString(){
-        return String.format("{'wind': {'value': %s, 'unit': 'mph'}}", this.threshold);
+        // Always converts the threshold value to mph. This is a workaround because internally all tornado calculations happen in mph.
+        String retStr = String.format("{'wind': {'value': %s, 'unit': 'mph'}}", this.threshold);
+
+        if (this.thresholdUnits.equalsIgnoreCase(TornadoHazard.WIND_MPS)  && this.threshold != null){
+            retStr = String.format("{'wind': {'value': %s, 'unit': 'mph'}}",
+                this.threshold/TornadoCalc.getConversionFactor(TornadoHazard.WIND_MPS));
+        }
+        return retStr;
     }
 }
