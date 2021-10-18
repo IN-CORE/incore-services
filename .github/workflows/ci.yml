@@ -99,7 +99,6 @@ jobs:
             BRANCH="${{ github.event.release.target_commitish }}"
           elif [[ "${{github.event}}" == 'pull_request' ]]; then
             BRANCH = "PR-${{github.event.pull_request.number}}"
-#            BRANCH="$(echo $GITHUB_REF | sed 's#refs/pull/\([0-9]*\)/merge#PR-\1#')"
           else
             BRANCH=${GITHUB_REF##*/}
           fi
