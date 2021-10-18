@@ -141,16 +141,17 @@ public class DatasetController {
                                      @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
                                      @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                      @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                     @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                     @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
+                                     @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard ){
         List<Dataset> datasets;
         if (typeStr != null && titleStr == null) {  // query only for the type
-            datasets = repository.getDatasetByType(typeStr);
+            datasets = repository.getDatasetByType(typeStr, excludeHazard);
         } else if (typeStr == null && titleStr != null) {   // query only for the title
-            datasets = repository.getDatasetByTitle(titleStr);
+            datasets = repository.getDatasetByTitle(titleStr, excludeHazard);
         } else if (typeStr != null && titleStr != null) {   // query for both type and title
-            datasets = repository.getDatasetByTypeAndTitle(typeStr, titleStr);
+            datasets = repository.getDatasetByTypeAndTitle(typeStr, titleStr, excludeHazard);
         } else {
-            datasets = repository.getAllDatasets();
+            datasets = repository.getAllDatasets(excludeHazard);
         }
 
         if (datasets == null) {
@@ -858,7 +859,8 @@ public class DatasetController {
     })
     public List<Dataset> findDatasets(@ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
+                                      @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard) {
         List<Dataset> datasets;
 
         Dataset ds = repository.getDatasetById(text);
@@ -867,7 +869,7 @@ public class DatasetController {
                 add(ds);
             }};
         } else {
-            datasets = this.repository.searchDatasets(text);
+            datasets = this.repository.searchDatasets(text, excludeHazard);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
