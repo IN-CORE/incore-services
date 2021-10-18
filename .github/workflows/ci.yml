@@ -98,7 +98,7 @@ jobs:
           if [ "${{ github.event.release.target_commitish }}" != "" ]; then
             BRANCH="${{ github.event.release.target_commitish }}"
           elif [[ "${{github.event}}" == 'pull_request' ]]; then
-            BRANCH = "PR-${{github.event.pull_request.number}}"
+            BRANCH="PR-${{github.event.pull_request.number}}"
           else
             BRANCH=${GITHUB_REF##*/}
           fi
