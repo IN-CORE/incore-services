@@ -103,6 +103,8 @@ jobs:
             BRANCH=${GITHUB_REF##*/}
           fi
 
+          echo "$BRANCH"
+
           echo "GITHUB_BRANCH=${BRANCH}" >> $GITHUB_ENV
           if [ "$BRANCH" == "master" ]; then
             version=$(cat ./server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
