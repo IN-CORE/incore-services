@@ -97,7 +97,7 @@ jobs:
         run: |
           if [ "${{ github.event.release.target_commitish }}" != "" ]; then
             BRANCH="${{ github.event.release.target_commitish }}"
-          elif [[ "${{github.event}}" == "pull_request" ]]; then
+          elif [github.event == "pull_request" ]; then
             echo "inside"
             BRANCH="PR-${{github.event.pull_request.number}}"
           else
