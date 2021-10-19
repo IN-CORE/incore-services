@@ -52,8 +52,12 @@ public class TsunamiCalc {
                     try {
                         hazardValue = TsunamiUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
 
-                        // convert demand type in keys to lower case
-                        JSONObject tsunamiThresholds = HazardUtil.toLowerKey(HazardUtil.TSUNAMI_THRESHOLDS);
+                        JSONObject tsunamiThresholds;
+                        if (hazardDataset.getThreshold() != null){
+                            tsunamiThresholds = HazardUtil.toLowerKey(new JSONObject(hazardDataset.getThresholdJsonString()));
+                        } else {
+                            tsunamiThresholds = HazardUtil.toLowerKey(HazardUtil.TSUNAMI_THRESHOLDS);
+                        }
 
                         if (tsunamiThresholds.has(demandType.toLowerCase())) {
                             JSONObject demandThreshold = ((JSONObject) tsunamiThresholds.get(demandType.toLowerCase()));
