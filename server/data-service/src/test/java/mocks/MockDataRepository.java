@@ -56,12 +56,12 @@ public class MockDataRepository implements IRepository {
     }
 
     @Override
-    public List<Dataset> getAllDatasets() {
+    public List<Dataset> getAllDatasets(Boolean excludeHazard) {
         return this.datasets;
     }
 
     @Override
-    public List<Dataset> searchDatasets(String text) {
+    public List<Dataset> searchDatasets(String text, Boolean excludeHazard) {
         List<Dataset> outList = new ArrayList<>();
         for (int i = 0; i < this.datasets.size(); i++) {
             if (this.datasets.get(i).getDescription().contains(text)) {
@@ -93,7 +93,7 @@ public class MockDataRepository implements IRepository {
     }
 
     @Override
-    public List<Dataset> getDatasetByTitle(String title) {
+    public List<Dataset> getDatasetByTitle(String title, Boolean excludeHazard) {
         List<Dataset> outlist = new ArrayList<>();
         for (int i = 0; i < this.datasets.size(); i++) {
             if (this.datasets.get(i).getTitle().equalsIgnoreCase(title)) {
@@ -115,7 +115,7 @@ public class MockDataRepository implements IRepository {
     }
 
     @Override
-    public List<Dataset> getDatasetByType(String type) {
+    public List<Dataset> getDatasetByType(String type, Boolean excludeHazard) {
         List<Dataset> outlist = new ArrayList<>();
         for (int i = 0; i < this.datasets.size(); i++) {
             if (this.datasets.get(i).getDataType().equalsIgnoreCase(type)) {
@@ -126,7 +126,7 @@ public class MockDataRepository implements IRepository {
     }
 
     @Override
-    public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
+    public List<Dataset> getDatasetByTypeAndTitle(String type, String title, Boolean excludeHazard) {
         // this will not be tested in here
         return null;
     }
