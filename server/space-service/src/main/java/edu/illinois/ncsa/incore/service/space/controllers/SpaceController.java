@@ -130,8 +130,7 @@ public class SpaceController {
             }
         } catch (IncoreHTTPException e){
             throw e;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid space JSON. " + e);
         }
     }
