@@ -108,6 +108,7 @@ public class SpaceController {
         ObjectMapper spaceObjectMapper = new ObjectMapper();
         try {
             Space newSpace = spaceObjectMapper.readValue(spaceJson, Space.class);
+            UserInfoUtils.throwExceptionIfIdPresent(newSpace.getId());
 
             if (newSpace.getName().equals("")) {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid name");
@@ -127,7 +128,10 @@ public class SpaceController {
             } else {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Space already exists with name " + newSpace.getName());
             }
-        } catch (Exception e) {
+        } catch (IncoreHTTPException e){
+            throw e;
+        }
+        catch (Exception e) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid space JSON. " + e);
         }
     }
