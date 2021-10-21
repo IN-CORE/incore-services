@@ -54,8 +54,9 @@ public abstract class Earthquake {
         this.description = description;
     }
 
-    public String getId() {
-        return id.toString();
+    public String getId()
+    {
+        return (id == null) ? null : id.toString();
     }
 
     public String getName() {
