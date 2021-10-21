@@ -150,6 +150,8 @@ public class RestorationController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a restoration set", notes = "Post a restoration set to the restoration service")
     public RestorationSet uploadRestorationSet(@ApiParam(value = "json representing the restoration set") RestorationSet restorationSet) {
+
+        UserInfoUtils.throwExceptionIfIdPresent(restorationSet.getId());
         restorationSet.setCreator(username);
         String restorationId = this.restorationDAO.saveRestoration(restorationSet);
 

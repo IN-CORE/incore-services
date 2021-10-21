@@ -149,6 +149,7 @@ public class TornadoController {
         String datasetId = null;
         try {
             tornado = mapper.readValue(tornadoJson, Tornado.class);
+            UserInfoUtils.throwExceptionIfIdPresent(tornado.getId());
 
             // TODO verify that parameters like title are not null
 

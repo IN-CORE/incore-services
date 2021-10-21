@@ -160,6 +160,8 @@ public class FragilityController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a fragility set", notes = "Post a fragility set to the dfr3 service")
     public FragilitySet uploadFragilitySet(@ApiParam(value = "json representing the fragility set") FragilitySet fragilitySet) {
+
+        UserInfoUtils.throwExceptionIfIdPresent(fragilitySet.getId());
         fragilitySet.setCreator(username);
         String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
 
