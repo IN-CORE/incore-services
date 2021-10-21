@@ -227,6 +227,8 @@ public class TornadoController {
 
             tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornado.getId()));
             return tornado;
+        } catch (JsonProcessingException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, e.getMessage());
         } catch (IOException e) {
             logger.error("Error mapping the request to a supported Tornado type.", e);
         } catch (IllegalArgumentException e) {

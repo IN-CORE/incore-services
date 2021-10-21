@@ -293,6 +293,8 @@ public class TsunamiController {
                 }
             }
 
+        } catch (JsonProcessingException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, e.getMessage());
         } catch (IOException e) {
             log.error("Error mapping the request to a supported Tsunami type.", e);
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not map the request to a supported Tsunami type. "

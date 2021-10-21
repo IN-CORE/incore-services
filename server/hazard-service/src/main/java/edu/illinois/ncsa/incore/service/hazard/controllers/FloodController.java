@@ -211,6 +211,8 @@ public class FloodController {
                 return flood;
             }
 
+        } catch (JsonProcessingException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, e.getMessage());
         } catch (IOException e) {
             log.error("Error mapping the request to a supported flood type.", e);
         } catch (IllegalArgumentException e) {

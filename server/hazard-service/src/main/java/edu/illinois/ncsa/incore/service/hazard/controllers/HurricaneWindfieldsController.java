@@ -193,7 +193,7 @@ public class HurricaneWindfieldsController {
             } catch (JsonGenerationException e) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding a mapping for the coast and category");
             } catch (JsonProcessingException e) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Couldn't process json");
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not process the json. \n" + e.getMessage());
             } catch (MismatchedDimensionException e) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error in geometry dimensions");
             }

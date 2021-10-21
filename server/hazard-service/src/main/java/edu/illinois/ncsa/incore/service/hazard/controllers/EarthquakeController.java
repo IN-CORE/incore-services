@@ -237,10 +237,15 @@ public class EarthquakeController {
             earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquake.getId()));
             return earthquake;
 
+        } catch (JsonProcessingException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, e.getMessage());
         } catch (IOException e) {
             logger.error("Error mapping the request to an Earthquake object.", e);
         } catch (IllegalArgumentException e) {
             logger.error("Illegal Argument has been passed in.", e);
+        }
+        catch (IncoreHTTPException e){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, e.getMessage());
         }
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create earthquake, check the format of your request.");
     }
