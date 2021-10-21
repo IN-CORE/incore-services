@@ -411,6 +411,16 @@ public class Dataset {
     }
 
     /**
+     * Sets the id of the bean. This has to be a unique id since it is used as
+     * the key in the database.
+     *
+     * @param id the id of the object.
+     */
+    public void setId(String id) {
+        this.id = new ObjectId(id);
+    }
+
+    /**
      * Should the bean be assumed to be deleted. Only a handfule rest api calls
      * right now will use this value.
      *
