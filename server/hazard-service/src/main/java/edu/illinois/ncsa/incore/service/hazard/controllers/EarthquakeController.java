@@ -137,6 +137,7 @@ public class EarthquakeController {
         Earthquake earthquake = null;
         try {
             earthquake = mapper.readValue(eqJson, Earthquake.class);
+            UserInfoUtils.throwExceptionIfIdPresent(earthquake.getId());
 
             // Create temporary working directory
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");

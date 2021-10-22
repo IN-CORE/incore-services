@@ -75,7 +75,7 @@ public class HurricaneWindfields {
     }
 
     public String getId() {
-        return id.toString();
+        return (id == null) ? null : id.toString();
     }
 
     public List<String> getTimes() {

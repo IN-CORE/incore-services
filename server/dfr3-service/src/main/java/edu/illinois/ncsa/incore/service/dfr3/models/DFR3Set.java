@@ -2,6 +2,7 @@ package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -12,6 +13,7 @@ import java.util.List;
 @XmlRootElement
 public abstract class DFR3Set {
     @Id
+    @Property("_id")
     protected ObjectId id;
 
     @XmlTransient
@@ -38,13 +40,8 @@ public abstract class DFR3Set {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<String> spaces;
 
-    // region Getters
     public String getId() {
-        if (id == null) {
-            return null;
-        } else {
-            return id.toHexString();
-        }
+        return (id == null) ? null : id.toString();
     }
 
     public String getLegacyId() {
