@@ -23,17 +23,6 @@ public interface IPlaybookDAO {
     Playbook addPlaybook(Playbook playbook);
 
     Playbook removePlaybook(String playbookId);
-
-//    List<Step> getAllSteps(String playbookId);
-//
-//    Step getStepById(String stepId);
-//
-//    Step addStep(Step step);
-//
-//    List<SubStep> getAllSubSteps(String stepId);
-//
-//    SubStep getSubStepById(String subStepId);
-//
-//    SubStep addSubStep(Step step);
+    
 
 }

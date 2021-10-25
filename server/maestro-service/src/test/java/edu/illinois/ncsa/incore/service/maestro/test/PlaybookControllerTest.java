@@ -32,38 +32,4 @@ class PlaybookControllerTest extends CustomJerseyTest {
 
         return application;
     }
-
-//    TODO test doesn't work yet
-//    @Test
-//    public void testGetPlaybooks() {
-//
-//        String output = target("/playbooks").request().accept(MediaType.APPLICATION_JSON).get(String.class);
-//        JSONArray parsedObject = new JSONArray(output);
-//
-//        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
-//
-//        assertTrue(firstObject.has("id"));
-//        assertTrue(firstObject.has("name"));
-//        assertTrue(firstObject.has("description"));
-//        assertNotEquals(3, firstObject.get("steps").toString().length());
-//
-//    }
-//
-//
-//    @Test
-//    public void testGetPlaybookById() {
-//
-//        String id = "615f0d772d387e00e68bef2d";
-//        String output = target("/playbooks/" + id).request().accept(MediaType.APPLICATION_JSON).get(String.class);
-//
-//        JSONArray parsedObject = new JSONArray(output);
-//
-//        JSONObject firstObject = new JSONObject(parsedObject.get(0).toString());
-//
-//        assertTrue(firstObject.has("id"));
-//        assertTrue(firstObject.has("name"));
-//        assertTrue(firstObject.has("description"));
-//        assertNotEquals(3, firstObject.get("steps").toString().length());
-//
-//    }
 }
