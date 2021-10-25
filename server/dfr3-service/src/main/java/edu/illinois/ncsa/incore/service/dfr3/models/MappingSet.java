@@ -45,11 +45,7 @@ public class MappingSet {
     private List<String> spaces;
 
     public String getId() {
-        if (id == null) {
-            return null;
-        } else {
-            return id.toHexString();
-        }
+        return (id == null) ? null : id.toString();
     }
 
     public String getName() {

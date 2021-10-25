@@ -6,6 +6,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
+import org.bson.json.JsonParseException;
 import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -32,6 +35,8 @@ public class Tornado {
     private String name;
     private String description;
     private String creator = null;
+    private Double threshold = null;
+    private String thresholdUnit = TornadoHazard.WIND_MPH;
 
     /**
      * spaces the object belongs to. Calculated at runtime.
@@ -50,7 +55,7 @@ public class Tornado {
     }
 
     public String getId() {
-        return id.toString();
+        return (id == null) ? null : id.toString();
     }
 
     public String getName() {
@@ -89,5 +94,39 @@ public class Tornado {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public Double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(Double threshold) {
+        this.threshold = threshold;
+    }
+
+    public String getThresholdUnit() {
+        return thresholdUnit;
+    }
+
+    public void setThresholdUnit(String thresholdUnit) {
+        thresholdUnit = thresholdUnit.trim();
+        if (thresholdUnit.equalsIgnoreCase(TornadoHazard.WIND_MPH) || thresholdUnit.equalsIgnoreCase(TornadoHazard.WIND_MPS)){
+            this.thresholdUnit = thresholdUnit;
+        }
+        else {
+            throw new JsonParseException("Invalid thresholdUnits");
+        }
+    }
+
+    @JsonIgnore
+    public String getThresholdJsonString(){
+        // Always converts the threshold value to mph. This is a workaround because internally all tornado calculations happen in mph.
+        String retStr = String.format("{'wind': {'value': %s, 'unit': 'mph'}}", this.threshold);
+
+        if (this.thresholdUnit.equalsIgnoreCase(TornadoHazard.WIND_MPS)  && this.threshold != null){
+            retStr = String.format("{'wind': {'value': %s, 'unit': 'mph'}}",
+                this.threshold/TornadoCalc.getConversionFactor(TornadoHazard.WIND_MPS));
+        }
+        return retStr;
     }
 }

@@ -51,9 +51,12 @@ public class FloodCalc {
                 try {
                     if (hazardValue != null) {
                         hazardValue = FloodUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
-
-                        // convert demand type in keys to lower case
-                        JSONObject floodThresholds = HazardUtil.toLowerKey(HazardUtil.FLOOD_THRESHOLDS);
+                        JSONObject floodThresholds;
+                        if (hazardDataset.getThreshold() != null){
+                            floodThresholds = HazardUtil.toLowerKey(new JSONObject(hazardDataset.getThresholdJsonString()));
+                        } else {
+                            floodThresholds = HazardUtil.toLowerKey(HazardUtil.FLOOD_THRESHOLDS);
+                        }
 
                         if (floodThresholds.has(demandType.toLowerCase())) {
                             JSONObject demandThreshold = ((JSONObject) floodThresholds.get(demandType.toLowerCase()));

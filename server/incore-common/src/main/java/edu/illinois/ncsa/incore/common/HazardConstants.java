@@ -29,10 +29,8 @@ public class HazardConstants {
     public static final String SHAPEFILE_FORMAT = "shapefile";
     public static final String HAZARD_TIF = "hazard.tif";
 
-    private static String PROBABILISTIC_EARTHQUAKE_HAZARD_SCHEM;
-
     public static final List<String> DATA_TYPE_HAZARD = new ArrayList<>(Arrays.asList(
-        PROBABILISTIC_EARTHQUAKE_HAZARD_SCHEM,
+        PROBABILISTIC_EARTHQUAKE_HAZARD_SCHEMA,
         DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA,
         PROBABILISTIC_TSUNAMI_HAZARD_SCHEMA,
         DETERMINISTIC_TSUNAMI_HAZARD_SCHEMA,

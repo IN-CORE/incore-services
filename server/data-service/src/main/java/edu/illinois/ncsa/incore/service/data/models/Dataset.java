@@ -41,7 +41,7 @@ public class Dataset {
      */
     @Id
     @Property("_id")
-    private ObjectId id = new ObjectId();
+    private ObjectId id;
 
     /**
      * Should the bean be assumed to be deleted and not be returned
@@ -406,18 +406,8 @@ public class Dataset {
      *
      * @return id of the bean
      */
-    public final String getId() {
-        return id.toString();
-    }
-
-    /**
-     * Sets the id of the bean. This has to be a unique id since it is used as
-     * the key in the database.
-     *
-     * @param id the id of the object.
-     */
-    public void setId(String id) {
-        this.id = new ObjectId(id);
+    public String getId() {
+        return (id == null) ? null : id.toString();
     }
 
     /**

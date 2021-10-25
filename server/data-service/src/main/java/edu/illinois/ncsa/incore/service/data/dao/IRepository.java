@@ -22,19 +22,19 @@ import java.util.List;
 public interface IRepository {
     void initialize();
 
-    List<Dataset> getAllDatasets();
+    List<Dataset> getAllDatasets(Boolean excludeHazard);
 
     Dataset getDatasetById(String id);
 
-    List<Dataset> getDatasetByType(String type);
+    List<Dataset> getDatasetByType(String type, Boolean excludeHazard);
 
-    List<Dataset> getDatasetByTitle(String title);
+    List<Dataset> getDatasetByTitle(String title, Boolean excludeHazard);
 
     List<Dataset> getDatasetByCreator(String creator, Boolean withHazard);
 
-    List<Dataset> getDatasetByTypeAndTitle(String type, String title);
+    List<Dataset> getDatasetByTypeAndTitle(String type, String title, Boolean excludeHazard);
 
-    List<Dataset> searchDatasets(String text);
+    List<Dataset> searchDatasets(String text, Boolean excludeHazard);
 
     Dataset addDataset(Dataset dataset);
 

@@ -32,7 +32,7 @@ import java.util.List;
 public class Space {
     @Id
     @Property("_id")
-    private ObjectId id = new ObjectId();
+    private ObjectId id;
 
     @JsonProperty("metadata")
     private SpaceMetadata metadata;
@@ -54,13 +54,7 @@ public class Space {
     }
 
     public String getId() {
-
-        return id.toString();
-    }
-
-    public void setId(String id) {
-
-        this.id = new ObjectId(id);
+        return (id == null) ? null : id.toString();
     }
 
     public String getName() {

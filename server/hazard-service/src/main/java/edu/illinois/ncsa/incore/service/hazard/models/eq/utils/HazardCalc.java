@@ -193,9 +193,44 @@ public class HazardCalc {
         }
     }
 
-    public static Double applyEqThresholds(double hazardValue, String demand, String demandUnits, String closestHazardPeriod) {
+    // This method will be removed when we finalize the threshold management for Model based Eq. If defining a threshold for
+    // just PGA and 1.0 SA (or any SA without period) enough?
+    public static Double applyModelEqThresholds(double hazardValue, String demand, String demandUnits, String closestHazardPeriod) {
         Double adjustedHazardValue = hazardValue;
         JSONObject earthquakeThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS); // convert demand type keys to lower case
+        if (earthquakeThresholds.has(demand.toLowerCase())) {
+            JSONObject demandThresholds = ((JSONObject) earthquakeThresholds.get(demand.toLowerCase()));
+            JSONObject periodThreshold = null;
+            String usedPeriod;
+            if (demandThresholds.has(closestHazardPeriod)) {
+                if (demandThresholds.get(closestHazardPeriod) != JSONObject.NULL) {
+                    periodThreshold = (JSONObject) demandThresholds.get(closestHazardPeriod);
+                }
+                usedPeriod = closestHazardPeriod;
+            } else {
+                // if there is no defined threshold for the period, use "0.0" as the default
+                if (demandThresholds.get("0.0") != JSONObject.NULL) {
+                    periodThreshold = ((JSONObject) demandThresholds.get("0.0"));
+                }
+                usedPeriod = "0.0";
+            }
+
+            // ignore threshold if null
+            if (periodThreshold != null) {
+                double threshold = HazardUtil.convertHazard(periodThreshold.getDouble("value"),
+                    periodThreshold.getString("unit"), Double.parseDouble(usedPeriod), demand.toLowerCase(),
+                    demandUnits, demand.toLowerCase());
+                if (hazardValue <= threshold) {
+                    adjustedHazardValue = null;
+                }
+            }
+        }
+        return adjustedHazardValue;
+    }
+
+    public static Double applyEqThresholds(JSONObject earthquakeThresholds, double hazardValue,
+                                              String demand, String demandUnits, String closestHazardPeriod) {
+        Double adjustedHazardValue = hazardValue;
         if (earthquakeThresholds.has(demand.toLowerCase())) {
             JSONObject demandThresholds = ((JSONObject) earthquakeThresholds.get(demand.toLowerCase()));
             JSONObject periodThreshold = null;
@@ -288,7 +323,7 @@ public class HazardCalc {
                 closestHazardPeriod = "0.0";
             }
 
-            Double adjHazardVal = HazardCalc.applyEqThresholds(hazardValue, demand, demandUnits, closestHazardPeriod);
+            Double adjHazardVal = HazardCalc.applyModelEqThresholds(hazardValue, demand, demandUnits, closestHazardPeriod);
             return new SeismicHazardResult(adjHazardVal, closestHazardPeriod, demand);
 
         } else {
@@ -298,13 +333,26 @@ public class HazardCalc {
 
             GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
             try {
+                JSONObject EqThresholds;
+                if (hazardDataset.getThreshold() != null){
+                    EqThresholds = HazardUtil.toLowerKey(new JSONObject(hazardDataset.getThresholdJsonString()));
+                } else {
+                    EqThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS);
+                }
+
                 hazardValue = HazardUtil.findRasterPoint(site.getLocation(), (GridCoverage2D) gc);
-                hazardValue = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(), Double.parseDouble(period),
-                    hazardDataset.getDemandType(), demandUnits, demand);
+                Double adjHazardVal = HazardCalc.applyEqThresholds(EqThresholds,
+                    hazardValue, hazardDataset.getDemandType(), hazardDataset.getDemandUnits(), closestHazardPeriod);
 
-                Double adjHazardVal = HazardCalc.applyEqThresholds(hazardValue, demand, demandUnits, closestHazardPeriod);
+                if (adjHazardVal != null) {
+                    Double convertedHazardVal = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(),
+                        Double.parseDouble(period), hazardDataset.getDemandType(), demandUnits, demand);
+                    return new SeismicHazardResult(convertedHazardVal, closestHazardPeriod, demand, demandUnits);
+                }
+                else{
+                    return new SeismicHazardResult(null, closestHazardPeriod, demand, demandUnits);
+                }
 
-                return new SeismicHazardResult(adjHazardVal, closestHazardPeriod, demand, demandUnits);
             } catch (PointOutsideCoverageException e) {
                 logger.debug("Point outside tiff image.");
                 return new SeismicHazardResult(null, closestHazardPeriod, demand, demandUnits);

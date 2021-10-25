@@ -158,6 +158,7 @@ public class FloodController {
         Flood flood = null;
         try {
             flood = mapper.readValue(floodJson, Flood.class);
+            UserInfoUtils.throwExceptionIfIdPresent(flood.getId());
 
             // Create temporary working directory
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");

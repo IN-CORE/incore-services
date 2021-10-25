@@ -241,6 +241,7 @@ public class TsunamiController {
         Tsunami tsunami = null;
         try {
             tsunami = mapper.readValue(tsunamiJson, Tsunami.class);
+            UserInfoUtils.throwExceptionIfIdPresent(tsunami.getId());
 
             // Create temporary working directory
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");

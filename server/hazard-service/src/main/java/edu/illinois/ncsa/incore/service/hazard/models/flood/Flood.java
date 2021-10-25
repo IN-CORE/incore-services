@@ -54,7 +54,7 @@ public abstract class Flood {
     }
 
     public String getId() {
-        return id.toString();
+        return (id == null) ? null : id.toString();
     }
 
     public String getName() {

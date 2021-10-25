@@ -98,7 +98,6 @@ class DatasetControllerTest extends CustomJerseyTest {
             "{\"preferred_username\": \"test\"}").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
         Dataset output = response.readEntity(Dataset.class);
 
-        assertNotNull(output.getId());
         assertNotNull(output.getTitle());
     }
 

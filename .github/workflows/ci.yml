@@ -1,0 +1,149 @@
+name: CI
+
+# This has two steps:
+#  1. Run unit tests - on any push to master, develop or release/* branches
+#  2. Build and push docker images, if:
+#      a. repo is IN-CORE/incore-services (excludes forked repos) AND
+#      b. Unit tests pass AND
+#        c. if a PR to master, develop or release/* branch is created/updated OR
+#        d. If a push is made to master, develop or release/* branch branch.
+
+# TODO: post an alert to incore-alerts slack channel when there is a failure on develop or master branches
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - 'release/*'
+
+  pull_request:
+    branches:
+      - master
+      - develop
+      - 'release/*'
+
+env:
+  MAIN_REPO: IN-CORE/incore-services
+
+jobs:
+  unit_tests:
+    name: Build and Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+      - name: Build and Test Farm
+        run: |
+          java --version
+          cd server/
+          ./gradlew clean
+          ./gradlew assemble
+          ./gradlew test
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: incore-services-build-files
+          path: |
+            server/build.gradle
+            server/*/build/libs/*.war
+            ./Dockerfile.*
+            docker/**
+            clear_cache.sh
+            clear_cache_cron
+          retention-days: 1
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: unit_tests
+    strategy:
+      fail-fast: true
+      matrix:
+        name:
+          - data
+          - dfr3
+          - hazard
+          - semantics
+          - space
+        include:
+          - name: data
+            dockerfile: Dockerfile.data
+            hub_project: incore/data-jetty
+          - name: hazard
+            dockerfile: Dockerfile.hazard
+            hub_project: incore/hazard-jetty
+          - name: semantics
+            dockerfile: Dockerfile.semantics
+            hub_project: incore/semantics-jetty
+          - name: dfr3
+            dockerfile: Dockerfile.dfr3
+            hub_project: incore/dfr3-jetty
+          - name: space
+            dockerfile: Dockerfile.space
+            hub_project: incore/space-jetty
+
+    steps:
+      - name: Download build files
+        uses: actions/download-artifact@v2
+        with:
+          name: incore-services-build-files
+
+      - name: version information and set envs
+        run: |
+          if [ "${{ github.event.release.target_commitish }}" != "" ]; then
+            BRANCH="${{ github.event.release.target_commitish }}"
+          elif [[ "${{github.event_name}}" == "pull_request" ]]; then
+            BRANCH="PR-${{github.event.pull_request.number}}"
+          else
+            BRANCH=${GITHUB_REF##*/}
+          fi
+
+
+          echo "GITHUB_BRANCH=${BRANCH}" >> $GITHUB_ENV
+          if [ "$BRANCH" == "master" ]; then
+            version=$(cat ./server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
+            tags="latest"
+            oldversion=""
+            while [ "${oldversion}" != "${version}" ]; do
+              oldversion="${version}"
+              tags="${tags},${version}"
+              version=${version%.*}
+            done
+            echo "VERSION=${version}" >> $GITHUB_ENV
+            echo "TAGS=${tags}" >> $GITHUB_ENV
+          elif [ "$BRANCH" == "develop" ]; then
+            echo "VERSION=develop" >> $GITHUB_ENV
+            echo "TAGS=develop" >> $GITHUB_ENV
+          else
+            echo "VERSION=testing" >> $GITHUB_ENV
+            STRIPPED_TAGS=${BRANCH/\#/_}
+            echo "TAGS=${STRIPPED_TAGS}" >> $GITHUB_ENV
+          fi
+
+      - name: Build docker image
+        if: |
+          github.repository == env.MAIN_REPO &&
+          (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'master')
+        uses: elgohr/Publish-Docker-Github-Action@3.04
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          name: ${{ matrix.hub_project }}
+          no_push: true
+
+      - name: Publish docker image to NCSA hub
+        if: |
+          github.repository == env.MAIN_REPO &&
+          (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'master')
+        uses: elgohr/Publish-Docker-Github-Action@3.04
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          registry: hub.ncsa.illinois.edu
+          name: ${{ matrix.hub_project }}
+          username: ${{ secrets.HUB_USERNAME }}
+          password: ${{ secrets.HUB_PASSWORD }}
+          tags: "${{ env.TAGS }}"
