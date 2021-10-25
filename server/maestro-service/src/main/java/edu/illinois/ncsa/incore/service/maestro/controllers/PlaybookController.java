@@ -93,6 +93,8 @@ public class PlaybookController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a playbook definition", notes = "Post a playbook definition")
     public Playbook uploadPlaybook(@ApiParam(value = "json representing the playbook definition") Playbook playbook) {
+        // make sure user cannot update with id check
+        UserInfoUtils.throwExceptionIfIdPresent(playbook.getId());
         return this.playbookDAO.addPlaybook(playbook);
     }
 
