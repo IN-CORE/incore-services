@@ -10,8 +10,10 @@
 package edu.illinois.ncsa.incore.service.maestro;
 
 import com.mongodb.MongoClientURI;
-import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
-import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBRepository;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
+import edu.illinois.ncsa.incore.service.maestro.daos.MongoDBPlaybookDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -20,23 +22,26 @@ public class Application extends ResourceConfig {
     private static final Logger log = Logger.getLogger(Application.class);
 
     public Application() {
-        String mongodbUri = "mongodb://localhost:27017/maestrodb2";
+        String mongodbUri = "mongodb://localhost:27017/maestrodb";
 
         String mongodbUriProp = System.getenv("MAESTRO_MONGODB_URI");
         if (mongodbUriProp != null && !mongodbUriProp.isEmpty()) {
             mongodbUri = mongodbUriProp;
         }
 
-        IRepository mongoRepository = new MongoDBRepository(new MongoClientURI(mongodbUri));
-        mongoRepository.initialize();
+        // use same instance of mongo client
+        MongoClientURI mongoClientUri = new MongoClientURI(mongodbUri);
+        IPlaybookDAO playbookDAO = new MongoDBPlaybookDAO(mongoClientUri);
+        playbookDAO.initialize();
+
+        IAuthorizer authorizer = Authorizer.getInstance();
 
         super.register(new AbstractBinder() {
-
             @Override
             protected void configure() {
-                super.bind(mongoRepository).to(IRepository.class);
+                super.bind(playbookDAO).to(IPlaybookDAO.class);
+                super.bind(authorizer).to(IAuthorizer.class);
             }
-
         });
 
         super.register(new CorsFilter());

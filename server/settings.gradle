@@ -8,4 +8,5 @@ include 'incore-common'
 include "semantic-core"
 include 'semantics-service'
 include 'space-service'
+include 'maestro-service'
 
