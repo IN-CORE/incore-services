@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.0] - 2021-10-27
+# Added
+- Ability to store demand-specific threshold values in the metadata when creating hazards (pending for model-based earthquakes) [#1](https://github.com/IN-CORE/incore-services/issues/1)
+- Maestro service endpoints to record the status of playbook workflow and the status of each step [#16](https://github.com/IN-CORE/incore-services/issues/16)
+- Ability to include or exclude hazard datasets when querying for datasets through data service api calls [#10](https://github.com/IN-CORE/incore-services/issues/10)
+- Github action to run unit tests and automatically publish docker images [#20](https://github.com/IN-CORE/incore-services/issues/20)
+
+# Fixed
+- Bug that was allowing updating datasets, hazards and DFR3 objects through the POST method that was supposed to only create new entities. [#22](https://github.com/IN-CORE/incore-services/issues/22)
+
 ## [1.5.0] - 2021-08-31
 # Added
 - User status endpoint for DFR3 Service to show usage information [INCORE1-1156](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1156)
