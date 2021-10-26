@@ -100,13 +100,16 @@ jobs:
           elif [[ "${{github.event_name}}" == "pull_request" ]]; then
             BRANCH="PR-${{github.event.pull_request.number}}"
           else
-            BRANCH=${GITHUB_REF##*/}
+            if [[ $GITHUB_REF =~ "release#" ]]; then
+              BRANCH="release"
+            else
+              BRANCH=${GITHUB_REF##*/}
+            fi
           fi
 
-
           echo "GITHUB_BRANCH=${BRANCH}" >> $GITHUB_ENV
+          version=$(cat ./server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
           if [ "$BRANCH" == "master" ]; then
-            version=$(cat ./server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
             tags="latest"
             oldversion=""
             while [ "${oldversion}" != "${version}" ]; do
@@ -116,6 +119,9 @@ jobs:
             done
             echo "VERSION=${version}" >> $GITHUB_ENV
             echo "TAGS=${tags}" >> $GITHUB_ENV
+          elif [ "$BRANCH" == "release" ]; then
+            echo "VERSION=${version}-rc" >> $GITHUB_ENV
+            echo "TAGS=${version}-rc" >> $GITHUB_ENV
           elif [ "$BRANCH" == "develop" ]; then
             echo "VERSION=develop" >> $GITHUB_ENV
             echo "TAGS=develop" >> $GITHUB_ENV
