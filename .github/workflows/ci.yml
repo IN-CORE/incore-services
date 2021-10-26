@@ -100,7 +100,7 @@ jobs:
           elif [[ "${{github.event_name}}" == "pull_request" ]]; then
             BRANCH="PR-${{github.event.pull_request.number}}"
           else
-            if [[ $GITHUB_REF =~ "release#" ]]; then
+            if [[ $GITHUB_REF =~ "release/" ]]; then
               BRANCH="release"
             else
               BRANCH=${GITHUB_REF##*/}
