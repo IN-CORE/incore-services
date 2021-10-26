@@ -84,7 +84,7 @@ jobs:
           - name: semantics
             dockerfile: Dockerfile.semantics
             hub_project: incore/semantics-jetty
-          - name: semantics
+          - name: maestro
             dockerfile: Dockerfile.maestro
             hub_project: incore/maestro-jetty
           - name: space
