@@ -134,7 +134,7 @@ jobs:
       - name: Build docker image
         if: |
           github.repository == env.MAIN_REPO &&
-          (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'master')
+          (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'master' || env.GITHUB_BRANCH == 'release')
         uses: elgohr/Publish-Docker-Github-Action@3.04
         with:
           dockerfile: ${{ matrix.dockerfile }}
@@ -144,7 +144,7 @@ jobs:
       - name: Publish docker image to NCSA hub
         if: |
           github.repository == env.MAIN_REPO &&
-          (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'master')
+          (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'master'|| env.GITHUB_BRANCH == 'release')
         uses: elgohr/Publish-Docker-Github-Action@3.04
         with:
           dockerfile: ${{ matrix.dockerfile }}
