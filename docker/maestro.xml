@@ -1,0 +1,4 @@
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">/maestro/</Set>
+  <Set name="war">/home/incore/lib/maestro-service.war</Set>
+</Configure>
