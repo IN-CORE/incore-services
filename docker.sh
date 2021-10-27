@@ -16,3 +16,4 @@ $DEBUG docker build -t incore/dfr3-jetty -f Dockerfile.dfr3 .
 $DEBUG docker build -t incore/hazard-jetty -f Dockerfile.hazard .
 $DEBUG docker build -t incore/space-jetty -f Dockerfile.space .
 $DEBUG docker build -t incore/semantics-jetty -f Dockerfile.semantics .
+$DEBUG docker build -t incore/maestro-jetty -f Dockerfile.maestro .
