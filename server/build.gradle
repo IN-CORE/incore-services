@@ -50,7 +50,7 @@ apply plugin: 'war'
 // This will not apply to the war files we build unless we put it within project loop
 // at the end of this file. This is only for the docker build to pull a version
 war {
-    archiveVersion = '1.5.0'
+    archiveVersion = '1.6.0'
 }
 
 apply plugin: 'org.gretty'
@@ -67,6 +67,7 @@ farm {
     webapp ':hazard-service'
     webapp ':semantics-service'
     webapp ':space-service'
+    webapp ':maestro-service'
 }
 
 task farmWars(dependsOn: war, type: Copy) {
@@ -114,7 +115,7 @@ test {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["dfr3-service", "data-service", "hazard-service", "semantics-service", "space-service"].each { name ->
+["dfr3-service", "data-service", "hazard-service", "semantics-service", "space-service", "maestro-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'

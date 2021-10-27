@@ -159,6 +159,7 @@ public class MappingController {
         "DFR3 object sets")
     public MappingSet uploadMapping(@ApiParam(value = "json representing the fragility mapping") MappingSet mappingSet) {
 
+        UserInfoUtils.throwExceptionIfIdPresent(mappingSet.getId());
         List<Mapping> mappings = mappingSet.getMappings();
         int idx = 0;
         String prevRuleClassName = "";

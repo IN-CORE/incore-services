@@ -8,6 +8,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.hazard.models.flood;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
@@ -20,6 +21,7 @@ public abstract class FloodHazardDataset {
     private String datasetId;
     private String demandType;
     private String demandUnits;
+    private Double threshold = null;
 
     public String getDatasetId() {
         return datasetId;
@@ -43,5 +45,19 @@ public abstract class FloodHazardDataset {
 
     public void setDemandUnits(String demandUnits) {
         this.demandUnits = demandUnits;
+    }
+
+    public Double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(Double threshold) {
+        this.threshold = threshold;
+    }
+
+    @JsonIgnore
+    public String getThresholdJsonString(){
+        return String.format("{'%s': {'value': %s, 'unit': '%s'}}",
+            this.demandType, this.threshold, this.demandUnits);
     }
 }

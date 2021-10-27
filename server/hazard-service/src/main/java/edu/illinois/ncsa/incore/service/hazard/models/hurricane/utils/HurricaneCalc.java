@@ -51,8 +51,12 @@ public class HurricaneCalc {
                     if (hazardValue != null) {
                         hazardValue = HurricaneUtil.convertHazard(hazardValue, demandType, hazardDataset.getDemandUnits(), demandUnits);
 
-                        // convert demand type in keys to lower case
-                        JSONObject hurricaneThresholds = HazardUtil.toLowerKey(HazardUtil.HURRICANE_THRESHOLDS);
+                        JSONObject hurricaneThresholds;
+                        if (hazardDataset.getThreshold() != null){
+                            hurricaneThresholds = HazardUtil.toLowerKey(new JSONObject(hazardDataset.getThresholdJsonString()));
+                        } else {
+                            hurricaneThresholds = HazardUtil.toLowerKey(HazardUtil.HURRICANE_THRESHOLDS);
+                        }
 
                         if (hurricaneThresholds.has(demandType.toLowerCase())) {
                             JSONObject demandThreshold = ((JSONObject) hurricaneThresholds.get(demandType.toLowerCase()));

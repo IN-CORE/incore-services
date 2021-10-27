@@ -11,21 +11,20 @@ package mocks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
-import edu.illinois.ncsa.incore.service.maestro.models.Analysis;
-import org.mockito.Mockito;
 import dev.morphia.Datastore;
+import dev.morphia.query.FindOptions;
+import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
+import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-public class MockRepository implements IRepository {
-    private Datastore mockDataStore;
-    private List<Analysis> analyses = new ArrayList<>();
+public class MockRepository implements IPlaybookDAO {
+    private final Datastore mockDataStore;
+    private List<Playbook> playbooks = new ArrayList<>();
 
     public MockRepository() {
         this.mockDataStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);
@@ -33,68 +32,45 @@ public class MockRepository implements IRepository {
 
     @Override
     public void initialize() {
-        URL analysesPath = this.getClass().getClassLoader().getResource("json/analyses.json");
+        URL playbooksPath = this.getClass().getClassLoader().getResource("json/playbooks.json");
 
         try {
-            this.analyses = new ObjectMapper().readValue(analysesPath, new TypeReference<List<Analysis>>() {
+            this.playbooks = new ObjectMapper().readValue(playbooksPath, new TypeReference<List<Playbook>>() {
             });
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
-        Mockito.when(mockDataStore.find(Analysis.class)
-                .limit(Mockito.any(Integer.class))
-                .asList())
-            .thenReturn(this.analyses);
+        Mockito.when(mockDataStore.find(Playbook.class)
+                .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
+            .thenReturn(this.playbooks);
+
     }
 
     @Override
-    public List<Analysis> getAllAnalyses() {
-        return this.analyses;
+    public List<Playbook> getAllPlaybooks() {
+        return this.playbooks;
     }
 
-    @Override
-    public Datastore getDataStore() {
-        return this.mockDataStore;
-    }
 
     @Override
-    public Analysis getAnalysisById(String id) {
-        for (int i = 0; i < this.analyses.size(); i++) {
-            if (this.analyses.get(i).getId().equalsIgnoreCase(id)) {
-                return this.analyses.get(i);
+    public Playbook getPlaybookById(String id) {
+        for (int i = 0; i < this.playbooks.size(); i++) {
+            if (this.playbooks.get(i).getId().equalsIgnoreCase(id)) {
+                return this.playbooks.get(i);
             }
         }
         return null;
     }
 
     @Override
-    public Analysis addAnalysis(Analysis analysis) {
-        this.analyses.add(analysis);
-        return this.analyses.get(this.analyses.size() - 1);
+    public Playbook addPlaybook(Playbook playbook) {
+        return null;
     }
 
     @Override
-    public List<Analysis> getAnalysis(Map<String, String> queryMap, int offset, int limit) {
-        List<Analysis> analyses = this.analyses;
-        List<Analysis> output = new ArrayList<>();
-        for (int i = 0; i < analyses.size(); i++) {
-            boolean include = true;
-            Set<String> keys = queryMap.keySet();
-            for (int j = 0; j < keys.size(); j++) {
-                if (keys.contains("name") && !analyses.get(i).getName().equals(queryMap.get("name"))) {
-                    include = false;
-                }
-                if (keys.contains("category") && !analyses.get(i).getCategory().equals(queryMap.get("category"))) {
-                    include = false;
-                }
-            }
-            if (include) {
-                output.add(analyses.get(i));
-            }
-        }
-
-        return output;
+    public Playbook removePlaybook(String playbookId) {
+        return null;
     }
 
 }

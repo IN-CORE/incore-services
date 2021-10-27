@@ -152,6 +152,7 @@ public class HurricaneController {
         Hurricane hurricane = null;
         try {
             hurricane = mapper.readValue(hurricaneJson, Hurricane.class);
+            UserInfoUtils.throwExceptionIfIdPresent(hurricane.getId());
 
             // Create temporary working directory
             File incoreWorkDirectory = File.createTempFile("incore", ".dir");

@@ -68,8 +68,14 @@ public class MongoDBRepository implements IRepository {
         this.initializeDataStore();
     }
 
-    public List<Dataset> getAllDatasets() {
-        return this.dataStore.find(Dataset.class).iterator().toList();
+    public List<Dataset> getAllDatasets(Boolean excludeHazard) {
+        if (excludeHazard) {
+            Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(
+                Filters.nin(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD));
+            return datasetQuery.iterator().toList();
+        } else {
+            return this.dataStore.find(Dataset.class).iterator().toList();
+        }
     }
 
     public List<MvzDataset> getAllMvzDatasets() {
@@ -83,16 +89,32 @@ public class MongoDBRepository implements IRepository {
         return this.dataStore.find(Dataset.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
-    public List<Dataset> getDatasetByType(String type) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
-            .filter(Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive());
-        return datasetQuery.iterator().toList();
+    public List<Dataset> getDatasetByType(String type, Boolean excludeHazard) {
+        if (excludeHazard) {
+            Query<Dataset>  datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+                Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive(),
+                Filters.nin(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
+            ));
+            return datasetQuery.iterator().toList();
+        } else {
+            Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
+                .filter(Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive());
+            return datasetQuery.iterator().toList();
+        }
     }
 
-    public List<Dataset> getDatasetByTitle(String title) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
-            .filter(Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive());
-        return datasetQuery.iterator().toList();
+    public List<Dataset> getDatasetByTitle(String title, Boolean excludeHazard) {
+        if (excludeHazard) {
+            Query<Dataset>  datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+                Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive(),
+                Filters.nin(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
+            ));
+            return datasetQuery.iterator().toList();
+        } else {
+            Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class)
+                .filter(Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive());
+            return datasetQuery.iterator().toList();
+        }
     }
 
     public List<Dataset> getDatasetByCreator(String creator, Boolean withHazard) {
@@ -111,12 +133,21 @@ public class MongoDBRepository implements IRepository {
         return datasetQuery.iterator().toList();
     }
 
-    public List<Dataset> getDatasetByTypeAndTitle(String type, String title) {
-        Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
-            Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive(),
-            Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive()
-        ));
-        return datasetQuery.iterator().toList();
+    public List<Dataset> getDatasetByTypeAndTitle(String type, String title, Boolean excludeHazard) {
+        if (excludeHazard) {
+            Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+                Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive(),
+                Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive(),
+                Filters.nin(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
+            ));
+            return datasetQuery.iterator().toList();
+        } else {
+            Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+                Filters.regex(DATASET_FIELD_TYPE).pattern(type).caseInsensitive(),
+                Filters.regex(DATASET_FIELD_TITLE).pattern(title).caseInsensitive()
+            ));
+            return datasetQuery.iterator().toList();
+        }
     }
 
     public Dataset getDatasetByFileDescriptorId(String id) {
@@ -146,7 +177,9 @@ public class MongoDBRepository implements IRepository {
 
     public List<FileDescriptor> getAllFileDescriptors() {
         List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
-        List<Dataset> datasets = getAllDatasets();
+        // in here, it will include all the hazards dataset as well
+        // TODO: if hazard dataset needs to be excluded, modify the method
+        List<Dataset> datasets = getAllDatasets(false);
         for (Dataset dataset : datasets) {
             List<FileDescriptor> fds = dataset.getFileDescriptors();
             fileDescriptors.addAll(fds);
@@ -190,16 +223,30 @@ public class MongoDBRepository implements IRepository {
     }
 
     @Override
-    public List<Dataset> searchDatasets(String text) {
-        Query<Dataset> query = this.dataStore.find(Dataset.class).filter(
-            Filters.or(
-                Filters.regex("title").pattern(text).caseInsensitive(),
-                Filters.regex("description").pattern(text).caseInsensitive(),
-                Filters.regex("creator").pattern(text).caseInsensitive(),
-                Filters.regex("fileDescriptors.filename").pattern(text).caseInsensitive(),
-                Filters.regex("dataType").pattern(text).caseInsensitive()
+    public List<Dataset> searchDatasets(String text, Boolean excludeHazard) {
+        if (excludeHazard) {
+            Query<Dataset> datasetQuery = this.dataStore.find(Dataset.class).filter(Filters.and(
+                Filters.or(
+                    Filters.regex("title").pattern(text).caseInsensitive(),
+                    Filters.regex("description").pattern(text).caseInsensitive(),
+                    Filters.regex("creator").pattern(text).caseInsensitive(),
+                    Filters.regex("fileDescriptors.filename").pattern(text).caseInsensitive(),
+                    Filters.regex("dataType").pattern(text).caseInsensitive()
+                ),
+                Filters.nin(DATASET_FIELD_TYPE, HazardConstants.DATA_TYPE_HAZARD)
             ));
-        return query.iterator().toList();
+            return datasetQuery.iterator().toList();
+        } else {
+            Query<Dataset> query = this.dataStore.find(Dataset.class).filter(
+                Filters.or(
+                    Filters.regex("title").pattern(text).caseInsensitive(),
+                    Filters.regex("description").pattern(text).caseInsensitive(),
+                    Filters.regex("creator").pattern(text).caseInsensitive(),
+                    Filters.regex("fileDescriptors.filename").pattern(text).caseInsensitive(),
+                    Filters.regex("dataType").pattern(text).caseInsensitive()
+                ));
+            return query.iterator().toList();
+        }
     }
 
     @Override

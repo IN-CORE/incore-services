@@ -9,7 +9,7 @@
  *******************************************************************************/
 package mocks;
 
-import edu.illinois.ncsa.incore.service.maestro.daos.IRepository;
+import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -17,16 +17,17 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class MockApplication extends ResourceConfig {
     private static final Logger log = Logger.getLogger(MockApplication.class);
 
-    public MockApplication(Class klass) {
-        IRepository mockRepository = new MockRepository();
-        mockRepository.initialize();
+    public MockApplication(Class clazz) {
+        IPlaybookDAO playbookDAO = new MockRepository();
+        playbookDAO.initialize();
 
-        super.register(klass);
+        super.register(clazz);
+
 
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                super.bind(mockRepository).to(IRepository.class);
+                super.bind(playbookDAO).to(IPlaybookDAO.class);
             }
         });
     }

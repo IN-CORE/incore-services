@@ -138,6 +138,8 @@ public class HurricaneWindfieldsController {
     public HurricaneWindfields createHurricaneWindfields(
         HurricaneWindfields inputHurricane) {
 
+        UserInfoUtils.throwExceptionIfIdPresent(inputHurricane.getId());
+
         HurricaneWindfields hurricaneWindfields = new HurricaneWindfields();
         if (inputHurricane != null) {
             String demandType = inputHurricane.getDemandType().trim();

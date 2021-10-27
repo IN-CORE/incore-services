@@ -145,6 +145,8 @@ public class RepairController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Create a repair set", notes = "Post a repair set to the repair service")
     public RepairSet uploadRepairSet(@ApiParam(value = "json representing the repair set") RepairSet repairSet) {
+
+        UserInfoUtils.throwExceptionIfIdPresent(repairSet.getId());
         repairSet.setCreator(username);
         String repairId = this.repairDAO.saveRepair(repairSet);
 
