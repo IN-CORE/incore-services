@@ -16,6 +16,7 @@ import java.util.List;
 @Embedded
 public class FragilityCurve {
     public List<Rule> rules;
+    public String label;
     public ReturnType returnType;
 
     // for building period fragility curve, it can over write the common fragility curve paramters outside
@@ -29,7 +30,7 @@ public class FragilityCurve {
     public FragilityCurve(List<Rule> rules, ReturnType returnType,
                                     List<FragilityCurveParameter> fragilityCurveParameters,
                                     String label) {
-        super(label);
+        this.label = label;
 
         this.rules = rules;
         this.returnType = returnType;
