@@ -5,29 +5,34 @@
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
- * Omar Elabd, Nathan Tolbert
  *******************************************************************************/
-
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
+import java.util.List;
 
-@XmlTransient
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
-@XmlSeeAlso({FragilityCurveRefactored.class})
+//@XmlTransient
 @Embedded
-public abstract class FragilityCurve {
-    public String description;
+public class FragilityCurve {
+    public List<Rule> rules;
+    public ReturnType returnType;
 
-    public FragilityCurve() {
+    // for building period fragility curve, it can over write the common fragility curve paramters outside
+    public List<FragilityCurveParameter> fragilityCurveParameters;
 
+
+    public FragilityCurveRefactored() {
+        super();
     }
 
-    public FragilityCurve(String label) {
-        this.description = label;
+    public FragilityCurveRefactored(List<Rule> rules, ReturnType returnType,
+                                    List<FragilityCurveParameter> fragilityCurveParameters,
+                                    String label) {
+        super(label);
+
+        this.rules = rules;
+        this.returnType = returnType;
+        this.fragilityCurveParameters = fragilityCurveParameters;
     }
 }
