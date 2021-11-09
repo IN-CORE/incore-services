@@ -22,11 +22,11 @@ public class FragilityCurve {
     public List<FragilityCurveParameter> fragilityCurveParameters;
 
 
-    public FragilityCurveRefactored() {
+    public FragilityCurve() {
         super();
     }
 
-    public FragilityCurveRefactored(List<Rule> rules, ReturnType returnType,
+    public FragilityCurve(List<Rule> rules, ReturnType returnType,
                                     List<FragilityCurveParameter> fragilityCurveParameters,
                                     String label) {
         super(label);
