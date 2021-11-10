@@ -58,7 +58,7 @@ public class HazardCalc {
     public static LiquefactionHazardResult getLiquefactionAtSite(Earthquake earthquake,
                                                                  Map<BaseAttenuation, Double> attenuations,
                                                                  Site site, SimpleFeatureCollection soilGeology,
-                                                                 String demandUnits,
+                                                                 String demandUnits, SimpleFeatureCollection siteClassFC,
                                                                  String creator) {
 
         // TODO fix this for dataset
@@ -73,11 +73,13 @@ public class HazardCalc {
         // TODO this should be optionally provided by the user with a ground water depth map
         double groundWaterDepth = 5.0;
         try {
+
             SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), soilGeology);
             if (feature != null) {
-                susceptibilitity = feature.getAttribute("liq_suscep").toString();
-                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA",
-                    "g", 0, true, creator).getHazardValue();
+                susceptibilitity = feature.getAttribute(HazardUtil.LIQ_SUSCEPTIBILITY).toString();
+                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", HazardUtil.PGA,
+                    HazardUtil.units_g, 0, true, siteClassFC, creator).getHazardValue();
+                System.out.println("PGA = " + pgaValue);
                 groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, magnitude);
                 double liqProbability = liquefaction.getProbabilityOfLiquefaction(eqModel.getEqParameters().getMagnitude(), pgaValue,
                     susceptibilitity, groundWaterDepth);
@@ -106,13 +108,23 @@ public class HazardCalc {
 
     public static SeismicHazardResult getGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations,
                                                             Site site, String period, String hazardType, String demandUnits,
-                                                            int spectrumOverride, boolean amplifyHazard, String creator) throws Exception {
+                                                            int spectrumOverride, boolean amplifyHazard,
+                                                            SimpleFeatureCollection siteClassFC,
+                                                            String creator) throws Exception {
         // If demand type units is null, use default for the requested demand
         // This might not be the best way to handle it, but it is at least consistent in providing the units of what is
         // being returned
         if (demandUnits == null) {
             // This code should be probably not be inside the BaseAttenuation
             demandUnits = BaseAttenuation.getUnits(hazardType);
+        }
+
+        if (amplifyHazard && siteClassFC != null) {
+            SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), siteClassFC);
+            if (feature != null) {
+                String siteClass = feature.getAttribute(HazardUtil.SOILTYPE).toString();
+                site.setSiteClass(siteClass);
+            }
         }
 
         if (HazardUtil.SD.equalsIgnoreCase(hazardType)) {
@@ -229,7 +241,7 @@ public class HazardCalc {
     }
 
     public static Double applyEqThresholds(JSONObject earthquakeThresholds, double hazardValue,
-                                              String demand, String demandUnits, String closestHazardPeriod) {
+                                           String demand, String demandUnits, String closestHazardPeriod) {
         Double adjustedHazardValue = hazardValue;
         if (earthquakeThresholds.has(demand.toLowerCase())) {
             JSONObject demandThresholds = ((JSONObject) earthquakeThresholds.get(demand.toLowerCase()));
@@ -291,8 +303,9 @@ public class HazardCalc {
 
             hazardValue = Math.exp(hazardValue);
 
-            // TODO check if site class dataset is defined for amplifying hazard
-            int siteClass = HazardUtil.getSiteClassAsInt(eqModel.getDefaultSiteClass());
+            // Get site class information if available, otherwise use the scenario default
+            int siteClass = site.getSiteClass() != null ? HazardUtil.getSiteClassAsInt(site.getSiteClass()) :
+                HazardUtil.getSiteClassAsInt(eqModel.getDefaultSiteClass());
 
             SiteAmplification siteAmplification = null;
             if (amplifyHazard) {
@@ -334,7 +347,7 @@ public class HazardCalc {
             GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
             try {
                 JSONObject EqThresholds;
-                if (hazardDataset.getThreshold() != null){
+                if (hazardDataset.getThreshold() != null) {
                     EqThresholds = HazardUtil.toLowerKey(new JSONObject(hazardDataset.getThresholdJsonString()));
                 } else {
                     EqThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS);
@@ -348,8 +361,7 @@ public class HazardCalc {
                     Double convertedHazardVal = HazardUtil.convertHazard(hazardValue, hazardDataset.getDemandUnits(),
                         Double.parseDouble(period), hazardDataset.getDemandType(), demandUnits, demand);
                     return new SeismicHazardResult(convertedHazardVal, closestHazardPeriod, demand, demandUnits);
-                }
-                else{
+                } else {
                     return new SeismicHazardResult(null, closestHazardPeriod, demand, demandUnits);
                 }
 
@@ -464,7 +476,7 @@ public class HazardCalc {
                 localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
                 double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations,
                     localSite, demandComponents[0], demandComponents[1], demandUnits,
-                    0, amplifyHazard, creator).getHazardValue();
+                    0, amplifyHazard, null, creator).getHazardValue();
 
                 raster.setSample(x, y, 0, hazardValue);
 

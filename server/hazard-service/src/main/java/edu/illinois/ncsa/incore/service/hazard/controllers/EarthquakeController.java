@@ -401,7 +401,7 @@ public class EarthquakeController {
                     try {
                         localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
                         hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period,
-                            demand, demandUnits, 0, amplifyHazard, this.username);
+                            demand, demandUnits, 0, amplifyHazard, null, this.username);
                         hazardResults.add(new HazardResult(startY, startX, hazardValue.getHazardValue()));
                     } catch (Exception e) {
                         logger.error("Error computing hazard value.", e);
@@ -429,6 +429,8 @@ public class EarthquakeController {
         @PathParam("earthquake-id") String earthquakeId,
         @ApiParam(value = "Json of the points along with demand types and units",
             required = true) @FormDataParam("points") String requestJsonStr,
+        @ApiParam(value = "Site class dataset from data service.", required = false)
+        @FormDataParam("siteClassId") @DefaultValue("") String siteClassId,
         @ApiParam(value = "Amplify earthquake by soil type", required = false)
         @FormDataParam("amplifyHazard") @DefaultValue("true") boolean amplifyHazard) {
 
@@ -442,6 +444,11 @@ public class EarthquakeController {
             } catch (UnsupportedHazardException ex) {
                 throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "Attenuation model not found");
             }
+        }
+
+        SimpleFeatureCollection siteClassFC = null;
+        if (!siteClassId.isEmpty()) {
+            siteClassFC = (SimpleFeatureCollection) GISUtil.getFeatureCollection(siteClassId, this.username);
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -483,7 +490,7 @@ public class EarthquakeController {
                                     try {
                                         res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
                                             new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
-                                            units.get(i), 0, amplifyHazard, this.username);
+                                            units.get(i), 0, amplifyHazard, siteClassFC, this.username);
                                         //condition to only show PGA/PGV without period prepended
                                         String period = Float.parseFloat(res.getPeriod().trim()) == 0.0 ? "" : res.getPeriod().trim() + " ";
                                         resDemands.add(period + res.getDemand());
@@ -572,7 +579,7 @@ public class EarthquakeController {
 
                 try {
                     hazardResults.add(HazardCalc.getGroundMotionAtSite(eq, attenuations, localSite, demandComponents[0],
-                        demandComponents[1], demandUnits, 0, amplifyHazard, this.username));
+                        demandComponents[1], demandUnits, 0, amplifyHazard, null, this.username));
                 } catch (Exception e) {
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard.");
                 }
@@ -755,7 +762,8 @@ public class EarthquakeController {
         @ApiParam(value = "Json of the points along with demand types(pgd) and units",
             required = true) @FormDataParam("points") String requestJsonStr,
         @ApiParam(value = "Geology dataset from data service.", required = true)
-        @FormDataParam("geologyDataset") String geologyId) {
+        @FormDataParam("geologyDataset") String geologyId, @ApiParam(value = "Site class dataset from data service.", required = false)
+        @FormDataParam("siteClassId") @DefaultValue("") String siteClassId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
         if (!(eq instanceof EarthquakeModel)) {
@@ -777,6 +785,10 @@ public class EarthquakeController {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Attenuation model not found");
             }
 
+            SimpleFeatureCollection siteClassFC = null;
+            if (!siteClassId.isEmpty()) {
+                siteClassFC = (SimpleFeatureCollection) GISUtil.getFeatureCollection(siteClassId, this.username);
+            }
 
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId,
                 this.username);
@@ -799,8 +811,8 @@ public class EarthquakeController {
                     Site localSite = new Site(request.getLoc().getLocation());
                     // TODO find groundwater depth if shapefile is passed in
                     LiquefactionHazardResult res = HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite,
-                        soilGeology, units.get(i), this.username);
-                    resDemands.add("PGD");
+                        soilGeology, units.get(i), siteClassFC, this.username);
+                    resDemands.add(PGD);
                     resUnits.add(res.getPgdUnits());
                     pgdVals.add(res.getPgd());
                     liqProb = res.getLiqProbability();
@@ -824,7 +836,6 @@ public class EarthquakeController {
                 "request.");
         }
     }
-
 
     @GET
     @Path("{earthquake-id}/liquefaction/values")
@@ -856,7 +867,7 @@ public class EarthquakeController {
                 Site localSite = new Site(point.getLocation());
                 // TODO find groundwater depth if shapefile is passed in
                 hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology,
-                    demandUnits, this.username));
+                    demandUnits, null, this.username));
             }
 
             return hazardResults;
