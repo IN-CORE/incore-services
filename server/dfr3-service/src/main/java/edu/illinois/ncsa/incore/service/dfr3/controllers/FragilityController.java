@@ -11,7 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -21,6 +21,7 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
+import org.bson.Document;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -68,6 +69,8 @@ public class FragilityController {
     private IMappingDAO mappingDAO;
     @Inject
     private ISpaceRepository spaceRepository;
+    @Inject
+    private ICommonRepository commonRepository;
 
     @Inject
     public FragilityController(
@@ -162,18 +165,24 @@ public class FragilityController {
     public FragilitySet uploadFragilitySet(@ApiParam(value = "json representing the fragility set") FragilitySet fragilitySet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(fragilitySet.getId());
-        fragilitySet.setCreator(username);
-        String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
 
-        Space space = spaceRepository.getSpaceByName(username);
-        if (space == null) {
-            space = new Space(username);
-            space.setPrivileges(Privileges.newWithSingleOwner(username));
-        }
-        space.addMember(fragilityId);
-        spaceRepository.addSpace(space);
+        // check if demand type is correct according to the definition; for now get the first definition
+        Document demandDefinition = commonRepository.getAllDemandDefinitions().get(0);
+        String hazardType = fragilitySet.getHazardType();
+        Object listOfDemands = demandDefinition.get(hazardType);
 
-        fragilitySet.setSpaces(spaceRepository.getSpaceNamesOfMember(fragilitySet.getId()));
+//        fragilitySet.setCreator(username);
+//        String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
+//
+//        Space space = spaceRepository.getSpaceByName(username);
+//        if (space == null) {
+//            space = new Space(username);
+//            space.setPrivileges(Privileges.newWithSingleOwner(username));
+//        }
+//        space.addMember(fragilityId);
+//        spaceRepository.addSpace(space);
+//
+//        fragilitySet.setSpaces(spaceRepository.getSpaceNamesOfMember(fragilitySet.getId()));
 
         return fragilitySet;
     }

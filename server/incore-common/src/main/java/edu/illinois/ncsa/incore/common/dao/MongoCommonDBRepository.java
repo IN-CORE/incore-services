@@ -19,6 +19,7 @@ import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.experimental.filters.Filters;
 import org.apache.log4j.Logger;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.util.List;
@@ -41,12 +42,12 @@ public class MongoCommonDBRepository implements ICommonRepository {
         this.initializeDataStore();
     }
 
-    public List<Object> getAllDemandDefintions() {
-        return this.dataStore.find(Object.class).iterator().toList();
+    public List<Document> getAllDemandDefinitions() {
+        return this.dataStore.find(Document.class).iterator().toList();
     }
 
-    public Object getDemandDefinitionById(String id) {
-        return this.dataStore.find(Object.class).filter(Filters.eq("_id", new ObjectId(id))).first();
+    public Document getDemandDefinitionById(String id) {
+        return this.dataStore.find(Document.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     private void initializeDataStore() {

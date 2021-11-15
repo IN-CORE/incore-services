@@ -1,12 +1,14 @@
 package edu.illinois.ncsa.incore.common.dao;
 
+import org.bson.Document;
+
 import java.util.List;
 
 public interface ICommonRepository {
 
     void initialize();
 
-    List<Object> getAllDemandDefintions();
+    List<Document> getAllDemandDefinitions();
 
-    Object getDemandDefinitionById(String id);
+    Document getDemandDefinitionById(String id);
 }
