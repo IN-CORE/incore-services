@@ -11,24 +11,23 @@
 
 package edu.illinois.ncsa.incore.common.dao;
 
+import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoClients;
-import dev.morphia.Datastore;
-import dev.morphia.Morphia;
-import dev.morphia.mapping.DiscriminatorFunction;
-import dev.morphia.mapping.MapperOptions;
-import dev.morphia.query.experimental.filters.Filters;
+import com.mongodb.client.MongoCollection;
 import org.apache.log4j.Logger;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.mongodb.client.model.Filters.eq;
 
 
 public class MongoCommonDBRepository implements ICommonRepository {
     private final String databaseName;
     private final MongoClientURI mongoClientURI;
-    private Datastore dataStore;
+    private MongoCollection dataStore;
 
     private final Logger logger = Logger.getLogger(MongoCommonDBRepository.class);
 
@@ -43,23 +42,15 @@ public class MongoCommonDBRepository implements ICommonRepository {
     }
 
     public List<Document> getAllDemandDefinitions() {
-        return this.dataStore.find(Document.class).iterator().toList();
+        return (List<Document>) this.dataStore.find().into(new ArrayList<Document>());
     }
 
     public Document getDemandDefinitionById(String id) {
-        return this.dataStore.find(Document.class).filter(Filters.eq("_id", new ObjectId(id))).first();
+        return (Document) this.dataStore.find(eq("_id", new ObjectId(id))).first();
     }
 
     private void initializeDataStore() {
-        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()), databaseName,
-            MapperOptions
-                .builder()
-                .discriminator(DiscriminatorFunction.className())
-                .discriminatorKey("className")
-                .build()
-        );
-        morphiaStore.getMapper().map(Object.class);
-        morphiaStore.ensureIndexes();
-        this.dataStore = morphiaStore;
+        MongoClient client = new MongoClient(mongoClientURI);
+        this.dataStore = client.getDatabase(databaseName).getCollection("Demand");
     }
 }
