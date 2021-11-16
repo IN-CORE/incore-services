@@ -30,8 +30,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.dfr3.utils.ValidationUtils.isDemandValid;
 
 
 @SwaggerDefinition(
@@ -175,6 +176,7 @@ public class FragilityController {
         List<String> demandTypes = fragilitySet.getDemandTypes();
         List<String> demandUnits = fragilitySet.getDemandUnits();
 
+        // check if size of demand type matches the unit
         if (demandTypes.size() != demandUnits.size()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand Types should match the shape of Demand Units!");
         } else {
@@ -184,20 +186,15 @@ public class FragilityController {
                 String demandType = dt.next().toLowerCase(Locale.ROOT);
                 String demandUnit = du.next().toLowerCase(Locale.ROOT);
                 JSONArray listOfDemands = demandDefinition.getJSONArray(hazardType);
-                AtomicBoolean match = new AtomicBoolean(false);
-                listOfDemands.forEach(entry -> {
-                    if (((JSONObject) entry).get("demand_type").toString().toLowerCase(Locale.ROOT).equals(demandType)) {
-                        JSONArray allowedDemandUnits = ((JSONObject) entry).getJSONArray("demand_unit");
-                        allowedDemandUnits.forEach(unit -> {
-                            if (unit.toString().toLowerCase(Locale.ROOT).equals(demandUnit)) {
-                                match.set(true);
-                            }
-                        });
-                    }
-                });
 
-                if (!match.get()) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand unit does not match the definition");
+                List<Boolean> matched = isDemandValid(demandType, demandUnit, hazardType, listOfDemands);
+                if (!matched.get(0)) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand type: " + demandType + " not allowed.\n Allowed " +
+                        "demand types and units are: " + listOfDemands);
+                } else if (!matched.get(1)) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
+                        "Demand unit: " + demandUnit + " does not match the definition.\n " +
+                            "Allowed demand types and units are: " + listOfDemands);
                 }
             }
         }

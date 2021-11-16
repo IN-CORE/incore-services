@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.common.utils;
+package edu.illinois.ncsa.incore.service.dfr3.utils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ValidationUtils {
     // validate demand type matches demand unit or not
     public static List<Boolean> isDemandValid(String demandType, String demandUnit, String hazardType,
-                                              JSONObject demandDefinition) {
+                                              JSONArray listOfDemands) {
 
-        JSONArray listOfDemands = demandDefinition.getJSONArray(hazardType);
+
         AtomicBoolean demandTypeExisted = new AtomicBoolean(false);
         AtomicBoolean demandUnitAllowed = new AtomicBoolean(false);
         listOfDemands.forEach(entry -> {
