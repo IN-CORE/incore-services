@@ -22,13 +22,15 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
-import org.bson.Document;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
@@ -168,9 +170,37 @@ public class FragilityController {
         UserInfoUtils.throwExceptionIfIdPresent(fragilitySet.getId());
 
         // check if demand type is correct according to the definition; for now get the first definition
-        Document demandDefinition = commonRepository.getAllDemandDefinitions().get(0);
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
         String hazardType = fragilitySet.getHazardType();
-        Object listOfDemands = demandDefinition.get(hazardType);
+        List<String> demandTypes = fragilitySet.getDemandTypes();
+        List<String> demandUnits = fragilitySet.getDemandUnits();
+
+        if (demandTypes.size() != demandUnits.size()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand Types should match the shape of Demand Units!");
+        } else {
+            Iterator<String> dt = demandTypes.iterator();
+            Iterator<String> du = demandUnits.iterator();
+            while (dt.hasNext() && du.hasNext()) {
+                String demandType = dt.next().toLowerCase(Locale.ROOT);
+                String demandUnit = du.next().toLowerCase(Locale.ROOT);
+                JSONArray listOfDemands = demandDefinition.getJSONArray(hazardType);
+                AtomicBoolean match = new AtomicBoolean(false);
+                listOfDemands.forEach(entry -> {
+                    if (((JSONObject) entry).get("demand_type").toString().toLowerCase(Locale.ROOT).equals(demandType)) {
+                        JSONArray allowedDemandUnits = ((JSONObject) entry).getJSONArray("demand_unit");
+                        allowedDemandUnits.forEach(unit -> {
+                            if (unit.toString().toLowerCase(Locale.ROOT).equals(demandUnit)) {
+                                match.set(true);
+                            }
+                        });
+                    }
+                });
+
+                if (!match.get()) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand unit does not match the definition");
+                }
+            }
+        }
 
         fragilitySet.setCreator(username);
         String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
@@ -192,7 +222,8 @@ public class FragilityController {
     @Path("{fragilityId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a fragility by Id", notes = "Get a particular fragility based on the id provided")
-    public FragilitySet getFragilityById(@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
+    public FragilitySet getFragilityById
+        (@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
@@ -219,7 +250,8 @@ public class FragilityController {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
-                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping. It" +
+                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping" +
+                        ". It" +
                         " can not be deleted until" +
                         " all its references are removed from mappings");
                 } else {
