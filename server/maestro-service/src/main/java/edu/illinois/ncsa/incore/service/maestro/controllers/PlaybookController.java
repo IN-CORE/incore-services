@@ -14,6 +14,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
+import edu.illinois.ncsa.incore.service.maestro.models.Step;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 
@@ -97,6 +98,54 @@ public class PlaybookController {
         UserInfoUtils.throwExceptionIfIdPresent(playbook.getId());
         return this.playbookDAO.addPlaybook(playbook);
     }
+
+    @GET
+    @Path("{playbookId}/steps/{stepId}/status")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "get a step status", notes = "get step status")
+    public List<Step> getStepStatus(@ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+                                    @ApiParam(value = "step id") @PathParam("stepId") String stepId) {
+
+    }
+
+    @PUT
+    @Path("{playbookId}/steps/{stepId}/status")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "update a step status", notes = "get step status")
+    public Step updateStepStatus(
+        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+        @ApiParam(value = "step id") @PathParam("stepId") String stepId) {
+
+    }
+
+    @GET
+    @Path("{playbookId}/substeps/{substepId}/status")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "get a step status", notes = "get step status")
+    public Step getSubstepStatus(@ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+                                 @ApiParam(value = "step id") @PathParam("substepId") String stepId) {
+
+    }
+
+    @PUT
+    @Path("{playbookId}/substeps/{substepId}/status")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "update a substep status", notes = "get step status")
+    public Step updateSubstepStatus(
+        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+        @ApiParam(value = "step id") @PathParam("substepId") String stepId
+    ) {
+
+    }
+
+    @GET
+    @Path("{playbookId}/substeps/{substepId}/requiredSteps")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "given a substep id list required steps", notes = "get substep status")
+    public List<Step> listRequiredSteps(@ApiParam(value = "step id") @PathParam("substepId") String stepId) {
+
+    }
+
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
