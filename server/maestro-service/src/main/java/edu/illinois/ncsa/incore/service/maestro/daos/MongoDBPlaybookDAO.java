@@ -13,9 +13,12 @@ import com.mongodb.MongoClientURI;
 import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
+import edu.illinois.ncsa.incore.service.maestro.models.Step;
+import edu.illinois.ncsa.incore.service.maestro.models.SubStep;
 import org.bson.types.ObjectId;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class MongoDBPlaybookDAO extends MongoDAO implements IPlaybookDAO {
@@ -65,4 +68,38 @@ public class MongoDBPlaybookDAO extends MongoDAO implements IPlaybookDAO {
         return query.findAndDelete();
     }
 
+    @Override
+    public Optional<Step> getStepById(String playbookId, String stepId) {
+        if (!ObjectId.isValid(playbookId)) {
+            return Optional.empty();
+        }
+
+        Playbook playbook = this.dataStore.find(Playbook.class)
+            .filter(Filters.eq("_id", new ObjectId(playbookId))).first();
+
+        return playbook.getSteps().stream()
+            .filter(step -> step.getId().equals(stepId))
+            .findFirst();
+    }
+
+    @Override
+    public Optional<SubStep> getSubstepById(String playbookId, String stepId, String substepId) {
+        if (!ObjectId.isValid(playbookId)) {
+            return Optional.empty();
+        }
+
+        Playbook playbook = this.dataStore.find(Playbook.class)
+            .filter(Filters.eq("_id", new ObjectId(playbookId))).first();
+
+        Optional<Step> matchedStep = playbook.getSteps().stream()
+            .filter(step -> step.getId().equals(stepId))
+            .findFirst();
+
+        return matchedStep.flatMap(step -> step
+            .getSubsteps()
+            .stream()
+            .filter(substep -> substep.getId().equals(substepId))
+            .findFirst()
+        );
+    }
 }

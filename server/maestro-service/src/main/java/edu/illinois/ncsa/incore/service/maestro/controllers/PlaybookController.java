@@ -14,7 +14,9 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
+import edu.illinois.ncsa.incore.service.maestro.models.Status;
 import edu.illinois.ncsa.incore.service.maestro.models.Step;
+import edu.illinois.ncsa.incore.service.maestro.models.SubStep;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 
@@ -23,6 +25,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.Optional;
 
 @SwaggerDefinition(
     info = @Info(
@@ -103,47 +106,62 @@ public class PlaybookController {
     @Path("{playbookId}/steps/{stepId}/status")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "get a step status", notes = "get step status")
-    public List<Step> getStepStatus(@ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
-                                    @ApiParam(value = "step id") @PathParam("stepId") String stepId) {
-
+    public Status getStepStatus(@ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+                                @ApiParam(value = "step id") @PathParam("stepId") String stepId) {
+        Optional<Step> matchedStep = this.playbookDAO.getStepById(playbookId, stepId);
+        if (matchedStep.isPresent()) {
+            return matchedStep.get().getStatus();
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the matched step.");
     }
 
-    @PUT
-    @Path("{playbookId}/steps/{stepId}/status")
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "update a step status", notes = "get step status")
-    public Step updateStepStatus(
-        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
-        @ApiParam(value = "step id") @PathParam("stepId") String stepId) {
-
-    }
+//    @PUT
+//    @Path("{playbookId}/steps/{stepId}/status")
+//    @Produces({MediaType.APPLICATION_JSON})
+//    @ApiOperation(value = "update a step status", notes = "get step status")
+//    public Step updateStepStatus(
+//        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+//        @ApiParam(value = "step id") @PathParam("stepId") String stepId) {
+//
+//    }
 
     @GET
-    @Path("{playbookId}/substeps/{substepId}/status")
+    @Path("{playbookId}/steps/{stepId}/substeps/{substepId}/status")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "get a step status", notes = "get step status")
-    public Step getSubstepStatus(@ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
-                                 @ApiParam(value = "step id") @PathParam("substepId") String stepId) {
-
+    @ApiOperation(value = "get a substep status", notes = "get substep status")
+    public Status getSubstepStatus(@ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+                                   @ApiParam(value = "step id") @PathParam("stepId") String stepId,
+                                   @ApiParam(value = "substep id") @PathParam("substepId") String substepId) {
+        Optional<SubStep> matchedSubstep = this.playbookDAO.getSubstepById(playbookId, stepId, substepId);
+        if (matchedSubstep.isPresent()) {
+            return matchedSubstep.get().getStatus();
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the matched substep.");
     }
 
-    @PUT
-    @Path("{playbookId}/substeps/{substepId}/status")
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "update a substep status", notes = "get step status")
-    public Step updateSubstepStatus(
-        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
-        @ApiParam(value = "step id") @PathParam("substepId") String stepId
-    ) {
-
-    }
+//    @PUT
+//    @Path("{playbookId}/substeps/{substepId}/status")
+//    @Produces({MediaType.APPLICATION_JSON})
+//    @ApiOperation(value = "update a substep status", notes = "get step status")
+//    public Step updateSubstepStatus(
+//        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+//        @ApiParam(value = "step id") @PathParam("substepId") String stepId
+//    ) {
+//
+//    }
 
     @GET
-    @Path("{playbookId}/substeps/{substepId}/requiredSteps")
+    @Path("{playbookId}/steps/{stepId}/substeps/{substepId}/requiredSteps")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "given a substep id list required steps", notes = "get substep status")
-    public List<Step> listRequiredSteps(@ApiParam(value = "step id") @PathParam("substepId") String stepId) {
-
+    public List<String> listRequiredStepIds(@ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
+                                            @ApiParam(value = "step id") @PathParam("stepId") String stepId,
+                                            @ApiParam(value = "substep id") @PathParam("substepId") String substepId) {
+        Optional<SubStep> matchedSubstep = this.playbookDAO.getSubstepById(playbookId, stepId, substepId);
+        if (matchedSubstep.isPresent()) {
+            return matchedSubstep.get().getRequiredSteps();
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the matched substep.");
     }
 
 
