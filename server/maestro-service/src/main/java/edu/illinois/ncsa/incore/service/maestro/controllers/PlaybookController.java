@@ -115,16 +115,6 @@ public class PlaybookController {
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the matched step.");
     }
 
-//    @PUT
-//    @Path("{playbookId}/steps/{stepId}/status")
-//    @Produces({MediaType.APPLICATION_JSON})
-//    @ApiOperation(value = "update a step status", notes = "get step status")
-//    public Step updateStepStatus(
-//        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
-//        @ApiParam(value = "step id") @PathParam("stepId") String stepId) {
-//
-//    }
-
     @GET
     @Path("{playbookId}/steps/{stepId}/substeps/{substepId}/status")
     @Produces({MediaType.APPLICATION_JSON})
@@ -138,17 +128,6 @@ public class PlaybookController {
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the matched substep.");
     }
-
-//    @PUT
-//    @Path("{playbookId}/substeps/{substepId}/status")
-//    @Produces({MediaType.APPLICATION_JSON})
-//    @ApiOperation(value = "update a substep status", notes = "get step status")
-//    public Step updateSubstepStatus(
-//        @ApiParam(value = "playbook id") @PathParam("playbookId") String playbookId,
-//        @ApiParam(value = "step id") @PathParam("substepId") String stepId
-//    ) {
-//
-//    }
 
     @GET
     @Path("{playbookId}/steps/{stepId}/substeps/{substepId}/requiredSteps")

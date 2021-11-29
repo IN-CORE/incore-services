@@ -19,7 +19,6 @@ import javax.naming.directory.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 class Groups {
     private long lastUserRefresh = 0;
@@ -118,7 +117,6 @@ public class LdapClient {
         userGroupCache.put(user, groupsInfo);
 
         return result;
-
 
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
 @Embedded
 public class Step {
     public String id;
-    
+
     public String description;
 
     public Status status;
