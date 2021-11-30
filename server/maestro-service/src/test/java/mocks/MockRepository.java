@@ -15,12 +15,15 @@ import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import edu.illinois.ncsa.incore.service.maestro.daos.IPlaybookDAO;
 import edu.illinois.ncsa.incore.service.maestro.models.Playbook;
+import edu.illinois.ncsa.incore.service.maestro.models.Step;
+import edu.illinois.ncsa.incore.service.maestro.models.SubStep;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class MockRepository implements IPlaybookDAO {
     private final Datastore mockDataStore;
@@ -71,6 +74,16 @@ public class MockRepository implements IPlaybookDAO {
     @Override
     public Playbook removePlaybook(String playbookId) {
         return null;
+    }
+
+    @Override
+    public Optional<Step> getStepById(String playbookId, String stepId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<SubStep> getSubstepById(String playbookId, String stepId, String substepId) {
+        return Optional.empty();
     }
 
 }
