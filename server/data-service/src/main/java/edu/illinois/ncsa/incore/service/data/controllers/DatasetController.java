@@ -15,10 +15,13 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.models.SpaceUsage;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import edu.illinois.ncsa.incore.common.models.Allocation;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
@@ -95,6 +98,9 @@ public class DatasetController {
 
     @Inject
     private ISpaceRepository spaceRepository;
+
+    @Inject
+    private IAllocationRepository allocationRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -352,6 +358,27 @@ public class DatasetController {
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
 
+            Space space = spaceRepository.getSpaceByName(this.username);
+            Allocation allocation = new Allocation();   // get default allocation
+            SpaceUsage usage = new SpaceUsage();
+
+            // if space is null, it means that this post should be the very first post by the user
+            // so the check should be passed.
+            if (space == null) {
+                logger.info("First POST, no need to check the allocation");
+            } else {
+                String spaceId = space.getId();
+                // check if there is special allocation for the user
+                allocation = allocationRepository.getAllocationBySpaceId(spaceId);
+                if (allocation == null) {
+                    // use default allocation
+                    allocation = new Allocation();
+                }
+
+                // get user's usage status
+//                usage = space.getUsage();
+            }
+
             // add network information in the dataset
             if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
                 NetworkDataset networkDataset = DataJsonUtils.createNetworkDataset(inDatasetJson);
@@ -367,7 +394,6 @@ public class DatasetController {
 
             String id = dataset.getId();
 
-            Space space = spaceRepository.getSpaceByName(this.username);
             if (space == null) {
                 space = new Space(this.username);
                 space.addMember(id);
