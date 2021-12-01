@@ -48,11 +48,11 @@ public class DFR3Curve {
         this.returnType = returnType;
     }
 
-    public List<CurveParameter> getFragilityCurveParameters() {
+    public List<CurveParameter> getCurveParameters() {
         return curveParameters;
     }
 
-    public void setFragilityCurveParameters(List<CurveParameter> curveParameters) {
+    public void setCurveParameters(List<CurveParameter> curveParameters) {
         this.curveParameters = curveParameters;
     }
 
