@@ -307,7 +307,7 @@ public class HazardCalc {
                 HazardUtil.getSiteClassAsInt(eqModel.getDefaultSiteClass());
 
             SiteAmplification siteAmplification = null;
-            if (amplifyHazard) {
+            if (amplifyHazard && siteClass != -1) {
                 // TODO need to add check for if VS already accounted for soil type
 
                 // TODO add check for Rix Fernandez, no need to amplify
