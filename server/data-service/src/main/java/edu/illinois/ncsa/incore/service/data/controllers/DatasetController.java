@@ -18,10 +18,10 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.models.SpaceUsage;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
-import edu.illinois.ncsa.incore.common.models.Allocation;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
@@ -358,25 +358,11 @@ public class DatasetController {
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
 
-            Space space = spaceRepository.getSpaceByName(this.username);
-            Allocation allocation = new Allocation();   // get default allocation
-            SpaceUsage usage = new SpaceUsage();
+            boolean postOk = AllocationUtils.checkNumDataset(allocationRepository, spaceRepository, username);
 
-            // if space is null, it means that this post should be the very first post by the user
-            // so the check should be passed.
-            if (space == null) {
-                logger.info("First POST, no need to check the allocation");
-            } else {
-                String spaceId = space.getId();
-                // check if there is special allocation for the user
-                allocation = allocationRepository.getAllocationBySpaceId(spaceId);
-                if (allocation == null) {
-                    // use default allocation
-                    allocation = new Allocation();
-                }
-
-                // get user's usage status
-//                usage = space.getUsage();
+            if (postOk == false) {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    AllocationConstants.DATASET_ALLOCATION_MESSAGE);
             }
 
             // add network information in the dataset
@@ -394,6 +380,7 @@ public class DatasetController {
 
             String id = dataset.getId();
 
+            Space space = spaceRepository.getSpaceByName(this.username);
             if (space == null) {
                 space = new Space(this.username);
                 space.addMember(id);
@@ -401,6 +388,10 @@ public class DatasetController {
             } else {
                 space.addMember(id);
             }
+
+            // add one more dataset in the usage
+            space = AllocationUtils.addNumDataset(space);
+
             Space updated_space = spaceRepository.addSpace(space);
             if (updated_space == null) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
@@ -473,6 +464,9 @@ public class DatasetController {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " is not authorized to delete the dataset " + datasetId);
         }
+
+        // reduce the number of hazard from the space
+        AllocationUtils.reduceNumDataset(spaceRepository, this.username);
 
         return dataset;
 

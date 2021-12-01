@@ -12,12 +12,15 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITsunamiRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -67,6 +70,9 @@ public class TsunamiController {
 
     @Inject
     private ISpaceRepository spaceRepository;
+
+    @Inject
+    private IAllocationRepository allocationRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -237,6 +243,13 @@ public class TsunamiController {
         @ApiParam(hidden = true) @FormDataParam("tsunami") String tsunamiJson,
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
+        // check if the user's number of the hazard is within the allocation
+        boolean postOk = AllocationUtils.checkNumHazard(allocationRepository, spaceRepository, this.username);
+        if (postOk == false) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         Tsunami tsunami = null;
         try {
@@ -332,6 +345,9 @@ public class TsunamiController {
                     spaceRepository.addSpace(space);
                 }
             }
+
+            // reduce the number of hazard from the space
+            AllocationUtils.reduceNumHazard(spaceRepository, this.username);
 
             return deletedTsunami;
         } else {

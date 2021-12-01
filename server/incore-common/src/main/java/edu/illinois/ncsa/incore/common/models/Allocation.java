@@ -48,4 +48,51 @@ public class Allocation {
         this.hazardDatasetSize = AllocationConstants.HAZARD_DATASET_SIZE;
     }
 
+    public int getDatasets() {
+        return this.datasets;
+    }
+
+    public void setDatasets(int datasets) {
+        this.datasets = datasets;
+    }
+
+    public int getHazards() {
+        return this.hazards;
+    }
+
+    public void setHazards(int hazards) {
+        this.hazards = hazards;
+    }
+
+    public int getHazardDatasets() {
+        return this.hazardDatasets;
+    }
+
+    public void setHazardDatasets(int hazardDatasets) {
+        this.hazardDatasets = hazardDatasets;
+    }
+
+    public int getDfr3() {
+        return this.dfr3;
+    }
+
+    public void setDfr3(int dfr3) {
+        this.dfr3 = dfr3;
+    }
+
+    public long getDatasetSize() {
+        return this.datasetSize;
+    }
+
+    public void setDatasetSize(int datasetSize) {
+        this.datasetSize = datasetSize;
+    }
+
+    public long getHazardDatasetSize() {
+        return this.hazardDatasetSize;
+    }
+
+    public void setHazardDatasetSize(int hazardDatasetSize) {
+        this.hazardDatasetSize = hazardDatasetSize;
+    }
 }

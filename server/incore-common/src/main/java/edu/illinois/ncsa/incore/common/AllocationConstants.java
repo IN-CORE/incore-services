@@ -17,4 +17,12 @@ public class AllocationConstants {
     public static final int NUM_DFR3 = 500;
     public static final long DATASET_SIZE = 524288000L;
     public static final long HAZARD_DATASET_SIZE = 2147483648L;
+    public static final String DATASET_ALLOCATION_MESSAGE =
+        "You have reached the maximum number of datasets you can create for your allocation. " +
+            "Your request will be aborted. You either need to increase your allocation " +
+            "or delete datasets you've created.";
+    public static final String HAZARD_ALLOCATION_MESSAGE =
+        "You have reached the maximum number of hazards you can create for your allocation. " +
+            "Your request will be aborted. You either need to increase your allocation " +
+            "or delete hazards you've created.";
 }
