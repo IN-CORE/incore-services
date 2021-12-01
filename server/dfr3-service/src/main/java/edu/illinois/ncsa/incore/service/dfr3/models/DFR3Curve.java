@@ -14,13 +14,13 @@ import dev.morphia.annotations.Embedded;
 import java.util.List;
 
 @Embedded
-public class FragilityCurve {
+public class DFR3Curve {
     public String description;
     public List<Rule> rules;
     public ReturnType returnType;
-    public List<FragilityCurveParameter> fragilityCurveParameters;
+    public List<CurveParameter> curveParameters;
 
-    public FragilityCurve() {
+    public DFR3Curve() {
 
     }
 
@@ -48,12 +48,12 @@ public class FragilityCurve {
         this.returnType = returnType;
     }
 
-    public List<FragilityCurveParameter> getFragilityCurveParameters() {
-        return fragilityCurveParameters;
+    public List<CurveParameter> getFragilityCurveParameters() {
+        return curveParameters;
     }
 
-    public void setFragilityCurveParameters(List<FragilityCurveParameter> fragilityCurveParameters) {
-        this.fragilityCurveParameters = fragilityCurveParameters;
+    public void setFragilityCurveParameters(List<CurveParameter> curveParameters) {
+        this.curveParameters = curveParameters;
     }
 
 }

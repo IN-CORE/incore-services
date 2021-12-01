@@ -17,8 +17,7 @@ import java.util.List;
 public class FragilitySet extends DFR3Set {
     protected List<String> demandTypes;
     protected List<String> demandUnits;
-    protected List<FragilityCurve> fragilityCurves;
-    protected List<FragilityCurveParameter> fragilityCurveParameters;
+    protected List<DFR3Curve> fragilityCurves;
 
     public List<String> getDemandTypes() {
         return demandTypes;
@@ -36,12 +35,8 @@ public class FragilitySet extends DFR3Set {
         this.demandUnits = demandUnits;
     }
 
-    public List<FragilityCurve> getFragilityCurves() {
+    public List<DFR3Curve> getFragilityCurves() {
         return fragilityCurves;
-    }
-
-    public List<FragilityCurveParameter> getFragilityCurveParameters() {
-        return fragilityCurveParameters;
     }
 
 }

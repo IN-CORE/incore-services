@@ -17,13 +17,14 @@ import java.util.List;
 public class RepairSet extends DFR3Set {
 
     private String timeUnits;
-    private List<RepairCurve> repairCurves;
+    private List<DFR3Curve> repairCurves;
 
     public String getTimeUnits() {
         return timeUnits;
     }
 
-    public List<RepairCurve> getRepairCurves() {
+    public List<DFR3Curve> getRepairCurves() {
         return repairCurves;
     }
+
 }

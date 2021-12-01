@@ -34,6 +34,8 @@ public abstract class DFR3Set {
 
     protected String creator;
 
+    protected List<CurveParameter> curveParameters;
+
     /**
      * spaces the object belongs to. Calculated at runtime.
      */
@@ -91,4 +93,13 @@ public abstract class DFR3Set {
     public void setSpaces(List<String> spaces) {
         this.spaces = spaces;
     }
+
+    public List<CurveParameter> getCurveParameters() {
+        return curveParameters;
+    }
+
+    public void setCurveParameters(List<CurveParameter> curveParameters) {
+        this.curveParameters = curveParameters;
+    }
+
 }
