@@ -10,24 +10,50 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
+import java.util.List;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
-
-@XmlTransient
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
-@XmlSeeAlso({FragilityCurveRefactored.class})
 @Embedded
-public abstract class FragilityCurve {
+public class FragilityCurve {
     public String description;
+    public List<Rule> rules;
+    public ReturnType returnType;
+    public List<FragilityCurveParameter> fragilityCurveParameters;
 
     public FragilityCurve() {
 
     }
 
-    public FragilityCurve(String label) {
-        this.description = label;
+    public String getDescription() {
+        return description;
     }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public List<Rule> getRules() {
+        return rules;
+    }
+
+    public void setRules(List<Rule> rules) {
+        this.rules = rules;
+    }
+
+    public ReturnType getReturnType() {
+        return returnType;
+    }
+
+    public void setReturnType(ReturnType returnType) {
+        this.returnType = returnType;
+    }
+
+    public List<FragilityCurveParameter> getFragilityCurveParameters() {
+        return fragilityCurveParameters;
+    }
+
+    public void setFragilityCurveParameters(List<FragilityCurveParameter> fragilityCurveParameters) {
+        this.fragilityCurveParameters = fragilityCurveParameters;
+    }
+
 }
