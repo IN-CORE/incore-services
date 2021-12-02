@@ -28,7 +28,7 @@ public class ValidationUtils {
 
                 // check if first word is positive numeric value
                 Pattern pattern = Pattern.compile("\\d+(\\.\\d+)?");
-                if (demandTypePhrase.length > 0 && demandTypePhrase.length < 3
+                if (demandTypePhrase.length > 0 && demandTypePhrase.length <= 3
                     && pattern.matcher(demandTypePhrase[0]).matches()
                     && (demandTypePhrase[demandTypePhrase.length - 1].equals("sa")
                     || demandTypePhrase[demandTypePhrase.length - 1].equals("sd"))) {
