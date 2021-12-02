@@ -43,7 +43,6 @@ public class AllocationUtils {
             String spaceId = space.getId();
             usage = space.getUsage();
             // check if there is special allocation for the user
-//                spaceId = "5a284f09c7d30d13bc0819a3";
             allocation = allocationRepository.getAllocationBySpaceId(spaceId);
             if (allocation == null) {
                 // use default allocation

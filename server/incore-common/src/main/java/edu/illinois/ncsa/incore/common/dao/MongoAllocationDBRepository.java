@@ -54,8 +54,8 @@ public class MongoAllocationDBRepository implements IAllocationRepository {
     }
 
     public Allocation getAllocationBySpaceId(String spaceId) {
-        List<Allocation> allocationList = new ArrayList<>();
-        allocationList = this.dataStore.find(Allocation.class).iterator().toList();
+//        List<Allocation> allocationList = new ArrayList<>();
+//        allocationList = this.dataStore.find(Allocation.class).iterator().toList();
         Query<Allocation> allocationQuery = this.dataStore.find(Allocation.class);
         Allocation foundAllocation = allocationQuery.filter(Filters.eq(ALLOCATION_FIELD_SPACE_ID, spaceId)).first();
 

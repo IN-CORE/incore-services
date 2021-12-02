@@ -48,6 +48,10 @@ public class Allocation {
         this.hazardDatasetSize = AllocationConstants.HAZARD_DATASET_SIZE;
     }
 
+    public String getSpaceId() { return this.spaceId; }
+
+    public void setSpaceId(String spaceId) { this.spaceId = spaceId; }
+
     public int getDatasets() {
         return this.datasets;
     }
