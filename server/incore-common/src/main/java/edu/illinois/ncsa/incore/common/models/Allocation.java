@@ -30,7 +30,7 @@ public class Allocation {
     @Property("_id")
     private ObjectId id;
 
-    private String space_id;
+    private String spaceId;
     private int datasets;
     private int hazards;
     private int hazardDatasets;
@@ -39,7 +39,7 @@ public class Allocation {
     private long hazardDatasetSize;
 
     public Allocation() {
-        this.space_id = null;
+        this.spaceId = null;
         this.datasets = AllocationConstants.NUM_DATASETS;
         this.hazards = AllocationConstants.NUM_HAZARDS;
         this.hazardDatasets = AllocationConstants.NUM_HAZARD_DATASETS;

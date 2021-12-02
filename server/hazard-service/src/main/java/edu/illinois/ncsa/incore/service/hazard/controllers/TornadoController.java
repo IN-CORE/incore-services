@@ -157,6 +157,13 @@ public class TornadoController {
                 AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
         }
 
+        // check if the user's number of the hazard dataset is within the allocation
+        postOk = AllocationUtils.checkNumHazardDataset(allocationRepository, spaceRepository, this.username);
+        if (postOk == false) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         Tornado tornado = null;
         String datasetId = null;
@@ -238,6 +245,9 @@ public class TornadoController {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                 }
             }
+
+            // add one more dataset in the usage
+            AllocationUtils.increaseNumHazards(spaceRepository, this.username);
 
             tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornado.getId()));
             return tornado;

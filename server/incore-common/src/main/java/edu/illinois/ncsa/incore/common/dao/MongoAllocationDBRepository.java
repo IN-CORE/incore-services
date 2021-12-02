@@ -28,7 +28,7 @@ import java.util.List;
 
 
 public class MongoAllocationDBRepository implements IAllocationRepository {
-    private final String ALLOCATION_FIELD_SPACE_ID = "space_id";
+    private final String ALLOCATION_FIELD_SPACE_ID = "spaceId";
     private final String databaseName;
     private final MongoClientURI mongoClientURI;
     private Datastore dataStore;

@@ -12,6 +12,7 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -37,6 +38,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -47,6 +51,7 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -334,6 +339,9 @@ public class DatasetController {
                 "Setting an id is not allowed");
         }
 
+        boolean isHazardDataset = false;
+        boolean postOk = false;
+
         String title = "";
         String dataType = "";
         String sourceDataset = "";
@@ -358,7 +366,14 @@ public class DatasetController {
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
 
-            boolean postOk = AllocationUtils.checkNumDataset(allocationRepository, spaceRepository, username);
+            // check if the dataset is hazard dataset
+            isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
+
+            if (isHazardDataset) {
+                postOk = AllocationUtils.checkNumHazardDataset(allocationRepository, spaceRepository, username);
+            } else {
+                postOk = AllocationUtils.checkNumDataset(allocationRepository, spaceRepository, username);
+            }
 
             if (postOk == false) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
@@ -390,14 +405,11 @@ public class DatasetController {
             }
 
             // add one more dataset in the usage
-            space = AllocationUtils.addNumDataset(space);
-
-            Space updated_space = spaceRepository.addSpace(space);
-            if (updated_space == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
-                    "the dataset to user's space.");
+            if (isHazardDataset) {
+                AllocationUtils.increaseNumHazardDataset(space, spaceRepository, this.username);
+            } else {
+                AllocationUtils.increaseNumDataset(space, spaceRepository, this.username);
             }
-
         }
 
         dataset.setSpaces(spaceRepository.getSpaceNamesOfMember(dataset.getId()));
@@ -465,8 +477,16 @@ public class DatasetController {
                 this.username + " is not authorized to delete the dataset " + datasetId);
         }
 
+        // check if the dataset is hazard dataset
+        String dataType = dataset.getDataType();
+        boolean isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
+
         // reduce the number of hazard from the space
-        AllocationUtils.reduceNumDataset(spaceRepository, this.username);
+        if (isHazardDataset) {
+            AllocationUtils.reduceNumHazardDataset(spaceRepository, this.username);
+        } else {
+            AllocationUtils.reduceNumDataset(spaceRepository, this.username);
+        }
 
         return dataset;
 

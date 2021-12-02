@@ -147,6 +147,13 @@ public class EarthquakeController {
                 AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
         }
 
+        // check if the user's number of the hazard dataset is within the allocation
+        postOk = AllocationUtils.checkNumHazardDataset(allocationRepository, spaceRepository, this.username);
+        if (postOk == false) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         Earthquake earthquake = null;
         try {
@@ -250,16 +257,8 @@ public class EarthquakeController {
                 }
             }
 
-            Space space = spaceRepository.getSpaceByName(this.username);
-            if (space != null) {
-                space = AllocationUtils.addNumHazard(space);
-
-                Space updated_space = spaceRepository.addSpace(space);
-                if (updated_space == null) {
-                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
-                        "the dataset to user's space.");
-                }
-            }
+            // add one more dataset in the usage
+            AllocationUtils.increaseNumHazards(spaceRepository, this.username);
 
             earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquake.getId()));
             return earthquake;

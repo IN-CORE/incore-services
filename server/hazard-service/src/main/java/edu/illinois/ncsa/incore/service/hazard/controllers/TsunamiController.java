@@ -250,6 +250,13 @@ public class TsunamiController {
                 AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
         }
 
+        // check if the user's number of the hazard dataset is within the allocation
+        postOk = AllocationUtils.checkNumHazardDataset(allocationRepository, spaceRepository, this.username);
+        if (postOk == false) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         Tsunami tsunami = null;
         try {
@@ -298,6 +305,9 @@ public class TsunamiController {
                     }
                     space.addMember(tsunami.getId());
                     spaceRepository.addSpace(space);
+
+                    // add one more dataset in the usage
+                    AllocationUtils.increaseNumHazards(spaceRepository, this.username);
 
                     tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunami.getId()));
                     return tsunami;

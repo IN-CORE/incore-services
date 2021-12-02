@@ -25,4 +25,8 @@ public class AllocationConstants {
         "You have reached the maximum number of hazards you can create for your allocation. " +
             "Your request will be aborted. You either need to increase your allocation " +
             "or delete hazards you've created.";
+    public static final String HAZARD_DATASET_ALLOCATION_MESSAGE =
+        "You have reached the maximum number of hazard datasets you can create for your allocation. " +
+            "Your request will be aborted. You either need to increase your allocation " +
+            "or delete hazard datasets you've created.";
 }

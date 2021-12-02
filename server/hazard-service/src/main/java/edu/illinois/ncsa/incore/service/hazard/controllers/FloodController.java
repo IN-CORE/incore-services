@@ -167,6 +167,13 @@ public class FloodController {
                 AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
         }
 
+        // check if the user's number of the hazard dataset is within the allocation
+        postOk = AllocationUtils.checkNumHazardDataset(allocationRepository, spaceRepository, this.username);
+        if (postOk == false) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         Flood flood = null;
         try {
@@ -220,6 +227,9 @@ public class FloodController {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, no files were attached with your " +
                         "request.");
                 }
+
+                // add one more dataset in the usage
+                AllocationUtils.increaseNumHazards(spaceRepository, this.username);
 
                 flood.setSpaces(spaceRepository.getSpaceNamesOfMember(flood.getId()));
                 return flood;
