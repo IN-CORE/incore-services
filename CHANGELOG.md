@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 # Added
 - Create dataset, hazard, and hazard dataset number calculation when posting and deleting. [#49](https://github.com/IN-CORE/incore-services/issues/49)
+
 ## [1.6.0] - 2021-10-27
 # Added
 - Ability to store demand-specific threshold values in the metadata when creating hazards (pending for model-based earthquakes) [#1](https://github.com/IN-CORE/incore-services/issues/1)
