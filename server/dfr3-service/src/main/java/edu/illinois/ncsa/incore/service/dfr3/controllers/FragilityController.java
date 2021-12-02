@@ -183,8 +183,8 @@ public class FragilityController {
             Iterator<String> dt = demandTypes.iterator();
             Iterator<String> du = demandUnits.iterator();
             while (dt.hasNext() && du.hasNext()) {
-                String demandType = dt.next().toLowerCase(Locale.ROOT);
-                String demandUnit = du.next().toLowerCase(Locale.ROOT);
+                String demandType = dt.next().toLowerCase();
+                String demandUnit = du.next().toLowerCase();
                 JSONArray listOfDemands = demandDefinition.getJSONArray(hazardType);
 
                 List<Boolean> matched = isDemandValid(demandType, demandUnit, hazardType, listOfDemands);

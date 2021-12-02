@@ -5,7 +5,6 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
@@ -38,13 +37,13 @@ public class ValidationUtils {
                 }
             }
 
-            if (((JSONObject) entry).get("demand_type").toString().toLowerCase(Locale.ROOT).equals(demandTypeEvaluated)) {
+            if (((JSONObject) entry).get("demand_type").toString().toLowerCase().equals(demandTypeEvaluated)) {
                 demandTypeExisted.set(true);
 
                 // check if demand unit is allowed
                 JSONArray allowedDemandUnits = ((JSONObject) entry).getJSONArray("demand_unit");
                 allowedDemandUnits.forEach(unit -> {
-                    if (unit.toString().toLowerCase(Locale.ROOT).equals(demandUnit)) {
+                    if (unit.toString().toLowerCase().equals(demandUnit)) {
                         demandUnitAllowed.set(true);
                     }
                 });
