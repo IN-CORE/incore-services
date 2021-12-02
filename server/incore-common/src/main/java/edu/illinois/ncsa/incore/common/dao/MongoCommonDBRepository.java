@@ -5,7 +5,6 @@
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  *   Contributors:
- *   Omar Elabd (NCSA) - initial API and implementation
  *   Yong Wook Kim (NCSA) - initial API and implementation
  *******************************************************************************/
 

@@ -3,15 +3,14 @@ package edu.illinois.ncsa.incore.service.dfr3.utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 public class ValidationUtils {
     // validate demand type matches demand unit or not
-    public static List<Boolean> isDemandValid(String demandType, String demandUnit, String hazardType,
-                                              JSONArray listOfDemands) {
+    public static HashMap<String, Boolean> isDemandValid(String demandType, String demandUnit,
+                                                         JSONArray listOfDemands) {
 
 
         AtomicBoolean demandTypeExisted = new AtomicBoolean(false);
@@ -52,6 +51,11 @@ public class ValidationUtils {
 
 
         });
-        return Arrays.asList(demandTypeExisted.get(), demandUnitAllowed.get());
+
+        HashMap<String, Boolean> validation = new HashMap<>();
+        validation.put("demandTypeExisted", demandTypeExisted.get());
+        validation.put("demandUnitAllowed", demandUnitAllowed.get());
+
+        return validation;
     }
 }

@@ -187,11 +187,11 @@ public class FragilityController {
                 String demandUnit = du.next().toLowerCase();
                 JSONArray listOfDemands = demandDefinition.getJSONArray(hazardType);
 
-                List<Boolean> matched = isDemandValid(demandType, demandUnit, hazardType, listOfDemands);
-                if (!matched.get(0)) {
+                HashMap<String, Boolean> matched = isDemandValid(demandType, demandUnit, listOfDemands);
+                if (!matched.get("demandTypeExisted")) {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand type: " + demandType + " not allowed.\n Allowed " +
                         "demand types and units are: " + listOfDemands);
-                } else if (!matched.get(1)) {
+                } else if (!matched.get("demandUnitAllowed")) {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
                         "Demand unit: " + demandUnit + " does not match the definition.\n " +
                             "Allowed demand types and units are: " + listOfDemands);
