@@ -15,8 +15,17 @@ public class Site {
     private Point location;
     private double depth = 0.0;
     private double vs30 = 760.0;
+    private String siteClass;
 
     public Site() {
+    }
+
+    public void setSiteClass(String siteClass) {
+        this.siteClass = siteClass;
+    }
+
+    public String getSiteClass() {
+        return this.siteClass;
     }
 
     public Site(Point location) {

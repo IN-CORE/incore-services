@@ -41,6 +41,9 @@ public class HazardUtil {
     private static final Logger logger = Logger.getLogger(HazardUtil.class);
     public static final String HAZARD = "hazard";
 
+    public static final String LIQ_SUSCEPTIBILITY = "liq_suscep";
+    public static final String SOILTYPE = "soiltype";
+
     public static final String units_g = "g";
     public static final String units_cm = "cm";
     // Constant string expressions appearing throughout hazard code
@@ -58,7 +61,7 @@ public class HazardUtil {
     private static final String units_m_abbr = "m";
     private static final String units_cms = "cm/s";
     private static final String units_ins = "in/s";
-    // English
+    // Imperial
     public static final String units_in = "in";
     private static final String units_ft = "feet";
     private static final String units_ft_abbr = "ft";
