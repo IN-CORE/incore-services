@@ -28,6 +28,12 @@ public class ValidationUtilsTest {
         assertFalse(isDemandValid("0.1 sec sec sa", "g", listOfDemands).get("demandTypeExisted"));
         assertFalse(isDemandValid("0.1 sec", "g", listOfDemands).get("demandTypeExisted"));
         assertFalse(isDemandValid("sec sa", "g", listOfDemands).get("demandTypeExisted"));
+
+        assertFalse(isDemandValid("sec sv", "cm/s", listOfDemands).get("demandTypeExisted"));
+        assertFalse(isDemandValid("0.1 sec sv", "cm", listOfDemands).get("demandUnitAllowed"));
+
+        assertTrue(isDemandValid("pga", "g", listOfDemands).get("demandTypeExisted"));
+        assertFalse(isDemandValid("pga", "in", listOfDemands).get("demandUnitAllowed"));
     }
 
 }

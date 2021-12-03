@@ -21,7 +21,7 @@ public class ValidationUtils {
 
             // check first if demand type exist
             // sa and sd are special cases
-            if (demandType.contains("sa") || demandType.contains("sd")) {
+            if (demandType.contains("sa") || demandType.contains("sd") || demandType.contains("sv")) {
                 String[] demandTypePhrase = demandType.split("\\s+");
 
                 // check if first word is positive numeric value
