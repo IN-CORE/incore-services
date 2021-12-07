@@ -35,9 +35,9 @@ public class AllocationUtils {
      * @param username string representation of username
      * @return postOk boolean if the user can post more datasets
      */
-    public static Boolean checkNumDataset(IAllocationRepository allocationRepository,
-                                         ISpaceRepository spaceRepository,
-                                         String username) {
+    public static Boolean canCreateDataset(IAllocationRepository allocationRepository,
+                                           ISpaceRepository spaceRepository,
+                                           String username) {
         // check allocation first
         Space space = spaceRepository.getSpaceByName(username);
         Allocation allocation = new Allocation();   // get default allocation
@@ -79,7 +79,7 @@ public class AllocationUtils {
      * @param username string representation of username
      * @return postOk boolean if the user can post more datasets
      */
-    public static Boolean checkNumHazard(IAllocationRepository allocationRepository,
+    public static Boolean canCreateHazard(IAllocationRepository allocationRepository,
                                           ISpaceRepository spaceRepository,
                                           String username) {
         // check allocation first
@@ -124,9 +124,9 @@ public class AllocationUtils {
      * @param username string representation of username
      * @return postOk boolean if the user can post more datasets
      */
-    public static Boolean checkNumHazardDataset(IAllocationRepository allocationRepository,
-                                         ISpaceRepository spaceRepository,
-                                         String username) {
+    public static Boolean canCreateHazardDataset(IAllocationRepository allocationRepository,
+                                                 ISpaceRepository spaceRepository,
+                                                 String username) {
         // check allocation first
         Space space = spaceRepository.getSpaceByName(username);
         Allocation allocation = new Allocation();   // get default allocation

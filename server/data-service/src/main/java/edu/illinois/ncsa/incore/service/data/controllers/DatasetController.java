@@ -38,9 +38,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -51,7 +48,6 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -370,9 +366,9 @@ public class DatasetController {
             isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
 
             if (isHazardDataset) {
-                postOk = AllocationUtils.checkNumHazardDataset(allocationRepository, spaceRepository, username);
+                postOk = AllocationUtils.canCreateHazardDataset(allocationRepository, spaceRepository, username);
             } else {
-                postOk = AllocationUtils.checkNumDataset(allocationRepository, spaceRepository, username);
+                postOk = AllocationUtils.canCreateDataset(allocationRepository, spaceRepository, username);
             }
 
             if (postOk == false) {

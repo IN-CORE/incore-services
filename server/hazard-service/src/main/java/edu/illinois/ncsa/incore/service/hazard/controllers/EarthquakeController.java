@@ -141,15 +141,13 @@ public class EarthquakeController {
         // TODO what should be done if a user sends multiple earthquake objects?
 
         // check if the user's number of the hazard is within the allocation
-        boolean postOk = AllocationUtils.checkNumHazard(allocationRepository, spaceRepository, this.username);
-        if (postOk == false) {
+        if (!AllocationUtils.canCreateHazard(allocationRepository, spaceRepository, this.username)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
         }
 
         // check if the user's number of the hazard dataset is within the allocation
-        postOk = AllocationUtils.checkNumHazardDataset(allocationRepository, spaceRepository, this.username);
-        if (postOk == false) {
+        if (!AllocationUtils.canCreateHazardDataset(allocationRepository, spaceRepository, this.username)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
         }
