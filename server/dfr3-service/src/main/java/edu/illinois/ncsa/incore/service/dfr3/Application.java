@@ -13,7 +13,9 @@ package edu.illinois.ncsa.incore.service.dfr3;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
+import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.MongoCommonDBRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import edu.illinois.ncsa.incore.service.dfr3.daos.*;
 import org.apache.log4j.Logger;
@@ -55,6 +57,17 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
+        // connect to config database to get definitions
+        String mongodbCommonUri = "mongodb://localhost:27017/commondb";
+        String mongodbCommonUriProp = System.getenv("COMMON_MONGODB_URI");
+        if (mongodbCommonUriProp != null && !mongodbCommonUriProp.isEmpty()) {
+            mongodbCommonUri = mongodbCommonUriProp;
+        }
+
+        ICommonRepository mongoCommonRepository = new MongoCommonDBRepository(new MongoClientURI(mongodbCommonUri));
+        mongoCommonRepository.initialize();
+
+
         IAuthorizer authorizer = Authorizer.getInstance();
 
         super.register(new AbstractBinder() {
@@ -65,6 +78,7 @@ public class Application extends ResourceConfig {
                 super.bind(restorationDAO).to(IRestorationDAO.class);
                 super.bind(repairDAO).to(IRepairDAO.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
+                super.bind(mongoCommonRepository).to(ICommonRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
         });

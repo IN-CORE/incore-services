@@ -119,7 +119,6 @@ public class LdapClient {
 
         return result;
 
-
     }
 
     public LdapUserInfo getUserInfoFor(String user) {
