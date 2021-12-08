@@ -402,9 +402,9 @@ public class DatasetController {
 
             // add one more dataset in the usage
             if (isHazardDataset) {
-                AllocationUtils.increaseNumHazardDataset(space, spaceRepository, this.username);
+                AllocationUtils.increaseNumHazardDataset(space, spaceRepository);
             } else {
-                AllocationUtils.increaseNumDataset(space, spaceRepository, this.username);
+                AllocationUtils.increaseNumDataset(space, spaceRepository);
             }
         }
 

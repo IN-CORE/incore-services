@@ -329,10 +329,10 @@ public class AllocationUtils {
     /***
      * increase the number of dataset in the space
      *
+     * @param space
      * @param spaceRepository
-     * @param username
      */
-    public static void increaseNumDataset(Space space, ISpaceRepository spaceRepository, String username) {
+    public static void increaseNumDataset(Space space, ISpaceRepository spaceRepository) {
         if (space != null) {
             space = AllocationUtils.addNumDataset(space);
 
@@ -347,10 +347,10 @@ public class AllocationUtils {
     /***
      * increase the number of dataset in the space
      *
+     * @param space
      * @param spaceRepository
-     * @param username
      */
-    public static void increaseNumHazardDataset(Space space, ISpaceRepository spaceRepository, String username) {
+    public static void increaseNumHazardDataset(Space space, ISpaceRepository spaceRepository) {
         if (space != null) {
             space = AllocationUtils.addNumHazardDataset(space);
 
