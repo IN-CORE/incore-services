@@ -12,9 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.dao.MongoAllocationDBRepository;
 import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
 import edu.illinois.ncsa.incore.service.hazard.dao.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.AttenuationProvider;
@@ -62,15 +60,11 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
-        IAllocationRepository mongoAllocationRepository = new MongoAllocationDBRepository(new MongoClientURI(mongodbSpaceUri));
-        mongoAllocationRepository.initialize();
-
         IAuthorizer authorizer = Authorizer.getInstance();
         AttenuationProvider attenuationProvider = AttenuationProvider.getInstance();
 
         Engine engine = new Engine();
         engine.addServiceRepository("earthquake", earthquakeRepository);
-
 
         super.register(new AbstractBinder() {
 
@@ -85,7 +79,6 @@ public class Application extends ResourceConfig {
                 super.bind(authorizer).to(IAuthorizer.class);
                 super.bind(tsunamiRepository).to(ITsunamiRepository.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
-                super.bind(mongoAllocationRepository).to(IAllocationRepository.class);
                 super.bind(engine).to(Engine.class);
             }
         });

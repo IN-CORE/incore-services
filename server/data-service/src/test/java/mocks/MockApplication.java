@@ -12,7 +12,6 @@ package mocks;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.MockAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -26,11 +25,9 @@ public class MockApplication extends ResourceConfig {
     public MockApplication(Class klass) {
         IRepository mockDataRepository = new MockDataRepository();
         ISpaceRepository mockSpaceRepository = new MockSpaceRepository();
-        IAllocationRepository mockAllocationRepository = new MockAllocationRepository();
 
         mockDataRepository.initialize();
         mockSpaceRepository.initialize();
-
 
         IAuthorizer mockAuthorizer = new MockAuthorizer(true, true);
 
@@ -46,7 +43,6 @@ public class MockApplication extends ResourceConfig {
                 super.bind(mockDataRepository).to(IRepository.class);
                 super.bind(mockSpaceRepository).to(ISpaceRepository.class);
                 super.bind(mockAuthorizer).to(IAuthorizer.class);
-                super.bind(mockAllocationRepository).to(IAllocationRepository.class);
             }
         });
     }

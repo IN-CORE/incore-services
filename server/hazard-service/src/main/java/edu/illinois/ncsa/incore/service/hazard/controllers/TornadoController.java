@@ -12,14 +12,11 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
@@ -72,9 +69,6 @@ public class TornadoController {
 
     @Inject
     private ISpaceRepository spaceRepository;
-
-    @Inject
-    private IAllocationRepository allocationRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -149,18 +143,6 @@ public class TornadoController {
         String tornadoErrorMsg = "Could not create Tornado, check the format and files of your request. " +
             "For dataset based tornado, the shapefile needs to have a GUID";
         String tornadoJsonErrorMsg = "Could not create Tornado. Check your tornado json.";
-
-        // check if the user's number of the hazard is within the allocation
-        if (!AllocationUtils.canCreateHazard(allocationRepository, spaceRepository, this.username)) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
-                AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
-        }
-
-        // check if the user's number of the hazard dataset is within the allocation
-        if (!AllocationUtils.canCreateHazardDataset(allocationRepository, spaceRepository, this.username)) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
-                AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
-        }
 
         ObjectMapper mapper = new ObjectMapper();
         Tornado tornado = null;
@@ -243,9 +225,6 @@ public class TornadoController {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                 }
             }
-
-            // add one more dataset in the usage
-            AllocationUtils.increaseNumHazards(spaceRepository, this.username);
 
             tornado.setSpaces(spaceRepository.getSpaceNamesOfMember(tornado.getId()));
             return tornado;
@@ -469,9 +448,6 @@ public class TornadoController {
                     spaceRepository.addSpace(space);
                 }
             }
-
-            // reduce the number of hazard from the space
-            AllocationUtils.reduceNumHazard(spaceRepository, this.username);
 
             return deletedTornado;
         } else {
