@@ -14,8 +14,8 @@ package edu.illinois.ncsa.incore.service.data;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
+import edu.illinois.ncsa.incore.common.dao.*;
+import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.dao.MongoDBRepository;
 import org.apache.log4j.Logger;
@@ -47,6 +47,9 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
+        IAllocationRepository mongoAllocationRepository = new MongoAllocationDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoAllocationRepository.initialize();
+
         IAuthorizer authorizer = Authorizer.getInstance();
 
         super.register(new AbstractBinder() {
@@ -55,6 +58,7 @@ public class Application extends ResourceConfig {
             protected void configure() {
                 super.bind(mongoRepository).to(IRepository.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
+                super.bind(mongoAllocationRepository).to(IAllocationRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
 
