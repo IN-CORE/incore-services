@@ -51,7 +51,6 @@ public class AllocationUtils {
             postOk = true;
         } else {
             String spaceId = space.getId();
-            usage = space.getUsage();
             // check if there is special allocation for the user
             allocation = allocationRepository.getAllocationBySpaceId(spaceId);
             if (allocation == null) {
