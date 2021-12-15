@@ -92,7 +92,7 @@ subprojects {
     }
 
     dependencies {
-        compile "log4j:log4j:1.2.16"
+        compile "log4j:log4j:1.2.17.norce"
         compile group: 'org.json', name: 'json', version: '20171018'
 
         // JUnit 5
