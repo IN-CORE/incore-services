@@ -15,7 +15,7 @@ BRANCH=${BRANCH:-"$(git rev-parse --abbrev-ref HEAD)"}
 PKG_VERSION=$(cat server/build.gradle | grep "archiveVersion" | head -1 | awk -F= "{ print $2 }" | sed "s/[archiveVersion =,',]//g")
 
 # Find out the version
-if [ "$BRANCH" = "master" ]; then
+if [ "$BRANCH" = "main" ]; then
     echo "Detected version ${PKG_VERSION}"
     VERSIONS="latest"
     OLDVERSION=""
