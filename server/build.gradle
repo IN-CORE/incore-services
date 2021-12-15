@@ -50,7 +50,7 @@ apply plugin: 'war'
 // This will not apply to the war files we build unless we put it within project loop
 // at the end of this file. This is only for the docker build to pull a version
 war {
-    archiveVersion = '1.7.0'
+    archiveVersion = '1.7.1'
 }
 
 apply plugin: 'org.gretty'
@@ -92,7 +92,7 @@ subprojects {
     }
 
     dependencies {
-        compile "log4j:log4j:1.2.16"
+        compile "log4j:log4j:1.2.17.norce"
         compile group: 'org.json', name: 'json', version: '20171018'
 
         // JUnit 5
