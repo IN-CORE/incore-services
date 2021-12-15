@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -21,6 +22,8 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -28,6 +31,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.dfr3.utils.ValidationUtils.isDemandValid;
 
 
 @SwaggerDefinition(
@@ -68,6 +73,8 @@ public class FragilityController {
     private IMappingDAO mappingDAO;
     @Inject
     private ISpaceRepository spaceRepository;
+    @Inject
+    private ICommonRepository commonRepository;
 
     @Inject
     public FragilityController(
@@ -162,6 +169,36 @@ public class FragilityController {
     public FragilitySet uploadFragilitySet(@ApiParam(value = "json representing the fragility set") FragilitySet fragilitySet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(fragilitySet.getId());
+
+        // check if demand type is correct according to the definition; for now get the first definition
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        String hazardType = fragilitySet.getHazardType();
+        List<String> demandTypes = fragilitySet.getDemandTypes();
+        List<String> demandUnits = fragilitySet.getDemandUnits();
+
+        // check if size of demand type matches the unit
+        if (demandTypes.size() != demandUnits.size()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand Types should match the shape of Demand Units!");
+        } else {
+            Iterator<String> dt = demandTypes.iterator();
+            Iterator<String> du = demandUnits.iterator();
+            while (dt.hasNext() && du.hasNext()) {
+                String demandType = dt.next().toLowerCase();
+                String demandUnit = du.next().toLowerCase();
+                JSONArray listOfDemands = demandDefinition.getJSONArray(hazardType);
+
+                HashMap<String, Boolean> matched = isDemandValid(demandType, demandUnit, listOfDemands);
+                if (!matched.get("demandTypeExisted")) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Demand type: " + demandType + " not allowed.\n Allowed " +
+                        "demand types and units are: " + listOfDemands);
+                } else if (!matched.get("demandUnitAllowed")) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
+                        "Demand unit: " + demandUnit + " does not match the definition.\n " +
+                            "Allowed demand types and units are: " + listOfDemands);
+                }
+            }
+        }
+
         fragilitySet.setCreator(username);
         String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
 
@@ -182,7 +219,8 @@ public class FragilityController {
     @Path("{fragilityId}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Gets a fragility by Id", notes = "Get a particular fragility based on the id provided")
-    public FragilitySet getFragilityById(@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
+    public FragilitySet getFragilityById
+        (@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
@@ -209,7 +247,8 @@ public class FragilityController {
             if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
-                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping. It" +
+                    throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping" +
+                        ". It" +
                         " can not be deleted until" +
                         " all its references are removed from mappings");
                 } else {
