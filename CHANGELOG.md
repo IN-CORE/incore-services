@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.7.1] - 2021-12-16
+# Fixed
+- Vulnerable log4j package updated to prevent remote code execution [#55](https://github.com/IN-CORE/incore-services/issues/55)
+
+# Changed
+- renamed master branch of the repository to be "main", and updated the github actions.
+
+## [1.7.0] - 2021-12-15
+# Changed
+- Update earthquake values endpoint to accept site classification dataset [#40](https://github.com/IN-CORE/incore-services/issues/40)
+- Add validation on DFR3 service to only acceptable demand types and units are being provided. Make it uniform on hazard service too enhancement [#7](https://github.com/IN-CORE/incore-services/issues/7)
+- Upgrades and cleanup to semantics service [#18](https://github.com/IN-CORE/incore-services/issues/18)
+
 ## [1.6.0] - 2021-10-27
 # Added
 - Ability to store demand-specific threshold values in the metadata when creating hazards (pending for model-based earthquakes) [#1](https://github.com/IN-CORE/incore-services/issues/1)
