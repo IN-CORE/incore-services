@@ -5,31 +5,28 @@
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *
  * Contributors:
- * Omar Elabd, Nathan Tolbert
  *******************************************************************************/
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
-
-@XmlTransient
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "className")
-@XmlSeeAlso({StandardRestorationCurve.class})
 @Embedded
-public abstract class RestorationCurve {
+public class CurveParameter {
+    public String name;
+    public String unit;
     public String description;
+    public String fullName;
+    public String expression;
 
-    public RestorationCurve() {
-
+    public CurveParameter() {
     }
 
-    public RestorationCurve(String label) {
-        this.description = label;
+    public CurveParameter(String name, String unit, String description, String fullName, String expression) {
+        this.name = name;
+        this.unit = unit;
+        this.description = description;
+        this.fullName = fullName;
+        this.expression = expression;
     }
 }
-
-

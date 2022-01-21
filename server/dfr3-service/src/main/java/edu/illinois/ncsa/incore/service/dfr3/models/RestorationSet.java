@@ -17,13 +17,13 @@ import java.util.List;
 public class RestorationSet extends DFR3Set {
 
     private String timeUnits;
-    private List<RestorationCurve> restorationCurves;
+    private List<DFR3Curve> restorationCurves;
 
     public String getTimeUnits() {
         return timeUnits;
     }
 
-    public List<RestorationCurve> getRestorationCurves() {
+    public List<DFR3Curve> getRestorationCurves() {
         return restorationCurves;
     }
 }
