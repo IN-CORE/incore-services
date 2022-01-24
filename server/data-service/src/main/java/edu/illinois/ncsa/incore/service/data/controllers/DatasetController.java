@@ -19,6 +19,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
@@ -405,6 +406,11 @@ public class DatasetController {
         // if there is a source dataset, it will be have a geopkg file uploaded to geoserver
         if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
             geoserverUsed = true;
+        }
+
+        if (HazardConstants.DATA_TYPE_HAZARD.contains(dataset.getDataType())) {
+            throw new IncoreHTTPException(Response.Status.CONFLICT,
+                "This dataset is associated with a hazard and deleting it could lead to loss of data and errors in computation.");
         }
 
         if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
