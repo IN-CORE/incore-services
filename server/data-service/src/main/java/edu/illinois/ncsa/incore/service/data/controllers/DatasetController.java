@@ -399,6 +399,9 @@ public class DatasetController {
 
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the dataset " + datasetId);
+        } else if (HazardConstants.DATA_TYPE_HAZARD.contains(dataset.getDataType())) {
+            throw new IncoreHTTPException(Response.Status.CONFLICT,
+                "This dataset is associated with a hazard and deleting it could lead to loss of data and errors in computation.");
         }
 
         String format = dataset.getFormat();
@@ -406,11 +409,6 @@ public class DatasetController {
         // if there is a source dataset, it will be have a geopkg file uploaded to geoserver
         if (sourceDataset.length() > 0 && format.equalsIgnoreCase("table")) {
             geoserverUsed = true;
-        }
-
-        if (HazardConstants.DATA_TYPE_HAZARD.contains(dataset.getDataType())) {
-            throw new IncoreHTTPException(Response.Status.CONFLICT,
-                "This dataset is associated with a hazard and deleting it could lead to loss of data and errors in computation.");
         }
 
         if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
