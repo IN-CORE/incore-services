@@ -200,6 +200,11 @@ public class FragilityController {
         }
 
         fragilitySet.setCreator(username);
+
+        if (fragilitySet.getFragilityCurves().size() == 0){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No fragility curves are included in the json. " +
+                "Please provide at least one.");
+        }
         String fragilityId = this.fragilityDAO.saveFragility(fragilitySet);
 
         Space space = spaceRepository.getSpaceByName(username);

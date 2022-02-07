@@ -153,6 +153,10 @@ public class RestorationController {
 
         UserInfoUtils.throwExceptionIfIdPresent(restorationSet.getId());
         restorationSet.setCreator(username);
+        if (restorationSet.getRestorationCurves().size() == 0){
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No restoration curves are included in the json. " +
+                "Please provide at least one.");
+        }
         String restorationId = this.restorationDAO.saveRestoration(restorationSet);
 
         Space space = spaceRepository.getSpaceByName(username);
