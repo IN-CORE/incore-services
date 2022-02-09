@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.8.0] - 2021-02-07
+# Added
+- Toro1997 attenuations model for earthquakes [#35](https://github.com/IN-CORE/incore-services/issues/35)
+- Support for storing expression based curves for Repairs and Restorations [#6](https://github.com/IN-CORE/incore-services/issues/6)
+
+# Changed
+- Fully deprecate the old format DFR3 models and related code references [#31](https://github.com/IN-CORE/incore-services/issues/31)
+
 ## [1.7.1] - 2021-12-16
 # Fixed
 - Vulnerable log4j package updated to prevent remote code execution [#55](https://github.com/IN-CORE/incore-services/issues/55)
