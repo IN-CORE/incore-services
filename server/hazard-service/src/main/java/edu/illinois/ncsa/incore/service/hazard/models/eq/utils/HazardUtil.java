@@ -109,20 +109,12 @@ public class HazardUtil {
     // TODO: This json with period is getting hard to read. Move to a static json file - should we use the demand type and unit
     //  definition constants defined here?.
     public final static JSONObject EARTHQUAKE_THRESHOLDS = new JSONObject("{ " +
-        "'" + PGA + "': {'0.0' : null}," +
-        "'" + PGV + "': {'0.0' : null}," +
-        "'" + PGD + "': {'0.0' : null}," +
-        "'" + SA + "':{'0.2': null," +
-        "'0.3': null," +
-        "'1.0': null," +
-        "'0.0': null," +
-        "}," +
-        "'" + SD + "':{'0.2': null," +
-        "'0.3': null," +
-        "'1.0': null," +
-        "'0.0': null," +
-        "}," +
-        "'" + SV + "': {'0.0' : null}," +
+        "'" + PGA + "': {'value': 0.01, 'unit': 'g'}," +
+        "'" + PGV + "': {'value': 0.01, 'unit': 'in/sec'}," +
+        "'" + PGD + "': {'value': 0.01, 'unit': 'in'}," +
+        "'" + SA + "': {'value': 0.01, 'unit': 'g'}," +
+        "'" + SD + "': {'value': 0.01, 'unit': 'in'}," +
+        "'" + SV + "': {'value': 0.01, 'unit': 'in/sec'}" +
         "}");
 
     // Provide null to ignore threshold value. Demand Type key is case insensitive
