@@ -16,9 +16,11 @@ import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
@@ -101,7 +103,10 @@ public class DatasetController {
     private ISpaceRepository spaceRepository;
 
     @Inject
-    private IAllocationRepository allocationRepository;
+    private IUserAllocationsRepository allocationsRepository;
+
+    @Inject
+    private IUserFinalQuotaRepository quotaRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -366,9 +371,9 @@ public class DatasetController {
             isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
 
             if (isHazardDataset) {
-                postOk = AllocationUtils.canCreateHazardDataset(allocationRepository, spaceRepository, username);
+                postOk = AllocationUtils.canCreateHazardDataset(allocationsRepository, quotaRepository, username);
             } else {
-                postOk = AllocationUtils.canCreateDataset(allocationRepository, spaceRepository, username);
+                postOk = AllocationUtils.canCreateDataset(allocationsRepository, quotaRepository, username);
             }
 
             if (postOk == false) {
@@ -400,11 +405,18 @@ public class DatasetController {
                 space.addMember(id);
             }
 
-            // add one more dataset in the usage
+            Space updated_space = spaceRepository.addSpace(space);
+            if (updated_space == null) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
+                    "the dataset to user's space.");
+            }
+
+            // add dataset in the usage
+            UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
             if (isHazardDataset) {
-                AllocationUtils.increaseNumHazardDataset(space, spaceRepository);
+                AllocationUtils.increaseNumHazardDataset(allocation, allocationsRepository);
             } else {
-                AllocationUtils.increaseNumDataset(space, spaceRepository);
+                AllocationUtils.increaseNumDataset(allocation, allocationsRepository);
             }
         }
 
@@ -420,6 +432,7 @@ public class DatasetController {
     public Dataset deleteDataset(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         Dataset dataset = getDatasetbyId(datasetId);
         boolean geoserverUsed = false;
+        long fileSize = 0;
 
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the dataset " + datasetId);
@@ -448,6 +461,7 @@ public class DatasetController {
                 List<FileDescriptor> fds = dataset.getFileDescriptors();
                 if (fds.size() > 0) {
                     for (FileDescriptor fd : fds) {
+                        fileSize += fd.getSize();
                         File file = new File(FilenameUtils.concat(DATA_REPO_FOLDER, fd.getDataURL()));
                         FileUtils.deleteTmpDir(file);
                         if (!geoserverUsed) {
@@ -479,10 +493,14 @@ public class DatasetController {
 
         // reduce the number of hazard from the space
         if (isHazardDataset) {
-            AllocationUtils.reduceNumHazardDataset(spaceRepository, this.username);
+            AllocationUtils.reduceNumHazardDataset(allocationsRepository, this.username);
         } else {
-            AllocationUtils.reduceNumDataset(spaceRepository, this.username);
+            AllocationUtils.reduceNumDataset(allocationsRepository, this.username);
         }
+
+        // decrease file size to usage
+        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
+        AllocationUtils.decreaseDatasetFileSize(allocation, allocationsRepository, fileSize, isHazardDataset);
 
         return dataset;
 
@@ -507,10 +525,34 @@ public class DatasetController {
         // if this flas is false, the data will not be uploaded to geoserver
         boolean enableGeoserver = GEOSERVER_ENABLE.equalsIgnoreCase("true");
 
+        boolean isHazardDataset = false;
+        boolean postOk = false;
+
         int bodyPartSize = inputs.getBodyParts().size();
         String objIdStr = datasetId;
         String paramName = "";
         Dataset dataset = getDatasetbyId(objIdStr);
+
+        // check if the dataset is hazard dataset
+        String dataType = dataset.getDataType();
+        isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
+        long fileSize = 0;
+
+        if (isHazardDataset) {
+            postOk = AllocationUtils.canAttachFile(allocationsRepository, quotaRepository, username, isHazardDataset);
+        } else {
+            postOk = AllocationUtils.canAttachFile(allocationsRepository, quotaRepository, username, isHazardDataset);
+        }
+
+        if (postOk == false) {
+            if (isHazardDataset) {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    AllocationConstants.HAZARD_DATASET_ALLOCATION_FILESIZE_MESSAGE);
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                    AllocationConstants.DATASET_ALLOCATION_FILESIZE_MESSAGE);
+            }
+        }
 
         // get data format to see if it is a network dataset
         String format = dataset.getFormat();
@@ -565,10 +607,10 @@ public class DatasetController {
         boolean isZip = false;
         boolean isJoin = false;
 
-        int file_counter = 0;
-        int link_counter = 0;
-        int node_counter = 0;
-        int graph_counter = 0;
+        int fileCounter = 0;
+        int linkCounter = 0;
+        int nodeCounter = 0;
+        int graphCounter = 0;
 
         File savedZipFile = null;
         String tempDir = null;
@@ -612,17 +654,17 @@ public class DatasetController {
 
                 InputStream is = null;
                 if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE)) {
-                    is = inputs.getFields(paramName).get(file_counter).getValueAs(InputStream.class);
-                    file_counter++;
+                    is = inputs.getFields(paramName).get(fileCounter).getValueAs(InputStream.class);
+                    fileCounter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_LINK)) {
-                    is = inputs.getFields(paramName).get(link_counter).getValueAs(InputStream.class);
-                    link_counter++;
+                    is = inputs.getFields(paramName).get(linkCounter).getValueAs(InputStream.class);
+                    linkCounter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_NODE)) {
-                    is = inputs.getFields(paramName).get(node_counter).getValueAs(InputStream.class);
-                    node_counter++;
+                    is = inputs.getFields(paramName).get(nodeCounter).getValueAs(InputStream.class);
+                    nodeCounter++;
                 } else if (paramName.equalsIgnoreCase(POST_PARAMETER_FILE_GRAPH)) {
-                    is = inputs.getFields(paramName).get(graph_counter).getValueAs(InputStream.class);
-                    graph_counter++;
+                    is = inputs.getFields(paramName).get(graphCounter).getValueAs(InputStream.class);
+                    graphCounter++;
                 }
 
                 if (is != null) {
@@ -667,6 +709,9 @@ public class DatasetController {
                                 " the id of " + datasetId);
                         }
                         dataset.addFileDescriptor(fd);
+
+                        // add file size
+                        fileSize += fd.getSize();
                     }
                 }
             }
@@ -807,6 +852,10 @@ public class DatasetController {
         //  May be this endpoint should not try to addDataset, rather it should just try to update the files section of the existing dataset
         dataset.setSpaces(null);
         repository.addDataset(dataset);
+
+        // add file size to usage
+        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
+        AllocationUtils.increaseDatasetFileSize(allocation, allocationsRepository, fileSize, isHazardDataset);
 
         if (enableGeoserver && isGeoserver) {
             if (isJoin) {

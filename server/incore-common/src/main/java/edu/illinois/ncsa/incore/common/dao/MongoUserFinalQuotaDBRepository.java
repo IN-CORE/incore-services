@@ -18,23 +18,22 @@ import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
-import edu.illinois.ncsa.incore.common.models.Allocation;
+import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
-public class MongoAllocationDBRepository implements IAllocationRepository {
-    private final String ALLOCATION_FIELD_SPACE_ID = "spaceId";
+public class MongoUserFinalQuotaDBRepository implements IUserFinalQuotaRepository {
+    private final String QUOTA_FIELD_USERNAME = "username";
     private final String databaseName;
     private final MongoClientURI mongoClientURI;
     private Datastore dataStore;
 
-    private final Logger logger = Logger.getLogger(MongoAllocationDBRepository.class);
+    private final Logger logger = Logger.getLogger(MongoUserFinalQuotaDBRepository.class);
 
-    public MongoAllocationDBRepository(MongoClientURI mongoClientURI) {
+    public MongoUserFinalQuotaDBRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
         this.databaseName = mongoClientURI.getDatabase();
     }
@@ -44,21 +43,19 @@ public class MongoAllocationDBRepository implements IAllocationRepository {
         this.initializeDataStore();
     }
 
-    public List<Allocation> getAllAllocations() {
-        return this.dataStore.find(Allocation.class).iterator().toList();
+    public List<UserFinalQuota> getAllQuotas() {
+        return this.dataStore.find(UserFinalQuota.class).iterator().toList();
     }
 
-    public Allocation getAllocationById(String id) {
-        return this.dataStore.find(Allocation.class).filter(Filters.eq("_id", new ObjectId(id))).first();
+    public UserFinalQuota getQuotaById(String id) {
+        return this.dataStore.find(UserFinalQuota.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
-    public Allocation getAllocationBySpaceId(String spaceId) {
-//        List<Allocation> allocationList = new ArrayList<>();
-//        allocationList = this.dataStore.find(Allocation.class).iterator().toList();
-        Query<Allocation> allocationQuery = this.dataStore.find(Allocation.class);
-        Allocation foundAllocation = allocationQuery.filter(Filters.eq(ALLOCATION_FIELD_SPACE_ID, spaceId)).first();
+    public UserFinalQuota getQuotaByUsername(String username) {
+        Query<UserFinalQuota> quotaQuery = this.dataStore.find(UserFinalQuota.class);
+        UserFinalQuota foundUserQuota = quotaQuery.filter(Filters.eq(QUOTA_FIELD_USERNAME, username)).first();
 
-        return foundAllocation;
+        return foundUserQuota;
     }
 
     private void initializeDataStore() {
@@ -69,7 +66,7 @@ public class MongoAllocationDBRepository implements IAllocationRepository {
                 .discriminatorKey("className")
                 .build()
         );
-        morphiaStore.getMapper().map(Allocation.class);
+        morphiaStore.getMapper().map(UserFinalQuota.class);
         morphiaStore.ensureIndexes();
         this.dataStore = morphiaStore;
     }

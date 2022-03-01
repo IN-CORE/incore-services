@@ -41,21 +41,16 @@ public class Space {
 
     private List<String> members;
 
-    @JsonProperty("usage")
-    private SpaceUsage usage;
-
     public Space() {
         this.metadata = new SpaceMetadata("");
         this.members = new ArrayList<>();
         this.privileges = new Privileges();
-        this.usage = new SpaceUsage();
     }
 
     public Space(String name) {
         this.metadata = new SpaceMetadata(name);
         this.members = new ArrayList<>();
         this.privileges = new Privileges();
-        this.usage = new SpaceUsage();
     }
 
     public String getId() {
@@ -128,7 +123,4 @@ public class Space {
         return this.privileges.getGroupPrivilegeLevel(username);
     }
 
-    public SpaceUsage getUsage() { return this.usage; }
-
-    public void setUsage(SpaceUsage usage) { this.usage = usage; }
 }

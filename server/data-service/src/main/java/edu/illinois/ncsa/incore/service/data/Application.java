@@ -15,7 +15,8 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.*;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.dao.MongoDBRepository;
 import org.apache.log4j.Logger;
@@ -47,8 +48,11 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
-        IAllocationRepository mongoAllocationRepository = new MongoAllocationDBRepository(new MongoClientURI(mongodbSpaceUri));
-        mongoAllocationRepository.initialize();
+        IUserAllocationsRepository mongoUserAllocationsRepository = new MongoUserAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserAllocationsRepository.initialize();
+
+        IUserFinalQuotaRepository mongoUserFinalQuotaRepository = new MongoUserFinalQuotaDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserFinalQuotaRepository.initialize();
 
         IAuthorizer authorizer = Authorizer.getInstance();
 
@@ -58,7 +62,8 @@ public class Application extends ResourceConfig {
             protected void configure() {
                 super.bind(mongoRepository).to(IRepository.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
-                super.bind(mongoAllocationRepository).to(IAllocationRepository.class);
+                super.bind(mongoUserAllocationsRepository).to(IUserAllocationsRepository.class);
+                super.bind(mongoUserFinalQuotaRepository).to(IUserFinalQuotaRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
 

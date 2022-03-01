@@ -12,10 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
-import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.dao.MongoAllocationDBRepository;
-import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
+import edu.illinois.ncsa.incore.common.dao.*;
 import edu.illinois.ncsa.incore.service.hazard.dao.*;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.AttenuationProvider;
 import org.apache.log4j.Logger;
@@ -62,8 +59,11 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
-        IAllocationRepository mongoAllocationRepository = new MongoAllocationDBRepository(new MongoClientURI(mongodbSpaceUri));
-        mongoAllocationRepository.initialize();
+        IUserAllocationsRepository mongoUserAllocationsRepository = new MongoUserAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserAllocationsRepository.initialize();
+
+        IUserFinalQuotaRepository mongoUserFinalQuotaRepository = new MongoUserFinalQuotaDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserFinalQuotaRepository.initialize();
 
         IAuthorizer authorizer = Authorizer.getInstance();
         AttenuationProvider attenuationProvider = AttenuationProvider.getInstance();
@@ -85,7 +85,8 @@ public class Application extends ResourceConfig {
                 super.bind(authorizer).to(IAuthorizer.class);
                 super.bind(tsunamiRepository).to(ITsunamiRepository.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
-                super.bind(mongoAllocationRepository).to(IAllocationRepository.class);
+                super.bind(mongoUserAllocationsRepository).to(IUserAllocationsRepository.class);
+                super.bind(mongoUserFinalQuotaRepository).to(IUserFinalQuotaRepository.class);
                 super.bind(engine).to(Engine.class);
             }
         });

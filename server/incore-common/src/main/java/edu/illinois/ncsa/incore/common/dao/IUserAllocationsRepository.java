@@ -10,16 +10,18 @@
 
 package edu.illinois.ncsa.incore.common.dao;
 
-import edu.illinois.ncsa.incore.common.models.Allocation;
+import edu.illinois.ncsa.incore.common.models.UserAllocations;
 
 import java.util.List;
 
-public interface IAllocationRepository {
+public interface IUserAllocationsRepository {
     void initialize();
 
-    List<Allocation> getAllAllocations();
+    List<UserAllocations> getAllAllocations();
 
-    Allocation getAllocationById(String id);
+    UserAllocations getAllocationById(String id);
 
-    Allocation getAllocationBySpaceId(String spaceId);
+    UserAllocations getAllocationByUsername(String username);
+
+    UserAllocations addAllocation(UserAllocations allocation);
 }

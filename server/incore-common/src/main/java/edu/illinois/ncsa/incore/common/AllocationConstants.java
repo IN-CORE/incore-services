@@ -29,4 +29,12 @@ public class AllocationConstants {
         "You have reached the maximum number of hazard datasets you can create for your allocation. " +
             "Your request will be aborted. You either need to increase your allocation " +
             "or delete hazard datasets you've created.";
+    public static final String DATASET_ALLOCATION_FILESIZE_MESSAGE =
+        "You have reached the maximum file size of datasets you can create for your allocation. " +
+            "Your request will be aborted. You either need to increase your allocation " +
+            "or delete datasets you've created.";
+    public static final String HAZARD_DATASET_ALLOCATION_FILESIZE_MESSAGE =
+        "You have reached the maximum file size of hazard datasets you can create for your allocation. " +
+            "Your request will be aborted. You either need to increase your allocation " +
+            "or delete hazard datasets you've created.";
 }

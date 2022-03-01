@@ -16,8 +16,9 @@ import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
@@ -72,7 +73,10 @@ public class TsunamiController {
     private ISpaceRepository spaceRepository;
 
     @Inject
-    private IAllocationRepository allocationRepository;
+    private IUserAllocationsRepository allocationsRepository;
+
+    @Inject
+    private IUserFinalQuotaRepository quotaRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -244,13 +248,13 @@ public class TsunamiController {
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
         // check if the user's number of the hazard is within the allocation
-        if (!AllocationUtils.canCreateHazard(allocationRepository, spaceRepository, this.username)) {
+        if (!AllocationUtils.canCreateHazard(allocationsRepository, quotaRepository, this.username)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
         }
 
         // check if the user's number of the hazard dataset is within the allocation
-        if (!AllocationUtils.canCreateHazardDataset(allocationRepository, spaceRepository, this.username)) {
+        if (!AllocationUtils.canCreateHazardDataset(allocationsRepository, quotaRepository, this.username)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
         }
@@ -305,7 +309,7 @@ public class TsunamiController {
                     spaceRepository.addSpace(space);
 
                     // add one more dataset in the usage
-                    AllocationUtils.increaseNumHazards(spaceRepository, this.username);
+                    AllocationUtils.increaseNumHazards(allocationsRepository, this.username);
 
                     tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunami.getId()));
                     return tsunami;
@@ -355,7 +359,7 @@ public class TsunamiController {
             }
 
             // reduce the number of hazard from the space
-            AllocationUtils.reduceNumHazard(spaceRepository, this.username);
+            AllocationUtils.reduceNumHazard(allocationsRepository, this.username);
 
             return deletedTsunami;
         } else {

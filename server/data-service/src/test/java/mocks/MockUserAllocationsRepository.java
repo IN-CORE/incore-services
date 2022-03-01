@@ -13,8 +13,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
-import edu.illinois.ncsa.incore.common.dao.IAllocationRepository;
-import edu.illinois.ncsa.incore.common.models.Allocation;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -22,11 +22,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockAllocationRepository implements IAllocationRepository {
+public class MockUserAllocationsRepository implements IUserAllocationsRepository {
     private final Datastore mockAllocationStore;
-    private List<Allocation> allocations = new ArrayList<>();
+    private List<UserAllocations> userAllocations = new ArrayList<>();
 
-    public MockAllocationRepository() {
+    public MockUserAllocationsRepository() {
         this.mockAllocationStore = Mockito.mock(Datastore.class, Mockito.RETURNS_DEEP_STUBS);
     }
 
@@ -35,34 +35,37 @@ public class MockAllocationRepository implements IAllocationRepository {
         URL allocationsPath = this.getClass().getClassLoader().getResource("json/allocations.json");
 
         try {
-            this.allocations = new ObjectMapper().readValue(allocationsPath, new TypeReference<List<Allocation>>() {
+            this.userAllocations = new ObjectMapper().readValue(allocationsPath, new TypeReference<List<UserAllocations>>() {
             });
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
-        Mockito.when(mockAllocationStore.find(Allocation.class)
+        Mockito.when(mockAllocationStore.find(UserAllocations.class)
                 .iterator(new FindOptions().limit(Mockito.any(Integer.class))).toList())
-            .thenReturn(this.allocations);
+            .thenReturn(this.userAllocations);
     }
 
     @Override
-    public List<Allocation> getAllAllocations(){
-        return this.allocations;
+    public List<UserAllocations> getAllAllocations(){
+        return this.userAllocations;
     }
 
     @Override
-    public Allocation getAllocationById(String id) {
+    public UserAllocations getAllocationById(String id) {
         return null;
     }
 
     @Override
-    public Allocation getAllocationBySpaceId(String spaceId) {
-        for (Allocation allocation : this.allocations) {
-            if (allocation.getSpaceId().equals(spaceId)) {
-                return allocation;
+    public UserAllocations getAllocationByUsername(String username) {
+        for (UserAllocations userAllocations : this.userAllocations) {
+            if (userAllocations.getUsername().equals(username)) {
+                return userAllocations;
             }
         }
         return null;
     }
+
+    @Override
+    public UserAllocations addAllocation(UserAllocations allocation) { return null; }
 }

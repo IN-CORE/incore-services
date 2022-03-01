@@ -10,19 +10,13 @@
 
 package edu.illinois.ncsa.incore.common.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.annotations.Embedded;
 import org.apache.log4j.Logger;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 @Embedded
-public class SpaceUsage {
-    private static final Logger log = Logger.getLogger(SpaceUsage.class);
-
-//    @JsonProperty("datasets")
-//    private int datasets;
+public class UserUsages {
+    private static final Logger log = Logger.getLogger(UserUsages.class);
 
     public int datasets;
     public int hazards;
@@ -31,15 +25,15 @@ public class SpaceUsage {
     public long datasetSize;
     public long hazardDatasetSize;
 
-    public SpaceUsage() { }
+    public UserUsages() { }
 
-    public static SpaceUsage fromJson(String usageJson) {
+    public static UserUsages fromJson(String usageJson) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(usageJson, SpaceUsage.class);
+            return mapper.readValue(usageJson, UserUsages.class);
         } catch (Exception e) {
             log.error("Could not parse usage JSON. Returning Usage with zero values", e);
-            return new SpaceUsage();
+            return new UserUsages();
         }
     }
 
@@ -79,7 +73,7 @@ public class SpaceUsage {
         return this.datasetSize;
     }
 
-    public void setDatasetSize(int datasetSize) {
+    public void setDatasetSize(long datasetSize) {
         this.datasetSize = datasetSize;
     }
 
@@ -87,7 +81,7 @@ public class SpaceUsage {
         return this.hazardDatasetSize;
     }
 
-    public void setHazardDatasetSize(int hazardDatasetSize) {
+    public void setHazardDatasetSize(long hazardDatasetSize) {
         this.hazardDatasetSize = hazardDatasetSize;
     }
 }
