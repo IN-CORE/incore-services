@@ -65,7 +65,7 @@ public class AllocationUtils {
             }
 
             // check if the user's dataset number is within the allocation
-            if (usage.getHazardDatasets() < limit.getDatasets()) {
+            if (usage.getDatasets() < limit.getDatasets()) {
                 postOk = true;
             }
         }
