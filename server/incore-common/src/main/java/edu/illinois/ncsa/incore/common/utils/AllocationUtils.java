@@ -29,11 +29,12 @@ public class AllocationUtils {
      * @param allocationRepository IUserAllocationsRepository injected by controller
      * @param quotaRepository IUserFinalQuotaRepository injected by controller
      * @param username string representation of username
+     * @param datasetType string for representing the type of the dataset
      * @return postOk boolean if the user can post more datasets
      */
-    public static Boolean canCreateDataset(IUserAllocationsRepository allocationRepository,
+    public static Boolean canCreateAnyDataset(IUserAllocationsRepository allocationRepository,
                                            IUserFinalQuotaRepository quotaRepository,
-                                           String username) {
+                                           String username, String datasetType) {
         // check allocation first
         UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
         UserFinalQuota quota = quotaRepository.getQuotaByUsername(username);
@@ -64,15 +65,47 @@ public class AllocationUtils {
                 limit = AllocationUtils.setDefalutLimit(limit);
             }
 
+            // the dataset types should only be
+            // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
             // check if the user's dataset number is within the allocation
-            if (usage.getDatasets() < limit.getDatasets()) {
-                postOk = true;
+            if (datasetType == "datasets") {
+                if (usage.getDatasets() < limit.getDatasets()) {
+                    postOk = true;
+                }
+            } else if (datasetType == "hazards") {
+                if (usage.getHazards() < limit.getHazards()) {
+                    postOk = true;
+                }
+            } else if (datasetType == "hazardDatasets") {
+                if (usage.getHazardDatasets() < limit.getHazardDatasets()) {
+                    postOk = true;
+                }
+            } else if (datasetType == "datasetSize") {
+                if (usage.getDatasetSize() < limit.getDatasetSize()) {
+                    postOk = true;
+                }
+            } else if (datasetType == "hazardDatasetSize") {
+                if (usage.getHazardDatasetSize() < limit.getHazardDatasetSize()) {
+                    postOk = true;
+                }
+            } else if (datasetType == "dfr3") {
+                if (usage.getDfr3() < limit.getDfr3()) {
+                    postOk = true;
+                }
+            } else {
+                postOk = false;
             }
         }
 
         return postOk;
     }
 
+    /***
+     * This method sets up the default limit information
+     *
+     * @param limit
+     * @return
+     */
     public static UserUsages setDefalutLimit(UserUsages limit) {
         limit.setDatasets(AllocationConstants.NUM_DATASETS);
         limit.setDatasetSize(AllocationConstants.DATASET_SIZE);
@@ -82,162 +115,6 @@ public class AllocationUtils {
         limit.setDfr3(AllocationConstants.NUM_DFR3);
 
         return limit;
-    }
-
-    /***
-     * This method receives a username and to see if the user's number of hazard is within the allocation.
-     *
-     * @param allocationRepository IUserAllocationsRepository injected by controller
-     * @param quotaRepository IUserFinalQuotaRepository injected by controller
-     * @param username string representation of username
-     * @return postOk boolean if the user can post more datasets
-     */
-    public static Boolean canCreateHazard(IUserAllocationsRepository allocationRepository,
-                                          IUserFinalQuotaRepository quotaRepository,
-                                          String username) {
-        // check allocation first
-        UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
-        UserFinalQuota quota = quotaRepository.getQuotaByUsername(username);
-        UserUsages usage = new UserUsages();
-        UserUsages limit = new UserUsages();
-        Boolean postOk = false;
-
-        // if space is null, it means that this post should be the very first post by the user
-        // so the check should be passed.
-        if (allocation == null) {
-            // First POST, no need to check the allocation
-            postOk = true;
-        } else {
-            // get user's quota information
-            if (quota == null) {
-                quota = new UserFinalQuota();
-            }
-
-            // get user's usage status
-            usage = allocation.getUsage();
-
-            // get limit
-            limit = quota.getApplicationLimits();
-
-            // check if there is the correct limit values is there, otherwise give default values
-            if (limit.getDatasets() == 0) {
-                limit = AllocationUtils.setDefalutLimit(limit);
-            }
-
-            // check if the user's dataset number is within the allocation
-            if (usage.getHazards() < limit.getHazards()) {
-                postOk = true;
-            }
-        }
-
-        return postOk;
-    }
-
-    /***
-     * This method receives a username and to see if the user's number of hazard dataset is within the allocation.
-     *
-     * @param allocationRepository IUserAllocationsRepository injected by controller
-     * @param quotaRepository IUserFinalQuotaRepository injected by controller
-     * @param username string representation of username
-     * @return postOk boolean if the user can post more datasets
-     */
-    public static Boolean canCreateHazardDataset(IUserAllocationsRepository allocationRepository,
-                                                 IUserFinalQuotaRepository quotaRepository,
-                                                 String username) {
-        // check allocation first
-        UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
-        UserFinalQuota quota = quotaRepository.getQuotaByUsername(username);
-        UserUsages limit = new UserUsages();
-        UserUsages usage = new UserUsages();
-        Boolean postOk = false;
-
-        // if allocations is null, it means that this post should be the very first post by the user
-        // so the check should be passed.
-        if (allocation == null) {
-            // First POST, no need to check the allocation
-            // use default allocation
-            postOk = true;
-        } else {
-            // get user's quota information
-            if (quota == null) {
-                quota = new UserFinalQuota();
-            }
-
-            // get user's usage status
-            usage = allocation.getUsage();
-
-            // get user's limit
-            limit = quota.getApplicationLimits();
-
-            // check if there is the correct limit values is there, otherwise give default values
-            if (limit.getDatasets() == 0) {
-                limit = AllocationUtils.setDefalutLimit(limit);
-            }
-
-            // check if the user's dataset number is within the allocation
-            if (usage.getHazardDatasets() < limit.getHazardDatasets()) {
-                postOk = true;
-            }
-        }
-
-        return postOk;
-    }
-
-    /***
-     * This method receives a username and to see if the user's number of hazard dataset is within the allocation.
-     *
-     * @param allocationRepository IUserAllocationsRepository injected by controller
-     * @param quotaRepository IUserFinalQuotaRepository injected by controller
-     * @param username string representation of username
-     * @param isHazard boolean for indicating if the dataset is the regular dataset or hazard dataset
-     * @return postOk boolean if the user can post more datasets
-     */
-    public static Boolean canAttachFile(IUserAllocationsRepository allocationRepository,
-                                                 IUserFinalQuotaRepository quotaRepository,
-                                                 String username, Boolean isHazard) {
-        // check allocation first
-        UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
-        UserFinalQuota quota = quotaRepository.getQuotaByUsername(username);
-        UserUsages limit = new UserUsages();
-        UserUsages usage = new UserUsages();
-        Boolean postOk = false;
-
-        // if allocations is null, it means that this post should be the very first post by the user
-        // so the check should be passed.
-        if (allocation == null) {
-            // First POST, no need to check the allocation
-            // use default allocation
-            postOk = true;
-        } else {
-            // get user's quota information
-            if (quota == null) {
-                quota = new UserFinalQuota();
-            }
-
-            // get user's usage status
-            usage = allocation.getUsage();
-
-            // get user's limit
-            limit = quota.getApplicationLimits();
-
-            // check if there is the correct limit values is there, otherwise give default values
-            if (limit.getDatasets() == 0) {
-                limit = AllocationUtils.setDefalutLimit(limit);
-            }
-
-            // check if the user's dataset number is within the allocation
-            if (isHazard) {
-                if (usage.getHazardDatasetSize() < limit.getHazardDatasetSize()) {
-                    postOk = true;
-                }
-            } else {
-                if (usage.getDatasetSize() < limit.getDatasetSize()) {
-                    postOk = true;
-                }
-            }
-        }
-
-        return postOk;
     }
 
     /***
@@ -500,6 +377,46 @@ public class AllocationUtils {
             if (updatedAllocation == null) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
                     "the dataset's file size to user's allocation.");
+            }
+        }
+    }
+
+    /***
+     * increase the file size of dataset in the user allocation
+     *
+     * @param allocation
+     * @param allocationsRepository
+     */
+    public static void increaseDfr3(UserAllocations allocation, IUserAllocationsRepository allocationsRepository) {
+        if (allocation != null) {
+            UserUsages usage = allocation.getUsage();
+            usage.setDfr3(usage.getDfr3() + 1);
+            allocation.setUsage(usage);
+
+            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
+            if (updatedAllocation == null) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
+                    "the dfr3 to user's allocation.");
+            }
+        }
+    }
+
+    /***
+     * increase the file size of dataset in the user allocation
+     *
+     * @param allocation
+     * @param allocationsRepository
+     */
+    public static void decreaseDfr3(UserAllocations allocation, IUserAllocationsRepository allocationsRepository) {
+        if (allocation != null) {
+            UserUsages usage = allocation.getUsage();
+            usage.setDfr3(usage.getDfr3() - 1);
+            allocation.setUsage(usage);
+
+            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
+            if (updatedAllocation == null) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
+                    "the dfr3 to user's allocation.");
             }
         }
     }

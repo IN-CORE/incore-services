@@ -13,10 +13,7 @@ package edu.illinois.ncsa.incore.service.dfr3;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
-import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.dao.MongoCommonDBRepository;
-import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
+import edu.illinois.ncsa.incore.common.dao.*;
 import edu.illinois.ncsa.incore.service.dfr3.daos.*;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -57,6 +54,12 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
+        IUserAllocationsRepository mongoUserAllocationsRepository = new MongoUserAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserAllocationsRepository.initialize();
+
+        IUserFinalQuotaRepository mongoUserFinalQuotaRepository = new MongoUserFinalQuotaDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserFinalQuotaRepository.initialize();
+
         // connect to config database to get definitions
         String mongodbCommonUri = "mongodb://localhost:27017/commondb";
         String mongodbCommonUriProp = System.getenv("COMMON_MONGODB_URI");
@@ -78,6 +81,8 @@ public class Application extends ResourceConfig {
                 super.bind(restorationDAO).to(IRestorationDAO.class);
                 super.bind(repairDAO).to(IRepairDAO.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
+                super.bind(mongoUserAllocationsRepository).to(IUserAllocationsRepository.class);
+                super.bind(mongoUserFinalQuotaRepository).to(IUserFinalQuotaRepository.class);
                 super.bind(mongoCommonRepository).to(ICommonRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }

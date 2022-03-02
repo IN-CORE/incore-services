@@ -165,15 +165,21 @@ public class HurricaneWindfieldsController {
 
             try {
                 // check if the user's number of the hazard is within the allocation
-                if (!AllocationUtils.canCreateHazard(allocationsRepository, quotaRepository, this.username)) {
+                if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazards")) {
                     throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                         AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
                 }
 
                 // check if the user's number of the hazard dataset is within the allocation
-                if (!AllocationUtils.canCreateHazardDataset(allocationsRepository, quotaRepository, this.username)) {
+                if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazardDatasets")) {
                     throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                         AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
+                }
+
+                // check if the user's hazard dataset file size is within the allocation
+                if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazardDatasetSize")) {
+                    throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                        AllocationConstants.HAZARD_DATASET_ALLOCATION_FILESIZE_MESSAGE);
                 }
 
                 ObjectMapper mapper = new ObjectMapper();

@@ -371,12 +371,12 @@ public class DatasetController {
             isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
 
             if (isHazardDataset) {
-                postOk = AllocationUtils.canCreateHazardDataset(allocationsRepository, quotaRepository, username);
+                postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "hazardDatasets");
             } else {
-                postOk = AllocationUtils.canCreateDataset(allocationsRepository, quotaRepository, username);
+                postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "datasets");
             }
 
-            if (postOk == false) {
+            if (!postOk) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     AllocationConstants.DATASET_ALLOCATION_MESSAGE);
             }
@@ -539,12 +539,12 @@ public class DatasetController {
         long fileSize = 0;
 
         if (isHazardDataset) {
-            postOk = AllocationUtils.canAttachFile(allocationsRepository, quotaRepository, username, isHazardDataset);
+            postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "hazardDatasetSize");
         } else {
-            postOk = AllocationUtils.canAttachFile(allocationsRepository, quotaRepository, username, isHazardDataset);
+            postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "datasetSize");
         }
 
-        if (postOk == false) {
+        if (!postOk) {
             if (isHazardDataset) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     AllocationConstants.HAZARD_DATASET_ALLOCATION_FILESIZE_MESSAGE);

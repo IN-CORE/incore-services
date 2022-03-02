@@ -37,4 +37,8 @@ public class AllocationConstants {
         "You have reached the maximum file size of hazard datasets you can create for your allocation. " +
             "Your request will be aborted. You either need to increase your allocation " +
             "or delete hazard datasets you've created.";
+    public static final String HAZARD_DFR3_ALLOCATION_MESSAGE =
+        "You have reached the maximum number of dfr3 datasets you can create for your allocation. " +
+            "Your request will be aborted. You either need to increase your allocation " +
+            "or delete dfr3 datasets you've created.";
 }

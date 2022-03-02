@@ -13,6 +13,7 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.MockAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -27,6 +28,7 @@ public class MockApplication extends ResourceConfig {
         IRepository mockDataRepository = new MockDataRepository();
         ISpaceRepository mockSpaceRepository = new MockSpaceRepository();
         IUserAllocationsRepository mockAllocationRepository = new MockUserAllocationsRepository();
+        IUserFinalQuotaRepository mockQuotaRepository = new MockUserFinalQuotaRepository();
 
         mockDataRepository.initialize();
         mockSpaceRepository.initialize();
@@ -47,6 +49,7 @@ public class MockApplication extends ResourceConfig {
                 super.bind(mockSpaceRepository).to(ISpaceRepository.class);
                 super.bind(mockAuthorizer).to(IAuthorizer.class);
                 super.bind(mockAllocationRepository).to(IUserAllocationsRepository.class);
+                super.bind(mockQuotaRepository).to(IUserFinalQuotaRepository.class);
             }
         });
     }

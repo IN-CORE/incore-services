@@ -10,11 +10,16 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.models.UserAllocations;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
@@ -54,6 +59,12 @@ public class MappingController {
 
     @Inject
     private ISpaceRepository spaceRepository;
+
+    @Inject
+    private IUserAllocationsRepository allocationsRepository;
+
+    @Inject
+    private IUserFinalQuotaRepository quotaRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -160,6 +171,15 @@ public class MappingController {
     public MappingSet uploadMapping(@ApiParam(value = "json representing the fragility mapping") MappingSet mappingSet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(mappingSet.getId());
+
+        // check if the user has the quota to put it in
+        Boolean postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "dfr3");
+
+        if (!postOk) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DFR3_ALLOCATION_MESSAGE);
+        }
+
         List<Mapping> mappings = mappingSet.getMappings();
         int idx = 0;
         String prevRuleClassName = "";
@@ -196,6 +216,10 @@ public class MappingController {
         spaceRepository.addSpace(space);
         mappingSet.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
 
+        // add dfr3 in the usage
+        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
+        AllocationUtils.increaseDfr3(allocation, allocationsRepository);
+
         return mappingSet;
     }
 
@@ -216,6 +240,11 @@ public class MappingController {
                         spaceRepository.addSpace(space);
                     }
                 }
+
+                // remove dfr3 in the usage
+                UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
+                AllocationUtils.decreaseDfr3(allocation, allocationsRepository);
+
                 return this.mappingDAO.deleteMappingSetById(id);
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the mapping" +
