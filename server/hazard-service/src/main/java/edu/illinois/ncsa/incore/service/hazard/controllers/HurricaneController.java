@@ -228,7 +228,7 @@ public class HurricaneController {
                     hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricane.getId()));
 
                     // add one more dataset in the usage
-                    AllocationUtils.increaseNumHazards(allocationsRepository, this.username);
+                    AllocationUtils.increaseUsage(allocationsRepository, this.username, "hazards");
 
                     return hurricane;
                 } else {
@@ -360,7 +360,7 @@ public class HurricaneController {
             }
 
             // reduce the number of hazard from the space
-            AllocationUtils.reduceNumHazard(allocationsRepository, this.username);
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazards");
 
             return deletedHurr;
         } else {

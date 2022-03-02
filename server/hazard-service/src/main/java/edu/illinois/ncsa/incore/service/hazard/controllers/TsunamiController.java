@@ -315,7 +315,7 @@ public class TsunamiController {
                     spaceRepository.addSpace(space);
 
                     // add one more dataset in the usage
-                    AllocationUtils.increaseNumHazards(allocationsRepository, this.username);
+                    AllocationUtils.increaseUsage(allocationsRepository, this.username, "hazards");
 
                     tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunami.getId()));
                     return tsunami;
@@ -365,7 +365,7 @@ public class TsunamiController {
             }
 
             // reduce the number of hazard from the space
-            AllocationUtils.reduceNumHazard(allocationsRepository, this.username);
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazards");
 
             return deletedTsunami;
         } else {

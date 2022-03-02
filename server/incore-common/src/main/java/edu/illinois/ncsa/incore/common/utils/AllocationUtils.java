@@ -118,203 +118,75 @@ public class AllocationUtils {
     }
 
     /***
-     * Add one more hazard number in the user allocation
-     *
-     * @param allocation a UserAllocations object
-     * @return allocation a UserAllocations object
-     */
-    public static UserAllocations addNumHazard(UserAllocations allocation) {
-        UserUsages usage = allocation.getUsage();
-        usage.setHazards(usage.getHazards() + 1);
-        allocation.setUsage(usage);
-
-        return allocation;
-    }
-
-    /***
-     * Add one more dataset number in the user allocation
-     *
-     * @param allocation a UserAllocations object
-     * @return allocation a UserAllocations object
-     */
-    public static UserAllocations addNumDataset(UserAllocations allocation) {
-        UserUsages usage = allocation.getUsage();
-        usage.setDatasets(usage.getDatasets() + 1);
-        allocation.setUsage(usage);
-
-        return allocation;
-    }
-
-    /***
-     * Add one more hazard dataset number in the user allocation
-     *
-     * @param allocation a UserAllocations object
-     * @return allocation a UserAllocations object
-     */
-    public static UserAllocations addNumHazardDataset(UserAllocations allocation) {
-        UserUsages usage = allocation.getUsage();
-        usage.setHazardDatasets(usage.getHazardDatasets() + 1);
-        allocation.setUsage(usage);
-
-        return allocation;
-    }
-
-    /***
-     * Remove one dataset number in the user allocation
-     *
-     * @param allocation a UserAllocations object
-     * @return allocation a UserAllocations object
-     */
-    public static UserAllocations removeNumDataset(UserAllocations allocation) {
-        UserUsages usage = allocation.getUsage();
-        usage.setDatasets(usage.getDatasets() - 1);
-        allocation.setUsage(usage);
-
-        return allocation;
-    }
-
-    /***
-     * Remove one hazard number in the user allocation
-     *
-     * @param allocation a UserAllocations object
-     * @return allocation a UserAllocations object
-     */
-    public static UserAllocations removeNumHazard(UserAllocations allocation) {
-        UserUsages usage = allocation.getUsage();
-        usage.setHazards(usage.getHazards() - 1);
-        allocation.setUsage(usage);
-
-        return allocation;
-    }
-
-    /***
-     * Remove one hazard dataset number in the user allocation
-     *
-     * @param allocation a UserAllocations object
-     * @return allocation a UserAllocations object
-     */
-    public static UserAllocations removeNumHazardDataset(UserAllocations allocation) {
-        UserUsages usage = allocation.getUsage();
-        usage.setHazardDatasets(usage.getHazardDatasets() - 1);
-        allocation.setUsage(usage);
-
-        return allocation;
-    }
-
-    /***
-     * Reduce one number of the hazard from the user allocation and update
+     * increase the number of usage in the user allocation
      *
      * @param allocationsRepository
      * @param username
-     * @return
+     * @param datasetType
      */
-    public static void reduceNumHazard(IUserAllocationsRepository allocationsRepository, String username) {
-        // reduce the number of hazard from the space
+    public static void increaseUsage(IUserAllocationsRepository allocationsRepository, String username, String datasetType) {
         UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
+        // the dataset types should only be
+        // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
+
         if (allocation != null) {
-            // remove one dataset in the usage
-            allocation = AllocationUtils.removeNumHazard(allocation);
+            UserUsages usage = allocation.getUsage();
+
+            if (datasetType == "datasets") {
+                usage.setDatasets(usage.getDatasets() + 1);
+                allocation.setUsage(usage);
+            } else if (datasetType == "hazards") {
+                usage.setHazards(usage.getHazards() + 1);
+                allocation.setUsage(usage);
+            } else if (datasetType == "hazardDatasets") {
+                usage.setHazardDatasets(usage.getHazardDatasets() + 1);
+                allocation.setUsage(usage);
+            } else if (datasetType == "dfr3") {
+                usage.setDfr3(usage.getDfr3() + 1);
+                allocation.setUsage(usage);
+            }
+
             UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
             if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to remove " +
-                    "the hazard number to user's allocation.");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
+                    "the usage of user's allocation.");
             }
         }
     }
 
     /***
-     * Reduce one number of the dataset from the user allocation and update
+     * decrease the number of usage in the user allocation
      *
      * @param allocationsRepository
      * @param username
-     * @return
+     * @param datasetType
      */
-    public static void reduceNumDataset(IUserAllocationsRepository allocationsRepository, String username) {
-        // reduce the number of hazard from the user allocation
+    public static void decreaseUsage(IUserAllocationsRepository allocationsRepository, String username, String datasetType) {
         UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
+        // the dataset types should only be
+        // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
+
         if (allocation != null) {
-            // remove one dataset in the usage
-            allocation = AllocationUtils.removeNumDataset(allocation);
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to removing " +
-                    "the dataset number to user's allocation.");
+            UserUsages usage = allocation.getUsage();
+
+            if (datasetType == "datasets") {
+                usage.setDatasets(usage.getDatasets() - 1);
+                allocation.setUsage(usage);
+            } else if (datasetType == "hazards") {
+                usage.setHazards(usage.getHazards() - 1);
+                allocation.setUsage(usage);
+            } else if (datasetType == "hazardDatasets") {
+                usage.setHazardDatasets(usage.getHazardDatasets() - 1);
+                allocation.setUsage(usage);
+            } else if (datasetType == "dfr3") {
+                usage.setDfr3(usage.getDfr3() - 1);
+                allocation.setUsage(usage);
             }
-        }
-    }
-
-    /***
-     * Reduce one number of the hazard dataset from the user allocation and update
-     *
-     * @param allocationsRepository
-     * @param username
-     * @return
-     */
-    public static void reduceNumHazardDataset(IUserAllocationsRepository allocationsRepository, String username) {
-        // reduce the number of hazard from the space
-        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-        if (allocation != null) {
-            // remove one dataset in the usage
-            allocation = AllocationUtils.removeNumHazardDataset(allocation);
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to removing " +
-                    "the hazard dataset number to user's allocation.");
-            }
-        }
-    }
-
-    /***
-     * increase the number of hazard in the user allocation
-     *
-     * @param allocationsRepository
-     * @param username
-     */
-    public static void increaseNumHazards(IUserAllocationsRepository allocationsRepository, String username) {
-        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-        if (allocation != null) {
-            allocation = AllocationUtils.addNumHazard(allocation);
 
             UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
             if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
-                    "the hazard to user's allocation.");
-            }
-        }
-    }
-
-    /***
-     * increase the number of dataset in the user allocation
-     *
-     * @param allocation
-     * @param allocationsRepository
-     */
-    public static void increaseNumDataset(UserAllocations allocation, IUserAllocationsRepository allocationsRepository) {
-        if (allocation != null) {
-            allocation = AllocationUtils.addNumDataset(allocation);
-
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
-                    "the dataset to user's allocation.");
-            }
-        }
-    }
-
-    /***
-     * increase the number of dataset in the user allocation
-     *
-     * @param allocation
-     * @param allocationsRepository
-     */
-    public static void increaseNumHazardDataset(UserAllocations allocation, IUserAllocationsRepository allocationsRepository) {
-        if (allocation != null) {
-            allocation = AllocationUtils.addNumHazardDataset(allocation);
-
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
-                    "the hazard dataset to user's allocation.");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
+                    "the usage of user's allocation.");
             }
         }
     }
@@ -377,46 +249,6 @@ public class AllocationUtils {
             if (updatedAllocation == null) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
                     "the dataset's file size to user's allocation.");
-            }
-        }
-    }
-
-    /***
-     * increase the file size of dataset in the user allocation
-     *
-     * @param allocation
-     * @param allocationsRepository
-     */
-    public static void increaseDfr3(UserAllocations allocation, IUserAllocationsRepository allocationsRepository) {
-        if (allocation != null) {
-            UserUsages usage = allocation.getUsage();
-            usage.setDfr3(usage.getDfr3() + 1);
-            allocation.setUsage(usage);
-
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
-                    "the dfr3 to user's allocation.");
-            }
-        }
-    }
-
-    /***
-     * increase the file size of dataset in the user allocation
-     *
-     * @param allocation
-     * @param allocationsRepository
-     */
-    public static void decreaseDfr3(UserAllocations allocation, IUserAllocationsRepository allocationsRepository) {
-        if (allocation != null) {
-            UserUsages usage = allocation.getUsage();
-            usage.setDfr3(usage.getDfr3() - 1);
-            allocation.setUsage(usage);
-
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to add " +
-                    "the dfr3 to user's allocation.");
             }
         }
     }

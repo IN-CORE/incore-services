@@ -266,7 +266,7 @@ public class EarthquakeController {
             }
 
             // add one more dataset in the usage
-            AllocationUtils.increaseNumHazards(allocationsRepository, this.username);
+            AllocationUtils.increaseUsage(allocationsRepository, this.username, "hazards");
 
             earthquake.setSpaces(spaceRepository.getSpaceNamesOfMember(earthquake.getId()));
             return earthquake;
@@ -1049,7 +1049,7 @@ public class EarthquakeController {
             }
 
             // reduce the number of hazard from the space
-            AllocationUtils.reduceNumHazard(allocationsRepository, this.username);
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazards");
 
             return deletedEq;
         } else {

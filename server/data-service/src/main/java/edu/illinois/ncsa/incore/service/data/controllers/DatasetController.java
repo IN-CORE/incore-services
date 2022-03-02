@@ -412,11 +412,10 @@ public class DatasetController {
             }
 
             // add dataset in the usage
-            UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
             if (isHazardDataset) {
-                AllocationUtils.increaseNumHazardDataset(allocation, allocationsRepository);
+                AllocationUtils.increaseUsage(allocationsRepository, username, "hazardDatasets");
             } else {
-                AllocationUtils.increaseNumDataset(allocation, allocationsRepository);
+                AllocationUtils.increaseUsage(allocationsRepository, username, "datasets");
             }
         }
 
@@ -493,9 +492,9 @@ public class DatasetController {
 
         // reduce the number of hazard from the space
         if (isHazardDataset) {
-            AllocationUtils.reduceNumHazardDataset(allocationsRepository, this.username);
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazardDatasets");
         } else {
-            AllocationUtils.reduceNumDataset(allocationsRepository, this.username);
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "datasets");
         }
 
         // decrease file size to usage

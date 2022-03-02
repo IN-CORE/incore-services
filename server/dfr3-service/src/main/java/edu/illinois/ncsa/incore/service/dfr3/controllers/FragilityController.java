@@ -234,8 +234,7 @@ public class FragilityController {
         fragilitySet.setSpaces(spaceRepository.getSpaceNamesOfMember(fragilitySet.getId()));
 
         // add dfr3 in the usage
-        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-        AllocationUtils.increaseDfr3(allocation, allocationsRepository);
+        AllocationUtils.increaseUsage(allocationsRepository, username, "dfr3");
 
         return fragilitySet;
     }
@@ -287,8 +286,7 @@ public class FragilityController {
                     }
 
                     // remove dfr3 in the usage
-                    UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-                    AllocationUtils.decreaseDfr3(allocation, allocationsRepository);
+                    AllocationUtils.decreaseUsage(allocationsRepository, username,  "dfr3");
 
                     return this.fragilityDAO.deleteFragilitySetById(id);
                 }

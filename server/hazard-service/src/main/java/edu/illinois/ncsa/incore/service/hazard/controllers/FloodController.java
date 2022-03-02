@@ -237,7 +237,7 @@ public class FloodController {
                 }
 
                 // add one more dataset in the usage
-                AllocationUtils.increaseNumHazards(allocationsRepository, this.username);
+                AllocationUtils.increaseUsage(allocationsRepository, this.username, "hazards");
 
                 flood.setSpaces(spaceRepository.getSpaceNamesOfMember(flood.getId()));
                 return flood;
@@ -362,7 +362,7 @@ public class FloodController {
             }
 
             // reduce the number of hazard from the space
-            AllocationUtils.reduceNumHazard(allocationsRepository, this.username);
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazards");
 
             return deletedFlood;
         } else {

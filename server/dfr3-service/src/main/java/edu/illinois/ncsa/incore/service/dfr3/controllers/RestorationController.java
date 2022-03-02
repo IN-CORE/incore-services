@@ -187,8 +187,7 @@ public class RestorationController {
         restorationSet.setSpaces(spaceRepository.getSpaceNamesOfMember(restorationId));
 
         // add dfr3 in the usage
-        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-        AllocationUtils.increaseDfr3(allocation, allocationsRepository);
+        AllocationUtils.increaseUsage(allocationsRepository, username, "dfr3");
 
         return restorationSet;
     }
@@ -239,7 +238,7 @@ public class RestorationController {
 
                     // remove dfr3 in the usage
                     UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-                    AllocationUtils.decreaseDfr3(allocation, allocationsRepository);
+                    AllocationUtils.decreaseUsage(allocationsRepository, username, "dfr3");
 
                     return this.restorationDAO.deleteRestorationSetById(id);
                 }
