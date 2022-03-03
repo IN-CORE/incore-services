@@ -126,31 +126,35 @@ public class AllocationUtils {
      */
     public static void increaseUsage(IUserAllocationsRepository allocationsRepository, String username, String datasetType) {
         UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-        // the dataset types should only be
-        // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
+        UserUsages usage = new UserUsages();
 
         if (allocation != null) {
-            UserUsages usage = allocation.getUsage();
+            usage = allocation.getUsage();
+        } else {
+            allocation = new UserAllocations();
+            allocation.setUsername(username);
+        }
 
-            if (datasetType == "datasets") {
-                usage.setDatasets(usage.getDatasets() + 1);
-                allocation.setUsage(usage);
-            } else if (datasetType == "hazards") {
-                usage.setHazards(usage.getHazards() + 1);
-                allocation.setUsage(usage);
-            } else if (datasetType == "hazardDatasets") {
-                usage.setHazardDatasets(usage.getHazardDatasets() + 1);
-                allocation.setUsage(usage);
-            } else if (datasetType == "dfr3") {
-                usage.setDfr3(usage.getDfr3() + 1);
-                allocation.setUsage(usage);
-            }
+        // the dataset types should only be
+        // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
+        if (datasetType == "datasets") {
+            usage.setDatasets(usage.getDatasets() + 1);
+            allocation.setUsage(usage);
+        } else if (datasetType == "hazards") {
+            usage.setHazards(usage.getHazards() + 1);
+            allocation.setUsage(usage);
+        } else if (datasetType == "hazardDatasets") {
+            usage.setHazardDatasets(usage.getHazardDatasets() + 1);
+            allocation.setUsage(usage);
+        } else if (datasetType == "dfr3") {
+            usage.setDfr3(usage.getDfr3() + 1);
+            allocation.setUsage(usage);
+        }
 
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
-                    "the usage of user's allocation.");
-            }
+        UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
+        if (updatedAllocation == null) {
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
+                "the usage of user's allocation.");
         }
     }
 
@@ -163,31 +167,35 @@ public class AllocationUtils {
      */
     public static void decreaseUsage(IUserAllocationsRepository allocationsRepository, String username, String datasetType) {
         UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-        // the dataset types should only be
-        // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
+        UserUsages usage = new UserUsages();
 
         if (allocation != null) {
-            UserUsages usage = allocation.getUsage();
+            usage = allocation.getUsage();
+        } else {
+            allocation = new UserAllocations();
+            allocation.setUsername(username);
+        }
 
-            if (datasetType == "datasets") {
-                usage.setDatasets(usage.getDatasets() - 1);
-                allocation.setUsage(usage);
-            } else if (datasetType == "hazards") {
-                usage.setHazards(usage.getHazards() - 1);
-                allocation.setUsage(usage);
-            } else if (datasetType == "hazardDatasets") {
-                usage.setHazardDatasets(usage.getHazardDatasets() - 1);
-                allocation.setUsage(usage);
-            } else if (datasetType == "dfr3") {
-                usage.setDfr3(usage.getDfr3() - 1);
-                allocation.setUsage(usage);
-            }
+        // the dataset types should only be
+        // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
+        if (datasetType == "datasets") {
+            usage.setDatasets(usage.getDatasets() - 1);
+            allocation.setUsage(usage);
+        } else if (datasetType == "hazards") {
+            usage.setHazards(usage.getHazards() - 1);
+            allocation.setUsage(usage);
+        } else if (datasetType == "hazardDatasets") {
+            usage.setHazardDatasets(usage.getHazardDatasets() - 1);
+            allocation.setUsage(usage);
+        } else if (datasetType == "dfr3") {
+            usage.setDfr3(usage.getDfr3() - 1);
+            allocation.setUsage(usage);
+        }
 
-            UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
-            if (updatedAllocation == null) {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
-                    "the usage of user's allocation.");
-            }
+        UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
+        if (updatedAllocation == null) {
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
+                "the usage of user's allocation.");
         }
     }
 
