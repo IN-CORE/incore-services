@@ -47,7 +47,7 @@ public class MockUserAllocationsRepository implements IUserAllocationsRepository
     }
 
     @Override
-    public List<UserAllocations> getAllAllocations(){
+    public List<UserAllocations> getAllAllocations() {
         return this.userAllocations;
     }
 
@@ -67,5 +67,7 @@ public class MockUserAllocationsRepository implements IUserAllocationsRepository
     }
 
     @Override
-    public UserAllocations addAllocation(UserAllocations allocation) { return null; }
+    public UserAllocations addAllocation(UserAllocations allocation) {
+        return allocation;
+    }
 }
