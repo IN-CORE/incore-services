@@ -153,8 +153,8 @@ public class AllocationUtils {
 
         UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
         if (updatedAllocation == null) {
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
-                "the usage of user's allocation.");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR,
+                "There was an unexpected error when trying to modify the usage of user's allocation.");
         }
     }
 
@@ -194,8 +194,8 @@ public class AllocationUtils {
 
         UserAllocations updatedAllocation = allocationsRepository.addAllocation(allocation);
         if (updatedAllocation == null) {
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "There was an unexpected error when trying to modify " +
-                "the usage of user's allocation.");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR,
+                "There was an unexpected error when trying to modify the usage of user's allocation.");
         }
     }
 
