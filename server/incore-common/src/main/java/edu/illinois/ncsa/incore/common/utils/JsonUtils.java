@@ -1,13 +1,29 @@
 package edu.illinois.ncsa.incore.common.utils;
 
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
+import edu.illinois.ncsa.incore.common.models.UserAllocations;
+import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
+import edu.illinois.ncsa.incore.common.models.UserUsages;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+import javax.ws.rs.core.Response;
 import java.util.LinkedList;
 import java.util.List;
 
 public class JsonUtils {
+    public static final Logger logger = Logger.getLogger(JsonUtils.class);
+
     // validate if json is okay
     public static boolean isJSONValid(String inJson) {
         try {
@@ -48,5 +64,83 @@ public class JsonUtils {
         } else {
             return outList;
         }
+    }
+
+    public static JSONObject createUserStatusJson(String userInfo, IUserAllocationsRepository allocationRepository){
+        String username = parseUserName(userInfo);
+        UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
+        UserUsages usage = new UserUsages();
+
+        if (allocation == null) {
+            allocation = new UserAllocations();
+        }
+
+        // get user's usage status
+        usage = allocation.getUsage();
+
+        long dataset_file_size = usage.getDatasetSize();
+        long hazard_file_size = usage.getHazardDatasetSize();
+
+        double dataset_size_kb = dataset_file_size / 1024;
+        double dataset_size_mb = dataset_size_kb / 1024;
+        double dataset_size_gb = dataset_size_mb / 1024;
+
+        double hazard_size_kb = hazard_file_size / 1024;
+        double hazard_size_mb = hazard_size_kb / 1024;
+        double hazard_size_gb = hazard_size_mb / 1024;
+
+        // round values
+        dataset_size_kb = Math.round(dataset_size_kb * 100.0) / 100.0;
+        dataset_size_mb = Math.round(dataset_size_mb * 100.0) / 100.0;
+        dataset_size_gb = Math.round(dataset_size_gb * 100.0) / 100.0;
+        hazard_size_kb = Math.round(hazard_size_kb * 100.0) / 100.0;
+        hazard_size_mb = Math.round(hazard_size_mb * 100.0) / 100.0;
+        hazard_size_gb = Math.round(hazard_size_gb * 100.0) / 100.0;
+
+        String out_dataset_size;
+        String out_hazard_size;
+
+        if (dataset_size_gb >= 1) {
+            out_dataset_size = dataset_size_gb + " GB";
+        } else if (dataset_size_mb >= 1) {
+            out_dataset_size = dataset_size_mb + " MB";
+        } else {
+            out_dataset_size = dataset_size_kb + " KB";
+        }
+
+        if (hazard_size_gb >= 1) {
+            out_hazard_size = hazard_size_gb + " GB";
+        } else if (hazard_size_mb >= 1) {
+            out_hazard_size = hazard_size_mb + " MB";
+        } else {
+            out_hazard_size = hazard_size_kb + " KB";
+        }
+
+        JSONObject outJson = new JSONObject();
+        outJson.put("user", username);
+        outJson.put("total_number_of_datasets", usage.getDatasets());
+        outJson.put("total_number_of_hazard_datasets", usage.getHazardDatasets());
+        outJson.put("total_number_of_dfr3", usage.getDfr3());
+        outJson.put("total_file_size_of_datasets", out_dataset_size);
+        outJson.put("total_file_size_of_datasets_byte", dataset_file_size);
+        outJson.put("total_file_size_of_hazard_datasets", out_hazard_size);
+        outJson.put("total_file_size_of_hazard_datasets_byte", usage.getHazardDatasetSize());
+
+        return outJson;
+    }
+
+    public static String parseUserName(String userInfo) {
+        String userName = null;
+        try {
+            JSONParser parser = new JSONParser();
+            org.json.simple.JSONObject userInfoJson = (org.json.simple.JSONObject) parser.parse(userInfo);
+            userName = (String) userInfoJson.get("preferred_username");
+
+        } catch (ParseException e) {
+            logger.error("Unable to parse userInfo", e);
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unable to parse userInfo");
+        }
+
+        return userName;
     }
 }
