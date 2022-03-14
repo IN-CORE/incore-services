@@ -1,16 +1,10 @@
 package edu.illinois.ncsa.incore.common.utils;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
-import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.models.UserAllocations;
-import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
 import edu.illinois.ncsa.incore.common.models.UserUsages;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -66,8 +60,10 @@ public class JsonUtils {
         }
     }
 
-    public static JSONObject createUserStatusJson(String userInfo, IUserAllocationsRepository allocationRepository){
-        String username = parseUserName(userInfo);
+    public static JSONObject createUserStatusJson(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
+        //TODO need to create a way to check if the username exists or not
+        // If the username doesn't exist, it should give proper message
+        // then just giving the default zero values
         UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
         UserUsages usage = new UserUsages();
 
@@ -142,5 +138,21 @@ public class JsonUtils {
         }
 
         return userName;
+    }
+
+    public static Boolean isLoggedInUserAdmin(String userGroup){
+        Boolean isAdmin = false;
+
+        try {
+            JSONParser parser = new JSONParser();
+            org.json.simple.JSONObject userGroupJson = (org.json.simple.JSONObject) parser.parse(userGroup);
+            org.json.simple.JSONArray groups = (org.json.simple.JSONArray) userGroupJson.get("groups");
+            isAdmin = groups.toString().contains("\"incore_admin\"");
+        } catch (ParseException e) {
+            logger.error("Unable to parse userInfo", e);
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unable to parse userInfo");
+        }
+
+        return isAdmin;
     }
 }

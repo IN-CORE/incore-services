@@ -15,19 +15,14 @@ import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
-import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 /**
  * Created by ywkim on 3/14/2022.
@@ -76,7 +71,43 @@ public class UsageController {
         notes = "This will provide the usage of the logged in user.")
     public String getUsage(@HeaderParam("x-auth-userinfo") String userInfo) {
         JSONObject outJson = null;
-        outJson = JsonUtils.createUserStatusJson(userInfo, allocationsRepository);
+
+        String username = JsonUtils.parseUserName(userInfo);
+
+        try {
+            outJson = JsonUtils.createUserStatusJson(username, allocationsRepository);
+        } catch (ParseException e) {
+            logger.error("Error extracting usage");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting usage");
+        }
+        return outJson.toString();
+    }
+
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gives the usage status of the given user id.",
+        notes = "This will only work for admin user group.")
+    public String getUsageById(
+        @HeaderParam("x-auth-userinfo") String userInfo,
+        @HeaderParam("x-auth-usergroup") String userGroup,
+        @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String userId) {
+        // check if the logged in user is in admin group
+        Boolean isAdmin = JsonUtils.isLoggedInUserAdmin(userGroup);
+
+        JSONObject outJson = null;
+
+        if (isAdmin) {
+            try {
+                outJson = JsonUtils.createUserStatusJson(userId, allocationsRepository);
+            } catch (ParseException e) {
+                logger.error("Error extracting user status");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
+            }
+        } else {
+            outJson.put("query_user_id", userId);
+            outJson.put("reason_of_error", "logged in user is not an incore admin");
+        }
 
         return outJson.toString();
     }
