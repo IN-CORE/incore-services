@@ -17,23 +17,19 @@ import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement
-@Entity("UserAllocations")
-public class UserAllocations {
+@Entity("UserGroups")
+public class UserGroups {
     @Id
     @Property("_id")
     private ObjectId id;
 
     private String username;
 
-    @JsonProperty("usage")
-    private UserUsages usage;
-
-    public UserAllocations() {
-        this.usage = new UserUsages();
-        this.username = null;
-    }
+    @JsonProperty("groups")
+    private List<String> groups;
 
     public String getId() {
         return (id == null) ? null : id.toString();
@@ -43,7 +39,7 @@ public class UserAllocations {
 
     public void setUsername(String username) { this.username = username; }
 
-    public UserUsages getUsage() { return this.usage; }
+    public List<String> getGroups() { return this.groups; }
 
-    public void setUsage(UserUsages usage) { this.usage = usage; }
+    public void setGroups(List<String> groups) { this.groups = groups; }
 }

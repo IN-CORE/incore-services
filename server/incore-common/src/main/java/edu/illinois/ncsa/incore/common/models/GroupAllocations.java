@@ -19,19 +19,19 @@ import org.bson.types.ObjectId;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-@Entity("UserAllocations")
-public class UserAllocations {
+@Entity("GroupAllocations")
+public class GroupAllocations {
     @Id
     @Property("_id")
     private ObjectId id;
 
     private String username;
 
-    @JsonProperty("usage")
-    private UserUsages usage;
+    @JsonProperty("limit")
+    private UserUsages limit;
 
-    public UserAllocations() {
-        this.usage = new UserUsages();
+    public GroupAllocations() {
+        this.limit = new UserUsages();
         this.username = null;
     }
 
@@ -43,7 +43,7 @@ public class UserAllocations {
 
     public void setUsername(String username) { this.username = username; }
 
-    public UserUsages getUsage() { return this.usage; }
+    public UserUsages getLimit() { return this.limit; }
 
-    public void setUsage(UserUsages usage) { this.usage = usage; }
+    public void setLimit(UserUsages limit) { this.limit = limit; }
 }

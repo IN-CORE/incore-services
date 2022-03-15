@@ -39,6 +39,12 @@ public class Application extends ResourceConfig {
         IUserFinalQuotaRepository mongoUserFinalQuotaRepository = new MongoUserFinalQuotaDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoUserFinalQuotaRepository.initialize();
 
+        IUserGroupsRepository mongoUserGroupsRepository = new MongoUserGroupsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserGroupsRepository.initialize();
+
+        IGroupAllocationsRepository mongoGroupAllocationsRepository = new MongoGroupAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoGroupAllocationsRepository.initialize();
+
         IAuthorizer authorizer = Authorizer.getInstance();
 
         super.register(new AbstractBinder() {
@@ -48,6 +54,8 @@ public class Application extends ResourceConfig {
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(mongoUserAllocationsRepository).to(IUserAllocationsRepository.class);
                 super.bind(mongoUserFinalQuotaRepository).to(IUserFinalQuotaRepository.class);
+                super.bind(mongoUserGroupsRepository).to(IUserGroupsRepository.class);
+                super.bind(mongoGroupAllocationsRepository).to(IGroupAllocationsRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
 

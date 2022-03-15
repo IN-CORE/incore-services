@@ -10,16 +10,16 @@
 
 package edu.illinois.ncsa.incore.common.dao;
 
-import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
+import edu.illinois.ncsa.incore.common.models.UserGroups;
 
 import java.util.List;
 
-public interface IUserFinalQuotaRepository {
+public interface IUserGroupsRepository {
     void initialize();
 
-    List<UserFinalQuota> getAllQuotas();
+    List<UserGroups> getAllUserGroups();
 
-    UserFinalQuota getQuotaById(String id);
+    UserGroups getUserGroupsById(String id);
 
-    UserFinalQuota getQuotaByUsername(String username);
+    UserGroups getUserGroupsByUsername(String username);
 }

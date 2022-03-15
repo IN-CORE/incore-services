@@ -1,9 +1,11 @@
 package edu.illinois.ncsa.incore.common.utils;
 
+import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserGroupsRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
-import edu.illinois.ncsa.incore.common.models.UserUsages;
+import edu.illinois.ncsa.incore.common.models.*;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -60,20 +62,69 @@ public class JsonUtils {
         }
     }
 
-    public static JSONObject createUserStatusJson(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
-        //TODO need to create a way to check if the username exists or not
-        // If the username doesn't exist, it should give proper message
-        // then just giving the default zero values
-        UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
-        UserUsages usage = new UserUsages();
+    public static JSONObject createUserFinalQuotaJson(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException{
+        UserFinalQuota quota = finalQuotaRepository.getQuotaByUsername(username);   // get default allocation
+        JSONObject outJson = new JSONObject();
+        if (quota != null) {
+            // get user's limit
+            UserUsages limit = new UserUsages();
+            limit = quota.getApplicationLimits();
 
-        if (allocation == null) {
-            allocation = new UserAllocations();
+            // check if there is the correct limit values is there, otherwise give default values
+            if (limit.getDatasets() == 0) {
+                limit = AllocationUtils.setDefalutLimit(limit);
+            }
+
+            outJson = setUsageJson(username, limit);
+        } else {
+            outJson = setNotFoundJson(username);
         }
 
-        // get user's usage status
-        usage = allocation.getUsage();
+        return outJson;
+    }
 
+    public static JSONObject createUserUsageJson(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
+        UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
+        UserUsages usage = new UserUsages();
+        JSONObject outJson = new JSONObject();
+
+        if (allocation != null) {
+            // get user's usage status
+            usage = allocation.getUsage();
+            outJson = setUsageJson(username, usage);
+        } else {
+            outJson = setNotFoundJson(username);
+        }
+
+        return outJson;
+    }
+
+    public static JSONObject createGroupAllocationJson(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
+        GroupAllocations allocation = allocationsRepository.getAllocationByUsername(groupname);   // get default allocation
+
+        UserUsages limit = new UserUsages();
+        JSONObject outJson = new JSONObject();
+
+        if (allocation != null) {
+            // get user's usage status
+            limit = allocation.getLimit();
+            outJson = setUsageJson(groupname, limit);
+        } else {
+            outJson = setNotFoundJson(groupname);
+        }
+
+        return outJson;
+    }
+
+    public static JSONObject setNotFoundJson(String username) {
+        JSONObject outJson = new JSONObject();
+        outJson.put("ID", username);
+        outJson.put("reason_or_error", "ID not found");
+
+        return outJson;
+    }
+
+    public static JSONObject setUsageJson(String username, UserUsages usage) {
         long dataset_file_size = usage.getDatasetSize();
         long hazard_file_size = usage.getHazardDatasetSize();
 

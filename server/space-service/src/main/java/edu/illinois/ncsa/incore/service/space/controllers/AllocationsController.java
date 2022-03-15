@@ -10,14 +10,14 @@
 
 package edu.illinois.ncsa.incore.service.space.controllers;
 
+import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
-import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
-import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -30,7 +30,7 @@ import javax.ws.rs.core.Response;
 
 @SwaggerDefinition(
     info = @Info(
-        description = "IN-CORE Usage Service for getting the user's usage information.",
+        description = "IN-CORE Allocations Service for getting the user's allocation information.",
         version = "v0.1",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
@@ -49,46 +49,37 @@ import javax.ws.rs.core.Response;
 
 )
 
-@Api(value = "usage", authorizations = {})
+@Api(value = "allocations", authorizations = {})
 
-@Path("usage")
+@Path("allocations")
 @ApiResponses(value = {
     @ApiResponse(code = 500, message = "Internal Server Error")
 })
 
-public class UsageController {
+public class AllocationsController {
     @Inject
-    private IUserAllocationsRepository allocationsRepository;
+    private IGroupAllocationsRepository allocationsRepository;
 
     @Inject
-    private IUserFinalQuotaRepository quotaRepository;
+    private IUserFinalQuotaRepository finalQuotaRepository;
 
-    private static final Logger logger = Logger.getLogger(UsageController.class);
+    private static final Logger logger = Logger.getLogger(AllocationsController.class);
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the usage status and can be used as status check as well.",
-        notes = "This will provide the usage of the logged in user.")
-    public String getUsage(@HeaderParam("x-auth-userinfo") String userInfo) {
-        JSONObject outJson = null;
-
-        String username = JsonUtils.parseUserName(userInfo);
-
-        try {
-            outJson = JsonUtils.createUserUsageJson(username, allocationsRepository);
-        } catch (ParseException e) {
-            logger.error("Error extracting usage");
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting usage");
-        }
-        return outJson.toString();
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Gives the status of the service.",
+        notes = "This will provide the status of the service as a JSON.")
+    public String getStatus() {
+        String statusJson = "{\"status\": \"responding\"}";
+        return statusJson;
     }
 
     @GET
-    @Path("{username}")
+    @Path("users/{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the usage status of the given username.",
+    @ApiOperation(value = "Gives the allocation status of the given username.",
         notes = "This will only work for admin user group.")
-    public String getUsageByUsername(
+    public String getAllocationsByUsername(
         @HeaderParam("x-auth-userinfo") String userInfo,
         @HeaderParam("x-auth-usergroup") String userGroup,
         @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
@@ -99,13 +90,42 @@ public class UsageController {
 
         if (isAdmin) {
             try {
-                outJson = JsonUtils.createUserUsageJson(userId, allocationsRepository);
+                outJson = JsonUtils.createUserFinalQuotaJson(userId, finalQuotaRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
             }
         } else {
             outJson.put("query_user_id", userId);
+            outJson.put("reason_of_error", "logged in user is not an incore admin");
+        }
+
+        return outJson.toString();
+    }
+
+    @GET
+    @Path("groups/{groupname}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gives the allocation status of the given username.",
+        notes = "This will only work for admin user group.")
+    public String getAllocationsByGroupname(
+        @HeaderParam("x-auth-userinfo") String userInfo,
+        @HeaderParam("x-auth-usergroup") String userGroup,
+        @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("groupname") String groupId) {
+        // check if the logged in user is in admin group
+        Boolean isAdmin = JsonUtils.isLoggedInUserAdmin(userGroup);
+
+        JSONObject outJson = new JSONObject();
+
+        if (isAdmin) {
+            try {
+                outJson = JsonUtils.createGroupAllocationJson(groupId, allocationsRepository);
+            } catch (ParseException e) {
+                logger.error("Error extracting user status");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
+            }
+        } else {
+            outJson.put("query_user_id", groupId);
             outJson.put("reason_of_error", "logged in user is not an incore admin");
         }
 

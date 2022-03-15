@@ -10,16 +10,18 @@
 
 package edu.illinois.ncsa.incore.common.dao;
 
-import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
+import edu.illinois.ncsa.incore.common.models.GroupAllocations;
 
 import java.util.List;
 
-public interface IUserFinalQuotaRepository {
+public interface IGroupAllocationsRepository {
     void initialize();
 
-    List<UserFinalQuota> getAllQuotas();
+    List<GroupAllocations> getAllAllocations();
 
-    UserFinalQuota getQuotaById(String id);
+    GroupAllocations getAllocationById(String id);
 
-    UserFinalQuota getQuotaByUsername(String username);
+    GroupAllocations getAllocationByUsername(String username);
+
+    GroupAllocations addAllocation(GroupAllocations allocation);
 }
