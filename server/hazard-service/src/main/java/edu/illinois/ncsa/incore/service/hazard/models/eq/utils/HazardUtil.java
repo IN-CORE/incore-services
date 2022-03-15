@@ -73,6 +73,7 @@ public class HazardUtil {
     private static final String sa_sd = "sasd";
     private static final String sd_sd = "sdsd";
     private static final String pgv_pgv = "pgvpgv";
+    private static final String sv_sv = "svsv";
     private static final String FAULT_LENGTH = "Length";
     private static final String FAULT_WIDTH = "Width";
     public static double R_EARTH = 6373.0; // km
@@ -109,7 +110,7 @@ public class HazardUtil {
     // TODO: This json with period is getting hard to read. Move to a static json file - should we use the demand type and unit
     //  definition constants defined here?.
     public final static JSONObject EARTHQUAKE_THRESHOLDS = new JSONObject("{ " +
-        "'" + PGA + "': {'value': 3.01, 'unit': 'g'}," +
+        "'" + PGA + "': {'value': 0.01, 'unit': 'g'}," +
         "'" + PGV + "': {'value': 0.01, 'unit': 'in/s'}," +
         "'" + PGD + "': {'value': 0.01, 'unit': 'in'}," +
         "'" + SA + "': {'value': 0.01, 'unit': 'g'}," +
@@ -221,7 +222,7 @@ public class HazardUtil {
         } else if (concat.equalsIgnoreCase(sa_sd)) {
             return convertSAToSD(hazard, t, units0, units1);
         } else if (concat.equalsIgnoreCase(sa_sv)) {
-            return convertSAToSV(hazard, t, units0);
+            return convertSAToSV(hazard, t, units0, units1);
         } else if (concat.equalsIgnoreCase(sd_sd)) {
             return getCorrectUnitsOfSD(hazard, units0, units1);
         } else if (concat.equalsIgnoreCase(pga_pgd)) {
@@ -230,6 +231,9 @@ public class HazardUtil {
         } else if (concat.equalsIgnoreCase(pgv_pgv)) {
             // logger.debug( "***************hazard val in: " + hazard );
             return getCorrectUnitsOfPGV(hazard, units0, units1);
+        } else if (concat.equalsIgnoreCase(sv_sv)) {
+            // logger.debug( "***************hazard val in: " + hazard );
+            return getCorrectUnitsOfSV(hazard, units0, units1);
         }
         return hazard;
     }
@@ -298,9 +302,9 @@ public class HazardUtil {
      * @param units0 units of Sa
      * @return spectral velocity in cm/s
      */
-    private static double convertSAToSV(double sa, double t, String units0) {
+    private static double convertSAToSV(double sa, double t, String units0, String units1) {
         sa = getCorrectUnitsOfSA(sa, units0, units_g);
-        return sa * 9.8 * t / (2 * Math.PI);
+        return getCorrectUnitsOfSV(sa * 9.8 * t / (2 * Math.PI), units_cms, units1);
     }
 
     /**
@@ -398,9 +402,30 @@ public class HazardUtil {
             return pgv;
         } else if (units_ins.equalsIgnoreCase(units1) && units_cms.equalsIgnoreCase(units0)) {
             return pgv / 2.54;
+        } else if (units_cms.equalsIgnoreCase(units1) && units_ins.equalsIgnoreCase(units0)) {
+            return pgv * 2.54;
         } else {
             logger.warn("Unknown pgv unit, returning unconverted pgv value");
             return pgv;
+        }
+    }
+
+    /**
+     * @param sv
+     * @param units0
+     * @param units1
+     * @return
+     */
+    public static double getCorrectUnitsOfSV(double sv, String units0, String units1) {
+        if (units1 != null && units1.equalsIgnoreCase(units0)) {
+            return sv;
+        } else if (units_ins.equalsIgnoreCase(units1) && units_cms.equalsIgnoreCase(units0)) {
+            return sv / 2.54;
+        } else if (units_cms.equalsIgnoreCase(units1) && units_ins.equalsIgnoreCase(units0)) {
+            return sv * 2.54;
+        } else {
+            logger.warn("Unknown sv unit, returning unconverted s value");
+            return sv;
         }
     }
 
