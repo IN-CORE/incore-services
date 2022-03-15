@@ -243,6 +243,7 @@ public class HazardCalc {
             while (iterator.hasNext()) {
                 BaseAttenuation model = iterator.next();
                 double weight = attenuations.get(model);
+                demandUnits = BaseAttenuation.getUnits(demand);
                 SeismicHazardResult matchedResult = model.getValueClosestMatch(hazardType, site);
 
                 hazardValue += (Math.log(matchedResult.getHazardValue()) * weight);
