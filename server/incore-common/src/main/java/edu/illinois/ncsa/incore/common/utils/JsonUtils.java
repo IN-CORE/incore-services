@@ -67,7 +67,7 @@ public class JsonUtils {
         JSONObject outJson = new JSONObject();
         if (quota != null) {
             // get user's limit
-            UserUsages limit = quota.getApplicationLimits();
+            UserUsages limit = quota.getApplicableLimits();
 
             // check if there is the correct limit values is there, otherwise give default values
             if (limit.getDatasets() == 0) {

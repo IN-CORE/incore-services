@@ -56,7 +56,7 @@ public class AllocationUtils {
             UserUsages usage = allocation.getUsage();
 
             // get user's limit
-            UserUsages limit = quota.getApplicationLimits();
+            UserUsages limit = quota.getApplicableLimits();
 
             // check if there is the correct limit values is there, otherwise give default values
             if (limit.getDatasets() == 0) {
