@@ -32,7 +32,7 @@ import javax.ws.rs.core.Response;
     info = @Info(
         description = "IN-CORE Usage Service for getting the user's usage information.",
         version = "v0.1",
-        title = "IN-CORE v2 Data Service API",
+        title = "IN-CORE v2 Usage Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",

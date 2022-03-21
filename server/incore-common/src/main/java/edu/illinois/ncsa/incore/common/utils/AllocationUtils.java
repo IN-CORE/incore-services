@@ -38,8 +38,6 @@ public class AllocationUtils {
         // check allocation first
         UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
         UserFinalQuota quota = quotaRepository.getQuotaByUsername(username);
-        UserUsages usage = new UserUsages();
-        UserUsages limit = new UserUsages();
         Boolean postOk = false;
 
         // if allocations is null, it means that this post should be the very first post by the user
@@ -55,10 +53,10 @@ public class AllocationUtils {
             }
 
             // get user's usage status
-            usage = allocation.getUsage();
+            UserUsages usage = allocation.getUsage();
 
             // get user's limit
-            limit = quota.getApplicationLimits();
+            UserUsages limit = quota.getApplicationLimits();
 
             // check if there is the correct limit values is there, otherwise give default values
             if (limit.getDatasets() == 0) {
