@@ -2,7 +2,6 @@ package edu.illinois.ncsa.incore.common.utils;
 
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
-import edu.illinois.ncsa.incore.common.dao.IUserGroupsRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.models.*;
@@ -99,14 +98,14 @@ public class JsonUtils {
     }
 
     public static JSONObject createGroupAllocationJson(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
-        GroupAllocations allocation = allocationsRepository.getAllocationByUsername(groupname);   // get default allocation
+        GroupAllocations allocation = allocationsRepository.getAllocationByGroupname(groupname);   // get default allocation
 
         UserUsages limit = new UserUsages();
         JSONObject outJson = new JSONObject();
 
         if (allocation != null) {
             // get user's usage status
-            limit = allocation.getLimit();
+            limit = allocation.getLimits();
             outJson = setUsageJson(groupname, limit);
         } else {
             outJson = setNotFoundJson(groupname);

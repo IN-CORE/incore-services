@@ -21,7 +21,7 @@ public interface IGroupAllocationsRepository {
 
     GroupAllocations getAllocationById(String id);
 
-    GroupAllocations getAllocationByUsername(String username);
+    GroupAllocations getAllocationByGroupname(String username);
 
     GroupAllocations addAllocation(GroupAllocations allocation);
 }

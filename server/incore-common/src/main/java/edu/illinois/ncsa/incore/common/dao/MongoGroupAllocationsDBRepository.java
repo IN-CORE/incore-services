@@ -26,7 +26,7 @@ import java.util.List;
 
 
 public class MongoGroupAllocationsDBRepository implements IGroupAllocationsRepository {
-    private final String GROUP_ALLOCATION_FIELD_USERNAME = "username";
+    private final String GROUP_ALLOCATION_FIELD_GROUPNAME = "groupname";
     private final String databaseName;
     private final MongoClientURI mongoClientURI;
     private Datastore dataStore;
@@ -51,9 +51,9 @@ public class MongoGroupAllocationsDBRepository implements IGroupAllocationsRepos
         return this.dataStore.find(GroupAllocations.class).filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
-    public GroupAllocations getAllocationByUsername(String username) {
+    public GroupAllocations getAllocationByGroupname(String groupname) {
         Query<GroupAllocations> allocationQuery = this.dataStore.find(GroupAllocations.class);
-        GroupAllocations foundGroupAllocations = allocationQuery.filter(Filters.eq(GROUP_ALLOCATION_FIELD_USERNAME, username)).first();
+        GroupAllocations foundGroupAllocations = allocationQuery.filter(Filters.eq(GROUP_ALLOCATION_FIELD_GROUPNAME, groupname)).first();
 
         return foundGroupAllocations;
     }

@@ -25,25 +25,25 @@ public class GroupAllocations {
     @Property("_id")
     private ObjectId id;
 
-    private String username;
+    private String groupname;
 
     @JsonProperty("limit")
-    private UserUsages limit;
+    private UserUsages limits;
 
     public GroupAllocations() {
-        this.limit = new UserUsages();
-        this.username = null;
+        this.limits = new UserUsages();
+        this.groupname = null;
     }
 
     public String getId() {
         return (id == null) ? null : id.toString();
     }
 
-    public String getUsername() { return this.username; }
+    public String getGroupname() { return this.groupname; }
 
-    public void setUsername(String username) { this.username = username; }
+    public void setGroupname(String groupname) { this.groupname = groupname; }
 
-    public UserUsages getLimit() { return this.limit; }
+    public UserUsages getLimits() { return this.limits; }
 
-    public void setLimit(UserUsages limit) { this.limit = limit; }
+    public void setLimits(UserUsages limits) { this.limits = limits; }
 }
