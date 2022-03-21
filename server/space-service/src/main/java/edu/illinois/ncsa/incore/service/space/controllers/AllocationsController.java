@@ -96,8 +96,8 @@ public class AllocationsController {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
             }
         } else {
-            outJson.put("query_user_id", userId);
-            outJson.put("reason_of_error", "logged in user is not an incore admin");
+            logger.error("Error extracting user status");
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, "Logged in user is not incore admin");
         }
 
         return outJson.toString();
