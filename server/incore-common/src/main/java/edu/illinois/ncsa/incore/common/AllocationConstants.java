@@ -11,10 +11,10 @@ package edu.illinois.ncsa.incore.common;
 
 public class AllocationConstants {
     public static final int NUM_DATASETS = 100;
-    public static final int NUM_HAZARDS = 500;
-    public static final int NUM_HAZARD_DATASETS = 500;
-    public static final int NUM_DFR3 = 500;
-    public static final long DATASET_SIZE = 524288000L;
+    public static final int NUM_HAZARDS = 100;
+    public static final int NUM_HAZARD_DATASETS = 100;
+    public static final int NUM_DFR3 = 100;
+    public static final long DATASET_SIZE = 2147483648L;
     public static final long HAZARD_DATASET_SIZE = 2147483648L;
     public static final String DATASET_ALLOCATION_MESSAGE =
         "You have reached the maximum number of datasets you can create for your allocation. " +

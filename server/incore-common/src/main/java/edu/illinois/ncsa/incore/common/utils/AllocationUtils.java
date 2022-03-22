@@ -50,6 +50,10 @@ public class AllocationUtils {
             // get user's quota information
             if (quota == null) {
                 quota = new UserFinalQuota();
+                // set user quota as default allocation
+                UserUsages limit = quota.getApplicableLimits();
+                limit = AllocationUtils.setDefalutLimit(limit);
+                quota.setApplicableLimits(limit);
             }
 
             // get user's usage status
@@ -57,11 +61,6 @@ public class AllocationUtils {
 
             // get user's limit
             UserUsages limit = quota.getApplicableLimits();
-
-            // check if there is the correct limit values is there, otherwise give default values
-            if (limit.getDatasets() == 0) {
-                limit = AllocationUtils.setDefalutLimit(limit);
-            }
 
             // the dataset types should only be
             // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3

@@ -53,8 +53,12 @@ public class MongoUserFinalQuotaDBRepository implements IUserFinalQuotaRepositor
 
     public UserFinalQuota getQuotaByUsername(String username) {
         Query<UserFinalQuota> quotaQuery = this.dataStore.find(UserFinalQuota.class);
-        UserFinalQuota foundUserQuota = quotaQuery.filter(Filters.eq(QUOTA_FIELD_USERNAME, username)).first();
-
+        UserFinalQuota foundUserQuota = null;
+        try {
+            foundUserQuota = quotaQuery.filter(Filters.eq(QUOTA_FIELD_USERNAME, username)).first();
+        } catch (Exception e) {
+            logger.error("the user doesn't have UserFinalQuota");
+        }
         return foundUserQuota;
     }
 

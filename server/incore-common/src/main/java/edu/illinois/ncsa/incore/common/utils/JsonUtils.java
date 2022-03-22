@@ -64,18 +64,15 @@ public class JsonUtils {
     public static JSONObject createUserFinalQuotaJson(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException{
         UserFinalQuota quota = finalQuotaRepository.getQuotaByUsername(username);   // get default allocation
         JSONObject outJson = new JSONObject();
+        UserUsages limit = new UserUsages();
         if (quota != null) {
             // get user's limit
-            UserUsages limit = quota.getApplicableLimits();
-
-            // check if there is the correct limit values is there, otherwise give default values
-            if (limit.getDatasets() == 0) {
-                limit = AllocationUtils.setDefalutLimit(limit);
-            }
-
+            limit = quota.getApplicableLimits();
             outJson = setUsageJson(username, limit);
         } else {
-            outJson = setNotFoundJson(username);
+            // when the quota is null, give the default quota information
+            limit = AllocationUtils.setDefalutLimit(limit);
+            outJson = setUsageJson(username, limit);
         }
 
         return outJson;
@@ -99,15 +96,15 @@ public class JsonUtils {
 
     public static JSONObject createGroupAllocationJson(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
         GroupAllocations allocation = allocationsRepository.getAllocationByGroupname(groupname);   // get default allocation
-
         UserUsages limit = new UserUsages();
         JSONObject outJson = new JSONObject();
 
         if (allocation != null) {
-            // get user's usage status
+            // get user's allocation from user final quota
             limit = allocation.getLimits();
             outJson = setUsageJson(groupname, limit);
         } else {
+            // get default allocation
             outJson = setNotFoundJson(groupname);
         }
 
