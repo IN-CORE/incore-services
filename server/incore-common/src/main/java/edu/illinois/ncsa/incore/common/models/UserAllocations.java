@@ -30,8 +30,12 @@ public class UserAllocations {
     @JsonProperty("usage")
     private UserUsages usage;
 
+    @JsonProperty("limits")
+    private UserUsages limits;
+
     public UserAllocations() {
         this.usage = new UserUsages();
+        this.limits = new UserUsages();
         this.username = null;
     }
 
@@ -46,4 +50,8 @@ public class UserAllocations {
     public UserUsages getUsage() { return this.usage; }
 
     public void setUsage(UserUsages usage) { this.usage = usage; }
+
+    public UserUsages getLimits() { return this.limits; }
+
+    public void setLimits(UserUsages limits) { this.limits = limits; }
 }
