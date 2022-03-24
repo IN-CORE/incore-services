@@ -29,12 +29,12 @@ public class AllocationUtils {
      * @param allocationRepository IUserAllocationsRepository injected by controller
      * @param quotaRepository IUserFinalQuotaRepository injected by controller
      * @param username string representation of username
-     * @param datasetType string for representing the type of the dataset
+     * @param entityType string for representing the type of the dataset
      * @return postOk boolean if the user can post more datasets
      */
     public static Boolean canCreateAnyDataset(IUserAllocationsRepository allocationRepository,
                                            IUserFinalQuotaRepository quotaRepository,
-                                           String username, String datasetType) {
+                                           String username, String entityType) {
         // check allocation first
         UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
         UserFinalQuota quota = quotaRepository.getQuotaByUsername(username);
@@ -65,27 +65,27 @@ public class AllocationUtils {
             // the dataset types should only be
             // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
             // check if the user's dataset number is within the allocation
-            if (datasetType == "datasets") {
+            if (entityType == "datasets") {
                 if (usage.getDatasets() < limit.getDatasets()) {
                     postOk = true;
                 }
-            } else if (datasetType == "hazards") {
+            } else if (entityType == "hazards") {
                 if (usage.getHazards() < limit.getHazards()) {
                     postOk = true;
                 }
-            } else if (datasetType == "hazardDatasets") {
+            } else if (entityType == "hazardDatasets") {
                 if (usage.getHazardDatasets() < limit.getHazardDatasets()) {
                     postOk = true;
                 }
-            } else if (datasetType == "datasetSize") {
+            } else if (entityType == "datasetSize") {
                 if (usage.getDatasetSize() < limit.getDatasetSize()) {
                     postOk = true;
                 }
-            } else if (datasetType == "hazardDatasetSize") {
+            } else if (entityType == "hazardDatasetSize") {
                 if (usage.getHazardDatasetSize() < limit.getHazardDatasetSize()) {
                     postOk = true;
                 }
-            } else if (datasetType == "dfr3") {
+            } else if (entityType == "dfr3") {
                 if (usage.getDfr3() < limit.getDfr3()) {
                     postOk = true;
                 }

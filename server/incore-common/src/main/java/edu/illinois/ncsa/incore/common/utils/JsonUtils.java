@@ -165,6 +165,7 @@ public class JsonUtils {
             outJson.put("user", username);
         }
         outJson.put("total_number_of_datasets", usage.getDatasets());
+        outJson.put("total_number_of_hazards", usage.getHazards());
         outJson.put("total_number_of_hazard_datasets", usage.getHazardDatasets());
         outJson.put("total_number_of_dfr3", usage.getDfr3());
         outJson.put("total_file_size_of_datasets", out_dataset_size);
