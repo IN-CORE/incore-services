@@ -68,12 +68,12 @@ public class JsonUtils {
         if (quota != null) {
             // get user's limit
             limit = quota.getApplicableLimits();
-            outJson = setUsageJson(username, limit);
         } else {
             // when the quota is null, give the default quota information
             limit = AllocationUtils.setDefalutLimit(limit);
-            outJson = setUsageJson(username, limit);
         }
+
+        outJson = setUsageJson(username, limit, false);
 
         return outJson;
     }
@@ -86,7 +86,7 @@ public class JsonUtils {
         if (allocation != null) {
             // get user's usage status
             usage = allocation.getUsage();
-            outJson = setUsageJson(username, usage);
+            outJson = setUsageJson(username, usage, false);
         } else {
             outJson = setNotFoundJson(username);
         }
@@ -102,7 +102,7 @@ public class JsonUtils {
         if (allocation != null) {
             // get user's allocation from user final quota
             limit = allocation.getLimits();
-            outJson = setUsageJson(groupname, limit);
+            outJson = setUsageJson(groupname, limit, true);
         } else {
             // get default allocation
             outJson = setNotFoundJson(groupname);
@@ -119,7 +119,7 @@ public class JsonUtils {
         return outJson;
     }
 
-    public static JSONObject setUsageJson(String username, UserUsages usage) {
+    public static JSONObject setUsageJson(String username, UserUsages usage, Boolean isGroup) {
         long dataset_file_size = usage.getDatasetSize();
         long hazard_file_size = usage.getHazardDatasetSize();
 
@@ -159,7 +159,11 @@ public class JsonUtils {
         }
 
         JSONObject outJson = new JSONObject();
-        outJson.put("user", username);
+        if (isGroup) {
+            outJson.put("group", username);
+        } else {
+            outJson.put("user", username);
+        }
         outJson.put("total_number_of_datasets", usage.getDatasets());
         outJson.put("total_number_of_hazard_datasets", usage.getHazardDatasets());
         outJson.put("total_number_of_dfr3", usage.getDfr3());
