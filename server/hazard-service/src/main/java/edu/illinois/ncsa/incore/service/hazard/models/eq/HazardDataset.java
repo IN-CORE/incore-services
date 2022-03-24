@@ -64,8 +64,8 @@ public abstract class HazardDataset {
 
     @JsonIgnore
     public String getThresholdJsonString(){
-        return String.format("{'%s': {'%s': {'value': %s, 'unit': '%s'}}  }",
-            this.demandType, this.period, this.threshold, this.demandUnits);
+        return String.format("{'%s': {'value': %s, 'unit': '%s'} }",
+            this.demandType, this.threshold, this.demandUnits);
     }
 
 }
