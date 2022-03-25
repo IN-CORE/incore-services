@@ -37,9 +37,9 @@ public class AllocationConstants {
             "Your request will be aborted. You either need to increase your allocation " +
             "or delete hazard datasets you've created.";
     public static final String HAZARD_DFR3_ALLOCATION_MESSAGE =
-        "You have reached the maximum number of dfr3 datasets you can create for your allocation. " +
+        "You have reached the maximum number of dfr3 objects/entities you can create for your allocation. " +
             "Your request will be aborted. You either need to increase your allocation " +
-            "or delete dfr3 datasets you've created.";
+            "or delete dfr3 objects/entities you've created.";
     public static final String ALLOCTION_ENDPOINT_NO_USERGROUP =
         "Your authentication information doesn't have the x-auth-usergroup header with the request. " +
             "It is needed to verify the user's privileges";
