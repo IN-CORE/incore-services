@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.common.utils;
 
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
@@ -200,8 +201,8 @@ public class JsonUtils {
             org.json.simple.JSONArray groups = (org.json.simple.JSONArray) userGroupJson.get("groups");
             isAdmin = groups.toString().contains("\"incore_admin\"");
         } catch (ParseException e) {
-            logger.error("Unable to parse userInfo", e);
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unable to parse userInfo");
+            logger.error(AllocationConstants.ALLOCTION_ENDPOINT_NO_USERGROUP, e);
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, AllocationConstants.ALLOCTION_ENDPOINT_NO_USERGROUP);
         }
 
         return isAdmin;

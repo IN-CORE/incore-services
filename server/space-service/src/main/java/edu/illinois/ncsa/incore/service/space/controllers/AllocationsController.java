@@ -106,7 +106,7 @@ public class AllocationsController {
     @GET
     @Path("groups/{groupname}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the allocation status of the given username.",
+    @ApiOperation(value = "Gives the allocation status of the given group name.",
         notes = "This will only work for admin user group.")
     public String getAllocationsByGroupname(
         @HeaderParam("x-auth-userinfo") String userInfo,
