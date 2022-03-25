@@ -42,5 +42,11 @@ public class AllocationConstants {
             "or delete dfr3 datasets you've created.";
     public static final String ALLOCTION_ENDPOINT_NO_USERGROUP =
         "Your authentication information doesn't have the x-auth-usergroup header with the request. " +
-            "It is needed to verify the user’s privileges";
+            "It is needed to verify the user's privileges";
+    public static final String ALLOCTION_ENDPOINT_NO_USERINFO =
+        "Your authentication information doesn't have the x-auth-userinfo header with the request. " +
+            "It is needed to verify the user's privileges";
+    public static final String UNABLE_TO_PARSE_TOKEN =
+        "Unable to parse the user's authentication information. " +
+            "It is needed to verify the user's privileges and other information";
 }
