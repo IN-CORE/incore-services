@@ -11,12 +11,16 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IFloodRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -65,6 +69,12 @@ public class FloodController {
 
     @Inject
     private ISpaceRepository spaceRepository;
+
+    @Inject
+    private IUserAllocationsRepository allocationsRepository;
+
+    @Inject
+    private IUserFinalQuotaRepository quotaRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -154,6 +164,24 @@ public class FloodController {
         @ApiParam(hidden = true) @FormDataParam("flood") String floodJson,
         @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
+        // check if the user's number of the hazard is within the allocation
+        if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazards")) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
+        }
+
+        // check if the user's number of the hazard dataset is within the allocation
+        if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazardDatasets")) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
+        }
+
+        // check if the user's hazard dataset file size is within the allocation
+        if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazardDatasetSize")) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DATASET_ALLOCATION_FILESIZE_MESSAGE);
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         Flood flood = null;
         try {
@@ -207,6 +235,9 @@ public class FloodController {
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not create flood, no files were attached with your " +
                         "request.");
                 }
+
+                // add one more dataset in the usage
+                AllocationUtils.increaseUsage(allocationsRepository, this.username, "hazards");
 
                 flood.setSpaces(spaceRepository.getSpaceNamesOfMember(flood.getId()));
                 return flood;
@@ -319,7 +350,7 @@ public class FloodController {
 //                // add this when ready to migrate FloodWindfields
 //            }
 
-            Flood deletedHurr = repository.deleteFloodById(floodId); // remove flood json
+            Flood deletedFlood = repository.deleteFloodById(floodId); // remove flood json
 
             //remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
@@ -330,7 +361,10 @@ public class FloodController {
                 }
             }
 
-            return deletedHurr;
+            // reduce the number of hazard from the space
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazards");
+
+            return deletedFlood;
         } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to delete the" +
                 " flood " + floodId);

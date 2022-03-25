@@ -10,12 +10,17 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.models.UserAllocations;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
@@ -75,6 +80,10 @@ public class FragilityController {
     private ISpaceRepository spaceRepository;
     @Inject
     private ICommonRepository commonRepository;
+    @Inject
+    private IUserAllocationsRepository allocationsRepository;
+    @Inject
+    private IUserFinalQuotaRepository quotaRepository;
 
     @Inject
     public FragilityController(
@@ -170,6 +179,14 @@ public class FragilityController {
 
         UserInfoUtils.throwExceptionIfIdPresent(fragilitySet.getId());
 
+        // check if the user has the quota to put it in
+        Boolean postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "dfr3");
+
+        if (!postOk) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DFR3_ALLOCATION_MESSAGE);
+        }
+
         // check if demand type is correct according to the definition; for now get the first definition
         JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
         String hazardType = fragilitySet.getHazardType();
@@ -214,8 +231,10 @@ public class FragilityController {
         }
         space.addMember(fragilityId);
         spaceRepository.addSpace(space);
-
         fragilitySet.setSpaces(spaceRepository.getSpaceNamesOfMember(fragilitySet.getId()));
+
+        // add dfr3 in the usage
+        AllocationUtils.increaseUsage(allocationsRepository, username, "dfr3");
 
         return fragilitySet;
     }
@@ -265,6 +284,9 @@ public class FragilityController {
                             spaceRepository.addSpace(space);
                         }
                     }
+
+                    // remove dfr3 in the usage
+                    AllocationUtils.decreaseUsage(allocationsRepository, username,  "dfr3");
 
                     return this.fragilityDAO.deleteFragilitySetById(id);
                 }

@@ -14,8 +14,7 @@ package edu.illinois.ncsa.incore.service.space;
 import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.dao.MongoSpaceDBRepository;
+import edu.illinois.ncsa.incore.common.dao.*;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -34,6 +33,18 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
+        IUserAllocationsRepository mongoUserAllocationsRepository = new MongoUserAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserAllocationsRepository.initialize();
+
+        IUserFinalQuotaRepository mongoUserFinalQuotaRepository = new MongoUserFinalQuotaDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserFinalQuotaRepository.initialize();
+
+        IUserGroupsRepository mongoUserGroupsRepository = new MongoUserGroupsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoUserGroupsRepository.initialize();
+
+        IGroupAllocationsRepository mongoGroupAllocationsRepository = new MongoGroupAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoGroupAllocationsRepository.initialize();
+
         IAuthorizer authorizer = Authorizer.getInstance();
 
         super.register(new AbstractBinder() {
@@ -41,6 +52,10 @@ public class Application extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
+                super.bind(mongoUserAllocationsRepository).to(IUserAllocationsRepository.class);
+                super.bind(mongoUserFinalQuotaRepository).to(IUserFinalQuotaRepository.class);
+                super.bind(mongoUserGroupsRepository).to(IUserGroupsRepository.class);
+                super.bind(mongoGroupAllocationsRepository).to(IGroupAllocationsRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
 
