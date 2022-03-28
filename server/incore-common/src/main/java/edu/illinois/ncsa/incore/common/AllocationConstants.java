@@ -12,7 +12,7 @@ package edu.illinois.ncsa.incore.common;
 public class AllocationConstants {
     public static final int NUM_DATASETS = 1000;
     public static final int NUM_HAZARDS = 1000;
-    public static final int NUM_HAZARD_DATASETS = 100;
+    public static final int NUM_HAZARD_DATASETS = 1000;
     public static final int NUM_DFR3 = 1000;
     public static final long DATASET_SIZE = 21474836480L;
     public static final long HAZARD_DATASET_SIZE = 21474836480L;
