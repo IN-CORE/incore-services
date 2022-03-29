@@ -35,7 +35,7 @@ public class UserAllocations {
 
     public UserAllocations() {
         this.usage = new UserUsages();
-        this.limits = new UserUsages();
+        this.limits = null;
         this.username = null;
     }
 
