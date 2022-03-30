@@ -204,65 +204,15 @@ public class HazardCalc {
         }
     }
 
-    // This method will be removed when we finalize the threshold management for Model based Eq. If defining a threshold for
-    // just PGA and 1.0 SA (or any SA without period) enough?
-    public static Double applyModelEqThresholds(double hazardValue, String demand, String demandUnits, String closestHazardPeriod) {
-        Double adjustedHazardValue = hazardValue;
-        JSONObject earthquakeThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS); // convert demand type keys to lower case
-        if (earthquakeThresholds.has(demand.toLowerCase())) {
-            JSONObject demandThresholds = ((JSONObject) earthquakeThresholds.get(demand.toLowerCase()));
-            JSONObject periodThreshold = null;
-            String usedPeriod;
-            if (demandThresholds.has(closestHazardPeriod)) {
-                if (demandThresholds.get(closestHazardPeriod) != JSONObject.NULL) {
-                    periodThreshold = (JSONObject) demandThresholds.get(closestHazardPeriod);
-                }
-                usedPeriod = closestHazardPeriod;
-            } else {
-                // if there is no defined threshold for the period, use "0.0" as the default
-                if (demandThresholds.get("0.0") != JSONObject.NULL) {
-                    periodThreshold = ((JSONObject) demandThresholds.get("0.0"));
-                }
-                usedPeriod = "0.0";
-            }
-
-            // ignore threshold if null
-            if (periodThreshold != null) {
-                double threshold = HazardUtil.convertHazard(periodThreshold.getDouble("value"),
-                    periodThreshold.getString("unit"), Double.parseDouble(usedPeriod), demand.toLowerCase(),
-                    demandUnits, demand.toLowerCase());
-                if (hazardValue <= threshold) {
-                    adjustedHazardValue = null;
-                }
-            }
-        }
-        return adjustedHazardValue;
-    }
-
     public static Double applyEqThresholds(JSONObject earthquakeThresholds, double hazardValue,
                                            String demand, String demandUnits, String closestHazardPeriod) {
         Double adjustedHazardValue = hazardValue;
-        if (earthquakeThresholds.has(demand.toLowerCase())) {
+        if (earthquakeThresholds.has(demand.toLowerCase()) && earthquakeThresholds.get(demand.toLowerCase()) != JSONObject.NULL) {
             JSONObject demandThresholds = ((JSONObject) earthquakeThresholds.get(demand.toLowerCase()));
-            JSONObject periodThreshold = null;
-            String usedPeriod;
-            if (demandThresholds.has(closestHazardPeriod)) {
-                if (demandThresholds.get(closestHazardPeriod) != JSONObject.NULL) {
-                    periodThreshold = (JSONObject) demandThresholds.get(closestHazardPeriod);
-                }
-                usedPeriod = closestHazardPeriod;
-            } else {
-                // if there is no defined threshold for the period, use "0.0" as the default
-                if (demandThresholds.get("0.0") != JSONObject.NULL) {
-                    periodThreshold = ((JSONObject) demandThresholds.get("0.0"));
-                }
-                usedPeriod = "0.0";
-            }
 
-            // ignore threshold if null
-            if (periodThreshold != null) {
-                double threshold = HazardUtil.convertHazard(periodThreshold.getDouble("value"),
-                    periodThreshold.getString("unit"), Double.parseDouble(usedPeriod), demand.toLowerCase(),
+            if (demandThresholds.get("value") != JSONObject.NULL) {
+                double threshold = HazardUtil.convertHazard(demandThresholds.getDouble("value"),
+                    demandThresholds.getString("unit"), Double.parseDouble(closestHazardPeriod), demand.toLowerCase(),
                     demandUnits, demand.toLowerCase());
                 if (hazardValue <= threshold) {
                     adjustedHazardValue = null;
@@ -293,6 +243,7 @@ public class HazardCalc {
             while (iterator.hasNext()) {
                 BaseAttenuation model = iterator.next();
                 double weight = attenuations.get(model);
+                demandUnits = BaseAttenuation.getUnits(demand);
                 SeismicHazardResult matchedResult = model.getValueClosestMatch(hazardType, site);
 
                 hazardValue += (Math.log(matchedResult.getHazardValue()) * weight);
@@ -334,8 +285,8 @@ public class HazardCalc {
             if (Double.parseDouble(period) == 0.0) {
                 closestHazardPeriod = "0.0";
             }
-
-            Double adjHazardVal = HazardCalc.applyModelEqThresholds(hazardValue, demand, demandUnits, closestHazardPeriod);
+            JSONObject eqThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS);
+            Double adjHazardVal = HazardCalc.applyEqThresholds(eqThresholds, hazardValue, demand, demandUnits, closestHazardPeriod);
             return new SeismicHazardResult(adjHazardVal, closestHazardPeriod, demand);
 
         } else {
@@ -345,15 +296,15 @@ public class HazardCalc {
 
             GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
             try {
-                JSONObject EqThresholds;
+                JSONObject eqThresholds;
                 if (hazardDataset.getThreshold() != null) {
-                    EqThresholds = HazardUtil.toLowerKey(new JSONObject(hazardDataset.getThresholdJsonString()));
+                    eqThresholds = HazardUtil.toLowerKey(new JSONObject(hazardDataset.getThresholdJsonString()));
                 } else {
-                    EqThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS);
+                    eqThresholds = HazardUtil.toLowerKey(HazardUtil.EARTHQUAKE_THRESHOLDS);
                 }
 
                 hazardValue = HazardUtil.findRasterPoint(site.getLocation(), (GridCoverage2D) gc);
-                Double adjHazardVal = HazardCalc.applyEqThresholds(EqThresholds,
+                Double adjHazardVal = HazardCalc.applyEqThresholds(eqThresholds,
                     hazardValue, hazardDataset.getDemandType(), hazardDataset.getDemandUnits(), closestHazardPeriod);
 
                 if (adjHazardVal != null) {

@@ -13,11 +13,15 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneWindfieldsRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
@@ -63,6 +67,12 @@ public class HurricaneWindfieldsController {
 
     @Inject
     private ISpaceRepository spaceRepository;
+
+    @Inject
+    private IUserAllocationsRepository allocationsRepository;
+
+    @Inject
+    private IUserFinalQuotaRepository quotaRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -154,6 +164,24 @@ public class HurricaneWindfieldsController {
                 inputHurricane.getGridResolution(), inputHurricane.getGridPoints(), inputHurricane.getRfMethod());
 
             try {
+                // check if the user's number of the hazard is within the allocation
+                if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazards")) {
+                    throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                        AllocationConstants.HAZARD_ALLOCATION_MESSAGE);
+                }
+
+                // check if the user's number of the hazard dataset is within the allocation
+                if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazardDatasets")) {
+                    throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                        AllocationConstants.HAZARD_DATASET_ALLOCATION_MESSAGE);
+                }
+
+                // check if the user's hazard dataset file size is within the allocation
+                if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazardDatasetSize")) {
+                    throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                        AllocationConstants.HAZARD_DATASET_ALLOCATION_FILESIZE_MESSAGE);
+                }
+
                 ObjectMapper mapper = new ObjectMapper();
                 String ensemBleString = mapper.writeValueAsString(hurricaneSimulationEnsemble);
 
@@ -200,6 +228,10 @@ public class HurricaneWindfieldsController {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error in geometry dimensions");
             }
         }
+
+        // add one more dataset in the usage
+        AllocationUtils.increaseUsage(allocationsRepository, this.username, "hazards");
+
         hurricaneWindfields.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneWindfields.getId()));
         return hurricaneWindfields;
     }
@@ -337,6 +369,9 @@ public class HurricaneWindfieldsController {
                     spaceRepository.addSpace(space);
                 }
             }
+
+            // reduce the number of hazard from the space
+            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazards");
 
             return deletedHurricane;
         } else {

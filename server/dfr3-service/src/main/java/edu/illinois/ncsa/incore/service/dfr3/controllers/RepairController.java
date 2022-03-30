@@ -10,11 +10,18 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.models.UserAllocations;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
@@ -68,6 +75,10 @@ public class RepairController {
     private IMappingDAO mappingDAO;
     @Inject
     private ISpaceRepository spaceRepository;
+    @Inject
+    private IUserAllocationsRepository allocationsRepository;
+    @Inject
+    private IUserFinalQuotaRepository quotaRepository;
 
     @Inject
     public RepairController(
@@ -147,6 +158,15 @@ public class RepairController {
     public RepairSet uploadRepairSet(@ApiParam(value = "json representing the repair set") RepairSet repairSet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(repairSet.getId());
+
+        // check if the user has the quota to put it in
+        Boolean postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "dfr3");
+
+        if (!postOk) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.HAZARD_DFR3_ALLOCATION_MESSAGE);
+        }
+
         repairSet.setCreator(username);
         if (repairSet.getRepairCurves().size() == 0){
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No repair curves are included in the json. " +
@@ -162,6 +182,9 @@ public class RepairController {
         space.addMember(repairId);
         spaceRepository.addSpace(space);
         repairSet.setSpaces(spaceRepository.getSpaceNamesOfMember(repairId));
+
+        // add dfr3 in the usage
+        AllocationUtils.increaseUsage(allocationsRepository, username, "dfr3");
 
         return repairSet;
     }
@@ -208,6 +231,9 @@ public class RepairController {
                             spaceRepository.addSpace(space);
                         }
                     }
+
+                    // remove dfr3 in the usage
+                    AllocationUtils.decreaseUsage(allocationsRepository, username, "dfr3");
 
                     return this.repairDAO.deleteRepairSetById(id);
                 }

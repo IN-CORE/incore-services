@@ -1,0 +1,11 @@
+[
+  {
+    "id" : "61a53d24597485754514cf20",
+    "datasets" : 100,
+    "hazards" : 500,
+    "hazardDatasets" : 500,
+    "dfr3" : 500,
+    "datasetSize" : 524288000,
+    "hazardDatasetSize" : 2147483648
+  }
+]
