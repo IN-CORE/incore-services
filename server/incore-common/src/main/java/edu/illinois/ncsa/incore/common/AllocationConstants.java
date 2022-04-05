@@ -10,12 +10,12 @@
 package edu.illinois.ncsa.incore.common;
 
 public class AllocationConstants {
-    public static final int NUM_DATASETS = 100;
-    public static final int NUM_HAZARDS = 100;
-    public static final int NUM_HAZARD_DATASETS = 100;
-    public static final int NUM_DFR3 = 100;
-    public static final long DATASET_SIZE = 2147483648L;
-    public static final long HAZARD_DATASET_SIZE = 2147483648L;
+    public static final int NUM_DATASETS = 1000;
+    public static final int NUM_HAZARDS = 1000;
+    public static final int NUM_HAZARD_DATASETS = 1000;
+    public static final int NUM_DFR3 = 1000;
+    public static final long DATASET_SIZE = 21474836480L;
+    public static final long HAZARD_DATASET_SIZE = 21474836480L;
     public static final String DATASET_ALLOCATION_MESSAGE =
         "You have reached the maximum number of datasets you can create for your allocation. " +
             "Your request will be aborted. You either need to increase your allocation " +
@@ -37,7 +37,16 @@ public class AllocationConstants {
             "Your request will be aborted. You either need to increase your allocation " +
             "or delete hazard datasets you've created.";
     public static final String HAZARD_DFR3_ALLOCATION_MESSAGE =
-        "You have reached the maximum number of dfr3 datasets you can create for your allocation. " +
+        "You have reached the maximum number of dfr3 objects you can create for your allocation. " +
             "Your request will be aborted. You either need to increase your allocation " +
-            "or delete dfr3 datasets you've created.";
+            "or delete dfr3 objects you've created.";
+    public static final String ALLOCTION_ENDPOINT_NO_USERGROUP =
+        "Your authentication information doesn't have the x-auth-usergroup header with the request. " +
+            "It is needed to verify the user's privileges";
+    public static final String ALLOCTION_ENDPOINT_NO_USERINFO =
+        "Your authentication information doesn't have the x-auth-userinfo header with the request. " +
+            "It is needed to verify the user's privileges";
+    public static final String UNABLE_TO_PARSE_TOKEN =
+        "Unable to parse the user's authentication information. " +
+            "It is needed to verify the user's privileges and other information";
 }

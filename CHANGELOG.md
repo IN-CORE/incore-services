@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.8.0] - 2021-02-07
+## [1.9.0] - 2022-03-29
+# Added
+- User Allocation management to limit usage per user or group. Added validations to deny creation of new datasets, hazards and DFR3 curves when the allocations limits are met. [#66](https://github.com/IN-CORE/incore-services/issues/66) 
+
+# Changed
+- Earthquake threshold values to be agnostic of period values - with this change it is enough to just define a single threshold value for period based demands such as "SA" and "SD". [#32](https://github.com/IN-CORE/incore-services/issues/32)
+
+## [1.8.0] - 2022-02-07
 # Added
 - Toro1997 attenuations model for earthquakes [#35](https://github.com/IN-CORE/incore-services/issues/35)
 - Support for storing expression based curves for Repairs and Restorations [#6](https://github.com/IN-CORE/incore-services/issues/6)
