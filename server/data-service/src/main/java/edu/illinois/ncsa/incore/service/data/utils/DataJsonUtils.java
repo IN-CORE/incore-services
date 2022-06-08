@@ -148,15 +148,15 @@ public class DataJsonUtils {
 
         componentStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_COMPONENT, inJson);
         linkStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK, componentStr);
-        linkType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_LINK_TYPE, linkStr);
+        linkType = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TYPE, linkStr);
         nodeStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE, componentStr);
-        nodeType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_NODE_TYPE, nodeStr);
+        nodeType = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TYPE, nodeStr);
         graphStr = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH, componentStr);
-        graphType = JsonUtils.extractValueFromJsonString(FileUtils.NETWORK_GRAPH_TYPE, graphStr);
+        graphType = JsonUtils.extractValueFromJsonString(FileUtils.DATASET_TYPE, graphStr);
 
-        link.setNetworkType(linkType);
-        node.setNetworkType(nodeType);
-        graph.setNetworkType(graphType);
+        link.setDataType(linkType);
+        node.setDataType(nodeType);
+        graph.setDataType(graphType);
         networkDataset.setLink(link);
         networkDataset.setNode(node);
         networkDataset.setGraph(graph);

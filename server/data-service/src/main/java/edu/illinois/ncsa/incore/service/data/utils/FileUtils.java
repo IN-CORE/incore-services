@@ -69,9 +69,6 @@ public class FileUtils {
     public static final String NETWORK_LINK = "link";
     public static final String NETWORK_NODE = "node";
     public static final String NETWORK_GRAPH = "graph";
-    public static final String NETWORK_LINK_TYPE = "linkType";
-    public static final String NETWORK_NODE_TYPE = "nodeType";
-    public static final String NETWORK_GRAPH_TYPE = "graphType";
     public static final Logger logger = Logger.getLogger(FileUtils.class);
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
 
