@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.10.0] - 2022-06-29
 # Added
 - Endpoint for giving logged in user's allocation [#76](https://github.com/IN-CORE/incore-services/issues/76)
 
