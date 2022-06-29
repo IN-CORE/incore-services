@@ -4,16 +4,16 @@ import dev.morphia.annotations.Embedded;
 
 @Embedded
 public class NetworkData {
-    private String networkType;
+    private String dataType;
 
     private String fileName;
 
-    public String getNetworkType() {
-        return networkType;
+    public String getDataType() {
+        return dataType;
     }
 
-    public void setNetworkType(String networkType) {
-        this.networkType = networkType;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     public String getFileName() {

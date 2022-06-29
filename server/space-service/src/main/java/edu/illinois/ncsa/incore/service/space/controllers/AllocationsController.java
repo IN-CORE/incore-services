@@ -66,12 +66,21 @@ public class AllocationsController {
     private static final Logger logger = Logger.getLogger(AllocationsController.class);
 
     @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gives the status of the service.",
-        notes = "This will provide the status of the service as a JSON.")
-    public String getStatus() {
-        String statusJson = "{\"status\": \"responding\"}";
-        return statusJson;
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Gives the allocation and can be used as status check as well.",
+        notes = "This will provide the allocation of the logged in user.")
+    public String getUsage(@HeaderParam("x-auth-userinfo") String userInfo) {
+        JSONObject outJson = null;
+
+        String username = JsonUtils.parseUserName(userInfo);
+
+        try {
+            outJson = JsonUtils.createUserFinalQuotaJson(username, finalQuotaRepository);
+        } catch (ParseException e) {
+            logger.error("Error extracting allocation");
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting allocation");
+        }
+        return outJson.toString();
     }
 
     @GET

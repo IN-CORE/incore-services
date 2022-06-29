@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.10.0] - 2022-06-29
+# Added
+- Endpoint to obtain the allocation for a logged-in user [#76](https://github.com/IN-CORE/incore-services/issues/76)
+
+# Changed
+- Network dataset's sub data's dataType changed from networkType to dataType [#79](https://github.com/IN-CORE/incore-services/issues/79)
+
 ## [1.9.0] - 2022-03-29
 # Added
 - User Allocation management to limit usage per user or group. Added validations to deny creation of new datasets, hazards and DFR3 curves when the allocations limits are met. [#66](https://github.com/IN-CORE/incore-services/issues/66) 
