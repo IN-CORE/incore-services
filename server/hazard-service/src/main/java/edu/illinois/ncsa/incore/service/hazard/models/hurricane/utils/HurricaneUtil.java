@@ -46,6 +46,14 @@ public class HurricaneUtil {
     private static final double deg_to_rad = 0.0174533;
     private static final double rad_to_deg = 57.2958;
 
+    // slack cannot be a part of the variable name
+    private static final double ms_to_ins = 39.3701;
+    private static final double ms_to_fts = 3.28084;
+    private static final double ins_to_ms = 0.0254;
+    private static final double ins_to_fts = 0.0833333;
+    private static final double fts_to_ms = 0.3048;
+    private static final double fts_to_ins = 12;
+
     private static final double m_to_cm = 100.0;
     private static final double m_to_in = 39.3701;
     private static final double m_to_ft = 3.28084;
@@ -68,7 +76,7 @@ public class HurricaneUtil {
     private static final double s_to_min = 0.01666;
     private static final double hr_to_s = 3600;
     private static final double s_to_hr = 0.00028;
-    
+
     public static double convertHazard(double hazardValue, String demandType, String originalDemandUnits,
                                        String requestedDemandUnits) throws UnsupportedOperationException, IllegalAccessException,
         NoSuchFieldException {
@@ -100,7 +108,9 @@ public class HurricaneUtil {
             || demandType.equalsIgnoreCase(HurricaneConstants.WIND_VELOCITY)) {
             if (speedUnits.contains(requestedDemandUnits.toLowerCase())) {
                 if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
-                    String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
+                    // strip the slash /
+                    String conversion = originalDemandUnits.replace("/", "") + "_to_"
+                        + requestedDemandUnits.replace("/", "");
                     double conversionValue = HurricaneUtil.getVariableValue(conversion);
                     convertedHazardValue = conversionValue * hazardValue;
                 }
