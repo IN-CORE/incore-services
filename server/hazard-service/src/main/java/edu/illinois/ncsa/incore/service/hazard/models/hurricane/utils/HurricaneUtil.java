@@ -33,6 +33,7 @@ public class HurricaneUtil {
     private static final String units_m_per_s = "m/s";
     private static final String units_in_per_s = "in/s";
     private static final String units_ft_per_s = "ft/s";
+    private static final String units_mph = "mph";
 
     // Degree
     private static final String degree = "deg";
@@ -40,7 +41,7 @@ public class HurricaneUtil {
 
     public static final List<String> distanceUnits = Arrays.asList(units_cm, units_m, units_in, units_ft);
     public static final List<String> durationUnits = Arrays.asList(units_hr, units_min, units_s);
-    public static final List<String> speedUnits = Arrays.asList(units_m_per_s, units_in_per_s, units_ft_per_s);
+    public static final List<String> speedUnits = Arrays.asList(units_m_per_s, units_in_per_s, units_ft_per_s, units_mph);
     public static final List<String> degreeUnits = Arrays.asList(degree, radian);
 
     private static final double deg_to_rad = 0.0174533;
@@ -49,10 +50,16 @@ public class HurricaneUtil {
     // slack cannot be a part of the variable name
     private static final double ms_to_ins = 39.3701;
     private static final double ms_to_fts = 3.28084;
+    private static final double ms_to_mph = 2.23694;
     private static final double ins_to_ms = 0.0254;
     private static final double ins_to_fts = 0.0833333;
+    private static final double ins_to_mph = 0.0568182;
     private static final double fts_to_ms = 0.3048;
     private static final double fts_to_ins = 12;
+    private static final double fts_to_mph = 0.681818;
+    private static final double mph_to_ins = 17.6;
+    private static final double mph_to_fts = 1.46667;
+    private static final double mph_to_ms = 0.44704;
 
     private static final double m_to_cm = 100.0;
     private static final double m_to_in = 39.3701;
