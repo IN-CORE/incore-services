@@ -27,9 +27,24 @@ public class HurricaneUtil {
     // Time
     private static final String units_hr = "hr";
     private static final String units_min = "min";
+    private static final String units_s = "s";
+
+    // Velocity
+    private static final String units_m_per_s = "m/s";
+    private static final String units_in_per_s = "in/s";
+    private static final String units_ft_per_s = "ft/s";
+
+    // Degree
+    private static final String degree = "deg";
+    private static final String radian = "rad";
 
     public static final List<String> distanceUnits = Arrays.asList(units_cm, units_m, units_in, units_ft);
-    public static final List<String> durationUnits = Arrays.asList(units_hr, units_min);
+    public static final List<String> durationUnits = Arrays.asList(units_hr, units_min, units_s);
+    public static final List<String> speedUnits = Arrays.asList(units_m_per_s, units_in_per_s, units_ft_per_s);
+    public static final List<String> degreeUnits = Arrays.asList(degree, radian);
+
+    private static final double deg_to_rad = 0.0174533;
+    private static final double rad_to_deg = 57.2958;
 
     private static final double m_to_cm = 100.0;
     private static final double m_to_in = 39.3701;
@@ -49,12 +64,18 @@ public class HurricaneUtil {
 
     private static final double hr_to_min = 60;
     private static final double min_to_hr = 0.01666;
-
+    private static final double min_to_s = 60;
+    private static final double s_to_min = 0.01666;
+    private static final double hr_to_s = 3600;
+    private static final double s_to_hr = 0.00028;
+    
     public static double convertHazard(double hazardValue, String demandType, String originalDemandUnits,
                                        String requestedDemandUnits) throws UnsupportedOperationException, IllegalAccessException,
         NoSuchFieldException {
         double convertedHazardValue = hazardValue;
-        if (demandType.equalsIgnoreCase(HurricaneConstants.HS) || demandType.equalsIgnoreCase(HurricaneConstants.SURGE)) {
+        if (demandType.equalsIgnoreCase(HurricaneConstants.HS)
+            || demandType.equalsIgnoreCase(HurricaneConstants.SURGE)
+            || demandType.equalsIgnoreCase(HurricaneConstants.INUNDATION_DEPTH)) {
             if (distanceUnits.contains(requestedDemandUnits.toLowerCase())) {
                 if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
                     String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
@@ -64,8 +85,30 @@ public class HurricaneUtil {
             } else {
                 throw new UnsupportedOperationException("Invalid demandUnits provided" + requestedDemandUnits);
             }
-        } else if (demandType.equalsIgnoreCase(HurricaneConstants.DUR_Q)) {
+        } else if (demandType.equalsIgnoreCase(HurricaneConstants.DUR_Q)
+            || demandType.equalsIgnoreCase(HurricaneConstants.WAVE_PERIOD)) {
             if (durationUnits.contains(requestedDemandUnits.toLowerCase())) {
+                if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
+                    String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
+                    double conversionValue = HurricaneUtil.getVariableValue(conversion);
+                    convertedHazardValue = conversionValue * hazardValue;
+                }
+            } else {
+                throw new UnsupportedOperationException("Invalid demandUnits provided" + requestedDemandUnits);
+            }
+        } else if (demandType.equalsIgnoreCase(HurricaneConstants.WATER_VELOCITY)
+            || demandType.equalsIgnoreCase(HurricaneConstants.WIND_VELOCITY)) {
+            if (speedUnits.contains(requestedDemandUnits.toLowerCase())) {
+                if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
+                    String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
+                    double conversionValue = HurricaneUtil.getVariableValue(conversion);
+                    convertedHazardValue = conversionValue * hazardValue;
+                }
+            } else {
+                throw new UnsupportedOperationException("Invalid demandUnits provided" + requestedDemandUnits);
+            }
+        } else if (demandType.equalsIgnoreCase(HurricaneConstants.WAVE_DIRECTION)) {
+            if (degreeUnits.contains(requestedDemandUnits.toLowerCase())) {
                 if (!originalDemandUnits.equalsIgnoreCase(requestedDemandUnits)) {
                     String conversion = originalDemandUnits + "_to_" + requestedDemandUnits;
                     double conversionValue = HurricaneUtil.getVariableValue(conversion);
