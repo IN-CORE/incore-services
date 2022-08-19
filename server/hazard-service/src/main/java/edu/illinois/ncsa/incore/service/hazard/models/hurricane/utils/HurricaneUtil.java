@@ -31,6 +31,7 @@ public class HurricaneUtil {
 
     // Velocity
     private static final String units_m_per_s = "m/s";
+    private static final String units_m_per_sec = "m/sec";
     private static final String units_in_per_s = "in/s";
     private static final String units_ft_per_s = "ft/s";
     private static final String units_mph = "mph";
@@ -48,18 +49,29 @@ public class HurricaneUtil {
     private static final double rad_to_deg = 57.2958;
 
     // slack cannot be a part of the variable name
+    private static final double ms_to_msec = 1;
+    private static final double msec_to_ms = 1;
     private static final double ms_to_ins = 39.3701;
+    private static final double msec_to_ins = 39.3701;
     private static final double ms_to_fts = 3.28084;
+    private static final double msec_to_fts = 3.28084;
     private static final double ms_to_mph = 2.23694;
+    private static final double msec_to_mph = 2.23694;
+
+    private static final double ins_to_msec = 0.0254;
     private static final double ins_to_ms = 0.0254;
     private static final double ins_to_fts = 0.0833333;
     private static final double ins_to_mph = 0.0568182;
+
+    private static final double fts_to_msec = 0.3048;
     private static final double fts_to_ms = 0.3048;
     private static final double fts_to_ins = 12;
     private static final double fts_to_mph = 0.681818;
+
     private static final double mph_to_ins = 17.6;
     private static final double mph_to_fts = 1.46667;
     private static final double mph_to_ms = 0.44704;
+    private static final double mph_to_msec = 0.44704;
 
     private static final double m_to_cm = 100.0;
     private static final double m_to_in = 39.3701;
