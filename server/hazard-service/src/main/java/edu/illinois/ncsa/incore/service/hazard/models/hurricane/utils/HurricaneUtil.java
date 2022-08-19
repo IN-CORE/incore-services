@@ -42,7 +42,7 @@ public class HurricaneUtil {
 
     public static final List<String> distanceUnits = Arrays.asList(units_cm, units_m, units_in, units_ft);
     public static final List<String> durationUnits = Arrays.asList(units_hr, units_min, units_s);
-    public static final List<String> speedUnits = Arrays.asList(units_m_per_s, units_in_per_s, units_ft_per_s, units_mph);
+    public static final List<String> speedUnits = Arrays.asList(units_m_per_s, units_in_per_s, units_ft_per_s, units_m_per_sec, units_mph);
     public static final List<String> degreeUnits = Arrays.asList(degree, radian);
 
     private static final double deg_to_rad = 0.0174533;
