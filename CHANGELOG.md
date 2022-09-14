@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.11.0] - 2022-09-14
+# Added
+- Enable more demand types and demand units for Hurricane [#85](https://github.com/IN-CORE/incore-services/issues/85)
+
+
 ## [1.10.0] - 2022-06-29
 # Added
 - Endpoint to obtain the allocation for a logged-in user [#76](https://github.com/IN-CORE/incore-services/issues/76)
