@@ -518,12 +518,12 @@ public class EarthquakeController {
                         try {
                             String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
 
-                            if (demandComponents == null) {
+                            if (demandComponents == null || !HazardUtil.verifyHazardDemandType(demandComponents[1], listOfDemands)) {
                                 hazVals.add(INVALID_DEMAND);
                                 resUnits.add(units.get(i));
                                 resDemands.add(demands.get(i));
                             } else {
-                                if (!HazardUtil.verifyHazardDemand(demandComponents[1], units.get(i), listOfDemands)) {
+                                if (!HazardUtil.verifyHazardDemandUnit(demandComponents[1], units.get(i), listOfDemands)) {
                                     hazVals.add(INVALID_UNIT);
                                     resUnits.add(units.get(i));
                                     resDemands.add(demands.get(i));
@@ -605,7 +605,7 @@ public class EarthquakeController {
         }
 
         // Check units to verify requested units matches the demand type
-        if (!HazardUtil.verifyHazardDemand(demandComponents[1], demandUnits, listOfDemands)) {
+        if (!HazardUtil.verifyHazardDemandUnit(demandComponents[1], demandUnits, listOfDemands)) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + demandUnits + " is not supported " +
                 "for " + demandType + ", please check requested units.");
         }

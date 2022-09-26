@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -646,12 +645,10 @@ public class HazardUtil {
         return demandParts;
     }
 
-    public static boolean verifyHazardDemand(String demandType, String demandUnit, JSONArray listOfDemands) {
-        AtomicBoolean demandTypeExisted = new AtomicBoolean(false);
+    public static boolean verifyHazardDemandUnit(String demandType, String demandUnit, JSONArray listOfDemands) {
         AtomicBoolean demandUnitAllowed = new AtomicBoolean(false);
         listOfDemands.forEach(entry -> {
-            if (((JSONObject) entry).get("demand_type").toString().equalsIgnoreCase(demandType.toLowerCase(Locale.ROOT))) {
-                demandTypeExisted.set(true);
+            if (((JSONObject) entry).get("demand_type").toString().equalsIgnoreCase(demandType)) {
                 // check if demand unit is allowed
                 JSONArray allowedDemandUnits = ((JSONObject) entry).getJSONArray("demand_unit");
                 allowedDemandUnits.forEach(unit -> {
@@ -663,18 +660,18 @@ public class HazardUtil {
             }
         });
 
-        return demandTypeExisted.get() && demandUnitAllowed.get();
+        return demandUnitAllowed.get();
+    }
 
-//        if (demandType.equalsIgnoreCase(HazardUtil.PGA) || demandType.equalsIgnoreCase(HazardUtil.SA)) {
-//            return demandUnits.equalsIgnoreCase(HazardUtil.units_percg) || demandUnits.equalsIgnoreCase(HazardUtil.units_g);
-//        } else if (demandType.equalsIgnoreCase(HazardUtil.PGV) || demandType.equalsIgnoreCase(HazardUtil.SV)) {
-//            return demandUnits.equalsIgnoreCase(HazardUtil.units_cms) || demandUnits.equalsIgnoreCase(HazardUtil.units_ins);
-//        } else if (demandType.equalsIgnoreCase(HazardUtil.PGD) || demandType.equalsIgnoreCase(HazardUtil.SD)) {
-//            return demandUnits.equalsIgnoreCase(HazardUtil.units_cm) || demandUnits.equalsIgnoreCase(HazardUtil.units_m_abbr) ||
-//                demandUnits.equalsIgnoreCase(HazardUtil.units_in) || demandUnits.equalsIgnoreCase(HazardUtil.units_ft_abbr);
-//        }
-//
-//        return false;
+    public static boolean verifyHazardDemandType(String demandType, JSONArray listOfDemands) {
+        AtomicBoolean demandTypeExisted = new AtomicBoolean(false);
+        listOfDemands.forEach(entry -> {
+            if (((JSONObject) entry).get("demand_type").toString().equalsIgnoreCase(demandType)) {
+                demandTypeExisted.set(true);
+            }
+        });
+
+        return demandTypeExisted.get();
     }
 
     public static String getFullDemandType(String period, String demandType) {
