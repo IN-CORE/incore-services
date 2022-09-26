@@ -21,7 +21,8 @@ public class ValidationUtils {
 
             // check first if demand type exist
             // sa and sd are special cases
-            if (demandType.contains("sa") || demandType.contains("sd") || demandType.contains("sv")) {
+            if (demandType.toLowerCase().contains("sa") || demandType.toLowerCase().contains("sd")
+                || demandType.toLowerCase().contains("sv")) {
                 String[] demandTypePhrase = demandType.split("\\s+");
 
                 // check if first word is positive numeric value
@@ -36,20 +37,17 @@ public class ValidationUtils {
                 }
             }
 
-            if (((JSONObject) entry).get("demand_type").toString().toLowerCase().equals(demandTypeEvaluated)) {
+            if (((JSONObject) entry).get("demand_type").toString().equalsIgnoreCase(demandTypeEvaluated)) {
                 demandTypeExisted.set(true);
 
                 // check if demand unit is allowed
                 JSONArray allowedDemandUnits = ((JSONObject) entry).getJSONArray("demand_unit");
                 allowedDemandUnits.forEach(unit -> {
-                    if (unit.toString().toLowerCase().equals(demandUnit)) {
+                    if (unit.toString().equalsIgnoreCase(demandUnit)) {
                         demandUnitAllowed.set(true);
                     }
                 });
-
             }
-
-
         });
 
         HashMap<String, Boolean> validation = new HashMap<>();

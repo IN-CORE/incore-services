@@ -652,11 +652,10 @@ public class HazardUtil {
                 // check if demand unit is allowed
                 JSONArray allowedDemandUnits = ((JSONObject) entry).getJSONArray("demand_unit");
                 allowedDemandUnits.forEach(unit -> {
-                    if (unit.toString().toLowerCase().equals(demandUnit)) {
+                    if (unit.toString().equalsIgnoreCase(demandUnit)) {
                         demandUnitAllowed.set(true);
                     }
                 });
-
             }
         });
 
