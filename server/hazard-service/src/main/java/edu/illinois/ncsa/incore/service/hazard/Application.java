@@ -59,7 +59,8 @@ public class Application extends ResourceConfig {
         ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoSpaceRepository.initialize();
 
-        IUserAllocationsRepository mongoUserAllocationsRepository = new MongoUserAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
+        IUserAllocationsRepository mongoUserAllocationsRepository =
+            new MongoUserAllocationsDBRepository(new MongoClientURI(mongodbSpaceUri));
         mongoUserAllocationsRepository.initialize();
 
         IUserFinalQuotaRepository mongoUserFinalQuotaRepository = new MongoUserFinalQuotaDBRepository(new MongoClientURI(mongodbSpaceUri));
@@ -70,6 +71,15 @@ public class Application extends ResourceConfig {
 
         Engine engine = new Engine();
         engine.addServiceRepository("earthquake", earthquakeRepository);
+
+        // connect to config database to get definitions
+        String mongodbCommonUri = "mongodb://localhost:27017/commondb";
+        String mongodbCommonUriProp = System.getenv("COMMON_MONGODB_URI");
+        if (mongodbCommonUriProp != null && !mongodbCommonUriProp.isEmpty()) {
+            mongodbCommonUri = mongodbCommonUriProp;
+        }
+        ICommonRepository mongoCommonRepository = new MongoCommonDBRepository(new MongoClientURI(mongodbCommonUri));
+        mongoCommonRepository.initialize();
 
 
         super.register(new AbstractBinder() {
@@ -88,6 +98,7 @@ public class Application extends ResourceConfig {
                 super.bind(mongoUserAllocationsRepository).to(IUserAllocationsRepository.class);
                 super.bind(mongoUserFinalQuotaRepository).to(IUserFinalQuotaRepository.class);
                 super.bind(engine).to(Engine.class);
+                super.bind(mongoCommonRepository).to(ICommonRepository.class);
             }
         });
         super.register(new CorsFilter());
