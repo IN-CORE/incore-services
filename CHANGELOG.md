@@ -5,65 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Fixed
+- Liquefaction did not handle the case of no exposure correctly [#83](https://github.com/IN-CORE/incore-services/issues/83)
+
 ## [1.11.0] - 2022-09-14
-# Added
+### Added
 - Enable more demand types and demand units for Hurricane [#85](https://github.com/IN-CORE/incore-services/issues/85)
 
-
 ## [1.10.0] - 2022-06-29
-# Added
+### Added
 - Endpoint to obtain the allocation for a logged-in user [#76](https://github.com/IN-CORE/incore-services/issues/76)
 
-# Changed
+### Changed
 - Network dataset's sub data's dataType changed from networkType to dataType [#79](https://github.com/IN-CORE/incore-services/issues/79)
 
 ## [1.9.0] - 2022-03-29
-# Added
+### Added
 - User Allocation management to limit usage per user or group. Added validations to deny creation of new datasets, hazards and DFR3 curves when the allocations limits are met. [#66](https://github.com/IN-CORE/incore-services/issues/66) 
 
-# Changed
+### Changed
 - Earthquake threshold values to be agnostic of period values - with this change it is enough to just define a single threshold value for period based demands such as "SA" and "SD". [#32](https://github.com/IN-CORE/incore-services/issues/32)
 
 ## [1.8.0] - 2022-02-07
-# Added
+### Added
 - Toro1997 attenuations model for earthquakes [#35](https://github.com/IN-CORE/incore-services/issues/35)
 - Support for storing expression based curves for Repairs and Restorations [#6](https://github.com/IN-CORE/incore-services/issues/6)
 
-# Changed
+### Changed
 - Fully deprecate the old format DFR3 models and related code references [#31](https://github.com/IN-CORE/incore-services/issues/31)
 
 ## [1.7.1] - 2021-12-16
-# Fixed
+### Fixed
 - Vulnerable log4j package updated to prevent remote code execution [#55](https://github.com/IN-CORE/incore-services/issues/55)
 
-# Changed
+### Changed
 - renamed master branch of the repository to be "main", and updated the github actions.
 
 ## [1.7.0] - 2021-12-15
-# Changed
+### Changed
 - Update earthquake values endpoint to accept site classification dataset [#40](https://github.com/IN-CORE/incore-services/issues/40)
 - Add validation on DFR3 service to only acceptable demand types and units are being provided. Make it uniform on hazard service too enhancement [#7](https://github.com/IN-CORE/incore-services/issues/7)
 - Upgrades and cleanup to semantics service [#18](https://github.com/IN-CORE/incore-services/issues/18)
 
 ## [1.6.0] - 2021-10-27
-# Added
+### Added
 - Ability to store demand-specific threshold values in the metadata when creating hazards (pending for model-based earthquakes) [#1](https://github.com/IN-CORE/incore-services/issues/1)
 - Maestro service endpoints to record the status of playbook workflow and the status of each step [#16](https://github.com/IN-CORE/incore-services/issues/16)
 - Ability to include or exclude hazard datasets when querying for datasets through data service api calls [#10](https://github.com/IN-CORE/incore-services/issues/10)
 - Github action to run unit tests and automatically publish docker images [#20](https://github.com/IN-CORE/incore-services/issues/20)
 
-# Fixed
+### Fixed
 - Bug that was allowing updating datasets, hazards and DFR3 objects through the POST method that was supposed to only create new entities. [#22](https://github.com/IN-CORE/incore-services/issues/22)
 
 ## [1.5.0] - 2021-08-31
-# Added
+### Added
 - User status endpoint for DFR3 Service to show usage information [INCORE1-1156](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1156)
 - Support for hazard exposure for earthquake, tornado, tsunami, tornado and hurricane. Defined hazard thresholds for each of them [INCORE1-1361](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1361)
 
-# Changed
+### Changed
 - Exception handling on hazard service to return specific error codes (-9999.x) on failure [INCORE1-1364](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1364)
 
-# Fixed
+### Fixed
 - Code formatting issues and reformatted consistently accross all services [INCORE1-1335](https://opensource.ncsa.illinois.edu/jira/browse/INCORE1-1335)
 
 ## [1.4.0] - 2021-07-28
