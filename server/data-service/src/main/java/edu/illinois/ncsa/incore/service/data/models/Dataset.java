@@ -69,6 +69,11 @@ public class Dataset {
     private String creator = null;
 
     /**
+     * owner of the artifact
+     */
+    private String owner = null;
+
+    /**
      * spaces the object belongs to. Calculated at runtime.
      */
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -173,22 +178,40 @@ public class Dataset {
     }
 
     /**
-     * Return the PersonBean that is the creator of the artifact
+     * Return the creator of the artifact
      *
-     * @return PersonBean that represents the creator
+     * @return creator
      */
     public String getCreator() {
         return creator;
     }
 
     /**
-     * Sets the PersonBean that represents the creator of the artifact.
+     * Sets the creator of the artifact.
      *
-     * @param creator sets the PersonBeans that represents the creator of the
-     *                artifact.
+     * @param creator sets the creator of the artifact.
      */
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    /**
+     * Return the PersonBean that is the owner of the artifact
+     *
+     * @return PersonBean that represents the owner
+     */
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * Sets the PersonBean that represents the owner of the artifact.
+     *
+     * @param owner sets the PersonBeans that represents the owner of the
+     *                artifact.
+     */
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public List<String> getSpaces() {

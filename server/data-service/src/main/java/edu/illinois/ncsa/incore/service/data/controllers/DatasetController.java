@@ -362,6 +362,7 @@ public class DatasetController {
 
             dataset.setTitle(title);
             dataset.setCreator(this.username);
+            dataset.setOwner(this.username);
             dataset.setDataType(dataType);
             dataset.setDescription(description);
             dataset.setSourceDataset(sourceDataset);
