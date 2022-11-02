@@ -304,6 +304,7 @@ public class TsunamiController {
                     }
 
                     tsunami.setCreator(this.username);
+                    tsunami.setOwner(this.username);
                     tsunami = repository.addTsunami(tsunami);
 
                     Space space = spaceRepository.getSpaceByName(this.username);

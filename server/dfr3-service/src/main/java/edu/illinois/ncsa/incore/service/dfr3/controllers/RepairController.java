@@ -168,6 +168,8 @@ public class RepairController {
         }
 
         repairSet.setCreator(username);
+        repairSet.setOwner(username);
+
         if (repairSet.getRepairCurves().size() == 0){
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No repair curves are included in the json. " +
                 "Please provide at least one.");

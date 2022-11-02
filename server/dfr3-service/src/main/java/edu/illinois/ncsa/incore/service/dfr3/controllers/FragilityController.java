@@ -217,6 +217,7 @@ public class FragilityController {
         }
 
         fragilitySet.setCreator(username);
+        fragilitySet.setOwner(username);
 
         if (fragilitySet.getFragilityCurves().size() == 0){
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No fragility curves are included in the json. " +

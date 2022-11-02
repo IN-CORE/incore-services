@@ -203,6 +203,7 @@ public class EarthquakeController {
                     scenarioEarthquake.setHazardDataset(rasterDataset);
                     // add creator using username info
                     earthquake.setCreator(this.username);
+                    earthquake.setOwner(this.username);
                     earthquake = repository.addEarthquake(earthquake);
                     addEarthquakeToSpace(earthquake, this.username);
 
@@ -253,6 +254,7 @@ public class EarthquakeController {
 
                     // add creator using username info
                     earthquake.setCreator(this.username);
+                    earthquake.setOwner(this.username);
 
                     // Save changes to earthquake
                     earthquake = repository.addEarthquake(earthquake);

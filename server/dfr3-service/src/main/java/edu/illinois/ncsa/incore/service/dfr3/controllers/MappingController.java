@@ -204,6 +204,7 @@ public class MappingController {
         }
 
         mappingSet.setCreator(username);
+        mappingSet.setOwner(username);
 
         String id = this.mappingDAO.saveMappingSet(mappingSet);
 

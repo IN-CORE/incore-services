@@ -171,6 +171,8 @@ public class RestorationController {
         }
 
         restorationSet.setCreator(username);
+        restorationSet.setOwner(username);
+
         if (restorationSet.getRestorationCurves().size() == 0){
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No restoration curves are included in the json. " +
                 "Please provide at least one.");

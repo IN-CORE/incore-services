@@ -215,6 +215,7 @@ public class HurricaneController {
                     }
 
                     hurricane.setCreator(this.username);
+                    hurricane.setOwner(this.username);
                     hurricane = repository.addHurricane(hurricane);
 
                     Space space = spaceRepository.getSpaceByName(this.username);

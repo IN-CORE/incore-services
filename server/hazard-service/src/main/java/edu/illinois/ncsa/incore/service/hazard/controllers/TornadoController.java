@@ -220,6 +220,7 @@ public class TornadoController {
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);
+                tornado.setOwner(this.username);
                 tornado = repository.addTornado(tornado);
                 addTornadoToSpace(tornado, this.username);
             } else if (tornado != null && tornado instanceof TornadoDataset) {
@@ -245,6 +246,7 @@ public class TornadoController {
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
                     tornado.setCreator(this.username);
+                    tornado.setOwner(this.username);
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
                 } else {

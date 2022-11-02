@@ -222,6 +222,7 @@ public class FloodController {
                     }
 
                     flood.setCreator(this.username);
+                    flood.setOwner(this.username);
                     flood = repository.addFlood(flood);
 
                     Space space = spaceRepository.getSpaceByName(this.username);
