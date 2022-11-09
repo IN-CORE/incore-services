@@ -337,7 +337,7 @@ public class FloodController {
     public Flood deleteFlood(@ApiParam(value = "Flood Id", required = true) @PathParam("flood-id") String floodId) {
         Flood flood = getFloodById(floodId);
 
-        if (authorizer.canUserDeleteMember(this.username, floodId, spaceRepository.getAllSpaces())) {
+        if (this.username.equals(flood.getOwner())) {
             // delete associated datasets
             if (flood != null && flood instanceof FloodDataset) {
                 FloodDataset hurrDataset = (FloodDataset) flood;

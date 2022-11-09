@@ -352,7 +352,7 @@ public class HurricaneWindfieldsController {
         "hurricaneId") String hurricaneId) {
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
-        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (this.username.equals(hurricane.getOwner())) {
             //delete associated datasets
             for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
                 if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {

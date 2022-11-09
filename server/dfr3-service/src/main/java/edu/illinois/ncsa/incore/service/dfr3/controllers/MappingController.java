@@ -231,7 +231,7 @@ public class MappingController {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+            if (this.username.equals(mappingSet.get().getOwner())) {
 //              remove id from spaces
                 List<Space> spaces = spaceRepository.getAllSpaces();
                 for (Space space : spaces) {

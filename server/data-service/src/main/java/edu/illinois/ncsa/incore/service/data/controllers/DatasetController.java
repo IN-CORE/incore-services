@@ -445,7 +445,8 @@ public class DatasetController {
             geoserverUsed = true;
         }
 
-        if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
+//        if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
+        if (this.username.equals(dataset.getOwner())) {
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -910,12 +911,14 @@ public class DatasetController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid " +
                 "JSON.");
         }
-        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
+
+        Dataset dataset = repository.getDatasetById(datasetId);
+
+        if (!this.username.equals(dataset.getOwner())) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
         }
 
-        Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a dataset with id " + datasetId);
         }

@@ -335,7 +335,7 @@ public class HurricaneController {
     public Hurricane deleteHurricanes(@ApiParam(value = "Hurricane Id", required = true) @PathParam("hurricane-id") String hurricaneId) {
         Hurricane hurricane = getHurricaneById(hurricaneId);
 
-        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (this.username.equals(hurricane.getOwner())) {
             // delete associated datasets
             if (hurricane != null && hurricane instanceof HurricaneDataset) {
                 HurricaneDataset hurrDataset = (HurricaneDataset) hurricane;
