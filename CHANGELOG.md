@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
 ## [Unreleased]
 # Fixed
 - Keyword searching in fragility mapping is not behaving correctly [#78](https://github.com/IN-CORE/incore-services/issues/78)
