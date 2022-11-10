@@ -91,11 +91,11 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
         Query<MappingSet> query = this.dataStore.find(MappingSet.class);
 
         if (mappingType != null && !mappingType.trim().equals("")) {
-            query.filter(Filters.or(
-                Filters.regex("mappingType").pattern(mappingType).caseInsensitive(),
-                Filters.regex("name").pattern(text).caseInsensitive(),
-                Filters.regex("hazardType").pattern(text).caseInsensitive(),
-                Filters.regex("inventoryType").pattern(text).caseInsensitive()));
+            query.filter(Filters.eq("mappingType", mappingType))
+                .filter(Filters.or(
+                    Filters.regex("name").pattern(text).caseInsensitive(),
+                    Filters.regex("hazardType").pattern(text).caseInsensitive(),
+                    Filters.regex("inventoryType").pattern(text).caseInsensitive()));
         } else {
             query.filter(Filters.or(
                 Filters.regex("name").pattern(text).caseInsensitive(),
