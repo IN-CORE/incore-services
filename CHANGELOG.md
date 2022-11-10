@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] 
 ### Fixed
 - Liquefaction did not handle the case of no exposure correctly [#83](https://github.com/IN-CORE/incore-services/issues/83)
+- Keyword searching in fragility mapping is not behaving correctly [#78](https://github.com/IN-CORE/incore-services/issues/78)
 
 ## [1.11.0] - 2022-09-14
 ### Added
