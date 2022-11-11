@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] 
+## [Unreleased]
+# Changed
+- Enforce demand type and demand unit check when POST to hazard values endpoint [#15](https://github.com/IN-CORE/incore-services/issues/15)
+
 ### Fixed
 - Liquefaction did not handle the case of no exposure correctly [#83](https://github.com/IN-CORE/incore-services/issues/83)
 - Keyword searching in fragility mapping is not behaving correctly [#78](https://github.com/IN-CORE/incore-services/issues/78)

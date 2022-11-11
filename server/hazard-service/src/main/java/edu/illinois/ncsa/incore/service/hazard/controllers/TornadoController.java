@@ -15,8 +15,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -25,6 +26,7 @@ import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
@@ -38,6 +40,7 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -79,6 +82,9 @@ public class TornadoController {
 
     @Inject
     private IUserFinalQuotaRepository quotaRepository;
+
+    @Inject
+    private ICommonRepository commonRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -340,6 +346,12 @@ public class TornadoController {
         @FormDataParam("seed") @DefaultValue("-1") int seed) {
 
         Tornado tornado = getTornado(tornadoId);
+
+        // check if demand type is correct according to the definition; for now get the first definition
+        // Check units to verify requested units matches the demand type
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        JSONArray listOfDemands = demandDefinition.getJSONArray("tornado");
+
         ObjectMapper mapper = new ObjectMapper();
         List<ValuesResponse> valResponse = new ArrayList<>();
         try {
@@ -361,11 +373,23 @@ public class TornadoController {
                 } else {
                     for (int i = 0; i < demands.size(); i++) {
                         try {
-                            WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
-                                request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
-                            resDemands.add(res.getDemand());
-                            resUnits.add(res.getUnits());
-                            hazVals.add(res.getHazardValue());
+                            if (!HazardUtil.verifyHazardDemandType(demands.get(i), listOfDemands)) {
+                                hazVals.add(INVALID_DEMAND);
+                                resUnits.add(units.get(i));
+                                resDemands.add(demands.get(i));
+                            } else {
+                                if (!HazardUtil.verifyHazardDemandUnit(demands.get(i), units.get(i), listOfDemands)) {
+                                    hazVals.add(INVALID_UNIT);
+                                    resUnits.add(units.get(i));
+                                    resDemands.add(demands.get(i));
+                                } else {
+                                    WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
+                                        request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
+                                    resDemands.add(res.getDemand());
+                                    resUnits.add(res.getUnits());
+                                    hazVals.add(res.getHazardValue());
+                                }
+                            }
                         } catch (IOException ex) {
                             hazVals.add(IO_EXCEPTION);
                             resUnits.add(units.get(i));

@@ -12,17 +12,18 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
-import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.Engine;
 import edu.illinois.ncsa.incore.service.hazard.Job;
 import edu.illinois.ncsa.incore.service.hazard.dao.IEarthquakeRepository;
@@ -46,6 +47,8 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.coverage.grid.GridCoverage;
@@ -109,6 +112,9 @@ public class EarthquakeController {
 
     @Inject
     private IUserFinalQuotaRepository quotaRepository;
+
+    @Inject
+    private ICommonRepository commonRepository;
 
     @Inject
     private AttenuationProvider attenuationProvider;
@@ -469,6 +475,11 @@ public class EarthquakeController {
 
         Earthquake eq = getEarthquake(earthquakeId);
 
+        // check if demand type is correct according to the definition; for now get the first definition
+        // Check units to verify requested units matches the demand type
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        JSONArray listOfDemands = demandDefinition.getJSONArray("earthquake");
+
         Map<BaseAttenuation, Double> attenuations = null;
         if (eq instanceof EarthquakeModel) {
             EarthquakeModel earthquake = (EarthquakeModel) eq;
@@ -507,14 +518,12 @@ public class EarthquakeController {
                         try {
                             String[] demandComponents = HazardUtil.getHazardDemandComponents(demands.get(i));
 
-                            if (demandComponents == null) {
+                            if (demandComponents == null || !HazardUtil.verifyHazardDemandType(demandComponents[1], listOfDemands)) {
                                 hazVals.add(INVALID_DEMAND);
                                 resUnits.add(units.get(i));
                                 resDemands.add(demands.get(i));
                             } else {
-
-                                // Check units to verify requested units matches the demand type
-                                if (!HazardUtil.verifyHazardDemandUnits(demandComponents[1], units.get(i))) {
+                                if (!HazardUtil.verifyHazardDemandUnit(demandComponents[1], units.get(i), listOfDemands)) {
                                     hazVals.add(INVALID_UNIT);
                                     resUnits.add(units.get(i));
                                     resDemands.add(demands.get(i));
@@ -584,6 +593,11 @@ public class EarthquakeController {
 
         Earthquake eq = getEarthquake(earthquakeId);
 
+        // check if demand type is correct according to the definition; for now get the first definition
+        // Check units to verify requested units matches the demand type
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        JSONArray listOfDemands = demandDefinition.getJSONArray("earthquake");
+
         String[] demandComponents = HazardUtil.getHazardDemandComponents(demandType);
         if (demandComponents == null) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not parse demand type " + demandType + ", please check the " +
@@ -591,7 +605,7 @@ public class EarthquakeController {
         }
 
         // Check units to verify requested units matches the demand type
-        if (!HazardUtil.verifyHazardDemandUnits(demandComponents[1], demandUnits)) {
+        if (!HazardUtil.verifyHazardDemandUnit(demandComponents[1], demandUnits, listOfDemands)) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The requested demand units, " + demandUnits + " is not supported " +
                 "for " + demandType + ", please check requested units.");
         }
