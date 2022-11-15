@@ -16,8 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -27,6 +28,7 @@ import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneWindfieldsRepositor
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.GISHurricaneUtils;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.HurricaneSimulationEnsemble;
@@ -39,6 +41,8 @@ import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.opengis.geometry.MismatchedDimensionException;
 
 import javax.inject.Inject;
@@ -51,6 +55,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_DEMAND;
+import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_UNIT;
 
 @Api(value = "hurricaneWindfields", authorizations = {})
 
@@ -73,6 +80,9 @@ public class HurricaneWindfieldsController {
 
     @Inject
     private IUserFinalQuotaRepository quotaRepository;
+
+    @Inject
+    private ICommonRepository commonRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -273,6 +283,12 @@ public class HurricaneWindfieldsController {
         @ApiParam(value = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @FormDataParam("roughness") @DefaultValue("0.03") double roughness) {
 
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
+
+        // check if demand type is correct according to the definition; for now get the first definition
+        // Check units to verify requested units matches the demand type
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        JSONArray listOfDemands = demandDefinition.getJSONArray("hurricaneWindfield");
+
         //Get shapefile datasetid
         String datasetId = hurricane.findFullPathDatasetId();
         String hurrDemandType = hurricane.getDemandType();
@@ -293,25 +309,32 @@ public class HurricaneWindfieldsController {
                 CommonUtil.validateHazardValuesInput(demands, units, request.getLoc());
 
                 for (int i = 0; i < demands.size(); i++) {
-
-                    if (!demands.get(i).equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_3SECS) && !demands.get(i).equalsIgnoreCase(HurricaneWindfieldsUtil.WIND_VELOCITY_60SECS)) {
-                        log.error("Unsupported hurricane demandType provided to GET values : " + demands.get(i));
-                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Unsupported hurricane demandType. Please use 3s or " +
-                            "60s.");
-                    }
-
                     double lat = request.getLoc().getLocation().getY();
                     double lon = request.getLoc().getLocation().getX();
                     double windValue = 0;
                     try {
-                        windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at 10m elevation
+                        if (!HazardUtil.verifyHazardDemandType(demands.get(i), listOfDemands)) {
+                            hazVals.add(INVALID_DEMAND);
+                            resUnits.add(units.get(i));
+                            resDemands.add(demands.get(i));
+                        } else {
+                            if (!HazardUtil.verifyHazardDemandUnit(demands.get(i), units.get(i), listOfDemands)) {
+                                hazVals.add(INVALID_UNIT);
+                                resUnits.add(units.get(i));
+                                resDemands.add(demands.get(i));
+                            } else {
+                                windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at
+                                // 10m elevation
 
-                        HashMap<String, Double> convertedWf = HurricaneWindfieldsUtil.convertWindfieldVelocity(hurrDemandType, windValue,
-                            elevation, roughness);
-                        windValue = convertedWf.get(demands.get(i));
+                                HashMap<String, Double> convertedWf = HurricaneWindfieldsUtil.convertWindfieldVelocity(hurrDemandType,
+                                    windValue,
+                                    elevation, roughness);
+                                windValue = convertedWf.get(demands.get(i));
 
-                        if (!units.get(i).equals(hurrDemandUnits)) {
-                            windValue = HurricaneWindfieldsUtil.getCorrectUnitsOfVelocity(windValue, hurrDemandUnits, units.get(i));
+                                if (!units.get(i).equals(hurrDemandUnits)) {
+                                    windValue = HurricaneWindfieldsUtil.getCorrectUnitsOfVelocity(windValue, hurrDemandUnits, units.get(i));
+                                }
+                            }
                         }
                     } catch (IOException e) {
                         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "IOException: Please check the json format for the " +
