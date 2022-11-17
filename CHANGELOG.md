@@ -5,8 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
-# Changed
+## [1.12.0] - 2022-11-16
+### Changed
 - Enforce demand type and demand unit check when POST to hazard values endpoint [#15](https://github.com/IN-CORE/incore-services/issues/15)
 
 ### Fixed
