@@ -64,9 +64,10 @@ public class HazardCalc {
         // TODO fix this for dataset
         EarthquakeModel eqModel = (EarthquakeModel) earthquake;
         HazusLiquefaction liquefaction = new HazusLiquefaction();
-        String susceptibilitity = null;
+        String susceptibility = null;
         double pgaValue = 0.0;
         double groundDeformation = 0.0;
+        double liqProbability = 0.0;
         double[] groundFailureProb = new double[3];
         double magnitude = eqModel.getEqParameters().getMagnitude();
         // Assumption from Hazus
@@ -76,14 +77,18 @@ public class HazardCalc {
 
             SimpleFeature feature = GISUtil.getPointInPolygon(site.getLocation(), soilGeology);
             if (feature != null) {
-                susceptibilitity = feature.getAttribute(HazardUtil.LIQ_SUSCEPTIBILITY).toString();
-                pgaValue = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", HazardUtil.PGA,
-                    HazardUtil.units_g, 0, true, siteClassFC, creator).getHazardValue();
-                groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibilitity, pgaValue, magnitude);
-                double liqProbability = liquefaction.getProbabilityOfLiquefaction(eqModel.getEqParameters().getMagnitude(), pgaValue,
-                    susceptibilitity, groundWaterDepth);
-                groundFailureProb = liquefaction.getProbabilityOfGroundFailure(susceptibilitity, pgaValue, groundWaterDepth, magnitude);
+                susceptibility = feature.getAttribute(HazardUtil.LIQ_SUSCEPTIBILITY).toString();
+                SeismicHazardResult seismicHazardResult = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", HazardUtil.PGA,
+                    HazardUtil.units_g, 0, true, siteClassFC, creator);
 
+                // Handles the case where the hazard is null if below the threshold of exposure
+                if (seismicHazardResult.getHazardValue() != null) {
+                    pgaValue = seismicHazardResult.getHazardValue();
+                    groundDeformation = liquefaction.getPermanentGroundDeformation(susceptibility, pgaValue, magnitude);
+                    liqProbability = liquefaction.getProbabilityOfLiquefaction(eqModel.getEqParameters().getMagnitude(), pgaValue,
+                        susceptibility, groundWaterDepth);
+                    groundFailureProb = liquefaction.getProbabilityOfGroundFailure(susceptibility, pgaValue, groundWaterDepth, magnitude);
+                }
                 // Default units of permanent ground deformation
                 String pgdUnits = HazardUtil.units_in;
                 if (demandUnits.equalsIgnoreCase(HazardUtil.units_cm)) {

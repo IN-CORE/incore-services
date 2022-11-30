@@ -15,8 +15,9 @@ import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
-import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
+import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -26,6 +27,7 @@ import edu.illinois.ncsa.incore.service.hazard.dao.IFloodRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodHazardDataset;
@@ -38,6 +40,8 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -75,6 +79,9 @@ public class FloodController {
 
     @Inject
     private IUserFinalQuotaRepository quotaRepository;
+
+    @Inject
+    private ICommonRepository commonRepository;
 
     @Inject
     private IAuthorizer authorizer;
@@ -265,6 +272,12 @@ public class FloodController {
         @ApiParam(value = "Json of the points along with demand types and units",
             required = true) @FormDataParam("points") String requestJsonStr) {
         Flood flood = getFloodById(floodId);
+
+        // check if demand type is correct according to the definition; for now get the first definition
+        // Check units to verify requested units matches the demand type
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        JSONArray listOfDemands = demandDefinition.getJSONArray("flood");
+
         ObjectMapper mapper = new ObjectMapper();
         List<ValuesResponse> valResponse = new ArrayList<>();
         try {
@@ -286,11 +299,24 @@ public class FloodController {
                 } else {
                     for (int i = 0; i < demands.size(); i++) {
                         try {
-                            FloodHazardResult res = FloodCalc.getFloodHazardValue(flood, demands.get(i), units.get(i), request.getLoc(),
-                                this.username);
-                            resDemands.add(res.getDemand());
-                            resUnits.add(res.getUnits());
-                            hazVals.add(res.getHazardValue());
+                            if (!HazardUtil.verifyHazardDemandType(demands.get(i), listOfDemands)) {
+                                hazVals.add(INVALID_DEMAND);
+                                resUnits.add(units.get(i));
+                                resDemands.add(demands.get(i));
+                            } else {
+                                if (!HazardUtil.verifyHazardDemandUnit(demands.get(i), units.get(i), listOfDemands)) {
+                                    hazVals.add(INVALID_UNIT);
+                                    resUnits.add(units.get(i));
+                                    resDemands.add(demands.get(i));
+                                } else {
+                                    FloodHazardResult res = FloodCalc.getFloodHazardValue(flood, demands.get(i), units.get(i),
+                                        request.getLoc(),
+                                        this.username);
+                                    resDemands.add(res.getDemand());
+                                    resUnits.add(res.getUnits());
+                                    hazVals.add(res.getHazardValue());
+                                }
+                            }
                         } catch (UnsupportedHazardException e) {
                             log.error("Exception in calculating flood values", e);
                             hazVals.add(UNSUPPORTED_HAZARD_MODEL);

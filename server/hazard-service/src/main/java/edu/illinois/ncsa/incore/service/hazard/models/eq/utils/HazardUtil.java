@@ -20,6 +20,7 @@ import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Misc utility functions for doing conversion of hazard types and units
@@ -627,9 +629,11 @@ public class HazardUtil {
         } else {
             String[] demandSplit = fullDemandType.split(" ");
             if (demandSplit.length == 2) {
+//                TODO we might want to check if the first part is float (period)
                 demandParts[0] = demandSplit[0].trim();
                 demandParts[1] = demandSplit[1].trim();
             } else if (demandSplit.length == 3) {
+                // TODO we might want to check if the first part is float (period)
                 // The assumption here is something like 0.3 Sec SA, 0.3 Sec SD, etc
                 demandParts[0] = demandSplit[0].trim();
                 demandParts[1] = demandSplit[2].trim();
@@ -641,17 +645,32 @@ public class HazardUtil {
         return demandParts;
     }
 
-    public static boolean verifyHazardDemandUnits(String demandType, String demandUnits) {
-        if (demandType.equalsIgnoreCase(HazardUtil.PGA) || demandType.equalsIgnoreCase(HazardUtil.SA)) {
-            return demandUnits.equalsIgnoreCase(HazardUtil.units_percg) || demandUnits.equalsIgnoreCase(HazardUtil.units_g);
-        } else if (demandType.equalsIgnoreCase(HazardUtil.PGV) || demandType.equalsIgnoreCase(HazardUtil.SV)) {
-            return demandUnits.equalsIgnoreCase(HazardUtil.units_cms) || demandUnits.equalsIgnoreCase(HazardUtil.units_ins);
-        } else if (demandType.equalsIgnoreCase(HazardUtil.PGD) || demandType.equalsIgnoreCase(HazardUtil.SD)) {
-            return demandUnits.equalsIgnoreCase(HazardUtil.units_cm) || demandUnits.equalsIgnoreCase(HazardUtil.units_m_abbr) ||
-                demandUnits.equalsIgnoreCase(HazardUtil.units_in) || demandUnits.equalsIgnoreCase(HazardUtil.units_ft_abbr);
-        }
+    public static boolean verifyHazardDemandUnit(String demandType, String demandUnit, JSONArray listOfDemands) {
+        AtomicBoolean demandUnitAllowed = new AtomicBoolean(false);
+        listOfDemands.forEach(entry -> {
+            if (((JSONObject) entry).get("demand_type").toString().equalsIgnoreCase(demandType)) {
+                // check if demand unit is allowed
+                JSONArray allowedDemandUnits = ((JSONObject) entry).getJSONArray("demand_unit");
+                allowedDemandUnits.forEach(unit -> {
+                    if (unit.toString().equalsIgnoreCase(demandUnit)) {
+                        demandUnitAllowed.set(true);
+                    }
+                });
+            }
+        });
 
-        return false;
+        return demandUnitAllowed.get();
+    }
+
+    public static boolean verifyHazardDemandType(String demandType, JSONArray listOfDemands) {
+        AtomicBoolean demandTypeExisted = new AtomicBoolean(false);
+        listOfDemands.forEach(entry -> {
+            if (((JSONObject) entry).get("demand_type").toString().equalsIgnoreCase(demandType)) {
+                demandTypeExisted.set(true);
+            }
+        });
+
+        return demandTypeExisted.get();
     }
 
     public static String getFullDemandType(String period, String demandType) {
