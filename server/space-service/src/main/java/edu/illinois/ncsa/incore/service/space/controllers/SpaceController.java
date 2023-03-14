@@ -34,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -137,14 +138,16 @@ public class SpaceController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of all available spaces", notes = "Return spaces that the user has read/write/admin privileges " +
-        "on. If a member Id is passed, it will return all spaces that contains the member.")
-    public List<Space> getSpacesList(@ApiParam(value = "Member Id") @QueryParam("member") String memberId) {
+    @ApiOperation(value = "Gets the list of all available spaces", notes = "For member parameter, it will return spaces that the user " +
+        "has read/write/admin privileges on. If a member Id is passed, it will return all spaces that contains the member. For name " +
+        "parameter, it will return the space id with the given space name.")
+    public List<Space> getSpacesList(@ApiParam(value = "Member Id") @QueryParam("member") String memberId,
+                                     @ApiParam(value = "Space Name") @QueryParam("name") String spaceName) {
 
         if (memberId != null) {
             if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces())) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
-                    this.username + "does not have the privileges to access " + memberId);
+                    this.username + " does not have the privileges to access " + memberId);
             }
             List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
             List<Space> spacesWithMember = new ArrayList<>();
@@ -155,6 +158,16 @@ public class SpaceController {
             }
 
             return spacesWithMember;
+        }
+
+        if (spaceName != null) {
+            // Find all the spaces the user is authorized to view
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+
+            // Check if the space requested is in the list of authorized spaces
+            List<Space> spaces = filteredSpaces.stream().filter(space -> spaceName.equals(space.getName())).collect(Collectors.toList());
+
+            return spaces;
         }
 
         return authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());

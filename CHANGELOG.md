@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.13.0] - 2023-03-08
+### Added
+- Space endpoint for getting space by providing the name of the space [#101](https://github.com/IN-CORE/incore-services/issues/101)
+
 ## [1.12.0] - 2022-11-16
 ### Changed
 - Enforce demand type and demand unit check when POST to hazard values endpoint [#15](https://github.com/IN-CORE/incore-services/issues/15)
