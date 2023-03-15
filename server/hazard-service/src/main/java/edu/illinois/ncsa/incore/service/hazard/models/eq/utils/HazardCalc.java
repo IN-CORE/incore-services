@@ -429,9 +429,14 @@ public class HazardCalc {
             startX = (float) minX + (cellsize / 2.0f);
             for (int x = 0; x < width; x++) {
                 localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
-                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations,
-                    localSite, demandComponents[0], demandComponents[1], demandUnits,
-                    0, amplifyHazard, null, creator).getHazardValue();
+                SeismicHazardResult hazardValueObj = getGroundMotionAtSite(scenarioEarthquake, attenuations, localSite, demandComponents[0],
+                    demandComponents[1], demandUnits, 0, amplifyHazard, null, creator);
+
+                // If the hazard is below the threshold it will be null so we'll set it to -9999
+                double hazardValue = -9999;
+                if (hazardValueObj.getHazardValue() != null) {
+                    hazardValue = hazardValueObj.getHazardValue();
+                }
 
                 raster.setSample(x, y, 0, hazardValue);
 
