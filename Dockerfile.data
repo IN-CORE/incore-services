@@ -29,8 +29,8 @@ RUN chmod go+w /var/log/clear_cache_cron.log
 # create data directory mounting point
 RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
 
-ENV JETTY_PORT 8080
+ENV JETTY_PORT 8080 
 
 EXPOSE 8080
-CMD ["sh", "-c", "cron && java -Xmx2048m -Djava.io.tmpdir=/home/incore/ -jar lib/jetty-runner.jar --port 8888 conf/data.xml"]
+CMD ["sh", "-c", "cron && java -Djava.io.tmpdir=/home/incore/ -jar lib/jetty-runner.jar --port 8888 conf/data.xml"]
 
