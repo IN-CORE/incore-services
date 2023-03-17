@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static java.util.Comparator.comparing;
 
 
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
@@ -291,7 +292,8 @@ public class EarthquakeController {
     public List<Earthquake> getEarthquakes(
         @ApiParam(value = "Name of the space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @ApiParam(value = "Skip the first n results.") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit number of results to return.") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @ApiParam(value = "Limit number of results to return.") @DefaultValue("100") @QueryParam("limit") int limit,
+    ) {
 
         try {
             List<Earthquake> earthquakes = repository.getEarthquakes();
@@ -309,6 +311,7 @@ public class EarthquakeController {
 
                 earthquakes = earthquakes.stream()
                     .filter(earthquake -> spaceMembers.contains(earthquake.getId()))
+                    .sorted(comparing(Earthquake::getDate).reversed())
                     .skip(offset)
                     .limit(limit)
                     .map(d -> {
@@ -323,6 +326,7 @@ public class EarthquakeController {
             Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
             List<Earthquake> accessibleEarthquakes = earthquakes.stream()
                 .filter(earthquake -> membersSet.contains(earthquake.getId()))
+                .sorted(comparing(Earthquake::getDate).reversed())
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -1017,6 +1021,7 @@ public class EarthquakeController {
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
         earthquakes = earthquakes.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparing(Earthquake::getDate).reversed())
             .skip(offset)
             .limit(limit)
             .map(d -> {
