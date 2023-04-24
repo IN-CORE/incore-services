@@ -2,10 +2,12 @@ package edu.illinois.ncsa.incore.service.hazard.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
 import org.json.simple.JSONObject;
 
 import javax.ws.rs.core.Response;
+import java.util.Comparator;
 import java.util.List;
 
 public class CommonUtil {
@@ -43,5 +45,22 @@ public class CommonUtil {
         outJson.put("total_number_of_hazard", numHazard);
 
         return outJson;
+    }
+
+    public static Comparator<Earthquake> eqComparator(String sortBy, String order){
+        // construct comparator
+        Comparator<Earthquake> comparator = (f1, f2) -> {
+            if (sortBy.equals("name")) {
+                return f1.getName().compareTo(f2.getName());
+            } else if (sortBy.equals("creator")){
+                return f1.getCreator().compareTo(f2.getCreator());
+                // default to date
+            } else{
+                return f1.getDate().compareTo(f2.getDate());
+            }
+        };
+        if (order.equals("desc")) comparator = comparator.reversed();
+
+        return comparator;
     }
 }

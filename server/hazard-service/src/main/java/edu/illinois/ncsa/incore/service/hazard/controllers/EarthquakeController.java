@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.eqComparator;
 import static java.util.Comparator.comparing;
 
 
@@ -291,9 +292,13 @@ public class EarthquakeController {
     @ApiOperation(value = "Returns all earthquakes.")
     public List<Earthquake> getEarthquakes(
         @ApiParam(value = "Name of the space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results.") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit number of results to return.") @DefaultValue("100") @QueryParam("limit") int limit,
+        @ApiParam(value = "Limit number of results to return.") @DefaultValue("100") @QueryParam("limit") int limit
     ) {
+        // ipmort eq comparator
+        Comparator<Earthquake> comparator = eqComparator(sortBy, order);
 
         try {
             List<Earthquake> earthquakes = repository.getEarthquakes();
@@ -311,7 +316,7 @@ public class EarthquakeController {
 
                 earthquakes = earthquakes.stream()
                     .filter(earthquake -> spaceMembers.contains(earthquake.getId()))
-                    .sorted(comparing(Earthquake::getDate).reversed())
+                    .sorted(comparator)
                     .skip(offset)
                     .limit(limit)
                     .map(d -> {
@@ -326,7 +331,7 @@ public class EarthquakeController {
             Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
             List<Earthquake> accessibleEarthquakes = earthquakes.stream()
                 .filter(earthquake -> membersSet.contains(earthquake.getId()))
-                .sorted(comparing(Earthquake::getDate).reversed())
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -1005,8 +1010,13 @@ public class EarthquakeController {
     })
     public List<Earthquake> findEarthquakes(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit number of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // ipmort eq comparator
+        Comparator<Earthquake> comparator = eqComparator(sortBy, order);
 
         List<Earthquake> earthquakes;
         Earthquake earthquake = repository.getEarthquakeById(text);
@@ -1021,7 +1031,7 @@ public class EarthquakeController {
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
         earthquakes = earthquakes.stream()
             .filter(b -> membersSet.contains(b.getId()))
-            .sorted(comparing(Earthquake::getDate).reversed())
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
