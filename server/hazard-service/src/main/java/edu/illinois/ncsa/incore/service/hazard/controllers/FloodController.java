@@ -104,7 +104,7 @@ public class FloodController {
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
-        // ipmort flood comparator
+        // import flood comparator
         Comparator<Flood> comparator = floodComparator(sortBy, order);
 
         List<Flood> floods = repository.getFloods();
@@ -420,7 +420,7 @@ public class FloodController {
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
-        // ipmort flood comparator
+        // import flood comparator
         Comparator<Flood> comparator = floodComparator(sortBy, order);
 
         List<Flood> floods;

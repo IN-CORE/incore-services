@@ -296,7 +296,7 @@ public class EarthquakeController {
         @ApiParam(value = "Skip the first n results.") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit number of results to return.") @DefaultValue("100") @QueryParam("limit") int limit
     ) {
-        // ipmort eq comparator
+        // import eq comparator
         Comparator<Earthquake> comparator = eqComparator(sortBy, order);
 
         try {
@@ -1014,7 +1014,7 @@ public class EarthquakeController {
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit number of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
-        // ipmort eq comparator
+        // import eq comparator
         Comparator<Earthquake> comparator = eqComparator(sortBy, order);
 
         List<Earthquake> earthquakes;
