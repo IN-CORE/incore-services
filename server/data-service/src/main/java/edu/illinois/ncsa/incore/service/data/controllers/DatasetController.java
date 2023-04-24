@@ -50,9 +50,12 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComparator;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -152,9 +155,15 @@ public class DatasetController {
                                      @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
                                      @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
                                      @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                     @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                     @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
                                      @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
                                      @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard ){
+
+        // import eq comparator
+        Comparator<Dataset> comparator = datasetComparator(sortBy, order);
+
         List<Dataset> datasets;
         if (typeStr != null && titleStr == null) {  // query only for the type
             datasets = repository.getDatasetByType(typeStr, excludeHazard);
@@ -181,6 +190,7 @@ public class DatasetController {
             List<String> spaceMembers = space.getMembers();
             datasets = datasets.stream()
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -197,6 +207,7 @@ public class DatasetController {
         //return the intersection between all datasets and the ones the user can read
         List<Dataset> accessibleDatasets = datasets.stream()
             .filter(dataset -> userMembersSet.contains(dataset.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -947,9 +958,14 @@ public class DatasetController {
         @ApiResponse(code = 404, message = "No datasets found with the searched text")
     })
     public List<Dataset> findDatasets(@ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+                                      @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                      @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                       @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
                                       @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard) {
+        // import eq comparator
+        Comparator<Dataset> comparator = datasetComparator(sortBy, order);
+
         List<Dataset> datasets;
 
         Dataset ds = repository.getDatasetById(text);
@@ -965,6 +981,7 @@ public class DatasetController {
 
         datasets = datasets.stream()
             .filter(dataset -> membersSet.contains(dataset.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
