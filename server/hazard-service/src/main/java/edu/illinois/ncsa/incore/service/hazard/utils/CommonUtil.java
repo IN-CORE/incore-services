@@ -4,6 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Earthquake;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.types.IncorePoint;
+import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
+import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
+import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import org.json.simple.JSONObject;
 
 import javax.ws.rs.core.Response;
@@ -49,18 +53,71 @@ public class CommonUtil {
 
     public static Comparator<Earthquake> eqComparator(String sortBy, String order){
         // construct comparator
-        Comparator<Earthquake> comparator = (f1, f2) -> {
-            if (sortBy.equals("name")) {
-                return f1.getName().compareTo(f2.getName());
-            } else if (sortBy.equals("creator")){
-                return f1.getCreator().compareTo(f2.getCreator());
-                // default to date
-            } else{
-                return f1.getDate().compareTo(f2.getDate());
-            }
-        };
+        Comparator<Earthquake> comparator;
+        if (sortBy.equals("name")) {
+            comparator = Comparator.comparing(Earthquake::getName);
+        }
+        else{
+            // default to date
+            comparator = Comparator.comparing(Earthquake::getDate);
+        }
         if (order.equals("desc")) comparator = comparator.reversed();
+        return comparator;
+    }
 
+    public static Comparator<Flood> floodComparator(String sortBy, String order){
+        // construct comparator
+        Comparator<Flood> comparator;
+        if (sortBy.equals("name")) {
+            comparator = Comparator.comparing(Flood::getName);
+        }
+        else{
+            // default to date
+            comparator = Comparator.comparing(Flood::getDate);
+        }
+        if (order.equals("desc")) comparator = comparator.reversed();
+        return comparator;
+    }
+
+    public static Comparator<Hurricane> hurricaneComparator(String sortBy, String order){
+        // construct comparator
+        Comparator<Hurricane> comparator;
+        if (sortBy.equals("name")) {
+            comparator = Comparator.comparing(Hurricane::getName);
+        }
+        else{
+            // default to date
+            comparator = Comparator.comparing(Hurricane::getDate);
+        }
+        if (order.equals("desc")) comparator = comparator.reversed();
+        return comparator;
+    }
+
+    public static Comparator<Tornado> tornadoComparator(String sortBy, String order){
+        // construct comparator
+        Comparator<Tornado> comparator;
+        if (sortBy.equals("name")) {
+            comparator = Comparator.comparing(Tornado::getName);
+        }
+        else{
+            // default to date
+            comparator = Comparator.comparing(Tornado::getDate);
+        }
+        if (order.equals("desc")) comparator = comparator.reversed();
+        return comparator;
+    }
+
+    public static Comparator<Tsunami> tsunamiComparator(String sortBy, String order){
+        // construct comparator
+        Comparator<Tsunami> comparator;
+        if (sortBy.equals("name")) {
+            comparator = Comparator.comparing(Tsunami::getName);
+        }
+        else{
+            // default to date
+            comparator = Comparator.comparing(Tsunami::getDate);
+        }
+        if (order.equals("desc")) comparator = comparator.reversed();
         return comparator;
     }
 }

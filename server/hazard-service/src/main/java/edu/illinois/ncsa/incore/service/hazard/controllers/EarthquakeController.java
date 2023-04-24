@@ -64,7 +64,6 @@ import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
 import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.eqComparator;
-import static java.util.Comparator.comparing;
 
 
 // @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
