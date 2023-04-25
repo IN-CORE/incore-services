@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased] 
+### Added
+- Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)
+
 ## [1.13.1] - 2023-03-15
 ### Fixed
 - Earthquake hazard raster didn't handle values below the threshold that were set to null[#108](https://github.com/IN-CORE/incore-services/issues/108)
