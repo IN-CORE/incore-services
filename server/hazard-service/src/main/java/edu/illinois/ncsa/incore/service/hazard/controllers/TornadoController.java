@@ -55,11 +55,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.hurricaneComparator;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoComparator;
 
 @Api(value = "tornadoes", authorizations = {})
 
@@ -102,8 +105,14 @@ public class TornadoController {
     @ApiOperation(value = "Returns all tornadoes.")
     public List<Tornado> getTornadoes(
         @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tornado comparator
+        Comparator<Tornado> comparator = tornadoComparator(sortBy, order);
+
         List<Tornado> tornadoes = repository.getTornadoes();
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -117,6 +126,7 @@ public class TornadoController {
             List<String> spaceMembers = space.getMembers();
             tornadoes = tornadoes.stream()
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -130,6 +140,7 @@ public class TornadoController {
 
         List<Tornado> accessibleTornadoes = tornadoes.stream()
             .filter(tornado -> membersSet.contains(tornado.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -443,8 +454,13 @@ public class TornadoController {
     })
     public List<Tornado> findTornadoes(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tornado comparator
+        Comparator<Tornado> comparator = tornadoComparator(sortBy, order);
 
         List<Tornado> tornadoes;
         Tornado tornado = repository.getTornadoById(text);
@@ -460,6 +476,7 @@ public class TornadoController {
 
         tornadoes = tornadoes.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {

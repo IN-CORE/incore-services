@@ -52,11 +52,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.floodComparator;
 
 @Api(value = "floods", authorizations = {})
 
@@ -97,8 +99,13 @@ public class FloodController {
     @ApiOperation(value = "Returns all floods.")
     public List<Flood> getFloods(
         @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import flood comparator
+        Comparator<Flood> comparator = floodComparator(sortBy, order);
 
         List<Flood> floods = repository.getFloods();
         if (!spaceName.equals("")) {
@@ -113,6 +120,7 @@ public class FloodController {
             List<String> spaceMembers = space.getMembers();
             floods = floods.stream()
                 .filter(flood -> spaceMembers.contains(flood.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -126,6 +134,7 @@ public class FloodController {
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
         List<Flood> accessibleFloods = floods.stream()
             .filter(flood -> membersSet.contains(flood.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -406,8 +415,13 @@ public class FloodController {
     })
     public List<Flood> findFloods(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import flood comparator
+        Comparator<Flood> comparator = floodComparator(sortBy, order);
 
         List<Flood> floods;
         Flood flood = repository.getFloodById(text);
@@ -423,6 +437,7 @@ public class FloodController {
 
         floods = floods.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {

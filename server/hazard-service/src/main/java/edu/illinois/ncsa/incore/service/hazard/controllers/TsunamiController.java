@@ -54,11 +54,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoComparator;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tsunamiComparator;
 
 @Api(value = "tsunamis", authorizations = {})
 
@@ -99,8 +102,13 @@ public class TsunamiController {
     @ApiOperation(value = "Returns all tsunamis.")
     public List<Tsunami> getTsunamis(
         @ApiParam(value = "Space name") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tsunami comparator
+        Comparator<Tsunami> comparator = tsunamiComparator(sortBy, order);
 
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -115,6 +123,7 @@ public class TsunamiController {
             List<Tsunami> tsunamis = repository.getTsunamis();
             tsunamis = tsunamis.stream()
                 .filter(tsunami -> spaceMembers.contains(tsunami.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -130,6 +139,7 @@ public class TsunamiController {
 
         List<Tsunami> accessibleTsunamis = tsunamis.stream()
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -408,8 +418,13 @@ public class TsunamiController {
     })
     public List<Tsunami> findTsunamis(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tsunami comparator
+        Comparator<Tsunami> comparator = tsunamiComparator(sortBy, order);
 
         List<Tsunami> tsunamis;
         Tsunami tsunami = repository.getTsunamiById(text);
@@ -425,6 +440,7 @@ public class TsunamiController {
 
         tsunamis = tsunamis.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {

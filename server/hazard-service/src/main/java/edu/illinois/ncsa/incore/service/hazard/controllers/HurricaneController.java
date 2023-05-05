@@ -20,6 +20,7 @@ import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardExcept
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
+import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneHazardDataset;
@@ -44,11 +45,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.hurricaneComparator;
 
 @Api(value = "hurricanes", authorizations = {})
 
@@ -89,8 +92,13 @@ public class HurricaneController {
     @ApiOperation(value = "Returns all hurricanes.")
     public List<Hurricane> getHurricanes(
         @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import hurricane comparator
+        Comparator<Hurricane> comparator = hurricaneComparator(sortBy, order);
 
         List<Hurricane> hurricanes = repository.getHurricanes();
         if (!spaceName.equals("")) {
@@ -105,6 +113,7 @@ public class HurricaneController {
             List<String> spaceMembers = space.getMembers();
             hurricanes = hurricanes.stream()
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -119,6 +128,7 @@ public class HurricaneController {
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
         List<Hurricane> accessibleHurricanes = hurricanes.stream()
             .filter(hurricane -> membersSet.contains(hurricane.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -402,8 +412,13 @@ public class HurricaneController {
     })
     public List<Hurricane> findHurricanes(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import hurricane comparator
+        Comparator<Hurricane> comparator = hurricaneComparator(sortBy, order);
 
         List<Hurricane> hurricanes;
         Hurricane hurricane = repository.getHurricaneById(text);
@@ -419,6 +434,7 @@ public class HurricaneController {
 
         hurricanes = hurricanes.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
