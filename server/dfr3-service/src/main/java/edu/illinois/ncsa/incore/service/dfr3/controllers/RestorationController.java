@@ -20,6 +20,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
@@ -64,6 +65,7 @@ public class RestorationController {
     private static final Logger logger = Logger.getLogger(RestorationController.class);
 
     private final String username;
+    private final List<String> groups;
 
     @Inject
     IAuthorizer authorizer;
@@ -80,8 +82,11 @@ public class RestorationController {
 
     @Inject
     public RestorationController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET

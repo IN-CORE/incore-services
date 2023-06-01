@@ -4,6 +4,7 @@ import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
 import io.swagger.annotations.*;
@@ -45,6 +46,7 @@ public class TypeController {
     private final String username;
 
     private final Authorizer authorizer;
+    private final List<String> groups;
 
     @Inject
     private ITypeDAO typeDAO;
@@ -54,8 +56,11 @@ public class TypeController {
 
     @Inject
     public TypeController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
         // we want to limit the semantics service to admins for now
         this.authorizer = new Authorizer();
         if (!this.authorizer.isUserAdmin(this.username)) {

@@ -14,6 +14,7 @@ import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -62,6 +63,7 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.hurricane
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
     private final String username;
+    private final List<String> groups;
 
     @Inject
     private IHurricaneRepository repository;
@@ -83,8 +85,11 @@ public class HurricaneController {
 
     @Inject
     public HurricaneController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET

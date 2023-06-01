@@ -22,6 +22,7 @@ import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
@@ -73,6 +74,7 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoCo
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
     private final String username;
+    private final List<String> groups;
 
     @Inject
     private ITornadoRepository repository;
@@ -96,8 +98,11 @@ public class TornadoController {
 
     @Inject
     public TornadoController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET

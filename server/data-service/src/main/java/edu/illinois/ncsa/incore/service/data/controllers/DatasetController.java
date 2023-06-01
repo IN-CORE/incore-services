@@ -123,7 +123,6 @@ public class DatasetController {
         ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
-        logger.error(groups);
     }
 
     @GET
