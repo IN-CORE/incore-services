@@ -2,7 +2,7 @@ package edu.illinois.ncsa.incore.common.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.common.models.UserGroup;
+import edu.illinois.ncsa.incore.common.models.HeadersUserGroups;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -20,7 +20,7 @@ public class UserGroupUtils {
         }
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            UserGroup groups = objectMapper.readValue(userGroups, UserGroup.class);
+            HeadersUserGroups groups = objectMapper.readValue(userGroups, HeadersUserGroups.class);
             if (groups.getGroups() == null) {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "User-group is missing the groups field.");
             } else {
