@@ -63,7 +63,7 @@ public class TypeController {
         this.groups = UserGroupUtils.getUserGroups(userGroups);
         // we want to limit the semantics service to admins for now
         this.authorizer = new Authorizer();
-        if (!this.authorizer.isUserAdmin(this.username)) {
+        if (!this.authorizer.isUserAdmin(this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
         }
     }
@@ -74,7 +74,7 @@ public class TypeController {
     @ApiOperation(value = "list all types belong user has access to.")
     public Response listTypes() {
         List<Document> typeList = this.typeDAO.getTypes();
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
         //return the intersection between all types and the ones the user can read
         List<Document> results = typeList.stream()
             .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
@@ -95,7 +95,7 @@ public class TypeController {
         if (version == null) {
             version = "latest";
         }
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
         Optional<List<Document>> typeList = this.typeDAO.getTypeByUri(uri, version);
 
         if (typeList.isPresent()) {
@@ -134,7 +134,7 @@ public class TypeController {
     @ApiOperation(value = "Search type by partial match of text.")
     public Response searchType(
         @ApiParam(value = "Type uri (name).") @QueryParam("text") String text) {
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
         List<Document> results;
