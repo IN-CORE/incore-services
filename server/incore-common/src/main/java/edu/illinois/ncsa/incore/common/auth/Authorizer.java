@@ -120,7 +120,7 @@ public class Authorizer implements IAuthorizer {
     /**
      * Retrieve all members a user has access to
      *
-     * @param username
+     * @param username string name of user
      * @param spaces   list of all spaces the user has at least READ permission
      * @param userGroups a list of groups the user belongs to
      * @return a set of all members a user can access with at least READ permission
@@ -239,9 +239,9 @@ public class Authorizer implements IAuthorizer {
     }
 
     private Set<PrivilegeLevel> allowThisUser(String user) {
-        Set<PrivilegeLevel> allower = new HashSet<>();
-        allower.add(PrivilegeLevel.ADMIN);
-        return allower;
+        Set<PrivilegeLevel> allowed = new HashSet<>();
+        allowed.add(PrivilegeLevel.ADMIN);
+        return allowed;
     }
 
     private Set<PrivilegeLevel> getUserSpecificPrivileges(String user, Privileges spec) {
