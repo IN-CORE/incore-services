@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.SpaceMetadata;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.space.models.Members;
 import io.swagger.annotations.*;
@@ -86,6 +87,7 @@ public class SpaceController {
     private final Logger logger = Logger.getLogger(SpaceController.class);
 
     private final String username;
+    private final List<String> groups;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -95,8 +97,11 @@ public class SpaceController {
 
     @Inject
     public SpaceController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @POST

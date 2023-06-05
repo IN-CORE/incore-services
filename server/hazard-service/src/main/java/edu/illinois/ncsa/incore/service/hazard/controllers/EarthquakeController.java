@@ -23,6 +23,7 @@ import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.Engine;
 import edu.illinois.ncsa.incore.service.hazard.Job;
@@ -101,6 +102,7 @@ public class EarthquakeController {
     private static final Logger logger = Logger.getLogger(EarthquakeController.class);
     private final GeometryFactory factory = new GeometryFactory();
     private final String username;
+    private final List<String> groups;
 
     @Inject
     private IEarthquakeRepository repository;
@@ -129,9 +131,9 @@ public class EarthquakeController {
     @Inject
     public EarthquakeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-usergroup") String usergroups) {
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String usergroups) {
         this.username = UserInfoUtils.getUsername(userInfo);
-        this.userGroups = UserInfoUtils.getUserGroups(usergroups);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @POST
@@ -329,7 +331,8 @@ public class EarthquakeController {
                 return earthquakes;
             }
 
-            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(),
+                this.userGroups);
             List<Earthquake> accessibleEarthquakes = earthquakes.stream()
                 .filter(earthquake -> membersSet.contains(earthquake.getId()))
                 .sorted(comparator)
@@ -367,7 +370,7 @@ public class EarthquakeController {
             return earthquake;
         }
 
-        if (authorizer.canUserReadMember(this.username, this.userGroups, earthquakeId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, earthquakeId, spaceRepository.getAllSpaces(), this.userGroups)) {
             return earthquake;
         }
 
@@ -1029,7 +1032,7 @@ public class EarthquakeController {
             earthquakes = this.repository.searchEarthquakes(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.userGroups);
         earthquakes = earthquakes.stream()
             .filter(b -> membersSet.contains(b.getId()))
             .sorted(comparator)
@@ -1051,7 +1054,7 @@ public class EarthquakeController {
     public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
-        if (authorizer.canUserDeleteMember(this.username, this.userGroups, earthquakeId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces(), this.userGroups)) {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;

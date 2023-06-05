@@ -11,6 +11,8 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
@@ -20,10 +22,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -36,9 +35,22 @@ import java.util.List;
 public class FileController {
     private final Logger logger = Logger.getLogger(edu.illinois.ncsa.incore.service.data.controllers.FileController.class);
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
+    private final String username;
+    private final List<String> groups;
 
     @Inject
     private IRepository repository;
+
+    @Inject
+    public FileController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
+    }
+
+    // TODO why are below endpoints not access controlled?
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

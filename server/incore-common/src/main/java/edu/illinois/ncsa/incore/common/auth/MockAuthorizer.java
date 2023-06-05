@@ -28,7 +28,7 @@ public class MockAuthorizer implements IAuthorizer {
     }
 
     @Override
-    public Set<PrivilegeLevel> getPrivilegesFor(String user, Privileges spec) {
+    public Set<PrivilegeLevel> getPrivilegesFor(String user, Privileges spec, List<String> userGroups) {
         Set<PrivilegeLevel> privs = new HashSet<>();
         if (canRead) {
             privs.add(PrivilegeLevel.READ);
@@ -40,7 +40,7 @@ public class MockAuthorizer implements IAuthorizer {
     }
 
     @Override
-    public Set<PrivilegeLevel> getPrivilegesFor(String user, String privilegeSpecJson) {
+    public Set<PrivilegeLevel> getPrivilegesFor(String user, String privilegeSpecJson, List<String> userGroups) {
         Set<PrivilegeLevel> privs = new HashSet<>();
         if (canRead) {
             privs.add(PrivilegeLevel.READ);
@@ -52,32 +52,32 @@ public class MockAuthorizer implements IAuthorizer {
     }
 
     @Override
-    public boolean canRead(String user, Privileges privileges) {
+    public boolean canRead(String user, Privileges privileges, List<String> userGroups) {
         return canRead;
     }
 
     @Override
-    public boolean canRead(String user, String privilegeSpecJson) {
+    public boolean canRead(String user, String privilegeSpecJson, List<String> userGroups) {
         return canRead;
     }
 
     @Override
-    public boolean canWrite(String user, Privileges privileges) {
+    public boolean canWrite(String user, Privileges privileges, List<String> userGroups) {
         return canWrite;
     }
 
     @Override
-    public boolean canWrite(String user, String privilegeSpecJson) {
+    public boolean canWrite(String user, String privilegeSpecJson, List<String> userGroups) {
         return canWrite;
     }
 
     @Override
-    public boolean canDelete(String user, Privileges privileges) {
+    public boolean canDelete(String user, Privileges privileges, List<String> userGroups) {
         return canDelete;
     }
 
     @Override
-    public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces) {
+    public Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces, List<String> userGroups) {
         // Simplified version
         // TODO: update this to reflect the actual method
         Set<String> members = new HashSet<>();
@@ -90,7 +90,7 @@ public class MockAuthorizer implements IAuthorizer {
     }
 
     @Override
-    public boolean canUserReadMember(String username, String memberId, List<Space> spaces) {
+    public boolean canUserReadMember(String username, String memberId, List<Space> spaces, List<String> userGroups) {
         // simplified version (checking if username is the owner of the space
         // TODO: update this to reflect the actual method
         for (Space space : spaces) {
@@ -104,22 +104,22 @@ public class MockAuthorizer implements IAuthorizer {
     }
 
     @Override
-    public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces) {
+    public boolean canUserDeleteMember(String username, String memberId, List<Space> spaces, List<String> userGroups) {
         return false;
     }
 
     @Override
-    public boolean isUserAdmin(String user) {
+    public boolean isUserAdmin(List<String> userGroups) {
         return false;
     }
 
     @Override
-    public boolean canUserWriteMember(String username, String memberId, List<Space> spaces) {
+    public boolean canUserWriteMember(String username, String memberId, List<Space> spaces, List<String> userGroups) {
         return false;
     }
 
     @Override
-    public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces) {
+    public List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces, List<String> userGroups) {
         return null;
     }
 
