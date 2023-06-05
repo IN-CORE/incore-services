@@ -46,7 +46,7 @@ public class Authorizer implements IAuthorizer {
     @Override
     public Set<PrivilegeLevel> getPrivilegesFor(String user, Privileges spec, List<String> userGroups) {
         Set<PrivilegeLevel> privs = getUserSpecificPrivileges(user, spec);
-        privs.addAll(getGroupSpecificPrivileges(user, spec, userGroups));
+        privs.addAll(getGroupSpecificPrivileges(spec, userGroups));
         return privs;
     }
 
@@ -206,9 +206,9 @@ public class Authorizer implements IAuthorizer {
     // private methods
     /////////////////////////////////////////////////////////
 
-    private Set<PrivilegeLevel> getGroupSpecificPrivileges(String user, Privileges spec, List<String> userGroups) {
+    private Set<PrivilegeLevel> getGroupSpecificPrivileges(Privileges spec, List<String> userGroups) {
         if (spec == null) {
-            return allowThisUser(user);
+            return allowThisUser();
         }
         try {
             if (isUserAdmin(userGroups)) {
@@ -238,7 +238,7 @@ public class Authorizer implements IAuthorizer {
         return new HashSet<PrivilegeLevel>();
     }
 
-    private Set<PrivilegeLevel> allowThisUser(String user) {
+    private Set<PrivilegeLevel> allowThisUser() {
         Set<PrivilegeLevel> allowed = new HashSet<>();
         allowed.add(PrivilegeLevel.ADMIN);
         return allowed;
@@ -246,7 +246,7 @@ public class Authorizer implements IAuthorizer {
 
     private Set<PrivilegeLevel> getUserSpecificPrivileges(String user, Privileges spec) {
         if (spec == null) {
-            return allowThisUser(user);
+            return allowThisUser();
         }
         try {
             return spec.userPrivileges.keySet().stream()
@@ -288,16 +288,16 @@ public class Authorizer implements IAuthorizer {
         if (privilegeLevel == PrivilegeLevel.READ) {
             return space.getUserPrivilegeLevel(username) != null ||
                 space.getGroupPrivilegeLevel(username) != null ||
-                !getGroupSpecificPrivileges(username, space.getPrivileges(), userGroups).isEmpty();
+                !getGroupSpecificPrivileges(space.getPrivileges(), userGroups).isEmpty();
         } else if (privilegeLevel == PrivilegeLevel.WRITE) {
             return space.getUserPrivilegeLevel(username) == PrivilegeLevel.WRITE || space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
                 space.getGroupPrivilegeLevel(username) == PrivilegeLevel.WRITE || space.getGroupPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
-                (getGroupSpecificPrivileges(username, space.getPrivileges(), userGroups)).contains(PrivilegeLevel.WRITE) ||
-                (getGroupSpecificPrivileges(username, space.getPrivileges(), userGroups)).contains(PrivilegeLevel.ADMIN);
+                (getGroupSpecificPrivileges(space.getPrivileges(), userGroups)).contains(PrivilegeLevel.WRITE) ||
+                (getGroupSpecificPrivileges(space.getPrivileges(), userGroups)).contains(PrivilegeLevel.ADMIN);
         } else if (privilegeLevel == PrivilegeLevel.ADMIN) {
             return space.getUserPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
                 space.getGroupPrivilegeLevel(username) == PrivilegeLevel.ADMIN ||
-                (getGroupSpecificPrivileges(username, space.getPrivileges(), userGroups)).contains(PrivilegeLevel.ADMIN);
+                (getGroupSpecificPrivileges(space.getPrivileges(), userGroups)).contains(PrivilegeLevel.ADMIN);
         }
         return false;
     }
