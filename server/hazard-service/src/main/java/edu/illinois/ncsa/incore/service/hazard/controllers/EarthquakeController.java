@@ -128,8 +128,10 @@ public class EarthquakeController {
 
     @Inject
     public EarthquakeController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-usergroup") String usergroups) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = UserInfoUtils.getUserGroups(usergroups);
     }
 
     @POST
@@ -307,7 +309,7 @@ public class EarthquakeController {
                 if (space == null) {
                     throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find space " + spaceName);
                 }
-                if (!authorizer.canRead(this.username, space.getPrivileges())) {
+                if (!authorizer.canRead(this.username, space.getPrivileges(), this.userGroups)) {
                     throw new IncoreHTTPException(Response.Status.NOT_FOUND,
                         this.username + " is not authorized to read the space " + spaceName);
                 }
@@ -365,7 +367,7 @@ public class EarthquakeController {
             return earthquake;
         }
 
-        if (authorizer.canUserReadMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, this.userGroups, earthquakeId, spaceRepository.getAllSpaces())) {
             return earthquake;
         }
 
@@ -1049,7 +1051,7 @@ public class EarthquakeController {
     public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
-        if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, this.userGroups, earthquakeId, spaceRepository.getAllSpaces())) {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
