@@ -136,7 +136,7 @@ public class FloodController {
             return floods;
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
         List<Flood> accessibleFloods = floods.stream()
             .filter(flood -> membersSet.contains(flood.getId()))
             .sorted(comparator)
