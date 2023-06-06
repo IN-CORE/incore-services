@@ -71,6 +71,7 @@ public class FloodController {
     private static final Logger log = Logger.getLogger(FloodController.class);
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IFloodRepository repository;
@@ -95,6 +96,7 @@ public class FloodController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
@@ -238,7 +240,7 @@ public class FloodController {
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
-                            floodDataset.getName() + " " + datasetName, this.username, description, datasetType);
+                            floodDataset.getName() + " " + datasetName, this.username, this.userGroups, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 

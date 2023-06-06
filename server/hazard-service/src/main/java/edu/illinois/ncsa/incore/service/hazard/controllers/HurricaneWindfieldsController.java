@@ -70,6 +70,7 @@ public class HurricaneWindfieldsController {
     private static final Logger log = Logger.getLogger(HurricaneWindfieldsController.class);
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IHurricaneWindfieldsRepository repository;
@@ -94,6 +95,7 @@ public class HurricaneWindfieldsController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
@@ -218,7 +220,7 @@ public class HurricaneWindfieldsController {
                 hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
 
                 hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
-                    inputHurricane.getRasterResolution(), this.username));
+                    inputHurricane.getRasterResolution(), this.username, this.userGroups));
 
                 //save hurricane
                 hurricaneWindfields = repository.addHurricaneWindfields(hurricaneWindfields);

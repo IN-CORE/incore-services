@@ -64,6 +64,7 @@ public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IHurricaneRepository repository;
@@ -88,6 +89,7 @@ public class HurricaneController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
@@ -232,7 +234,7 @@ public class HurricaneController {
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
-                            hurricaneDataset.getName() + " " + datasetName, this.username, description, datasetType);
+                            hurricaneDataset.getName() + " " + datasetName, this.username, this.userGroups, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 

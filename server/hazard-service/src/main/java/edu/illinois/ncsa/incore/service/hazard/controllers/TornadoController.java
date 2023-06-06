@@ -75,6 +75,7 @@ public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private ITornadoRepository repository;
@@ -101,6 +102,7 @@ public class TornadoController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
@@ -238,7 +240,7 @@ public class TornadoController {
                 JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
-                datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
+                datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups, files);
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);

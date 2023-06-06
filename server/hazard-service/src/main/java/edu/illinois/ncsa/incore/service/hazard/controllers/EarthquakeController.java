@@ -103,6 +103,7 @@ public class EarthquakeController {
     private final GeometryFactory factory = new GeometryFactory();
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IEarthquakeRepository repository;
@@ -132,6 +133,7 @@ public class EarthquakeController {
     public EarthquakeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
@@ -199,7 +201,7 @@ public class EarthquakeController {
                         GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
                         HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
                         String description = "Earthquake visualization";
-                        datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username,
+                        datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username, this.userGroups,
                             description, HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA);
                     }
 
@@ -257,7 +259,7 @@ public class EarthquakeController {
                         InputStream fis = bodyPartEntity.getInputStream();
                         //TODO: we should check that we successfully created a raster dataset
                         String datasetId = ServiceUtil.createRasterDataset(filename, fis, eqDataset.getName() + " " + datasetName,
-                            this.username, description, datasetType);
+                            this.username, this.userGroups, description, datasetType);
 
                         hazardDataset.setDatasetId(datasetId);
                     }

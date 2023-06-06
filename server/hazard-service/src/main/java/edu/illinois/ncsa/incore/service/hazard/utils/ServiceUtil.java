@@ -155,7 +155,7 @@ public class ServiceUtil {
      * @return
      * @throws IOException
      */
-    public static String createDataset(JSONObject datasetObject, String creator, File[] files) throws IOException {
+    public static String createDataset(JSONObject datasetObject, String creator, String userGroups, File[] files) throws IOException {
         // CMN: we could go through Kong, but then we would need a token
         String dataEndpoint = "http://localhost:8080/";
         String dataEndpointProp = System.getenv("SERVICES_URL");
@@ -200,6 +200,7 @@ public class ServiceUtil {
             // Attach file
             httpPost = new HttpPost(requestUrl);
             httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
+            httpPost.setHeader(HazardConstants.X_AUTH_USERGROUP, userGroups);
             httpPost.setEntity(params.build());
 
             response = httpclient.execute(httpPost);
@@ -643,7 +644,7 @@ public class ServiceUtil {
     }
 
     //TODO: Obsolete this and use createVisualizationDataset instead?
-    public static String createRasterDataset(File rasterFile, String title, String creator,
+    public static String createRasterDataset(File rasterFile, String title, String creator, String userGroups,
                                              String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType, HazardConstants.RASTER_FORMAT);
 
@@ -652,13 +653,13 @@ public class ServiceUtil {
             params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
             params.addBinaryBody(HazardConstants.FILE_PARAMETER_, rasterFile);
 
-            attachFileToDataset(datasetId, creator, params);
+            attachFileToDataset(datasetId, creator, userGroups, params);
         }
 
         return datasetId;
     }
 
-    public static String createVisualizationDataset(List<File> vizFiles, String title, String creator,
+    public static String createVisualizationDataset(List<File> vizFiles, String title, String creator, String userGroups,
                                                     String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType, HazardConstants.SHAPEFILE_FORMAT);
 
@@ -668,13 +669,13 @@ public class ServiceUtil {
                 params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
                 params.addBinaryBody(HazardConstants.FILE_PARAMETER_, vizFile);
             }
-            attachFileToDataset(datasetId, creator, params);
+            attachFileToDataset(datasetId, creator, userGroups, params);
         }
 
         return datasetId;
     }
 
-    public static String createRasterDataset(String filename, InputStream fis, String title, String creator,
+    public static String createRasterDataset(String filename, InputStream fis, String title, String creator, String userGroups,
                                              String description, String datasetType) throws IOException {
         String datasetId = createDataset(title, creator, description, datasetType, HazardConstants.RASTER_FORMAT);
         if (datasetId != null) {
@@ -682,12 +683,12 @@ public class ServiceUtil {
             params.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
             params.addBinaryBody(HazardConstants.FILE_PARAMETER_, fis, ContentType.DEFAULT_BINARY, filename);
 
-            attachFileToDataset(datasetId, creator, params);
+            attachFileToDataset(datasetId, creator, userGroups, params);
         }
         return datasetId;
     }
 
-    public static void attachFileToDataset(String datasetId, String creator,
+    public static void attachFileToDataset(String datasetId, String creator, String userGroups,
                                            MultipartEntityBuilder params) throws IOException {
         String dataEndpoint = getDataServiceEndpoint();
         String requestUrl = dataEndpoint + HazardConstants.DATASETS_ENDPOINT;
@@ -696,6 +697,7 @@ public class ServiceUtil {
         // Attach file
         HttpPost httpPost = new HttpPost(requestUrl);
         httpPost.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
+        httpPost.setHeader(HazardConstants.X_AUTH_USERGROUP, userGroups);
         httpPost.setEntity(params.build());
 
         HttpClientBuilder builder = HttpClientBuilder.create();

@@ -211,7 +211,7 @@ public class GISHurricaneUtils {
      */
     //
     public static List<HurricaneSimulationDataset> processHurricaneFromJson(String strJson, double rasterResolution,
-                                                                            String username) throws MismatchedDimensionException {
+                                                                            String username, String userGroups) throws MismatchedDimensionException {
         // TODO the rasterResolution input in here is KM, so if the input json unit is not km, this should be changed
         // TODO also, since this is geographic projection, the resolution is not perfectly matching with the given value
         // TODO however, since the geotiff is for the visualization purpose only, this should be fine
@@ -286,7 +286,8 @@ public class GISHurricaneUtils {
                 //TODO Get the creator - pass a param?
                 HurricaneSimulationDataset simDataset = HurricaneWindfieldsUtil.createHurricaneDataSetFromFile(outTif, "Hurricane Grid " +
                         "Snapshot",
-                    username, "Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
+                    username, userGroups,
+                    "Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
                     (String) tempHurricane.get("absTime"));
                 hsDatasets.add(simDataset);
             }
@@ -303,7 +304,8 @@ public class GISHurricaneUtils {
             System.out.println("createHurricaneDataSetFromFiles begins");
             HurricaneSimulationDataset simDatasetAll = HurricaneWindfieldsUtil.createHurricaneDataSetFromFiles(outFilePaths, "Hurricane " +
                     "Full Snapshot",
-                username, "Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
+                username, userGroups,
+                "Created by Hurricane Windfield Simulation Service", HazardConstants.HURRICANE_GRID_SNAPSHOT_HAZARD_SCHEMA,
                 "full time range");
             hsDatasets.add(simDatasetAll);
             System.out.println("createHurricaneDataSetFromFiles complete");
