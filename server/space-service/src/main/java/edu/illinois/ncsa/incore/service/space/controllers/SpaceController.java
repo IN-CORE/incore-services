@@ -150,11 +150,11 @@ public class SpaceController {
                                      @ApiParam(value = "Space Name") @QueryParam("name") String spaceName) {
 
         if (memberId != null) {
-            if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces())) {
+            if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " does not have the privileges to access " + memberId);
             }
-            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces(), this.groups);
             List<Space> spacesWithMember = new ArrayList<>();
             for (Space space : filteredSpaces) {
                 if (space.hasMember(memberId)) {
@@ -167,7 +167,7 @@ public class SpaceController {
 
         if (spaceName != null) {
             // Find all the spaces the user is authorized to view
-            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces(), this.groups);
 
             // Check if the space requested is in the list of authorized spaces
             List<Space> spaces = filteredSpaces.stream().filter(space -> spaceName.equals(space.getName())).collect(Collectors.toList());
@@ -175,7 +175,7 @@ public class SpaceController {
             return spaces;
         }
 
-        return authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+        return authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces(), this.groups);
     }
 
     @GET
@@ -186,7 +186,7 @@ public class SpaceController {
 
         Space space = getSpace(spaceId);
 
-        if (!(authorizer.canRead(this.username, space.getPrivileges()))) {
+        if (!(authorizer.canRead(this.username, space.getPrivileges(), this.groups))) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access " + space.getName() +
                 "'s space");
         }
@@ -206,7 +206,7 @@ public class SpaceController {
 
         //modify space by changing name or adding a list of members
         if (spaceJson != null) {
-            if (!(authorizer.canWrite(this.username, space.getPrivileges()))) {
+            if (!(authorizer.canWrite(this.username, space.getPrivileges(), this.groups))) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the space " + spaceId);
             }
             if (!JsonUtils.isJSONValid(spaceJson)) {
@@ -248,7 +248,7 @@ public class SpaceController {
             return space;
         }
 
-        if (!(authorizer.canDelete(this.username, space.getPrivileges()))) {
+        if (!(authorizer.canDelete(this.username, space.getPrivileges(), this.groups))) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You are not allowed to remove members from the space " + spaceId);
         }
         // modify space by deleting a list of members
@@ -284,7 +284,7 @@ public class SpaceController {
         @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId) {
         Space space = getSpace(spaceId);
 
-        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+        if (!authorizer.canWrite(this.username, space.getPrivileges(), this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " is not allowed to update the space " + space.getName());
         }
@@ -306,7 +306,7 @@ public class SpaceController {
         @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
         Space space = getSpace(spaceId);
 
-        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+        if (!authorizer.canWrite(this.username, space.getPrivileges(), this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have write permissions in " + spaceId);
         }
 
@@ -337,7 +337,7 @@ public class SpaceController {
         }
 
         Space space = getSpace(spaceId);
-        if (!authorizer.canDelete(this.username, space.getPrivileges())) {
+        if (!authorizer.canDelete(this.username, space.getPrivileges(), this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, "User has no privileges to modify the space " + space.getName());
         }
 
@@ -504,7 +504,7 @@ public class SpaceController {
      * found or if the user has no write/admin privileges on a space that contains the member.
      */
     private boolean addMembers(Space space, String username, String memberId) {
-        if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces(), groups)) {
             return false;
         }
         //TODO: SpaceController doesn't have to care about what is adding, so we need to rethink the design to avoid
