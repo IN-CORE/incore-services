@@ -126,7 +126,7 @@ public class RestorationController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
+            if (!authorizer.canRead(username, space.getPrivileges(), groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
@@ -144,7 +144,7 @@ public class RestorationController {
             return restorationSets;
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<RestorationSet> accessibleRestorations = restorationSets.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -206,7 +206,7 @@ public class RestorationController {
         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
         if (restorationSet.isPresent()) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 RestorationSet rs = restorationSet.get();
                 rs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
                 return rs;
@@ -225,7 +225,7 @@ public class RestorationController {
         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
         if (restorationSet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces(), groups)) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The restoration is referenced in at least one DFR3 mapping. " +
@@ -275,7 +275,7 @@ public class RestorationController {
             sets = this.restorationDAO.searchRestorations(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<RestorationSet> accessibleRestorations = sets.stream()
             .filter(b -> membersSet.contains(b.getId()))

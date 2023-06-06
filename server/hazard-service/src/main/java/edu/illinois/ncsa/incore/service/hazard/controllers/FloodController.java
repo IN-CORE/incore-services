@@ -118,7 +118,7 @@ public class FloodController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find any space with name " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
@@ -164,7 +164,7 @@ public class FloodController {
 
         flood.setSpaces(spaceRepository.getSpaceNamesOfMember(floodId));
 
-        if (authorizer.canUserReadMember(this.username, floodId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, floodId, spaceRepository.getAllSpaces(), this.groups)) {
             return flood;
         }
 
@@ -376,7 +376,7 @@ public class FloodController {
     public Flood deleteFlood(@ApiParam(value = "Flood Id", required = true) @PathParam("flood-id") String floodId) {
         Flood flood = getFloodById(floodId);
 
-        if (authorizer.canUserDeleteMember(this.username, floodId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, floodId, spaceRepository.getAllSpaces(), this.groups)) {
             // delete associated datasets
             if (flood != null && flood instanceof FloodDataset) {
                 FloodDataset hurrDataset = (FloodDataset) flood;
@@ -438,7 +438,7 @@ public class FloodController {
             floods = this.repository.searchFloods(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         floods = floods.stream()
             .filter(b -> membersSet.contains(b.getId()))

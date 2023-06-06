@@ -139,7 +139,7 @@ public class HurricaneWindfieldsController {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCategory() == category).collect(Collectors.toList());
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         List<HurricaneWindfields> accessibleHurricaneWindfields = hurricaneWindfields.stream()
             .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
@@ -265,7 +265,7 @@ public class HurricaneWindfieldsController {
 
         hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
 
-        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
             return hurricane;
         }
 
@@ -379,7 +379,7 @@ public class HurricaneWindfieldsController {
         "hurricaneId") String hurricaneId) {
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
-        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
             //delete associated datasets
             for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
                 if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
@@ -461,7 +461,7 @@ public class HurricaneWindfieldsController {
             hurricanes = this.repository.searchHurricaneWindfields(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         hurricanes = hurricanes.stream()
             .filter(b -> membersSet.contains(b.getId()))

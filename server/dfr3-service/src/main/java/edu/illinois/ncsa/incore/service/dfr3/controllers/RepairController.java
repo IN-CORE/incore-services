@@ -127,7 +127,7 @@ public class RepairController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
+            if (!authorizer.canRead(username, space.getPrivileges(), groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     "You don't have the required permissions to access the space " + spaceName);
             }
@@ -141,7 +141,7 @@ public class RepairController {
             return repairSets;
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<RepairSet> accessibleRepairs = repairSets.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -203,7 +203,7 @@ public class RepairController {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
         if (repairSet.isPresent()) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 RepairSet rs = repairSet.get();
                 rs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
                 return rs;
@@ -221,7 +221,7 @@ public class RepairController {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
         if (repairSet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces(), groups)) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The repair is referenced in at least one DFR3 mapping. It " +
@@ -269,7 +269,7 @@ public class RepairController {
             sets = this.repairDAO.searchRepairs(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<RepairSet> accessibleRepairs = sets.stream()
             .filter(b -> membersSet.contains(b.getId()))

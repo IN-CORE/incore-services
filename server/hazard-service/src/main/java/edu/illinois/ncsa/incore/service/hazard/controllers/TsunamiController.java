@@ -120,7 +120,7 @@ public class TsunamiController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
@@ -140,7 +140,7 @@ public class TsunamiController {
         }
         List<Tsunami> tsunamis = repository.getTsunamis();
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         List<Tsunami> accessibleTsunamis = tsunamis.stream()
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
@@ -171,7 +171,7 @@ public class TsunamiController {
 
         tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunamiId));
 
-        if (authorizer.canUserReadMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, tsunamiId, spaceRepository.getAllSpaces(), this.groups)) {
             return tsunami;
         }
 
@@ -382,7 +382,7 @@ public class TsunamiController {
     public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("tsunami-id") String tsunamiId) {
         Tsunami tsunami = getTsunami(tsunamiId);
 
-        if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces(), this.groups)) {
             //remove associated datasets
             if (tsunami != null && tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
@@ -441,7 +441,7 @@ public class TsunamiController {
             tsunamis = this.repository.searchTsunamis(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         tsunamis = tsunamis.stream()
             .filter(b -> membersSet.contains(b.getId()))

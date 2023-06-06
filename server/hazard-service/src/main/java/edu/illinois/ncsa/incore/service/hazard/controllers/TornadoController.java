@@ -124,7 +124,7 @@ public class TornadoController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
@@ -141,7 +141,7 @@ public class TornadoController {
                 .collect(Collectors.toList());
             return tornadoes;
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         List<Tornado> accessibleTornadoes = tornadoes.stream()
             .filter(tornado -> membersSet.contains(tornado.getId()))
@@ -310,7 +310,7 @@ public class TornadoController {
             return tornado;
         }
 
-        if (authorizer.canUserReadMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, tornadoId, spaceRepository.getAllSpaces(), this.groups)) {
             return tornado;
         }
 
@@ -477,7 +477,7 @@ public class TornadoController {
             tornadoes = this.repository.searchTornadoes(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         tornadoes = tornadoes.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -500,7 +500,7 @@ public class TornadoController {
     public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
         Tornado tornado = getTornado(tornadoId);
 
-        if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces(), this.groups)) {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;

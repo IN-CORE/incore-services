@@ -131,8 +131,7 @@ public class EarthquakeController {
     @Inject
     public EarthquakeController(
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups
-    ) {
+        @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String userGroups) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
@@ -312,7 +311,7 @@ public class EarthquakeController {
                 if (space == null) {
                     throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find space " + spaceName);
                 }
-                if (!authorizer.canRead(this.username, space.getPrivileges())) {
+                if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                     throw new IncoreHTTPException(Response.Status.NOT_FOUND,
                         this.username + " is not authorized to read the space " + spaceName);
                 }
@@ -332,7 +331,7 @@ public class EarthquakeController {
                 return earthquakes;
             }
 
-            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
             List<Earthquake> accessibleEarthquakes = earthquakes.stream()
                 .filter(earthquake -> membersSet.contains(earthquake.getId()))
                 .sorted(comparator)
@@ -370,7 +369,7 @@ public class EarthquakeController {
             return earthquake;
         }
 
-        if (authorizer.canUserReadMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, earthquakeId, spaceRepository.getAllSpaces(), this.groups)) {
             return earthquake;
         }
 
@@ -1032,7 +1031,7 @@ public class EarthquakeController {
             earthquakes = this.repository.searchEarthquakes(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
         earthquakes = earthquakes.stream()
             .filter(b -> membersSet.contains(b.getId()))
             .sorted(comparator)
@@ -1054,7 +1053,7 @@ public class EarthquakeController {
     public Earthquake deleteEarthquake(@ApiParam(value = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
-        if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces(), this.groups)) {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
