@@ -133,7 +133,7 @@ public class EarthquakeController {
         @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @ApiParam(value = "User groups.", required = true) @HeaderParam("x-auth-usergroup") String usergroups) {
         this.username = UserInfoUtils.getUsername(userInfo);
-        this.groups = UserGroupUtils.getUserGroups(userGroups);
+        this.groups = UserGroupUtils.getUserGroups(usergroups);
     }
 
     @POST
