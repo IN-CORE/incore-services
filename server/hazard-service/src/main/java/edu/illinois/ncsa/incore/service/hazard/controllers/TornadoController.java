@@ -253,12 +253,12 @@ public class TornadoController {
                     // Create dataset object representation for storing shapefile
                     JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
-                    datasetId = ServiceUtil.createDataset(datasetObject, this.username);
+                    datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups);
                     if (datasetId != null) {
                         // attach files to the dataset
-                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, fileParts);
+                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, this.userGroups, fileParts);
                         if (statusCode != HttpStatus.SC_OK) {
-                            ServiceUtil.deleteDataset(datasetId, this.username);
+                            ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
                             logger.error(tornadoErrorMsg);
                             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                         }
@@ -272,7 +272,7 @@ public class TornadoController {
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
                 } else {
-                    ServiceUtil.deleteDataset(datasetId, this.username);
+                    ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
                     logger.error(tornadoErrorMsg);
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                 }
@@ -288,7 +288,7 @@ public class TornadoController {
         } catch (IllegalArgumentException e) {
             logger.error("Illegal Argument has been passed in.", e);
         }
-        ServiceUtil.deleteDataset(datasetId, this.username);
+        ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
 
     }
@@ -338,7 +338,7 @@ public class TornadoController {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, seed, this.username);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, seed, this.username, this.userGroups);
             } catch (Exception e) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard." + e.getMessage());
             }
@@ -402,7 +402,7 @@ public class TornadoController {
                                     resDemands.add(demands.get(i));
                                 } else {
                                     WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
-                                        request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
+                                        request.getLoc().getLocation(), units.get(i), simulation, seed, this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -506,13 +506,13 @@ public class TornadoController {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;
-                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username) == null) {
+                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(tModel.getDatasetId());
                 }
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tDataset = (TornadoDataset) tornado;
-                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
-                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username) == null) {
+                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups);
+                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(tDataset.getDatasetId());
                 }
             }

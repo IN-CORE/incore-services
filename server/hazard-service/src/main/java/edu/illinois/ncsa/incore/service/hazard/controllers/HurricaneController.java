@@ -323,7 +323,7 @@ public class HurricaneController {
                                     resDemands.add(demands.get(i));
                                 } else {
                                     HurricaneHazardResult res = HurricaneCalc.getHurricaneHazardValue(hurricane, demands.get(i),
-                                        units.get(i), request.getLoc(), this.username);
+                                        units.get(i), request.getLoc(), this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -380,7 +380,7 @@ public class HurricaneController {
             if (hurricane != null && hurricane instanceof HurricaneDataset) {
                 HurricaneDataset hurrDataset = (HurricaneDataset) hurricane;
                 for (HurricaneHazardDataset dataset : hurrDataset.getHazardDatasets()) {
-                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                         spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                     }
                 }

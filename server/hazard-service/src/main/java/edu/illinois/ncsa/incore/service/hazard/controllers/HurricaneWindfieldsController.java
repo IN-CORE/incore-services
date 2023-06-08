@@ -330,7 +330,7 @@ public class HurricaneWindfieldsController {
                                 resUnits.add(units.get(i));
                                 resDemands.add(demands.get(i));
                             } else {
-                                windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at
+                                windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, this.userGroups, lat, lon); // 3s gust at
                                 // 10m elevation
 
                                 HashMap<String, Double> convertedWf = HurricaneWindfieldsUtil.convertWindfieldVelocity(hurrDemandType,
@@ -384,7 +384,7 @@ public class HurricaneWindfieldsController {
         if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
             //delete associated datasets
             for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
-                if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                 }
             }

@@ -231,7 +231,7 @@ public class TsunamiController {
                                     resDemands.add(demands.get(i));
                                 } else {
                                     TsunamiHazardResult res = TsunamiCalc.getTsunamiHazardValue(tsunami,
-                                        demands.get(i), units.get(i), request.getLoc(), this.username);
+                                        demands.get(i), units.get(i), request.getLoc(), this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -389,7 +389,7 @@ public class TsunamiController {
             if (tsunami != null && tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
                 for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
-                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                         spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                     }
                 }

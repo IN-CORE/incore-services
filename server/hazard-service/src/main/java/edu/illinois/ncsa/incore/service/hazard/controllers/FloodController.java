@@ -326,7 +326,7 @@ public class FloodController {
                                 } else {
                                     FloodHazardResult res = FloodCalc.getFloodHazardValue(flood, demands.get(i), units.get(i),
                                         request.getLoc(),
-                                        this.username);
+                                        this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -383,7 +383,7 @@ public class FloodController {
             if (flood != null && flood instanceof FloodDataset) {
                 FloodDataset hurrDataset = (FloodDataset) flood;
                 for (FloodHazardDataset dataset : hurrDataset.getHazardDatasets()) {
-                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                         spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                     }
                 }

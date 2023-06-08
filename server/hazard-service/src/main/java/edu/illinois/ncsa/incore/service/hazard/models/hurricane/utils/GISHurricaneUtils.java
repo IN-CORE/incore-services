@@ -363,7 +363,7 @@ public class GISHurricaneUtils {
      * @return
      * @throws IOException
      */
-    public static double CalcVelocityFromPoint(String datasetId, String username, double lat, double lon) throws IOException {
+    public static double CalcVelocityFromPoint(String datasetId, String username, String userGroups, double lat, double lon) throws IOException {
         // copy the shapefile from the repository to the temp directory and cache them
         // if there is no cache, create the cache folder and use it
         // to collect all the shapefile components in a single directory
@@ -384,7 +384,7 @@ public class GISHurricaneUtils {
                 }
             }
         } else {
-            org.json.JSONObject datasetJson = ServiceUtil.getDatasetJsonFromDataService(datasetId, username);
+            org.json.JSONObject datasetJson = ServiceUtil.getDatasetJsonFromDataService(datasetId, username, userGroups);
             List fileList = ServiceUtil.getFileDescriptorFileList(datasetJson);
             shpFilePath = ServiceUtil.collectShapfileInFolder(fileList, hurricaneCacheDir);
         }

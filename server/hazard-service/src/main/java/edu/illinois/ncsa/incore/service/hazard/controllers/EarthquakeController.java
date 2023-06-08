@@ -198,7 +198,7 @@ public class EarthquakeController {
                         logger.debug("don't use workflow to create earthquake");
                         File hazardFile = new File(incoreWorkDirectory, HazardConstants.HAZARD_TIF);
                         Map<BaseAttenuation, Double> attenuations = attenuationProvider.getAttenuations(scenarioEarthquake);
-                        GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username);
+                        GridCoverage gc = HazardCalc.getEarthquakeHazardRaster(scenarioEarthquake, attenuations, this.username, this.userGroups);
                         HazardCalc.getEarthquakeHazardAsGeoTiff(gc, hazardFile);
                         String description = "Earthquake visualization";
                         datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", this.username, this.userGroups,
@@ -454,7 +454,7 @@ public class EarthquakeController {
                     try {
                         localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
                         hazardValue = HazardCalc.getGroundMotionAtSite(earthquake, attenuations, localSite, period,
-                            demand, demandUnits, 0, amplifyHazard, null, this.username);
+                            demand, demandUnits, 0, amplifyHazard, null, this.username, this.userGroups);
                         hazardResults.add(new HazardResult(startY, startX, hazardValue.getHazardValue()));
                     } catch (Exception e) {
                         logger.error("Error computing hazard value.", e);
@@ -506,7 +506,7 @@ public class EarthquakeController {
 
         SimpleFeatureCollection siteClassFC = null;
         if (!siteClassId.isEmpty()) {
-            siteClassFC = (SimpleFeatureCollection) GISUtil.getFeatureCollection(siteClassId, this.username);
+            siteClassFC = (SimpleFeatureCollection) GISUtil.getFeatureCollection(siteClassId, this.username, this.userGroups);
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -546,7 +546,7 @@ public class EarthquakeController {
                                     try {
                                         res = HazardCalc.getGroundMotionAtSite(eq, attenuations,
                                             new Site(request.getLoc().getLocation()), demandComponents[0], demandComponents[1],
-                                            units.get(i), 0, amplifyHazard, siteClassFC, this.username);
+                                            units.get(i), 0, amplifyHazard, siteClassFC, this.username, this.userGroups);
                                         //condition to only show PGA/PGV without period prepended
                                         String period = Float.parseFloat(res.getPeriod().trim()) == 0.0 ? "" : res.getPeriod().trim() + " ";
                                         resDemands.add(period + res.getDemand());
@@ -640,7 +640,7 @@ public class EarthquakeController {
 
                 try {
                     hazardResults.add(HazardCalc.getGroundMotionAtSite(eq, attenuations, localSite, demandComponents[0],
-                        demandComponents[1], demandUnits, 0, amplifyHazard, null, this.username));
+                        demandComponents[1], demandUnits, 0, amplifyHazard, null, this.username, this.userGroups));
                 } catch (Exception e) {
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard.");
                 }
@@ -848,11 +848,11 @@ public class EarthquakeController {
 
             SimpleFeatureCollection siteClassFC = null;
             if (!siteClassId.isEmpty()) {
-                siteClassFC = (SimpleFeatureCollection) GISUtil.getFeatureCollection(siteClassId, this.username);
+                siteClassFC = (SimpleFeatureCollection) GISUtil.getFeatureCollection(siteClassId, this.username, this.userGroups);
             }
 
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId,
-                this.username);
+                this.username, this.userGroups);
 
             List<LiquefactionValuesResponse> valResponse = new ArrayList<>();
             List<ValuesRequest> valuesRequest = mapper.readValue(requestJsonStr, new TypeReference<List<ValuesRequest>>() {
@@ -872,7 +872,7 @@ public class EarthquakeController {
                     Site localSite = new Site(request.getLoc().getLocation());
                     // TODO find groundwater depth if shapefile is passed in
                     LiquefactionHazardResult res = HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite,
-                        soilGeology, units.get(i), siteClassFC, this.username);
+                        soilGeology, units.get(i), siteClassFC, this.username, this.userGroups);
                     resDemands.add(PGD);
                     resUnits.add(res.getPgdUnits());
                     pgdVals.add(res.getPgd());
@@ -922,13 +922,13 @@ public class EarthquakeController {
 
             List<LiquefactionHazardResult> hazardResults = new LinkedList<LiquefactionHazardResult>();
             SimpleFeatureCollection soilGeology = (SimpleFeatureCollection) GISUtil.getFeatureCollection(geologyId,
-                this.username);
+                this.username, this.userGroups);
 
             for (IncorePoint point : points) {
                 Site localSite = new Site(point.getLocation());
                 // TODO find groundwater depth if shapefile is passed in
                 hazardResults.add(HazardCalc.getLiquefactionAtSite(earthquake, attenuations, localSite, soilGeology,
-                    demandUnits, null, this.username));
+                    demandUnits, null, this.username, this.userGroups));
             }
 
             return hazardResults;
@@ -1059,13 +1059,13 @@ public class EarthquakeController {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
-                if (ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username) == null) {
+                if (ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(scenarioEarthquake.getRasterDataset().getDatasetId());
                 }
             } else if (eq != null && eq instanceof EarthquakeDataset) {
                 EarthquakeDataset eqDataset = (EarthquakeDataset) eq;
                 for (HazardDataset dataset : eqDataset.getHazardDatasets()) {
-                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                         spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                     }
                 }
