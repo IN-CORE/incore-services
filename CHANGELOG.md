@@ -11,8 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Get user group function to read and parse user groups from headers [#120](https://github.com/IN-CORE/incore-services/issues/120)
 
 ### Changed
-- Remove LdapClient and refactor the Authorizer class along with its interface to take in userGroups parameter [#118](https://github.com/IN-CORE/incore-services/issues/118)
-- Add userGroups parameter in Semantics Controller, Space Controller, DFR3 Controller, Data Controller, Hazard Controller and modify internal calls to support userGroups parameter [#124](https://github.com/IN-CORE/incore-services/issues/124) [#123](https://github.com/IN-CORE/incore-services/issues/123) [#122](https://github.com/IN-CORE/incore-services/issues/122) [#121](https://github.com/IN-CORE/incore-services/issues/121) [#119](https://github.com/IN-CORE/incore-services/issues/119)
+- Remove LdapClient and refactor the Authorizer class along with its interface to take in userGroups parameter and modify internal calls too [#118](https://github.com/IN-CORE/incore-services/issues/118)
+- Add userGroups parameter in Semantics Controller [#124](https://github.com/IN-CORE/incore-services/issues/124) 
+- Add userGroups parameter in Space Controller [#123](https://github.com/IN-CORE/incore-services/issues/123)
+- Add userGroups parameter in DFR3 Controller [#122](https://github.com/IN-CORE/incore-services/issues/122)
+- Add userGroups parameter in Data Controller [#121](https://github.com/IN-CORE/incore-services/issues/121)
+- Add userGroups parameter in Hazard Controller [#119](https://github.com/IN-CORE/incore-services/issues/119)
 
 ## [1.13.1] - 2023-03-15
 ### Fixed
