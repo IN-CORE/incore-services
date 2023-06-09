@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Remove LdapClient and refactor the Authorizer class along with its interface to take in userGroups parameter [#118](https://github.com/IN-CORE/incore-services/issues/118)
+- Add userGroups parameter in Semantics Controller, Space Controller, DFR3 Controller, Data Controller, Hazard Controller and modify internal calls to support userGroups parameter [#124](https://github.com/IN-CORE/incore-services/issues/124) [#123](https://github.com/IN-CORE/incore-services/issues/123) [#122](https://github.com/IN-CORE/incore-services/issues/122) [#121](https://github.com/IN-CORE/incore-services/issues/121) [#119](https://github.com/IN-CORE/incore-services/issues/119)
 
 ## [1.13.1] - 2023-03-15
 ### Fixed
