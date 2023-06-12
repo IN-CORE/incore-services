@@ -23,6 +23,7 @@ import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneWindfieldsRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
@@ -68,6 +69,8 @@ import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil
 public class HurricaneWindfieldsController {
     private static final Logger log = Logger.getLogger(HurricaneWindfieldsController.class);
     private final String username;
+    private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IHurricaneWindfieldsRepository repository;
@@ -89,8 +92,12 @@ public class HurricaneWindfieldsController {
 
     @Inject
     public HurricaneWindfieldsController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
@@ -109,7 +116,7 @@ public class HurricaneWindfieldsController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find any space with name " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
@@ -134,7 +141,7 @@ public class HurricaneWindfieldsController {
             hurricaneWindfields = hurricaneWindfields.stream().filter(s -> s.getCategory() == category).collect(Collectors.toList());
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         List<HurricaneWindfields> accessibleHurricaneWindfields = hurricaneWindfields.stream()
             .filter(hurricaneWindfield -> membersSet.contains(hurricaneWindfield.getId()))
@@ -213,7 +220,7 @@ public class HurricaneWindfieldsController {
                 hurricaneWindfields.setDemandUnits(inputHurricane.getDemandUnits());
 
                 hurricaneWindfields.setHazardDatasets(GISHurricaneUtils.processHurricaneFromJson(ensemBleString,
-                    inputHurricane.getRasterResolution(), this.username));
+                    inputHurricane.getRasterResolution(), this.username, this.userGroups));
 
                 //save hurricane
                 hurricaneWindfields = repository.addHurricaneWindfields(hurricaneWindfields);
@@ -260,7 +267,7 @@ public class HurricaneWindfieldsController {
 
         hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
 
-        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
             return hurricane;
         }
 
@@ -323,7 +330,7 @@ public class HurricaneWindfieldsController {
                                 resUnits.add(units.get(i));
                                 resDemands.add(demands.get(i));
                             } else {
-                                windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, lat, lon); // 3s gust at
+                                windValue = GISHurricaneUtils.CalcVelocityFromPoint(datasetId, this.username, this.userGroups, lat, lon); // 3s gust at
                                 // 10m elevation
 
                                 HashMap<String, Double> convertedWf = HurricaneWindfieldsUtil.convertWindfieldVelocity(hurrDemandType,
@@ -374,10 +381,10 @@ public class HurricaneWindfieldsController {
         "hurricaneId") String hurricaneId) {
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
-        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
             //delete associated datasets
             for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
-                if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                 }
             }
@@ -456,7 +463,7 @@ public class HurricaneWindfieldsController {
             hurricanes = this.repository.searchHurricaneWindfields(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         hurricanes = hurricanes.stream()
             .filter(b -> membersSet.contains(b.getId()))

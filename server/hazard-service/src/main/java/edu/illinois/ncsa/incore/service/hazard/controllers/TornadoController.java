@@ -22,6 +22,7 @@ import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
@@ -73,6 +74,8 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoCo
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
     private final String username;
+    private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private ITornadoRepository repository;
@@ -96,8 +99,12 @@ public class TornadoController {
 
     @Inject
     public TornadoController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
@@ -119,7 +126,7 @@ public class TornadoController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
@@ -136,7 +143,7 @@ public class TornadoController {
                 .collect(Collectors.toList());
             return tornadoes;
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         List<Tornado> accessibleTornadoes = tornadoes.stream()
             .filter(tornado -> membersSet.contains(tornado.getId()))
@@ -233,7 +240,7 @@ public class TornadoController {
                 JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
-                datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
+                datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups, files);
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);
@@ -246,12 +253,12 @@ public class TornadoController {
                     // Create dataset object representation for storing shapefile
                     JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
-                    datasetId = ServiceUtil.createDataset(datasetObject, this.username);
+                    datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups);
                     if (datasetId != null) {
                         // attach files to the dataset
-                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, fileParts);
+                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, this.userGroups, fileParts);
                         if (statusCode != HttpStatus.SC_OK) {
-                            ServiceUtil.deleteDataset(datasetId, this.username);
+                            ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
                             logger.error(tornadoErrorMsg);
                             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                         }
@@ -265,7 +272,7 @@ public class TornadoController {
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
                 } else {
-                    ServiceUtil.deleteDataset(datasetId, this.username);
+                    ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
                     logger.error(tornadoErrorMsg);
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                 }
@@ -281,7 +288,7 @@ public class TornadoController {
         } catch (IllegalArgumentException e) {
             logger.error("Illegal Argument has been passed in.", e);
         }
-        ServiceUtil.deleteDataset(datasetId, this.username);
+        ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
 
     }
@@ -305,7 +312,7 @@ public class TornadoController {
             return tornado;
         }
 
-        if (authorizer.canUserReadMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, tornadoId, spaceRepository.getAllSpaces(), this.groups)) {
             return tornado;
         }
 
@@ -331,7 +338,7 @@ public class TornadoController {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, seed, this.username);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, seed, this.username, this.userGroups);
             } catch (Exception e) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard." + e.getMessage());
             }
@@ -395,7 +402,7 @@ public class TornadoController {
                                     resDemands.add(demands.get(i));
                                 } else {
                                     WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
-                                        request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
+                                        request.getLoc().getLocation(), units.get(i), simulation, seed, this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -472,7 +479,7 @@ public class TornadoController {
             tornadoes = this.repository.searchTornadoes(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         tornadoes = tornadoes.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -495,17 +502,17 @@ public class TornadoController {
     public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
         Tornado tornado = getTornado(tornadoId);
 
-        if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces(), this.groups)) {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;
-                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username) == null) {
+                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(tModel.getDatasetId());
                 }
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tDataset = (TornadoDataset) tornado;
-                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
-                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username) == null) {
+                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups);
+                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(tDataset.getDatasetId());
                 }
             }

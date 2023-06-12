@@ -21,6 +21,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
@@ -69,6 +70,7 @@ public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
 
     private final String username;
+    private final List<String> groups;
 
     @Inject
     IAuthorizer authorizer;
@@ -87,8 +89,11 @@ public class FragilityController {
 
     @Inject
     public FragilityController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
@@ -138,7 +143,7 @@ public class FragilityController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a space with name " + spaceName);
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
+            if (!authorizer.canRead(username, space.getPrivileges(), groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
@@ -156,7 +161,7 @@ public class FragilityController {
             return fragilitySets;
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<FragilitySet> accessibleFragilities = fragilitySets.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -247,7 +252,7 @@ public class FragilityController {
         (@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
         if (fragilitySet.isPresent()) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 FragilitySet fs = fragilitySet.get();
                 fs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
                 return fs;
@@ -268,7 +273,7 @@ public class FragilityController {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
         if (fragilitySet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces(), groups)) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping" +
@@ -317,7 +322,7 @@ public class FragilityController {
             sets = this.fragilityDAO.searchFragilities(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<FragilitySet> accessibleFragilities = sets.stream()
             .filter(b -> membersSet.contains(b.getId()))
