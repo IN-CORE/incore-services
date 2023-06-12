@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased] 
+## [1.14.0] -2023-06-14
 ### Added
 - Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)
 - Get user group function to read and parse user groups from headers [#120](https://github.com/IN-CORE/incore-services/issues/120)
