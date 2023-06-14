@@ -4,6 +4,7 @@ import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
 import io.swagger.annotations.*;
@@ -45,6 +46,7 @@ public class TypeController {
     private final String username;
 
     private final Authorizer authorizer;
+    private final List<String> groups;
 
     @Inject
     private ITypeDAO typeDAO;
@@ -54,11 +56,14 @@ public class TypeController {
 
     @Inject
     public TypeController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
         // we want to limit the semantics service to admins for now
         this.authorizer = new Authorizer();
-        if (!this.authorizer.isUserAdmin(this.username)) {
+        if (!this.authorizer.isUserAdmin(this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
         }
     }
@@ -69,7 +74,7 @@ public class TypeController {
     @ApiOperation(value = "list all types belong user has access to.")
     public Response listTypes() {
         List<Document> typeList = this.typeDAO.getTypes();
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
         //return the intersection between all types and the ones the user can read
         List<Document> results = typeList.stream()
             .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
@@ -90,7 +95,7 @@ public class TypeController {
         if (version == null) {
             version = "latest";
         }
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
         Optional<List<Document>> typeList = this.typeDAO.getTypeByUri(uri, version);
 
         if (typeList.isPresent()) {
@@ -129,7 +134,7 @@ public class TypeController {
     @ApiOperation(value = "Search type by partial match of text.")
     public Response searchType(
         @ApiParam(value = "Type uri (name).") @QueryParam("text") String text) {
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
         List<Document> results;

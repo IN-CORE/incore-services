@@ -55,7 +55,9 @@ class DatasetControllerTest extends CustomJerseyTest {
     public void testRequestWithBadUserInfoJson() {
         try {
             String output =
-                target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+                target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}")
+                    .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
+                    .accept(MediaType.APPLICATION_JSON).get(String.class);
         } catch (BadRequestException e) {
             int expectedStatusCode = 400;
             int actualStatusCode = e.getResponse().getStatus();
@@ -67,7 +69,9 @@ class DatasetControllerTest extends CustomJerseyTest {
     @Test
     public void testListDataset() {
         String output =
-            target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+            target("/datasets").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}")
+                .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(5, parsedObject.length());
@@ -83,7 +87,9 @@ class DatasetControllerTest extends CustomJerseyTest {
     public void testDatasetById() {
         String id = "5a207b29beefa40740e87c93";
         Dataset dataset =
-            target("/datasets/" + id).request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(Dataset.class);
+            target("/datasets/" + id).request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}")
+                .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
+                .accept(MediaType.APPLICATION_JSON).get(Dataset.class);
 
         assertNotNull(dataset.getId());
     }
@@ -94,8 +100,10 @@ class DatasetControllerTest extends CustomJerseyTest {
         InputStream inputStream = jsonURL.openStream();
         String jsontext = IOUtils.toString(inputStream);
         final FormDataMultiPart multiPartEntity = new FormDataMultiPart().field("dataset", jsontext);
-        Response response = target("/datasets").register(MultiPartWriter.class).request().header("x-auth-userinfo",
-            "{\"preferred_username\": \"test\"}").post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
+        Response response = target("/datasets").register(MultiPartWriter.class).request()
+            .header("x-auth-userinfo", "{\"preferred_username\": \"test\"}")
+            .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
+            .post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
         Dataset output = response.readEntity(Dataset.class);
 
         assertNotNull(output.getTitle());
@@ -106,7 +114,9 @@ class DatasetControllerTest extends CustomJerseyTest {
         String id = "5ac4ef37f9ebf2057a08f566";
 
         String output =
-            target("/datasets/" + id + "/files").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+            target("/datasets/" + id + "/files").request().header("x-auth-userinfo", "{\"preferred_username\": \"test\"}")
+                .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
+                .accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(1, parsedObject.length());
@@ -120,7 +130,9 @@ class DatasetControllerTest extends CustomJerseyTest {
         String fileId = "5a393841c7d30d044d9b66f4";
 
         String output = target("/datasets/" + dsId + "/files/" + fileId).request().header("x-auth-userinfo", "{\"preferred_username\": " +
-            "\"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+            "\"test\"}")
+            .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
+            .accept(MediaType.APPLICATION_JSON).get(String.class);
         JSONObject parsedObject = new JSONObject(output);
 
         //assertEquals(1, parsedObject.length());

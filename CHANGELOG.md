@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.14.0] -2023-06-14
+### Added
+- Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)
+- Get user group function to read and parse user groups from headers [#120](https://github.com/IN-CORE/incore-services/issues/120)
+
+### Changed
+- Remove LdapClient and refactor the Authorizer class along with its interface to take in userGroups parameter and modify internal calls too [#118](https://github.com/IN-CORE/incore-services/issues/118)
+- Add userGroups parameter in Semantics Controller [#124](https://github.com/IN-CORE/incore-services/issues/124) 
+- Add userGroups parameter in Space Controller [#123](https://github.com/IN-CORE/incore-services/issues/123)
+- Add userGroups parameter in DFR3 Controller [#122](https://github.com/IN-CORE/incore-services/issues/122)
+- Add userGroups parameter in Data Controller [#121](https://github.com/IN-CORE/incore-services/issues/121)
+- Add userGroups parameter in Hazard Controller [#119](https://github.com/IN-CORE/incore-services/issues/119)
+
 ## [1.13.1] - 2023-03-15
 ### Fixed
 - Earthquake hazard raster didn't handle values below the threshold that were set to null[#108](https://github.com/IN-CORE/incore-services/issues/108)

@@ -23,6 +23,7 @@ import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITsunamiRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -54,11 +55,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoComparator;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tsunamiComparator;
 
 @Api(value = "tsunamis", authorizations = {})
 
@@ -69,6 +73,8 @@ import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil
 public class TsunamiController {
     private static final Logger log = Logger.getLogger(TsunamiController.class);
     private final String username;
+    private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private ITsunamiRepository repository;
@@ -90,8 +96,12 @@ public class TsunamiController {
 
     @Inject
     public TsunamiController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
@@ -99,15 +109,20 @@ public class TsunamiController {
     @ApiOperation(value = "Returns all tsunamis.")
     public List<Tsunami> getTsunamis(
         @ApiParam(value = "Space name") @DefaultValue("") @QueryParam("space") String spaceName,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tsunami comparator
+        Comparator<Tsunami> comparator = tsunamiComparator(sortBy, order);
 
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
@@ -115,6 +130,7 @@ public class TsunamiController {
             List<Tsunami> tsunamis = repository.getTsunamis();
             tsunamis = tsunamis.stream()
                 .filter(tsunami -> spaceMembers.contains(tsunami.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -126,10 +142,11 @@ public class TsunamiController {
         }
         List<Tsunami> tsunamis = repository.getTsunamis();
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         List<Tsunami> accessibleTsunamis = tsunamis.stream()
             .filter(tsunami -> membersSet.contains(tsunami.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -156,7 +173,7 @@ public class TsunamiController {
 
         tsunami.setSpaces(spaceRepository.getSpaceNamesOfMember(tsunamiId));
 
-        if (authorizer.canUserReadMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, tsunamiId, spaceRepository.getAllSpaces(), this.groups)) {
             return tsunami;
         }
 
@@ -214,7 +231,7 @@ public class TsunamiController {
                                     resDemands.add(demands.get(i));
                                 } else {
                                     TsunamiHazardResult res = TsunamiCalc.getTsunamiHazardValue(tsunami,
-                                        demands.get(i), units.get(i), request.getLoc(), this.username);
+                                        demands.get(i), units.get(i), request.getLoc(), this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -324,7 +341,7 @@ public class TsunamiController {
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
                             tsunamiDataset.getName() + " " + datasetName,
-                            this.username, description, datasetType);
+                            this.username, this.userGroups, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 
@@ -367,12 +384,12 @@ public class TsunamiController {
     public Tsunami deleteTsunami(@ApiParam(value = "Tsunami Id", required = true) @PathParam("tsunami-id") String tsunamiId) {
         Tsunami tsunami = getTsunami(tsunamiId);
 
-        if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces(), this.groups)) {
             //remove associated datasets
             if (tsunami != null && tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
                 for (TsunamiHazardDataset dataset : tsuDataset.getHazardDatasets()) {
-                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                         spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                     }
                 }
@@ -408,8 +425,13 @@ public class TsunamiController {
     })
     public List<Tsunami> findTsunamis(
         @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tsunami comparator
+        Comparator<Tsunami> comparator = tsunamiComparator(sortBy, order);
 
         List<Tsunami> tsunamis;
         Tsunami tsunami = repository.getTsunamiById(text);
@@ -421,10 +443,11 @@ public class TsunamiController {
             tsunamis = this.repository.searchTsunamis(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         tsunamis = tsunamis.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {

@@ -45,7 +45,7 @@ public class TornadoCalc {
      * @throws Exception
      */
     public static WindHazardResult getWindHazardAtSite(Tornado tornado, Point localSite, String demandUnits, int simulation,
-                                                       int initialSeed, String username) throws TransformException, IOException {
+                                                       int initialSeed, String username, String userGroups) throws TransformException, IOException {
 
         Double windHazard;
         String demandType = TornadoHazard.DEMAND_TYPE;
@@ -63,7 +63,7 @@ public class TornadoCalc {
                 scenarioTornado.getTornadoParameters(), seed);
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
-            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username);
+            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username, userGroups);
             if (obj == null) {
                 throw new IOException(" Could not calculate the grid coverage for the raster. Possibly because the dataset files are " +
                     "unreadable or not found.");

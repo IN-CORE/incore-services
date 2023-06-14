@@ -34,14 +34,14 @@ public class TsunamiCalc {
     public static final Logger log = Logger.getLogger(TsunamiCalc.class);
 
     public static TsunamiHazardResult getTsunamiHazardValue(Tsunami tsunami, String demandType, String demandUnits,
-                                                            IncorePoint location, String user) throws UnsupportedHazardException,
+                                                            IncorePoint location, String user, String userGroups) throws UnsupportedHazardException,
         UnsupportedOperationException, IOException {
         if (tsunami instanceof TsunamiDataset) {
             TsunamiDataset tsunamiDataset = (TsunamiDataset) tsunami;
             TsunamiHazardDataset hazardDataset = findHazard(tsunamiDataset.getHazardDatasets(), demandType);
             Double hazardValue = 0.0;
             if (hazardDataset != null) {
-                GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
+                GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user, userGroups);
                 try {
                     hazardValue = HazardUtil.findRasterPoint(location.getLocation(), (GridCoverage2D) gc);
                 } catch (PointOutsideCoverageException e) {

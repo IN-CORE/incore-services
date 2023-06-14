@@ -71,6 +71,7 @@ class SpaceControllerTest extends CustomJerseyTest {
             .header("x-auth-userinfo",
                 "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\"," +
                     "\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
+            .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
             .post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
 
         String output = response.readEntity(String.class);
@@ -93,6 +94,7 @@ class SpaceControllerTest extends CustomJerseyTest {
             .header("x-auth-userinfo",
                 "{\"sub\":\"\",\"email_verified\":true,\"name\":\"Incore Tester Tester\",\"preferred_username\":\"incrtest\"," +
                     "\"given_name\":\"Incore Tester\",\"family_name\":\"Tester\",\"email\":\"tolbert+incoretester@illinois.edu\"}")
+            .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
             .post(Entity.entity(multiPartEntity, multiPartEntity.getMediaType()));
 
         String output = response.readEntity(String.class);

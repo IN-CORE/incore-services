@@ -16,6 +16,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.SpaceMetadata;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.space.models.Members;
 import io.swagger.annotations.*;
@@ -86,6 +87,8 @@ public class SpaceController {
     private final Logger logger = Logger.getLogger(SpaceController.class);
 
     private final String username;
+    private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private ISpaceRepository spaceRepository;
@@ -95,8 +98,12 @@ public class SpaceController {
 
     @Inject
     public SpaceController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @POST
@@ -145,11 +152,11 @@ public class SpaceController {
                                      @ApiParam(value = "Space Name") @QueryParam("name") String spaceName) {
 
         if (memberId != null) {
-            if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces())) {
+            if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " does not have the privileges to access " + memberId);
             }
-            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces(), this.groups);
             List<Space> spacesWithMember = new ArrayList<>();
             for (Space space : filteredSpaces) {
                 if (space.hasMember(memberId)) {
@@ -162,7 +169,7 @@ public class SpaceController {
 
         if (spaceName != null) {
             // Find all the spaces the user is authorized to view
-            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+            List<Space> filteredSpaces = authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces(), this.groups);
 
             // Check if the space requested is in the list of authorized spaces
             List<Space> spaces = filteredSpaces.stream().filter(space -> spaceName.equals(space.getName())).collect(Collectors.toList());
@@ -170,7 +177,7 @@ public class SpaceController {
             return spaces;
         }
 
-        return authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces());
+        return authorizer.getAllSpacesUserCanRead(this.username, spaceRepository.getAllSpaces(), this.groups);
     }
 
     @GET
@@ -181,7 +188,7 @@ public class SpaceController {
 
         Space space = getSpace(spaceId);
 
-        if (!(authorizer.canRead(this.username, space.getPrivileges()))) {
+        if (!(authorizer.canRead(this.username, space.getPrivileges(), this.groups))) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to access " + space.getName() +
                 "'s space");
         }
@@ -201,7 +208,7 @@ public class SpaceController {
 
         //modify space by changing name or adding a list of members
         if (spaceJson != null) {
-            if (!(authorizer.canWrite(this.username, space.getPrivileges()))) {
+            if (!(authorizer.canWrite(this.username, space.getPrivileges(), this.groups))) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the space " + spaceId);
             }
             if (!JsonUtils.isJSONValid(spaceJson)) {
@@ -243,7 +250,7 @@ public class SpaceController {
             return space;
         }
 
-        if (!(authorizer.canDelete(this.username, space.getPrivileges()))) {
+        if (!(authorizer.canDelete(this.username, space.getPrivileges(), this.groups))) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, "You are not allowed to remove members from the space " + spaceId);
         }
         // modify space by deleting a list of members
@@ -279,7 +286,7 @@ public class SpaceController {
         @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId) {
         Space space = getSpace(spaceId);
 
-        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+        if (!authorizer.canWrite(this.username, space.getPrivileges(), this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " is not allowed to update the space " + space.getName());
         }
@@ -301,7 +308,7 @@ public class SpaceController {
         @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
         Space space = getSpace(spaceId);
 
-        if (!authorizer.canWrite(this.username, space.getPrivileges())) {
+        if (!authorizer.canWrite(this.username, space.getPrivileges(), this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have write permissions in " + spaceId);
         }
 
@@ -332,7 +339,7 @@ public class SpaceController {
         }
 
         Space space = getSpace(spaceId);
-        if (!authorizer.canDelete(this.username, space.getPrivileges())) {
+        if (!authorizer.canDelete(this.username, space.getPrivileges(), this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, "User has no privileges to modify the space " + space.getName());
         }
 
@@ -367,7 +374,7 @@ public class SpaceController {
      * @param username username
      * @return A list of ObjectIds related to the hazardId
      */
-    private List<String> getHazardIds(String hazardId, String username) {
+    private List<String> getHazardIds(String hazardId, String username, String userGroups) {
         //TODO: check if there is a better way of doing this
         HttpURLConnection con;
         try {
@@ -383,6 +390,7 @@ public class SpaceController {
                     con = (HttpURLConnection) url.openConnection();
                     con.setRequestMethod("GET");
                     con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
+                    con.setRequestProperty("x-auth-usergroup", userGroups);
                     String content = getContent(con);
                     con.disconnect();
                     if (content != null) {
@@ -447,7 +455,7 @@ public class SpaceController {
      * @param username   username
      * @return Json response of API call
      */
-    private String get(String serviceUrl, String memberId, String username) {
+    private String get(String serviceUrl, String memberId, String username, String userGroups) {
         HttpURLConnection con;
         try {
             URL url = new URL(serviceUrl + memberId);
@@ -455,6 +463,7 @@ public class SpaceController {
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
+                con.setRequestProperty("x-auth-usergroup", userGroups);
                 return getContent(con);
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -499,7 +508,7 @@ public class SpaceController {
      * found or if the user has no write/admin privileges on a space that contains the member.
      */
     private boolean addMembers(Space space, String username, String memberId) {
-        if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces(), this.groups)) {
             return false;
         }
         //TODO: SpaceController doesn't have to care about what is adding, so we need to rethink the design to avoid
@@ -508,15 +517,15 @@ public class SpaceController {
 
         boolean isValidNonHazardMember = false;
 
-        if (get(DATA_URL, memberId, username) != null) {
+        if (get(DATA_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
-        } else if (get(FRAGILITY_URL, memberId, username) != null) {
+        } else if (get(FRAGILITY_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
-        } else if (get(REPAIR_URL, memberId, username) != null) {
+        } else if (get(REPAIR_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
-        } else if (get(RESTORATION_URL, memberId, username) != null) {
+        } else if (get(RESTORATION_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
-        } else if (get(MAPPING_URL, memberId, username) != null) {
+        } else if (get(MAPPING_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
         }
 
@@ -527,7 +536,7 @@ public class SpaceController {
         }
 
         //get a list containing the hazard and its associated datasets from hazard-service
-        List<String> hazardIds = getHazardIds(memberId, username);
+        List<String> hazardIds = getHazardIds(memberId, username, userGroups);
         //If the hazard has no datasets, we will just add the hazard id to the space
         if (hazardIds != null && hazardIds.size() > 0) {
             for (String id : hazardIds) {
@@ -551,7 +560,7 @@ public class SpaceController {
         //TODO: this will be removed in the future since spaces should not care about what they are removing
         List<String> deleteMembers = new ArrayList<>(membersToDelete.getMembers());
         for (String member : deleteMembers) {
-            List<String> additionalMembers = getHazardIds(member, username);
+            List<String> additionalMembers = getHazardIds(member, username, userGroups);
             if (additionalMembers != null) {
                 for (String newMember : additionalMembers) {
                     membersToDelete.addMember(newMember);

@@ -22,6 +22,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
@@ -50,9 +51,12 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComparator;
 
 /**
  * Created by ywkim on 7/26/2017.
@@ -95,6 +99,7 @@ public class DatasetController {
     private static final Logger logger = Logger.getLogger(DatasetController.class);
 
     private final String username;
+    private final List<String> groups;
 
     @Inject
     private IRepository repository;
@@ -113,8 +118,11 @@ public class DatasetController {
 
     @Inject
     public DatasetController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
@@ -137,7 +145,7 @@ public class DatasetController {
             return dataset;
         }
 
-        if (authorizer.canUserReadMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
             return dataset;
         }
         throw new IncoreHTTPException(Response.Status.FORBIDDEN,
@@ -152,9 +160,15 @@ public class DatasetController {
                                      @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
                                      @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
                                      @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                     @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                     @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
                                      @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
                                      @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard ){
+
+        // import eq comparator
+        Comparator<Dataset> comparator = datasetComparator(sortBy, order);
+
         List<Dataset> datasets;
         if (typeStr != null && titleStr == null) {  // query only for the type
             datasets = repository.getDatasetByType(typeStr, excludeHazard);
@@ -175,12 +189,13 @@ public class DatasetController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
+            if (!authorizer.canRead(username, space.getPrivileges(),this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             datasets = datasets.stream()
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -192,11 +207,12 @@ public class DatasetController {
             return datasets;
         }
         //get all datasets that the user can read
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(),groups);
 
         //return the intersection between all datasets and the ones the user can read
         List<Dataset> accessibleDatasets = datasets.stream()
             .filter(dataset -> userMembersSet.contains(dataset.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -444,7 +460,7 @@ public class DatasetController {
             geoserverUsed = true;
         }
 
-        if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -516,7 +532,7 @@ public class DatasetController {
                                @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'",
                                    required = true)
                                    FormDataMultiPart inputs) {
-        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
         }
@@ -909,7 +925,7 @@ public class DatasetController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid " +
                 "JSON.");
         }
-        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces())) {
+        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
         }
@@ -947,9 +963,14 @@ public class DatasetController {
         @ApiResponse(code = 404, message = "No datasets found with the searched text")
     })
     public List<Dataset> findDatasets(@ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
+                                      @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                      @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
                                       @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
                                       @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard) {
+        // import eq comparator
+        Comparator<Dataset> comparator = datasetComparator(sortBy, order);
+
         List<Dataset> datasets;
 
         Dataset ds = repository.getDatasetById(text);
@@ -961,10 +982,11 @@ public class DatasetController {
             datasets = this.repository.searchDatasets(text, excludeHazard);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(),this.groups);
 
         datasets = datasets.stream()
             .filter(dataset -> membersSet.contains(dataset.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
