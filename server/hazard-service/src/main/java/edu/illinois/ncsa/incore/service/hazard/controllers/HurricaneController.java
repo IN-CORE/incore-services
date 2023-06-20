@@ -14,6 +14,7 @@ import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneRepository;
 import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardException;
@@ -62,6 +63,8 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.hurricane
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
     private final String username;
+    private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IHurricaneRepository repository;
@@ -83,8 +86,12 @@ public class HurricaneController {
 
     @Inject
     public HurricaneController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
@@ -106,7 +113,7 @@ public class HurricaneController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find any space with name " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
@@ -125,7 +132,7 @@ public class HurricaneController {
             return hurricanes;
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
         List<Hurricane> accessibleHurricanes = hurricanes.stream()
             .filter(hurricane -> membersSet.contains(hurricane.getId()))
             .sorted(comparator)
@@ -154,7 +161,7 @@ public class HurricaneController {
 
         hurricane.setSpaces(spaceRepository.getSpaceNamesOfMember(hurricaneId));
 
-        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
             return hurricane;
         }
 
@@ -227,7 +234,7 @@ public class HurricaneController {
                         String filename = filePart.getContentDisposition().getFileName();
 
                         String datasetId = ServiceUtil.createRasterDataset(filename, bodyPartEntity.getInputStream(),
-                            hurricaneDataset.getName() + " " + datasetName, this.username, description, datasetType);
+                            hurricaneDataset.getName() + " " + datasetName, this.username, this.userGroups, description, datasetType);
                         hazardDataset.setDatasetId(datasetId);
                     }
 
@@ -316,7 +323,7 @@ public class HurricaneController {
                                     resDemands.add(demands.get(i));
                                 } else {
                                     HurricaneHazardResult res = HurricaneCalc.getHurricaneHazardValue(hurricane, demands.get(i),
-                                        units.get(i), request.getLoc(), this.username);
+                                        units.get(i), request.getLoc(), this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -368,12 +375,12 @@ public class HurricaneController {
     public Hurricane deleteHurricanes(@ApiParam(value = "Hurricane Id", required = true) @PathParam("hurricane-id") String hurricaneId) {
         Hurricane hurricane = getHurricaneById(hurricaneId);
 
-        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
             // delete associated datasets
             if (hurricane != null && hurricane instanceof HurricaneDataset) {
                 HurricaneDataset hurrDataset = (HurricaneDataset) hurricane;
                 for (HurricaneHazardDataset dataset : hurrDataset.getHazardDatasets()) {
-                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username) == null) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
                         spaceRepository.addToOrphansSpace(dataset.getDatasetId());
                     }
                 }
@@ -430,7 +437,7 @@ public class HurricaneController {
             hurricanes = this.repository.searchHurricanes(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         hurricanes = hurricanes.stream()
             .filter(b -> membersSet.contains(b.getId()))

@@ -34,14 +34,14 @@ public class HurricaneCalc {
     public static final Logger log = Logger.getLogger(HurricaneCalc.class);
 
     public static HurricaneHazardResult getHurricaneHazardValue(Hurricane hurricane, String demandType, String demandUnits,
-                                                                IncorePoint location, String user) throws UnsupportedHazardException,
+                                                                IncorePoint location, String user, String userGroups) throws UnsupportedHazardException,
         UnsupportedOperationException, IOException {
         if (hurricane instanceof HurricaneDataset) {
             HurricaneDataset hurricaneDataset = (HurricaneDataset) hurricane;
             HurricaneHazardDataset hazardDataset = findHazard(hurricaneDataset.getHazardDatasets(), demandType);
             Double hazardValue;
             if (hazardDataset != null) {
-                GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
+                GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user, userGroups);
                 try {
                     hazardValue = HazardUtil.findRasterPoint(location.getLocation(), (GridCoverage2D) gc);
                 } catch (PointOutsideCoverageException e) {

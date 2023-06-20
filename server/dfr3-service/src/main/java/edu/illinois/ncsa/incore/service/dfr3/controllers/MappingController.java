@@ -20,6 +20,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
@@ -45,6 +46,7 @@ public class MappingController {
     private static final Logger logger = Logger.getLogger(MappingController.class);
 
     private final String username;
+    private final List<String> groups;
 
     @Inject
     private IMappingDAO mappingDAO;
@@ -71,8 +73,11 @@ public class MappingController {
 
     @Inject
     public MappingController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
@@ -116,7 +121,7 @@ public class MappingController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a space with name " + spaceName);
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
+            if (!authorizer.canRead(username, space.getPrivileges(), groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
@@ -128,7 +133,7 @@ public class MappingController {
                 .collect(Collectors.toList());
             return mappingSets;
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<MappingSet> accessibleMappingSets = mappingSets.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -152,7 +157,7 @@ public class MappingController {
 
         if (mappingSet.isPresent()) {
             MappingSet actual = mappingSet.get();
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 actual.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
                 return actual;
             } else {
@@ -230,7 +235,7 @@ public class MappingController {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces(), groups)) {
 //              remove id from spaces
                 List<Space> spaces = spaceRepository.getAllSpaces();
                 for (Space space : spaces) {
@@ -271,7 +276,7 @@ public class MappingController {
                 sets = this.mappingDAO.searchMappings(text, mappingType);
             }
 
-            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+            Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
             List<MappingSet> accessibleMappings = sets.stream()
                 .filter(b -> membersSet.contains(b.getId()))

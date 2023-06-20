@@ -34,13 +34,13 @@ public class FloodCalc {
     public static final Logger log = Logger.getLogger(FloodCalc.class);
 
     public static FloodHazardResult getFloodHazardValue(Flood flood, String demandType, String demandUnits,
-                                                        IncorePoint location, String user) throws UnsupportedHazardException, IOException {
+                                                        IncorePoint location, String user, String userGroups) throws UnsupportedHazardException, IOException {
         if (flood instanceof FloodDataset) {
             FloodDataset floodDataset = (FloodDataset) flood;
             FloodHazardDataset hazardDataset = findHazard(floodDataset.getHazardDatasets(), demandType);
             Double hazardValue;
             if (hazardDataset != null) {
-                GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user);
+                GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), user, userGroups);
 
                 try {
                     hazardValue = HazardUtil.findRasterPoint(location.getLocation(), (GridCoverage2D) gc);

@@ -53,6 +53,7 @@ public class HazardConstants {
 
     // Ambassador
     public static final String X_AUTH_USERINFO = "x-auth-userinfo";
+    public static final String X_AUTH_USERGROUP = "x-auth-usergroup";
 
     // Dataset API
     public static final String DATASETS_ENDPOINT = "data/api/datasets";
