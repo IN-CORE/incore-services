@@ -31,10 +31,6 @@ public class Authorizer implements IAuthorizer {
     public static final String ANONYMOUS_USER = "anonymous";
     private static IAuthorizer instance;
 
-    //I don't really like the idea of doing this as a singleton,
-    //this thing is going to need some configuration to know what
-    //ldap it connects to, etc. Some sort of configuration or dependency injection
-    //might be preferable, but that's not going to happen for the prototype
     public static IAuthorizer getInstance() {
         if (instance == null) {
             instance = new Authorizer();
