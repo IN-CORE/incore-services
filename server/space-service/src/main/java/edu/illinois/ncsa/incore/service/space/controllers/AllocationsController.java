@@ -10,16 +10,20 @@
 
 package edu.illinois.ncsa.incore.service.space.controllers;
 
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import io.swagger.annotations.*;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import javax.inject.Inject;
+import java.util.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -57,11 +61,27 @@ import javax.ws.rs.core.Response;
 })
 
 public class AllocationsController {
+    private final String username;
+    private final List<String> groups;
+    private final String userGroups;
+
     @Inject
     private IGroupAllocationsRepository allocationsRepository;
 
     @Inject
     private IUserFinalQuotaRepository finalQuotaRepository;
+
+    @Inject
+    private IAuthorizer authorizer;
+
+    @Inject
+    public AllocationsController(
+        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
+        this.userGroups = userGroups;
+        this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
+    }
 
     private static final Logger logger = Logger.getLogger(AllocationsController.class);
 
@@ -89,15 +109,10 @@ public class AllocationsController {
     @ApiOperation(value = "Gives the allocation status of the given username.",
         notes = "This will only work for admin user group.")
     public String getAllocationsByUsername(
-        @HeaderParam("x-auth-userinfo") String userInfo,
-        @HeaderParam("x-auth-usergroup") String userGroup,
         @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
-        // check if the logged in user is in admin group
-        Boolean isAdmin = JsonUtils.isLoggedInUserAdmin(userGroup);
-
         JSONObject outJson = new JSONObject();
 
-        if (isAdmin) {
+        if (this.authorizer.isUserAdmin(this.groups)) {
             try {
                 outJson = JsonUtils.createUserFinalQuotaJson(userId, finalQuotaRepository);
             } catch (ParseException e) {
@@ -118,15 +133,10 @@ public class AllocationsController {
     @ApiOperation(value = "Gives the allocation status of the given group name.",
         notes = "This will only work for admin user group.")
     public String getAllocationsByGroupname(
-        @HeaderParam("x-auth-userinfo") String userInfo,
-        @HeaderParam("x-auth-usergroup") String userGroup,
         @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("groupname") String groupId) {
-        // check if the logged in user is in admin group
-        Boolean isAdmin = JsonUtils.isLoggedInUserAdmin(userGroup);
-
         JSONObject outJson = new JSONObject();
 
-        if (isAdmin) {
+        if (this.authorizer.isUserAdmin(this.groups)) {
             try {
                 outJson = JsonUtils.createGroupAllocationJson(groupId, allocationsRepository);
             } catch (ParseException e) {
