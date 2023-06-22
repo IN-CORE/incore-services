@@ -89,10 +89,8 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gives the allocation and can be used as status check as well.",
         notes = "This will provide the allocation of the logged in user.")
-    public String getUsage(@HeaderParam("x-auth-userinfo") String userInfo) {
+    public String getUsage() {
         JSONObject outJson = null;
-
-        String username = JsonUtils.parseUserName(userInfo);
 
         try {
             outJson = JsonUtils.createUserFinalQuotaJson(username, finalQuotaRepository);
