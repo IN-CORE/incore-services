@@ -134,6 +134,7 @@ public class UsageController {
         description = "This will only work for admin user group.")
     public String getUsageByUsername(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
+        @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
         JSONObject outJson = new JSONObject();
 
         if (this.authorizer.isUserAdmin(this.groups)) {
