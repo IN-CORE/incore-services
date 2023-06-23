@@ -5,7 +5,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.DistanceUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.EqUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.InputStream;
 import java.util.List;

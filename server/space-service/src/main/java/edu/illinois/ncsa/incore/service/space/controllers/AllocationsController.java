@@ -17,22 +17,25 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
-
-import javax.inject.Inject;
 import java.util.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * Created by ywkim on 3/14/2022.
  */
-
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Allocations Service for getting the user's allocation information.",
         version = "v0.1",
@@ -46,20 +49,13 @@ import javax.ws.rs.core.Response;
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
+    )
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {SwaggerDefinition.Scheme.HTTP}
 
 )
-
-@Api(value = "allocations", authorizations = {})
-
 @Path("allocations")
-@ApiResponses(value = {
-    @ApiResponse(code = 500, message = "Internal Server Error")
-})
-
 public class AllocationsController {
     private final String username;
     private final List<String> groups;
@@ -87,8 +83,8 @@ public class AllocationsController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the allocation and can be used as status check as well.",
-        notes = "This will provide the allocation of the logged in user.")
+    @Operation(summary = "Gives the allocation and can be used as status check as well.",
+        description = "This will provide the allocation of the logged in user.")
     public String getUsage() {
         JSONObject outJson = null;
 
@@ -104,10 +100,10 @@ public class AllocationsController {
     @GET
     @Path("users/{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the allocation status of the given username.",
-        notes = "This will only work for admin user group.")
+    @Operation(summary = "Gives the allocation status of the given username.",
+        description = "This will only work for admin user group.")
     public String getAllocationsByUsername(
-        @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
+        @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
         JSONObject outJson = new JSONObject();
 
         if (this.authorizer.isUserAdmin(this.groups)) {
@@ -128,10 +124,10 @@ public class AllocationsController {
     @GET
     @Path("groups/{groupname}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the allocation status of the given group name.",
-        notes = "This will only work for admin user group.")
+    @Operation(summary = "Gives the allocation status of the given group name.",
+        description = "This will only work for admin user group.")
     public String getAllocationsByGroupname(
-        @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("groupname") String groupId) {
+        @Parameter(name = "Dataset Id from data service", required = true) @PathParam("groupname") String groupId) {
         JSONObject outJson = new JSONObject();
 
         if (this.authorizer.isUserAdmin(this.groups)) {

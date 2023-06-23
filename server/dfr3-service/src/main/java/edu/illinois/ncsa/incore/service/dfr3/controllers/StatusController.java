@@ -20,7 +20,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
+// import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
@@ -43,8 +43,8 @@ import java.util.regex.Pattern;
     @ApiResponse(code = 500, message = "Internal Server Error")
 })
 public class StatusController {
-    @Context
-    private HttpServletRequest context;
+    // @Context
+    // private HttpServletRequest context;
     private static final Logger logger = Logger.getLogger(StatusController.class);
     private final HashMap<String, String> tests = new HashMap<String, String>();
     private static final String VERSION = System.getenv("SERVICE_VERSION");
