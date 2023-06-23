@@ -72,8 +72,8 @@ public class AllocationsController {
 
     @Inject
     public AllocationsController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
         this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);

@@ -104,8 +104,8 @@ public class UsageController {
 
     @Inject
     public UsageController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
         this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -133,7 +133,6 @@ public class UsageController {
     @Operation(summary = "Gives the usage status of the given username.",
         description = "This will only work for admin user group.")
     public String getUsageByUsername(
-        @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
         JSONObject outJson = new JSONObject();
 
