@@ -157,19 +157,21 @@ test {
             implementation('org.dom4j:dom4j:2.1.1')
 
             //base jersey and jackson
-            implementation('javax.ws.rs:javax.ws.rs-api:2.1.1')
-            implementation('org.glassfish.jersey.core:jersey-server:2.31')
-            implementation('org.glassfish.jersey.containers:jersey-container-servlet:2.31')
-            implementation('org.glassfish.jersey.media:jersey-media-json-jackson:2.31')
-            implementation('org.glassfish.jersey.media:jersey-media-json-jackson:2.31')
-            implementation(group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.31')
-            implementation(group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.31')
+            implementation('org.glassfish.jersey.core:jersey-server:3.1.2')
+            implementation('org.glassfish.jersey.containers:jersey-container-servlet:3.1.2')
+            implementation('org.glassfish.jersey.media:jersey-media-json-jackson:3.1.2')
+            implementation(group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '3.1.2')
+            implementation(group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '3.1.2')
 
-            implementation(group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.13')
+            // Swagger dependencies
+            implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.2.12'
+            implementation('io.swagger.core.v3:swagger-jaxrs2-jakarta:2.2.12')
+            implementation('io.swagger.core.v3:swagger-jaxrs2-servlet-initializer-jakarta:2.2.12')
+            implementation group: 'io.swagger.core.v3', name: 'swagger-jaxrs2', version: '2.2.12'
 
             // Libraries for testing jersey controller actions
-            testImplementation(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version: '2.31')
-            testImplementation(group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-servlet', version: '2.31')
+            testImplementation(group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-grizzly2', version: '3.1.2')
+            testImplementation(group: 'org.glassfish.jersey.containers', name: 'jersey-container-grizzly2-servlet', version: '3.1.2')
 
             // Temporary requirement for optional junit dependency that should not be optional
             testImplementation(group: 'org.apiguardian', name: 'apiguardian-api', version: '1.0.0')
