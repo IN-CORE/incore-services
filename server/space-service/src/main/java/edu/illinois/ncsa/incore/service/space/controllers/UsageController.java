@@ -128,7 +128,7 @@ public class UsageController {
     }
 
     @GET
-    @Path("{username}")
+    @Path("users/{username}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the usage status of the given username.",
         description = "This will only work for admin user group.")
