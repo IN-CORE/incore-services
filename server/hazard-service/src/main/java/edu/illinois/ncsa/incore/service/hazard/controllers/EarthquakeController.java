@@ -21,8 +21,10 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.models.DemandDefinition;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.DemandUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.Engine;
@@ -349,6 +351,15 @@ public class EarthquakeController {
         } catch (Exception e) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid User Info!");
         }
+    }
+
+    @GET
+    @Path("/demands")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns all earthquake allowed demand types and units.")
+    public  List<DemandDefinition> getEarthquakeDemands() {
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        return DemandUtils.getAllowedDemands(demandDefinition, "earthquake");
     }
 
     @GET

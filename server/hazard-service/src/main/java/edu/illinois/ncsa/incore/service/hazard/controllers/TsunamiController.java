@@ -21,8 +21,10 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.models.DemandDefinition;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.DemandUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITsunamiRepository;
@@ -156,6 +158,15 @@ public class TsunamiController {
             .collect(Collectors.toList());
 
         return accessibleTsunamis;
+    }
+
+    @GET
+    @Path("/demands")
+    @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Returns all tsunami allowed demand types and units.")
+    public List<DemandDefinition> getTsunamiDemands() {
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        return DemandUtils.getAllowedDemands(demandDefinition, "tsunami");
     }
 
     @GET
