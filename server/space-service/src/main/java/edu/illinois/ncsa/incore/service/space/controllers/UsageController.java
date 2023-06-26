@@ -25,9 +25,13 @@ import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import java.util.*;
 
 /**
  * Created by ywkim on 3/14/2022.
@@ -83,22 +87,36 @@ import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 //})
 
 public class UsageController {
+    private final String username;
+    private final List<String> groups;
+    private final String userGroups;
+
     @Inject
     private IUserAllocationsRepository allocationsRepository;
 
     @Inject
     private IUserFinalQuotaRepository quotaRepository;
 
+    @Inject
+    private IAuthorizer authorizer;
+
     private static final Logger logger = Logger.getLogger(UsageController.class);
+
+    @Inject
+    public UsageController(
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
+        this.userGroups = userGroups;
+        this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the usage status and can be used as status check as well.",
         description = "This will provide the usage of the logged in user.")
-    public String getUsage(@HeaderParam("x-auth-userinfo") String userInfo) {
+    public String getUsage() {
         JSONObject outJson = null;
-
-        String username = JsonUtils.parseUserName(userInfo);
 
         try {
             outJson = JsonUtils.createUserUsageJson(username, allocationsRepository);
@@ -110,20 +128,15 @@ public class UsageController {
     }
 
     @GET
-    @Path("{username}")
+    @Path("users/{username}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the usage status of the given username.",
         description = "This will only work for admin user group.")
     public String getUsageByUsername(
-        @HeaderParam("x-auth-userinfo") String userInfo,
-        @HeaderParam("x-auth-usergroup") String userGroup,
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
-        // check if the logged in user is in admin group
-        Boolean isAdmin = JsonUtils.isLoggedInUserAdmin(userGroup);
-
         JSONObject outJson = new JSONObject();
 
-        if (isAdmin) {
+        if (this.authorizer.isUserAdmin(this.groups)) {
             try {
                 outJson = JsonUtils.createUserUsageJson(userId, allocationsRepository);
             } catch (ParseException e) {

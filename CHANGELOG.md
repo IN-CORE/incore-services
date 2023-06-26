@@ -6,9 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-
 ### Changed
-
+- Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
 - Upgraded project and space-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#152](https://github.com/IN-CORE/incore-services/issues/152)
 
 ## [1.14.0] -2023-06-14
