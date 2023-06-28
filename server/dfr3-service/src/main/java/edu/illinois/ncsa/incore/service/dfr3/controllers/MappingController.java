@@ -28,19 +28,20 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.Mapping;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.log4j.Logger;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Api(value = "mappings", authorizations = {})
+
+@Tag(name = "Mapping")
 @Path("mappings")
 public class MappingController {
     private static final Logger logger = Logger.getLogger(MappingController.class);
@@ -73,8 +74,8 @@ public class MappingController {
 
     @Inject
     public MappingController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -82,15 +83,15 @@ public class MappingController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of all inventory mappings", notes = "Apply filters to get the desired set of mappings")
-    public List<MappingSet> getMappings(@ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                        @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                        @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
+    @Operation(tags = "Gets list of all inventory mappings", summary = "Apply filters to get the desired set of mappings")
+    public List<MappingSet> getMappings(@Parameter(name= "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                        @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                        @Parameter(name = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
                                             "mappingType") String mappingType,
-                                        @ApiParam(value = "Creator's username") @QueryParam("creator") String creator,
-                                        @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                        @Parameter(name = "Creator's username") @QueryParam("creator") String creator,
+                                        @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         Map<String, String> queryMap = new HashMap<>();
 
         if (hazardType != null) {
@@ -151,8 +152,8 @@ public class MappingController {
     @GET
     @Path("{mappingSetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a mapping set by Id", notes = "Get a particular mapping set based on the id provided")
-    public MappingSet getMappingSetById(@ApiParam(value = "mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
+    @Operation(tags = "Gets a mapping set by Id", summary = "Get a particular mapping set based on the id provided")
+    public MappingSet getMappingSetById(@Parameter(name = "mapping id", example = "5b47b2d9337d4a36187c7563") @PathParam("mappingSetId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
@@ -171,9 +172,9 @@ public class MappingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create an inventory mapping", notes = "Post a json that represents mapping between inventory's attributes and " +
+    @Operation(tags = "Create an inventory mapping", summary = "Post a json that represents mapping between inventory's attributes and " +
         "DFR3 object sets")
-    public MappingSet uploadMapping(@ApiParam(value = "json representing the fragility mapping") MappingSet mappingSet) {
+    public MappingSet uploadMapping(@Parameter(name = "json representing the fragility mapping") MappingSet mappingSet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(mappingSet.getId());
 
@@ -230,8 +231,8 @@ public class MappingController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{mappingId}")
-    @ApiOperation(value = "Deletes a mapping by id")
-    public MappingSet deleteMappingById(@ApiParam(value = "mapping id", example = "5b47b2d8337d4a36187c6727") @PathParam("mappingId") String id) {
+    @Operation(summary = "Deletes a mapping by id")
+    public MappingSet deleteMappingById(@Parameter(name = "mapping id", example = "5b47b2d8337d4a36187c6727") @PathParam("mappingId") String id) {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
@@ -261,12 +262,12 @@ public class MappingController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all mappings", notes = "Gets all mappings that contain a specific text")
-    public List<MappingSet> findMappings(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
-                                         @ApiParam(value = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
+    @Operation(tags = "Search for a text in all mappings", summary = "Gets all mappings that contain a specific text")
+    public List<MappingSet> findMappings(@Parameter(name = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                         @Parameter(name = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
                                              "mappingType") String mappingType,
-                                         @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                         @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                         @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                         @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         try {
             List<MappingSet> sets = new ArrayList<>();
             Optional<MappingSet> ms = this.mappingDAO.getMappingSetById(text);
