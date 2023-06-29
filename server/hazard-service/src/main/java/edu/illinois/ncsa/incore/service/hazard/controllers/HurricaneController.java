@@ -21,7 +21,6 @@ import edu.illinois.ncsa.incore.service.hazard.exception.UnsupportedHazardExcept
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesResponse;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import edu.illinois.ncsa.incore.service.hazard.models.flood.Flood;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.Hurricane;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.HurricaneHazardDataset;
@@ -29,7 +28,20 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneH
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.BodyPartEntity;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -37,10 +49,6 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -54,11 +62,10 @@ import java.util.stream.Collectors;
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
 import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.hurricaneComparator;
 
-@Api(value = "hurricanes", authorizations = {})
 
 @Path("hurricanes")
 @ApiResponses(value = {
-    @ApiResponse(code = 500, message = "Internal Server Error")
+    @ApiResponse(responseCode = "500", description = "Internal Server Error")
 })
 public class HurricaneController {
     private static final Logger log = Logger.getLogger(HurricaneController.class);
@@ -86,8 +93,8 @@ public class HurricaneController {
 
     @Inject
     public HurricaneController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
@@ -96,13 +103,13 @@ public class HurricaneController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all hurricanes.")
+    @Operation(summary = "Returns all hurricanes.")
     public List<Hurricane> getHurricanes(
-        @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
-        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
-        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
-        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @Parameter(name = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         // import hurricane comparator
         Comparator<Hurricane> comparator = hurricaneComparator(sortBy, order);
@@ -150,9 +157,9 @@ public class HurricaneController {
     @GET
     @Path("{hurricane-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the hurricane with matching id.")
+    @Operation(summary = "Returns the hurricane with matching id.")
     public Hurricane getHurricaneById(
-        @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId) {
+        @Parameter(name = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricane-id") String hurricaneId) {
 
         Hurricane hurricane = repository.getHurricaneById(hurricaneId);
         if (hurricane == null) {
@@ -171,16 +178,20 @@ public class HurricaneController {
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a new hurricane, the newly created hurricane is returned.",
-        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+    @Operation(summary = "Creates a new hurricane, the newly created hurricane is returned.",
+        description = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create dataset-based hurricanes only.")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "hurricane", value = "Hurricane json.", required = true, dataType = "string", paramType = "form"),
-        @ApiImplicitParam(name = "file", value = "Hurricane files.", required = true, dataType = "string", paramType = "form")
+//    @ApiImplicitParams({
+//        @ApiImplicitParam(name = "hurricane", value = "Hurricane json.", required = true, dataType = "string", paramType = "form"),
+//        @ApiImplicitParam(name = "file", value = "Hurricane files.", required = true, dataType = "string", paramType = "form")
+//    })
+    @Parameters({
+        @Parameter(name = "hurricane", description = "Hurricane json.", required = true, schema = @Schema(type = "string")),
+        @Parameter(name = "file", description = "Hurricane files.", required = true, schema = @Schema(type = "string"))
     })
     public Hurricane createHurricane(
-        @ApiParam(hidden = true) @FormDataParam("hurricane") String hurricaneJson,
-        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+        @Parameter(hidden = true) @FormDataParam("hurricane") String hurricaneJson,
+        @Parameter(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
         // check if the user's number of the hazard is within the allocation
         if (!AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, this.username, "hazards")) {
@@ -275,12 +286,12 @@ public class HurricaneController {
     @Path("{hurricane-id}/values")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns hurricane values for a set of locations",
-        notes = "Outputs hazard values, demand types, unit and location.")
+    @Operation(summary = "Returns hurricane values for a set of locations",
+        description = "Outputs hazard values, demand types, unit and location.")
     public List<ValuesResponse> postHurricaneValues(
-        @ApiParam(value = "Hurricane Id", required = true)
+        @Parameter(name = "Hurricane Id", required = true)
         @PathParam("hurricane-id") String hurricaneId,
-        @ApiParam(value = "Json of the points along with demand types and units",
+        @Parameter(name = "Json of the points along with demand types and units",
             required = true) @FormDataParam("points") String requestJsonStr) {
 
         Hurricane hurricane = getHurricaneById(hurricaneId);
@@ -371,8 +382,8 @@ public class HurricaneController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{hurricane-id}")
-    @ApiOperation(value = "Deletes a Hurricane", notes = "Also deletes attached datasets and related files")
-    public Hurricane deleteHurricanes(@ApiParam(value = "Hurricane Id", required = true) @PathParam("hurricane-id") String hurricaneId) {
+    @Operation(summary = "Deletes a Hurricane", description = "Also deletes attached datasets and related files")
+    public Hurricane deleteHurricanes(@Parameter(name = "Hurricane Id", required = true) @PathParam("hurricane-id") String hurricaneId) {
         Hurricane hurricane = getHurricaneById(hurricaneId);
 
         if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
@@ -413,16 +424,16 @@ public class HurricaneController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all hurricanes", notes = "Gets all hurricanes that contain a specific text")
+    @Operation(summary = "Search for a text in all hurricanes", description = "Gets all hurricanes that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No hurricanes found with the searched text")
+        @ApiResponse(responseCode = "404", description = "No hurricanes found with the searched text")
     })
     public List<Hurricane> findHurricanes(
-        @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
-        @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
-        @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
-        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @Parameter(name = "Text to search by", example = "building") @QueryParam("text") String text,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         // import hurricane comparator
         Comparator<Hurricane> comparator = hurricaneComparator(sortBy, order);
