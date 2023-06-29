@@ -10,10 +10,10 @@ import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
 import io.swagger.annotations.*;
 import org.bson.Document;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
