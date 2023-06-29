@@ -12,6 +12,10 @@
             <param-value>true</param-value>
         </init-param>
         <init-param>
+            <param-name>jakarta.ws.rs.Application</param-name>
+            <param-value>edu.illinois.ncsa.incore.service.data.Application</param-value>
+        </init-param>
+        <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>
                 edu.illinois.ncsa.incore.service.data.controllers,
