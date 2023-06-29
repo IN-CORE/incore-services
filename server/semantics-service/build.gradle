@@ -3,9 +3,8 @@ gretty {
     contextPath '/semantics/'
 }
 
-// TODO investigate if we really need semantics core or not
-//dependencies {
-//    implementation group: 'org.apache.jena', name: 'jena-core', version: '3.1.1'
-//    implementation project(':semantic-core')
-//}
+dependencies {
+    implementation group: 'org.apache.jena', name: 'jena-core', version: '3.1.1'
+    implementation project(':semantic-core')
+}
 
