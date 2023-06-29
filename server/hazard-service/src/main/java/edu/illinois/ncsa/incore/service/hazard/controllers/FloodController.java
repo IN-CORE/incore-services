@@ -36,14 +36,10 @@ import edu.illinois.ncsa.incore.service.hazard.models.flood.types.FloodHazardRes
 import edu.illinois.ncsa.incore.service.hazard.models.flood.utils.FloodCalc;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.inject.Inject;
@@ -187,14 +183,15 @@ public class FloodController {
     @Operation(summary = "Creates a new flood, the newly created flood is returned.",
         description = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create dataset-based floods only.")
-//    @ApiImplicitParams({
-//        @ApiImplicitParam(name = "flood", value = "Flood json.", required = true, dataType = "string", paramType = "form"),
-//        @ApiImplicitParam(name = "file", value = "Flood files.", required = true, dataType = "string", paramType = "form")
-//    })
-    @Parameters({
-        @Parameter(name = "flood", description = "Flood json.", required = true, schema = @Schema(type = "string")),
-        @Parameter(name = "file", description = "Flood files.", required = true, schema = @Schema(type = "string"))
-    })
+
+    @RequestBody(description = "Flood json and files.", required = true,
+        content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED,
+            schema = @Schema(type = "object",
+                properties = {@StringToClassMapItem(key = "flood", value = String.class),
+                    @StringToClassMapItem(key = "file", value = String.class)}
+            )
+        )
+    )
     public Flood createFlood(
         @Parameter(hidden = true) @FormDataParam("flood") String floodJson,
         @Parameter(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {

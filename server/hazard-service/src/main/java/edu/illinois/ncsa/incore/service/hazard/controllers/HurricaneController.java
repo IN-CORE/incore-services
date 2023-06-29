@@ -28,14 +28,10 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricane.types.HurricaneH
 import edu.illinois.ncsa.incore.service.hazard.models.hurricane.utils.HurricaneCalc;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.inject.Inject;
@@ -181,14 +177,15 @@ public class HurricaneController {
     @Operation(summary = "Creates a new hurricane, the newly created hurricane is returned.",
         description = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create dataset-based hurricanes only.")
-//    @ApiImplicitParams({
-//        @ApiImplicitParam(name = "hurricane", value = "Hurricane json.", required = true, dataType = "string", paramType = "form"),
-//        @ApiImplicitParam(name = "file", value = "Hurricane files.", required = true, dataType = "string", paramType = "form")
-//    })
-    @Parameters({
-        @Parameter(name = "hurricane", description = "Hurricane json.", required = true, schema = @Schema(type = "string")),
-        @Parameter(name = "file", description = "Hurricane files.", required = true, schema = @Schema(type = "string"))
-    })
+
+    @RequestBody(description = "Hurricane json and files.", required = true,
+        content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED,
+            schema = @Schema(type = "object",
+                properties = {@StringToClassMapItem(key = "hurricane", value = String.class),
+                    @StringToClassMapItem(key = "file", value = String.class)}
+            )
+        )
+    )
     public Hurricane createHurricane(
         @Parameter(hidden = true) @FormDataParam("hurricane") String hurricaneJson,
         @Parameter(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {

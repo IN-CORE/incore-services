@@ -38,17 +38,12 @@ import edu.illinois.ncsa.incore.service.hazard.models.tsunami.types.TsunamiHazar
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.utils.TsunamiCalc;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -289,14 +284,15 @@ public class TsunamiController {
     @Operation(summary = "Creates a new tsunami, the newly created tsunami is returned.",
         description = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create dataset-based tsunamis only.")
-//    @ApiImplicitParams({
-//        @ApiImplicitParam(name = "tsunami", value = "Tsunami json.", required = true, dataType = "string", paramType = "form"),
-//        @ApiImplicitParam(name = "file", value = "Tsunami files.", required = true, dataType = "string", paramType = "form")
-//    })
-    @Parameters({
-        @Parameter(name = "tsunami", description = "Tsunami json.", required = true, schema = @Schema(type = "string")),
-        @Parameter(name = "file", description = "Tsunami files.", required = true, schema = @Schema(type = "string"))
-    })
+
+    @RequestBody(description = "Tsunami json and files.", required = true,
+        content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED,
+            schema = @Schema(type = "object",
+                properties = {@StringToClassMapItem(key = "tsunami", value = String.class),
+                    @StringToClassMapItem(key = "file", value = String.class)}
+            )
+        )
+    )
     public Tsunami createTsunami(
         @Parameter(hidden = true) @FormDataParam("tsunami") String tsunamiJson,
         @Parameter(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {

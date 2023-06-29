@@ -34,14 +34,10 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.inject.Inject;
@@ -71,7 +67,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
-import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.hurricaneComparator;
 import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoComparator;
 
 
@@ -173,14 +168,15 @@ public class TornadoController {
     @Operation(summary = "Creates a new tornado, the newly created tornado is returned.",
         description = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create both model tornadoes and dataset-based tornadoes with GeoTiff files uploaded.")
-//    @ApiImplicitParams({
-//        @ApiImplicitParam(name = "tornado", value = "Tornado json.", required = true, dataType = "string", paramType = "form"),
-//        @ApiImplicitParam(name = "file", value = "Tornado files.", required = true, dataType = "string", paramType = "form")
-//    })
-    @Parameters({
-        @Parameter(name = "tornado", description = "Tornado json.", required = true, schema = @Schema(type = "string")),
-        @Parameter(name = "file", description = "Tornado files.", required = true, schema = @Schema(type = "string"))
-    })
+
+    @RequestBody(description = "Tornado json and files.", required = true,
+        content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED,
+            schema = @Schema(type = "object",
+                properties = {@StringToClassMapItem(key = "tornado", value = String.class),
+                    @StringToClassMapItem(key = "file", value = String.class)}
+            )
+        )
+    )
     public Tornado createTornado(
         @Parameter(hidden = true) @FormDataParam("tornado") String tornadoJson,
         @Parameter(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
