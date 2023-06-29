@@ -17,13 +17,12 @@ dependencies {
 
     implementation group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
     implementation group: 'it.geosolutions', name: 'geoserver-manager', version: '1.7.0'
-    implementation group: 'org.eclipse.jetty', name: 'jetty-client', version: '11.0.2'
 
     implementation group: 'com.opencsv', name: 'opencsv', version: '3.3'
 
-    implementation 'org.jsoup:jsoup:1.10.2'
-    implementation 'com.github.lookfirst:sardine:5.1'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.4.0'
+    implementation 'org.jsoup:jsoup:1.15.4'
+    implementation 'com.github.lookfirst:sardine:5.10'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.14.2'
 
     implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.5'
 }
