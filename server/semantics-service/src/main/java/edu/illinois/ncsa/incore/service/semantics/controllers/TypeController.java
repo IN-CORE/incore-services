@@ -7,7 +7,13 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.bson.Document;
 
 import jakarta.inject.Inject;
@@ -17,8 +23,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
         version = "v0.6.3",
@@ -32,13 +37,10 @@ import java.util.stream.Collectors;
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
+    )
 )
 
-@Api(value = "types", authorizations = {})
+@Tag(name = "types")
 
 @Path("")
 public class TypeController {
@@ -56,8 +58,8 @@ public class TypeController {
 
     @Inject
     public TypeController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -71,7 +73,7 @@ public class TypeController {
     @GET
     @Path("types")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "list all types belong user has access to.")
+    @Operation(summary = "list all types belong user has access to.")
     public Response listTypes() {
         List<Document> typeList = this.typeDAO.getTypes();
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
@@ -88,10 +90,10 @@ public class TypeController {
     @GET
     @Path("types/{uri}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Show specific types by uri.")
+    @Operation(summary = "Show specific types by uri.")
     public Response getType(
-        @ApiParam(value = "Type uri (name).", required = true) @PathParam("uri") String uri,
-        @ApiParam(value = "version number.") @QueryParam("version") String version) {
+        @Parameter(name = "Type uri (name).", required = true) @PathParam("uri") String uri,
+        @Parameter(name = "version number.") @QueryParam("version") String version) {
         if (version == null) {
             version = "latest";
         }
@@ -131,9 +133,9 @@ public class TypeController {
     @GET
     @Path("types/search")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Search type by partial match of text.")
+    @Operation(summary = "Search type by partial match of text.")
     public Response searchType(
-        @ApiParam(value = "Type uri (name).") @QueryParam("text") String text) {
+        @Parameter(name = "Type uri (name).") @QueryParam("text") String text) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
@@ -154,9 +156,9 @@ public class TypeController {
     @Path("/types")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Publish new type.")
+    @Operation(summary = "Publish new type.")
     public Response publishType(
-        @ApiParam(value = "Type uri (name).") Document type) {
+        @Parameter(name = "Type uri (name).") Document type) {
         Space space = spaceRepository.getSpaceByName(this.username);
 
         String id = this.typeDAO.postType(type);
@@ -173,9 +175,9 @@ public class TypeController {
     @DELETE
     @Path("types/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete type by id.")
+    @Operation(summary = "Delete type by id.")
     public Response deleteType(
-        @ApiParam(value = "Type id.") @PathParam("id") String id) {
+        @Parameter(name = "Type id.") @PathParam("id") String id) {
         String deletedId = this.typeDAO.deleteType(id);
         if (deletedId == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with id " + id);
