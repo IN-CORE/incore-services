@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
 - Upgraded project and space-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#152](https://github.com/IN-CORE/incore-services/issues/152)
+- Upgraded project and semantics-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#167](https://github.com/IN-CORE/incore-services/issues/167)
 
 ## [1.14.0] -2023-06-14
 ### Added
