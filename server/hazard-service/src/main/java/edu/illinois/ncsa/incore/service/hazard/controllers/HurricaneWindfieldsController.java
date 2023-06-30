@@ -47,6 +47,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -66,6 +67,8 @@ import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_DEMAND;
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_UNIT;
+
+@Tag(name = "hurricaneWindfields")
 
 @Path("hurricaneWindfields")
 @ApiResponses(value = {

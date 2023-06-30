@@ -40,6 +40,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -69,6 +70,7 @@ import java.util.stream.Collectors;
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
 import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoComparator;
 
+@Tag(name = "tornadoes")
 
 @Path("tornadoes")
 @ApiResponses(value = {
