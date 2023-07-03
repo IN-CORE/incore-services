@@ -6,6 +6,8 @@ import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
 import edu.illinois.ncsa.incore.service.data.utils.ServiceUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -19,6 +21,9 @@ import java.io.IOException;
 @Tag(name = "status")
 
 @Path("status")
+@ApiResponses(value = {
+    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+})
 public class StatusController {
     @Inject
     private IRepository repository;
