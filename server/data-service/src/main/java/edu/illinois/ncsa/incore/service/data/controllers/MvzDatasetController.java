@@ -13,15 +13,15 @@ package edu.illinois.ncsa.incore.service.data.controllers;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.mvz.MvzDataset;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.apache.log4j.Logger;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 //TODO: Not enabling swagger docs because this controller is out of date with using X-Credential-Username
@@ -37,7 +37,7 @@ public class MvzDatasetController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of all MVZ Datasets", notes = "")
+    @Operation(summary = "Gets the list of all MVZ Datasets", description = "")
     public List<MvzDataset> getMvzDatasetList() {
         List<MvzDataset> mvzDatasets = repository.getAllMvzDatasets();
         if (mvzDatasets == null) {

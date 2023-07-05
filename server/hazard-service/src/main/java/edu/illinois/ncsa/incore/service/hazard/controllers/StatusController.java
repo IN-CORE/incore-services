@@ -3,28 +3,24 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.hazard.dao.*;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-@Api(value = "status", authorizations = {})
+@Tag(name = "status")
 
 @Path("status")
 @ApiResponses(value = {
-    @ApiResponse(code = 500, message = "Internal Server Error")
+    @ApiResponse(responseCode = "500", description = "Internal Server Error")
 })
 public class StatusController {
     private static final Logger logger = Logger.getLogger(StatusController.class);
@@ -49,8 +45,8 @@ public class StatusController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gives the status of the service.",
-        notes = "This will provide the status of the service as a JSON.")
+    @Operation(summary = "Gives the status of the service.",
+        description = "This will provide the status of the service as a JSON.")
     public String getStatus() {
         String statusJson = "{\"status\": \"responding\"}";
         return statusJson;
@@ -59,7 +55,7 @@ public class StatusController {
     @GET
     @Path("usage")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the count for each hazard.", notes = "")
+    @Operation(summary = "Gives the count for each hazard.", description = "")
     public String getUserStatusHazards(@HeaderParam("x-auth-userinfo") String userInfo) {
         int numEarthquakes = 0;
         int numFloods = 0;
