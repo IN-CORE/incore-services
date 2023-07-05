@@ -15,7 +15,7 @@ import dev.morphia.annotations.Property;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import org.bson.types.ObjectId;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
