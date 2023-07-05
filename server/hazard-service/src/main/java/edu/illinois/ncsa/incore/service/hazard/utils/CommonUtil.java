@@ -10,7 +10,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.Tornado;
 import edu.illinois.ncsa.incore.service.hazard.models.tsunami.Tsunami;
 import org.json.simple.JSONObject;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.List;
 

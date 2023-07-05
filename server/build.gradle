@@ -173,6 +173,7 @@ test {
             implementation("io.swagger.core.v3:swagger-annotations:$swaggerVersion")
             implementation("io.swagger.core.v3:swagger-jaxrs2-jakarta:$swaggerVersion")
             implementation("io.swagger.core.v3:swagger-jaxrs2-servlet-initializer-jakarta:$swaggerVersion")
+            //implementation("io.swagger.core.v3:swagger-jaxrs2:$swaggerVersion")
 
             // Libraries for testing jersey controller actions
             testImplementation("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:$jerseyVersion")
