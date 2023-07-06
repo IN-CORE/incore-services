@@ -65,7 +65,6 @@ farm {
     webapp ':hazard-service'
     webapp ':semantics-service'
     webapp ':space-service'
-    webapp ':maestro-service'
 }
 
 task farmWars(dependsOn: war, type: Copy) {
@@ -113,7 +112,7 @@ test {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["dfr3-service", "data-service", "hazard-service", "semantics-service", "space-service", "maestro-service"].each { name ->
+["dfr3-service", "data-service", "hazard-service", "semantics-service", "space-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'
@@ -184,3 +183,4 @@ test {
         }
     }
 }
+
