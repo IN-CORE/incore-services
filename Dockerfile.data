@@ -1,5 +1,6 @@
-FROM openjdk:11-jre
+FROM jetty:11.0.15-jre11
 
+USER root
 # TODO we could compile the service here so this works standalone
 
 # install cron
@@ -8,9 +9,12 @@ RUN apt-get -qq -y update && \
 
 # Working Directory
 WORKDIR /home/incore
+
+# Copy service war
 COPY server/data-service/build/libs/data-service.war /home/incore/lib/
-COPY docker/data.xml /home/incore/conf/
-COPY docker/jetty-runner.jar /home/incore/lib/
+
+# Copy service context to jetty webapps
+COPY docker/data.xml /var/lib/jetty/webapps/
 
 # cron job
 COPY clear_cache.sh /home/incore/clear_cache.sh
@@ -29,8 +33,11 @@ RUN chmod go+w /var/log/clear_cache_cron.log
 # create data directory mounting point
 RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
 
-ENV JETTY_PORT 8080 
+# Reset WORKDIR so jetty runs correctly
+WORKDIR /var/lib/jetty
+
+ENV JETTY_PORT 8080
 
 EXPOSE 8080
-CMD ["sh", "-c", "cron && java -Djava.io.tmpdir=/home/incore/ -jar lib/jetty-runner.jar --port 8888 conf/data.xml"]
+CMD ["sh", "-c", "cron && java -Djava.io.tmpdir=/home/incore/ -jar /usr/local/jetty/start.jar"]
 
