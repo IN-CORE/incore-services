@@ -10,7 +10,7 @@ public interface ITypeDAO {
 
     List<Document> getTypes();
 
-    Optional<List<Document>> getTypeByUri(String uri, String version);
+    Optional<List<Document>> getTypeByName(String name, String version);
 
     String postType(Document type);
 
