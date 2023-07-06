@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.service.semantics.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -47,7 +47,6 @@ public class TypeController {
 
     private final String username;
 
-    private final Authorizer authorizer;
     private final List<String> groups;
 
     @Inject
@@ -57,17 +56,15 @@ public class TypeController {
     private ISpaceRepository spaceRepository;
 
     @Inject
+    private IAuthorizer authorizer;
+
+    @Inject
     public TypeController(
         @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
-        // we want to limit the semantics service to admins for now
-        this.authorizer = new Authorizer();
-        if (!this.authorizer.isUserAdmin(this.groups)) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
-        }
     }
 
     @GET
@@ -159,17 +156,19 @@ public class TypeController {
     @Operation(summary = "Publish new type.")
     public Response publishType(
         @Parameter(name = "Type uri (name).") Document type) {
-        Space space = spaceRepository.getSpaceByName(this.username);
 
-        String id = this.typeDAO.postType(type);
+        if (authorizer.isUserAdmin(this.groups)) {
+            Space space = spaceRepository.getSpaceByName(this.username);
+            String id = this.typeDAO.postType(type);
+            // add id to matching space
+            space.addMember(id);
+            spaceRepository.addSpace(space);
 
-        // add id to matching space
-        space.addMember(id);
-        spaceRepository.addSpace(space);
-
-        return Response.ok(id).status(200)
-            .build();
-
+            return Response.ok(id).status(200)
+                .build();
+        } else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+        }
     }
 
     @DELETE
