@@ -30,3 +30,5 @@ server/incore-v2.iws
 server/local.properties
 
 .vagrant/
+.vscode/settings.json
+server/.vscode/settings.json

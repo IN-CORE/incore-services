@@ -16,15 +16,15 @@ import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
 
@@ -43,8 +43,8 @@ public class FileController {
 
     @Inject
     public FileController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -54,7 +54,7 @@ public class FileController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of all files' metadata", notes = "")
+    @Operation(summary = "Gets the list of all files' metadata", description = "")
     public List<FileDescriptor> getFileDescriptorList() {
         List<FileDescriptor> fds = repository.getAllFileDescriptors();
         if (fds == null) {
@@ -68,8 +68,8 @@ public class FileController {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets metadata of a file's metadata", notes = "")
-    public FileDescriptor getFileDescriptorById(@ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("id") String id) {
+    @Operation(summary = "Gets metadata of a file's metadata", description = "")
+    public FileDescriptor getFileDescriptorById(@Parameter(name = "FileDescriptor Object Id", required = true) @PathParam("id") String id) {
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {
             logger.error("Error finding dataset.");
@@ -105,8 +105,8 @@ public class FileController {
     @GET
     @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @ApiOperation(value = "Returns a file linked to the FileDescriptor Object", notes = "")
-    public Response getFileByFileDescriptorId(@ApiParam(value = "FileDescriptor Object Id") @PathParam("id") String id) {
+    @Operation(summary = "Returns a file linked to the FileDescriptor Object", description = "")
+    public Response getFileByFileDescriptorId(@Parameter(name = "FileDescriptor Object Id") @PathParam("id") String id) {
         File outFile = null;
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {

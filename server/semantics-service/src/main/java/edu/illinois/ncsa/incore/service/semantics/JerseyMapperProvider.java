@@ -11,8 +11,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import edu.illinois.ncsa.incore.semantic.units.io.serializer.json.JsonUnitSerializer;
 import edu.illinois.ncsa.incore.semantic.units.model.Unit;
 
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Provider;
 
 @Provider
 public class JerseyMapperProvider implements ContextResolver<ObjectMapper> {

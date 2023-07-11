@@ -17,9 +17,7 @@ import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
 import edu.illinois.ncsa.incore.common.models.UserUsages;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
-
-
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 public class AllocationUtils {
 

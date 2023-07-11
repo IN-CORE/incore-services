@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.FaultMechanism;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.DistanceUtil;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.log4j.Logger;
 
 import java.io.InputStream;

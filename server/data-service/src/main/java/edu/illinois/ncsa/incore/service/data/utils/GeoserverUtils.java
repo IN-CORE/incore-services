@@ -14,21 +14,22 @@ import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.Authentication;
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.util.BasicAuthentication;
-import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.http.HttpStatus;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Created by ywkim on 11/9/2017.
@@ -196,30 +197,65 @@ public class GeoserverUtils {
      * @throws Exception
      */
     public static boolean uploadGpkgToGeoserver(String store, File gpkgFile) {
+//        String url = GEOSERVER_REST_URL + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/"
+//            + store + "/file.gpkg";
+//        URI uri = URI.create(url);
+//        Authentication.Result auth = new BasicAuthentication.BasicResult(uri, GEOSERVER_USER, GEOSERVER_PW);
+//
+//
+//        HttpClient httpClient = new HttpClient();
+//        try {
+//            httpClient.start();
+//            Request request = httpClient.newRequest(uri);
+//            request.method(HttpMethod.PUT);
+//            request.file(gpkgFile.toPath(), "application/x-sqlite3");
+//
+//            auth.apply(request);
+//            ContentResponse response = request.send();
+//            int responseStatus = response.getStatus();
+//            httpClient.stop();
+//
+//            if ((responseStatus == HttpStatus.CREATED_201) || (responseStatus == HttpStatus.ACCEPTED_202) || (responseStatus == HttpStatus.OK_200)) {
+//                return true;
+//            }
+//        } catch (Exception e) {
+//            logger.error("HttpClient error", e);
+//            return false;
+//        }
+//
+//        return false;
+
         String url = GEOSERVER_REST_URL + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/"
             + store + "/file.gpkg";
-        URI uri = URI.create(url);
-        Authentication.Result auth = new BasicAuthentication.BasicResult(uri, GEOSERVER_USER, GEOSERVER_PW);
 
-
-        HttpClient httpClient = new HttpClient();
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
-            httpClient.start();
-            Request request = httpClient.newRequest(uri);
-            request.method(HttpMethod.PUT);
-            request.file(gpkgFile.toPath(), "application/x-sqlite3");
+            HttpPut httpPut = new HttpPut(url);
 
-            auth.apply(request);
-            ContentResponse response = request.send();
-            int responseStatus = response.getStatus();
-            httpClient.stop();
+            // Set credentials
+            String credentials = GEOSERVER_USER + ":" + GEOSERVER_PW;
+            String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+            httpPut.setHeader(org.apache.http.HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials);
 
-            if ((responseStatus == HttpStatus.CREATED_201) || (responseStatus == HttpStatus.ACCEPTED_202) || (responseStatus == HttpStatus.OK_200)) {
+            httpPut.addHeader(org.apache.http.HttpHeaders.AUTHORIZATION, encodedCredentials);
+            httpPut.setEntity(new FileEntity(gpkgFile, ContentType.create("application/x-sqlite3")));
+
+            HttpResponse response = httpClient.execute(httpPut);
+            int responseStatus = response.getStatusLine().getStatusCode();
+
+            if (responseStatus == HttpStatus.SC_CREATED || responseStatus == HttpStatus.SC_ACCEPTED
+                || responseStatus == HttpStatus.SC_OK) {
                 return true;
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("HttpClient error", e);
             return false;
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                logger.error("Failed to close HttpClient", e);
+            }
         }
 
         return false;
