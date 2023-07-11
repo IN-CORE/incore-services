@@ -16,5 +16,5 @@ public interface ITypeDAO {
 
     Optional<List<Document>> searchType(String typeName);
 
-    String deleteType(String id);
+    String deleteType(String name);
 }

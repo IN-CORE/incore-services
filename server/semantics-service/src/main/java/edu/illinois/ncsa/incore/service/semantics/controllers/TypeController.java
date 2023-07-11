@@ -177,28 +177,35 @@ public class TypeController {
     }
 
     @DELETE
-    @Path("types/{id}")
+    @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete type by id.")
+    @Operation(summary = "Delete type by title.")
     public Response deleteType(
-        @Parameter(name = "Type id.") @PathParam("id") String id) {
-        String deletedId = this.typeDAO.deleteType(id);
-        if (deletedId == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with id " + id);
-        }
+        @Parameter(name = "Type title.") @PathParam("name") String name) {
+        if (!authorizer.isUserAdmin(this.groups))
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
 
         // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permissions to delete
-        // remove id from spaces
-        List<Space> spaces = spaceRepository.getAllSpaces();
-        for (Space space : spaces) {
-            if (space.hasMember(deletedId)) {
-                space.removeMember(deletedId);
-                spaceRepository.addSpace(space);
+        try{
+            String deletedId = this.typeDAO.deleteType(name);
+            if (deletedId == null) {
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with title " + name);
             }
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(deletedId)) {
+                    space.removeMember(deletedId);
+                    spaceRepository.addSpace(space);
+                }
+            }
+            return Response.ok(deletedId).status(200)
+                .build();
+        } catch (IncoreHTTPException e){
+            throw e;
+        } catch (Exception e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid type JSON. " + e);
         }
-        return Response.ok(deletedId).status(200)
-            .build();
-
     }
 
 }
