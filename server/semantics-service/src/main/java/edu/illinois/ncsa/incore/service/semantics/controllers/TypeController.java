@@ -179,9 +179,9 @@ public class TypeController {
     @DELETE
     @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete type by title.")
+    @Operation(summary = "Delete type by name.")
     public Response deleteType(
-        @Parameter(name = "Type title.") @PathParam("name") String name) {
+        @Parameter(name = "Type name.") @PathParam("name") String name) {
         if (!authorizer.isUserAdmin(this.groups))
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
 
@@ -189,7 +189,7 @@ public class TypeController {
         try{
             String deletedId = this.typeDAO.deleteType(name);
             if (deletedId == null) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with title " + name);
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
             }
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
