@@ -156,18 +156,23 @@ public class TypeController {
     @Operation(summary = "Publish new type.")
     public Response publishType(
         @Parameter(name = "Type uri (name).") Document type) {
+        try {
+            if (authorizer.isUserAdmin(this.groups)) {
+                Space space = spaceRepository.getSpaceByName(this.username);
+                String id = this.typeDAO.postType(type);
+                // add id to matching space
+                space.addMember(id);
+                spaceRepository.addSpace(space);
 
-        if (authorizer.isUserAdmin(this.groups)) {
-            Space space = spaceRepository.getSpaceByName(this.username);
-            String id = this.typeDAO.postType(type);
-            // add id to matching space
-            space.addMember(id);
-            spaceRepository.addSpace(space);
-
-            return Response.ok(id).status(200)
-                .build();
-        } else {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+                return Response.ok(id).status(200)
+                    .build();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+            }
+        } catch (IncoreHTTPException e){
+            throw e;
+        } catch (Exception e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid type JSON. " + e);
         }
     }
 
