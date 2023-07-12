@@ -71,17 +71,29 @@ public class TypeController {
     @Path("types")
     @Produces({MediaType.APPLICATION_JSON})
     @Operation(summary = "list all types belong user has access to.")
-    public Response listTypes() {
+    public Response listTypes(
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("asc") @QueryParam("order") String order,
+        @Parameter(name = "Skip the first n results.") @DefaultValue("0") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
+        @Parameter(name = "List the details.") @DefaultValue("false") @QueryParam("detail") boolean detail) {
+        Comparator<String> comparator = Comparator.naturalOrder();
+        if (order.equals("desc")) comparator = comparator.reversed();
+
         List<Document> typeList = this.typeDAO.getTypes();
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-        //return the intersection between all types and the ones the user can read
-        List<Document> results = typeList.stream()
-            .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+        List<String> results = typeList.stream()
+            .map(t -> t.get("dc:title").toString())
+            .sorted(comparator)
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
+
+        if (detail) {
+            String endpoint = "https://incore.ncsa.illinois.edu/semantics/api/types/";
+            results = results.stream().map(typename -> endpoint + typename).collect(Collectors.toList());
+        }
 
         return Response.ok(results).status(200)
             .build();
-
     }
 
     @GET
