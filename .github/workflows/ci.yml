@@ -69,7 +69,6 @@ jobs:
           - dfr3
           - hazard
           - semantics
-          - maestro
           - space
         include:
           - name: data
@@ -84,9 +83,6 @@ jobs:
           - name: semantics
             dockerfile: Dockerfile.semantics
             hub_project: incore/semantics-jetty
-          - name: maestro
-            dockerfile: Dockerfile.maestro
-            hub_project: incore/maestro-jetty
           - name: space
             dockerfile: Dockerfile.space
             hub_project: incore/space-jetty
