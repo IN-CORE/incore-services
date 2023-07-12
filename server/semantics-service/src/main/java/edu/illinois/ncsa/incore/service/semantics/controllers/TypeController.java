@@ -88,17 +88,17 @@ public class TypeController {
     }
 
     @GET
-    @Path("types/{uri}")
+    @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Show specific types by uri.")
     public Response getType(
-        @Parameter(name = "Type uri (name).", required = true) @PathParam("uri") String uri,
+        @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
         @Parameter(name = "version number.") @QueryParam("version") String version) {
         if (version == null) {
             version = "latest";
         }
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-        Optional<List<Document>> typeList = this.typeDAO.getTypeByUri(uri, version);
+        Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
 
         if (typeList.isPresent()) {
             // make sure that uri is in the namespace
@@ -126,7 +126,7 @@ public class TypeController {
                 .build();
 
         } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + uri + " version " + version + " !");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
         }
     }
 

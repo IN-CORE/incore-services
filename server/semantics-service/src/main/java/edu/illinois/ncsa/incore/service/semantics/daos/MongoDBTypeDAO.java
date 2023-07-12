@@ -33,22 +33,22 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     }
 
     private void loadTypes() {
-        this.typeList = (List<Document>) this.dataStoreType.find().into(new ArrayList<Document>());
+        this.typeList = (List<Document>) this.typeDataStore.find().into(new ArrayList<Document>());
 
     }
 
     @Override
-    public Optional<List<Document>> getTypeByUri(String uri, String version) {
+    public Optional<List<Document>> getTypeByName(String name, String version) {
         List<Document> matchedTypeList;
 
         // version can be all, latest or specific version
         if (version.equals("all") || version.equals("latest")) {
             // due to latest and all need to be restricted by space
             // check latest later
-            matchedTypeList = (List<Document>) this.dataStoreType
-                .find(eq("url", uri)).into(new ArrayList<Document>());
+            matchedTypeList = (List<Document>) this.typeDataStore
+                .find(eq("dc:title", name)).into(new ArrayList<Document>());
         } else {
-            matchedTypeList = (List<Document>) this.dataStoreType.find(and(eq("url", uri),
+            matchedTypeList = (List<Document>) this.typeDataStore.find(and(eq("dc:title", name),
                 eq("openvocab:versionnumber", version))).into(new ArrayList<Document>());
         }
 
@@ -62,7 +62,7 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
     @Override
     public Optional<List<Document>> searchType(String typeName) {
-        List<Document> typeList = (List<Document>) this.dataStoreType.find().into(new ArrayList<Document>());
+        List<Document> typeList = (List<Document>) this.typeDataStore.find().into(new ArrayList<Document>());
         List<Document> matchTypeList = new ArrayList<Document>();
 
         for (Document datsetType : typeList) {
@@ -94,7 +94,7 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     public String postType(Document newType) {
         if (newType != null && checkNewType(newType)) {
             // insert new type
-            this.dataStoreType.insertOne(newType);
+            this.typeDataStore.insertOne(newType);
 
             return newType.getObjectId("_id").toString();
         } else {
@@ -102,9 +102,10 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
         }
     }
 
+
     @Override
     public String deleteType(String id) {
-        this.dataStoreType.findOneAndDelete(eq("_id", new ObjectId(id)));
+        this.typeDataStore.findOneAndDelete(eq("_id", new ObjectId(id)));
         return id;
     }
 
