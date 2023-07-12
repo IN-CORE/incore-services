@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Endpoints to return allowed demand types and units [#155](https://github.com/IN-CORE/incore-services/issues/155)
+
 ### Changed
 - Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
 - Upgraded project and space-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#152](https://github.com/IN-CORE/incore-services/issues/152)
