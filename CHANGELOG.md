@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
 ### Added
 - Endpoints to return allowed demand types and units [#155](https://github.com/IN-CORE/incore-services/issues/155)
 
