@@ -22,7 +22,7 @@ import dev.morphia.annotations.Embedded;
 import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.math.BigInteger;
 
 @XmlRootElement

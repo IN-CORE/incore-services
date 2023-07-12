@@ -486,6 +486,7 @@ public class StringUtils {
     /**
      * @deprecated use ExceptionUtils
      */
+    @Deprecated
     public static boolean checkException(Throwable t, String toMatch) {
         return ExceptionUtils.checkException(t, toMatch);
     } // checkException
@@ -493,6 +494,7 @@ public class StringUtils {
     /**
      * @deprecated use ExceptionUtils
      */
+    @Deprecated
     public static String getStackTrace(Throwable t) {
         return ExceptionUtils.getStackTrace(t);
     } // getStackTrace

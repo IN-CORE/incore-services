@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- Endpoints to return allowed demand types and units [#155](https://github.com/IN-CORE/incore-services/issues/155)
+
+### Changed
+- Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
+- Upgraded project and space-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#152](https://github.com/IN-CORE/incore-services/issues/152)
+- Upgraded project and semantics-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#167](https://github.com/IN-CORE/incore-services/issues/167)
+- Upgraded project and hazard-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#163](https://github.com/IN-CORE/incore-services/issues/163)
+- Upgraded project and data-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#165](https://github.com/IN-CORE/incore-services/issues/165)
+- Removed jetty-runner 9 and replaced with Jetty 11 docker image [#174](https://github.com/IN-CORE/incore-services/issues/174)
+
 ## [1.14.0] -2023-06-14
 ### Added
 - Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)

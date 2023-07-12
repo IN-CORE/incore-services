@@ -4,7 +4,7 @@ gretty {
 }
 
 dependencies {
-    compile group: 'org.apache.jena', name: 'jena-core', version: '3.1.1'
-    compile project(':semantic-core')
+    implementation group: 'org.apache.jena', name: 'jena-core', version: '3.1.1'
+    implementation project(':semantic-core')
 }
 

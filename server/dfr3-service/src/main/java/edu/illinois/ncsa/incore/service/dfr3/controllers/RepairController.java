@@ -27,18 +27,26 @@ import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.log4j.Logger;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         version = "v0.6.3",
         description = "IN-CORE Service For Repair and Repair mappings",
@@ -53,15 +61,14 @@ import java.util.stream.Collectors;
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
-
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
+    )
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {SwaggerDefinition.Scheme.HTTP}
 )
 
 
-@Api(value = "repairs", authorizations = {})
+@Tag(name = "Repair")
 @Path("repairs")
 public class RepairController {
     private static final Logger logger = Logger.getLogger(RepairController.class);
@@ -84,8 +91,8 @@ public class RepairController {
 
     @Inject
     public RepairController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name  = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -93,13 +100,13 @@ public class RepairController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of repairs", notes = "Apply filters to get the desired set of repairs")
-    public List<RepairSet> getRepairs(@ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                      @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                      @ApiParam(value = "Repair creator's username") @QueryParam("creator") String creator,
-                                      @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                      @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    @Operation(tags = "Gets list of repairs", summary = "Apply filters to get the desired set of repairs")
+    public List<RepairSet> getRepairs(@Parameter(name = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                      @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                      @Parameter(name = "Repair creator's username") @QueryParam("creator") String creator,
+                                      @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                      @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                      @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         Map<String, String> queryMap = new HashMap<>();
 
         if (hazardType != null) {
@@ -159,8 +166,8 @@ public class RepairController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a repair set", notes = "Post a repair set to the repair service")
-    public RepairSet uploadRepairSet(@ApiParam(value = "json representing the repair set") RepairSet repairSet) {
+    @Operation(tags = "Create a repair set", summary = "Post a repair set to the repair service")
+    public RepairSet uploadRepairSet(@Parameter(name = "json representing the repair set") RepairSet repairSet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(repairSet.getId());
 
@@ -197,8 +204,8 @@ public class RepairController {
     @GET
     @Path("{repairId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a repair by Id", notes = "Get a particular repair based on the id provided")
-    public RepairSet getRepairSetById(@ApiParam(value = "hexadecimal repair id", example = "5b47b2d8337d4a36187c6727")
+    @Operation(tags = "Gets a repair by Id", description = "Get a particular repair based on the id provided")
+    public RepairSet getRepairSetById(@Parameter(name = "hexadecimal repair id", example = "5b47b2d8337d4a36187c6727")
                                       @PathParam("repairId") String id) {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
@@ -216,8 +223,8 @@ public class RepairController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{repairId}")
-    @ApiOperation(value = "Deletes a repair by id")
-    public RepairSet deleteRepairById(@ApiParam(value = "repair id", example = "5b47b2d8337d4a36187c6727") @PathParam("repairId") String id) {
+    @Operation(tags = "Deletes a repair by id")
+    public RepairSet deleteRepairById(@Parameter(name = "repair id", example = "5b47b2d8337d4a36187c6727") @PathParam("repairId") String id) {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
         if (repairSet.isPresent()) {
@@ -254,13 +261,13 @@ public class RepairController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all repairs", notes = "Gets all repairs that contain a specific text")
+    @Operation(tags = "Search for a text in all repairs", summary = "Gets all repairs that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No repairs found with the searched text")
+        @ApiResponse(responseCode = "404", description = "No repairs found with the searched text")
     })
-    public List<RepairSet> findRepairs(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
-                                       @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                       @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    public List<RepairSet> findRepairs(@Parameter(name = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                       @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                       @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<RepairSet> sets = new ArrayList<>();
         Optional<RepairSet> fs = this.repairDAO.getRepairSetById(text);
         if (fs.isPresent()) {
