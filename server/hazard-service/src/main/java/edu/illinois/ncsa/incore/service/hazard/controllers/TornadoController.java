@@ -169,7 +169,7 @@ public class TornadoController {
     @GET
     @Path("/demands")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all tornado allowed demand types and units.")
+    @Operation(summary = "Returns all tornado allowed demand types and units.")
     public List<DemandDefinition> getTornadoDemands() {
         JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
         return DemandUtils.getAllowedDemands(demandDefinition, "tornado");

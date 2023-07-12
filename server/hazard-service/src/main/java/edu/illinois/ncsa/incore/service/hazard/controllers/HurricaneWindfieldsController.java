@@ -169,7 +169,7 @@ public class HurricaneWindfieldsController {
     @GET
     @Path("/demands")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all hurricane windfield allowed demand types and units.")
+    @Operation(summary = "Returns all hurricane windfield allowed demand types and units.")
     public List<DemandDefinition> getHurricaneWindfieldDemands() {
         JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
         return DemandUtils.getAllowedDemands(demandDefinition, "hurricaneWindfield");

@@ -168,7 +168,7 @@ public class TsunamiController {
     @GET
     @Path("/demands")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all tsunami allowed demand types and units.")
+    @Operation(summary = "Returns all tsunami allowed demand types and units.")
     public List<DemandDefinition> getTsunamiDemands() {
         JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
         return DemandUtils.getAllowedDemands(demandDefinition, "tsunami");

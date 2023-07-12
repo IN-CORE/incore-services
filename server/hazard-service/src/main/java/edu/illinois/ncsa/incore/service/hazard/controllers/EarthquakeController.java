@@ -362,7 +362,7 @@ public class EarthquakeController {
     @GET
     @Path("/demands")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all earthquake allowed demand types and units.")
+    @Operation(summary = "Returns all earthquake allowed demand types and units.")
     public  List<DemandDefinition> getEarthquakeDemands() {
         JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
         return DemandUtils.getAllowedDemands(demandDefinition, "earthquake");

@@ -163,7 +163,7 @@ public class FloodController {
     @GET
     @Path("/demands")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all flood allowed demand types and units.")
+    @Operation(summary = "Returns all flood allowed demand types and units.")
     public List<DemandDefinition> getFloodDemands() {
         JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
         return DemandUtils.getAllowedDemands(demandDefinition, "flood");
