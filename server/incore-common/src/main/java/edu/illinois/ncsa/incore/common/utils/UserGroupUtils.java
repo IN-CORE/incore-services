@@ -3,8 +3,8 @@ package edu.illinois.ncsa.incore.common.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.HeadersUserGroups;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 public class UserGroupUtils {

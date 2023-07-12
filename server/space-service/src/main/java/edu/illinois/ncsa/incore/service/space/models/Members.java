@@ -2,7 +2,7 @@ package edu.illinois.ncsa.incore.service.space.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -36,16 +36,22 @@ import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
 import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
 import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
@@ -62,7 +68,7 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
  * Created by ywkim on 7/26/2017.
  */
 
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
         version = "v0.6.3",
@@ -76,14 +82,10 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
-
+    )
 )
 
-@Api(value = "datasets", authorizations = {})
+@Tag(name = "datasets")
 
 @Path("datasets")
 public class DatasetController {
@@ -118,8 +120,8 @@ public class DatasetController {
 
     @Inject
     public DatasetController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
         ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -128,9 +130,9 @@ public class DatasetController {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets a dataset from the Dataset collection", notes = "")
+    @Operation(summary = "Gets a dataset from the Dataset collection", description = "")
     public Dataset getDatasetbyId(
-        @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
+        @Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             logger.error("Error finding dataset with the id of " + datasetId);
@@ -154,17 +156,17 @@ public class DatasetController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets a list of datasets", notes = "Can filter by type, title, creator etc.")
-    public List<Dataset> getDatasets(@ApiParam(value = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: " +
+    @Operation(summary = "Gets a list of datasets", description = "Can filter by type, title, creator etc.")
+    public List<Dataset> getDatasets(@Parameter(name = "DataType of IN-CORE datasets. Can filter by partial datatype strings. ex: " +
         "ergo:buildingInventoryVer5, ergo:census", required = false) @QueryParam("type") String typeStr,
-                                     @ApiParam(value = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
-                                     @ApiParam(value = "Username of the creator", required = false) @QueryParam("creator") String creator,
-                                     @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                     @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
-                                     @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
-                                     @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                     @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
-                                     @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard ){
+                                     @Parameter(name = "Title of dataset. Can filter by partial title strings", required = false) @QueryParam("title") String titleStr,
+                                     @Parameter(name = "Username of the creator", required = false) @QueryParam("creator") String creator,
+                                     @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                     @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                     @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
+                                     @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                     @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
+                                     @Parameter(name = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard ){
 
         // import eq comparator
         Comparator<Dataset> comparator = datasetComparator(sortBy, order);
@@ -227,8 +229,8 @@ public class DatasetController {
     @GET
     @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @ApiOperation(value = "Returns a zip file that contains all the files attached to a dataset specified by {id}", notes = "")
-    public Response getFileByDataset(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
+    @Operation(summary = "Returns a zip file that contains all the files attached to a dataset specified by {id}", description = "")
+    public Response getFileByDataset(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         File outFile = null;
         Dataset dataset = getDatasetbyId(datasetId);
         try {
@@ -253,8 +255,8 @@ public class DatasetController {
     @GET
     @Path("{id}/files")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of files associated with the dataset and their metadata", notes = "")
-    public List<FileDescriptor> getDatasetsFiles(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
+    @Operation(summary = "Gets the list of files associated with the dataset and their metadata", description = "")
+    public List<FileDescriptor> getDatasetsFiles(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         Dataset dataset = getDatasetbyId(datasetId);
 
         List<FileDescriptor> fds = dataset.getFileDescriptors();
@@ -268,9 +270,9 @@ public class DatasetController {
     @GET
     @Path("{id}/files/{file_id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @ApiOperation(value = "Returns a file that is attached to a FileDescriptor of a dataset", notes = "")
-    public Response getFileByFileDescriptor(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String id,
-                                            @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
+    @Operation(summary = "Returns a file that is attached to a FileDescriptor of a dataset", description = "")
+    public Response getFileByFileDescriptor(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String id,
+                                            @Parameter(name = "FileDescriptor Object Id", required = true) @PathParam("file_id") String fileId) {
         File outFile = null;
         Dataset dataset = getDatasetbyId(id);
 
@@ -305,10 +307,10 @@ public class DatasetController {
     @GET
     @Path("{id}/files/{file_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets metadata of a file associated to a dataset", notes = "")
-    public FileDescriptor getFileByDatasetIdFileDescriptor(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam(
+    @Operation(summary = "Gets metadata of a file associated to a dataset", description = "")
+    public FileDescriptor getFileByDatasetIdFileDescriptor(@Parameter(name = "Dataset Id from data service", required = true) @PathParam(
         "id") String id,
-                                                           @ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam(
+                                                           @Parameter(name = "FileDescriptor Object Id", required = true) @PathParam(
                                                                "file_id") String fileId) {
         Dataset dataset = getDatasetbyId(id);
 
@@ -335,9 +337,9 @@ public class DatasetController {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Ingest dataset object as json", notes = "Files have to uploaded to the dataset separately using {id}/files " +
+    @Operation(summary = "Ingest dataset object as json", description = "Files have to uploaded to the dataset separately using {id}/files " +
         "endpoint")
-    public Dataset ingestDataset(@ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("dataset") String inDatasetJson) {
+    public Dataset ingestDataset(@Parameter(name = "JSON representing an input dataset", required = true) @FormDataParam("dataset") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (isJsonValid != true) {
             logger.error("Posted json is not a valid json.");
@@ -443,8 +445,8 @@ public class DatasetController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    @ApiOperation(value = "Deletes a dataset", notes = "Also deletes attached information like files and geoserver layer")
-    public Dataset deleteDataset(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
+    @Operation(summary = "Deletes a dataset", description = "Also deletes attached information like files and geoserver layer")
+    public Dataset deleteDataset(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId) {
         Dataset dataset = getDatasetbyId(datasetId);
         boolean geoserverUsed = false;
         long fileSize = 0;
@@ -526,10 +528,10 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/files")
-    @ApiOperation(value = "Upload file(s) to attach to a dataset", notes = "GIS files like shp, tif etc. are also uploaded to IN-CORE " +
+    @Operation(summary = "Upload file(s) to attach to a dataset", description = "GIS files like shp, tif etc. are also uploaded to IN-CORE " +
         "geoserver")
-    public Dataset uploadFiles(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
-                               @ApiParam(value = "Form inputs representing the file(s). The id/key of each input file has to be 'file'",
+    public Dataset uploadFiles(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
+                               @Parameter(name = "Form inputs representing the file(s). The id/key of each input file has to be 'file'",
                                    required = true)
                                    FormDataMultiPart inputs) {
         if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
@@ -914,11 +916,11 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    @ApiOperation(value = "Updates the dataset's JSON associated with a dataset id", notes = "Only allows updating string attributes of " +
+    @Operation(summary = "Updates the dataset's JSON associated with a dataset id", description = "Only allows updating string attributes of " +
         "the dataset. This will " +
         "not upload file content of the dataset to the server, they should be done separately using {id}/files endpoint")
-    public Object updateObject(@ApiParam(value = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
-                               @ApiParam(value = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
+    public Object updateObject(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
+                               @Parameter(name = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
         if (!isJsonValid) {
             logger.error("Invalid json provided.");
@@ -958,16 +960,13 @@ public class DatasetController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all datasets", notes = "Gets all datasets that contain a specific text")
-    @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No datasets found with the searched text")
-    })
-    public List<Dataset> findDatasets(@ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
-                                      @ApiParam(value = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
-                                      @ApiParam(value = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
-                                      @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                      @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
-                                      @ApiParam(value = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard) {
+    @Operation(summary = "Search for a text in all datasets", description = "Gets all datasets that contain a specific text")
+    public List<Dataset> findDatasets(@Parameter(name = "Text to search by", example = "building") @QueryParam("text") String text,
+                                      @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                      @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
+                                      @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                      @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
+                                      @Parameter(name = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard) {
         // import eq comparator
         Comparator<Dataset> comparator = datasetComparator(sortBy, order);
 

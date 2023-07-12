@@ -10,6 +10,8 @@
 
 package edu.illinois.ncsa.incore.service.space.controllers;
 
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import mocks.MockApplication;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -20,8 +22,6 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;

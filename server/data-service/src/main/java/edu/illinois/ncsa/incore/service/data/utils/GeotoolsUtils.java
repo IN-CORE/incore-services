@@ -48,7 +48,7 @@ import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;

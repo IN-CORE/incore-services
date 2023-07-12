@@ -880,6 +880,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static Date getDateFromTimeString(String timeString) {
         return DateUtils.getDateFromTimeString(timeString);
     } // getDateObject
@@ -887,6 +888,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static Date getDate(long millis) {
         return DateUtils.getDate(millis);
     } // getDateObject
@@ -894,6 +896,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static Long getTimeInMillis(String dateTime) {
         return DateUtils.getTimeInMillis(dateTime);
     } // getTimeInMillis
@@ -901,6 +904,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static Long getTimeInMillis(String dateTime, String format) {
         return DateUtils.getTimeInMillis(dateTime, format);
     } // getTimeInMillis
@@ -908,6 +912,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static Long getTimeInMillis(long millis) {
         return DateUtils.getTimeInMillis(millis);
     } // getTimeInMillis
@@ -915,6 +920,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static String getDateString(long millis) {
         return DateUtils.getDateString(millis);
     } // getDateString
@@ -922,6 +928,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static String getDateString(long millis, String format) {
         return DateUtils.getDateString(millis, format);
     } // getDateString
@@ -929,6 +936,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static String getDateString(long millis, DateFormat formatter) {
         return DateUtils.getDateString(millis, formatter);
     } // getDateString
@@ -936,6 +944,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static String getDateString(Date date) {
         return DateUtils.getDateString(date);
     } // getDateString
@@ -943,6 +952,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static String getDateString(Date date, String format) {
         return DateUtils.getDateString(date, format);
     } // dateTime
@@ -950,6 +960,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static Date getDateFromDateString(String dateTime) {
         return DateUtils.getDateFromDateString(dateTime);
     } // getDateFromDateString
@@ -957,6 +968,7 @@ public class SystemUtils {
     /**
      * @deprecated Use DateUtils
      */
+    @Deprecated
     public static Date getDateFromDateString(String dateTime, String format) {
         return DateUtils.getDateFromDateString(dateTime, format);
     } // dateTime
