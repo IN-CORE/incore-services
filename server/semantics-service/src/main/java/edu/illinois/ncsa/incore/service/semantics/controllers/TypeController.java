@@ -49,8 +49,6 @@ public class TypeController {
 
     private final List<String> groups;
 
-    private String endpointUrl = "https://incore.ncsa.illinois.edu/semantics/api/types/";
-
     @Inject
     private ITypeDAO typeDAO;
 
@@ -77,7 +75,7 @@ public class TypeController {
         @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("asc") @QueryParam("order") String order,
         @Parameter(name = "Skip the first n results.") @DefaultValue("0") @QueryParam("skip") int offset,
         @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
-        @Parameter(name = "List the details.") @DefaultValue("false") @QueryParam("detail") boolean detail) {
+        @Parameter(name = "List the hyperlinks.") @DefaultValue("false") @QueryParam("hyperlink") boolean hyperlink) {
         Comparator<String> comparator = Comparator.naturalOrder();
         if (order.equals("desc")) comparator = comparator.reversed();
 
@@ -89,9 +87,17 @@ public class TypeController {
             .limit(limit)
             .collect(Collectors.toList());
 
-        if (detail) {
-            String endpoint = endpointUrl;
-            results = results.stream().map(typename -> endpoint + typename).collect(Collectors.toList());
+        if (hyperlink) {
+            String typeEndpoint = "http://localhost:8080/";
+            String typeEndpointProp = System.getenv("SERVICES_URL");
+            if (typeEndpointProp != null && !typeEndpointProp.isEmpty()) {
+                typeEndpoint = typeEndpointProp;
+                if (!typeEndpoint.endsWith("/")) {
+                    typeEndpoint += "/";
+                }
+            }
+            String finalTypeEndpoint = typeEndpoint;
+            results = results.stream().map(typename -> finalTypeEndpoint + typename).collect(Collectors.toList());
         }
 
         return Response.ok(results).status(200)
