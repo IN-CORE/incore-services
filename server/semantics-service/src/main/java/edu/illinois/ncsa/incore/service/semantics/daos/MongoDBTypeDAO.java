@@ -91,9 +91,11 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     @Override
     public String postType(Document newType) {
         if (newType != null && checkNewType(newType)) {
+            String name = newType.get("dc:title").toString();
+            if (this.hasType(name))
+                return name + " already exists.";
             // insert new type
             this.typeDataStore.insertOne(newType);
-
             return newType.getObjectId("_id").toString();
         } else {
             throw new IllegalArgumentException();
@@ -107,5 +109,11 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
         String id = list == null ? "": list.get("_id").toString();
         this.typeDataStore.findOneAndDelete(eq("dc:title", name));
         return id;
+    }
+
+    @Override
+    public Boolean hasType(String name) {
+        Document list = (Document) this.typeDataStore.find(eq("dc:title", name)).first();
+        return list != null;
     }
 }

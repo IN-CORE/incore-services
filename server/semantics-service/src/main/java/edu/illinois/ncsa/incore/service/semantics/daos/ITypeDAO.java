@@ -17,4 +17,6 @@ public interface ITypeDAO {
     Optional<List<Document>> searchType(String typeName);
 
     String deleteType(String name);
+
+    Boolean hasType(String name);
 }

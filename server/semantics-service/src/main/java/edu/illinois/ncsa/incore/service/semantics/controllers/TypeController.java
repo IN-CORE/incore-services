@@ -206,11 +206,11 @@ public class TypeController {
         if (!authorizer.isUserAdmin(this.groups))
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
 
-        try{
+        if (!this.typeDAO.hasType(name))
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
+
+        try {
             String deletedId = this.typeDAO.deleteType(name);
-            if (deletedId.equals("")) {
-                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
-            }
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
