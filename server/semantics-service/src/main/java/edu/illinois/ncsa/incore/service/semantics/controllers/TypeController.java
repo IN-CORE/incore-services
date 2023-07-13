@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.jena.base.Sys;
 import org.bson.Document;
 
 import jakarta.inject.Inject;
@@ -48,6 +49,8 @@ public class TypeController {
     private final String username;
 
     private final List<String> groups;
+
+    private String endpointUrl = "https://incore.ncsa.illinois.edu/semantics/api/types/";
 
     @Inject
     private ITypeDAO typeDAO;
@@ -88,7 +91,7 @@ public class TypeController {
             .collect(Collectors.toList());
 
         if (detail) {
-            String endpoint = "https://incore.ncsa.illinois.edu/semantics/api/types/";
+            String endpoint = endpointUrl;
             results = results.stream().map(typename -> endpoint + typename).collect(Collectors.toList());
         }
 
@@ -194,13 +197,13 @@ public class TypeController {
     @Operation(summary = "Delete type by name.")
     public Response deleteType(
         @Parameter(name = "Type name.") @PathParam("name") String name) {
+        // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permissions to delete
         if (!authorizer.isUserAdmin(this.groups))
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
 
-        // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permissions to delete
         try{
             String deletedId = this.typeDAO.deleteType(name);
-            if (deletedId == null) {
+            if (deletedId.equals("")) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
             }
             // remove id from spaces
