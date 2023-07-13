@@ -1,14 +1,7 @@
 package edu.illinois.ncsa.incore.service.semantics.daos;
 
 import com.mongodb.MongoClientURI;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.Projections;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
-import edu.illinois.ncsa.incore.service.semantics.model.Concept;
-import org.bson.BsonDocument;
 import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;

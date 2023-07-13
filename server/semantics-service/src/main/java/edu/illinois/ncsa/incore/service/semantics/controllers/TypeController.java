@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.jena.base.Sys;
 import org.bson.Document;
 
 import jakarta.inject.Inject;
@@ -82,7 +81,6 @@ public class TypeController {
         Comparator<String> comparator = Comparator.naturalOrder();
         if (order.equals("desc")) comparator = comparator.reversed();
 
-    public Response listTypes() {
         List<Document> typeList = this.typeDAO.getTypes();
         List<String> results = typeList.stream()
             .map(t -> t.get("dc:title").toString())
@@ -223,5 +221,4 @@ public class TypeController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid type JSON. " + e);
         }
     }
-
 }
