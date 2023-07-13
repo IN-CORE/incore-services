@@ -82,6 +82,7 @@ public class TypeController {
         Comparator<String> comparator = Comparator.naturalOrder();
         if (order.equals("desc")) comparator = comparator.reversed();
 
+    public Response listTypes() {
         List<Document> typeList = this.typeDAO.getTypes();
         List<String> results = typeList.stream()
             .map(t -> t.get("dc:title").toString())
