@@ -40,7 +40,6 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
     private void loadTypes() {
         this.typeList = (List<Document>) this.typeDataStore.find().into(new ArrayList<Document>());
-
     }
 
     @Override
