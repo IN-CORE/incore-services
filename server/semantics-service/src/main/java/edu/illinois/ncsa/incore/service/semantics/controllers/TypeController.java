@@ -7,6 +7,10 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,12 +18,15 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.bson.Document;
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.apache.log4j.Logger;
+import org.bson.Document;
+
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,11 +51,14 @@ import java.util.stream.Collectors;
 
 @Path("")
 public class TypeController {
+    private static final Logger log = Logger.getLogger(TypeController.class);
 
     private final String username;
 
     private final Authorizer authorizer;
     private final List<String> groups;
+
+    private Configuration templateConfig;
 
     @Inject
     private ITypeDAO typeDAO;
@@ -68,6 +78,11 @@ public class TypeController {
         if (!this.authorizer.isUserAdmin(this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
         }
+
+        // Configure template and load available templates
+        templateConfig = new Configuration();
+        ClassTemplateLoader cloader = new ClassTemplateLoader(this.getClass(), "/templates/freemarker");
+        templateConfig.setTemplateLoader(cloader);
     }
 
     @GET
@@ -87,6 +102,7 @@ public class TypeController {
 
     }
 
+
     @GET
     @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,6 +110,7 @@ public class TypeController {
     public Response getType(
         @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
         @Parameter(name = "version number.") @QueryParam("version") String version) {
+
         if (version == null) {
             version = "latest";
         }
@@ -125,6 +142,81 @@ public class TypeController {
             return Response.ok(matchedTypeList).status(200)
                 .build();
 
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
+        }
+    }
+
+    @GET
+    @Path("types/{name}")
+    @Produces(MediaType.TEXT_HTML)
+    @Operation(summary = "Show specific types by uri as HTML.")
+    public Response getTypeAsHtml(
+        @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
+        @Parameter(name = "version number.") @QueryParam("version") String version) {
+
+        // Since this code is shared with the endpoint that returns JSON, it should be pulled out into a utility to avoid duplication
+        if (version == null) {
+            version = "latest";
+        }
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
+        Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
+
+        if (typeList.isPresent()) {
+            // make sure that uri is in the namespace
+            List<Document> results = typeList.get().stream()
+                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+                .collect(Collectors.toList());
+            List<Document> matchedTypeList;
+
+            // find the latest
+            if (version.equals("latest")) {
+                Optional<Document> latestMatched = results.stream()
+                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
+                if (latestMatched.isPresent()) {
+                    matchedTypeList = new ArrayList<Document>() {{
+                        add(latestMatched.get());
+                    }};
+                } else {
+                    matchedTypeList = new ArrayList<>();
+                }
+            } else {
+                matchedTypeList = results;
+            }
+
+            Document d = matchedTypeList.get(0);
+
+            Set<String> keys = d.keySet();
+
+            // Flattened everything to a String - the template cannot process things like arraylist or Documents
+            // We could make a utility that pre-processes the object if we want to layout embedded documents like
+            // tableSchema so they display nicely.
+            Map<String, Object> flattenedType = new HashMap<String, Object>();
+            for (String key : keys) {
+                Object value = d.get(key);
+                flattenedType.put(key, value.toString());
+            }
+
+            // Map of things to parse in the template - this can be expanded to add more objects
+            // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
+            Map<String, Object> model = new HashMap<String, Object>();
+            model.put("title", d.get("dc:title"));
+            model.put("items", flattenedType);
+            try {
+                Template typeTemplate = templateConfig.getTemplate("types.ftl");
+                StringWriter output = new StringWriter();
+                typeTemplate.process(model, output);
+                return Response.ok(output.toString()).status(200).build();
+            } catch (IOException e) {
+                log.error("Could not read the template file to generate html page", e);
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not read the template file to generate html " +
+                    "page");
+            } catch (TemplateException e) {
+                log.error("Could not process type object using the template file", e);
+                e.printStackTrace();
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not process type object using the template " +
+                    "file");
+            }
         } else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
         }
