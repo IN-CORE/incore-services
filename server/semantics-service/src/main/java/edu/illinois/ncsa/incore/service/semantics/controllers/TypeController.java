@@ -96,7 +96,7 @@ public class TypeController {
                     typeEndpoint += "/";
                 }
             }
-            String finalTypeEndpoint = typeEndpoint;
+            String finalTypeEndpoint = typeEndpoint + "semantics/api/types/";
             results = results.stream().map(typename -> finalTypeEndpoint + typename).collect(Collectors.toList());
         }
 
