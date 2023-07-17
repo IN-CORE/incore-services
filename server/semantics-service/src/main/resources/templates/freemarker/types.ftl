@@ -29,22 +29,31 @@
 <body>
 <div>
     <h1>${title}</h1>
-
     <p><strong>Description</strong></p>
+    <p>${description}</p>
     <p>Each schema defines the expected attributes for a dataset definition. The attributes for the <b>${title}</b>
         schema are listed in the table below.</p>
 
     <table>
         <tr>
-            <th>Parameter</th>
-            <th>Value</th>
+            <th>Name</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Datatype</th>
+            <th>Required</th>
+            <th>Unit</th>
         </tr>
-        <#list items?keys as key>
-            <tr>
-                <td>${key}</td>
-                <td>${items[key]} </td>
-            </tr>
-        </#list>
+<#--        <#list columns as column>-->
+<#--            <!-- Access column properties using ${column.property} syntax &ndash;&gt;-->
+<#--            <tr>-->
+<#--                <td>${column.name}</td>-->
+<#--                <td>${column.titles}</td>-->
+<#--                <td>${column["dc:description"]}</td>-->
+<#--                <td>${column.datatype}</td>-->
+<#--                <td>${column.required}</td>-->
+<#--                <td>${column["qudt:unit"]}</td>-->
+<#--            </tr>-->
+<#--        </#list>-->
     </table>
 </div>
 </body>

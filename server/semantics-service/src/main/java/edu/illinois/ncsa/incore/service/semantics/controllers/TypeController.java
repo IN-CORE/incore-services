@@ -24,6 +24,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.bson.Document;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -186,22 +188,30 @@ public class TypeController {
 
             Document d = matchedTypeList.get(0);
 
-            Set<String> keys = d.keySet();
+            // Convert the BSON Document to a JSONObject
+            JSONObject typeJson = new JSONObject(d.toJson());
+            JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
+            JSONArray columnsArray = tableSchema.getJSONArray("columns");
 
-            // Flattened everything to a String - the template cannot process things like arraylist or Documents
-            // We could make a utility that pre-processes the object if we want to layout embedded documents like
-            // tableSchema so they display nicely.
-            Map<String, Object> flattenedType = new HashMap<String, Object>();
-            for (String key : keys) {
-                Object value = d.get(key);
-                flattenedType.put(key, value.toString());
-            }
-
+//            // Loop through each column
+//            for (int i = 0; i < columnsArray.length(); i++) {
+//                JSONObject column = columnsArray.getJSONObject(i);
+//
+//                // Extract properties of the column
+//                String name = column.getString("name");
+//                String titles = column.getString("titles");
+//                String description = column.getString("dc:description");
+//                String datatype = column.getString("datatype");
+//                boolean required = Boolean.parseBoolean(column.getString("required"));
+//                String unit = column.getString("qudt:unit");
+//            }
             // Map of things to parse in the template - this can be expanded to add more objects
             // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
             Map<String, Object> model = new HashMap<String, Object>();
             model.put("title", d.get("dc:title"));
-            model.put("items", flattenedType);
+            model.put("description", d.get("dc:description"));
+//            model.put("columns", columnsArray);
+
             try {
                 Template typeTemplate = templateConfig.getTemplate("types.ftl");
                 StringWriter output = new StringWriter();
