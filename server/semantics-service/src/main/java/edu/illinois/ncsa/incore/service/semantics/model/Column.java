@@ -8,7 +8,7 @@ public class Column {
 
     private String name;
     private String titles;
-    private String dataType;
+    private String datatype;
 
     @Property("dc:description")
     private String description;
@@ -16,15 +16,15 @@ public class Column {
     @Property("qudt:unit")
     private String unit;
 
-    private Boolean required;
+    private String required;
 
     public Column() {
     }
 
-    public Column(String name, String titles, String dataType, String description, String unit, Boolean required) {
+    public Column(String name, String titles, String datatype, String description, String unit, String required) {
         this.name = name;
         this.titles = titles;
-        this.dataType = dataType;
+        this.datatype = datatype;
         this.description = description;
         this.unit = unit;
         this.required = required;
@@ -38,8 +38,8 @@ public class Column {
         return this.titles;
     }
 
-    public String getDataType() {
-        return this.dataType;
+    public String getDatatype() {
+        return this.datatype;
     }
 
     public String getUnit() {
@@ -48,5 +48,5 @@ public class Column {
 
     public String getDescription() { return description; }
 
-    public Boolean getRequired(){ return required; }
+    public String getRequired(){ return required; }
 }

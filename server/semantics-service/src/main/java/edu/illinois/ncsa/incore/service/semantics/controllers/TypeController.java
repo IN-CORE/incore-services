@@ -7,6 +7,7 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.model.Column;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -193,24 +194,25 @@ public class TypeController {
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
             JSONArray columnsArray = tableSchema.getJSONArray("columns");
 
-//            // Loop through each column
-//            for (int i = 0; i < columnsArray.length(); i++) {
-//                JSONObject column = columnsArray.getJSONObject(i);
-//
-//                // Extract properties of the column
-//                String name = column.getString("name");
-//                String titles = column.getString("titles");
-//                String description = column.getString("dc:description");
-//                String datatype = column.getString("datatype");
-//                boolean required = Boolean.parseBoolean(column.getString("required"));
-//                String unit = column.getString("qudt:unit");
-//            }
+            // Loop through each column
+            List<Column> columns = new ArrayList<Column>();;
+            for (int i = 0; i < columnsArray.length(); i++) {
+                JSONObject column = columnsArray.getJSONObject(i);
+                String columnName = column.getString("name");
+                String titles = column.getString("titles");
+                String description = column.getString("dc:description");
+                String datatype = column.getString("datatype");
+                boolean required = Boolean.parseBoolean(column.getString("required"));
+                String unit = column.getString("qudt:unit");
+                columns.add(new Column(columnName, titles, datatype, description, unit, Boolean.toString(required)));
+            }
+
             // Map of things to parse in the template - this can be expanded to add more objects
             // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
             Map<String, Object> model = new HashMap<String, Object>();
             model.put("title", d.get("dc:title"));
             model.put("description", d.get("dc:description"));
-//            model.put("columns", columnsArray);
+            model.put("columns", columns);
 
             try {
                 Template typeTemplate = templateConfig.getTemplate("types.ftl");

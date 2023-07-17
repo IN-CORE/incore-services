@@ -37,23 +37,22 @@
     <table>
         <tr>
             <th>Name</th>
-            <th>Title</th>
+            <th>Titles</th>
             <th>Description</th>
             <th>Datatype</th>
-            <th>Required</th>
             <th>Unit</th>
+            <th>Required</th>
         </tr>
-<#--        <#list columns as column>-->
-<#--            <!-- Access column properties using ${column.property} syntax &ndash;&gt;-->
-<#--            <tr>-->
-<#--                <td>${column.name}</td>-->
-<#--                <td>${column.titles}</td>-->
-<#--                <td>${column["dc:description"]}</td>-->
-<#--                <td>${column.datatype}</td>-->
-<#--                <td>${column.required}</td>-->
-<#--                <td>${column["qudt:unit"]}</td>-->
-<#--            </tr>-->
-<#--        </#list>-->
+        <#list columns as column>
+            <tr>
+                <td>${column.name}</td>
+                <td>${column.titles}</td>
+                <td>${column.description}</td>
+                <td>${column.datatype}</td>
+                <td>${column.unit}</td>
+                <td>${column.required}</td>
+            </tr>
+        </#list>
     </table>
 </div>
 </body>
