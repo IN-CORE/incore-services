@@ -16,10 +16,7 @@
             height:100%;
         }
         div {
-            padding-top: 20px;
-            padding-right: 220px;
-            padding-bottom: 20px;
-            padding-left: 20px;
+            padding: 2em 5em;
         }
     </style>
 </head>
@@ -32,7 +29,7 @@
         schema are listed in the table below.</p>
 
     <table class="table">
-        <tr>
+        <tr style="background: #eee;">
             <th scope="col">Name</th>
             <th scope="col">Titles</th>
             <th scope="col">Datatype</th>
