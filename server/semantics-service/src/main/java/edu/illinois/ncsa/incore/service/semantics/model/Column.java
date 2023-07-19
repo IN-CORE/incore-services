@@ -8,40 +8,26 @@ public class Column {
 
     private String name;
     private String titles;
-    private String dataType;
+    private String datatype;
 
-    @Property("incore:agg-type")
-    private String aggType;
+    @Property("dc:description")
+    private String description;
 
-    @Property("incore:field-length")
-    private Integer fieldLength;
-
-    @Property("incore:importance")
-    private String importance;
-
-    @Property("incore:is-numeric")
-    private String isNumeric;
-
-    @Property("incore:is-result")
-    private String isResult;
-
-    @Property("incore:unit")
+    @Property("qudt:unit")
     private String unit;
+
+    private String required;
 
     public Column() {
     }
 
-    public Column(String name, String titles, String dataType, String aggType, Integer fieldLength,
-                  String importance, String isNumeric, String isResult, String unit) {
+    public Column(String name, String titles, String datatype, String description, String unit, String required) {
         this.name = name;
         this.titles = titles;
-        this.dataType = dataType;
-        this.aggType = aggType;
-        this.fieldLength = fieldLength;
-        this.importance = importance;
-        this.isNumeric = isNumeric;
-        this.isResult = isResult;
+        this.datatype = datatype;
+        this.description = description;
         this.unit = unit;
+        this.required = required;
     }
 
     public String getName() {
@@ -52,31 +38,15 @@ public class Column {
         return this.titles;
     }
 
-    public String getDataType() {
-        return this.dataType;
-    }
-
-    public String getAggType() {
-        return aggType;
-    }
-
-    public Integer getFieldLength() {
-        return fieldLength;
-    }
-
-    public String getImportance() {
-        return importance;
-    }
-
-    public String getIsNumeric() {
-        return isNumeric;
-    }
-
-    public String getIsResult() {
-        return isResult;
+    public String getDatatype() {
+        return this.datatype;
     }
 
     public String getUnit() {
         return unit;
     }
+
+    public String getDescription() { return description; }
+
+    public String getRequired(){ return required; }
 }
