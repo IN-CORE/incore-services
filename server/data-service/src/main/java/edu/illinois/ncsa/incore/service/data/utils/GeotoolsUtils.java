@@ -17,6 +17,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
+import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -107,7 +108,7 @@ public class GeotoolsUtils {
         // create temp dir and copy files to temp dir
 //        List<File> copiedFileList = copyFilesToTempDir(file);
 //        File file = copiedFileList.get(0);
-        GridCoverage coverage = getGridCoverage(file);
+        GridCoverage2D coverage = getGridCoverage(file);
         org.opengis.geometry.Envelope env = coverage.getEnvelope();
 
         bbox[0] = env.getLowerCorner().getCoordinate()[0];
@@ -133,10 +134,10 @@ public class GeotoolsUtils {
         return copiedFileList;
     }
 
-    public static GridCoverage getGridCoverage(File file) throws IOException {
+    public static GridCoverage2D getGridCoverage(File file) throws IOException {
         AbstractGridFormat format = GridFormatFinder.findFormat(file);
-        GridCoverageReader reader = format.getReader(file);
-        GridCoverage coverage = reader.read(null);
+        GridCoverage2DReader reader = format.getReader(file);
+        GridCoverage2D coverage = reader.read(null);
         reader.dispose();
 
         return coverage;
