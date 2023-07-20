@@ -11,9 +11,6 @@ DFR3 stands for Damage, Functionality, Repair, Restoration, Recovery. The servic
 ## Hazard Service
 The hazard service supports creating hazard objects such as earthquake, tornado, tsunami, flood and hurricane. After creating a hazard, users can request hazard value of a given location.
 
-## Maestro Service
-Used to record and manage playbook workflows. It can capture the status and dependencies of each step or sub-step of the workflow.
-
 ## Space Service
 The space service manages groups of users and control access by those groups to certain entity throughout services.
 
