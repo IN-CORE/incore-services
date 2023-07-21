@@ -106,16 +106,7 @@ public class TypeController {
             .collect(Collectors.toList());
 
         if (hyperlink) {
-            String typeEndpoint = "http://localhost:8080/";
-            String typeEndpointProp = System.getenv("SERVICES_URL");
-            if (typeEndpointProp != null && !typeEndpointProp.isEmpty()) {
-                typeEndpoint = typeEndpointProp;
-                if (!typeEndpoint.endsWith("/")) {
-                    typeEndpoint += "/";
-                }
-            }
-            String finalTypeEndpoint = typeEndpoint + "semantics/api/types/";
-            results = results.stream().map(typename -> finalTypeEndpoint + typename).collect(Collectors.toList());
+            results = results.stream().map(typename -> "/semantics/api/types/" + typename).collect(Collectors.toList());
         }
 
         return Response.ok(results).status(200)
