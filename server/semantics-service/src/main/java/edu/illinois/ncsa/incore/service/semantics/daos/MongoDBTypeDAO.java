@@ -1,6 +1,8 @@
 package edu.illinois.ncsa.incore.service.semantics.daos;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -89,14 +91,14 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     }
 
     @Override
-    public String postType(Document newType) {
+    public Document postType(Document newType) {
         if (newType != null && checkNewType(newType)) {
             String name = newType.get("dc:title").toString();
             if (this.hasType(name))
-                return name + " already exists.";
+                throw new IncoreHTTPException(Response.Status.UNAUTHORIZED, name + " already exists.");
             // insert new type
             this.typeDataStore.insertOne(newType);
-            return newType.getObjectId("_id").toString();
+            return newType;
         } else {
             throw new IllegalArgumentException();
         }

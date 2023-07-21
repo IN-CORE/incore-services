@@ -274,12 +274,13 @@ public class TypeController {
         try {
             if (authorizer.isUserAdmin(this.groups)) {
                 Space space = spaceRepository.getSpaceByName(this.username);
-                String id = this.typeDAO.postType(type);
+                Document newtype = this.typeDAO.postType(type);
                 // add id to matching space
+                String id = newtype.getObjectId("_id").toString();
                 space.addMember(id);
                 spaceRepository.addSpace(space);
 
-                return Response.ok(id).status(200)
+                return Response.ok(newtype).status(200)
                     .build();
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
@@ -314,7 +315,7 @@ public class TypeController {
                     spaceRepository.addSpace(space);
                 }
             }
-            return Response.ok(deletedId).status(200)
+            return Response.ok(deletedId + " has been deleted.").status(200)
                 .build();
         } catch (IncoreHTTPException e){
             throw e;
