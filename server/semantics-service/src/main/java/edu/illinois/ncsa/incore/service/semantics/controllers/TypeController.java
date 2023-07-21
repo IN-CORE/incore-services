@@ -7,6 +7,11 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.model.Column;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,12 +19,17 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.bson.Document;
-
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.apache.log4j.Logger;
+import org.bson.Document;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,10 +54,13 @@ import java.util.stream.Collectors;
 
 @Path("")
 public class TypeController {
+    private static final Logger log = Logger.getLogger(TypeController.class);
 
     private final String username;
 
     private final List<String> groups;
+
+    private Configuration templateConfig;
 
     @Inject
     private ITypeDAO typeDAO;
@@ -65,6 +78,11 @@ public class TypeController {
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
+
+        // Configure template and load available templates
+        templateConfig = new Configuration();
+        ClassTemplateLoader cloader = new ClassTemplateLoader(this.getClass(), "/templates/freemarker");
+        templateConfig.setTemplateLoader(cloader);
     }
 
     @GET
@@ -104,6 +122,7 @@ public class TypeController {
             .build();
     }
 
+
     @GET
     @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -111,6 +130,7 @@ public class TypeController {
     public Response getType(
         @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
         @Parameter(name = "version number.") @QueryParam("version") String version) {
+
         if (version == null) {
             version = "latest";
         }
@@ -142,6 +162,90 @@ public class TypeController {
             return Response.ok(matchedTypeList).status(200)
                 .build();
 
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
+        }
+    }
+
+    @GET
+    @Path("types/{name}")
+    @Produces(MediaType.TEXT_HTML)
+    @Operation(summary = "Show specific types by uri as HTML.")
+    public Response getTypeAsHtml(
+        @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
+        @Parameter(name = "version number.") @QueryParam("version") String version) {
+
+        // Since this code is shared with the endpoint that returns JSON, it should be pulled out into a utility to avoid duplication
+        if (version == null) {
+            version = "latest";
+        }
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
+        Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
+
+        if (typeList.isPresent()) {
+            // make sure that uri is in the namespace
+            List<Document> results = typeList.get().stream()
+                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+                .collect(Collectors.toList());
+            List<Document> matchedTypeList;
+
+            // find the latest
+            if (version.equals("latest")) {
+                Optional<Document> latestMatched = results.stream()
+                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
+                if (latestMatched.isPresent()) {
+                    matchedTypeList = new ArrayList<Document>() {{
+                        add(latestMatched.get());
+                    }};
+                } else {
+                    matchedTypeList = new ArrayList<>();
+                }
+            } else {
+                matchedTypeList = results;
+            }
+
+            Document d = matchedTypeList.get(0);
+
+            // Convert the BSON Document to a JSONObject
+            JSONObject typeJson = new JSONObject(d.toJson());
+            JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
+            JSONArray columnsArray = tableSchema.getJSONArray("columns");
+
+            // Loop through each column
+            List<Column> columns = new ArrayList<Column>();;
+            for (int i = 0; i < columnsArray.length(); i++) {
+                JSONObject column = columnsArray.getJSONObject(i);
+                String columnName = column.getString("name");
+                String titles = column.getString("titles");
+                String description = column.getString("dc:description");
+                String datatype = column.getString("datatype");
+                boolean required = Boolean.parseBoolean(column.getString("required"));
+                String unit = column.getString("qudt:unit");
+                columns.add(new Column(columnName, titles, datatype, description, unit, Boolean.toString(required)));
+            }
+
+            // Map of things to parse in the template - this can be expanded to add more objects
+            // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
+            Map<String, Object> model = new HashMap<String, Object>();
+            model.put("title", d.get("dc:title"));
+            model.put("description", d.get("dc:description"));
+            model.put("columns", columns);
+
+            try {
+                Template typeTemplate = templateConfig.getTemplate("types.ftl");
+                StringWriter output = new StringWriter();
+                typeTemplate.process(model, output);
+                return Response.ok(output.toString()).status(200).build();
+            } catch (IOException e) {
+                log.error("Could not read the template file to generate html page", e);
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not read the template file to generate html " +
+                    "page");
+            } catch (TemplateException e) {
+                log.error("Could not process type object using the template file", e);
+                e.printStackTrace();
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not process type object using the template " +
+                    "file");
+            }
         } else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
         }
