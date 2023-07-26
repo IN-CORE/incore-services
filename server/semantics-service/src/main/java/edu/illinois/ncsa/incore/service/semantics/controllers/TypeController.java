@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.service.semantics.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
@@ -58,7 +58,6 @@ public class TypeController {
 
     private final String username;
 
-    private final Authorizer authorizer;
     private final List<String> groups;
 
     private Configuration templateConfig;
@@ -70,17 +69,15 @@ public class TypeController {
     private ISpaceRepository spaceRepository;
 
     @Inject
+    private IAuthorizer authorizer;
+
+    @Inject
     public TypeController(
         @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
-        // we want to limit the semantics service to admins for now
-        this.authorizer = new Authorizer();
-        if (!this.authorizer.isUserAdmin(this.groups)) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
-        }
 
         // Configure template and load available templates
         templateConfig = new Configuration();
@@ -92,17 +89,33 @@ public class TypeController {
     @Path("types")
     @Produces({MediaType.APPLICATION_JSON})
     @Operation(summary = "list all types belong user has access to.")
-    public Response listTypes() {
+    public Response listTypes(
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("asc") @QueryParam("order") String order,
+        @Parameter(name = "Skip the first n results.") @DefaultValue("0") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
+        @Parameter(name = "List the hyperlinks.") @DefaultValue("false") @QueryParam("hyperlink") boolean hyperlink,
+        @Parameter(name = "Return the full response.") @DefaultValue("false") @QueryParam("detail") boolean detail) {
+        Comparator<String> comparator = Comparator.naturalOrder();
+        if (order.equals("desc")) comparator = comparator.reversed();
+
         List<Document> typeList = this.typeDAO.getTypes();
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-        //return the intersection between all types and the ones the user can read
-        List<Document> results = typeList.stream()
-            .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+
+        if (detail) {
+            return Response.ok(typeList).status(200).build();
+        }
+
+        List<String> results = typeList.stream()
+            .map(t -> t.get("dc:title").toString())
+            .sorted(comparator)
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
 
-        return Response.ok(results).status(200)
-            .build();
+        if (hyperlink) {
+            results = results.stream().map(typename -> "/semantics/api/types/" + typename).collect(Collectors.toList());
+        }
 
+        return Response.ok(results).status(200).build();
     }
 
 
@@ -263,42 +276,57 @@ public class TypeController {
     @Operation(summary = "Publish new type.")
     public Response publishType(
         @Parameter(name = "Type uri (name).") Document type) {
-        Space space = spaceRepository.getSpaceByName(this.username);
+        try {
+            if (authorizer.isUserAdmin(this.groups)) {
+                Space space = spaceRepository.getSpaceByName(this.username);
+                Document newtype = this.typeDAO.postType(type);
+                // add id to matching space
+                String id = newtype.getObjectId("_id").toString();
+                space.addMember(id);
+                spaceRepository.addSpace(space);
 
-        String id = this.typeDAO.postType(type);
-
-        // add id to matching space
-        space.addMember(id);
-        spaceRepository.addSpace(space);
-
-        return Response.ok(id).status(200)
-            .build();
-
+                return Response.ok(newtype).status(200)
+                    .build();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+            }
+        } catch (IncoreHTTPException e){
+            throw e;
+        } catch (Exception e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid type JSON. " + e);
+        }
     }
 
     @DELETE
-    @Path("types/{id}")
+    @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete type by id.")
+    @Operation(summary = "Delete type by name.")
     public Response deleteType(
-        @Parameter(name = "Type id.") @PathParam("id") String id) {
-        String deletedId = this.typeDAO.deleteType(id);
-        if (deletedId == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with id " + id);
-        }
-
+        @Parameter(name = "Type name.") @PathParam("name") String name) {
         // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permissions to delete
-        // remove id from spaces
-        List<Space> spaces = spaceRepository.getAllSpaces();
-        for (Space space : spaces) {
-            if (space.hasMember(deletedId)) {
-                space.removeMember(deletedId);
-                spaceRepository.addSpace(space);
+        if (!authorizer.isUserAdmin(this.groups))
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+
+        if (!this.typeDAO.hasType(name))
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
+
+        try {
+            Document deletedType = this.typeDAO.deleteType(name);
+            String deletedId = deletedType.get("_id").toString();
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(deletedId)) {
+                    space.removeMember(deletedId);
+                    spaceRepository.addSpace(space);
+                }
             }
+            return Response.ok(deletedType).status(200)
+                .build();
+        } catch (IncoreHTTPException e){
+            throw e;
+        } catch (Exception e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid type JSON. " + e);
         }
-        return Response.ok(deletedId).status(200)
-            .build();
-
     }
-
 }
