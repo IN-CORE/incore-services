@@ -311,7 +311,8 @@ public class TypeController {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
 
         try {
-            String deletedId = this.typeDAO.deleteType(name);
+            Document deletedType = this.typeDAO.deleteType(name);
+            String deletedId = deletedType.get("_id").toString();
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -320,7 +321,7 @@ public class TypeController {
                     spaceRepository.addSpace(space);
                 }
             }
-            return Response.ok(deletedId + " has been deleted.").status(200)
+            return Response.ok(deletedType).status(200)
                 .build();
         } catch (IncoreHTTPException e){
             throw e;

@@ -106,11 +106,11 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
 
     @Override
-    public String deleteType(String name) {
+    public Document deleteType(String name) {
         Document list = (Document) this.typeDataStore.find(eq("dc:title", name)).first();
-        String id = list == null ? "": list.get("_id").toString();
+        //String id = list == null ? "": list.get("_id").toString();
         this.typeDataStore.findOneAndDelete(eq("dc:title", name));
-        return id;
+        return list;
     }
 
     @Override
