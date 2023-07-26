@@ -93,11 +93,17 @@ public class TypeController {
         @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("asc") @QueryParam("order") String order,
         @Parameter(name = "Skip the first n results.") @DefaultValue("0") @QueryParam("skip") int offset,
         @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
-        @Parameter(name = "List the hyperlinks.") @DefaultValue("false") @QueryParam("hyperlink") boolean hyperlink) {
+        @Parameter(name = "List the hyperlinks.") @DefaultValue("false") @QueryParam("hyperlink") boolean hyperlink,
+        @Parameter(name = "Return the full response.") @DefaultValue("false") @QueryParam("detail") boolean detail) {
         Comparator<String> comparator = Comparator.naturalOrder();
         if (order.equals("desc")) comparator = comparator.reversed();
 
         List<Document> typeList = this.typeDAO.getTypes();
+
+        if (detail) {
+            return Response.ok(typeList).status(200).build();
+        }
+
         List<String> results = typeList.stream()
             .map(t -> t.get("dc:title").toString())
             .sorted(comparator)
@@ -109,8 +115,7 @@ public class TypeController {
             results = results.stream().map(typename -> "/semantics/api/types/" + typename).collect(Collectors.toList());
         }
 
-        return Response.ok(results).status(200)
-            .build();
+        return Response.ok(results).status(200).build();
     }
 
 
