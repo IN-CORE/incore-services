@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Endpoints to return allowed demand types and units [#155](https://github.com/IN-CORE/incore-services/issues/155)
+- Refactor POST /types API [#159](https://github.com/IN-CORE/incore-services/issues/159)
+- Refactor GET /types endpoint [#156](https://github.com/IN-CORE/incore-services/issues/156)
+- Refactor DELETE /types/{id} endpoint [#160](https://github.com/IN-CORE/incore-services/issues/160)
 
 ### Changed
 - Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
@@ -19,6 +22,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Refactor DAO for Semantics service [#151](https://github.com/IN-CORE/incore-services/issues/151)
 - Removed jetty-runner 9 and replaced with Jetty 11 docker image [#174](https://github.com/IN-CORE/incore-services/issues/174)
 - Upgraded geotools to version 29.0 and refactored codes  [#186](https://github.com/IN-CORE/incore-services/issues/186)
+- Removed maestro service from the incore services repository [#145](https://github.com/IN-CORE/incore-services/issues/145)
+
+### Fixed
+- Missing log4j.properties file required to configure logging [#148](https://github.com/IN-CORE/incore-services/issues/148)
 
 ## [1.14.0] -2023-06-14
 ### Added
