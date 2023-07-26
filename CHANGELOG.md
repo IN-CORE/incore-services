@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Removed jetty-runner 9 and replaced with Jetty 11 docker image [#174](https://github.com/IN-CORE/incore-services/issues/174)
 - Removed maestro service from the incore services repository [#145](https://github.com/IN-CORE/incore-services/issues/145)
 
+### Fixed
+- Missing log4j.properties file required to configure logging [#148](https://github.com/IN-CORE/incore-services/issues/148)
+
 ## [1.14.0] -2023-06-14
 ### Added
 - Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)
