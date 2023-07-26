@@ -1,6 +1,6 @@
 Overview
 ========
-This is a Maestro service to list and register analyses within incore
+This is a data service to list and register analyses within incore
 
 How-to run
 ==========
