@@ -138,24 +138,22 @@ public class TypeController {
             List<Document> results = typeList.get().stream()
                 .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
-            List<Document> matchedTypeList;
+            Document matchedType;
 
             // find the latest
             if (version.equals("latest")) {
                 Optional<Document> latestMatched = results.stream()
                     .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
                 if (latestMatched.isPresent()) {
-                    matchedTypeList = new ArrayList<Document>() {{
-                        add(latestMatched.get());
-                    }};
+                    matchedType = latestMatched.get();
                 } else {
-                    matchedTypeList = new ArrayList<>();
+                    matchedType = null;
                 }
             } else {
-                matchedTypeList = results;
+                matchedType = results.get(0);
             }
 
-            return Response.ok(matchedTypeList).status(200)
+            return Response.ok(matchedType).status(200)
                 .build();
 
         } else {
