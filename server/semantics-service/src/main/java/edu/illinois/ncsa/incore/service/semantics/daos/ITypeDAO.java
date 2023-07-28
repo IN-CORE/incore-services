@@ -12,9 +12,11 @@ public interface ITypeDAO {
 
     Optional<List<Document>> getTypeByName(String name, String version);
 
-    String postType(Document type);
+    Document postType(Document type);
 
     Optional<List<Document>> searchType(String typeName);
 
-    String deleteType(String id);
+    Document deleteType(String name);
+
+    Boolean hasType(String name);
 }

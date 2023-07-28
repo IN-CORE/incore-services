@@ -1,8 +1,9 @@
 package edu.illinois.ncsa.incore.service.semantics.daos;
 
 import com.mongodb.MongoClientURI;
+import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import jakarta.ws.rs.core.Response;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,6 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
     private void loadTypes() {
         this.typeList = (List<Document>) this.typeDataStore.find().into(new ArrayList<Document>());
-
     }
 
     @Override
@@ -91,12 +91,14 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     }
 
     @Override
-    public String postType(Document newType) {
+    public Document postType(Document newType) {
         if (newType != null && checkNewType(newType)) {
+            String name = newType.get("dc:title").toString();
+            if (this.hasType(name))
+                throw new IncoreHTTPException(Response.Status.UNAUTHORIZED, name + " already exists.");
             // insert new type
             this.typeDataStore.insertOne(newType);
-
-            return newType.getObjectId("_id").toString();
+            return newType;
         } else {
             throw new IllegalArgumentException();
         }
@@ -104,10 +106,16 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
 
     @Override
-    public String deleteType(String id) {
-        this.typeDataStore.findOneAndDelete(eq("_id", new ObjectId(id)));
-        return id;
+    public Document deleteType(String name) {
+        Document list = (Document) this.typeDataStore.find(eq("dc:title", name)).first();
+        //String id = list == null ? "": list.get("_id").toString();
+        this.typeDataStore.findOneAndDelete(eq("dc:title", name));
+        return list;
     }
 
-
+    @Override
+    public Boolean hasType(String name) {
+        Document list = (Document) this.typeDataStore.find(eq("dc:title", name)).first();
+        return list != null;
+    }
 }
