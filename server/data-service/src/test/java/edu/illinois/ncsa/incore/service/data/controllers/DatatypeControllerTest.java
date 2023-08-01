@@ -8,7 +8,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,7 +32,9 @@ public class DatatypeControllerTest extends CustomJerseyTest {
     @Test
     public void testGetDatatypes() {
         String output = target("/datatypes").request().
-            header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON).get(String.class);
+            header("x-auth-userinfo", "{\"preferred_username\": \"test\"}").accept(MediaType.APPLICATION_JSON)
+            .header("x-auth-usergroup", "{\"groups\": [\"incore_user\", \"incore_coe\"]}")
+            .get(String.class);
         JSONArray parsedObject = new JSONArray(output);
 
         assertEquals(2, parsedObject.length());

@@ -1,29 +1,45 @@
 package edu.illinois.ncsa.incore.service.semantics.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.log4j.Logger;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
-@Api(value = "status", authorizations = {})
+@OpenAPIDefinition(
+    info = @Info(
+        description = "IN-CORE Semantics Services for type and data type",
+        version = "v0.6.3",
+        title = "IN-CORE v2 Semantics Service API",
+        contact = @Contact(
+            name = "IN-CORE Dev Team",
+            email = "incore-dev@lists.illinois.edu",
+            url = "https://incore.ncsa.illinois.edu"
+        ),
+        license = @License(
+            name = "Mozilla Public License 2.0 (MPL 2.0)",
+            url = "https://www.mozilla.org/en-US/MPL/2.0/"
+        )
+    )
+)
+
+@Tag(name = "status")
 
 @Path("status")
-@ApiResponses(value = {
-    @ApiResponse(code = 500, message = "Internal Server Error")
-})
 public class StatusController {
     private static final Logger logger = Logger.getLogger(StatusController.class);
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gives the status of the service.",
-        notes = "This will provide the status of the service as a JSON.")
+    @Operation(summary = "Gives the status of the service.",
+        description = "This will provide the status of the service as a JSON.")
     public String getStatus() {
         String statusJson = "{\"status\": \"responding\"}";
         return statusJson;

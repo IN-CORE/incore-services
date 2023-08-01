@@ -30,8 +30,8 @@ public class Application extends ResourceConfig {
         }
 
         // use same instance of mongo client
-        ITypeDAO conceptDAO = new MongoDBTypeDAO(new MongoClientURI(semanticsMongodbUri));
-        conceptDAO.initialize();
+        ITypeDAO mongoDAO = new MongoDBTypeDAO(new MongoClientURI(semanticsMongodbUri));
+        mongoDAO.initialize();
 
         String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
         if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
@@ -46,7 +46,7 @@ public class Application extends ResourceConfig {
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                super.bind(conceptDAO).to(ITypeDAO.class);
+                super.bind(mongoDAO).to(ITypeDAO.class);
                 super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }

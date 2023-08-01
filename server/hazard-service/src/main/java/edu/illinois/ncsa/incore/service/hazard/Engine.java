@@ -121,8 +121,9 @@ public class Engine {
         String demandType = earthquake.getRasterDataset().getDemandType();
         String username = earthquake.getCreator();
         String description = "Earthquake visualization";
+        String userGroups = "{\"groups\": [\"incore_user\"]}";
         try {
-            String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", username,
+            String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", username, userGroups,
                 description, HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA);
             earthquake.getRasterDataset().setDatasetId(datasetId);
 

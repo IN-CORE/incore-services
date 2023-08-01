@@ -1,17 +1,27 @@
-FROM openjdk:11-jre
+FROM jetty:11.0.15-jre11
+
+# Set user to root so logs store in previous location
+USER root
 
 # TODO we could compile the service here so this works standalone
 
 # Working Directory
 WORKDIR /home/incore
+
+# Copy service war
 COPY server/dfr3-service/build/libs/dfr3-service.war /home/incore/lib/
-COPY docker/dfr3.xml /home/incore/conf/
-COPY docker/jetty-runner.jar /home/incore/lib/
+
+# Copy service context to jetty webapps
+COPY docker/dfr3.xml /var/lib/jetty/webapps/
 
 # create data directory mounting point
 RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
 
+# Reset WORKDIR so jetty runs correctly
+WORKDIR /var/lib/jetty
+
 ENV JETTY_PORT 8080
 
 EXPOSE 8080
-CMD ["java", "-Xmx1024m", "-Djava.io.tmpdir=/home/incore/", "-jar", "lib/jetty-runner.jar", "--port", "8888", "conf/dfr3.xml"]
+CMD ["java", "-Djava.io.tmpdir=/home/incore/", "-jar", "/usr/local/jetty/start.jar", "jetty.http.port=8888"]
+

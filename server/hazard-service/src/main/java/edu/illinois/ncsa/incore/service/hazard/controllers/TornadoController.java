@@ -20,8 +20,11 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.models.DemandDefinition;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.DemandUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.ITornadoRepository;
 import edu.illinois.ncsa.incore.service.hazard.models.ValuesRequest;
@@ -33,7 +36,17 @@ import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoCalc;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.utils.TornadoUtils;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -46,30 +59,30 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.*;
+import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.tornadoComparator;
 
-@Api(value = "tornadoes", authorizations = {})
+@Tag(name = "tornadoes")
 
 @Path("tornadoes")
 @ApiResponses(value = {
-    @ApiResponse(code = 500, message = "Internal Server Error.")
+    @ApiResponse(responseCode = "500", description = "Internal Server Error")
 })
 public class TornadoController {
     private static final Logger logger = Logger.getLogger(TornadoController.class);
     private final String username;
+    private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private ITornadoRepository repository;
@@ -93,30 +106,41 @@ public class TornadoController {
 
     @Inject
     public TornadoController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all tornadoes.")
+    @Operation(summary = "Returns all tornadoes.")
     public List<Tornado> getTornadoes(
-        @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
-        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @Parameter(name = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tornado comparator
+        Comparator<Tornado> comparator = tornadoComparator(sortBy, order);
+
         List<Tornado> tornadoes = repository.getTornadoes();
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(this.username, space.getPrivileges())) {
+            if (!authorizer.canRead(this.username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                     this.username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
             tornadoes = tornadoes.stream()
                 .filter(hurricane -> spaceMembers.contains(hurricane.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -126,10 +150,11 @@ public class TornadoController {
                 .collect(Collectors.toList());
             return tornadoes;
         }
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         List<Tornado> accessibleTornadoes = tornadoes.stream()
             .filter(tornado -> membersSet.contains(tornado.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -141,19 +166,33 @@ public class TornadoController {
         return accessibleTornadoes;
     }
 
+    @GET
+    @Path("/demands")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Operation(summary = "Returns all tornado allowed demand types and units.")
+    public List<DemandDefinition> getTornadoDemands() {
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        return DemandUtils.getAllowedDemands(demandDefinition, "tornado");
+    }
+
     @POST
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a new tornado, the newly created tornado is returned.",
-        notes = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
+    @Operation(summary = "Creates a new tornado, the newly created tornado is returned.",
+        description = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create both model tornadoes and dataset-based tornadoes with GeoTiff files uploaded.")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "tornado", value = "Tornado json.", required = true, dataType = "string", paramType = "form"),
-        @ApiImplicitParam(name = "file", value = "Tornado files.", required = true, dataType = "string", paramType = "form")
-    })
+
+    @RequestBody(description = "Tornado json and files.", required = true,
+        content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED,
+            schema = @Schema(type = "object",
+                properties = {@StringToClassMapItem(key = "tornado", value = String.class),
+                    @StringToClassMapItem(key = "file", value = String.class)}
+            )
+        )
+    )
     public Tornado createTornado(
-        @ApiParam(hidden = true) @FormDataParam("tornado") String tornadoJson,
-        @ApiParam(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
+        @Parameter(hidden = true) @FormDataParam("tornado") String tornadoJson,
+        @Parameter(hidden = true) @FormDataParam("file") List<FormDataBodyPart> fileParts) {
 
         // error messages for tornado creation
         String tornadoErrorMsg = "Could not create Tornado, check the format and files of your request. " +
@@ -222,7 +261,7 @@ public class TornadoController {
                 JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
 
                 // Store the dataset
-                datasetId = ServiceUtil.createDataset(datasetObject, this.username, files);
+                datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups, files);
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);
@@ -236,12 +275,12 @@ public class TornadoController {
                     // Create dataset object representation for storing shapefile
                     JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
                     // Store the dataset
-                    datasetId = ServiceUtil.createDataset(datasetObject, this.username);
+                    datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups);
                     if (datasetId != null) {
                         // attach files to the dataset
-                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, fileParts);
+                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, this.userGroups, fileParts);
                         if (statusCode != HttpStatus.SC_OK) {
-                            ServiceUtil.deleteDataset(datasetId, this.username);
+                            ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
                             logger.error(tornadoErrorMsg);
                             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                         }
@@ -256,7 +295,7 @@ public class TornadoController {
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
                 } else {
-                    ServiceUtil.deleteDataset(datasetId, this.username);
+                    ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
                     logger.error(tornadoErrorMsg);
                     throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                 }
@@ -272,7 +311,7 @@ public class TornadoController {
         } catch (IllegalArgumentException e) {
             logger.error("Illegal Argument has been passed in.", e);
         }
-        ServiceUtil.deleteDataset(datasetId, this.username);
+        ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
 
     }
@@ -280,9 +319,9 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the tornado with matching id.")
+    @Operation(summary = "Returns the tornado with matching id.")
     public Tornado getTornado(
-        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
+        @Parameter(name = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         Tornado tornado = repository.getTornadoById(tornadoId);
         if (tornado == null) {
@@ -296,7 +335,7 @@ public class TornadoController {
             return tornado;
         }
 
-        if (authorizer.canUserReadMember(this.username, tornadoId, spaceRepository.getAllSpaces())) {
+        if (authorizer.canUserReadMember(this.username, tornadoId, spaceRepository.getAllSpaces(), this.groups)) {
             return tornado;
         }
 
@@ -307,22 +346,22 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/value")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the wind speed at given location using the specified tornado.")
+    @Operation(summary = "Returns the wind speed at given location using the specified tornado.")
     @Deprecated
     public WindHazardResult getTornadoHazard(
-        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
-        @ApiParam(value = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "Latitude of a site. Ex: 35.027.", required = true) @QueryParam("siteLat") double siteLat,
-        @ApiParam(value = "Longitude of a site. Ex: -90.131.", required = true) @QueryParam("siteLong") double siteLong,
-        @ApiParam(value = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation,
-        @ApiParam(value = "Seed value for random values. Ex: 1000") @QueryParam("seed") @DefaultValue("-1") int seed) throws Exception {
+        @Parameter(name = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId,
+        @Parameter(name = "Tornado demand unit. Ex: 'm'.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @Parameter(name = "Latitude of a site. Ex: 35.027.", required = true) @QueryParam("siteLat") double siteLat,
+        @Parameter(name = "Longitude of a site. Ex: -90.131.", required = true) @QueryParam("siteLong") double siteLong,
+        @Parameter(name = "Simulated wind hazard. Ex: 0.") @QueryParam("simulation") @DefaultValue("0") int simulation,
+        @Parameter(name = "Seed value for random values. Ex: 1000") @QueryParam("seed") @DefaultValue("-1") int seed) throws Exception {
 
         Tornado tornado = getTornado(tornadoId);
         if (tornado != null) {
             Point localSite = factory.createPoint(new Coordinate(siteLong, siteLat));
 
             try {
-                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, seed, this.username);
+                return TornadoCalc.getWindHazardAtSite(tornado, localSite, demandUnits, simulation, seed, this.username, this.userGroups);
             } catch (Exception e) {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error computing hazard." + e.getMessage());
             }
@@ -335,16 +374,16 @@ public class TornadoController {
     @Path("{tornado-id}/values")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns tornado values for a set of locations",
-        notes = "Outputs hazard values, demand types, unit and location.")
+    @Operation(summary = "Returns tornado values for a set of locations",
+        description = "Outputs hazard values, demand types, unit and location.")
     public List<ValuesResponse> postTornadoValues(
-        @ApiParam(value = "Tornado Id", required = true)
+        @Parameter(name = "Tornado Id", required = true)
         @PathParam("tornado-id") String tornadoId,
-        @ApiParam(value = "Json of the points along with demand types and units",
+        @Parameter(name = "Json of the points along with demand types and units",
             required = true) @FormDataParam("points") String requestJsonStr,
-        @ApiParam(value = "Simulated wind hazard index. Ex: 0 for first, 1 for second and so on")
+        @Parameter(name = "Simulated wind hazard index. Ex: 0 for first, 1 for second and so on")
         @FormDataParam("simulation") @DefaultValue("0") int simulation,
-        @ApiParam(value = "Seed value for random values. Ex: 1000")
+        @Parameter(name = "Seed value for random values. Ex: 1000")
         @FormDataParam("seed") @DefaultValue("-1") int seed) {
 
         Tornado tornado = getTornado(tornadoId);
@@ -386,7 +425,7 @@ public class TornadoController {
                                     resDemands.add(demands.get(i));
                                 } else {
                                     WindHazardResult res = TornadoCalc.getWindHazardAtSite(tornado,
-                                        request.getLoc().getLocation(), units.get(i), simulation, seed, this.username);
+                                        request.getLoc().getLocation(), units.get(i), simulation, seed, this.username, this.userGroups);
                                     resDemands.add(res.getDemand());
                                     resUnits.add(res.getUnits());
                                     hazVals.add(res.getHazardValue());
@@ -428,9 +467,9 @@ public class TornadoController {
     @GET
     @Path("{tornado-id}/dataset")
     @Produces({MediaType.TEXT_PLAIN})
-    @ApiOperation(value = "Returns a zip shapefile representing tornado defined by given id.")
+    @Operation(summary = "Returns a zip shapefile representing tornado defined by given id.")
     public Response getFile(
-        @ApiParam(value = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
+        @Parameter(name = "Tornado dataset guid from data service.", required = true) @PathParam("tornado-id") String tornadoId) {
 
         // TODO implement this and change MediaType to Octet Stream
         return Response.ok("Shapefile representing tornado not yet implemented.").build();
@@ -439,14 +478,19 @@ public class TornadoController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all tornadoes", notes = "Gets all tornadoes that contain a specific text")
+    @Operation(summary = "Search for a text in all tornadoes", description = "Gets all tornadoes that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No tornadoes found with the searched text")
+        @ApiResponse(responseCode = "404", description = "No tornadoes found with the searched text")
     })
     public List<Tornado> findTornadoes(
-        @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
-        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @Parameter(name = "Text to search by", example = "building") @QueryParam("text") String text,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+
+        // import tornado comparator
+        Comparator<Tornado> comparator = tornadoComparator(sortBy, order);
 
         List<Tornado> tornadoes;
         Tornado tornado = repository.getTornadoById(text);
@@ -458,10 +502,11 @@ public class TornadoController {
             tornadoes = this.repository.searchTornadoes(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         tornadoes = tornadoes.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -476,21 +521,21 @@ public class TornadoController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{tornado-id}")
-    @ApiOperation(value = "Deletes a tornado", notes = "Also deletes attached dataset and related files")
-    public Tornado deleteTornado(@ApiParam(value = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
+    @Operation(summary = "Deletes a tornado", description = "Also deletes attached dataset and related files")
+    public Tornado deleteTornado(@Parameter(name = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
         Tornado tornado = getTornado(tornadoId);
 
         if (this.username.equals(tornado.getOwner())) {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;
-                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username) == null) {
+                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(tModel.getDatasetId());
                 }
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tDataset = (TornadoDataset) tornado;
-                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username);
-                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username) == null) {
+                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups);
+                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups) == null) {
                     spaceRepository.addToOrphansSpace(tDataset.getDatasetId());
                 }
             }

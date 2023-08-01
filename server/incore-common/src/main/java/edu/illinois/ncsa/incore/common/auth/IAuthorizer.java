@@ -16,30 +16,30 @@ import java.util.List;
 import java.util.Set;
 
 public interface IAuthorizer {
-    Set<PrivilegeLevel> getPrivilegesFor(String user, Privileges spec);
+    Set<PrivilegeLevel> getPrivilegesFor(String user, Privileges spec, List<String> userGroups);
 
-    Set<PrivilegeLevel> getPrivilegesFor(String user, String privilegeSpecJson);
+    Set<PrivilegeLevel> getPrivilegesFor(String user, String privilegeSpecJson, List<String> userGroups);
 
-    boolean canRead(String user, Privileges privileges);
+    boolean canRead(String user, Privileges privileges, List<String> userGroups);
 
-    boolean canRead(String user, String privilegeSpecJson);
+    boolean canRead(String user, String privilegeSpecJson, List<String> userGroups);
 
-    boolean canWrite(String user, Privileges privileges);
+    boolean canWrite(String user, Privileges privileges, List<String> userGroups);
 
-    boolean canWrite(String user, String privilegeSpecJson);
+    boolean canWrite(String user, String privilegeSpecJson, List<String> userGroups);
 
-    boolean canDelete(String user, Privileges privileges);
+    boolean canDelete(String user, Privileges privileges, List<String> userGroups);
 
-    List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces);
+    List<Space> getAllSpacesUserCanRead(String username, List<Space> spaces, List<String> userGroups);
 
-    Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces);
+    Set<String> getAllMembersUserHasReadAccessTo(String username, List<Space> spaces, List<String> userGroups);
 
-    boolean canUserReadMember(String username, String memberId, List<Space> spaces);
+    boolean canUserReadMember(String username, String memberId, List<Space> spaces, List<String> userGroups);
 
-    boolean canUserWriteMember(String username, String memberId, List<Space> spaces);
+    boolean canUserWriteMember(String username, String memberId, List<Space> spaces, List<String> userGroups);
 
-    boolean canUserDeleteMember(String username, String memberId, List<Space> spaces);
+    boolean canUserDeleteMember(String username, String memberId, List<Space> spaces, List<String> userGroups);
 
-    boolean isUserAdmin(String user);
+    boolean isUserAdmin(List<String> userGroups);
 
 }

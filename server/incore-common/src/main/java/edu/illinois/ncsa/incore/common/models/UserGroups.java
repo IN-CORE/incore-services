@@ -14,9 +14,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.bson.types.ObjectId;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 @XmlRootElement

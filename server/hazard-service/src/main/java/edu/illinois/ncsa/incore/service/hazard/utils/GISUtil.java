@@ -28,7 +28,7 @@ import org.opengis.coverage.grid.GridCoverage;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
@@ -111,12 +111,12 @@ public class GISUtil {
         return inSourceFileUrl;
     }
 
-    private static URL cacheFeatureCollection(String datasetId, File cacheDir, String creator) {
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, cacheDir);
+    private static URL cacheFeatureCollection(String datasetId, File cacheDir, String creator, String userGroups) {
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, userGroups, cacheDir);
         return GISUtil.unZipShapefiles(file, cacheDir);
     }
 
-    public static FeatureCollection getFeatureCollection(String datasetId, String creator) {
+    public static FeatureCollection getFeatureCollection(String datasetId, String creator, String userGroups) {
 
         URL inSourceFileUrl = null;
 
@@ -137,7 +137,7 @@ public class GISUtil {
 
             //if not, download the cache it
             if (inSourceFileUrl == null) {
-                inSourceFileUrl = cacheFeatureCollection(datasetId, cacheDir, creator);
+                inSourceFileUrl = cacheFeatureCollection(datasetId, cacheDir, creator, userGroups);
             }
 
             //if we still don't have it, there's a problem
@@ -167,7 +167,7 @@ public class GISUtil {
 
     }
 
-    public static synchronized GridCoverage getGridCoverage(String datasetId, String creator) {
+    public static synchronized GridCoverage getGridCoverage(String datasetId, String creator, String userGroups) {
         URL inSourceFileUrl = null;
 
         try {
@@ -188,7 +188,7 @@ public class GISUtil {
 
             //if not, download the cache it
             if (inSourceFileUrl == null) {
-                inSourceFileUrl = cacheGridCoverage(datasetId, cacheDir, creator);
+                inSourceFileUrl = cacheGridCoverage(datasetId, cacheDir, creator, userGroups);
             }
 
             //if we still don't have it, there's a problem
@@ -215,8 +215,8 @@ public class GISUtil {
         return null;
     }
 
-    private static URL cacheGridCoverage(String datasetId, File cacheDir, String creator) {
-        File file = ServiceUtil.getFileFromDataService(datasetId, creator, cacheDir);
+    private static URL cacheGridCoverage(String datasetId, File cacheDir, String creator, String userGroups) {
+        File file = ServiceUtil.getFileFromDataService(datasetId, creator, userGroups, cacheDir);
 
         byte[] buffer = new byte[1024];
         URL tifFile = null;

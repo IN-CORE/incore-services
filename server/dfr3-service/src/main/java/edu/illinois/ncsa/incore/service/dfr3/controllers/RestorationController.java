@@ -20,22 +20,31 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.RestorationSet;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.log4j.Logger;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         version = "v0.6.3",
         description = "IN-CORE Service For Restoration and Restoration mappings",
@@ -50,20 +59,21 @@ import java.util.stream.Collectors;
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
+    )
 
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {SwaggerDefinition.Scheme.HTTP}
 )
 
 
-@Api(value = "restorations", authorizations = {})
+@Tag(name = "restorations")
 @Path("restorations")
 public class RestorationController {
     private static final Logger logger = Logger.getLogger(RestorationController.class);
 
     private final String username;
+    private final List<String> groups;
 
     @Inject
     IAuthorizer authorizer;
@@ -80,19 +90,22 @@ public class RestorationController {
 
     @Inject
     public RestorationController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of restorations", notes = "Apply filters to get the desired set of restorations")
-    public List<RestorationSet> getRestorations(@ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                                @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                                @ApiParam(value = "Restoration creator's username") @QueryParam("creator") String creator,
-                                                @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                                @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam(
+    @Operation(tags = "Gets list of restorations", description = "Apply filters to get the desired set of restorations")
+    public List<RestorationSet> getRestorations(@Parameter(name = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                                @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                                @Parameter(name = "Restoration creator's username") @QueryParam("creator") String creator,
+                                                @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                                @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                                @Parameter(name= "Limit no of results to return") @DefaultValue("100") @QueryParam(
                                                     "limit") int limit) {
         Map<String, String> queryMap = new HashMap<>();
 
@@ -121,7 +134,7 @@ public class RestorationController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(username, space.getPrivileges())) {
+            if (!authorizer.canRead(username, space.getPrivileges(), groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
@@ -139,7 +152,7 @@ public class RestorationController {
             return restorationSets;
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<RestorationSet> accessibleRestorations = restorationSets.stream()
             .filter(b -> membersSet.contains(b.getId()))
@@ -157,8 +170,8 @@ public class RestorationController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a restoration set", notes = "Post a restoration set to the restoration service")
-    public RestorationSet uploadRestorationSet(@ApiParam(value = "json representing the restoration set") RestorationSet restorationSet) {
+    @Operation(description = "Create a restoration set", tags = "Post a restoration set to the restoration service")
+    public RestorationSet uploadRestorationSet(@Parameter(name = "json representing the restoration set") RestorationSet restorationSet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(restorationSet.getId());
 
@@ -197,13 +210,13 @@ public class RestorationController {
     @GET
     @Path("{restorationId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a restoration by Id", notes = "Get a particular restoration based on the id provided")
-    public RestorationSet getRestorationSetById(@ApiParam(value = "hexadecimal restoration id", example = "5b47b2d8337d4a36187c6727")
+    @Operation(tags = "Gets a restoration by Id", description = "Get a particular restoration based on the id provided")
+    public RestorationSet getRestorationSetById(@Parameter(name = "hexadecimal restoration id", example = "5b47b2d8337d4a36187c6727")
                                                 @PathParam("restorationId") String id) {
         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
         if (restorationSet.isPresent()) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces())) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 RestorationSet rs = restorationSet.get();
                 rs.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
                 return rs;
@@ -216,8 +229,8 @@ public class RestorationController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{restorationId}")
-    @ApiOperation(value = "Deletes a restoration by id")
-    public RestorationSet deleteRestorationById(@ApiParam(value = "restoration id", example = "5b47b2d8337d4a36187c6727") @PathParam(
+    @Operation(tags = "Deletes a restoration by id")
+    public RestorationSet deleteRestorationById(@Parameter(name = "restoration id", example = "5b47b2d8337d4a36187c6727") @PathParam(
         "restorationId") String id) {
         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
@@ -256,13 +269,13 @@ public class RestorationController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all restorations", notes = "Gets all restorations that contain a specific text")
+    @Operation(tags = "Search for a text in all restorations", description = "Gets all restorations that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No restorations found with the searched text")
+        @ApiResponse(responseCode = "404", description = "No restorations found with the searched text")
     })
-    public List<RestorationSet> findRestorations(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
-                                                 @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                                 @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam(
+    public List<RestorationSet> findRestorations(@Parameter(name = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                                 @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                                 @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam(
                                                      "limit") int limit) {
         List<RestorationSet> sets = new ArrayList<>();
         Optional<RestorationSet> fs = this.restorationDAO.getRestorationSetById(text);
@@ -272,7 +285,7 @@ public class RestorationController {
             sets = this.restorationDAO.searchRestorations(text);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         List<RestorationSet> accessibleRestorations = sets.stream()
             .filter(b -> membersSet.contains(b.getId()))

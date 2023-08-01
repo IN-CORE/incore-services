@@ -59,7 +59,7 @@ public class HazardCalc {
                                                                  Map<BaseAttenuation, Double> attenuations,
                                                                  Site site, SimpleFeatureCollection soilGeology,
                                                                  String demandUnits, SimpleFeatureCollection siteClassFC,
-                                                                 String creator) {
+                                                                 String creator, String userGroups) {
 
         // TODO fix this for dataset
         EarthquakeModel eqModel = (EarthquakeModel) earthquake;
@@ -79,7 +79,7 @@ public class HazardCalc {
             if (feature != null) {
                 susceptibility = feature.getAttribute(HazardUtil.LIQ_SUSCEPTIBILITY).toString();
                 SeismicHazardResult seismicHazardResult = getGroundMotionAtSite(earthquake, attenuations, site, "0.0", HazardUtil.PGA,
-                    HazardUtil.units_g, 0, true, siteClassFC, creator);
+                    HazardUtil.units_g, 0, true, siteClassFC, creator, userGroups);
 
                 // Handles the case where the hazard is null if below the threshold of exposure
                 if (seismicHazardResult.getHazardValue() != null) {
@@ -114,7 +114,7 @@ public class HazardCalc {
                                                             Site site, String period, String hazardType, String demandUnits,
                                                             int spectrumOverride, boolean amplifyHazard,
                                                             SimpleFeatureCollection siteClassFC,
-                                                            String creator) throws Exception {
+                                                            String creator, String userGroups) throws Exception {
         // If demand type units is null, use default for the requested demand
         // This might not be the best way to handle it, but it is at least consistent in providing the units of what is
         // being returned
@@ -135,7 +135,7 @@ public class HazardCalc {
             boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, true);
             if (!supported) {
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, HazardUtil.SA,
-                    spectrumOverride, amplifyHazard, creator, demandUnits);
+                    spectrumOverride, amplifyHazard, creator, userGroups, demandUnits);
                 // We use the result period for conversion because in the case of closest match, the requested period may not have been used
                 Double updatedHazardValue = null;
                 if (result.getHazardValue() != null) {
@@ -145,7 +145,7 @@ public class HazardCalc {
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), HazardUtil.SD, demandUnits);
             } else {
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType,
-                    spectrumOverride, amplifyHazard, creator, demandUnits);
+                    spectrumOverride, amplifyHazard, creator, userGroups, demandUnits);
                 Double updatedHazardValue = null;
                 if (result.getHazardValue() != null) {
                     updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
@@ -167,7 +167,7 @@ public class HazardCalc {
                 logger.debug(hazardType + " is not directly supported by the earthquake, using 1.0 second SA to compute " + hazardType);
 
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "1.0",
-                    "Sa", spectrumOverride, amplifyHazard, creator, null);
+                    "Sa", spectrumOverride, amplifyHazard, creator, userGroups,null);
                 Double updatedHazardVal = null;
                 if (result.getHazardValue() != null) {
                     updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 1.0, HazardUtil.SA, demandUnits,
@@ -177,7 +177,7 @@ public class HazardCalc {
             } else {
                 // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
                 SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType,
-                    spectrumOverride, amplifyHazard, creator, demandUnits);
+                    spectrumOverride, amplifyHazard, creator, userGroups, demandUnits);
                 Double updatedHazardValue = null;
                 if (result.getHazardValue() != null) {
                     updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
@@ -197,7 +197,7 @@ public class HazardCalc {
             }
             SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType, spectrumOverride,
                 amplifyHazard,
-                creator, demandUnits);
+                creator, userGroups, demandUnits);
             Double updatedHazardValue = null;
             if (result.getHazardValue() != null) {
                 updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
@@ -229,7 +229,7 @@ public class HazardCalc {
 
     public static SeismicHazardResult computeGroundMotionAtSite(Earthquake earthquake, Map<BaseAttenuation, Double> attenuations,
                                                                 Site site, String period, String demand, int spectrumOverride,
-                                                                boolean amplifyHazard, String creator,
+                                                                boolean amplifyHazard, String creator, String userGroups,
                                                                 String demandUnits) throws Exception {
 
         Double hazardValue = 0.0;
@@ -275,7 +275,7 @@ public class HazardCalc {
 
                     if (closestHazardPeriod.equalsIgnoreCase(HazardUtil.PGV)) {
                         double pga = computeGroundMotionAtSite(earthquake, attenuations, site, "0.0", "PGA",
-                            spectrumOverride, false, creator, null).getHazardValue();
+                            spectrumOverride, false, creator, userGroups,null).getHazardValue();
                         hazardValue *= siteAmplification.getSiteAmplification(site, pga, siteClass, closestHazardPeriod);
                     } else {
                         // Note, hazard value input should be PGA if amplifying PGV hazard because NEHRP uses PGA coefficients for
@@ -299,7 +299,7 @@ public class HazardCalc {
             HazardDataset hazardDataset = HazardUtil.findHazard(eqDataset.getHazardDatasets(), demand, period, false);
             closestHazardPeriod = Double.toString(hazardDataset.getPeriod());
 
-            GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator);
+            GridCoverage gc = GISUtil.getGridCoverage(hazardDataset.getDatasetId(), creator, userGroups);
             try {
                 JSONObject eqThresholds;
                 if (hazardDataset.getThreshold() != null) {
@@ -360,7 +360,7 @@ public class HazardCalc {
 
     public static GridCoverage getEarthquakeHazardRaster(EarthquakeModel scenarioEarthquake,
                                                          Map<BaseAttenuation, Double> attenuations,
-                                                         String creator) throws Exception {
+                                                         String creator, String userGroups) throws Exception {
         EqVisualization visualizationParameters = scenarioEarthquake.getVisualizationParameters();
         boolean amplifyHazard = visualizationParameters.isAmplifyHazard();
         double minX = visualizationParameters.getMinX();
@@ -429,9 +429,14 @@ public class HazardCalc {
             startX = (float) minX + (cellsize / 2.0f);
             for (int x = 0; x < width; x++) {
                 localSite = new Site(factory.createPoint(new Coordinate(startX, startY)));
-                double hazardValue = getGroundMotionAtSite(scenarioEarthquake, attenuations,
-                    localSite, demandComponents[0], demandComponents[1], demandUnits,
-                    0, amplifyHazard, null, creator).getHazardValue();
+                SeismicHazardResult hazardValueObj = getGroundMotionAtSite(scenarioEarthquake, attenuations, localSite, demandComponents[0],
+                    demandComponents[1], demandUnits, 0, amplifyHazard, null, creator, userGroups);
+
+                // If the hazard is below the threshold it will be null so we'll set it to -9999
+                double hazardValue = -9999;
+                if (hazardValueObj.getHazardValue() != null) {
+                    hazardValue = hazardValueObj.getHazardValue();
+                }
 
                 raster.setSample(x, y, 0, hazardValue);
 

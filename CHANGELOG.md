@@ -8,6 +8,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 # Added
 - Owner item added to the dataset, hazard, and dfr3 object [#92](https://github.com/IN-CORE/incore-services/issues/92)
+- Endpoints to return allowed demand types and units [#155](https://github.com/IN-CORE/incore-services/issues/155)
+- Refactor POST /types API [#159](https://github.com/IN-CORE/incore-services/issues/159)
+- Refactor GET /types endpoint [#156](https://github.com/IN-CORE/incore-services/issues/156)
+- Refactor DELETE /types/{id} endpoint [#160](https://github.com/IN-CORE/incore-services/issues/160)
+
+### Changed
+- Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
+- Upgraded project and space-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#152](https://github.com/IN-CORE/incore-services/issues/152)
+- Upgraded project and semantics-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#167](https://github.com/IN-CORE/incore-services/issues/167)
+- Upgraded project and hazard-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#163](https://github.com/IN-CORE/incore-services/issues/163)
+- Upgraded project and data-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#165](https://github.com/IN-CORE/incore-services/issues/165)
+- Refactor DAO for Semantics service [#151](https://github.com/IN-CORE/incore-services/issues/151)
+- Removed jetty-runner 9 and replaced with Jetty 11 docker image [#174](https://github.com/IN-CORE/incore-services/issues/174)
+- Upgraded geotools to version 29.0 and refactored codes  [#186](https://github.com/IN-CORE/incore-services/issues/186)
+- Removed maestro service from the incore services repository [#145](https://github.com/IN-CORE/incore-services/issues/145)
+
+### Fixed
+- Missing log4j.properties file required to configure logging [#148](https://github.com/IN-CORE/incore-services/issues/148)
+
+## [1.14.0] -2023-06-14
+### Added
+- Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)
+- Get user group function to read and parse user groups from headers [#120](https://github.com/IN-CORE/incore-services/issues/120)
+
+### Changed
+- Remove LdapClient and refactor the Authorizer class along with its interface to take in userGroups parameter and modify internal calls too [#118](https://github.com/IN-CORE/incore-services/issues/118)
+- Add userGroups parameter in Semantics Controller [#124](https://github.com/IN-CORE/incore-services/issues/124) 
+- Add userGroups parameter in Space Controller [#123](https://github.com/IN-CORE/incore-services/issues/123)
+- Add userGroups parameter in DFR3 Controller [#122](https://github.com/IN-CORE/incore-services/issues/122)
+- Add userGroups parameter in Data Controller [#121](https://github.com/IN-CORE/incore-services/issues/121)
+- Add userGroups parameter in Hazard Controller [#119](https://github.com/IN-CORE/incore-services/issues/119)
+
+## [1.13.1] - 2023-03-15
+### Fixed
+- Earthquake hazard raster didn't handle values below the threshold that were set to null[#108](https://github.com/IN-CORE/incore-services/issues/108)
+
+## [1.13.0] - 2023-03-08
+### Added
+- Space endpoint for getting space by providing the name of the space [#101](https://github.com/IN-CORE/incore-services/issues/101)
 
 ## [1.12.0] - 2022-11-16
 ### Changed

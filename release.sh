@@ -40,12 +40,10 @@ for v in ${TAG}; do
     ${DEBUG} docker tag incore/hazard-jetty hub.ncsa.illinois.edu/incore/hazard-jetty:${v}
     ${DEBUG} docker tag incore/space-jetty hub.ncsa.illinois.edu/incore/space-jetty:${v}
     ${DEBUG} docker tag incore/semantics-jetty hub.ncsa.illinois.edu/incore/semantics-jetty:${v}
-    ${DEBUG} docker tag incore/maestro-jetty hub.ncsa.illinois.edu/incore/maestro-jetty:${v}
 
     ${DEBUG} docker push ${SERVER}/incore/data-jetty:${v}
     ${DEBUG} docker push ${SERVER}/incore/dfr3-jetty:${v}
     ${DEBUG} docker push ${SERVER}/incore/hazard-jetty:${v}
     ${DEBUG} docker push ${SERVER}/incore/space-jetty:${v}
     ${DEBUG} docker push ${SERVER}/incore/semantics-jetty:${v}
-    ${DEBUG} docker push ${SERVER}/incore/maestro-jetty:${v}
 done

@@ -11,21 +11,20 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
 
@@ -36,13 +35,26 @@ import java.util.List;
 public class FileController {
     private final Logger logger = Logger.getLogger(edu.illinois.ncsa.incore.service.data.controllers.FileController.class);
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
+    private final String username;
+    private final List<String> groups;
 
     @Inject
     private IRepository repository;
 
+    @Inject
+    public FileController(
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
+        this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
+    }
+
+    // TODO why are below endpoints not access controlled?
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of all files' metadata", notes = "")
+    @Operation(summary = "Gets the list of all files' metadata", description = "")
     public List<FileDescriptor> getFileDescriptorList() {
         List<FileDescriptor> fds = repository.getAllFileDescriptors();
         if (fds == null) {
@@ -56,8 +68,8 @@ public class FileController {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets metadata of a file's metadata", notes = "")
-    public FileDescriptor getFileDescriptorById(@ApiParam(value = "FileDescriptor Object Id", required = true) @PathParam("id") String id) {
+    @Operation(summary = "Gets metadata of a file's metadata", description = "")
+    public FileDescriptor getFileDescriptorById(@Parameter(name = "FileDescriptor Object Id", required = true) @PathParam("id") String id) {
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {
             logger.error("Error finding dataset.");
@@ -93,8 +105,8 @@ public class FileController {
     @GET
     @Path("{id}/blob")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @ApiOperation(value = "Returns a file linked to the FileDescriptor Object", notes = "")
-    public Response getFileByFileDescriptorId(@ApiParam(value = "FileDescriptor Object Id") @PathParam("id") String id) {
+    @Operation(summary = "Returns a file linked to the FileDescriptor Object", description = "")
+    public Response getFileByFileDescriptorId(@Parameter(name = "FileDescriptor Object Id") @PathParam("id") String id) {
         File outFile = null;
         Dataset dataset = repository.getDatasetByFileDescriptorId(id);
         if (dataset == null) {

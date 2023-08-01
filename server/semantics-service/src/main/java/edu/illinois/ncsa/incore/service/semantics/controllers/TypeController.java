@@ -1,23 +1,39 @@
 package edu.illinois.ncsa.incore.service.semantics.controllers;
 
-import edu.illinois.ncsa.incore.common.auth.Authorizer;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
-import io.swagger.annotations.*;
+import edu.illinois.ncsa.incore.service.semantics.model.Column;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.apache.log4j.Logger;
 import org.bson.Document;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// @SwaggerDefinition is common for all the service's controllers and can be put in any one of them
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
         version = "v0.6.3",
@@ -31,20 +47,20 @@ import java.util.stream.Collectors;
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
+    )
 )
 
-@Api(value = "types", authorizations = {})
+@Tag(name = "types")
 
 @Path("")
 public class TypeController {
+    private static final Logger log = Logger.getLogger(TypeController.class);
 
     private final String username;
 
-    private final Authorizer authorizer;
+    private final List<String> groups;
+
+    private Configuration templateConfig;
 
     @Inject
     private ITypeDAO typeDAO;
@@ -53,45 +69,69 @@ public class TypeController {
     private ISpaceRepository spaceRepository;
 
     @Inject
+    private IAuthorizer authorizer;
+
+    @Inject
     public TypeController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo) {
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
-        // we want to limit the semantics service to admins for now
-        this.authorizer = new Authorizer();
-        if (!this.authorizer.isUserAdmin(this.username)) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
-        }
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
+
+        // Configure template and load available templates
+        templateConfig = new Configuration();
+        ClassTemplateLoader cloader = new ClassTemplateLoader(this.getClass(), "/templates/freemarker");
+        templateConfig.setTemplateLoader(cloader);
     }
 
     @GET
     @Path("types")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "list all types belong user has access to.")
-    public Response listTypes() {
+    @Operation(summary = "list all types belong user has access to.")
+    public Response listTypes(
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("asc") @QueryParam("order") String order,
+        @Parameter(name = "Skip the first n results.") @DefaultValue("0") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
+        @Parameter(name = "List the hyperlinks.") @DefaultValue("false") @QueryParam("hyperlink") boolean hyperlink,
+        @Parameter(name = "Return the full response.") @DefaultValue("false") @QueryParam("detail") boolean detail) {
+        Comparator<String> comparator = Comparator.naturalOrder();
+        if (order.equals("desc")) comparator = comparator.reversed();
+
         List<Document> typeList = this.typeDAO.getTypes();
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-        //return the intersection between all types and the ones the user can read
-        List<Document> results = typeList.stream()
-            .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+
+        if (detail) {
+            return Response.ok(typeList).status(200).build();
+        }
+
+        List<String> results = typeList.stream()
+            .map(t -> t.get("dc:title").toString())
+            .sorted(comparator)
+            .skip(offset)
+            .limit(limit)
             .collect(Collectors.toList());
 
-        return Response.ok(results).status(200)
-            .build();
+        if (hyperlink) {
+            results = results.stream().map(typename -> "/semantics/api/types/" + typename).collect(Collectors.toList());
+        }
 
+        return Response.ok(results).status(200).build();
     }
 
+
     @GET
-    @Path("types/{uri}")
+    @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Show specific types by uri.")
+    @Operation(summary = "Show specific types by uri.")
     public Response getType(
-        @ApiParam(value = "Type uri (name).", required = true) @PathParam("uri") String uri,
-        @ApiParam(value = "version number.") @QueryParam("version") String version) {
+        @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
+        @Parameter(name = "version number.") @QueryParam("version") String version) {
+
         if (version == null) {
             version = "latest";
         }
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
-        Optional<List<Document>> typeList = this.typeDAO.getTypeByUri(uri, version);
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
+        Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
 
         if (typeList.isPresent()) {
             // make sure that uri is in the namespace
@@ -119,17 +159,101 @@ public class TypeController {
                 .build();
 
         } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + uri + " version " + version + " !");
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
+        }
+    }
+
+    @GET
+    @Path("types/{name}")
+    @Produces(MediaType.TEXT_HTML)
+    @Operation(summary = "Show specific types by uri as HTML.")
+    public Response getTypeAsHtml(
+        @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
+        @Parameter(name = "version number.") @QueryParam("version") String version) {
+
+        // Since this code is shared with the endpoint that returns JSON, it should be pulled out into a utility to avoid duplication
+        if (version == null) {
+            version = "latest";
+        }
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
+        Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
+
+        if (typeList.isPresent()) {
+            // make sure that uri is in the namespace
+            List<Document> results = typeList.get().stream()
+                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+                .collect(Collectors.toList());
+            List<Document> matchedTypeList;
+
+            // find the latest
+            if (version.equals("latest")) {
+                Optional<Document> latestMatched = results.stream()
+                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
+                if (latestMatched.isPresent()) {
+                    matchedTypeList = new ArrayList<Document>() {{
+                        add(latestMatched.get());
+                    }};
+                } else {
+                    matchedTypeList = new ArrayList<>();
+                }
+            } else {
+                matchedTypeList = results;
+            }
+
+            Document d = matchedTypeList.get(0);
+
+            // Convert the BSON Document to a JSONObject
+            JSONObject typeJson = new JSONObject(d.toJson());
+            JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
+            JSONArray columnsArray = tableSchema.getJSONArray("columns");
+
+            // Loop through each column
+            List<Column> columns = new ArrayList<Column>();;
+            for (int i = 0; i < columnsArray.length(); i++) {
+                JSONObject column = columnsArray.getJSONObject(i);
+                String columnName = column.getString("name");
+                String titles = column.getString("titles");
+                String description = column.getString("dc:description");
+                String datatype = column.getString("datatype");
+                boolean required = Boolean.parseBoolean(column.getString("required"));
+                String unit = column.getString("qudt:unit");
+                columns.add(new Column(columnName, titles, datatype, description, unit, Boolean.toString(required)));
+            }
+
+            // Map of things to parse in the template - this can be expanded to add more objects
+            // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
+            Map<String, Object> model = new HashMap<String, Object>();
+            model.put("title", d.get("dc:title"));
+            model.put("description", d.get("dc:description"));
+            model.put("columns", columns);
+
+            try {
+                Template typeTemplate = templateConfig.getTemplate("types.ftl");
+                StringWriter output = new StringWriter();
+                typeTemplate.process(model, output);
+                return Response.ok(output.toString()).status(200).build();
+            } catch (IOException e) {
+                log.error("Could not read the template file to generate html page", e);
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not read the template file to generate html " +
+                    "page");
+            } catch (TemplateException e) {
+                log.error("Could not process type object using the template file", e);
+                e.printStackTrace();
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not process type object using the template " +
+                    "file");
+            }
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
         }
     }
 
     @GET
     @Path("types/search")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Search type by partial match of text.")
+    @Operation(summary = "Search type by partial match of text.")
     public Response searchType(
-        @ApiParam(value = "Type uri (name).") @QueryParam("text") String text) {
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces());
+        @Parameter(name = "Type uri (name).") @QueryParam("text") String text) {
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
         List<Document> results;
@@ -149,45 +273,60 @@ public class TypeController {
     @Path("/types")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Publish new type.")
+    @Operation(summary = "Publish new type.")
     public Response publishType(
-        @ApiParam(value = "Type uri (name).") Document type) {
-        Space space = spaceRepository.getSpaceByName(this.username);
+        @Parameter(name = "Type uri (name).") Document type) {
+        try {
+            if (authorizer.isUserAdmin(this.groups)) {
+                Space space = spaceRepository.getSpaceByName(this.username);
+                Document newtype = this.typeDAO.postType(type);
+                // add id to matching space
+                String id = newtype.getObjectId("_id").toString();
+                space.addMember(id);
+                spaceRepository.addSpace(space);
 
-        String id = this.typeDAO.postType(type);
-
-        // add id to matching space
-        space.addMember(id);
-        spaceRepository.addSpace(space);
-
-        return Response.ok(id).status(200)
-            .build();
-
+                return Response.ok(newtype).status(200)
+                    .build();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+            }
+        } catch (IncoreHTTPException e){
+            throw e;
+        } catch (Exception e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid type JSON. " + e);
+        }
     }
 
     @DELETE
-    @Path("types/{id}")
+    @Path("types/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete type by id.")
+    @Operation(summary = "Delete type by name.")
     public Response deleteType(
-        @ApiParam(value = "Type id.") @PathParam("id") String id) {
-        String deletedId = this.typeDAO.deleteType(id);
-        if (deletedId == null) {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with id " + id);
-        }
-
+        @Parameter(name = "Type name.") @PathParam("name") String name) {
         // TODO: when this service is not restricted to admins anymore, we will have to check if the user has permissions to delete
-        // remove id from spaces
-        List<Space> spaces = spaceRepository.getAllSpaces();
-        for (Space space : spaces) {
-            if (space.hasMember(deletedId)) {
-                space.removeMember(deletedId);
-                spaceRepository.addSpace(space);
+        if (!authorizer.isUserAdmin(this.groups))
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not an admin.");
+
+        if (!this.typeDAO.hasType(name))
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
+
+        try {
+            Document deletedType = this.typeDAO.deleteType(name);
+            String deletedId = deletedType.get("_id").toString();
+            // remove id from spaces
+            List<Space> spaces = spaceRepository.getAllSpaces();
+            for (Space space : spaces) {
+                if (space.hasMember(deletedId)) {
+                    space.removeMember(deletedId);
+                    spaceRepository.addSpace(space);
+                }
             }
+            return Response.ok(deletedType).status(200)
+                .build();
+        } catch (IncoreHTTPException e){
+            throw e;
+        } catch (Exception e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid type JSON. " + e);
         }
-        return Response.ok(deletedId).status(200)
-            .build();
-
     }
-
 }
