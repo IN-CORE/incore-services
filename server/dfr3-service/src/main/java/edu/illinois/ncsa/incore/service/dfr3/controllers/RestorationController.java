@@ -235,7 +235,8 @@ public class RestorationController {
         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
         if (restorationSet.isPresent()) {
-            if (this.username.equals(restorationSet.get().getOwner())) {
+            Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+            if (this.username.equals(restorationSet.get().getOwner()) || isAdmin) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The restoration is referenced in at least one DFR3 mapping. " +

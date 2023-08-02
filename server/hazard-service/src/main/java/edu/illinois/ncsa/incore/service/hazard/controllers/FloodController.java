@@ -401,7 +401,8 @@ public class FloodController {
     public Flood deleteFlood(@Parameter(name = "Flood Id", required = true) @PathParam("flood-id") String floodId) {
         Flood flood = getFloodById(floodId);
 
-        if (this.username.equals(flood.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (this.username.equals(flood.getOwner()) || isAdmin) {
             // delete associated datasets
             if (flood != null && flood instanceof FloodDataset) {
                 FloodDataset hurrDataset = (FloodDataset) flood;

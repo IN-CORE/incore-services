@@ -237,8 +237,8 @@ public class MappingController {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
-
-            if (this.username.equals(mappingSet.get().getOwner())) {
+            Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+            if (this.username.equals(mappingSet.get().getOwner()) || isAdmin) {
 //              remove id from spaces
                 List<Space> spaces = spaceRepository.getAllSpaces();
                 for (Space space : spaces) {

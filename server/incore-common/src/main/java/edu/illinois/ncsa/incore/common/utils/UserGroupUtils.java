@@ -30,4 +30,13 @@ public class UserGroupUtils {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not map provided user-group.");
         }
     }
+
+    public static boolean isAdmin(List<String> groups) {
+        String admin_group = "incore_admin";
+        if (groups.contains(admin_group)){
+            return true;
+        }
+
+        return false;
+    }
 }

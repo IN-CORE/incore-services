@@ -32,10 +32,7 @@ import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.NetworkData;
 import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
-import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
-import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
+import edu.illinois.ncsa.incore.service.data.utils.*;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -463,7 +460,8 @@ public class DatasetController {
             geoserverUsed = true;
         }
 
-        if (this.username.equals(dataset.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (this.username.equals(dataset.getOwner()) || isAdmin) {
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -931,7 +929,8 @@ public class DatasetController {
 
         Dataset dataset = repository.getDatasetById(datasetId);
 
-        if (!this.username.equals(dataset.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (!this.username.equals(dataset.getOwner()) && isAdmin != true) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
         }

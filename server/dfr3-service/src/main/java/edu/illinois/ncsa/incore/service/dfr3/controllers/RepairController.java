@@ -230,7 +230,8 @@ public class RepairController {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
         if (repairSet.isPresent()) {
-            if (this.username.equals(repairSet.get().getOwner())) {
+            Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+            if (this.username.equals(repairSet.get().getOwner()) || isAdmin) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The repair is referenced in at least one DFR3 mapping. It " +

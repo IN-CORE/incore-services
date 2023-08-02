@@ -1074,7 +1074,8 @@ public class EarthquakeController {
     public Earthquake deleteEarthquake(@Parameter(name = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
-        if (this.username.equals(eq.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (this.username.equals(eq.getOwner()) || isAdmin) {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;

@@ -525,7 +525,8 @@ public class TornadoController {
     public Tornado deleteTornado(@Parameter(name = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
         Tornado tornado = getTornado(tornadoId);
 
-        if (this.username.equals(tornado.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (this.username.equals(tornado.getOwner()) || isAdmin) {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;

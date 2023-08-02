@@ -401,7 +401,8 @@ public class HurricaneWindfieldsController {
         "hurricaneId") String hurricaneId) {
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
-        if (this.username.equals(hurricane.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (this.username.equals(hurricane.getOwner()) || isAdmin) {
             //delete associated datasets
             for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
                 if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {

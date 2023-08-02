@@ -397,7 +397,8 @@ public class HurricaneController {
     public Hurricane deleteHurricanes(@Parameter(name = "Hurricane Id", required = true) @PathParam("hurricane-id") String hurricaneId) {
         Hurricane hurricane = getHurricaneById(hurricaneId);
 
-        if (this.username.equals(hurricane.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (this.username.equals(hurricane.getOwner()) || isAdmin) {
             // delete associated datasets
             if (hurricane != null && hurricane instanceof HurricaneDataset) {
                 HurricaneDataset hurrDataset = (HurricaneDataset) hurricane;

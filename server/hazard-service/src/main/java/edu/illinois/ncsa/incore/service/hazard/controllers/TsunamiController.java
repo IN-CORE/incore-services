@@ -406,7 +406,8 @@ public class TsunamiController {
     public Tsunami deleteTsunami(@Parameter(name = "Tsunami Id", required = true) @PathParam("tsunami-id") String tsunamiId) {
         Tsunami tsunami = getTsunami(tsunamiId);
 
-        if (this.username.equals(tsunami.getOwner())) {
+        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        if (this.username.equals(tsunami.getOwner()) || isAdmin) {
             //remove associated datasets
             if (tsunami != null && tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
