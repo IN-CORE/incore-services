@@ -264,7 +264,9 @@ public class TypeController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Search type by partial match of text.")
     public Response searchType(
-        @Parameter(name = "Type uri (name).") @QueryParam("text") String text) {
+        @Parameter(name = "Type uri (name).") @QueryParam("text") String text,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
@@ -272,6 +274,8 @@ public class TypeController {
         if (typeList.isPresent()) {
             results = typeList.get().stream()
                 .filter(t -> userMembersSet.contains(t.getObjectId("_id").toString()))
+                .skip(offset)
+                .limit(limit)
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();
