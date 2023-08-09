@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Refactor POST /types API [#159](https://github.com/IN-CORE/incore-services/issues/159)
 - Refactor GET /types endpoint [#156](https://github.com/IN-CORE/incore-services/issues/156)
 - Refactor DELETE /types/{id} endpoint [#160](https://github.com/IN-CORE/incore-services/issues/160)
+- Added filtering by space in GET /types endpoint [191](https://github.com/IN-CORE/incore-services/issues/191)
 
 ### Changed
 - Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Missing log4j.properties file required to configure logging [#148](https://github.com/IN-CORE/incore-services/issues/148)
+- Changed the endpoint /types/{name} response to Document [#193](https://github.com/IN-CORE/incore-services/pull/193)
 
 ## [1.14.0] -2023-06-14
 ### Added
