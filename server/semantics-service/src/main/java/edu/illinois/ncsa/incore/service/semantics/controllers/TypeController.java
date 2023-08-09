@@ -115,7 +115,13 @@ public class TypeController {
         }
 
         if (detail) {
-            return Response.ok(typeList).status(200).build();
+            return Response.ok(
+                typeList.stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList()))
+                .status(200)
+                .build();
         }
 
         List<String> results = typeList.stream()
