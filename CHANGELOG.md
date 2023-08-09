@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Refactor GET /types endpoint [#156](https://github.com/IN-CORE/incore-services/issues/156)
 - Refactor DELETE /types/{id} endpoint [#160](https://github.com/IN-CORE/incore-services/issues/160)
 - Added filtering by space in GET /types endpoint [191](https://github.com/IN-CORE/incore-services/issues/191)
+- Added limiting and offset for GET /types/search endpoint [#195](https://github.com/IN-CORE/incore-services/issues/195)
 
 ### Changed
 - Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
