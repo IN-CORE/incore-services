@@ -930,7 +930,7 @@ public class DatasetController {
 
         Dataset dataset = repository.getDatasetById(datasetId);
 
-        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
         if (!this.username.equals(dataset.getOwner()) && isAdmin != true) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
