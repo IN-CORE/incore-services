@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -237,7 +238,7 @@ public class MappingController {
         Optional<MappingSet> mappingSet = this.mappingDAO.getMappingSetById(id);
 
         if (mappingSet.isPresent()) {
-            Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+            Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
             if (this.username.equals(mappingSet.get().getOwner()) || isAdmin) {
 //              remove id from spaces
                 List<Space> spaces = spaceRepository.getAllSpaces();

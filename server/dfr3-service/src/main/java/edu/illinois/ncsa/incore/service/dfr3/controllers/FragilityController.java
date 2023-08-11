@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -286,7 +287,7 @@ public class FragilityController {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
         if (fragilitySet.isPresent()) {
-            Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+            Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
             if (this.username.equals(fragilitySet.get().getOwner()) || isAdmin) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {

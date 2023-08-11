@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -230,7 +231,7 @@ public class RepairController {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
         if (repairSet.isPresent()) {
-            Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+            Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
             if (this.username.equals(repairSet.get().getOwner()) || isAdmin) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {

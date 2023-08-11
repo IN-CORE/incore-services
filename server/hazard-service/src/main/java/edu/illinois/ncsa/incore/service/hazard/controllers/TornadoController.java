@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -525,7 +526,7 @@ public class TornadoController {
     public Tornado deleteTornado(@Parameter(name = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
         Tornado tornado = getTornado(tornadoId);
 
-        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
         if (this.username.equals(tornado.getOwner()) || isAdmin) {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {

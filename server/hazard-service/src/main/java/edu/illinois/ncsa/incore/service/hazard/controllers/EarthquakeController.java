@@ -16,6 +16,7 @@ import dev.morphia.annotations.Property;
 import dev.morphia.annotations.experimental.Name;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -1074,7 +1075,7 @@ public class EarthquakeController {
     public Earthquake deleteEarthquake(@Parameter(name = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
-        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
         if (this.username.equals(eq.getOwner()) || isAdmin) {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {

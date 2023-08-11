@@ -13,6 +13,7 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -460,7 +461,7 @@ public class DatasetController {
             geoserverUsed = true;
         }
 
-        Boolean isAdmin = UserGroupUtils.isAdmin(this.groups);
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
         if (this.username.equals(dataset.getOwner()) || isAdmin) {
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
