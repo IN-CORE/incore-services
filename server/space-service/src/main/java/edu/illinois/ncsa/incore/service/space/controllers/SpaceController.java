@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Space Service for creating and accessing spaces",
-        version = "v0.6.3",
+        version = "1.20.0",
         title = "IN-CORE v2 Space Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
 //@SwaggerDefinition(
 //    info = @Info(
 //        description = "IN-CORE Space Service for creating and accessing spaces",
-//        version = "v0.6.3",
+//        version = "1.20.0",
 //        title = "IN-CORE v2 Space Service API",
 //        contact = @Contact(
 //            name = "IN-CORE Dev Team",
