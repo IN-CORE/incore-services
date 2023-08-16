@@ -11,27 +11,36 @@
 package edu.illinois.ncsa.incore.service.space.controllers;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
+import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
+import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import java.util.*;
 
 /**
  * Created by ywkim on 3/14/2022.
  */
 
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Usage Service for getting the user's usage information.",
-        version = "v0.1",
+        version = "1.20.0",
         title = "IN-CORE v2 Usage Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -42,37 +51,72 @@ import javax.ws.rs.core.Response;
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
+    )
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {SwaggerDefinition.Scheme.HTTP}
 
 )
+//@SwaggerDefinition(
+//    info = @Info(
+//        description = "IN-CORE Usage Service for getting the user's usage information.",
+//        version = "1.20.0",
+//        title = "IN-CORE v2 Usage Service API",
+//        contact = @Contact(
+//            name = "IN-CORE Dev Team",
+//            email = "incore-dev@lists.illinois.edu",
+//            url = "https://incore.ncsa.illinois.edu"
+//        ),
+//        license = @License(
+//            name = "Mozilla Public License 2.0 (MPL 2.0)",
+//            url = "https://www.mozilla.org/en-US/MPL/2.0/"
+//        )
+//    ),
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {SwaggerDefinition.Scheme.HTTP}
+//
+//)
 
-@Api(value = "usage", authorizations = {})
+@Tag(name = "usage")
+//@Api(value = "usage", authorizations = {})
 
 @Path("usage")
-@ApiResponses(value = {
-    @ApiResponse(code = 500, message = "Internal Server Error")
-})
+//@ApiResponses(value = {
+//    @ApiResponse(code = 500, message = "Internal Server Error")
+//})
 
 public class UsageController {
+    private final String username;
+    private final List<String> groups;
+    private final String userGroups;
+
     @Inject
     private IUserAllocationsRepository allocationsRepository;
 
     @Inject
     private IUserFinalQuotaRepository quotaRepository;
 
+    @Inject
+    private IAuthorizer authorizer;
+
     private static final Logger logger = Logger.getLogger(UsageController.class);
+
+    @Inject
+    public UsageController(
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups) {
+        this.userGroups = userGroups;
+        this.username = UserInfoUtils.getUsername(userInfo);
+        this.groups = UserGroupUtils.getUserGroups(userGroups);
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the usage status and can be used as status check as well.",
-        notes = "This will provide the usage of the logged in user.")
-    public String getUsage(@HeaderParam("x-auth-userinfo") String userInfo) {
+    @Operation(summary = "Gives the usage status and can be used as status check as well.",
+        description = "This will provide the usage of the logged in user.")
+    public String getUsage() {
         JSONObject outJson = null;
-
-        String username = JsonUtils.parseUserName(userInfo);
 
         try {
             outJson = JsonUtils.createUserUsageJson(username, allocationsRepository);
@@ -84,20 +128,15 @@ public class UsageController {
     }
 
     @GET
-    @Path("{username}")
+    @Path("users/{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gives the usage status of the given username.",
-        notes = "This will only work for admin user group.")
+    @Operation(summary = "Gives the usage status of the given username.",
+        description = "This will only work for admin user group.")
     public String getUsageByUsername(
-        @HeaderParam("x-auth-userinfo") String userInfo,
-        @HeaderParam("x-auth-usergroup") String userGroup,
-        @ApiParam(value = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
-        // check if the logged in user is in admin group
-        Boolean isAdmin = JsonUtils.isLoggedInUserAdmin(userGroup);
-
+        @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
         JSONObject outJson = new JSONObject();
 
-        if (isAdmin) {
+        if (this.authorizer.isUserAdmin(this.groups)) {
             try {
                 outJson = JsonUtils.createUserUsageJson(userId, allocationsRepository);
             } catch (ParseException e) {

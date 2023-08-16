@@ -5,7 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.14.0] -2023-06-14
+## [1.20.0] - 2023-08-16
+
+### Added
+- Endpoints to return allowed demand types and units [#155](https://github.com/IN-CORE/incore-services/issues/155)
+- Refactor POST /types API [#159](https://github.com/IN-CORE/incore-services/issues/159)
+- Refactor GET /types endpoint [#156](https://github.com/IN-CORE/incore-services/issues/156)
+- Refactor DELETE /types/{id} endpoint [#160](https://github.com/IN-CORE/incore-services/issues/160)
+- Added filtering by space in GET /types endpoint [191](https://github.com/IN-CORE/incore-services/issues/191)
+- Added limiting and offset for GET /types/search endpoint and to GET /types endpoint [#195](https://github.com/IN-CORE/incore-services/issues/195)
+
+### Changed
+- Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
+- Upgraded project and space-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#152](https://github.com/IN-CORE/incore-services/issues/152)
+- Upgraded project and semantics-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#167](https://github.com/IN-CORE/incore-services/issues/167)
+- Upgraded project and hazard-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#163](https://github.com/IN-CORE/incore-services/issues/163)
+- Upgraded project and data-service dependencies: Jersey 3.1.2 and swagger 2.1.12 for OpenAPI 3 [#165](https://github.com/IN-CORE/incore-services/issues/165)
+- Refactor DAO for Semantics service [#151](https://github.com/IN-CORE/incore-services/issues/151)
+- Removed jetty-runner 9 and replaced with Jetty 11 docker image [#174](https://github.com/IN-CORE/incore-services/issues/174)
+- Upgraded geotools to version 29.0 and refactored codes  [#186](https://github.com/IN-CORE/incore-services/issues/186)
+- Removed maestro service from the incore services repository [#145](https://github.com/IN-CORE/incore-services/issues/145)
+
+### Fixed
+- Missing log4j.properties file required to configure logging [#148](https://github.com/IN-CORE/incore-services/issues/148)
+- Changed the endpoint /types/{name} response to Document [#193](https://github.com/IN-CORE/incore-services/pull/193)
+
+## [1.14.0] - 2023-06-14
 ### Added
 - Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)
 - Get user group function to read and parse user groups from headers [#120](https://github.com/IN-CORE/incore-services/issues/120)

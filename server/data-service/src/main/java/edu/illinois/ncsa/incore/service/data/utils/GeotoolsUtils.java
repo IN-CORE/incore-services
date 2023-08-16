@@ -17,6 +17,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
+import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.*;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -39,8 +40,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.geopkg.FeatureEntry;
 import org.geotools.geopkg.GeoPackage;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.coverage.grid.GridCoverage;
-import org.opengis.coverage.grid.GridCoverageReader;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -48,7 +47,7 @@ import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
@@ -107,7 +106,7 @@ public class GeotoolsUtils {
         // create temp dir and copy files to temp dir
 //        List<File> copiedFileList = copyFilesToTempDir(file);
 //        File file = copiedFileList.get(0);
-        GridCoverage coverage = getGridCoverage(file);
+        GridCoverage2D coverage = getGridCoverage(file);
         org.opengis.geometry.Envelope env = coverage.getEnvelope();
 
         bbox[0] = env.getLowerCorner().getCoordinate()[0];
@@ -133,10 +132,10 @@ public class GeotoolsUtils {
         return copiedFileList;
     }
 
-    public static GridCoverage getGridCoverage(File file) throws IOException {
+    public static GridCoverage2D getGridCoverage(File file) throws IOException {
         AbstractGridFormat format = GridFormatFinder.findFormat(file);
-        GridCoverageReader reader = format.getReader(file);
-        GridCoverage coverage = reader.read(null);
+        GridCoverage2DReader reader = format.getReader(file);
+        GridCoverage2D coverage = reader.read(null);
         reader.dispose();
 
         return coverage;

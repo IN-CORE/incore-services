@@ -25,8 +25,8 @@ import edu.illinois.ncsa.incore.service.data.models.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.activation.MimetypesFileTypeMap;
-import javax.inject.Inject;
+import jakarta.activation.MimetypesFileTypeMap;
+import jakarta.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

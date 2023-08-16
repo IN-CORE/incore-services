@@ -19,14 +19,20 @@ import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.space.models.Members;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,10 +47,10 @@ import java.util.stream.Collectors;
  * Created by ywkim on 7/26/2017.
  */
 
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Space Service for creating and accessing spaces",
-        version = "v0.6.3",
+        version = "1.20.0",
         title = "IN-CORE v2 Space Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -55,14 +61,35 @@ import java.util.stream.Collectors;
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
-
+    )
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {OpenAPIDefinition.HTTP}
 )
+//@SwaggerDefinition(
+//    info = @Info(
+//        description = "IN-CORE Space Service for creating and accessing spaces",
+//        version = "1.20.0",
+//        title = "IN-CORE v2 Space Service API",
+//        contact = @Contact(
+//            name = "IN-CORE Dev Team",
+//            email = "incore-dev@lists.illinois.edu",
+//            url = "https://incore.ncsa.illinois.edu"
+//        ),
+//        license = @License(
+//            name = "Mozilla Public License 2.0 (MPL 2.0)",
+//            url = "https://www.mozilla.org/en-US/MPL/2.0/"
+//        )
+//    ),
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {SwaggerDefinition.Scheme.HTTP}
+//
+//)
+//@Api(value = "spaces", authorizations = {})
 
-@Api(value = "spaces", authorizations = {})
+// Not sure if @Tag is equivalent to @Apis
+@Tag(name = "spaces")
 
 @Path("spaces")
 public class SpaceController {
@@ -98,8 +125,8 @@ public class SpaceController {
 
     @Inject
     public SpaceController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
@@ -109,9 +136,9 @@ public class SpaceController {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Ingest space object as json")
+    @Operation(description = "Ingest space object as json")
     public Space ingestSpace(
-        @ApiParam(value = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
+        @Parameter(name = "JSON representing an input space", required = true) @FormDataParam("space") String spaceJson) {
 
         ObjectMapper spaceObjectMapper = new ObjectMapper();
         try {
@@ -145,11 +172,12 @@ public class SpaceController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets the list of all available spaces", notes = "For member parameter, it will return spaces that the user " +
+    @Operation(summary = "Gets the list of all available spaces", description = "For member parameter, it will return spaces that the " +
+        "user " +
         "has read/write/admin privileges on. If a member Id is passed, it will return all spaces that contains the member. For name " +
         "parameter, it will return the space id with the given space name.")
-    public List<Space> getSpacesList(@ApiParam(value = "Member Id") @QueryParam("member") String memberId,
-                                     @ApiParam(value = "Space Name") @QueryParam("name") String spaceName) {
+    public List<Space> getSpacesList(@Parameter(name = "Member Id") @QueryParam("member") String memberId,
+                                     @Parameter(name = "Space Name") @QueryParam("name") String spaceName) {
 
         if (memberId != null) {
             if (!authorizer.canUserReadMember(this.username, memberId, spaceRepository.getAllSpaces(), this.groups)) {
@@ -183,8 +211,8 @@ public class SpaceController {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Gets a space.")
-    public Space getSpaceById(@ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId) {
+    @Operation(description = "Gets a space.")
+    public Space getSpaceById(@Parameter(name = "Space id", required = true) @PathParam("id") String spaceId) {
 
         Space space = getSpace(spaceId);
 
@@ -200,10 +228,10 @@ public class SpaceController {
     @Path("{id}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Updates a space.")
-    public Space updateSpace(@ApiParam(value = "Space id.", required = true) @PathParam("id") String spaceId,
-                             @ApiParam(value = "JSON representing a space") @FormDataParam("space") String spaceJson,
-                             @ApiParam(value = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson) {
+    @Operation(description = "Updates a space.")
+    public Space updateSpace(@Parameter(name = "Space id.", required = true) @PathParam("id") String spaceId,
+                             @Parameter(name = "JSON representing a space") @FormDataParam("space") String spaceJson,
+                             @Parameter(name = "JSON representing a members list for removing from space") @FormDataParam("remove") String membersToRemoveJson) {
         Space space = getSpace(spaceId);
 
         //modify space by changing name or adding a list of members
@@ -280,10 +308,10 @@ public class SpaceController {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/members/{memberId}")
-    @ApiOperation(value = "Adds a member to a space")
+    @Operation(description = "Adds a member to a space")
     public Space addMembersToSpace(
-        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-        @ApiParam(value = "Member Id", required = true) @PathParam("memberId") String memberId) {
+        @Parameter(name = "Space Id", required = true) @PathParam("id") String spaceId,
+        @Parameter(name = "Member Id", required = true) @PathParam("memberId") String memberId) {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges(), this.groups)) {
@@ -302,10 +330,10 @@ public class SpaceController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/grant")
-    @ApiOperation(value = "Grants new privileges to a space")
+    @Operation(description = "Grants new privileges to a space")
     public Space grantPrivilegesToSpace(
-        @ApiParam(value = "Space Id", required = true) @PathParam("id") String spaceId,
-        @ApiParam(value = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
+        @Parameter(name = "Space Id", required = true) @PathParam("id") String spaceId,
+        @Parameter(name = "JSON representing a privilege block", required = true) @FormDataParam("grant") String privilegesJson) {
         Space space = getSpace(spaceId);
 
         if (!authorizer.canWrite(this.username, space.getPrivileges(), this.groups)) {
@@ -329,10 +357,10 @@ public class SpaceController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}/members/{memberId}")
-    @ApiOperation("Removes a member from a space")
+    @Operation(description = "Removes a member from a space")
     public Space removeMemberFromSpace(
-        @ApiParam(value = "Space id", required = true) @PathParam("id") String spaceId,
-        @ApiParam(value = "Member id", required = true) @PathParam("memberId") String memberId) {
+        @Parameter(name = "Space id", required = true) @PathParam("id") String spaceId,
+        @Parameter(name = "Member id", required = true) @PathParam("memberId") String memberId) {
 
         if (memberId == null) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "User must provide a member Id or a list of member ids");

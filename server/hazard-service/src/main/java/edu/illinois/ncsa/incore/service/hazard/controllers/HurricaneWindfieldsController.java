@@ -21,8 +21,10 @@ import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.models.DemandDefinition;
 import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
+import edu.illinois.ncsa.incore.common.utils.DemandUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.hazard.dao.IHurricaneWindfieldsRepository;
@@ -39,17 +41,25 @@ import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.
 import edu.illinois.ncsa.incore.service.hazard.models.hurricaneWindfields.utils.HurricaneWindfieldsUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.hazard.utils.ServiceUtil;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.opengis.geometry.MismatchedDimensionException;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,11 +70,11 @@ import java.util.stream.Collectors;
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_DEMAND;
 import static edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil.INVALID_UNIT;
 
-@Api(value = "hurricaneWindfields", authorizations = {})
+@Tag(name = "hurricaneWindfields")
 
 @Path("hurricaneWindfields")
 @ApiResponses(value = {
-    @ApiResponse(code = 500, message = "Internal Server Error")
+    @ApiResponse(responseCode = "500", description = "Internal Server Error")
 })
 public class HurricaneWindfieldsController {
     private static final Logger log = Logger.getLogger(HurricaneWindfieldsController.class);
@@ -92,8 +102,8 @@ public class HurricaneWindfieldsController {
 
     @Inject
     public HurricaneWindfieldsController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
@@ -102,13 +112,13 @@ public class HurricaneWindfieldsController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns all hurricanes.")
+    @Operation(summary = "Returns all hurricanes.")
     public List<HurricaneWindfields> getHurricaneWindfields(
-        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
-        @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
-        @ApiParam(value = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
-        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @Parameter(name = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @QueryParam("coast") String coast,
+        @Parameter(name = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
+        @Parameter(name = "Name of space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         List<HurricaneWindfields> hurricaneWindfields = repository.getHurricaneWindfields();
         if (!spaceName.equals("")) {
@@ -156,11 +166,20 @@ public class HurricaneWindfieldsController {
         return accessibleHurricaneWindfields;
     }
 
+    @GET
+    @Path("/demands")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Operation(summary = "Returns all hurricane windfield allowed demand types and units.")
+    public List<DemandDefinition> getHurricaneWindfieldDemands() {
+        JSONObject demandDefinition = new JSONObject(commonRepository.getAllDemandDefinitions().get(0).toJson());
+        return DemandUtils.getAllowedDemands(demandDefinition, "hurricaneWindfield");
+    }
+
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Creates a new hurricane, simulation of hurricane windfields is returned.",
-        notes = "One dataset for each time frame of the simulation is returned representing the hurricane " +
+    @Operation(summary = "Creates a new hurricane, simulation of hurricane windfields is returned.",
+        description = "One dataset for each time frame of the simulation is returned representing the hurricane " +
             "windfield's raster. Each cell represents the windspeed at 10m elevation and 3-sec wind gust by default")
     public HurricaneWindfields createHurricaneWindfields(
         HurricaneWindfields inputHurricane) {
@@ -256,9 +275,9 @@ public class HurricaneWindfieldsController {
     @GET
     @Path("{hurricaneId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns the hurricane with matching id.")
+    @Operation(summary = "Returns the hurricane with matching id.")
     public HurricaneWindfields getHurricaneWindfieldsById(
-        @ApiParam(value = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
+        @Parameter(name = "Hurricane dataset guid from data service.", required = true) @PathParam("hurricaneId") String hurricaneId) {
 
         HurricaneWindfields hurricane = repository.getHurricaneWindfieldsById(hurricaneId);
         if (hurricane == null) {
@@ -278,16 +297,16 @@ public class HurricaneWindfieldsController {
     @Path("{hurricaneId}/values")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Returns hurricane wind field values for a set of locations",
-        notes = "Outputs hazard values, demand types, unit and location.")
+    @Operation(summary = "Returns hurricane wind field values for a set of locations",
+        description = "Outputs hazard values, demand types, unit and location.")
     public List<ValuesResponse> postHurricaneWindFieldValues(
-        @ApiParam(value = "hurricane wind field Id", required = true)
+        @Parameter(name = "hurricane wind field Id", required = true)
         @PathParam("hurricaneId") String hurricaneId,
-        @ApiParam(value = "Json of the points along with demand types and units",
+        @Parameter(name = "Json of the points along with demand types and units",
             required = true) @FormDataParam("points") String requestJsonStr,
-        @ApiParam(value = "Elevation in meters at which wind speed has to be calculated.") @FormDataParam("elevation") @DefaultValue("10" +
+        @Parameter(name = "Elevation in meters at which wind speed has to be calculated.") @FormDataParam("elevation") @DefaultValue("10" +
             ".0") double elevation,
-        @ApiParam(value = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @FormDataParam("roughness") @DefaultValue("0.03") double roughness) {
+        @Parameter(name = "Terrain exposure or roughness length. Acceptable range is 0.003 to 2.5 ") @FormDataParam("roughness") @DefaultValue("0.03") double roughness) {
 
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
@@ -376,8 +395,8 @@ public class HurricaneWindfieldsController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{hurricaneId}")
-    @ApiOperation(value = "Deletes a Hurricane Windfield", notes = "Also deletes attached datasets and related files")
-    public HurricaneWindfields deleteHurricaneWindfields(@ApiParam(value = "Hurricane Windfield Id", required = true) @PathParam(
+    @Operation(summary = "Deletes a Hurricane Windfield", description = "Also deletes attached datasets and related files")
+    public HurricaneWindfields deleteHurricaneWindfields(@Parameter(name = "Hurricane Windfield Id", required = true) @PathParam(
         "hurricaneId") String hurricaneId) {
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
@@ -413,18 +432,18 @@ public class HurricaneWindfieldsController {
     @GET
     @Path("json/{coast}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(hidden = true, value = "Simulates a hurricane by returning the result as json.",
-        notes = "It is implemented to match MATLAB output and need not be exposed to external users")
+    @Operation(hidden = true, summary = "Simulates a hurricane by returning the result as json.",
+        description = "It is implemented to match MATLAB output and need not be exposed to external users")
     public HurricaneSimulationEnsemble getHurricaneJsonByCategory(
-        @ApiParam(value = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @PathParam("coast") String coast,
-        @ApiParam(value = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
-        @ApiParam(value = "Huricane landfall direction angle. Ex: 30.5.", required = true) @QueryParam("TransD") double transD,
-        @ApiParam(value = "Huricane landfall location. Ex: '28.09,-80.62'.", required = true) @QueryParam("LandfallLoc") IncorePoint landfallLoc,
-        @ApiParam(value = "Hurricane demand type. Ex. '3s', '60s'.", required = true) @QueryParam("demandType") String demandType,
-        @ApiParam(value = "Hurricane demand unit.", required = true) @QueryParam("demandUnits") String demandUnits,
-        @ApiParam(value = "Resolution. Ex: 6.", required = true) @QueryParam("resolution") @DefaultValue("6") int resolution,
-        @ApiParam(value = "Number of grid points. Ex: 80.", required = true) @QueryParam("gridPoints") @DefaultValue("80") int gridPoints,
-        @ApiParam(value = "Reduction type. Ex: 'circular'.", required = true) @QueryParam("reductionType") @DefaultValue("circular") String rfMethod) {
+        @Parameter(name = "Hurricane coast. Ex: 'gulf, florida or east'.", required = true) @PathParam("coast") String coast,
+        @Parameter(name = "Hurricane category. Ex: between 1 and 5.", required = true) @QueryParam("category") int category,
+        @Parameter(name = "Huricane landfall direction angle. Ex: 30.5.", required = true) @QueryParam("TransD") double transD,
+        @Parameter(name = "Huricane landfall location. Ex: '28.09,-80.62'.", required = true) @QueryParam("LandfallLoc") IncorePoint landfallLoc,
+        @Parameter(name = "Hurricane demand type. Ex. '3s', '60s'.", required = true) @QueryParam("demandType") String demandType,
+        @Parameter(name = "Hurricane demand unit.", required = true) @QueryParam("demandUnits") String demandUnits,
+        @Parameter(name = "Resolution. Ex: 6.", required = true) @QueryParam("resolution") @DefaultValue("6") int resolution,
+        @Parameter(name = "Number of grid points. Ex: 80.", required = true) @QueryParam("gridPoints") @DefaultValue("80") int gridPoints,
+        @Parameter(name = "Reduction type. Ex: 'circular'.", required = true) @QueryParam("reductionType") @DefaultValue("circular") String rfMethod) {
 
         //TODO: Handle both cases Sandy/sandy. Standardize to lower case?
         if (coast == null || category <= 0 || category > 5) {
@@ -444,14 +463,14 @@ public class HurricaneWindfieldsController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all hurricanes", notes = "Gets all hurricanes that contain a specific text")
+    @Operation(summary = "Search for a text in all hurricanes", description = "Gets all hurricanes that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No hurricanes found with the searched text")
+        @ApiResponse(responseCode = "404", description = "No hurricanes found with the searched text")
     })
     public List<HurricaneWindfields> findHurricaneWindfields(
-        @ApiParam(value = "Text to search by", example = "building") @QueryParam("text") String text,
-        @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-        @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        @Parameter(name = "Text to search by", example = "building") @QueryParam("text") String text,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
 
         List<HurricaneWindfields> hurricanes;
         HurricaneWindfields hurricane = repository.getHurricaneWindfieldsById(text);

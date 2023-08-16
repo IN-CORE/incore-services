@@ -26,24 +26,36 @@ import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
-import io.swagger.annotations.*;
+
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.dfr3.utils.ValidationUtils.isDemandValid;
 
 
-@SwaggerDefinition(
+@OpenAPIDefinition(
     info = @Info(
-        version = "v0.6.3",
+        version = "1.20.0",
         description = "IN-CORE Service For Fragilities and Fragility mappings",
 
         title = "IN-CORE v2 Fragility Service API",
@@ -56,15 +68,15 @@ import static edu.illinois.ncsa.incore.service.dfr3.utils.ValidationUtils.isDema
             name = "Mozilla Public License 2.0 (MPL 2.0)",
             url = "https://www.mozilla.org/en-US/MPL/2.0/"
         )
-    ),
+    )
 
-    consumes = {"application/json"},
-    produces = {"application/json"},
-    schemes = {SwaggerDefinition.Scheme.HTTP}
+//    consumes = {"application/json"},
+//    produces = {"application/json"},
+//    schemes = {SwaggerDefinition.Scheme.HTTP}
 )
 
 
-@Api(value = "fragilities", authorizations = {})
+@Tag(name = "fragilities")
 @Path("fragilities")
 public class FragilityController {
     private static final Logger logger = Logger.getLogger(FragilityController.class);
@@ -89,8 +101,8 @@ public class FragilityController {
 
     @Inject
     public FragilityController(
-        @ApiParam(value = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @ApiParam(value = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
         ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -98,16 +110,16 @@ public class FragilityController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets list of fragilities", notes = "Apply filters to get the desired set of fragilities")
-    public List<FragilitySet> getFragilities(@ApiParam(value = "demand type filter", example = "PGA") @QueryParam("demand") String demandType,
-                                             @ApiParam(value = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                             @ApiParam(value = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
-                                             @ApiParam(value = "not implemented", hidden = true) @QueryParam("author") String author,
-                                             @ApiParam(value = "Legacy fragility Id from v1") @QueryParam("legacy_id") String legacyId,
-                                             @ApiParam(value = "Fragility creator's username") @QueryParam("creator") String creator,
-                                             @ApiParam(value = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
-                                             @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                             @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    @Operation(tags = "Gets list of fragilities", summary = "Apply filters to get the desired set of fragilities")
+    public List<FragilitySet> getFragilities(@Parameter(name = "demand type filter", example = "PGA") @QueryParam("demand") String demandType,
+                                             @Parameter(name = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
+                                             @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                             @Parameter(name = "not implemented", hidden = true) @QueryParam("author") String author,
+                                             @Parameter(name = "Legacy fragility Id from v1") @QueryParam("legacy_id") String legacyId,
+                                             @Parameter(name = "Fragility creator's username") @QueryParam("creator") String creator,
+                                             @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                             @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                             @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         Map<String, String> queryMap = new HashMap<>();
 
         if (legacyId != null) {
@@ -179,8 +191,8 @@ public class FragilityController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Create a fragility set", notes = "Post a fragility set to the dfr3 service")
-    public FragilitySet uploadFragilitySet(@ApiParam(value = "json representing the fragility set") FragilitySet fragilitySet) {
+    @Operation(tags = "Create a fragility set", summary = "Post a fragility set to the dfr3 service")
+    public FragilitySet uploadFragilitySet(@Parameter(name = "json representing the fragility set") FragilitySet fragilitySet) {
 
         UserInfoUtils.throwExceptionIfIdPresent(fragilitySet.getId());
 
@@ -247,9 +259,9 @@ public class FragilityController {
     @GET
     @Path("{fragilityId}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Gets a fragility by Id", notes = "Get a particular fragility based on the id provided")
+    @Operation(tags = "Gets a fragility by Id", summary = "Get a particular fragility based on the id provided")
     public FragilitySet getFragilityById
-        (@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
+        (@Parameter(name = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam("fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
         if (fragilitySet.isPresent()) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
@@ -267,8 +279,8 @@ public class FragilityController {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{fragilityId}")
-    @ApiOperation(value = "Deletes a fragility by id")
-    public FragilitySet deleteFragilityById(@ApiParam(value = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam(
+    @Operation(summary = "Deletes a fragility by id")
+    public FragilitySet deleteFragilityById(@Parameter(name = "fragility id", example = "5b47b2d8337d4a36187c6727") @PathParam(
         "fragilityId") String id) {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
@@ -307,13 +319,13 @@ public class FragilityController {
     @GET
     @Path("/search")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Search for a text in all fragilities", notes = "Gets all fragilities that contain a specific text")
+    @Operation(tags = "Search for a text in all fragilities", summary = "Gets all fragilities that contain a specific text")
     @ApiResponses(value = {
-        @ApiResponse(code = 404, message = "No fragilities found with the searched text")
+        @ApiResponse(responseCode = "404", description = "No fragilities found with the searched text")
     })
-    public List<FragilitySet> findFragilities(@ApiParam(value = "Text to search by", example = "steel") @QueryParam("text") String text,
-                                              @ApiParam(value = "Skip the first n results") @QueryParam("skip") int offset,
-                                              @ApiParam(value = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+    public List<FragilitySet> findFragilities(@Parameter(name = "Text to search by", example = "steel") @QueryParam("text") String text,
+                                              @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                              @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         List<FragilitySet> sets = new ArrayList<>();
         Optional<FragilitySet> fs = this.fragilityDAO.getFragilitySetById(text);
         if (fs.isPresent()) {
