@@ -40,7 +40,7 @@ import java.util.*;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Usage Service for getting the user's usage information.",
-        version = "v0.1",
+        version = "1.20.0",
         title = "IN-CORE v2 Usage Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -60,7 +60,7 @@ import java.util.*;
 //@SwaggerDefinition(
 //    info = @Info(
 //        description = "IN-CORE Usage Service for getting the user's usage information.",
-//        version = "v0.1",
+//        version = "1.20.0",
 //        title = "IN-CORE v2 Usage Service API",
 //        contact = @Contact(
 //            name = "IN-CORE Dev Team",
