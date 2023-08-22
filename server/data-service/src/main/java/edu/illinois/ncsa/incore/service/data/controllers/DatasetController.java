@@ -488,15 +488,7 @@ public class DatasetController {
                 }
                 // remove geoserver layer
                 if (geoserverUsed) {
-                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                        // remove network dataset
-                        boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
-                        boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
-                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
-                    } else {
-                        boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
-                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
-                    }
+                    boolean isRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
                 }
             }
         } else {
