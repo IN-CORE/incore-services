@@ -252,45 +252,4 @@ public class GeoserverRestApi {
         return isDeleted;
     }
 
-//    public static void main(String[] args) {
-//        GeoserverRestApi gsApi = new GeoserverRestApi();
-//        boolean test = gsApi.createWorkspace("incore");
-//
-//        File inFile = new File("C:/rest/test/guid_yes.zip");
-//        String store = "test_shp";
-//        gsApi.uploadToGeoserver(store, inFile, "shp");
-//
-//        File inFile = new File("C:/rest/test/2009_30m_cdls_small_wgs84.tif");
-//        String store = "test_tif";
-//        gsApi.uploadToGeoserver(store, inFile, "tif");
-//
-//        gsApi.deleteStoreFromGeoserver("test_store");
-//
-//        try {
-//            String username = "admin";
-//            String password = "geoserver";
-//            String targetURL = "http://localhost:8080/geoserver/rest/my_ws/coveragestores/my_cover?recurse=true";
-//
-//            URL url = new URL(targetURL);
-//            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-//
-//            // Set up basic authentication
-//            String auth = username + ":" + password;
-//            String encodedAuth = java.util.Base64.getEncoder().encodeToString(auth.getBytes());
-//            connection.setRequestProperty("Authorization", "Basic " + encodedAuth);
-//
-//            // Set up DELETE request
-//            connection.setRequestMethod("DELETE");
-//
-//            // Get response code
-//            int responseCode = connection.getResponseCode();
-//            System.out.println("Response Code: " + responseCode);
-//
-//            // Clean up
-//            connection.disconnect();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
 }
