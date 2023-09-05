@@ -31,7 +31,7 @@
     <table class="table">
         <tr style="background: #eee;">
             <th scope="col">Name</th>
-            <th scope="col">Titles</th>
+            <th scope="col">Description</th>
             <th scope="col">Datatype</th>
             <th scope="col">Unit</th>
             <th scope="col">Required</th>
@@ -39,7 +39,7 @@
         <#list columns as column>
             <tr>
                 <th scope="row">${column.name}</th>
-                <td>${column.titles}</td>
+                <td>${column.description}</td>
                 <td>${column.datatype}</td>
                 <td>${column.unit}</td>
                 <td>${column.required}</td>
