@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Geoserver connection library has been removed and new connection object has been added [#190](https://github.com/IN-CORE/incore-services/issues/190)
+
+## [1.20.0] - 2023-08-16
+
 ### Added
 - Endpoints to return allowed demand types and units [#155](https://github.com/IN-CORE/incore-services/issues/155)
 - Refactor POST /types API [#159](https://github.com/IN-CORE/incore-services/issues/159)
 - Refactor GET /types endpoint [#156](https://github.com/IN-CORE/incore-services/issues/156)
 - Refactor DELETE /types/{id} endpoint [#160](https://github.com/IN-CORE/incore-services/issues/160)
 - Added filtering by space in GET /types endpoint [191](https://github.com/IN-CORE/incore-services/issues/191)
+- Added limiting and offset for GET /types/search endpoint and to GET /types endpoint [#195](https://github.com/IN-CORE/incore-services/issues/195)
 
 ### Changed
 - Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
@@ -29,7 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Missing log4j.properties file required to configure logging [#148](https://github.com/IN-CORE/incore-services/issues/148)
 - Changed the endpoint /types/{name} response to Document [#193](https://github.com/IN-CORE/incore-services/pull/193)
 
-## [1.14.0] -2023-06-14
+## [1.14.0] - 2023-06-14
 ### Added
 - Query parameters for sorting by given field in ascending and descending order [#111](https://github.com/IN-CORE/incore-services/issues/111)
 - Get user group function to read and parse user groups from headers [#120](https://github.com/IN-CORE/incore-services/issues/120)
