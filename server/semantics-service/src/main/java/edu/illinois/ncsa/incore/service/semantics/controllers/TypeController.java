@@ -8,6 +8,8 @@ import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
 import edu.illinois.ncsa.incore.service.semantics.model.Column;
+import edu.illinois.ncsa.incore.service.semantics.utils.FileUtils;
+import edu.illinois.ncsa.incore.service.semantics.utils.GeotoolsUtils;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -25,11 +27,15 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.bson.Document;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.opengis.feature.simple.SimpleFeatureType;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,6 +67,8 @@ public class TypeController {
     private final List<String> groups;
 
     private Configuration templateConfig;
+
+    public static final String DATA_TEMP_DIR_PREFIX = "data_repo_";
 
     @Inject
     private ITypeDAO typeDAO;
@@ -138,18 +146,7 @@ public class TypeController {
         return Response.ok(results).status(200).build();
     }
 
-
-    @GET
-    @Path("types/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Show specific types by uri.")
-    public Response getType(
-        @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
-        @Parameter(name = "version number.") @QueryParam("version") String version) {
-
-        if (version == null) {
-            version = "latest";
-        }
+    public Optional<Document> getTypesByName(String name, String version) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
         Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
 
@@ -164,21 +161,37 @@ public class TypeController {
             if (version.equals("latest")) {
                 Optional<Document> latestMatched = results.stream()
                     .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
-                if (latestMatched.isPresent()) {
-                    matchedType = latestMatched.get();
-                } else {
-                    matchedType = null;
-                }
+                matchedType = latestMatched.orElse(null);
             } else {
                 matchedType = results.get(0);
             }
 
-            return Response.ok(matchedType).status(200)
-                .build();
-
-        } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
+            return Optional.ofNullable(matchedType);
         }
+
+        return Optional.empty();
+    }
+
+
+    @GET
+    @Path("types/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Show specific types by uri.")
+    public Response getType(
+        @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
+        @Parameter(name = "version number.") @QueryParam("version") String version) {
+
+        if (version == null) {
+            version = "latest";
+        }
+
+        Optional<Document> matchedType = getTypesByName(name, version);
+
+        if (matchedType.isPresent()) {
+            return Response.ok(matchedType.get()).status(200)
+                .build();
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
     }
 
     @GET
@@ -189,36 +202,13 @@ public class TypeController {
         @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
         @Parameter(name = "version number.") @QueryParam("version") String version) {
 
-        // Since this code is shared with the endpoint that returns JSON, it should be pulled out into a utility to avoid duplication
         if (version == null) {
             version = "latest";
         }
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-        Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
+        Optional<Document> matchedType = getTypesByName(name, version);
 
-        if (typeList.isPresent()) {
-            // make sure that uri is in the namespace
-            List<Document> results = typeList.get().stream()
-                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
-                .collect(Collectors.toList());
-            List<Document> matchedTypeList;
-
-            // find the latest
-            if (version.equals("latest")) {
-                Optional<Document> latestMatched = results.stream()
-                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
-                if (latestMatched.isPresent()) {
-                    matchedTypeList = new ArrayList<Document>() {{
-                        add(latestMatched.get());
-                    }};
-                } else {
-                    matchedTypeList = new ArrayList<>();
-                }
-            } else {
-                matchedTypeList = results;
-            }
-
-            Document d = matchedTypeList.get(0);
+        if (matchedType.isPresent()) {
+            Document d = matchedType.get();
 
             // Convert the BSON Document to a JSONObject
             JSONObject typeJson = new JSONObject(d.toJson());
@@ -260,9 +250,78 @@ public class TypeController {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Could not process type object using the template " +
                     "file");
             }
-        } else {
-            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
         }
+
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
+    }
+
+    @GET
+    @Path("types/{name}/template")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(summary = "Returns a template zip or a single file of the given dataset type.")
+    public Response getTemplateByType(@Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
+                                      @Parameter(name = "version number.") @QueryParam("version") String version) throws IOException {
+        if (version == null) {
+            version = "latest";
+        }
+        Optional<Document> matchedType = getTypesByName(name, version);
+
+        if (matchedType.isPresent()) {
+            Document d = matchedType.get();
+            // Convert the BSON Document to a JSONObject
+            JSONObject typeJson = new JSONObject(d.toJson());
+            JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
+            JSONArray columnsArray = tableSchema.getJSONArray("columns");
+
+            // Collect column headers
+            String[] headers = new String[columnsArray.length()];
+            // Collect datatypes of columns
+            List<String> dTypes = new ArrayList<>();
+            // Shapefile flag to determine if the datatype should generate shapefile or csv based on Geometry column name's presence
+            boolean shapefile = false;
+
+            for (int i = 0; i < columnsArray.length(); i++) {
+                JSONObject column = columnsArray.getJSONObject(i);
+                String columnName = column.getString("name");
+                String datatype = column.getString("datatype");
+                headers[i] = columnName;
+                dTypes.add(datatype);
+                if (columnName.equalsIgnoreCase("geometry")) {
+                    shapefile = true;
+                }
+            }
+
+            // create temp dir and create files in temp dir
+            String tempDir = Files.createTempDirectory(DATA_TEMP_DIR_PREFIX).toString();
+            String fileName = name.replace(":", "_") + "_template";
+            String ext = null;
+            File outFile = null;
+
+            if (shapefile) {
+                ext = ".shp";
+                System.out.println(tempDir + File.separator + fileName + ext);
+                outFile = new File(tempDir + File.separator + fileName + ext);
+                SimpleFeatureType schema = GeotoolsUtils.buildSchema(headers, dTypes);
+                DefaultFeatureCollection collection = new DefaultFeatureCollection();
+                outFile = GeotoolsUtils.outToFile(outFile, schema, collection);
+            } else {
+                ext = ".csv";
+                System.out.println(tempDir + File.separator + fileName + ext);
+                outFile = new File(tempDir + File.separator + fileName + ext);
+                outFile.createNewFile(); // added to check if I needed to first create  a file and then write to it. Doesn't work :/
+                FileUtils.writeHeadersToCsvFile(outFile, headers);
+            }
+
+            if (outFile != null) {
+                return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition",
+                    "attachment; filename=\"" + fileName + "\"").build();
+            } else {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding output template file for " + name);
+            }
+
+        }
+
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
     }
 
     @GET
