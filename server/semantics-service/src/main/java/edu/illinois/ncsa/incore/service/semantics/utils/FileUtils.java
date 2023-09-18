@@ -58,6 +58,7 @@ public class FileUtils {
     public static void writeHeadersToCsvFile(File outCsv, String[] headers) throws IOException {
         CSVWriter writer = new CSVWriter(new FileWriter(outCsv));
         writer.writeNext(headers);
+        writer.close();
         System.out.println(Arrays.toString(headers));
     }
 
