@@ -314,7 +314,7 @@ public class TypeController {
 
             if (outFile != null) {
                 return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition",
-                    "attachment; filename=\"" + fileName + "\"").build();
+                    "attachment; filename=\"" + fileName + ".csv\"").build();
             } else {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding output template file for " + name);
             }
