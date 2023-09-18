@@ -308,13 +308,12 @@ public class TypeController {
                 ext = ".csv";
                 System.out.println(tempDir + File.separator + fileName + ext);
                 outFile = new File(tempDir + File.separator + fileName + ext);
-                outFile.createNewFile(); // added to check if I needed to first create  a file and then write to it. Doesn't work :/
                 FileUtils.writeHeadersToCsvFile(outFile, headers);
             }
 
             if (outFile != null) {
                 return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition",
-                    "attachment; filename=\"" + fileName + "\"").build();
+                    "attachment; filename=\"" + fileName + ext + "\"").build();
             } else {
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding output template file for " + name);
             }
