@@ -286,7 +286,7 @@ public class TypeController {
                 String datatype = column.getString("datatype");
                 headers[i] = columnName;
                 dTypes.add(datatype);
-                if (columnName.equalsIgnoreCase("geometry")) {
+                if (columnName.equalsIgnoreCase("geometry") || columnName.equalsIgnoreCase("the_geom") || columnName.equalsIgnoreCase("geom")) {
                     shapefile = true;
                 }
             }
@@ -304,6 +304,7 @@ public class TypeController {
                 SimpleFeatureType schema = GeotoolsUtils.buildSchema(headers, dTypes);
                 DefaultFeatureCollection collection = new DefaultFeatureCollection();
                 outFile = GeotoolsUtils.outToFile(outFile, schema, collection);
+                ext = ".zip"; // change the extension to zip
             } else {
                 ext = ".csv";
                 System.out.println(tempDir + File.separator + fileName + ext);
@@ -311,12 +312,8 @@ public class TypeController {
                 FileUtils.writeHeadersToCsvFile(outFile, headers);
             }
 
-            if (outFile != null) {
-                return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition",
-                    "attachment; filename=\"" + fileName + ext + "\"").build();
-            } else {
-                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error finding output template file for " + name);
-            }
+            return Response.ok(outFile, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition",
+                "attachment; filename=\"" + fileName + ext + "\"").build();
 
         }
 

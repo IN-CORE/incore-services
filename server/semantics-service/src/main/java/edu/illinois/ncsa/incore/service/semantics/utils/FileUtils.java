@@ -4,8 +4,6 @@ import com.opencsv.CSVWriter;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -62,63 +60,6 @@ public class FileUtils {
         } catch (IOException e) {
             logger.error(e);
         }
-    }
-
-    /**
-     * delete temporary directory
-     *
-     * @param inFile
-     */
-    public static void deleteTmpDir(File inFile) {
-        //remove temp dir
-        String tempDir = inFile.getParent();
-        File dirFile = new File(tempDir);
-        ArrayList<File> files = new ArrayList<File>(Arrays.asList(dirFile.listFiles()));
-        deleteTmpDir(files);
-    }
-
-    /**
-     * delete temporary directory created for temporary file processing
-     *
-     * @param delFiles
-     */
-    public static void deleteTmpDir(List<File> delFiles) {
-        File delDir = null;
-        String filePath = null;
-        for (File delFile : delFiles) {
-            deleteFiles(delFile);
-            delDir = new File(delFile.getParent());
-            filePath = delFile.getParent();
-        }
-        deleteFiles(delDir, filePath);
-    }
-
-    /**
-     * delete temporary files created for temporary file processing
-     *
-     * @param delFile
-     * @param delFileName
-     */
-    public static void deleteFiles(File delFile, String delFileName) {
-        try {
-            if (delFile.delete()) {
-                logger.debug("file or directory deleted: " + delFileName);
-            } else {
-                logger.error("file or directory did not deleted: " + delFileName);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * delete temporary file created for temporary file processing
-     *
-     * @param delFile
-     */
-    public static void deleteFiles(File delFile) {
-        String delFileName = delFile.getName();
-        deleteFiles(delFile, delFileName);
     }
 
 }
