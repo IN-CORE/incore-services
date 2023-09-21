@@ -35,6 +35,11 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 
 /**
  * Created by ywkim on 6/8/2017.
@@ -52,6 +57,7 @@ public class FileUtils {
     public static final String EXTENSION_CSV = "csv";
     public static final String EXTENSION_ZIP = "zip";
     public static final String EXTENSION_PRJ = "prj";
+    public static final String EXTENSION_GPKG = "gpkg";
     public static final String EXTENSION_GEOPACKAGE = "gpkg"; // file extension of geopackage
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;
@@ -65,6 +71,7 @@ public class FileUtils {
     public static final String DATASET_DESCRIPTION = "description";
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FORMAT_SHAPEFILE = "shapefile";
+    public static final String FORMAT_GEOPACKAGE = "geopackage";
     public static final String FORMAT_NETWORK = "shp-network";
     public static final String NETWORK_COMPONENT = "networkDataset";
     public static final String NETWORK_LINK = "link";
@@ -856,7 +863,8 @@ public class FileUtils {
         if (geoserverEnabled) {
             String fileExt = FilenameUtils.getExtension(examinedFile);
             if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc")
-                || fileExt.equalsIgnoreCase("tif") || fileExt.equalsIgnoreCase("zip")) {
+                || fileExt.equalsIgnoreCase("tif") || fileExt.equalsIgnoreCase("zip")
+                || fileExt.equalsIgnoreCase("gpkg")) {
                 useGeoserver = true;
             }
         }
@@ -875,5 +883,79 @@ public class FileUtils {
             deleteFiles(delFile);
             deleteFiles(delParent);
         }
+    }
+
+    public static File renameGeopackageDbName(File inFile, String store) throws IOException {
+//        String currentTableName = "old_table_name"; // Replace with the current table name
+//        String newTableName = "new_table_name"; // Replace with the desired new table name
+//
+//        // SQLite JDBC URL
+//        String jdbcUrl = "jdbc:sqlite:" + tmpFile.getAbsolutePath();
+//
+//        try {
+//            // Create a connection to the GeoPackage using SQLite JDBC
+//            Connection connection = DriverManager.getConnection(jdbcUrl);
+//
+//            // Create a statement
+//            Statement statement = connection.createStatement();
+//
+//            // Rename the table
+//            String sql = "ALTER TABLE " + currentTableName + " RENAME TO " + newTableName;
+//            statement.executeUpdate(sql);
+//
+//            // Close the statement and connection
+//            statement.close();
+//            connection.close();
+//
+//            System.out.println("Table renamed successfully.");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        List<File> infiles = new ArrayList<>();
+        infiles.add(inFile);
+
+        List<File> copiedFileList = GeotoolsUtils.performCopyFiles(infiles, tempDir, "", false, "shp");
+        // Define GeoPackage file path
+        String geoPackageFilePath = copiedFileList.get(0).getAbsolutePath();
+
+        // SQLite JDBC URL
+        String jdbcUrl = "jdbc:sqlite:" + geoPackageFilePath;
+
+        try {
+            // Create a connection to the GeoPackage using SQLite JDBC
+            Connection connection = DriverManager.getConnection(jdbcUrl);
+
+            // Get database metadata
+            DatabaseMetaData metaData = connection.getMetaData();
+
+            // List all tables in the GeoPackage
+            ResultSet tables = metaData.getTables(null, null, null, new String[]{"TABLE"});
+
+            // Iterate through the table names
+            while (tables.next()) {
+                String tableName = tables.getString("TABLE_NAME");
+                System.out.println("Found table: " + tableName);
+
+                // Replace this condition with your logic to identify the table you want to rename
+                if (tableName.equals("guid_test")) {
+                    String newTableName = store; // Replace with the desired new table name
+
+                    // Rename the table
+                    String sql = "ALTER TABLE " + tableName + " RENAME TO " + newTableName;
+                    connection.createStatement().executeUpdate(sql);
+
+                    System.out.println("Table renamed successfully.");
+                    break; // Exit the loop once the desired table is found and renamed
+                }
+            }
+
+            // Close the connection
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return copiedFileList.get(0);
     }
 }

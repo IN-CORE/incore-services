@@ -45,6 +45,7 @@ import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -525,7 +526,7 @@ public class DatasetController {
     public Dataset uploadFiles(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @Parameter(name = "Form inputs representing the file(s). The id/key of each input file has to be 'file'",
                                    required = true)
-                                   FormDataMultiPart inputs) {
+                                   FormDataMultiPart inputs) throws IOException {
         if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
@@ -616,6 +617,7 @@ public class DatasetController {
         boolean isZip = false;
         boolean isJoin = false;
         boolean isPrj = false;
+        boolean isGpkg = false;
 
         int fileCounter = 0;
         int linkCounter = 0;
@@ -644,6 +646,8 @@ public class DatasetController {
                     isZip = true;
                 } else if (fileExt.equalsIgnoreCase("prj")) {
                     isPrj = true;
+                } else if (fileExt.equalsIgnoreCase("gpkg")) {
+                    isGpkg = true;
                 }
 
                 // process zip file
@@ -661,6 +665,24 @@ public class DatasetController {
                         throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
                             "There are more than one file uploaded with zip file. " +
                                 "Please upload only single zip file.");
+                    }
+                }
+
+                // process geopackage file
+                if (isGpkg) {
+                    // if the file is geopackage but the format is shapefile, it should return error
+                    if (!format.equalsIgnoreCase(FileUtils.FORMAT_GEOPACKAGE)) {
+                        logger.error("The attached file is geopackage while dataset's format is no geopackage.");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                            "The attached file is geopackage but dataset's format is not geopackage.");
+                    }
+
+                    // check how many files are uploaded, if it is more than one file, then raise an error
+                    if (bodyPartSize > 1) {
+                        logger.error("There should be only one file uploaded when it comes with geopackage file ");
+                        throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                            "There are more than one file uploaded with geopackage dataset. " +
+                                "Please upload only single geopackage file.");
                     }
                 }
 
@@ -862,6 +884,17 @@ public class DatasetController {
             }
         }
 
+        // check if geopackage has guid
+        SimpleFeatureCollection sfc = null; // this will be used for uploading geopackage to geoserver
+        if (format.equalsIgnoreCase(FileUtils.FORMAT_GEOPACKAGE)) {
+            File tmpFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
+            sfc = GeotoolsUtils.getSimpleFeatureCollectionFromGeopackage(tmpFile);
+            if (!GeotoolsUtils.isGUIDinGeopackage(sfc)) {
+                FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                logger.debug("The geopackage does not have guid field.");
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
+            }
+        }
         repository.addDataset(dataset);
 
         // TODO: This a patch/hotfix so space is not saved when updating the dataset.
@@ -903,6 +936,17 @@ public class DatasetController {
                     } else if (format.equalsIgnoreCase("raster") || format.equalsIgnoreCase("geotiff") ||
                         format.equalsIgnoreCase("tif") || format.equalsIgnoreCase("tiff")) {
                         GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                    } else if (format.equalsIgnoreCase(FileUtils.FORMAT_GEOPACKAGE)) {
+                        double[] bbox = GeotoolsUtils.getBboxFromGeopackage(sfc);
+                        dataset.setBoundingBox(bbox);
+                        repository.addDataset(dataset);
+                        // uploading geoserver must involve the process of renaming the database in geopackage
+                        File gpkgFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
+                        File renamedFile = FileUtils.renameGeopackageDbName(gpkgFile, datasetId);
+                        if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), renamedFile)) {
+                            logger.error("Fail to upload geopackage file");
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
+                        }
                     } else {
                         if (isShp && isPrj) {
                             GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);

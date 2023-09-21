@@ -204,8 +204,9 @@ public class GeoserverRestApi {
             String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/" + store + "/file.shp";
             published = this.postFileToGeoserver(restUrl, inFile, "zip");
         } else if (inExt.equalsIgnoreCase("gpkg")) {
-            String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/" + store + "/file.gpkg";
-            published = this.postFileToGeoserver(restUrl, inFile, "tif");
+            String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/" + store +
+                "/file.gpkg?configure=all&name=" + store;
+            published = this.postFileToGeoserver(restUrl, inFile, "gpkg");
         } else if (inExt.equalsIgnoreCase("tif")) {
             String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/coveragestores/" + store + "/file.geotiff";
             published = this.postFileToGeoserver(restUrl, inFile, "tif");

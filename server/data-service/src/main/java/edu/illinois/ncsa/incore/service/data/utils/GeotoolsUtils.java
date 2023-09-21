@@ -39,6 +39,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.geopkg.FeatureEntry;
 import org.geotools.geopkg.GeoPackage;
+import org.geotools.geopkg.GeoPkgDataStoreFactory;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -168,6 +169,23 @@ public class GeotoolsUtils {
         return bbox;
     }
 
+    public static double[] getBboxFromGeopackage(SimpleFeatureCollection sfc) throws IOException {
+        double[] bbox = new double[4];
+
+        ReferencedEnvelope env = sfc.getBounds();
+        double minx = env.getMinX();
+        double miny = env.getMinY();
+        double maxx = env.getMaxX();
+        double maxy = env.getMaxY();
+
+        bbox[0] = minx;
+        bbox[1] = miny;
+        bbox[2] = maxx;
+        bbox[3] = maxy;
+
+        return bbox;
+    }
+
     /**
      * get SimpleFeatureCollection from list of shapefile components
      *
@@ -188,6 +206,13 @@ public class GeotoolsUtils {
         return sfc;
     }
 
+    /**
+     * create SimpleFeatureCollection from file (shapefile)
+     *
+     * @param file
+     * @return
+     * @throws IOException
+     */
     public static SimpleFeatureCollection getSimpleFeatureCollectionFromFile(File file) throws IOException {
         URL inSourceFileUrl = file.toURI().toURL();
 
@@ -202,6 +227,29 @@ public class GeotoolsUtils {
         Filter filter = Filter.INCLUDE;
         dataStore.dispose();
         SimpleFeatureCollection sfc = (SimpleFeatureCollection) source.getFeatures(filter);
+
+        return sfc;
+    }
+
+    /**
+     * create SimpleFeatureCollection from geopackage file
+     *
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    public static SimpleFeatureCollection getSimpleFeatureCollectionFromGeopackage(File file) throws IOException {
+        DataStore dataStore = null;
+        HashMap<String, Object> map = new HashMap<>();
+        map.put(GeoPkgDataStoreFactory.DBTYPE.key, "geopkg");
+        map.put(GeoPkgDataStoreFactory.DATABASE.key, file.getAbsoluteFile());
+        dataStore = DataStoreFinder.getDataStore(map);
+        if (dataStore == null) {
+            throw new IOException("Unable to open geopackage file");
+        }
+
+        String typeName = dataStore.getTypeNames()[0];
+        SimpleFeatureCollection sfc = dataStore.getFeatureSource(typeName).getFeatures();
 
         return sfc;
     }
@@ -314,6 +362,109 @@ public class GeotoolsUtils {
         return outToGpkgFile(new File(tempDir + File.separator + dataset.getId() + "." + FileUtils.EXTENSION_GEOPACKAGE), newCollection);
     }
 
+    public static File joinTableGeopackage(Dataset dataset, String gpkgFileName, File csvFile, boolean isRename) throws IOException {
+        // set geometry factory
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
+
+        // read csv file
+        String[] csvHeaders = getCsvHeader(csvFile);
+        List<String[]> csvRows = readCsvFile(csvFile);
+        int csvIdLoc = 0;
+
+        // remove quotes in header
+        for (int i = 0; i < csvHeaders.length; i++) {
+            csvHeaders[i] = csvHeaders[i].replaceAll("^\"|\"$", "");
+        }
+
+        // find column location of the unique id inCsv
+        for (int i = 0; i < csvHeaders.length - 1; i++) {
+            String header = csvHeaders[i];
+            if (header.equals(UNI_ID_CSV)) {
+                csvIdLoc = i;
+            }
+        }
+
+        // create temp dir and copy files to temp dir
+        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        File gpkgfile = new File(gpkgFileName);
+        List<File> gpkfiles = null;
+        gpkfiles.add(gpkgfile);
+        List<File> copiedFileList = null;
+        if (isRename) { // this will only get the files for geoserver
+            outFileName = dataset.getId() + "." + FileUtils.EXTENSION_GPKG;
+            copiedFileList = performCopyFiles(gpkfiles, tempDir, dataset.getId(), true, "gpkg");
+        } else {
+            copiedFileList = performCopyFiles(gpkfiles, tempDir, "", false, "");
+        }
+
+        SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFile(copiedFileList.get(0));
+
+        SimpleFeatureType sft = inputFeatures.getSchema();
+
+        SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
+        sftBuilder.init(sft);
+
+        // make sure that name of feature type is matched with name file file
+        sftBuilder.setName(dataset.getId());
+
+        for (int i = 0; i < csvHeaders.length; i++) {
+            if (i != csvIdLoc) {
+                AttributeTypeBuilder build = new AttributeTypeBuilder();
+                build.setNillable(false);
+                build.setBinding(String.class);
+                build.setLength(55);    // currently it has been set to 55 but needs to be discussed
+                sftBuilder.add(build.buildDescriptor(csvHeaders[i]));
+            }
+        }
+        SimpleFeatureType newSft = sftBuilder.buildFeatureType();
+
+        DefaultFeatureCollection newCollection = new DefaultFeatureCollection();
+
+        FeatureIterator<SimpleFeature> inputFeatureIterator = inputFeatures.features();
+
+        // figure out the unique id column location
+        int shpUniqueColLoc = 0;
+        List<AttributeDescriptor> ads = inputFeatures.getSchema().getAttributeDescriptors();
+        for (int i = 0; i < ads.size(); i++) {
+            if (ads.get(i).getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
+                shpUniqueColLoc = i;
+            }
+        }
+
+        try {
+            while (inputFeatureIterator.hasNext()) {
+                SimpleFeature inputFeature = inputFeatureIterator.next();
+                SimpleFeatureBuilder sfb = new SimpleFeatureBuilder(newSft);
+                sfb.init(inputFeature);
+                String csvConnector = inputFeature.getAttribute(shpUniqueColLoc).toString();
+                // find matching csv rows
+                String[] matchedCsvRow = null;
+                for (int j = 0; j < csvRows.size(); j++) {
+                    if (csvRows.get(j)[csvIdLoc].equals(csvConnector)) {
+                        matchedCsvRow = csvRows.get(j);
+                        csvRows.remove(j);
+                    }
+                }
+                // insert the values in the new column
+                if (matchedCsvRow != null) {
+                    for (int j = 0; j < csvHeaders.length; j++) {
+                        if (j != csvIdLoc) {
+                            sfb.set(csvHeaders[j], matchedCsvRow[j]);
+                        }
+                    }
+                }
+                SimpleFeature newFeature = sfb.buildFeature(null);
+                newCollection.add(newFeature);
+            }
+        } finally {
+            inputFeatureIterator.close();
+        }
+
+        // return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
+        return outToGpkgFile(new File(tempDir + File.separator + dataset.getId() + "." + FileUtils.EXTENSION_GEOPACKAGE), newCollection);
+    }
+
     /**
      * copy files in the list to the temporary directory
      *
@@ -348,6 +499,10 @@ public class GeotoolsUtils {
                         outList.add(destFile);
                     }
                 } else if (inExt.equalsIgnoreCase("asc")) {
+                    if (fileExt.equalsIgnoreCase(inExt)) {
+                        outList.add(destFile);
+                    }
+                } else if (inExt.equalsIgnoreCase("gpkg")) {
                     if (fileExt.equalsIgnoreCase(inExt)) {
                         outList.add(destFile);
                     }
@@ -689,6 +844,13 @@ public class GeotoolsUtils {
 
         // remove temp dir after checking the file
         FileUtils.deleteTmpDir(copiedFileList.get(0));
+
+        return isGuid;
+    }
+
+    public static boolean isGUIDinGeopackage(SimpleFeatureCollection sfc) throws IOException {
+        // check if there is guid exists
+        boolean isGuid = doesGuidExist(sfc);
 
         return isGuid;
     }
