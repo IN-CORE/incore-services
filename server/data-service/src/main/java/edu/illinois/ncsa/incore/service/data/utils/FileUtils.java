@@ -51,6 +51,7 @@ public class FileUtils {
     public static final String EXTENSION_META = "mvz";
     public static final String EXTENSION_CSV = "csv";
     public static final String EXTENSION_ZIP = "zip";
+    public static final String EXTENSION_PRJ = "prj";
     public static final String EXTENSION_GEOPACKAGE = "gpkg"; // file extension of geopackage
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;

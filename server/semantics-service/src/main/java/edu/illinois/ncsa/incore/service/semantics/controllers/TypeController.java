@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
-        version = "v0.6.3",
+        version = "1.20.0",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -90,6 +90,7 @@ public class TypeController {
     @Produces({MediaType.APPLICATION_JSON})
     @Operation(summary = "list all types belong user has access to.")
     public Response listTypes(
+        @Parameter(name = "Name of the space.") @DefaultValue("") @QueryParam("space") String spaceName,
         @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("asc") @QueryParam("order") String order,
         @Parameter(name = "Skip the first n results.") @DefaultValue("0") @QueryParam("skip") int offset,
         @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
@@ -100,8 +101,27 @@ public class TypeController {
 
         List<Document> typeList = this.typeDAO.getTypes();
 
+        // Filter out the types that belong to a given space if specified
+        if (!spaceName.equals("")) {
+            Space space = spaceRepository.getSpaceByName(spaceName);
+            if (space == null) {
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find space " + spaceName);
+            }
+            List<String> spaceMembers = space.getMembers();
+
+            typeList = typeList.stream()
+                .filter(type -> spaceMembers.contains(type.get("_id").toString()))
+                .collect(Collectors.toList());
+        }
+
         if (detail) {
-            return Response.ok(typeList).status(200).build();
+            return Response.ok(
+                typeList.stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList()))
+                .status(200)
+                .build();
         }
 
         List<String> results = typeList.stream()
@@ -138,24 +158,22 @@ public class TypeController {
             List<Document> results = typeList.get().stream()
                 .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
                 .collect(Collectors.toList());
-            List<Document> matchedTypeList;
+            Document matchedType;
 
             // find the latest
             if (version.equals("latest")) {
                 Optional<Document> latestMatched = results.stream()
                     .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
                 if (latestMatched.isPresent()) {
-                    matchedTypeList = new ArrayList<Document>() {{
-                        add(latestMatched.get());
-                    }};
+                    matchedType = latestMatched.get();
                 } else {
-                    matchedTypeList = new ArrayList<>();
+                    matchedType = null;
                 }
             } else {
-                matchedTypeList = results;
+                matchedType = results.get(0);
             }
 
-            return Response.ok(matchedTypeList).status(200)
+            return Response.ok(matchedType).status(200)
                 .build();
 
         } else {
@@ -252,7 +270,9 @@ public class TypeController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Search type by partial match of text.")
     public Response searchType(
-        @Parameter(name = "Type uri (name).") @QueryParam("text") String text) {
+        @Parameter(name = "Type uri (name).") @QueryParam("text") String text,
+        @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+        @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
@@ -260,6 +280,8 @@ public class TypeController {
         if (typeList.isPresent()) {
             results = typeList.get().stream()
                 .filter(t -> userMembersSet.contains(t.getObjectId("_id").toString()))
+                .skip(offset)
+                .limit(limit)
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();

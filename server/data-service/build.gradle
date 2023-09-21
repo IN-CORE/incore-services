@@ -5,7 +5,6 @@ gretty {
 
 repositories {
     mavenCentral()
-    maven { url "https://maven.geo-solutions.it/" }
 }
 
 
@@ -14,13 +13,13 @@ repositories {
 dependencies {
     implementation("com.google.inject:guice:7.0.0")
 
-    implementation("it.geosolutions:geoserver-manager:1.7.0")
-
     implementation("com.opencsv:opencsv:4.6")
 
     implementation("org.jsoup:jsoup:1.16.1")
     implementation("com.github.lookfirst:sardine:5.12")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.15.2")
+
+    implementation("junit:junit:4.13.2")
 
     // the packages below are not used in the code, but we need to test it
     
