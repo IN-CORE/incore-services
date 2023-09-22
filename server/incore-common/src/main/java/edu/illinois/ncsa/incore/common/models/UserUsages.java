@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.annotations.Embedded;
 import org.apache.log4j.Logger;
 
+import java.util.List;
+
 @Embedded
 public class UserUsages {
     private static final Logger log = Logger.getLogger(UserUsages.class);
@@ -24,6 +26,14 @@ public class UserUsages {
     public int dfr3;
     public long datasetSize;
     public long hazardDatasetSize;
+//    "cpu": [ 4, 16 ],
+//         "mem": [ 8, 32 ],
+//         "disk": 512,
+//         "service": [ 200, 5 ]
+    public List<Integer> cpu;
+    public List<Integer> mem;
+    public int disk;
+    public List<Integer> service;
 
     public UserUsages() { }
 
@@ -83,5 +93,37 @@ public class UserUsages {
 
     public void setHazardDatasetSize(long hazardDatasetSize) {
         this.hazardDatasetSize = hazardDatasetSize;
+    }
+
+    public List<Integer> getCpu() {
+        return this.cpu;
+    }
+
+    public void setCpu(List<Integer> cpu) {
+        this.cpu = cpu;
+    }
+
+    public List<Integer> getMem(){
+        return this.mem;
+    }
+
+    public void setMem(List<Integer> mem) {
+        this.mem = mem;
+    }
+
+    public int getDisk() {
+        return this.disk;
+    }
+
+    public void setDisk(int disk){
+        this.disk = disk;
+    }
+
+    public List<Integer> getService() {
+        return this.service;
+    }
+
+    public void setService(List<Integer> service){
+        this.service = service;
     }
 }

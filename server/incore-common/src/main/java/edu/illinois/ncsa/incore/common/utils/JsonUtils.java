@@ -173,6 +173,10 @@ public class JsonUtils {
         outJson.put("total_file_size_of_datasets_byte", dataset_file_size);
         outJson.put("total_file_size_of_hazard_datasets", out_hazard_size);
         outJson.put("total_file_size_of_hazard_datasets_byte", usage.getHazardDatasetSize());
+        outJson.put("incore_lab_cpu", usage.getCpu());
+        outJson.put("incore_lab_memory", usage.getMem());
+        outJson.put("incore_lab_disk_size", usage.getDisk());
+        outJson.put("incore_lab_service", usage.getService());
 
         return outJson;
     }
