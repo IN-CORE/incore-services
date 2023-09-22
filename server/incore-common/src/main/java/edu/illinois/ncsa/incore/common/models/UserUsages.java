@@ -26,10 +26,6 @@ public class UserUsages {
     public int dfr3;
     public long datasetSize;
     public long hazardDatasetSize;
-//    "cpu": [ 4, 16 ],
-//         "mem": [ 8, 32 ],
-//         "disk": 512,
-//         "service": [ 200, 5 ]
     public List<Integer> cpu;
     public List<Integer> mem;
     public int disk;
