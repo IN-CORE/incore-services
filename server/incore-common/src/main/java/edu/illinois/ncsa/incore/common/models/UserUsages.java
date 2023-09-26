@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 
 import java.util.List;
 
+
 @Embedded
 public class UserUsages {
     private static final Logger log = Logger.getLogger(UserUsages.class);
@@ -26,10 +27,8 @@ public class UserUsages {
     public int dfr3;
     public long datasetSize;
     public long hazardDatasetSize;
-    public List<Integer> cpu;
-    public List<Integer> mem;
-    public int disk;
     public List<Integer> service;
+    public IncoreLabQuota incoreLab;
 
     public UserUsages() { }
 
@@ -91,28 +90,12 @@ public class UserUsages {
         this.hazardDatasetSize = hazardDatasetSize;
     }
 
-    public List<Integer> getCpu() {
-        return this.cpu;
+    public IncoreLabQuota getIncoreLab(){
+        return this.incoreLab;
     }
 
-    public void setCpu(List<Integer> cpu) {
-        this.cpu = cpu;
-    }
-
-    public List<Integer> getMem(){
-        return this.mem;
-    }
-
-    public void setMem(List<Integer> mem) {
-        this.mem = mem;
-    }
-
-    public int getDisk() {
-        return this.disk;
-    }
-
-    public void setDisk(int disk){
-        this.disk = disk;
+    public void setIncoreLab(IncoreLabQuota incoreLab){
+        this.incoreLab = incoreLab;
     }
 
     public List<Integer> getService() {
@@ -122,4 +105,6 @@ public class UserUsages {
     public void setService(List<Integer> service){
         this.service = service;
     }
+
+
 }
