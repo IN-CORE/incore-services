@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -184,6 +185,8 @@ public class RestorationController {
         }
 
         restorationSet.setCreator(username);
+        restorationSet.setOwner(username);
+
         if (restorationSet.getRestorationCurves().size() == 0){
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No restoration curves are included in the json. " +
                 "Please provide at least one.");
@@ -233,7 +236,8 @@ public class RestorationController {
         Optional<RestorationSet> restorationSet = this.restorationDAO.getRestorationSetById(id);
 
         if (restorationSet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+            Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+            if (this.username.equals(restorationSet.get().getOwner()) || isAdmin) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The restoration is referenced in at least one DFR3 mapping. " +

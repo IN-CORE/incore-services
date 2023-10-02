@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -224,6 +225,7 @@ public class HurricaneWindfieldsController {
                 hurricaneWindfields.setName(inputHurricane.getName());
                 hurricaneWindfields.setDescription(inputHurricane.getDescription());
                 hurricaneWindfields.setCreator(this.username);
+                hurricaneWindfields.setOwner(this.username);
 
                 hurricaneWindfields.setCategory(inputHurricane.getCategory());
                 hurricaneWindfields.setCoast(inputHurricane.getCoast());
@@ -400,7 +402,8 @@ public class HurricaneWindfieldsController {
         "hurricaneId") String hurricaneId) {
         HurricaneWindfields hurricane = getHurricaneWindfieldsById(hurricaneId);
 
-        if (authorizer.canUserDeleteMember(this.username, hurricaneId, spaceRepository.getAllSpaces(), this.groups)) {
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(hurricane.getOwner()) || isAdmin) {
             //delete associated datasets
             for (HurricaneSimulationDataset dataset : hurricane.getHazardDatasets()) {
                 if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {

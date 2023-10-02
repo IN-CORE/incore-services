@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -265,6 +266,7 @@ public class TornadoController {
                 tornadoModel.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);
+                tornado.setOwner(this.username);
                 tornado = repository.addTornado(tornado);
                 addTornadoToSpace(tornado, this.username);
             } else if (tornado != null && tornado instanceof TornadoDataset) {
@@ -290,6 +292,7 @@ public class TornadoController {
                     ((TornadoDataset) tornado).setDatasetId(datasetId);
 
                     tornado.setCreator(this.username);
+                    tornado.setOwner(this.username);
                     tornado = repository.addTornado(tornado);
                     addTornadoToSpace(tornado, this.username);
                 } else {
@@ -523,7 +526,8 @@ public class TornadoController {
     public Tornado deleteTornado(@Parameter(name = "Tornado Id", required = true) @PathParam("tornado-id") String tornadoId) {
         Tornado tornado = getTornado(tornadoId);
 
-        if (authorizer.canUserDeleteMember(this.username, tornadoId, spaceRepository.getAllSpaces(), this.groups)) {
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(tornado.getOwner()) || isAdmin) {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;

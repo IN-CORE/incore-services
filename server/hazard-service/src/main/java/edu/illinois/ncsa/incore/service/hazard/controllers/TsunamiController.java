@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -367,6 +368,7 @@ public class TsunamiController {
                     }
 
                     tsunami.setCreator(this.username);
+                    tsunami.setOwner(this.username);
                     tsunami = repository.addTsunami(tsunami);
 
                     Space space = spaceRepository.getSpaceByName(this.username);
@@ -405,7 +407,8 @@ public class TsunamiController {
     public Tsunami deleteTsunami(@Parameter(name = "Tsunami Id", required = true) @PathParam("tsunami-id") String tsunamiId) {
         Tsunami tsunami = getTsunami(tsunamiId);
 
-        if (authorizer.canUserDeleteMember(this.username, tsunamiId, spaceRepository.getAllSpaces(), this.groups)) {
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(tsunami.getOwner()) || isAdmin) {
             //remove associated datasets
             if (tsunami != null && tsunami instanceof TsunamiDataset) {
                 TsunamiDataset tsuDataset = (TsunamiDataset) tsunami;
