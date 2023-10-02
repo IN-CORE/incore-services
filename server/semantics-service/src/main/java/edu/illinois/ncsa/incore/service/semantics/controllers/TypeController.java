@@ -232,6 +232,7 @@ public class TypeController {
             // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
             Map<String, Object> model = new HashMap<String, Object>();
             model.put("title", d.get("dc:title"));
+            model.put("url", d.get("url"));
             model.put("description", d.get("dc:description"));
             model.put("columns", columns);
 
