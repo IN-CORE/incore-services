@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Add template dataset generation (CSV and Shapefile) API to semantics-service [#214](https://github.com/IN-CORE/incore-services/issues/214)
+
 ### Changed
 - Geoserver connection library has been removed and new connection object has been added [#190](https://github.com/IN-CORE/incore-services/issues/190)
 
