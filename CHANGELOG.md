@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Owner item added to the dataset, hazard, and dfr3 object [#92](https://github.com/IN-CORE/incore-services/issues/92)
+- Attenuation model Sadigh et al. 1997 [#208](https://github.com/IN-CORE/incore-services/issues/208)
+
 ### Changed
 - Geoserver connection library has been removed and new connection object has been added [#190](https://github.com/IN-CORE/incore-services/issues/190)
 

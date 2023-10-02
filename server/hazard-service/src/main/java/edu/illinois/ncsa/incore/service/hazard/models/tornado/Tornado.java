@@ -35,6 +35,7 @@ public class Tornado {
     private String name;
     private String description;
     private String creator = null;
+    private String owner = null;
     private Double threshold = null;
     private String thresholdUnit = TornadoHazard.WIND_MPH;
 
@@ -72,6 +73,14 @@ public class Tornado {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public List<String> getSpaces() {

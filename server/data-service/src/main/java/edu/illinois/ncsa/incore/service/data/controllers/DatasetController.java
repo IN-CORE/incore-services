@@ -13,6 +13,7 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -32,10 +33,7 @@ import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.NetworkData;
 import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
-import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
-import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
+import edu.illinois.ncsa.incore.service.data.utils.*;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -380,6 +378,7 @@ public class DatasetController {
 
             dataset.setTitle(title);
             dataset.setCreator(this.username);
+            dataset.setOwner(this.username);
             dataset.setDataType(dataType);
             dataset.setDescription(description);
             dataset.setSourceDataset(sourceDataset);
@@ -462,7 +461,8 @@ public class DatasetController {
             geoserverUsed = true;
         }
 
-        if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(dataset.getOwner()) || isAdmin) {
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -937,12 +937,15 @@ public class DatasetController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid " +
                 "JSON.");
         }
-        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
+
+        Dataset dataset = repository.getDatasetById(datasetId);
+
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(dataset.getOwner()) && isAdmin != true) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
         }
 
-        Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a dataset with id " + datasetId);
         }
