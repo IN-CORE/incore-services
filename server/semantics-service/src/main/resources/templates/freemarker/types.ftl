@@ -27,6 +27,7 @@
     <p class="text-muted">Each schema defines the expected attributes for a dataset definition.
         The attributes for the <b>${title}</b>
         schema are listed in the table below.</p>
+    <a href="/semantics/api/${column.name}/template">Download Template</a>
 
     <table class="table">
         <tr style="background: #eee;">
