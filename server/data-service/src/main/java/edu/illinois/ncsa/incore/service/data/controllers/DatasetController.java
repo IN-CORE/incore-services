@@ -942,11 +942,14 @@ public class DatasetController {
                         repository.addDataset(dataset);
                         // uploading geoserver must involve the process of renaming the database in geopackage
                         File gpkgFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
-                        File renamedFile = FileUtils.renameGeopackageDbName(gpkgFile, datasetId);
+                        // create temp directory
+                        String tempGpkgDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+                        File renamedFile = FileUtils.renameGeopackageDbName(gpkgFile, datasetId, tempGpkgDir);
                         if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), renamedFile)) {
                             logger.error("Fail to upload geopackage file");
                             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
                         }
+                        FileUtils.deleteTmpDir(renamedFile);
                     } else {
                         if (isShp && isPrj) {
                             GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);

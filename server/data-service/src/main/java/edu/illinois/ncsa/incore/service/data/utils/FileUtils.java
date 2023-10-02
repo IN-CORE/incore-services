@@ -20,6 +20,13 @@ import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geopkg.GeoPkgDataStoreFactory;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
@@ -885,7 +892,59 @@ public class FileUtils {
         }
     }
 
-    public static File renameGeopackageDbName(File inFile, String store) throws IOException {
+    public static File renameGeopackageDbName(File inFile, String store, String tempDir) throws IOException {
+        File renamedGpkgFile = null;
+
+        try {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put(GeoPkgDataStoreFactory.DBTYPE.key, "geopkg");
+            map.put(GeoPkgDataStoreFactory.DATABASE.key, inFile.getAbsoluteFile());
+            DataStore dataStore = DataStoreFinder.getDataStore(map);
+            if (dataStore == null) {
+                throw new IOException("Unable to open geopackage file");
+            }
+
+            // get all layer names in input geopackage file
+            String[] layerNames = dataStore.getTypeNames();
+
+            renamedGpkgFile = new File(tempDir + File.separator + store + ".gpkg");
+
+            if (layerNames.length == 1) {
+                // input geopackage should only have a single layer
+                String oldLayerName = layerNames[0];
+
+                // get input geopackage layer
+                SimpleFeatureStore oldFeatureStore = (SimpleFeatureStore) dataStore.getFeatureSource(oldLayerName);
+
+                // create a new geopackage file in temp directory
+                map.put(GeoPkgDataStoreFactory.DATABASE.key, renamedGpkgFile);
+                DataStore newDataStore = DataStoreFinder.getDataStore(map);
+
+                // create a schema for new geopackage by copying from input one
+                SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+                builder.init(oldFeatureStore.getSchema());
+                builder.setName(store);
+                SimpleFeatureType newSchema = builder.buildFeatureType();
+                newDataStore.createSchema(newSchema);
+
+                SimpleFeatureStore newFeatureStore = (SimpleFeatureStore) newDataStore.getFeatureSource(store);
+
+                // copy old layer to new layer
+                SimpleFeatureCollection oldFeatures = oldFeatureStore.getFeatures();
+                newFeatureStore.addFeatures(oldFeatures);
+
+                dataStore.removeSchema(oldLayerName);
+
+                dataStore.dispose();
+                newDataStore.dispose();
+            } else {
+                throw new IOException("There are multiple layers in the GeoPackage");
+            }
+        } catch (IOException e) {
+            throw new IOException("Unable to open geopackage file.");
+        }
+
+        return renamedGpkgFile;
 //        String currentTableName = "old_table_name"; // Replace with the current table name
 //        String newTableName = "new_table_name"; // Replace with the desired new table name
 //
@@ -911,51 +970,51 @@ public class FileUtils {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-        List<File> infiles = new ArrayList<>();
-        infiles.add(inFile);
-
-        List<File> copiedFileList = GeotoolsUtils.performCopyFiles(infiles, tempDir, "", false, "shp");
-        // Define GeoPackage file path
-        String geoPackageFilePath = copiedFileList.get(0).getAbsolutePath();
-
-        // SQLite JDBC URL
-        String jdbcUrl = "jdbc:sqlite:" + geoPackageFilePath;
-
-        try {
-            // Create a connection to the GeoPackage using SQLite JDBC
-            Connection connection = DriverManager.getConnection(jdbcUrl);
-
-            // Get database metadata
-            DatabaseMetaData metaData = connection.getMetaData();
-
-            // List all tables in the GeoPackage
-            ResultSet tables = metaData.getTables(null, null, null, new String[]{"TABLE"});
-
-            // Iterate through the table names
-            while (tables.next()) {
-                String tableName = tables.getString("TABLE_NAME");
-                System.out.println("Found table: " + tableName);
-
-                // Replace this condition with your logic to identify the table you want to rename
-                if (tableName.equals("guid_test")) {
-                    String newTableName = store; // Replace with the desired new table name
-
-                    // Rename the table
-                    String sql = "ALTER TABLE " + tableName + " RENAME TO " + newTableName;
-                    connection.createStatement().executeUpdate(sql);
-
-                    System.out.println("Table renamed successfully.");
-                    break; // Exit the loop once the desired table is found and renamed
-                }
-            }
-
-            // Close the connection
-            connection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return copiedFileList.get(0);
+//        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+//        List<File> infiles = new ArrayList<>();
+//        infiles.add(inFile);
+//
+//        List<File> copiedFileList = GeotoolsUtils.performCopyFiles(infiles, tempDir, "", false, "shp");
+//        // Define GeoPackage file path
+//        String geoPackageFilePath = copiedFileList.get(0).getAbsolutePath();
+//
+//        // SQLite JDBC URL
+//        String jdbcUrl = "jdbc:sqlite:" + geoPackageFilePath;
+//
+//        try {
+//            // Create a connection to the GeoPackage using SQLite JDBC
+//            Connection connection = DriverManager.getConnection(jdbcUrl);
+//
+//            // Get database metadata
+//            DatabaseMetaData metaData = connection.getMetaData();
+//
+//            // List all tables in the GeoPackage
+//            ResultSet tables = metaData.getTables(null, null, null, new String[]{"TABLE"});
+//
+//            // Iterate through the table names
+//            while (tables.next()) {
+//                String tableName = tables.getString("TABLE_NAME");
+//                System.out.println("Found table: " + tableName);
+//
+//                // Replace this condition with your logic to identify the table you want to rename
+//                if (tableName.equals("guid_test")) {
+//                    String newTableName = store; // Replace with the desired new table name
+//
+//                    // Rename the table
+//                    String sql = "ALTER TABLE " + tableName + " RENAME TO " + newTableName;
+//                    connection.createStatement().executeUpdate(sql);
+//
+//                    System.out.println("Table renamed successfully.");
+//                    break; // Exit the loop once the desired table is found and renamed
+//                }
+//            }
+//
+//            // Close the connection
+//            connection.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return copiedFileList.get(0);
     }
 }
