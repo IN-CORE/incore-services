@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -267,6 +268,7 @@ public class FloodController {
                     }
 
                     flood.setCreator(this.username);
+                    flood.setOwner(this.username);
                     flood = repository.addFlood(flood);
 
                     Space space = spaceRepository.getSpaceByName(this.username);
@@ -400,7 +402,8 @@ public class FloodController {
     public Flood deleteFlood(@Parameter(name = "Flood Id", required = true) @PathParam("flood-id") String floodId) {
         Flood flood = getFloodById(floodId);
 
-        if (authorizer.canUserDeleteMember(this.username, floodId, spaceRepository.getAllSpaces(), this.groups)) {
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(flood.getOwner()) || isAdmin) {
             // delete associated datasets
             if (flood != null && flood instanceof FloodDataset) {
                 FloodDataset hurrDataset = (FloodDataset) flood;

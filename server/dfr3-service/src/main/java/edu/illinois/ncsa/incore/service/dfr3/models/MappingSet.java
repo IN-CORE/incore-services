@@ -37,6 +37,7 @@ public class MappingSet {
 
     private final List<Mapping> mappings = new ArrayList<>();
     private String creator;
+    private String owner;
 
     /**
      * spaces the object belongs to. Calculated at runtime.
@@ -70,6 +71,14 @@ public class MappingSet {
 
     public String getCreator() {
         return creator;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public List<String> getSpaces() {

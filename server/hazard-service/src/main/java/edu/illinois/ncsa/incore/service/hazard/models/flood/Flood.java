@@ -34,6 +34,7 @@ public abstract class Flood {
     private String description;
     private Date date = new Date();
     private String creator = null;
+    private String owner = null;
 
     /**
      * spaces the object belongs to. Calculated at runtime.
@@ -76,6 +77,14 @@ public abstract class Flood {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public List<String> getSpaces() {
