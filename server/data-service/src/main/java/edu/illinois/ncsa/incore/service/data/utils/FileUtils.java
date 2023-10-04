@@ -892,7 +892,15 @@ public class FileUtils {
         }
     }
 
-    public static File renameGeopackageDbName(File inFile, String store, String tempDir) throws IOException {
+    /**
+     * create a temporary geopackage file with the layer's name with dataset it
+     *
+     * @param inFile
+     * @param store
+     * @return
+     * @throws IOException
+     */
+    public static File generateRenameGpkgDbName(File inFile, String store) throws IOException {
         File renamedGpkgFile = null;
 
         try {
@@ -907,11 +915,14 @@ public class FileUtils {
             // get all layer names in input geopackage file
             String[] layerNames = dataStore.getTypeNames();
 
-            renamedGpkgFile = new File(tempDir + File.separator + store + ".gpkg");
-
+            // input geopackage should only have a single layer
             if (layerNames.length == 1) {
-                // input geopackage should only have a single layer
                 String oldLayerName = layerNames[0];
+
+                // create temp directory
+                String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+
+                renamedGpkgFile = new File(tempDir + File.separator + store + ".gpkg");
 
                 // get input geopackage layer
                 SimpleFeatureStore oldFeatureStore = (SimpleFeatureStore) dataStore.getFeatureSource(oldLayerName);
@@ -945,76 +956,5 @@ public class FileUtils {
         }
 
         return renamedGpkgFile;
-//        String currentTableName = "old_table_name"; // Replace with the current table name
-//        String newTableName = "new_table_name"; // Replace with the desired new table name
-//
-//        // SQLite JDBC URL
-//        String jdbcUrl = "jdbc:sqlite:" + tmpFile.getAbsolutePath();
-//
-//        try {
-//            // Create a connection to the GeoPackage using SQLite JDBC
-//            Connection connection = DriverManager.getConnection(jdbcUrl);
-//
-//            // Create a statement
-//            Statement statement = connection.createStatement();
-//
-//            // Rename the table
-//            String sql = "ALTER TABLE " + currentTableName + " RENAME TO " + newTableName;
-//            statement.executeUpdate(sql);
-//
-//            // Close the statement and connection
-//            statement.close();
-//            connection.close();
-//
-//            System.out.println("Table renamed successfully.");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-//        List<File> infiles = new ArrayList<>();
-//        infiles.add(inFile);
-//
-//        List<File> copiedFileList = GeotoolsUtils.performCopyFiles(infiles, tempDir, "", false, "shp");
-//        // Define GeoPackage file path
-//        String geoPackageFilePath = copiedFileList.get(0).getAbsolutePath();
-//
-//        // SQLite JDBC URL
-//        String jdbcUrl = "jdbc:sqlite:" + geoPackageFilePath;
-//
-//        try {
-//            // Create a connection to the GeoPackage using SQLite JDBC
-//            Connection connection = DriverManager.getConnection(jdbcUrl);
-//
-//            // Get database metadata
-//            DatabaseMetaData metaData = connection.getMetaData();
-//
-//            // List all tables in the GeoPackage
-//            ResultSet tables = metaData.getTables(null, null, null, new String[]{"TABLE"});
-//
-//            // Iterate through the table names
-//            while (tables.next()) {
-//                String tableName = tables.getString("TABLE_NAME");
-//                System.out.println("Found table: " + tableName);
-//
-//                // Replace this condition with your logic to identify the table you want to rename
-//                if (tableName.equals("guid_test")) {
-//                    String newTableName = store; // Replace with the desired new table name
-//
-//                    // Rename the table
-//                    String sql = "ALTER TABLE " + tableName + " RENAME TO " + newTableName;
-//                    connection.createStatement().executeUpdate(sql);
-//
-//                    System.out.println("Table renamed successfully.");
-//                    break; // Exit the loop once the desired table is found and renamed
-//                }
-//            }
-//
-//            // Close the connection
-//            connection.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return copiedFileList.get(0);
     }
 }

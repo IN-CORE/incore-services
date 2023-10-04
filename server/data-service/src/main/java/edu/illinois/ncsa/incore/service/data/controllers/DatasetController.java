@@ -884,10 +884,18 @@ public class DatasetController {
             }
         }
 
-        // check if geopackage has guid
         SimpleFeatureCollection sfc = null; // this will be used for uploading geopackage to geoserver
         if (format.equalsIgnoreCase(FileUtils.FORMAT_GEOPACKAGE)) {
             File tmpFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
+
+            // check if geopackage only has a single layer
+            if (!GeotoolsUtils.isGpkgSingleLayer(tmpFile)) {
+                FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                logger.debug("The geopackage has to have a single layer.");
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "Geopackage is not a single layer.");
+            }
+
+            // check if geopackage has guid
             sfc = GeotoolsUtils.getSimpleFeatureCollectionFromGeopackage(tmpFile);
             if (!GeotoolsUtils.isGUIDinGeopackage(sfc)) {
                 FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
@@ -895,7 +903,6 @@ public class DatasetController {
                 throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "No GUID field.");
             }
         }
-        repository.addDataset(dataset);
 
         // TODO: This a patch/hotfix so space is not saved when updating the dataset.
         //  May be this endpoint should not try to addDataset, rather it should just try to update the files section of the existing dataset
@@ -942,9 +949,7 @@ public class DatasetController {
                         repository.addDataset(dataset);
                         // uploading geoserver must involve the process of renaming the database in geopackage
                         File gpkgFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
-                        // create temp directory
-                        String tempGpkgDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
-                        File renamedFile = FileUtils.renameGeopackageDbName(gpkgFile, datasetId, tempGpkgDir);
+                        File renamedFile = FileUtils.generateRenameGpkgDbName(gpkgFile, datasetId);
                         if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), renamedFile)) {
                             logger.error("Fail to upload geopackage file");
                             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");

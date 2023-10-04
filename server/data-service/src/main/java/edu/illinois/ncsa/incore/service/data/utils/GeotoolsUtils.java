@@ -967,5 +967,29 @@ public class GeotoolsUtils {
 
         return isGuid;
     }
+
+    public static boolean isGpkgSingleLayer(File inFile) throws IOException {
+        Boolean output = false;
+        try {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put(GeoPkgDataStoreFactory.DBTYPE.key, "geopkg");
+            map.put(GeoPkgDataStoreFactory.DATABASE.key, inFile.getAbsoluteFile());
+            DataStore dataStore = DataStoreFinder.getDataStore(map);
+            if (dataStore == null) {
+                throw new IOException("Unable to open geopackage file");
+            }
+
+            // get all layer names in input geopackage file
+            String[] layerNames = dataStore.getTypeNames();
+
+            if (layerNames.length == 1) {
+                output = true;
+            }
+        } catch (IOException e) {
+            throw new IOException("Unable to open geopackage file.");
+        }
+
+        return output;
+    }
 }
 

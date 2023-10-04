@@ -60,11 +60,11 @@ apply plugin: 'org.gretty'
 //a "farm" is the gretty term for multiple webapps that can be run
 //in the same webapp service.
 farm {
-//    webapp ':dfr3-service'
+    webapp ':dfr3-service'
     webapp ':data-service'
-//    webapp ':hazard-service'
-//    webapp ':semantics-service'
-//    webapp ':space-service'
+    webapp ':hazard-service'
+    webapp ':semantics-service'
+    webapp ':space-service'
 }
 
 task farmWars(dependsOn: war, type: Copy) {

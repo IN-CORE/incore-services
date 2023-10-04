@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Geopakage handling in services  [#205](https://github.com/IN-CORE/incore-services/issues/205)
+
 ### Changed
 - Geoserver connection library has been removed and new connection object has been added [#190](https://github.com/IN-CORE/incore-services/issues/190)
 
@@ -17,8 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Refactor POST /types API [#159](https://github.com/IN-CORE/incore-services/issues/159)
 - Refactor GET /types endpoint [#156](https://github.com/IN-CORE/incore-services/issues/156)
 - Refactor DELETE /types/{id} endpoint [#160](https://github.com/IN-CORE/incore-services/issues/160)
-- Added filtering by space in GET /types endpoint [191](https://github.com/IN-CORE/incore-services/issues/191)
-- Added limiting and offset for GET /types/search endpoint and to GET /types endpoint [#195](https://github.com/IN-CORE/incore-services/issues/195)
+- Filtering by space in GET /types endpoint [191](https://github.com/IN-CORE/incore-services/issues/191)
+- Limiting and offset for GET /types/search endpoint and to GET /types endpoint [#195](https://github.com/IN-CORE/incore-services/issues/195)
 
 ### Changed
 - Refactor AllocationsController and UsageController to use updated authorizer [#143](https://github.com/IN-CORE/incore-services/issues/143)
