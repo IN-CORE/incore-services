@@ -52,6 +52,7 @@ public class HurricaneWindfields {
     private List<HurricaneSimulationDataset> hazardDatasets = new ArrayList<>();
 
     private String creator = null;
+    private String owner = null;
     /**
      * spaces the object belongs to. Calculated at runtime.
      */
@@ -206,6 +207,14 @@ public class HurricaneWindfields {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public List<String> getSpaces() {
