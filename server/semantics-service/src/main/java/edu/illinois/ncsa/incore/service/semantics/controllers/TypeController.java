@@ -109,6 +109,13 @@ public class TypeController {
 
         List<Document> typeList = this.typeDAO.getTypes();
 
+        // hackish way of adding "id" field
+        // this should be changed to use the real object model
+        for (Document d : typeList) {
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
+        }
+
         // Filter out the types that belong to a given space if specified
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -188,6 +195,12 @@ public class TypeController {
         Optional<Document> matchedType = getTypesByName(name, version);
 
         if (matchedType.isPresent()) {
+            // hackish way of adding "id" field
+            // this should be changed to use the real object model
+            Document d = matchedType.get();
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
+
             return Response.ok(matchedType.get()).status(200)
                 .build();
         }
@@ -209,6 +222,11 @@ public class TypeController {
 
         if (matchedType.isPresent()) {
             Document d = matchedType.get();
+
+            // hackish way of adding "id" field
+            // this should be changed to use the real object model
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
 
             // Convert the BSON Document to a JSONObject
             JSONObject typeJson = new JSONObject(d.toJson());
@@ -269,6 +287,11 @@ public class TypeController {
 
         if (matchedType.isPresent()) {
             Document d = matchedType.get();
+            // hackish way of adding "id" field
+            // this should be changed to use the real object model
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
+
             // Convert the BSON Document to a JSONObject
             JSONObject typeJson = new JSONObject(d.toJson());
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
@@ -333,6 +356,7 @@ public class TypeController {
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
         List<Document> results;
+
         if (typeList.isPresent()) {
             results = typeList.get().stream()
                 .filter(t -> userMembersSet.contains(t.getObjectId("_id").toString()))
@@ -341,6 +365,13 @@ public class TypeController {
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();
+        }
+
+        // hackish way of adding "id" field
+        // this should be changed to use the real object model
+        for (Document d : results) {
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
         }
 
         return Response.ok(results).status(200)
