@@ -886,6 +886,11 @@ public class DatasetController {
 
         SimpleFeatureCollection sfc = null; // this will be used for uploading geopackage to geoserver
         if (format.equalsIgnoreCase(FileUtils.FORMAT_GEOPACKAGE)) {
+            if (!isGpkg) {
+                FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
+                logger.debug("The given file is not a geopackage file.");
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "Give file is not a geopackage file.");
+            }
             File tmpFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
 
             // check if geopackage only has a single layer
