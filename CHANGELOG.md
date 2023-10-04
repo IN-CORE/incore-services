@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Geoserver connection library has been removed and new connection object has been added [#190](https://github.com/IN-CORE/incore-services/issues/190)
 - Semantics should display description instead of title [#206](https://github.com/IN-CORE/incore-services/issues/206)
 
+### Fixed
+- Semantic services endpoint returns correct ID [#227](https://github.com/IN-CORE/incore-services/issues/227)
+
 ## [1.20.0] - 2023-08-16
 
 ### Added
