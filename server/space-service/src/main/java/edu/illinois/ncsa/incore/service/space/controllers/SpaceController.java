@@ -543,7 +543,7 @@ public class SpaceController {
 
         boolean isValidNonHazardMember = false;
 
-        // TODO semantics endpoint accept name instead of id; need to trade for name
+        // TODO semantics endpoint accept name instead of id; need to trade name for id
         if (get(SEMANTICS_URL, memberId, username, userGroups) != null) {
             String jsonResponse = get(SEMANTICS_URL, memberId, username, userGroups);
             JSONObject jsonObject = new JSONObject(jsonResponse);
