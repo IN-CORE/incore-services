@@ -495,6 +495,7 @@ public class SpaceController {
                 con.setRequestMethod("GET");
                 con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
                 con.setRequestProperty("x-auth-usergroup", userGroups);
+                con.setRequestProperty("Accept", "application/json");
                 return getContent(con);
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -539,15 +540,26 @@ public class SpaceController {
      * found or if the user has no write/admin privileges on a space that contains the member.
      */
     private boolean addMembers(Space space, String username, String memberId) {
+
+        boolean isValidNonHazardMember = false;
+
+        // TODO semantics endpoint accept name instead of id; need to trade for name
+        if (get(SEMANTICS_URL, memberId, username, userGroups) != null) {
+            String jsonResponse = get(SEMANTICS_URL, memberId, username, userGroups);
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+            if (jsonObject.has("id")) {
+                memberId = jsonObject.getString("id");
+                isValidNonHazardMember = true;
+            } else {
+                return false;
+            }
+        }
         if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces(), this.groups)) {
             return false;
         }
         //TODO: SpaceController doesn't have to care about what is adding, so we need to rethink the design to avoid
         // the following conditional branching.
         //get dataset from data-service
-
-        boolean isValidNonHazardMember = false;
-
         if (get(DATA_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
         } else if (get(FRAGILITY_URL, memberId, username, userGroups) != null) {
@@ -558,16 +570,6 @@ public class SpaceController {
             isValidNonHazardMember = true;
         } else if (get(MAPPING_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
-        } else if (get(SEMANTICS_URL, memberId, username, userGroups) != null) {
-            // TODO semantics endpoint accept name instead of id; need to trade for name
-            String jsonResponse = get(SEMANTICS_URL, memberId, username, userGroups);
-            JSONObject jsonObject = new JSONObject(jsonResponse);
-            if (jsonObject.has("id")) {
-                memberId = jsonObject.getString("id");
-                isValidNonHazardMember = true;
-            } else {
-                System.out.println("No 'id' field found in the JSON.");
-            }
         }
 
         if (isValidNonHazardMember) {
