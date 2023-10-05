@@ -32,6 +32,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -96,6 +97,7 @@ public class SpaceController {
     private static final String DATA_SERVICE_URL = System.getenv("DATA_SERVICE_URL");
     private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
     private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
+    private static final String SEMANTICS_SERVICE_URL = System.getenv("SEMANTICS_SERVICE_URL");
     private static final String EARTHQUAKE_URL = HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
     private static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
     private static final String HURRICANE_WF_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricaneWindfields/";
@@ -106,6 +108,7 @@ public class SpaceController {
     private static final String REPAIR_URL = DFR3_SERVICE_URL + "/dfr3/api/repairs/";
     private static final String RESTORATION_URL = DFR3_SERVICE_URL + "/dfr3/api/restorations/";
     private static final String MAPPING_URL = DFR3_SERVICE_URL + "/dfr3/api/mappings/";
+    private static final String SEMANTICS_URL = SEMANTICS_SERVICE_URL + "/semantics/api/types/";
     private static final String DATA_URL = DATA_SERVICE_URL + "/data/api/datasets/";
 
     private static final String SPACE_MEMBERS = "members";
@@ -555,6 +558,16 @@ public class SpaceController {
             isValidNonHazardMember = true;
         } else if (get(MAPPING_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
+        } else if (get(SEMANTICS_URL, memberId, username, userGroups) != null) {
+            // TODO semantics endpoint accept name instead of id; need to trade for name
+            String jsonResponse = get(SEMANTICS_URL, memberId, username, userGroups);
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+            if (jsonObject.has("id")) {
+                memberId = jsonObject.getString("id");
+                isValidNonHazardMember = true;
+            } else {
+                System.out.println("No 'id' field found in the JSON.");
+            }
         }
 
         if (isValidNonHazardMember) {
