@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
 
 @OpenAPIDefinition(
     info = @Info(
-        version = "1.20.0",
+        version = "1.21.0",
         description = "IN-CORE Service For Repair and Repair mappings",
 
         title = "IN-CORE v2 DFR3 Service API",
@@ -180,6 +181,8 @@ public class RepairController {
         }
 
         repairSet.setCreator(username);
+        repairSet.setOwner(username);
+
         if (repairSet.getRepairCurves().size() == 0){
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No repair curves are included in the json. " +
                 "Please provide at least one.");
@@ -228,7 +231,8 @@ public class RepairController {
         Optional<RepairSet> repairSet = this.repairDAO.getRepairSetById(id);
 
         if (repairSet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+            Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+            if (this.username.equals(repairSet.get().getOwner()) || isAdmin) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The repair is referenced in at least one DFR3 mapping. It " +

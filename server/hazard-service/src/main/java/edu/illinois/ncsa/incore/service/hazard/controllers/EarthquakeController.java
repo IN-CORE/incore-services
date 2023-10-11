@@ -16,6 +16,7 @@ import dev.morphia.annotations.Property;
 import dev.morphia.annotations.experimental.Name;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -82,7 +83,7 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.eqCompara
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami, Hurricane and Flood",
-        version = "1.20.0",
+        version = "1.21.0",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -224,6 +225,7 @@ public class EarthquakeController {
                     scenarioEarthquake.setHazardDataset(rasterDataset);
                     // add creator using username info
                     earthquake.setCreator(this.username);
+                    earthquake.setOwner(this.username);
                     earthquake = repository.addEarthquake(earthquake);
                     addEarthquakeToSpace(earthquake, this.username);
 
@@ -274,6 +276,7 @@ public class EarthquakeController {
 
                     // add creator using username info
                     earthquake.setCreator(this.username);
+                    earthquake.setOwner(this.username);
 
                     // Save changes to earthquake
                     earthquake = repository.addEarthquake(earthquake);
@@ -1072,7 +1075,8 @@ public class EarthquakeController {
     public Earthquake deleteEarthquake(@Parameter(name = "Earthquake Id", required = true) @PathParam("earthquake-id") String earthquakeId) {
         Earthquake eq = getEarthquake(earthquakeId);
 
-        if (authorizer.canUserDeleteMember(this.username, earthquakeId, spaceRepository.getAllSpaces(), this.groups)) {
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(eq.getOwner()) || isAdmin) {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;

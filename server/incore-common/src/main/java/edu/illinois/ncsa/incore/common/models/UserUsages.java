@@ -14,6 +14,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.annotations.Embedded;
 import org.apache.log4j.Logger;
 
+import java.util.List;
+
+
 @Embedded
 public class UserUsages {
     private static final Logger log = Logger.getLogger(UserUsages.class);
@@ -24,6 +27,8 @@ public class UserUsages {
     public int dfr3;
     public long datasetSize;
     public long hazardDatasetSize;
+    public List<Integer> service;
+    public IncoreLabQuota incoreLab;
 
     public UserUsages() { }
 
@@ -84,4 +89,22 @@ public class UserUsages {
     public void setHazardDatasetSize(long hazardDatasetSize) {
         this.hazardDatasetSize = hazardDatasetSize;
     }
+
+    public IncoreLabQuota getIncoreLab(){
+        return this.incoreLab;
+    }
+
+    public void setIncoreLab(IncoreLabQuota incoreLab){
+        this.incoreLab = incoreLab;
+    }
+
+    public List<Integer> getService() {
+        return this.service;
+    }
+
+    public void setService(List<Integer> service){
+        this.service = service;
+    }
+
+
 }

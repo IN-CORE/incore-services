@@ -13,6 +13,7 @@
 package edu.illinois.ncsa.incore.service.data.controllers;
 
 import edu.illinois.ncsa.incore.common.HazardConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
@@ -32,10 +33,7 @@ import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.NetworkData;
 import edu.illinois.ncsa.incore.service.data.models.NetworkDataset;
 import edu.illinois.ncsa.incore.service.data.models.impl.FileStorageDisk;
-import edu.illinois.ncsa.incore.service.data.utils.DataJsonUtils;
-import edu.illinois.ncsa.incore.service.data.utils.FileUtils;
-import edu.illinois.ncsa.incore.service.data.utils.GeoserverUtils;
-import edu.illinois.ncsa.incore.service.data.utils.GeotoolsUtils;
+import edu.illinois.ncsa.incore.service.data.utils.*;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -71,7 +69,7 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
-        version = "1.20.0",
+        version = "1.21.0",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -380,6 +378,7 @@ public class DatasetController {
 
             dataset.setTitle(title);
             dataset.setCreator(this.username);
+            dataset.setOwner(this.username);
             dataset.setDataType(dataType);
             dataset.setDescription(description);
             dataset.setSourceDataset(sourceDataset);
@@ -462,7 +461,8 @@ public class DatasetController {
             geoserverUsed = true;
         }
 
-        if (authorizer.canUserDeleteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(dataset.getOwner()) || isAdmin) {
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {
@@ -488,15 +488,7 @@ public class DatasetController {
                 }
                 // remove geoserver layer
                 if (geoserverUsed) {
-                    if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                        // remove network dataset
-                        boolean linkRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_link");
-                        boolean nodeRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId, "_node");
-                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
-                    } else {
-                        boolean layerRemoved = GeoserverUtils.removeLayerFromGeoserver(datasetId);
-                        boolean storeRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
-                    }
+                    boolean isRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
                 }
             }
         } else {
@@ -623,6 +615,7 @@ public class DatasetController {
         boolean isTif = false;
         boolean isZip = false;
         boolean isJoin = false;
+        boolean isPrj = false;
 
         int fileCounter = 0;
         int linkCounter = 0;
@@ -649,6 +642,8 @@ public class DatasetController {
                     isShp = true;
                 } else if (fileExt.equalsIgnoreCase("zip")) {
                     isZip = true;
+                } else if (fileExt.equalsIgnoreCase("prj")) {
+                    isPrj = true;
                 }
 
                 // process zip file
@@ -762,7 +757,6 @@ public class DatasetController {
         List<File> files = new ArrayList<File>();
 
         File geoPkgFile = null;
-        boolean isShpfile = false;
 
         if (format.equalsIgnoreCase(FileUtils.FORMAT_SHAPEFILE) || format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
             for (int i = 0; i < dataFDs.size(); i++) {
@@ -773,7 +767,9 @@ public class DatasetController {
                 //get file, if the file is in remote, use http downloader
                 String fileExt = FilenameUtils.getExtension(shpLoc);
                 if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
-                    isShpfile = true;
+                    isShp = true;
+                } else if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_PRJ)) {
+                    isPrj = true;
                 }
             }
             try {
@@ -804,6 +800,12 @@ public class DatasetController {
                             try {
                                 InputStream is = new FileInputStream(shpFile);
                                 String fileName = shpFile.getName();
+                                String fileExt = FilenameUtils.getExtension(shpFile.getName());
+                                if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_PRJ)) {
+                                    isPrj = true;
+                                } else if (fileExt.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+                                    isShp = true;
+                                }
                                 fd = fsDisk.storeFile(fileName, is);
                                 fd.setFilename(fileName);
                             } catch (IOException e) {
@@ -819,9 +821,6 @@ public class DatasetController {
                         logger.debug("Unzipping zip file failed");
                         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Unzipping zip file failed.");
                     }
-
-                    // if the unzip was successful, that means that it is a complete shapefile
-                    isShp = true;
 
                     // create and add FileDescriptor for unzipped shapefiles
                     List<FileDescriptor> unzippedFDs = dataset.getFileDescriptors();
@@ -896,9 +895,20 @@ public class DatasetController {
             } else {
                 try {
                     if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {
-                        GeoserverUtils.networkDatasetUploadToGeoserver(dataset, repository);
-                    } else {
+                        if (isShp && isPrj) {
+                            GeoserverUtils.networkDatasetUploadToGeoserver(dataset, repository);
+                        } else {
+                            logger.error("There is no prj file. Uploading to geoserver has been canceled");
+                        }
+                    } else if (format.equalsIgnoreCase("raster") || format.equalsIgnoreCase("geotiff") ||
+                        format.equalsIgnoreCase("tif") || format.equalsIgnoreCase("tiff")) {
                         GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                    } else {
+                        if (isShp && isPrj) {
+                            GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);
+                        } else {
+                            logger.error("There is no prj file. Uploading to geoserver has been canceled");
+                        }
                     }
                 } catch (IOException e) {
                     logger.error("Error uploading dataset to geoserver ", e);
@@ -927,12 +937,15 @@ public class DatasetController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid " +
                 "JSON.");
         }
-        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
+
+        Dataset dataset = repository.getDatasetById(datasetId);
+
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(dataset.getOwner()) && isAdmin != true) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
         }
 
-        Dataset dataset = repository.getDatasetById(datasetId);
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a dataset with id " + datasetId);
         }

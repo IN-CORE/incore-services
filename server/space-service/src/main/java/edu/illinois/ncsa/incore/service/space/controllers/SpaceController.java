@@ -32,6 +32,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Space Service for creating and accessing spaces",
-        version = "1.20.0",
+        version = "1.21.0",
         title = "IN-CORE v2 Space Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -69,7 +70,7 @@ import java.util.stream.Collectors;
 //@SwaggerDefinition(
 //    info = @Info(
 //        description = "IN-CORE Space Service for creating and accessing spaces",
-//        version = "1.20.0",
+//        version = "1.21.0",
 //        title = "IN-CORE v2 Space Service API",
 //        contact = @Contact(
 //            name = "IN-CORE Dev Team",
@@ -96,6 +97,7 @@ public class SpaceController {
     private static final String DATA_SERVICE_URL = System.getenv("DATA_SERVICE_URL");
     private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
     private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
+    private static final String SEMANTICS_SERVICE_URL = System.getenv("SEMANTICS_SERVICE_URL");
     private static final String EARTHQUAKE_URL = HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
     private static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
     private static final String HURRICANE_WF_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricaneWindfields/";
@@ -106,6 +108,7 @@ public class SpaceController {
     private static final String REPAIR_URL = DFR3_SERVICE_URL + "/dfr3/api/repairs/";
     private static final String RESTORATION_URL = DFR3_SERVICE_URL + "/dfr3/api/restorations/";
     private static final String MAPPING_URL = DFR3_SERVICE_URL + "/dfr3/api/mappings/";
+    private static final String SEMANTICS_URL = SEMANTICS_SERVICE_URL + "/semantics/api/types/";
     private static final String DATA_URL = DATA_SERVICE_URL + "/data/api/datasets/";
 
     private static final String SPACE_MEMBERS = "members";
@@ -492,6 +495,7 @@ public class SpaceController {
                 con.setRequestMethod("GET");
                 con.setRequestProperty("x-auth-userinfo", "{\"preferred_username\": \"" + username + "\"}");
                 con.setRequestProperty("x-auth-usergroup", userGroups);
+                con.setRequestProperty("Accept", "application/json");
                 return getContent(con);
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -536,15 +540,26 @@ public class SpaceController {
      * found or if the user has no write/admin privileges on a space that contains the member.
      */
     private boolean addMembers(Space space, String username, String memberId) {
+
+        boolean isValidNonHazardMember = false;
+
+        // TODO semantics endpoint accept name instead of id; need to trade name for id
+        if (get(SEMANTICS_URL, memberId, username, userGroups) != null) {
+            String jsonResponse = get(SEMANTICS_URL, memberId, username, userGroups);
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+            if (jsonObject.has("id")) {
+                memberId = jsonObject.getString("id");
+                isValidNonHazardMember = true;
+            } else {
+                return false;
+            }
+        }
         if (!authorizer.canUserWriteMember(username, memberId, spaceRepository.getAllSpaces(), this.groups)) {
             return false;
         }
         //TODO: SpaceController doesn't have to care about what is adding, so we need to rethink the design to avoid
         // the following conditional branching.
         //get dataset from data-service
-
-        boolean isValidNonHazardMember = false;
-
         if (get(DATA_URL, memberId, username, userGroups) != null) {
             isValidNonHazardMember = true;
         } else if (get(FRAGILITY_URL, memberId, username, userGroups) != null) {

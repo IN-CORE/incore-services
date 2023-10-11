@@ -27,11 +27,11 @@
     <p class="text-muted">Each schema defines the expected attributes for a dataset definition.
         The attributes for the <b>${title}</b>
         schema are listed in the table below.</p>
-
-    <table class="table">
+    <a href="/semantics/api/types/${url}/template" class="lead">Download Template</a>
+    <table class="table" style="margin:2em auto;">
         <tr style="background: #eee;">
             <th scope="col">Name</th>
-            <th scope="col">Titles</th>
+            <th scope="col">Description</th>
             <th scope="col">Datatype</th>
             <th scope="col">Unit</th>
             <th scope="col">Required</th>
@@ -39,7 +39,7 @@
         <#list columns as column>
             <tr>
                 <th scope="row">${column.name}</th>
-                <td>${column.titles}</td>
+                <td>${column.description}</td>
                 <td>${column.datatype}</td>
                 <td>${column.unit}</td>
                 <td>${column.required}</td>

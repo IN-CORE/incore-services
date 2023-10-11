@@ -33,6 +33,7 @@ public abstract class DFR3Set {
     protected String inventoryType;
 
     protected String creator;
+    protected String owner;
 
     protected List<CurveParameter> curveParameters;
 
@@ -84,6 +85,14 @@ public abstract class DFR3Set {
 
     public void setCreator(String creator) {
         this.creator = creator;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public List<String> getSpaces() {

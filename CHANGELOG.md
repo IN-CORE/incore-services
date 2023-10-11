@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.21.0] - 2023-10-11
+
+### Added
+- Add template dataset generation (CSV and Shapefile) API to semantics-service [#214](https://github.com/IN-CORE/incore-services/issues/214)
+- Owner item added to the dataset, hazard, and dfr3 object [#92](https://github.com/IN-CORE/incore-services/issues/92)
+- Attenuation model Sadigh et al. 1997 [#208](https://github.com/IN-CORE/incore-services/issues/208)
+- Include incore lab quota to the allocation endpoints [#217](https://github.com/IN-CORE/incore-services/issues/217)
+- Allow semantics id to be added to space member [#229](https://github.com/IN-CORE/incore-services/issues/229)
+
+### Changed
+- Geoserver connection library has been removed and new connection object has been added [#190](https://github.com/IN-CORE/incore-services/issues/190)
+- Semantics should display description instead of title [#206](https://github.com/IN-CORE/incore-services/issues/206)
+
+### Fixed
+- Semantic services endpoint returns correct ID [#227](https://github.com/IN-CORE/incore-services/issues/227)
+
 ## [1.20.0] - 2023-08-16
 
 ### Added

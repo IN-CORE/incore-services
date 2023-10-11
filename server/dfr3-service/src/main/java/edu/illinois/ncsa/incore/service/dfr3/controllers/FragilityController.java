@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ICommonRepository;
@@ -55,7 +56,7 @@ import static edu.illinois.ncsa.incore.service.dfr3.utils.ValidationUtils.isDema
 
 @OpenAPIDefinition(
     info = @Info(
-        version = "1.20.0",
+        version = "1.21.0",
         description = "IN-CORE Service For Fragilities and Fragility mappings",
 
         title = "IN-CORE v2 Fragility Service API",
@@ -234,6 +235,7 @@ public class FragilityController {
         }
 
         fragilitySet.setCreator(username);
+        fragilitySet.setOwner(username);
 
         if (fragilitySet.getFragilityCurves().size() == 0){
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No fragility curves are included in the json. " +
@@ -285,7 +287,8 @@ public class FragilityController {
         Optional<FragilitySet> fragilitySet = this.fragilityDAO.getFragilitySetById(id);
 
         if (fragilitySet.isPresent()) {
-            if (authorizer.canUserDeleteMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+            Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+            if (this.username.equals(fragilitySet.get().getOwner()) || isAdmin) {
 //                Check for references in mappings, if found give 409
                 if (this.mappingDAO.isCurvePresentInMappings(id)) {
                     throw new IncoreHTTPException(Response.Status.CONFLICT, "The fragility is referenced in at least one DFR3 mapping" +
