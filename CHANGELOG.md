@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+
+## [1.21.0] - 2023-10-11
 
 ### Added
 - Add template dataset generation (CSV and Shapefile) API to semantics-service [#214](https://github.com/IN-CORE/incore-services/issues/214)
