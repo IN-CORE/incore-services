@@ -129,17 +129,21 @@ public class TypeController {
                 .collect(Collectors.toList());
         }
 
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
+        List<Document> accessibleTypeList = typeList.stream().filter(type -> userMembersSet.contains(type.get("id"))).skip(offset)
+            .limit(limit).collect(Collectors.toList());
+
         if (detail) {
             return Response.ok(
-                typeList.stream()
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList()))
+                    accessibleTypeList.stream()
+                        .skip(offset)
+                        .limit(limit)
+                        .collect(Collectors.toList()))
                 .status(200)
                 .build();
         }
 
-        List<String> results = typeList.stream()
+        List<String> results = accessibleTypeList.stream()
             .map(t -> t.get("dc:title").toString())
             .sorted(comparator)
             .skip(offset)
@@ -234,7 +238,7 @@ public class TypeController {
             JSONArray columnsArray = tableSchema.getJSONArray("columns");
 
             // Loop through each column
-            List<Column> columns = new ArrayList<Column>();;
+            List<Column> columns = new ArrayList<Column>();
             for (int i = 0; i < columnsArray.length(); i++) {
                 JSONObject column = columnsArray.getJSONObject(i);
                 String columnName = column.getString("name");
