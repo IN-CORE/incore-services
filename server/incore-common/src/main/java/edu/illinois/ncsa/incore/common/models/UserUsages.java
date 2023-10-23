@@ -15,20 +15,35 @@ import dev.morphia.annotations.Embedded;
 import org.apache.log4j.Logger;
 
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 @Embedded
 public class UserUsages {
     private static final Logger log = Logger.getLogger(UserUsages.class);
 
+    @JsonProperty("total_number_of_datasets")
     public int datasets;
+
+    @JsonProperty("total_number_of_hazards")
     public int hazards;
+
+    @JsonProperty("total_number_of_hazard_datasets")
     public int hazardDatasets;
+
+    @JsonProperty("total_number_of_dfr3")
     public int dfr3;
+
     public long datasetSize;
+
+    @JsonProperty("total_file_size_of_hazard_datasets_byte")
     public long hazardDatasetSize;
+
     public List<Integer> service;
     public IncoreLabQuota incoreLab;
+
+    // made up fields
+
 
     public UserUsages() { }
 
