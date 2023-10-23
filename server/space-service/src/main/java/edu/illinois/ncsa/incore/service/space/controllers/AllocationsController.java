@@ -14,6 +14,7 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.models.UserUsages;
 import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
@@ -85,16 +86,14 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation and can be used as status check as well.",
         description = "This will provide the allocation of the logged in user.")
-    public String getUsage() {
-        JSONObject outJson = null;
+    public UserUsages getUsage() {
 
         try {
-            outJson = JsonUtils.createUserFinalQuotaJson(username, finalQuotaRepository);
+            return JsonUtils.createUserFinalQuotaJson(username, finalQuotaRepository);
         } catch (ParseException e) {
             logger.error("Error extracting allocation");
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting allocation");
         }
-        return outJson.toString();
     }
 
     @GET
@@ -102,13 +101,12 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation status of the given username.",
         description = "This will only work for admin user group.")
-    public String getAllocationsByUsername(
+    public UserUsages getAllocationsByUsername(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
-        JSONObject outJson = new JSONObject();
 
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                outJson = JsonUtils.createUserFinalQuotaJson(userId, finalQuotaRepository);
+                return JsonUtils.createUserFinalQuotaJson(userId, finalQuotaRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
@@ -117,8 +115,6 @@ public class AllocationsController {
             logger.error("Error extracting user status");
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, "Logged in user is not incore admin");
         }
-
-        return outJson.toString();
     }
 
     @GET

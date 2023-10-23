@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.space.controllers;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.models.UserUsages;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -115,16 +116,15 @@ public class UsageController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the usage status and can be used as status check as well.",
         description = "This will provide the usage of the logged in user.")
-    public String getUsage() {
+    public UserUsages getUsage() {
         JSONObject outJson = null;
 
         try {
-            outJson = JsonUtils.createUserUsageJson(username, allocationsRepository);
+            return JsonUtils.createUserUsageJson(username, allocationsRepository);
         } catch (ParseException e) {
             logger.error("Error extracting usage");
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting usage");
         }
-        return outJson.toString();
     }
 
     @GET
@@ -132,22 +132,19 @@ public class UsageController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the usage status of the given username.",
         description = "This will only work for admin user group.")
-    public String getUsageByUsername(
+    public UserUsages getUsageByUsername(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
-        JSONObject outJson = new JSONObject();
 
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                outJson = JsonUtils.createUserUsageJson(userId, allocationsRepository);
+                return JsonUtils.createUserUsageJson(userId, allocationsRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
             }
         } else {
-            outJson.put("query_user_id", userId);
-            outJson.put("reason_of_error", "logged in user is not an incore admin");
+            logger.error("Logged in user is not an incore admin");
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, "Logged in user is not an incore admin");
         }
-
-        return outJson.toString();
     }
 }

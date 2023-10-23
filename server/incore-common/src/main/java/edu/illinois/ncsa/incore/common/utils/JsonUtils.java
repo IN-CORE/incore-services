@@ -62,7 +62,7 @@ public class JsonUtils {
         }
     }
 
-    public static JSONObject createUserFinalQuotaJson(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException{
+    public static UserUsages createUserFinalQuotaJson(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException{
         UserFinalQuota quota = finalQuotaRepository.getQuotaByUsername(username);   // get default allocation
         JSONObject outJson = new JSONObject();
         UserUsages limit = new UserUsages();
@@ -74,12 +74,12 @@ public class JsonUtils {
             limit = AllocationUtils.setDefalutLimit(limit);
         }
 
-        outJson = setUsageJson(username, limit, false);
+//        outJson = setUsageJson(username, limit, false);
 
-        return outJson;
+        return limit;
     }
 
-    public static JSONObject createUserUsageJson(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
+    public static UserUsages createUserUsageJson(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
         UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
         UserUsages usage = new UserUsages();
         JSONObject outJson = new JSONObject();
@@ -87,12 +87,12 @@ public class JsonUtils {
         if (allocation != null) {
             // get user's usage status
             usage = allocation.getUsage();
-            outJson = setUsageJson(username, usage, false);
+//            outJson = setUsageJson(username, usage, false);
         } else {
             outJson = setNotFoundJson(username);
         }
 
-        return outJson;
+        return usage;
     }
 
     public static JSONObject createGroupAllocationJson(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
@@ -120,7 +120,7 @@ public class JsonUtils {
         return outJson;
     }
 
-    public static JSONObject setUsageJson(String username, UserUsages usage, Boolean isGroup) {
+    public static UserUsages setUsageJson(String username, UserUsages usage, Boolean isGroup) {
         long dataset_file_size = usage.getDatasetSize();
         long hazard_file_size = usage.getHazardDatasetSize();
 
@@ -159,24 +159,24 @@ public class JsonUtils {
             out_hazard_size = hazard_size_kb + " KB";
         }
 //        TODO why reconstruct? can't we use default model and let jackson to serialize and deserialize?
-        JSONObject outJson = new JSONObject();
-        if (isGroup) {
-            outJson.put("group", username);
-        } else {
-            outJson.put("user", username);
-        }
-        outJson.put("total_number_of_datasets", usage.getDatasets());
-        outJson.put("total_number_of_hazards", usage.getHazards());
-        outJson.put("total_number_of_hazard_datasets", usage.getHazardDatasets());
-        outJson.put("total_number_of_dfr3", usage.getDfr3());
-        outJson.put("total_file_size_of_datasets", out_dataset_size);
-        outJson.put("total_file_size_of_datasets_byte", dataset_file_size);
-        outJson.put("total_file_size_of_hazard_datasets", out_hazard_size);
-        outJson.put("total_file_size_of_hazard_datasets_byte", usage.getHazardDatasetSize());
-        if (usage.getService() != null) outJson.put("service", usage.getService());
-        if (usage.getIncoreLab() != null) outJson.put("incoreLab", usage.getIncoreLab().toJson());
+//        JSONObject outJson = new JSONObject();
+//        if (isGroup) {
+//            outJson.put("group", username);
+//        } else {
+//            outJson.put("user", username);
+//        }
+//        outJson.put("total_number_of_datasets", usage.getDatasets());
+//        outJson.put("total_number_of_hazards", usage.getHazards());
+//        outJson.put("total_number_of_hazard_datasets", usage.getHazardDatasets());
+//        outJson.put("total_number_of_dfr3", usage.getDfr3());
+//        outJson.put("total_file_size_of_datasets", out_dataset_size);
+//        outJson.put("total_file_size_of_datasets_byte", dataset_file_size);
+//        outJson.put("total_file_size_of_hazard_datasets", out_hazard_size);
+//        outJson.put("total_file_size_of_hazard_datasets_byte", usage.getHazardDatasetSize());
+//        if (usage.getService() != null) outJson.put("service", usage.getService());
+//        if (usage.getIncoreLab() != null) outJson.put("incoreLab", usage.getIncoreLab().toJson());
 
-        return outJson;
+        return usage;
     }
 
     public static String parseUserName(String userInfo) {
