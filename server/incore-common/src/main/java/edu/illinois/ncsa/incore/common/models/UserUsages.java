@@ -16,6 +16,8 @@ import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 
 @Embedded
 public class UserUsages {
@@ -38,6 +40,9 @@ public class UserUsages {
 
     @JsonProperty("total_file_size_of_hazard_datasets_byte")
     public long hazardDatasetSize;
+
+    public List<Integer> service;
+    public IncoreLabQuota incoreLab;
 
     // made up fields
     @JsonProperty("total_file_size_of_datasets")
@@ -172,6 +177,22 @@ public class UserUsages {
 
     public void setUser(String user){
         this.user = user;
+    }
+
+    public IncoreLabQuota getIncoreLab(){
+        return this.incoreLab;
+    }
+
+    public void setIncoreLab(IncoreLabQuota incoreLab){
+        this.incoreLab = incoreLab;
+    }
+
+    public List<Integer> getService() {
+        return this.service;
+    }
+
+    public void setService(List<Integer> service){
+        this.service = service;
     }
 
 }

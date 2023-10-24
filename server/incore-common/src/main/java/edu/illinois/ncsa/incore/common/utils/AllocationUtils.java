@@ -54,7 +54,7 @@ public class AllocationUtils {
             if (quota == null) {
                 quota = new UserFinalQuota();
                 // set user quota as default allocation
-                UserLimits limit = AllocationUtils.setDefalutLimit();
+                UserUsages limit = AllocationUtils.setDefalutLimit();
                 quota.setApplicableLimits(limit);
             }
 
@@ -62,7 +62,7 @@ public class AllocationUtils {
             UserUsages usage = allocation.getUsage();
 
             // get user's limit
-            UserLimits limit = quota.getApplicableLimits();
+            UserUsages limit = quota.getApplicableLimits();
 
             // the dataset types should only be
             // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
@@ -104,8 +104,8 @@ public class AllocationUtils {
      *
      * @return
      */
-    public static UserLimits setDefalutLimit() {
-        UserLimits limit = new UserLimits();
+    public static UserUsages setDefalutLimit() {
+        UserUsages limit = new UserUsages();
         limit.setDatasets(AllocationConstants.NUM_DATASETS);
         limit.setDatasetSize(AllocationConstants.DATASET_SIZE);
         limit.setHazards(AllocationConstants.NUM_HAZARDS);
@@ -123,10 +123,10 @@ public class AllocationUtils {
      * @return
      * @throws ParseException
      */
-    public static UserLimits createUserFinalQuota(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException {
+    public static UserUsages createUserFinalQuota(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException {
         UserFinalQuota quota = finalQuotaRepository.getQuotaByUsername(username);
         if (quota != null) {
-            UserLimits userLimits = quota.getApplicableLimits();
+            UserUsages userLimits = quota.getApplicableLimits();
             // set derived fields
             userLimits.setUser(username);
             userLimits.setOutDatasetSize();
@@ -159,11 +159,11 @@ public class AllocationUtils {
         }
     }
 
-    public static UserLimits createGroupAllocation(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
+    public static UserUsages createGroupAllocation(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
         GroupAllocations allocation = allocationsRepository.getAllocationByGroupname(groupname);   // get default allocation
 
         if (allocation != null) {
-            UserLimits groupLimits = allocation.getLimits();
+            UserUsages groupLimits = allocation.getLimits();
             groupLimits.setGroup(groupname);
             groupLimits.setOutDatasetSize();
             groupLimits.setOutHazardSize();

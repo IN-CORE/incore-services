@@ -30,7 +30,7 @@ public class UserAllocations {
     private UserUsages usage;
 
     @JsonProperty("limits")
-    private UserLimits limits;
+    private UserUsages limits;
 
     public UserAllocations() {
         this.usage = new UserUsages();
@@ -50,7 +50,7 @@ public class UserAllocations {
 
     public void setUsage(UserUsages usage) { this.usage = usage; }
 
-    public UserLimits getLimits() { return this.limits; }
+    public UserUsages getLimits() { return this.limits; }
 
-    public void setLimits(UserLimits limits) { this.limits = limits; }
+    public void setLimits(UserUsages limits) { this.limits = limits; }
 }

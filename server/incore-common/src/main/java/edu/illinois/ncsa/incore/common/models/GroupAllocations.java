@@ -27,10 +27,10 @@ public class GroupAllocations {
     private String groupname;
 
     @JsonProperty("limit")
-    private UserLimits limits;
+    private UserUsages limits;
 
     public GroupAllocations() {
-        this.limits = new UserLimits();
+        this.limits = new UserUsages();
         this.groupname = null;
     }
 
@@ -42,7 +42,7 @@ public class GroupAllocations {
 
     public void setGroupname(String groupname) { this.groupname = groupname; }
 
-    public UserLimits getLimits() { return this.limits; }
+    public UserUsages getLimits() { return this.limits; }
 
-    public void setLimits(UserLimits limits) { this.limits = limits; }
+    public void setLimits(UserUsages limits) { this.limits = limits; }
 }
