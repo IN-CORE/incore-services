@@ -122,22 +122,20 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation status of the given group name.",
         description = "This will only work for admin user group.")
-    public String getAllocationsByGroupname(
+    public UserUsages getAllocationsByGroupname(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("groupname") String groupId) {
         JSONObject outJson = new JSONObject();
 
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                outJson = JsonUtils.createGroupAllocationJson(groupId, allocationsRepository);
+                return JsonUtils.createGroupAllocationJson(groupId, allocationsRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
             }
         } else {
-            outJson.put("query_user_id", groupId);
-            outJson.put("reason_of_error", "logged in user is not an incore admin");
+            logger.error("Logged in user is not an incore admin");
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, "Logged in user is not an incore admin");
         }
-
-        return outJson.toString();
     }
 }

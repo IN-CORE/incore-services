@@ -82,34 +82,34 @@ public class JsonUtils {
     public static UserUsages createUserUsageJson(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
         UserAllocations allocation = allocationRepository.getAllocationByUsername(username);   // get default allocation
         UserUsages usage = new UserUsages();
-        JSONObject outJson = new JSONObject();
 
         if (allocation != null) {
             // get user's usage status
             usage = allocation.getUsage();
-//            outJson = setUsageJson(username, usage, false);
-        } else {
-            outJson = setNotFoundJson(username);
         }
+//            outJson = setUsageJson(username, usage, false);
+//        } else {
+//            outJson = setNotFoundJson(username);
+//        }
 
         return usage;
     }
 
-    public static JSONObject createGroupAllocationJson(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
+    public static UserUsages createGroupAllocationJson(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
         GroupAllocations allocation = allocationsRepository.getAllocationByGroupname(groupname);   // get default allocation
         UserUsages limit = new UserUsages();
-        JSONObject outJson = new JSONObject();
 
         if (allocation != null) {
             // get user's allocation from user final quota
             limit = allocation.getLimits();
-            outJson = setUsageJson(groupname, limit, true);
-        } else {
-            // get default allocation
-            outJson = setNotFoundJson(groupname);
+//            outJson = setUsageJson(groupname, limit, true);
         }
+//        else {
+//             get default allocation
+//            outJson = setNotFoundJson(groupname);
+//        }
 
-        return outJson;
+        return limit;
     }
 
     public static JSONObject setNotFoundJson(String username) {

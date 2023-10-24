@@ -117,7 +117,6 @@ public class UsageController {
     @Operation(summary = "Gives the usage status and can be used as status check as well.",
         description = "This will provide the usage of the logged in user.")
     public UserUsages getUsage() {
-        JSONObject outJson = null;
 
         try {
             return JsonUtils.createUserUsageJson(username, allocationsRepository);
