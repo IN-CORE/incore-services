@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.space.controllers;
 
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.UserUsages;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,12 +25,10 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import java.util.*;
@@ -58,26 +57,6 @@ import java.util.*;
 //    schemes = {SwaggerDefinition.Scheme.HTTP}
 
 )
-//@SwaggerDefinition(
-//    info = @Info(
-//        description = "IN-CORE Usage Service for getting the user's usage information.",
-//        version = "1.21.0",
-//        title = "IN-CORE v2 Usage Service API",
-//        contact = @Contact(
-//            name = "IN-CORE Dev Team",
-//            email = "incore-dev@lists.illinois.edu",
-//            url = "https://incore.ncsa.illinois.edu"
-//        ),
-//        license = @License(
-//            name = "Mozilla Public License 2.0 (MPL 2.0)",
-//            url = "https://www.mozilla.org/en-US/MPL/2.0/"
-//        )
-//    ),
-//    consumes = {"application/json"},
-//    produces = {"application/json"},
-//    schemes = {SwaggerDefinition.Scheme.HTTP}
-//
-//)
 
 @Tag(name = "usage")
 //@Api(value = "usage", authorizations = {})
@@ -119,7 +98,7 @@ public class UsageController {
     public UserUsages getUsage() {
 
         try {
-            return JsonUtils.createUserUsageJson(username, allocationsRepository);
+            return AllocationUtils.createUserUsage(username, allocationsRepository);
         } catch (ParseException e) {
             logger.error("Error extracting usage");
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting usage");
@@ -136,7 +115,7 @@ public class UsageController {
 
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                return JsonUtils.createUserUsageJson(userId, allocationsRepository);
+                return AllocationUtils.createUserUsage(userId, allocationsRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");

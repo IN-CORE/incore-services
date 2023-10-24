@@ -69,51 +69,6 @@ public class UserUsages {
         return this.datasets;
     }
 
-    public void setOutDatasetSize(){
-        long datasetFileSize = this.getDatasetSize();
-        double dataseSizeKb = datasetFileSize / 1024;
-        double datasetSizeMb = dataseSizeKb / 1024;
-        double datasetSizeGb = datasetSizeMb / 1024;
-        dataseSizeKb = Math.round(dataseSizeKb * 100.0) / 100.0;
-        datasetSizeMb = Math.round(datasetSizeMb * 100.0) / 100.0;
-        datasetSizeGb = Math.round(datasetSizeGb * 100.0) / 100.0;
-
-        String outDatasetSize;
-        if (datasetSizeGb >= 1) {
-            outDatasetSize = datasetSizeGb + " GB";
-        } else if (datasetSizeMb >= 1) {
-            outDatasetSize = datasetSizeMb + " MB";
-        } else {
-            outDatasetSize = dataseSizeKb + " KB";
-        }
-            this.outDatasetSize = outDatasetSize;
-    }
-
-    public void setOutHazardSize(){
-
-        long hazardFileSize = this.getHazardDatasetSize();
-
-        double hazardSizeKb = hazardFileSize / 1024;
-        double hazardSizeMb = hazardSizeKb / 1024;
-        double hazardSizeGb = hazardSizeMb / 1024;
-
-        // round values
-
-        hazardSizeKb = Math.round(hazardSizeKb * 100.0) / 100.0;
-        hazardSizeMb = Math.round(hazardSizeMb * 100.0) / 100.0;
-        hazardSizeGb = Math.round(hazardSizeGb * 100.0) / 100.0;
-
-        String outHazardSize;
-        if (hazardSizeGb >= 1) {
-            outHazardSize = hazardSizeGb + " GB";
-        } else if (hazardSizeMb >= 1) {
-            outHazardSize = hazardSizeMb + " MB";
-        } else {
-            outHazardSize = hazardSizeKb + " KB";
-        }
-        this.outHazardSize = outHazardSize;
-    }
-
     public void setDatasets(int datasets) {
         this.datasets = datasets;
     }
@@ -174,5 +129,73 @@ public class UserUsages {
         this.service = service;
     }
 
+    public String getOutDatasetSize(){
+        return this.outDatasetSize;
+    }
+
+    public void setOutDatasetSize(){
+        long datasetFileSize = this.getDatasetSize();
+        double dataseSizeKb = datasetFileSize / 1024;
+        double datasetSizeMb = dataseSizeKb / 1024;
+        double datasetSizeGb = datasetSizeMb / 1024;
+        dataseSizeKb = Math.round(dataseSizeKb * 100.0) / 100.0;
+        datasetSizeMb = Math.round(datasetSizeMb * 100.0) / 100.0;
+        datasetSizeGb = Math.round(datasetSizeGb * 100.0) / 100.0;
+
+        String outDatasetSize;
+        if (datasetSizeGb >= 1) {
+            outDatasetSize = datasetSizeGb + " GB";
+        } else if (datasetSizeMb >= 1) {
+            outDatasetSize = datasetSizeMb + " MB";
+        } else {
+            outDatasetSize = dataseSizeKb + " KB";
+        }
+        this.outDatasetSize = outDatasetSize;
+    }
+
+    public String getOutHazardSize(){
+        return this.outHazardSize;
+    }
+
+    public void setOutHazardSize(){
+
+        long hazardFileSize = this.getHazardDatasetSize();
+
+        double hazardSizeKb = hazardFileSize / 1024;
+        double hazardSizeMb = hazardSizeKb / 1024;
+        double hazardSizeGb = hazardSizeMb / 1024;
+
+        // round values
+
+        hazardSizeKb = Math.round(hazardSizeKb * 100.0) / 100.0;
+        hazardSizeMb = Math.round(hazardSizeMb * 100.0) / 100.0;
+        hazardSizeGb = Math.round(hazardSizeGb * 100.0) / 100.0;
+
+        String outHazardSize;
+        if (hazardSizeGb >= 1) {
+            outHazardSize = hazardSizeGb + " GB";
+        } else if (hazardSizeMb >= 1) {
+            outHazardSize = hazardSizeMb + " MB";
+        } else {
+            outHazardSize = hazardSizeKb + " KB";
+        }
+        this.outHazardSize = outHazardSize;
+    }
+
+    public String getGroup(){
+        return this.group;
+    }
+
+    public void setGroup(String group){
+        this.group = group;
+    }
+
+    public String getUser(){
+        return this.user;
+    }
+
+    public void setUser(String user){
+        this.user = user;
+    }
 
 }

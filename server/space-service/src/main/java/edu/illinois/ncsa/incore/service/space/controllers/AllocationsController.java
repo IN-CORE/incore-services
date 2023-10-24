@@ -15,7 +15,7 @@ import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.UserUsages;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -89,7 +89,7 @@ public class AllocationsController {
     public UserUsages getUsage() {
 
         try {
-            return JsonUtils.createUserFinalQuotaJson(username, finalQuotaRepository);
+            return AllocationUtils.createUserFinalQuota(username, finalQuotaRepository);
         } catch (ParseException e) {
             logger.error("Error extracting allocation");
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting allocation");
@@ -106,7 +106,7 @@ public class AllocationsController {
 
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                return JsonUtils.createUserFinalQuotaJson(userId, finalQuotaRepository);
+                return AllocationUtils.createUserFinalQuota(userId, finalQuotaRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
@@ -128,7 +128,7 @@ public class AllocationsController {
 
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                return JsonUtils.createGroupAllocationJson(groupId, allocationsRepository);
+                return AllocationUtils.createGroupAllocation(groupId, allocationsRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");

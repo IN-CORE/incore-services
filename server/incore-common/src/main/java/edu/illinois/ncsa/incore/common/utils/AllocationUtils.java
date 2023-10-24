@@ -11,15 +11,21 @@
 package edu.illinois.ncsa.incore.common.utils;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.models.GroupAllocations;
 import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
 import edu.illinois.ncsa.incore.common.models.UserUsages;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import jakarta.ws.rs.core.Response;
+import org.apache.log4j.Logger;
+import org.json.JSONObject;
+import org.json.simple.parser.ParseException;
 
 public class AllocationUtils {
+    public static final Logger logger = Logger.getLogger(JsonUtils.class);
 
     /***
      * This method receives a username and to see if the user's number of dataset is within the allocation.
@@ -110,6 +116,54 @@ public class AllocationUtils {
         limit.setDfr3(AllocationConstants.NUM_DFR3);
 
         return limit;
+    }
+
+    /***
+     * This method creates the final quota for a given user
+     * @param username
+     * @param finalQuotaRepository
+     * @return
+     * @throws ParseException
+     */
+    public static UserUsages createUserFinalQuota(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException {
+        UserFinalQuota quota = finalQuotaRepository.getQuotaByUsername(username);
+        UserUsages limit = new UserUsages();
+        if (quota != null) {
+            limit = quota.getApplicableLimits();
+        } else {
+            limit = AllocationUtils.setDefalutLimit(limit);
+        }
+
+        return limit;
+    }
+
+    /***
+     * This method creates the user usage information
+     * @param username
+     * @param allocationRepository
+     * @return
+     * @throws ParseException
+     */
+    public static UserUsages createUserUsage(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
+        UserAllocations allocation = allocationRepository.getAllocationByUsername(username);
+        if (allocation != null) {
+            return allocation.getUsage();
+        }
+        else
+        {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, AllocationConstants.ALLOCATION_NOT_FOUND);
+        }
+    }
+
+    public static UserUsages createGroupAllocation(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
+        GroupAllocations allocation = allocationsRepository.getAllocationByGroupname(groupname);   // get default allocation
+
+        if (allocation != null) {
+            return allocation.getLimits();
+        }
+        else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, AllocationConstants.ALLOCATION_NOT_FOUND);
+        }
     }
 
     /***
