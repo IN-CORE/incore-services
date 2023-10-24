@@ -34,6 +34,7 @@ public class UserUsages {
     @JsonProperty("total_number_of_dfr3")
     public int dfr3;
 
+    @JsonProperty("total_file_size_of_datasets_byte")
     public long datasetSize;
 
     @JsonProperty("total_file_size_of_hazard_datasets_byte")
@@ -43,16 +44,14 @@ public class UserUsages {
     public IncoreLabQuota incoreLab;
 
     // made up fields
-    // outJson.put("total_file_size_of_datasets", out_dataset_size);
-    //        outJson.put("total_file_size_of_datasets_byte", dataset_file_size);
-    //        outJson.put("total_file_size_of_hazard_datasets", out_hazard_size);
+    @JsonProperty("total_file_size_of_datasets")
+    public String outDatasetSize;
 
-    // //        TODO why reconstruct? can't we use default model and let jackson to serialize and deserialize?
-    //        JSONObject outJson = new JSONObject();
-    //        if (isGroup) {
-    //            outJson.put("group", username);
-    //        } else {
-    //            outJson.put("user", username);
+    @JsonProperty("total_file_size_of_hazard_datasets")
+    public String outHazardSize;
+
+    public String group;
+    public String user;
 
     public UserUsages() { }
 
@@ -68,6 +67,51 @@ public class UserUsages {
 
     public int getDatasets() {
         return this.datasets;
+    }
+
+    public void setOutDatasetSize(){
+        long datasetFileSize = this.getDatasetSize();
+        double dataseSizeKb = datasetFileSize / 1024;
+        double datasetSizeMb = dataseSizeKb / 1024;
+        double datasetSizeGb = datasetSizeMb / 1024;
+        dataseSizeKb = Math.round(dataseSizeKb * 100.0) / 100.0;
+        datasetSizeMb = Math.round(datasetSizeMb * 100.0) / 100.0;
+        datasetSizeGb = Math.round(datasetSizeGb * 100.0) / 100.0;
+
+        String outDatasetSize;
+        if (datasetSizeGb >= 1) {
+            outDatasetSize = datasetSizeGb + " GB";
+        } else if (datasetSizeMb >= 1) {
+            outDatasetSize = datasetSizeMb + " MB";
+        } else {
+            outDatasetSize = dataseSizeKb + " KB";
+        }
+            this.outDatasetSize = outDatasetSize;
+    }
+
+    public void setOutHazardSize(){
+
+        long hazardFileSize = this.getHazardDatasetSize();
+
+        double hazardSizeKb = hazardFileSize / 1024;
+        double hazardSizeMb = hazardSizeKb / 1024;
+        double hazardSizeGb = hazardSizeMb / 1024;
+
+        // round values
+
+        hazardSizeKb = Math.round(hazardSizeKb * 100.0) / 100.0;
+        hazardSizeMb = Math.round(hazardSizeMb * 100.0) / 100.0;
+        hazardSizeGb = Math.round(hazardSizeGb * 100.0) / 100.0;
+
+        String outHazardSize;
+        if (hazardSizeGb >= 1) {
+            outHazardSize = hazardSizeGb + " GB";
+        } else if (hazardSizeMb >= 1) {
+            outHazardSize = hazardSizeMb + " MB";
+        } else {
+            outHazardSize = hazardSizeKb + " KB";
+        }
+        this.outHazardSize = outHazardSize;
     }
 
     public void setDatasets(int datasets) {
