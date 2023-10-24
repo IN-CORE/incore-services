@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.annotations.Embedded;
 import org.apache.log4j.Logger;
 
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
@@ -39,9 +38,6 @@ public class UserUsages {
 
     @JsonProperty("total_file_size_of_hazard_datasets_byte")
     public long hazardDatasetSize;
-
-    public List<Integer> service;
-    public IncoreLabQuota incoreLab;
 
     // made up fields
     @JsonProperty("total_file_size_of_datasets")
@@ -111,26 +107,6 @@ public class UserUsages {
 
     public void setHazardDatasetSize(long hazardDatasetSize) {
         this.hazardDatasetSize = hazardDatasetSize;
-    }
-
-    public IncoreLabQuota getIncoreLab(){
-        return this.incoreLab;
-    }
-
-    public void setIncoreLab(IncoreLabQuota incoreLab){
-        this.incoreLab = incoreLab;
-    }
-
-    public List<Integer> getService() {
-        return this.service;
-    }
-
-    public void setService(List<Integer> service){
-        this.service = service;
-    }
-
-    public String getOutDatasetSize(){
-        return this.outDatasetSize;
     }
 
     public void setOutDatasetSize(){

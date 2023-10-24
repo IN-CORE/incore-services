@@ -10,8 +10,45 @@
 
 package edu.illinois.ncsa.incore.common.models;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.annotations.Embedded;
+import org.apache.log4j.Logger;
+
+import java.util.List;
 
 
 @Embedded
-public class UserLimits extends UserUsages { }
+public class UserLimits extends UserUsages {
+    private static final Logger log = Logger.getLogger(UserLimits.class);
+
+    public List<Integer> service;
+    public IncoreLabQuota incoreLab;
+
+    public UserLimits() { }
+
+    public static UserLimits fromJson(String limitJson) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(limitJson, UserLimits.class);
+        } catch (Exception e) {
+            log.error("Could not parse usage JSON. Returning Usage with zero values", e);
+            return new UserLimits();
+        }
+    }
+
+    public IncoreLabQuota getIncoreLab(){
+        return this.incoreLab;
+    }
+
+    public void setIncoreLab(IncoreLabQuota incoreLab){
+        this.incoreLab = incoreLab;
+    }
+
+    public List<Integer> getService() {
+        return this.service;
+    }
+
+    public void setService(List<Integer> service){
+        this.service = service;
+    }
+}

@@ -126,7 +126,12 @@ public class AllocationUtils {
     public static UserLimits createUserFinalQuota(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException {
         UserFinalQuota quota = finalQuotaRepository.getQuotaByUsername(username);
         if (quota != null) {
-            return quota.getApplicableLimits();
+            UserLimits userLimits = quota.getApplicableLimits();
+            // set derived fields
+            userLimits.setUser(username);
+            userLimits.setOutDatasetSize();
+            userLimits.setOutHazardSize();
+            return userLimits;
         } else {
             return AllocationUtils.setDefalutLimit();
         }
@@ -142,7 +147,11 @@ public class AllocationUtils {
     public static UserUsages createUserUsage(String username, IUserAllocationsRepository allocationRepository) throws ParseException{
         UserAllocations allocation = allocationRepository.getAllocationByUsername(username);
         if (allocation != null) {
-            return allocation.getUsage();
+            UserUsages userUsages = allocation.getUsage();
+            userUsages.setUser(username);
+            userUsages.setOutDatasetSize();
+            userUsages.setOutHazardSize();
+            return userUsages;
         }
         else
         {
@@ -154,7 +163,11 @@ public class AllocationUtils {
         GroupAllocations allocation = allocationsRepository.getAllocationByGroupname(groupname);   // get default allocation
 
         if (allocation != null) {
-            return allocation.getLimits();
+            UserLimits groupLimits = allocation.getLimits();
+            groupLimits.setGroup(groupname);
+            groupLimits.setOutDatasetSize();
+            groupLimits.setOutHazardSize();
+            return groupLimits;
         }
         else {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, AllocationConstants.ALLOCATION_NOT_FOUND);
@@ -181,16 +194,16 @@ public class AllocationUtils {
 
         // the dataset types should only be
         // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
-        if (datasetType == "datasets") {
+        if (Objects.equals(datasetType, "datasets")) {
             usage.setDatasets(usage.getDatasets() + 1);
             allocation.setUsage(usage);
-        } else if (datasetType == "hazards") {
+        } else if (Objects.equals(datasetType, "hazards")) {
             usage.setHazards(usage.getHazards() + 1);
             allocation.setUsage(usage);
-        } else if (datasetType == "hazardDatasets") {
+        } else if (Objects.equals(datasetType, "hazardDatasets")) {
             usage.setHazardDatasets(usage.getHazardDatasets() + 1);
             allocation.setUsage(usage);
-        } else if (datasetType == "dfr3") {
+        } else if (Objects.equals(datasetType, "dfr3")) {
             usage.setDfr3(usage.getDfr3() + 1);
             allocation.setUsage(usage);
         }
