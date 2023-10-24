@@ -15,18 +15,18 @@ import dev.morphia.annotations.Embedded;
 import org.apache.log4j.Logger;
 
 @Embedded
-public class UserUsages extends UserUsages{
+public class UserLimits extends UserUsages{
     private static final Logger log = Logger.getLogger(UserUsages.class);
 
-    public UserUsages() { }
+    public UserLimits() { }
 
-    public static UserUsages fromJson(String limitJson) {
+    public static UserLimits fromJson(String limitJson) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(limitJson, UserUsages.class);
+            return mapper.readValue(limitJson, UserLimits.class);
         } catch (Exception e) {
             log.error("Could not parse usage JSON. Returning Usage with zero values", e);
-            return new UserUsages();
+            return new UserLimits();
         }
     }
 }
