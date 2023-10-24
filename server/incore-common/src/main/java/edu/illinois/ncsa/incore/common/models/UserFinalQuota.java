@@ -27,10 +27,10 @@ public class UserFinalQuota {
     private String username;
 
     @JsonProperty("applicableLimits")
-    private UserUsages applicableLimits;
+    private UserLimits applicableLimits;
 
     public UserFinalQuota() {
-        this.applicableLimits = new UserUsages();
+        this.applicableLimits = new UserLimits();
         this.username = null;
     }
 
@@ -40,8 +40,8 @@ public class UserFinalQuota {
 
     public String getUsername() { return this.username; }
 
-    public UserUsages getApplicableLimits() { return this.applicableLimits; }
+    public UserLimits getApplicableLimits() { return this.applicableLimits; }
 
-    public void setApplicableLimits(UserUsages applicableLimits) { this.applicableLimits = applicableLimits; }
+    public void setApplicableLimits(UserLimits applicableLimits) { this.applicableLimits = applicableLimits; }
 
 }

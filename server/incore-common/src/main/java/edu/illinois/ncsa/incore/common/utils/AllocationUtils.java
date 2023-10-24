@@ -14,15 +14,14 @@ import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.common.models.GroupAllocations;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
-import edu.illinois.ncsa.incore.common.models.UserFinalQuota;
-import edu.illinois.ncsa.incore.common.models.UserUsages;
+import edu.illinois.ncsa.incore.common.models.*;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
+
+import java.util.Objects;
 
 public class AllocationUtils {
     public static final Logger logger = Logger.getLogger(JsonUtils.class);
@@ -55,8 +54,7 @@ public class AllocationUtils {
             if (quota == null) {
                 quota = new UserFinalQuota();
                 // set user quota as default allocation
-                UserUsages limit = quota.getApplicableLimits();
-                limit = AllocationUtils.setDefalutLimit(limit);
+                UserLimits limit = AllocationUtils.setDefalutLimit();
                 quota.setApplicableLimits(limit);
             }
 
@@ -64,32 +62,32 @@ public class AllocationUtils {
             UserUsages usage = allocation.getUsage();
 
             // get user's limit
-            UserUsages limit = quota.getApplicableLimits();
+            UserLimits limit = quota.getApplicableLimits();
 
             // the dataset types should only be
             // datasets, hazards, hazardDatasets, datasetSize, hazardDatasetSize, dfr3
             // check if the user's dataset number is within the allocation
-            if (entityType == "datasets") {
+            if (Objects.equals(entityType, "datasets")) {
                 if (usage.getDatasets() < limit.getDatasets()) {
                     postOk = true;
                 }
-            } else if (entityType == "hazards") {
+            } else if (Objects.equals(entityType, "hazards")) {
                 if (usage.getHazards() < limit.getHazards()) {
                     postOk = true;
                 }
-            } else if (entityType == "hazardDatasets") {
+            } else if (Objects.equals(entityType, "hazardDatasets")) {
                 if (usage.getHazardDatasets() < limit.getHazardDatasets()) {
                     postOk = true;
                 }
-            } else if (entityType == "datasetSize") {
+            } else if (Objects.equals(entityType, "datasetSize")) {
                 if (usage.getDatasetSize() < limit.getDatasetSize()) {
                     postOk = true;
                 }
-            } else if (entityType == "hazardDatasetSize") {
+            } else if (Objects.equals(entityType, "hazardDatasetSize")) {
                 if (usage.getHazardDatasetSize() < limit.getHazardDatasetSize()) {
                     postOk = true;
                 }
-            } else if (entityType == "dfr3") {
+            } else if (Objects.equals(entityType, "dfr3")) {
                 if (usage.getDfr3() < limit.getDfr3()) {
                     postOk = true;
                 }
@@ -104,10 +102,10 @@ public class AllocationUtils {
     /***
      * This method sets up the default limit information
      *
-     * @param limit
      * @return
      */
-    public static UserUsages setDefalutLimit(UserUsages limit) {
+    public static UserLimits setDefalutLimit() {
+        UserLimits limit = new UserLimits();
         limit.setDatasets(AllocationConstants.NUM_DATASETS);
         limit.setDatasetSize(AllocationConstants.DATASET_SIZE);
         limit.setHazards(AllocationConstants.NUM_HAZARDS);
@@ -125,16 +123,13 @@ public class AllocationUtils {
      * @return
      * @throws ParseException
      */
-    public static UserUsages createUserFinalQuota(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException {
+    public static UserLimits createUserFinalQuota(String username, IUserFinalQuotaRepository finalQuotaRepository) throws ParseException {
         UserFinalQuota quota = finalQuotaRepository.getQuotaByUsername(username);
-        UserUsages limit = new UserUsages();
         if (quota != null) {
-            limit = quota.getApplicableLimits();
+            return quota.getApplicableLimits();
         } else {
-            limit = AllocationUtils.setDefalutLimit(limit);
+            return AllocationUtils.setDefalutLimit();
         }
-
-        return limit;
     }
 
     /***
@@ -155,7 +150,7 @@ public class AllocationUtils {
         }
     }
 
-    public static UserUsages createGroupAllocation(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
+    public static UserLimits createGroupAllocation(String groupname, IGroupAllocationsRepository allocationsRepository) throws ParseException{
         GroupAllocations allocation = allocationsRepository.getAllocationByGroupname(groupname);   // get default allocation
 
         if (allocation != null) {

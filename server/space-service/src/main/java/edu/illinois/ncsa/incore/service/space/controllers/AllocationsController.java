@@ -14,7 +14,7 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.common.models.UserUsages;
+import edu.illinois.ncsa.incore.common.models.UserLimits;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
@@ -29,7 +29,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
 import java.util.*;
 
@@ -86,7 +85,7 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation and can be used as status check as well.",
         description = "This will provide the allocation of the logged in user.")
-    public UserUsages getUsage() {
+    public UserLimits getUsage() {
 
         try {
             return AllocationUtils.createUserFinalQuota(username, finalQuotaRepository);
@@ -101,7 +100,7 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation status of the given username.",
         description = "This will only work for admin user group.")
-    public UserUsages getAllocationsByUsername(
+    public UserLimits getAllocationsByUsername(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
 
         if (this.authorizer.isUserAdmin(this.groups)) {
@@ -122,10 +121,8 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation status of the given group name.",
         description = "This will only work for admin user group.")
-    public UserUsages getAllocationsByGroupname(
+    public UserLimits getAllocationsByGroupname(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("groupname") String groupId) {
-        JSONObject outJson = new JSONObject();
-
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
                 return AllocationUtils.createGroupAllocation(groupId, allocationsRepository);
