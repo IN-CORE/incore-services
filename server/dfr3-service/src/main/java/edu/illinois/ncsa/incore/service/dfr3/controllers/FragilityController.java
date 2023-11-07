@@ -56,7 +56,7 @@ import static edu.illinois.ncsa.incore.service.dfr3.utils.ValidationUtils.isDema
 
 @OpenAPIDefinition(
     info = @Info(
-        version = "1.21.0",
+        version = "1.22.0",
         description = "IN-CORE Service For Fragilities and Fragility mappings",
 
         title = "IN-CORE v2 Fragility Service API",

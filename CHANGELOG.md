@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.22.0] - 2023-11-08
 
 ### Fixed
 - Semantic services types endpoint missing access control [#234](https://github.com/IN-CORE/incore-services/issues/234)
