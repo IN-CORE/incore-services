@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
-        version = "1.20.0",
+        version = "1.22.0",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -109,6 +109,13 @@ public class TypeController {
 
         List<Document> typeList = this.typeDAO.getTypes();
 
+        // hackish way of adding "id" field
+        // this should be changed to use the real object model
+        for (Document d : typeList) {
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
+        }
+
         // Filter out the types that belong to a given space if specified
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -122,17 +129,21 @@ public class TypeController {
                 .collect(Collectors.toList());
         }
 
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
+        List<Document> accessibleTypeList = typeList.stream().filter(type -> userMembersSet.contains(type.get("id"))).skip(offset)
+            .limit(limit).collect(Collectors.toList());
+
         if (detail) {
             return Response.ok(
-                typeList.stream()
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList()))
+                    accessibleTypeList.stream()
+                        .skip(offset)
+                        .limit(limit)
+                        .collect(Collectors.toList()))
                 .status(200)
                 .build();
         }
 
-        List<String> results = typeList.stream()
+        List<String> results = accessibleTypeList.stream()
             .map(t -> t.get("dc:title").toString())
             .sorted(comparator)
             .skip(offset)
@@ -188,6 +199,12 @@ public class TypeController {
         Optional<Document> matchedType = getTypesByName(name, version);
 
         if (matchedType.isPresent()) {
+            // hackish way of adding "id" field
+            // this should be changed to use the real object model
+            Document d = matchedType.get();
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
+
             return Response.ok(matchedType.get()).status(200)
                 .build();
         }
@@ -210,13 +227,18 @@ public class TypeController {
         if (matchedType.isPresent()) {
             Document d = matchedType.get();
 
+            // hackish way of adding "id" field
+            // this should be changed to use the real object model
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
+
             // Convert the BSON Document to a JSONObject
             JSONObject typeJson = new JSONObject(d.toJson());
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
             JSONArray columnsArray = tableSchema.getJSONArray("columns");
 
             // Loop through each column
-            List<Column> columns = new ArrayList<Column>();;
+            List<Column> columns = new ArrayList<Column>();
             for (int i = 0; i < columnsArray.length(); i++) {
                 JSONObject column = columnsArray.getJSONObject(i);
                 String columnName = column.getString("name");
@@ -232,6 +254,7 @@ public class TypeController {
             // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
             Map<String, Object> model = new HashMap<String, Object>();
             model.put("title", d.get("dc:title"));
+            model.put("url", d.get("url"));
             model.put("description", d.get("dc:description"));
             model.put("columns", columns);
 
@@ -268,6 +291,11 @@ public class TypeController {
 
         if (matchedType.isPresent()) {
             Document d = matchedType.get();
+            // hackish way of adding "id" field
+            // this should be changed to use the real object model
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
+
             // Convert the BSON Document to a JSONObject
             JSONObject typeJson = new JSONObject(d.toJson());
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
@@ -332,6 +360,7 @@ public class TypeController {
 
         Optional<List<Document>> typeList = this.typeDAO.searchType(text);
         List<Document> results;
+
         if (typeList.isPresent()) {
             results = typeList.get().stream()
                 .filter(t -> userMembersSet.contains(t.getObjectId("_id").toString()))
@@ -340,6 +369,13 @@ public class TypeController {
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();
+        }
+
+        // hackish way of adding "id" field
+        // this should be changed to use the real object model
+        for (Document d : results) {
+            Object obj = d.get("_id");
+            d.put("id", obj.toString());
         }
 
         return Response.ok(results).status(200)

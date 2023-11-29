@@ -158,7 +158,7 @@ public class JsonUtils {
         } else {
             out_hazard_size = hazard_size_kb + " KB";
         }
-
+//        TODO why reconstruct? can't we use default model and let jackson to serialize and deserialize?
         JSONObject outJson = new JSONObject();
         if (isGroup) {
             outJson.put("group", username);
@@ -173,6 +173,8 @@ public class JsonUtils {
         outJson.put("total_file_size_of_datasets_byte", dataset_file_size);
         outJson.put("total_file_size_of_hazard_datasets", out_hazard_size);
         outJson.put("total_file_size_of_hazard_datasets_byte", usage.getHazardDatasetSize());
+        if (usage.getService() != null) outJson.put("service", usage.getService());
+        if (usage.getIncoreLab() != null) outJson.put("incoreLab", usage.getIncoreLab().toJson());
 
         return outJson;
     }
