@@ -1,5 +1,7 @@
 package edu.illinois.ncsa.incore.service.semantics.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
@@ -7,7 +9,7 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
-import edu.illinois.ncsa.incore.service.semantics.model.Column;
+import edu.illinois.ncsa.incore.service.semantics.model.Type;
 import edu.illinois.ncsa.incore.service.semantics.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.semantics.utils.GeotoolsUtils;
 import freemarker.cache.ClassTemplateLoader;
@@ -38,6 +40,9 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeComparator;
+import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeNameComparator;
 
 @OpenAPIDefinition(
     info = @Info(
@@ -104,17 +109,11 @@ public class TypeController {
         @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
         @Parameter(name = "List the hyperlinks.") @DefaultValue("false") @QueryParam("hyperlink") boolean hyperlink,
         @Parameter(name = "Return the full response.") @DefaultValue("false") @QueryParam("detail") boolean detail) {
-        Comparator<String> comparator = Comparator.naturalOrder();
-        if (order.equals("desc")) comparator = comparator.reversed();
 
-        List<Document> typeList = this.typeDAO.getTypes();
+        // import type comparator
+        Comparator<Type> comparator = typeComparator("name", order);
 
-        // hackish way of adding "id" field
-        // this should be changed to use the real object model
-        for (Document d : typeList) {
-            Object obj = d.get("_id");
-            d.put("id", obj.toString());
-        }
+        List<Type> typeList = this.typeDAO.getTypes();
 
         // Filter out the types that belong to a given space if specified
         if (!spaceName.equals("")) {
@@ -125,17 +124,19 @@ public class TypeController {
             List<String> spaceMembers = space.getMembers();
 
             typeList = typeList.stream()
-                .filter(type -> spaceMembers.contains(type.get("_id").toString()))
+                .filter(type -> spaceMembers.contains(type.getId()))
                 .collect(Collectors.toList());
         }
 
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-        List<Document> accessibleTypeList = typeList.stream().filter(type -> userMembersSet.contains(type.get("id"))).skip(offset)
+        List<Type> accessibleTypeList = typeList.stream().filter(type -> userMembersSet.contains(type.getId())).skip(offset)
             .limit(limit).collect(Collectors.toList());
 
         if (detail) {
             return Response.ok(
-                    accessibleTypeList.stream()
+                    typeList.stream()
+                        .filter(type -> userMembersSet.contains(type.getId()))
+                        .sorted(comparator)
                         .skip(offset)
                         .limit(limit)
                         .collect(Collectors.toList()))
@@ -143,9 +144,10 @@ public class TypeController {
                 .build();
         }
 
+        Comparator<String> typeNameComparator = typeNameComparator(order);
         List<String> results = accessibleTypeList.stream()
-            .map(t -> t.get("dc:title").toString())
-            .sorted(comparator)
+            .map(t -> t.getTitles())
+            .sorted(typeNameComparator)
             .skip(offset)
             .limit(limit)
             .collect(Collectors.toList());
@@ -157,30 +159,31 @@ public class TypeController {
         return Response.ok(results).status(200).build();
     }
 
-    public Optional<Document> getTypesByName(String name, String version) {
+    public Type getTypesByName(String name, String version) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-        Optional<List<Document>> typeList = this.typeDAO.getTypeByName(name, version);
+        List<Type> typeList = this.typeDAO.getTypeByName(name, version);
 
-        if (typeList.isPresent()) {
+        if (!typeList.isEmpty()) {
             // make sure that uri is in the namespace
-            List<Document> results = typeList.get().stream()
-                .filter(type -> userMembersSet.contains(type.getObjectId("_id").toString()))
+            List<Type> results = typeList.stream()
+                .filter(type -> userMembersSet.contains(type.getId()))
                 .collect(Collectors.toList());
-            Document matchedType;
+
+            Type matchedType;
 
             // find the latest
             if (version.equals("latest")) {
-                Optional<Document> latestMatched = results.stream()
-                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.get("openvocab:versionnumber").toString())));
+                Optional<Type> latestMatched = results.stream()
+                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.getVersion())));
                 matchedType = latestMatched.orElse(null);
             } else {
                 matchedType = results.get(0);
             }
 
-            return Optional.ofNullable(matchedType);
+            return matchedType;
         }
 
-        return Optional.empty();
+        return null;
     }
 
 
@@ -196,18 +199,12 @@ public class TypeController {
             version = "latest";
         }
 
-        Optional<Document> matchedType = getTypesByName(name, version);
+        Type matchedType = getTypesByName(name, version);
 
-        if (matchedType.isPresent()) {
-            // hackish way of adding "id" field
-            // this should be changed to use the real object model
-            Document d = matchedType.get();
-            Object obj = d.get("_id");
-            d.put("id", obj.toString());
-
-            return Response.ok(matchedType.get()).status(200)
-                .build();
+        if (matchedType != null) {
+            return Response.ok(matchedType).status(200).build();
         }
+
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");
     }
 
@@ -217,28 +214,23 @@ public class TypeController {
     @Operation(summary = "Show specific types by uri as HTML.")
     public Response getTypeAsHtml(
         @Parameter(name = "Type uri (name).", required = true) @PathParam("name") String name,
-        @Parameter(name = "version number.") @QueryParam("version") String version) {
+        @Parameter(name = "version number.") @QueryParam("version") String version) throws JsonProcessingException {
 
         if (version == null) {
             version = "latest";
         }
-        Optional<Document> matchedType = getTypesByName(name, version);
+        Type matchedType = getTypesByName(name, version);
 
-        if (matchedType.isPresent()) {
-            Document d = matchedType.get();
-
-            // hackish way of adding "id" field
-            // this should be changed to use the real object model
-            Object obj = d.get("_id");
-            d.put("id", obj.toString());
-
-            // Convert the BSON Document to a JSONObject
-            JSONObject typeJson = new JSONObject(d.toJson());
+        if (matchedType != null) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            // Convert the Type to JSONObject
+            String jsonString = objectMapper.writeValueAsString(matchedType);
+            JSONObject typeJson = new JSONObject(jsonString);
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
             JSONArray columnsArray = tableSchema.getJSONArray("columns");
 
             // Loop through each column
-            List<Column> columns = new ArrayList<Column>();
+            List<Type> columns = new ArrayList<Type>();
             for (int i = 0; i < columnsArray.length(); i++) {
                 JSONObject column = columnsArray.getJSONObject(i);
                 String columnName = column.getString("name");
@@ -247,15 +239,15 @@ public class TypeController {
                 String datatype = column.getString("datatype");
                 boolean required = Boolean.parseBoolean(column.getString("required"));
                 String unit = column.getString("qudt:unit");
-                columns.add(new Column(columnName, titles, datatype, description, unit, Boolean.toString(required)));
+                columns.add(new Type(columnName, titles, datatype, description, unit, Boolean.toString(required)));
             }
 
             // Map of things to parse in the template - this can be expanded to add more objects
             // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
             Map<String, Object> model = new HashMap<String, Object>();
-            model.put("title", d.get("dc:title"));
-            model.put("url", d.get("url"));
-            model.put("description", d.get("dc:description"));
+            model.put("title", matchedType.getTitles());
+            model.put("url", matchedType.getUrl());
+            model.put("description", matchedType.getDescription());
             model.put("columns", columns);
 
             try {
@@ -287,17 +279,13 @@ public class TypeController {
         if (version == null) {
             version = "latest";
         }
-        Optional<Document> matchedType = getTypesByName(name, version);
+        Type matchedType = getTypesByName(name, version);
 
-        if (matchedType.isPresent()) {
-            Document d = matchedType.get();
-            // hackish way of adding "id" field
-            // this should be changed to use the real object model
-            Object obj = d.get("_id");
-            d.put("id", obj.toString());
-
-            // Convert the BSON Document to a JSONObject
-            JSONObject typeJson = new JSONObject(d.toJson());
+        if (matchedType != null) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            // Convert the Type to JSONObject
+            String jsonString = objectMapper.writeValueAsString(matchedType);
+            JSONObject typeJson = new JSONObject(jsonString);
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
             JSONArray columnsArray = tableSchema.getJSONArray("columns");
 
@@ -358,24 +346,17 @@ public class TypeController {
         @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
-        Optional<List<Document>> typeList = this.typeDAO.searchType(text);
-        List<Document> results;
+        List<Type> typeList = this.typeDAO.searchType(text);
+        List<Type> results;
 
-        if (typeList.isPresent()) {
-            results = typeList.get().stream()
-                .filter(t -> userMembersSet.contains(t.getObjectId("_id").toString()))
+        if (!typeList.isEmpty()) {
+            results = typeList.stream()
+                .filter(t -> userMembersSet.contains(t.getId()))
                 .skip(offset)
                 .limit(limit)
                 .collect(Collectors.toList());
         } else {
             results = new ArrayList<>();
-        }
-
-        // hackish way of adding "id" field
-        // this should be changed to use the real object model
-        for (Document d : results) {
-            Object obj = d.get("_id");
-            d.put("id", obj.toString());
         }
 
         return Response.ok(results).status(200)
@@ -424,8 +405,8 @@ public class TypeController {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find type with name " + name);
 
         try {
-            Document deletedType = this.typeDAO.deleteType(name);
-            String deletedId = deletedType.get("_id").toString();
+            Type deletedType = this.typeDAO.deleteType(name);
+            String deletedId = deletedType.getId();
             // remove id from spaces
             List<Space> spaces = spaceRepository.getAllSpaces();
             for (Space space : spaces) {

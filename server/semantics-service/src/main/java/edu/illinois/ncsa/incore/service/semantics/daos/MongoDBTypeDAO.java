@@ -1,21 +1,20 @@
 package edu.illinois.ncsa.incore.service.semantics.daos;
 
 import com.mongodb.MongoClientURI;
+import dev.morphia.query.Query;
+import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.service.semantics.model.Type;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
 
 
 public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
-    private List<Document> typeList;
+    private List<Type> typeList;
 
     public MongoDBTypeDAO(MongoClientURI mongoClientURI) {
         super(mongoClientURI);
@@ -28,55 +27,49 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     }
 
     @Override
-    public List<Document> getTypes() {
+    public List<Type> getTypes() {
         this.loadTypes();
         return this.typeList;
     }
 
     private void loadTypes() {
-        this.typeList = (List<Document>) this.typeDataStore.find().into(new ArrayList<Document>());
+        this.typeList = this.typeDataStore.getDatabase().getCollection("Type")
+            .find(Type.class).into(new ArrayList<Type>());
     }
 
     @Override
-    public Optional<List<Document>> getTypeByName(String name, String version) {
-        List<Document> matchedTypeList;
+    public List<Type> getTypeByName(String name, String version) {
+        List<Type> matchedTypeList;
 
         // version can be all, latest or specific version
         if (version.equals("all") || version.equals("latest")) {
             // due to latest and all need to be restricted by space
             // check latest later
-            matchedTypeList = (List<Document>) this.typeDataStore
-                .find(eq("dc:title", name)).into(new ArrayList<Document>());
+            matchedTypeList = this.typeDataStore.find(Type.class)
+                .filter(Filters.eq("dc:title", name)).iterator().toList();
         } else {
-            matchedTypeList = (List<Document>) this.typeDataStore.find(and(eq("dc:title", name),
-                eq("openvocab:versionnumber", version))).into(new ArrayList<Document>());
+            matchedTypeList = this.typeDataStore.find(Type.class)
+                .filter(Filters.and(Filters.eq("dc:title", name),
+                    Filters.eq("version", version))).iterator().toList();
         }
 
-        if (matchedTypeList.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(matchedTypeList);
-        }
+        if (matchedTypeList.isEmpty()) return null;
 
+        return matchedTypeList;
     }
 
     @Override
-    public Optional<List<Document>> searchType(String typeName) {
-        List<Document> typeList = (List<Document>) this.typeDataStore.find().into(new ArrayList<Document>());
-        List<Document> matchTypeList = new ArrayList<Document>();
+    public List<Type> searchType(String typeName) {
+        Query<Type> query = this.typeDataStore.find(Type.class).filter(
+            Filters.or(
+                Filters.regex("dc:title").pattern(typeName).caseInsensitive()
+            ));
+        List<Type> typeList = query.iterator().toList();
 
-        for (Document datsetType : typeList) {
-            String title = datsetType.get("dc:title").toString();
-            if (title.toLowerCase().contains(typeName.toLowerCase())) {
-                matchTypeList.add(datsetType);
-            }
-        }
+        List<Type> matchTypeList = new ArrayList<>();
+        matchTypeList.addAll(typeList);
 
-        if (matchTypeList.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(matchTypeList);
-        }
+        return matchTypeList;
     }
 
     private Boolean checkNewType(Document newType) {
@@ -97,7 +90,7 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
             if (this.hasType(name))
                 throw new IncoreHTTPException(Response.Status.UNAUTHORIZED, name + " already exists.");
             // insert new type
-            this.typeDataStore.insertOne(newType);
+            this.typeDataStore.insert(newType);
             return newType;
         } else {
             throw new IllegalArgumentException();
@@ -106,16 +99,21 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
 
     @Override
-    public Document deleteType(String name) {
-        Document list = (Document) this.typeDataStore.find(eq("dc:title", name)).first();
-        //String id = list == null ? "": list.get("_id").toString();
-        this.typeDataStore.findOneAndDelete(eq("dc:title", name));
-        return list;
+    public Type deleteType(String name) {
+        Type type = this.typeDataStore.find(Type.class)
+            .filter(Filters.eq("dc:title", name)).first();
+        if (type != null) {
+            Query<Type> query = this.typeDataStore.find(Type.class);
+            query.filter(Filters.eq("dc:title", name)).findAndDelete();
+            return type;
+        }
+        return null;
     }
 
     @Override
     public Boolean hasType(String name) {
-        Document list = (Document) this.typeDataStore.find(eq("dc:title", name)).first();
-        return list != null;
+        Type type = this.typeDataStore.find(Type.class)
+            .filter(Filters.eq("dc:title", name)).first();
+        return type != null;
     }
 }
