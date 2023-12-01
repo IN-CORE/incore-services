@@ -14,7 +14,8 @@ import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.common.utils.JsonUtils;
+import edu.illinois.ncsa.incore.common.models.UserUsages;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
@@ -28,7 +29,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import org.json.simple.parser.ParseException;
 import java.util.*;
 
@@ -85,16 +85,14 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation and can be used as status check as well.",
         description = "This will provide the allocation of the logged in user.")
-    public String getUsage() {
-        JSONObject outJson = null;
+    public UserUsages getUsage() {
 
         try {
-            outJson = JsonUtils.createUserFinalQuotaJson(username, finalQuotaRepository);
+            return AllocationUtils.createUserFinalQuota(username, finalQuotaRepository);
         } catch (ParseException e) {
             logger.error("Error extracting allocation");
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting allocation");
         }
-        return outJson.toString();
     }
 
     @GET
@@ -102,13 +100,12 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation status of the given username.",
         description = "This will only work for admin user group.")
-    public String getAllocationsByUsername(
+    public UserUsages getAllocationsByUsername(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("username") String userId) {
-        JSONObject outJson = new JSONObject();
 
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                outJson = JsonUtils.createUserFinalQuotaJson(userId, finalQuotaRepository);
+                return AllocationUtils.createUserFinalQuota(userId, finalQuotaRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
@@ -117,8 +114,6 @@ public class AllocationsController {
             logger.error("Error extracting user status");
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, "Logged in user is not incore admin");
         }
-
-        return outJson.toString();
     }
 
     @GET
@@ -126,22 +121,18 @@ public class AllocationsController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gives the allocation status of the given group name.",
         description = "This will only work for admin user group.")
-    public String getAllocationsByGroupname(
+    public UserUsages getAllocationsByGroupname(
         @Parameter(name = "Dataset Id from data service", required = true) @PathParam("groupname") String groupId) {
-        JSONObject outJson = new JSONObject();
-
         if (this.authorizer.isUserAdmin(this.groups)) {
             try {
-                outJson = JsonUtils.createGroupAllocationJson(groupId, allocationsRepository);
+                return AllocationUtils.createGroupAllocation(groupId, allocationsRepository);
             } catch (ParseException e) {
                 logger.error("Error extracting user status");
                 throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error extracting user status");
             }
         } else {
-            outJson.put("query_user_id", groupId);
-            outJson.put("reason_of_error", "logged in user is not an incore admin");
+            logger.error("Logged in user is not an incore admin");
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, "Logged in user is not an incore admin");
         }
-
-        return outJson.toString();
     }
 }
