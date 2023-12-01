@@ -5,6 +5,7 @@ import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.semantics.model.Type;
 import jakarta.ws.rs.core.Response;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,25 +41,25 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
 
     @Override
     public List<Type> getTypeByName(String name, String version) {
-        List<Type> matchedTypeList;
+        Bson filter;
 
         // version can be all, latest or specific version
         if (version.equals("all") || version.equals("latest")) {
             // due to latest and all need to be restricted by space
             // check latest later
-            matchedTypeList = this.typeDataStore.getDatabase()
-                .getCollection("Type")
-                .find(Type.class)
-                .filter(eq("dc:title", name))
-                .into(new ArrayList<Type>());
+            filter = eq("dc:title", name);
         } else {
-            matchedTypeList = this.typeDataStore.getDatabase()
-                .getCollection("Type")
-                .find(Type.class)
-                .filter(and(eq("dc:title", name),
-                    eq("openvocab:versionnumber", version)))
-                .into(new ArrayList<Type>());
+            filter = and(
+                eq("dc:title", name),
+                eq("openvocab:versionnumber", version)
+            );
         }
+
+        List<Type> matchedTypeList = this.typeDataStore.getDatabase()
+            .getCollection("Type")
+            .find(Type.class)
+            .filter(filter)
+            .into(new ArrayList<Type>());
 
         if (matchedTypeList.isEmpty()) return null;
 
@@ -70,6 +71,7 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
         List<Type> typeList = this.typeDataStore.getDatabase().getCollection("Type")
             .find(Type.class).into(new ArrayList<Type>());
         List<Type> matchTypeList = new ArrayList<Type>();
+
         for (Type datsetType : typeList) {
             String title = datsetType.getTitle();
             if (title.toLowerCase().contains(typeName.toLowerCase())) {
@@ -81,7 +83,6 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
     }
 
     private Boolean checkNewType(Document newType) {
-
         return newType.get("@context") != null
             && newType.get("dc:license") != null
             && newType.get("dc:title") != null
