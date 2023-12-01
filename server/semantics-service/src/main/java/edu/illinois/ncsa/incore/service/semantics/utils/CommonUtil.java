@@ -1,13 +1,7 @@
 package edu.illinois.ncsa.incore.service.semantics.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.semantics.model.Type;
-import jakarta.ws.rs.core.Response;
-import org.json.simple.JSONObject;
-
 import java.util.Comparator;
-import java.util.List;
 
 public class CommonUtil {
     public static Comparator<Type> typeComparator(String sortBy, String order){
