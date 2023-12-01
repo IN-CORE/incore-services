@@ -5,59 +5,62 @@ import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
+import java.util.List;
+
 @Entity("Type")
 public class Type {
     @Id
     @Property("_id")
     private ObjectId id;
 
-    @Property("name")
-    private String name;
-
     @Property("dc:title")
-    private String titles;
-    private String datatype;
+    private String title;
 
-    @Property("dc:description")
-    private String description;
+    private String url;
 
-    @Property("qudt:unit")
-    private String unit;
+    private Columns tableSchema;
 
     @Property("openvocab:versionnumber")
     private String version;
 
-    private String url;
+    @Property("dc:description")
+    private String description;
 
-    private String required;
+    // TODO how to represent @context
+    // @Embedded("@context")
+    // private List<Context> context;
 
     public Type() {
     }
 
-    public Type(String name, String titles, String datatype, String description, String unit, String required) {
-        this.name = name;
-        this.titles = titles;
-        this.datatype = datatype;
-        this.description = description;
-        this.unit = unit;
-        this.required = required;
+    public Type(String url, String title, Columns tableSchema, List<Context> context) {
+        this.url = url;
+        this.title = title;
+        this.tableSchema = tableSchema;
+        // this.context = context;
     }
 
     public String getId() {
         return (id == null) ? null : id.toString();
     }
 
-    public String getName() {
-        return this.name;
+    public String getUrl() {
+        return url;
     }
 
-    public String getTitles() {
-        return this.titles;
+    public String getTitle() {
+        return title;
     }
 
-    public String getDescription() { return description; }
+    public Columns getTableSchema() {
+        return tableSchema;
+    }
 
     public String getVersion() { return version; }
 
-    public String getUrl() { return url; }
+    public String getDescription() { return description; }
+
+    // public List<Context> getContext() {
+    // return context;
+    // }
 }

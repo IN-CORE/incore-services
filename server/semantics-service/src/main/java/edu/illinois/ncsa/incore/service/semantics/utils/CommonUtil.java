@@ -14,19 +14,12 @@ public class CommonUtil {
         // construct comparator
         Comparator<Type> comparator;
         if (sortBy.equals("name")) {
-            comparator = Comparator.comparing(Type::getName);
+            comparator = Comparator.comparing(Type::getTitle);
         }
         else{
-            // default to date
-            comparator = Comparator.comparing(Type::getDescription);
+            // default to id
+            comparator = Comparator.comparing(Type::getId);
         }
-        if (order.equals("desc")) comparator = comparator.reversed();
-        return comparator;
-    }
-
-    public static Comparator<String> typeNameComparator(String order){
-        // construct comparator
-        Comparator<String> comparator = Comparator.naturalOrder();
         if (order.equals("desc")) comparator = comparator.reversed();
         return comparator;
     }

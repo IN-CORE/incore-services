@@ -9,6 +9,7 @@ import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.semantics.daos.ITypeDAO;
+import edu.illinois.ncsa.incore.service.semantics.model.Column;
 import edu.illinois.ncsa.incore.service.semantics.model.Type;
 import edu.illinois.ncsa.incore.service.semantics.utils.FileUtils;
 import edu.illinois.ncsa.incore.service.semantics.utils.GeotoolsUtils;
@@ -42,7 +43,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeComparator;
-import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeNameComparator;
 
 @OpenAPIDefinition(
     info = @Info(
@@ -129,27 +129,21 @@ public class TypeController {
         }
 
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-        List<Type> accessibleTypeList = typeList.stream().filter(type -> userMembersSet.contains(type.getId())).skip(offset)
-            .limit(limit).collect(Collectors.toList());
+        List<Type> accessibleTypeList = typeList.stream()
+            .filter(type -> userMembersSet.contains(type.getId()))
+            .sorted(comparator)
+            .skip(offset)
+            .limit(limit)
+            .collect(Collectors.toList());
 
         if (detail) {
-            return Response.ok(
-                    typeList.stream()
-                        .filter(type -> userMembersSet.contains(type.getId()))
-                        .sorted(comparator)
-                        .skip(offset)
-                        .limit(limit)
-                        .collect(Collectors.toList()))
+            return Response.ok(accessibleTypeList)
                 .status(200)
                 .build();
         }
 
-        Comparator<String> typeNameComparator = typeNameComparator(order);
         List<String> results = accessibleTypeList.stream()
-            .map(t -> t.getTitles())
-            .sorted(typeNameComparator)
-            .skip(offset)
-            .limit(limit)
+            .map(t -> t.getTitle())
             .collect(Collectors.toList());
 
         if (hyperlink) {
@@ -163,7 +157,7 @@ public class TypeController {
         Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
         List<Type> typeList = this.typeDAO.getTypeByName(name, version);
 
-        if (!typeList.isEmpty()) {
+        if (typeList != null) {
             // make sure that uri is in the namespace
             List<Type> results = typeList.stream()
                 .filter(type -> userMembersSet.contains(type.getId()))
@@ -174,7 +168,8 @@ public class TypeController {
             // find the latest
             if (version.equals("latest")) {
                 Optional<Type> latestMatched = results.stream()
-                    .max(Comparator.comparing(Dtype -> Double.parseDouble(Dtype.getVersion())));
+                    .max(Comparator.comparing(Dtype ->
+                        Double.parseDouble(Dtype.getVersion())));
                 matchedType = latestMatched.orElse(null);
             } else {
                 matchedType = results.get(0);
@@ -230,7 +225,7 @@ public class TypeController {
             JSONArray columnsArray = tableSchema.getJSONArray("columns");
 
             // Loop through each column
-            List<Type> columns = new ArrayList<Type>();
+            List<Column> columns = new ArrayList<Column>();
             for (int i = 0; i < columnsArray.length(); i++) {
                 JSONObject column = columnsArray.getJSONObject(i);
                 String columnName = column.getString("name");
@@ -239,13 +234,13 @@ public class TypeController {
                 String datatype = column.getString("datatype");
                 boolean required = Boolean.parseBoolean(column.getString("required"));
                 String unit = column.getString("qudt:unit");
-                columns.add(new Type(columnName, titles, datatype, description, unit, Boolean.toString(required)));
+                columns.add(new Column(columnName, titles, datatype, description, unit, Boolean.toString(required)));
             }
 
             // Map of things to parse in the template - this can be expanded to add more objects
             // For example, we could pull the tableSchema into a separate Map so it can be parsed separately by the template
             Map<String, Object> model = new HashMap<String, Object>();
-            model.put("title", matchedType.getTitles());
+            model.put("title", matchedType.getTitle());
             model.put("url", matchedType.getUrl());
             model.put("description", matchedType.getDescription());
             model.put("columns", columns);

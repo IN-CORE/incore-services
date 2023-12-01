@@ -40,6 +40,7 @@ public abstract class MongoDAO {
         morphiaStore.getMapper().map(Type.class);
         morphiaStore.ensureIndexes();
         this.typeDataStore = morphiaStore;
+
     }
 
     public Datastore getTypeDataStore() {
