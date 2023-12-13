@@ -6,8 +6,7 @@ import dev.morphia.annotations.Property;
 @Embedded
 public class Column {
 
-    @Property("name")
-    private static String name;
+    private String name;
     private String titles;
     private String datatype;
 
@@ -36,11 +35,11 @@ public class Column {
     }
 
     public String getTitles() {
-        return this.titles;
+        return titles;
     }
 
     public String getDatatype() {
-        return this.datatype;
+        return datatype;
     }
 
     public String getUnit() {

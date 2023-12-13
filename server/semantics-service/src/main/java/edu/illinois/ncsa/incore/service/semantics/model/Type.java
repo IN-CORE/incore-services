@@ -1,10 +1,8 @@
 package edu.illinois.ncsa.incore.service.semantics.model;
-
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
-
 import java.util.List;
 
 @Entity("Type")
@@ -27,17 +25,17 @@ public class Type {
     private String description;
 
     // TODO how to represent @context
-    // @Embedded("@context")
-    // private List<Context> context;
+    @Property("@context")
+    private List<?> context;
 
     public Type() {
     }
 
-    public Type(String url, String title, Columns tableSchema, List<Context> context) {
+    public Type(String url, String title, Columns tableSchema, List<?> context) {
         this.url = url;
         this.title = title;
         this.tableSchema = tableSchema;
-        // this.context = context;
+        this.context = context;
     }
 
     public String getId() {
@@ -60,7 +58,5 @@ public class Type {
 
     public String getDescription() { return description; }
 
-    // public List<Context> getContext() {
-    // return context;
-    // }
+    public List<?> getContext() { return context; }
 }
