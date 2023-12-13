@@ -67,7 +67,7 @@ public class Type {
 
     public List<?> getContext() { return context; }
 
-    public Document getLicense() {return license; }
+    public Document getLicense() { return license; }
 
     public Map<String, Object> constructOutput() {
         Map<String, Object> map = new HashMap<>();
@@ -77,6 +77,7 @@ public class Type {
             field.setAccessible(true);
 
             try {
+                // change field name from context to @context
                 if (field.getName().equals("context")) {
                     Object value = field.get(this);
                     map.put("@context", value);
