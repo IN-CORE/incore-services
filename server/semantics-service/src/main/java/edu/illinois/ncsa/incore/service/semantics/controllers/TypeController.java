@@ -137,7 +137,10 @@ public class TypeController {
             .collect(Collectors.toList());
 
         if (detail) {
-            return Response.ok(accessibleTypeList)
+            return Response.ok(accessibleTypeList.stream()
+                    .map(type -> type.constructOutput())
+                    .collect(Collectors.toList())
+                )
                 .status(200)
                 .build();
         }
@@ -197,7 +200,7 @@ public class TypeController {
         Type matchedType = getTypesByName(name, version);
 
         if (matchedType != null) {
-            return Response.ok(matchedType).status(200).build();
+            return Response.ok(matchedType.constructOutput()).status(200).build();
         }
 
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Cannot find the type " + name + " version " + version + " !");

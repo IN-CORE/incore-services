@@ -2,8 +2,13 @@ package edu.illinois.ncsa.incore.service.semantics.model;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
+import org.bson.Document;
 import org.bson.types.ObjectId;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity("Type")
 public class Type {
@@ -15,7 +20,7 @@ public class Type {
     private List<?> context;
 
     @Property("dc:license")
-    private String license;
+    private Document license;
 
     @Property("dc:title")
     private String title;
@@ -61,4 +66,35 @@ public class Type {
     public String getDescription() { return description; }
 
     public List<?> getContext() { return context; }
+
+    public Document getLicense() {return license; }
+
+    public Map<String, Object> constructOutput() {
+        Map<String, Object> map = new HashMap<>();
+        Field[] fields = Type.class.getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            try {
+                if (field.getName().equals("context")) {
+                    Object value = field.get(this);
+                    map.put("@context", value);
+
+                } else if (field.getName().equals("id")) {
+                    Object value = field.get(this).toString();
+                    map.put(field.getName(), value);
+
+                } else {
+                    Object value = field.get(this);
+                    map.put(field.getName(), value);
+
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
+
 }
