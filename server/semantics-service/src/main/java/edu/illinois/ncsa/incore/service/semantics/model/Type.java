@@ -11,22 +11,24 @@ public class Type {
     @Property("_id")
     private ObjectId id;
 
+    @Property("@context")
+    private List<?> context;
+
+    @Property("dc:license")
+    private String license;
+
     @Property("dc:title")
     private String title;
-
-    private String url;
-
-    private Columns tableSchema;
-
-    @Property("openvocab:versionnumber")
-    private String version;
 
     @Property("dc:description")
     private String description;
 
-    // TODO how to represent @context
-    @Property("@context")
-    private List<?> context;
+    private String url;
+
+    @Property("openvocab:versionnumber")
+    private String version;
+
+    private Columns tableSchema;
 
     public Type() {
     }

@@ -7,16 +7,18 @@ import dev.morphia.annotations.Property;
 public class Column {
 
     private String name;
+
     private String titles;
-    private String datatype;
 
     @Property("dc:description")
     private String description;
 
-    @Property("qudt:unit")
-    private String unit;
+    private String datatype;
 
     private String required;
+
+    @Property("qudt:unit")
+    private String unit;
 
     public Column() {
     }
