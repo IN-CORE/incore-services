@@ -49,4 +49,7 @@ public class AllocationConstants {
     public static final String UNABLE_TO_PARSE_TOKEN =
         "Unable to parse the user's authentication information. " +
             "It is needed to verify the user's privileges and other information";
+    public static final String ALLOCATION_NOT_FOUND =
+        "Unable to find the allocation information for the user. " +
+            "It is needed to verify the user's privileges and other information";
 }
