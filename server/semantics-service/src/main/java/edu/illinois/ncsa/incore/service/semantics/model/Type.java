@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity("Type")
 public class Type {
@@ -77,14 +78,32 @@ public class Type {
             field.setAccessible(true);
 
             try {
-                // change field name from context to @context
+                // change field name from context to @context, license to dc:license, etc
                 if (field.getName().equals("context")) {
-                    Object value = field.get(this);
-                    map.put("@context", value);
+                    map.put("@context", this.getContext());
 
                 } else if (field.getName().equals("id")) {
-                    Object value = field.get(this).toString();
-                    map.put(field.getName(), value);
+                    map.put(field.getName(), this.getId());
+
+                } else if (field.getName().equals("license")) {
+                    map.put("dc:license", this.getLicense());
+
+                } else if (field.getName().equals("title")) {
+                    map.put("dc:title", this.getTitle());
+
+                } else if (field.getName().equals("description")) {
+                    map.put("dc:description", this.getDescription());
+
+                } else if (field.getName().equals("version")) {
+                    map.put("openvocab:versionnumber", this.getVersion());
+
+                } else if (field.getName().equals("tableSchema")) {
+                    List<Map<String, Object>> updatedTableSchema = this.getTableSchema().getColumns().stream()
+                        .map(column -> column.constructOutput())
+                        .collect(Collectors.toList());
+                    Map<String, Object> columns = new HashMap<>();
+                    columns.put("columns", updatedTableSchema);
+                    map.put("tableSchema", columns);
 
                 } else {
                     Object value = field.get(this);

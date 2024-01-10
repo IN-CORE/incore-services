@@ -3,6 +3,10 @@ package edu.illinois.ncsa.incore.service.semantics.model;
 import dev.morphia.annotations.Embedded;
 import dev.morphia.annotations.Property;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+
 @Embedded
 public class Column {
 
@@ -51,4 +55,33 @@ public class Column {
     public String getDescription() { return description; }
 
     public String getRequired(){ return required; }
+
+    public Map<String, Object> constructOutput() {
+        Map<String, Object> map = new HashMap<>();
+        Field[] fields = Column.class.getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            try {
+                // change field name from description to dc:description, unit to qudt:unit
+                if (field.getName().equals("description")) {
+                    Object value = field.get(this).toString();
+                    map.put("dc:description", value);
+
+                } else if (field.getName().equals("unit")) {
+                    Object value = field.get(this).toString();
+                    map.put("qudt:unit", value);
+
+                } else {
+                    Object value = field.get(this);
+                    map.put(field.getName(), value);
+
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
 }
