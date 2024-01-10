@@ -66,12 +66,10 @@ public class Column {
             try {
                 // change field name from description to dc:description, unit to qudt:unit
                 if (field.getName().equals("description")) {
-                    Object value = field.get(this).toString();
-                    map.put("dc:description", value);
+                    map.put("dc:description", this.getDescription());
 
                 } else if (field.getName().equals("unit")) {
-                    Object value = field.get(this).toString();
-                    map.put("qudt:unit", value);
+                    map.put("qudt:unit", this.getUnit());
 
                 } else {
                     Object value = field.get(this);
