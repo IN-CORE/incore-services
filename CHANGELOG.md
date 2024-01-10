@@ -5,10 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
 ## [Unreleased]
 
 ### Changed 
 - Use Java models to represent semantics [#239](https://github.com/IN-CORE/incore-services/issues/239)
+
+## [1.23.0] - 2023-12-13
+
+### Changed
+- Rewrite Allocation and Usage endpoints to leverage Java model and Jackson [#220](https://github.com/IN-CORE/incore-services/issues/220)
 
 ## [1.22.0] - 2023-11-08
 

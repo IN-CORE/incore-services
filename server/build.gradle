@@ -48,7 +48,7 @@ apply plugin: 'war'
 // This will not apply to the war files we build unless we put it within project loop
 // at the end of this file. This is only for the docker build to pull a version
 war {
-    archiveVersion = '1.22.0'
+    archiveVersion = '1.23.0'
 }
 
 apply plugin: 'org.gretty'
