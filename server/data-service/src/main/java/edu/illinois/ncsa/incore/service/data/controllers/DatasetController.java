@@ -893,11 +893,12 @@ public class DatasetController {
             }
             File tmpFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
 
-            // check if geopackage only has a single layer
+            // check if geopackage only has a single layer and the layer name is the same as file name
             if (!GeotoolsUtils.isGpkgSingleLayer(tmpFile)) {
                 FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
-                logger.debug("The geopackage has to have a single layer.");
-                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE, "Geopackage is not a single layer.");
+                logger.debug("The geopackage has to have a single layer, and layer name should be the same as file name.");
+                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                    "Geopackage is not a single layer or layer name is not the same as file name.");
             }
 
             // check if geopackage has guid
@@ -954,12 +955,10 @@ public class DatasetController {
                         repository.addDataset(dataset);
                         // uploading geoserver must involve the process of renaming the database in geopackage
                         File gpkgFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
-                        File renamedFile = FileUtils.generateRenameGpkgDbName(gpkgFile, datasetId);
-                        if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), renamedFile)) {
+                        if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), gpkgFile)) {
                             logger.error("Fail to upload geopackage file");
                             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
                         }
-                        FileUtils.deleteTmpDir(renamedFile);
                     } else {
                         if (isShp && isPrj) {
                             GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, isTif, isAsc);

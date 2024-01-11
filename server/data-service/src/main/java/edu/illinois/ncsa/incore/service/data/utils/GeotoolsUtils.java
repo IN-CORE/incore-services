@@ -968,6 +968,13 @@ public class GeotoolsUtils {
         return isGuid;
     }
 
+    /**
+     * check if geopackage has single layer and layer name is the same as the file name
+     *
+     * @param inFile
+     * @return
+     * @throws IOException
+     */
     public static boolean isGpkgSingleLayer(File inFile) throws IOException {
         Boolean output = false;
         try {
@@ -983,7 +990,12 @@ public class GeotoolsUtils {
             String[] layerNames = dataStore.getTypeNames();
 
             if (layerNames.length == 1) {
-                output = true;
+                // check if the layername is the same as file name
+                String layerName = layerNames[0];
+                String fileName = inFile.getName().split("\\.")[0];
+                if (layerName.equals(fileName)) {
+                    output = true;
+                }
             }
         } catch (IOException e) {
             throw new IOException("Unable to open geopackage file.");
