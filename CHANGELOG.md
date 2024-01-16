@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Add `hazardDatasets` field to TornadoDataset class [#213](https://github.com/IN-CORE/incore-services/issues/213)
+
 ### Changed
 - Rewrite Allocation and Usage endpoints to leverage Java model and Jackson [#220](https://github.com/IN-CORE/incore-services/issues/220)
 

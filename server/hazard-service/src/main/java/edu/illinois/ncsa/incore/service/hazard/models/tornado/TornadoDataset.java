@@ -7,13 +7,29 @@
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
 import dev.morphia.annotations.Entity;
+import java.util.LinkedList;
+import java.util.List;
 
 @Entity("TornadoDataset")
 public class TornadoDataset extends Tornado {
     // CMN: this could be moved to the parent if we determine there will be no difference between probabilistic and
     // deterministic tornadoes. If there would be multiple files with different probabilities, this should be
     // modified similar to the Earthquake HazardDataset and the Tsunami hazard dataset
+
+    // Remove later
     private String datasetId;
+
+    private List<TornadoHazardDataset> hazardDatasets = new LinkedList<TornadoHazardDataset>();
+
+    public List<TornadoHazardDataset> getHazardDatasets() {
+        return hazardDatasets;
+    }
+
+    public void setHazardDatasets(List<TornadoHazardDataset> hazardDatasets) {
+        this.hazardDatasets = hazardDatasets;
+    }
+
+    public void addTornadoHazardDataset(TornadoHazardDataset hazardDataset) { hazardDatasets.add(hazardDataset); }
 
     public String getDatasetId() {
         return datasetId;
