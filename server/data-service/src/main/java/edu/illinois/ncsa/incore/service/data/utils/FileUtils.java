@@ -42,11 +42,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
+
 
 /**
  * Created by ywkim on 6/8/2017.
