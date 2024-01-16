@@ -118,14 +118,14 @@ public class Engine {
         String earthquakeId = job.getObjectId();
 
         EarthquakeModel earthquake = (EarthquakeModel) repository.getEarthquakeById(earthquakeId);
-        String demandType = earthquake.getRasterDataset().getDemandType();
+        String demandType = earthquake.getHazardDataset().getDemandType();
         String username = earthquake.getCreator();
         String description = "Earthquake visualization";
         String userGroups = "{\"groups\": [\"incore_user\"]}";
         try {
             String datasetId = ServiceUtil.createRasterDataset(hazardFile, demandType + " hazard", username, userGroups,
                 description, HazardConstants.DETERMINISTIC_EARTHQUAKE_HAZARD_SCHEMA);
-            earthquake.getRasterDataset().setDatasetId(datasetId);
+            earthquake.getHazardDataset().setDatasetId(datasetId);
 
             repository.addEarthquake(earthquake);
             log.debug("eq id is = " + earthquakeId);

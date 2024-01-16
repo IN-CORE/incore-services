@@ -23,19 +23,19 @@ public class EarthquakeModel extends Earthquake {
     private final String siteAmplification;
 
     // Visualization raster
-    private HazardDataset rasterDataset;
+    private HazardDataset hazardDataset;
 
     public EarthquakeModel() {
         defaultSiteClass = NEHRPSoilType.D;
         siteAmplification = "NEHRP";
     }
 
-    public void setHazardDataset(HazardDataset rasterDataset) {
-        this.rasterDataset = rasterDataset;
+    public void setHazardDataset(HazardDataset hazardDataset) {
+        this.hazardDataset = hazardDataset;
     }
 
-    public HazardDataset getRasterDataset() {
-        return this.rasterDataset;
+    public HazardDataset getHazardDataset() {
+        return this.hazardDataset;
     }
 
     public Map<String, Double> getAttenuations() {
