@@ -104,6 +104,7 @@ public class TypeController {
     @Operation(summary = "list all types belong user has access to.")
     public Response listTypes(
         @Parameter(name = "Name of the space.") @DefaultValue("") @QueryParam("space") String spaceName,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("name") @QueryParam("sortBy") String sortBy,
         @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("asc") @QueryParam("order") String order,
         @Parameter(name = "Skip the first n results.") @DefaultValue("0") @QueryParam("skip") int offset,
         @Parameter(name = "Limit number of results to return.") @DefaultValue("50") @QueryParam("limit") int limit,
@@ -111,7 +112,7 @@ public class TypeController {
         @Parameter(name = "Return the full response.") @DefaultValue("false") @QueryParam("detail") boolean detail) {
 
         // import type comparator
-        Comparator<Type> comparator = typeComparator("name", order);
+        Comparator<Type> comparator = typeComparator(sortBy, order);
 
         List<Type> typeList = this.typeDAO.getTypes();
 
