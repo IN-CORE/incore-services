@@ -58,9 +58,7 @@ public class Type {
         return title;
     }
 
-    public Columns getTableSchema() {
-        return tableSchema;
-    }
+    public Columns getTableSchema() { return tableSchema; }
 
     public String getVersion() { return version; }
 
@@ -97,7 +95,7 @@ public class Type {
                 } else if (field.getName().equals("version")) {
                     map.put("openvocab:versionnumber", this.getVersion());
 
-                } else if (field.getName().equals("tableSchema")) {
+                } else if (field.getName().equals("tableSchema") && this.getTableSchema().getColumns() != null) {
                     List<Map<String, Object>> updatedTableSchema = this.getTableSchema().getColumns().stream()
                         .map(column -> column.constructOutput())
                         .collect(Collectors.toList());
