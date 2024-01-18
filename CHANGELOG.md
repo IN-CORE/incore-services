@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed 
 - Use Java models to represent semantics [#239](https://github.com/IN-CORE/incore-services/issues/239)
+- Sort Semantic Definition Alphabetically [#238](https://github.com/IN-CORE/incore-services/issues/238)
 
 ## [1.23.0] - 2023-12-13
 
