@@ -3,20 +3,26 @@ package edu.illinois.ncsa.incore.service.semantics.model;
 import dev.morphia.annotations.Embedded;
 import dev.morphia.annotations.Property;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+
 @Embedded
 public class Column {
 
     private String name;
+
     private String titles;
-    private String datatype;
 
     @Property("dc:description")
     private String description;
 
-    @Property("qudt:unit")
-    private String unit;
+    private String datatype;
 
     private String required;
+
+    @Property("qudt:unit")
+    private String unit;
 
     public Column() {
     }
@@ -31,15 +37,15 @@ public class Column {
     }
 
     public String getName() {
-        return this.name;
+        return name;
     }
 
     public String getTitles() {
-        return this.titles;
+        return titles;
     }
 
     public String getDatatype() {
-        return this.datatype;
+        return datatype;
     }
 
     public String getUnit() {
@@ -49,4 +55,31 @@ public class Column {
     public String getDescription() { return description; }
 
     public String getRequired(){ return required; }
+
+    public Map<String, Object> constructOutput() {
+        Map<String, Object> map = new HashMap<>();
+        Field[] fields = Column.class.getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            try {
+                // change field name from description to dc:description, unit to qudt:unit
+                if (field.getName().equals("description")) {
+                    map.put("dc:description", this.getDescription());
+
+                } else if (field.getName().equals("unit")) {
+                    map.put("qudt:unit", this.getUnit());
+
+                } else {
+                    Object value = field.get(this);
+                    map.put(field.getName(), value);
+
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
 }
