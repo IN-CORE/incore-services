@@ -222,7 +222,7 @@ public class EarthquakeController {
                     rasterDataset.setDemandUnits(scenarioEarthquake.getVisualizationParameters().getDemandUnits());
                     rasterDataset.setPeriod(Double.parseDouble(demandComponents[0]));
 
-                    scenarioEarthquake.setHazardDataset(rasterDataset);
+                    scenarioEarthquake.addEarthquakeHazardDataset(rasterDataset);
                     // add creator using username info
                     earthquake.setCreator(this.username);
                     earthquake.setOwner(this.username);
@@ -1080,8 +1080,10 @@ public class EarthquakeController {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
-                if (ServiceUtil.deleteDataset(scenarioEarthquake.getHazardDataset().getDatasetId(), this.username, this.userGroups) == null) {
-                    spaceRepository.addToOrphansSpace(scenarioEarthquake.getHazardDataset().getDatasetId());
+                for (HazardDataset dataset : scenarioEarthquake.getHazardDatasets()) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
                 }
             } else if (eq != null && eq instanceof EarthquakeDataset) {
                 EarthquakeDataset eqDataset = (EarthquakeDataset) eq;

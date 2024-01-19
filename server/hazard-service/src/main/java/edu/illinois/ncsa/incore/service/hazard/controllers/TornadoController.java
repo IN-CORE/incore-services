@@ -263,7 +263,9 @@ public class TornadoController {
 
                 // Store the dataset
                 datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups, files);
-                tornadoModel.setDatasetId(datasetId);
+                // Assuming only one hazardDataset will be created here.
+                TornadoHazardDataset hazardDataset = tornadoModel.getHazardDatasets().get(0);
+                hazardDataset.setDatasetId(datasetId);
 
                 tornado.setCreator(this.username);
                 tornado.setOwner(this.username);
@@ -271,25 +273,40 @@ public class TornadoController {
                 addTornadoToSpace(tornado, this.username);
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
-                datasetId = null;
-                if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
-                    // Create dataset object representation for storing shapefile
-                    JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
-                    // Store the dataset
-                    datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups);
-                    if (datasetId != null) {
-                        // attach files to the dataset
-                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, this.userGroups, fileParts);
-                        if (statusCode != HttpStatus.SC_OK) {
-                            ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
-                            logger.error(tornadoErrorMsg);
-                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
+
+                // We assume the input files in the request are in the same order listed in the tornado dataset object and zipped
+                int hazardDatasetIdx = 0;
+                if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts) &&
+                    (tornadoDataset.getHazardDatasets().size() == fileParts.size())) {
+                    for (FormDataBodyPart filePart: fileParts) {
+                        datasetId = null;
+                        // not sure if this is the right way to handle this
+                        List<FormDataBodyPart> filePartList = new ArrayList<>();
+                        filePartList.add((filePart));
+
+                        TornadoHazardDataset hazardDataset = tornadoDataset.getHazardDatasets().get(hazardDatasetIdx);
+                        hazardDatasetIdx++;
+
+                        // Create dataset object representation for storing shapefile
+                        JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
+                        // Store the dataset
+                        datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups);
+
+                        if (datasetId != null) {
+                            // attach files to the dataset
+                            int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, this.userGroups, filePartList);
+                            if (statusCode != HttpStatus.SC_OK) {
+                                ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
+                                logger.error(tornadoErrorMsg);
+                                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
+                            }
+                        } else {
+                            logger.error(tornadoJsonErrorMsg);
+                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoJsonErrorMsg);
                         }
-                    } else {
-                        logger.error(tornadoJsonErrorMsg);
-                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoJsonErrorMsg);
+                        hazardDataset.setDatasetId(datasetId);
                     }
-                    ((TornadoDataset) tornado).setDatasetId(datasetId);
+
 
                     tornado.setCreator(this.username);
                     tornado.setOwner(this.username);
@@ -531,14 +548,17 @@ public class TornadoController {
             // delete associated datasets
             if (tornado != null && tornado instanceof TornadoModel) {
                 TornadoModel tModel = (TornadoModel) tornado;
-                if (ServiceUtil.deleteDataset(tModel.getDatasetId(), this.username, this.userGroups) == null) {
-                    spaceRepository.addToOrphansSpace(tModel.getDatasetId());
+                for (TornadoHazardDataset dataset: tModel.getHazardDatasets()) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
                 }
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tDataset = (TornadoDataset) tornado;
-                ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups);
-                if (ServiceUtil.deleteDataset(tDataset.getDatasetId(), this.username, this.userGroups) == null) {
-                    spaceRepository.addToOrphansSpace(tDataset.getDatasetId());
+                for (TornadoHazardDataset dataset: tDataset.getHazardDatasets()) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
                 }
             }
 

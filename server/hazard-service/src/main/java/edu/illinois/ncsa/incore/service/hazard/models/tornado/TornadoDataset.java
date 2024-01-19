@@ -16,8 +16,6 @@ public class TornadoDataset extends Tornado {
     // deterministic tornadoes. If there would be multiple files with different probabilities, this should be
     // modified similar to the Earthquake HazardDataset and the Tsunami hazard dataset
 
-    // Remove later
-    private String datasetId;
 
     private List<TornadoHazardDataset> hazardDatasets = new LinkedList<TornadoHazardDataset>();
 
@@ -29,13 +27,6 @@ public class TornadoDataset extends Tornado {
         this.hazardDatasets = hazardDatasets;
     }
 
-    public void addTornadoHazardDataset(TornadoHazardDataset hazardDataset) { hazardDatasets.add(hazardDataset); }
+    public void addTornadoHazardDataset(TornadoHazardDataset hazardDataset) { this.hazardDatasets.add(hazardDataset); }
 
-    public String getDatasetId() {
-        return datasetId;
-    }
-
-    public void setDatasetId(String datasetId) {
-        this.datasetId = datasetId;
-    }
 }

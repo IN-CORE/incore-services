@@ -11,6 +11,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
 import com.google.common.math.LongMath;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
+import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodHazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
@@ -28,6 +29,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.operation.TransformException;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 public class TornadoCalc {
@@ -63,7 +65,7 @@ public class TornadoCalc {
                 scenarioTornado.getTornadoParameters(), seed);
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
-            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username, userGroups);
+            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getHazardDatasets().get(0).getDatasetId(), username, userGroups);
             if (obj == null) {
                 throw new IOException(" Could not calculate the grid coverage for the raster. Possibly because the dataset files are " +
                     "unreadable or not found.");

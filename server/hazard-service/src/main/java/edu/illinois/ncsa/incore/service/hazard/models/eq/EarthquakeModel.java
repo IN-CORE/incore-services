@@ -7,7 +7,10 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
 import dev.morphia.annotations.Entity;
+import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoHazardDataset;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 @Entity("EarthquakeModel")
@@ -23,20 +26,22 @@ public class EarthquakeModel extends Earthquake {
     private final String siteAmplification;
 
     // Visualization raster
-    private HazardDataset hazardDataset;
+    private List<HazardDataset> hazardDatasets = new LinkedList<HazardDataset>();
 
     public EarthquakeModel() {
         defaultSiteClass = NEHRPSoilType.D;
         siteAmplification = "NEHRP";
     }
 
-    public void setHazardDataset(HazardDataset hazardDataset) {
-        this.hazardDataset = hazardDataset;
+    public void setHazardDataset(List<HazardDataset> hazardDatasets) {
+        this.hazardDatasets = hazardDatasets;
     }
 
-    public HazardDataset getHazardDataset() {
-        return this.hazardDataset;
+    public List<HazardDataset> getHazardDatasets() {
+        return this.hazardDatasets;
     }
+
+    public void addEarthquakeHazardDataset(HazardDataset hazardDataset) { this.hazardDatasets.add(hazardDataset); }
 
     public Map<String, Double> getAttenuations() {
         return this.attenuations;
