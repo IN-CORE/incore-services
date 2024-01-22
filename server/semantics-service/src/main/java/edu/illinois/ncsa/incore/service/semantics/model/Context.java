@@ -1,54 +1,31 @@
 package edu.illinois.ncsa.incore.service.semantics.model;
 
 import dev.morphia.annotations.Embedded;
-import dev.morphia.annotations.Property;
+import java.util.Map;
 
 @Embedded
 public class Context {
+    private String namespace;
 
-    @Property("@language")
-    private String language;
-
-    private String gml;
-    private String incore;
-    private String iwfs;
-    private String xlink;
-    private String xsd;
+    private Map<String, String> vocabularies;
 
     public Context() {
     }
 
-    public Context(String language, String gml, String incore, String iwfs,
-                   String xlink, String xsd) {
-        this.language = language;
-        this.gml = gml;
-        this.incore = incore;
-        this.iwfs = iwfs;
-        this.xlink = xlink;
-        this.xsd = xsd;
+    public String getNamespace() {
+        return namespace;
     }
 
-    public String getGml() {
-        return gml;
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 
-    public String getIncore() {
-        return incore;
+    public Map<String, String> getVocabularies() {
+        return vocabularies;
     }
 
-    public String getIwfs() {
-        return iwfs;
+    public void setVocabularies(Map<String, String> vocabularies) {
+        this.vocabularies = vocabularies;
     }
 
-    public String getLanguage() {
-        return language;
-    }
-
-    public String getXlink() {
-        return xlink;
-    }
-
-    public String getXsd() {
-        return xsd;
-    }
 }
