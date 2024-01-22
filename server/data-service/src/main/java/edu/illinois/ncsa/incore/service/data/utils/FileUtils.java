@@ -20,6 +20,13 @@ import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
 import edu.illinois.ncsa.incore.service.data.models.MvzLoader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geopkg.GeoPkgDataStoreFactory;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
@@ -35,6 +42,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 
 /**
  * Created by ywkim on 6/8/2017.
@@ -52,6 +60,7 @@ public class FileUtils {
     public static final String EXTENSION_CSV = "csv";
     public static final String EXTENSION_ZIP = "zip";
     public static final String EXTENSION_PRJ = "prj";
+    public static final String EXTENSION_GPKG = "gpkg";
     public static final String EXTENSION_GEOPACKAGE = "gpkg"; // file extension of geopackage
     public static final int INDENT_SPACE = 4;
     public static final int TYPE_NUMBER_SHP = 1;
@@ -65,6 +74,7 @@ public class FileUtils {
     public static final String DATASET_DESCRIPTION = "description";
     public static final String DATASET_FILE_NAME = "fileName";
     public static final String FORMAT_SHAPEFILE = "shapefile";
+    public static final String FORMAT_GEOPACKAGE = "geopackage";
     public static final String FORMAT_NETWORK = "shp-network";
     public static final String NETWORK_COMPONENT = "networkDataset";
     public static final String NETWORK_LINK = "link";
@@ -856,7 +866,8 @@ public class FileUtils {
         if (geoserverEnabled) {
             String fileExt = FilenameUtils.getExtension(examinedFile);
             if (fileExt.equalsIgnoreCase("shp") || fileExt.equalsIgnoreCase("asc")
-                || fileExt.equalsIgnoreCase("tif") || fileExt.equalsIgnoreCase("zip")) {
+                || fileExt.equalsIgnoreCase("tif") || fileExt.equalsIgnoreCase("zip")
+                || fileExt.equalsIgnoreCase("gpkg")) {
                 useGeoserver = true;
             }
         }
@@ -875,5 +886,71 @@ public class FileUtils {
             deleteFiles(delFile);
             deleteFiles(delParent);
         }
+    }
+
+    /**
+     * create a temporary geopackage file with the layer's name with dataset it
+     *
+     * @param inFile
+     * @param store
+     * @return
+     * @throws IOException
+     */
+    public static File generateRenameGpkgDbName(File inFile, String store) throws IOException {
+        File renamedGpkgFile = null;
+
+        try {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put(GeoPkgDataStoreFactory.DBTYPE.key, "geopkg");
+            map.put(GeoPkgDataStoreFactory.DATABASE.key, inFile.getAbsoluteFile());
+            DataStore dataStore = DataStoreFinder.getDataStore(map);
+            if (dataStore == null) {
+                throw new IOException("Unable to open geopackage file");
+            }
+
+            // get all layer names in input geopackage file
+            String[] layerNames = dataStore.getTypeNames();
+
+            // input geopackage should only have a single layer
+            if (layerNames.length == 1) {
+                String oldLayerName = layerNames[0];
+
+                // create temp directory
+                String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+
+                renamedGpkgFile = new File(tempDir + File.separator + store + ".gpkg");
+
+                // get input geopackage layer
+                SimpleFeatureStore oldFeatureStore = (SimpleFeatureStore) dataStore.getFeatureSource(oldLayerName);
+
+                // create a new geopackage file in temp directory
+                map.put(GeoPkgDataStoreFactory.DATABASE.key, renamedGpkgFile);
+                DataStore newDataStore = DataStoreFinder.getDataStore(map);
+
+                // create a schema for new geopackage by copying from input one
+                SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+                builder.init(oldFeatureStore.getSchema());
+                builder.setName(store);
+                SimpleFeatureType newSchema = builder.buildFeatureType();
+                newDataStore.createSchema(newSchema);
+
+                SimpleFeatureStore newFeatureStore = (SimpleFeatureStore) newDataStore.getFeatureSource(store);
+
+                // copy old layer to new layer
+                SimpleFeatureCollection oldFeatures = oldFeatureStore.getFeatures();
+                newFeatureStore.addFeatures(oldFeatures);
+
+                dataStore.removeSchema(oldLayerName);
+
+                dataStore.dispose();
+                newDataStore.dispose();
+            } else {
+                throw new IOException("There are multiple layers in the GeoPackage");
+            }
+        } catch (IOException e) {
+            throw new IOException("Unable to open geopackage file.");
+        }
+
+        return renamedGpkgFile;
     }
 }
