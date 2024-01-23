@@ -96,8 +96,7 @@ public class Type {
                     map.put("openvocab:versionnumber", this.getVersion());
 
                 } else if (field.getName().equals("tableSchema") && this.getTableSchema().getColumns() != null) {
-                    List<Map<String, Object>> updatedTableSchema = this.getTableSchema()
-                        .getSortedColumns("name", "asc").stream()
+                    List<Map<String, Object>> updatedTableSchema = this.getTableSchema().getColumns().stream()
                         .map(column -> column.constructOutput())
                         .collect(Collectors.toList());
                     Map<String, Object> columns = new HashMap<>();
