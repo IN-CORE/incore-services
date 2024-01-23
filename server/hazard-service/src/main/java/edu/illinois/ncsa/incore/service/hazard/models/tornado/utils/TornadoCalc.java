@@ -11,7 +11,6 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado.utils;
 
 import com.google.common.math.LongMath;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.utils.HazardUtil;
-import edu.illinois.ncsa.incore.service.hazard.models.flood.FloodHazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.*;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.WindHazardResult;
@@ -29,7 +28,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.operation.TransformException;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 public class TornadoCalc {
