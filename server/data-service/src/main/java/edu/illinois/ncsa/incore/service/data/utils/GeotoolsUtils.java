@@ -44,6 +44,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -969,33 +970,47 @@ public class GeotoolsUtils {
     }
 
     /**
-     * check if geopackage has single layer and layer name is the same as the file name
+     * check if geopackage has single layer
+     * and layer name is the same as the file name
+     * and layer is not raster
+     * since incore-services doesn't support raster geopackage yet
      *
      * @param inFile
      * @return
+     *          0: okay
+     *          1: data is raster or no vector layer
+     *          2: multiple vector layer
+     *          3: name not matching
      * @throws IOException
      */
-    public static boolean isGpkgSingleLayer(File inFile) throws IOException {
-        Boolean output = false;
+    public static int isGpkgFitToService(File inFile) throws IOException {
+        int output = 0;
         try {
             HashMap<String, Object> map = new HashMap<>();
             map.put(GeoPkgDataStoreFactory.DBTYPE.key, "geopkg");
             map.put(GeoPkgDataStoreFactory.DATABASE.key, inFile.getAbsoluteFile());
             DataStore dataStore = DataStoreFinder.getDataStore(map);
+
             if (dataStore == null) {
                 throw new IOException("Unable to open geopackage file");
             }
 
             // get all layer names in input geopackage file
+            // if the layerNames list is more than one, it means there are multiple vector layer
+            // if the layerNames list empty then, there is no vector layer or it could be a raster data
             String[] layerNames = dataStore.getTypeNames();
 
             if (layerNames.length == 1) {
                 // check if the layername is the same as file name
                 String layerName = layerNames[0];
                 String fileName = inFile.getName().split("\\.")[0];
-                if (layerName.equals(fileName)) {
-                    output = true;
+                if (!layerName.equals(fileName)) {
+                     return 3;
                 }
+            } else if (layerNames.length == 0) {
+                return 1;
+            } else if (layerNames.length > 1) {
+                return 2;
             }
         } catch (IOException e) {
             throw new IOException("Unable to open geopackage file.");

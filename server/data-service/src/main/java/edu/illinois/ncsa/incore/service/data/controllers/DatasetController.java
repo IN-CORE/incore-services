@@ -893,12 +893,25 @@ public class DatasetController {
             }
             File tmpFile = new File(FilenameUtils.concat(DATA_REPO_FOLDER, dataFDs.get(0).getDataURL()));
 
-            // check if geopackage only has a single layer and the layer name is the same as file name
-            if (!GeotoolsUtils.isGpkgSingleLayer(tmpFile)) {
+            // check if geopackage only has a single layer
+            // and the layer name is the same as file name
+            // and it is not the raster data since incore-service doesn't support it yet
+            int isGpkgFit = GeotoolsUtils.isGpkgFitToService(tmpFile);
+            if (isGpkgFit != 0) {
                 FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
-                logger.debug("The geopackage has to have a single layer, and layer name should be the same as file name.");
-                throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
-                    "Geopackage is not a single layer or layer name is not the same as file name.");
+                if (isGpkgFit == 1) {
+                    logger.debug("The geopackage has not vector layer or contains the raster layer that is not being supported yet.");
+                    throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                        "The geopackage has no vector layer or contains the raster layer that is not being supported yet.");
+                } else if (isGpkgFit == 2) {
+                    logger.debug("The geopackage has to have a single layer.");
+                    throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                        "The geopackage has to have a single layer.");
+                } else if (isGpkgFit == 3) {
+                    logger.debug("The geopackage's'layer name should be the same as file name.");
+                    throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
+                        "The geopackage's'layer name should be the same as file name.");
+                }
             }
 
             // check if geopackage has guid
