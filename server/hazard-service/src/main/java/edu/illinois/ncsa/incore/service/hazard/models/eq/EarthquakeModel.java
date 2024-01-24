@@ -7,7 +7,6 @@
 package edu.illinois.ncsa.incore.service.hazard.models.eq;
 
 import dev.morphia.annotations.Entity;
-import edu.illinois.ncsa.incore.service.hazard.models.tornado.TornadoHazardDataset;
 
 import java.util.LinkedList;
 import java.util.List;

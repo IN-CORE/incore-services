@@ -23,7 +23,11 @@ public class TornadoModel extends Tornado {
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;
 
-    private List<TornadoHazardDataset> hazardDatasets = new LinkedList<TornadoHazardDataset>();
+    private List<TornadoHazardDataset> hazardDatasets;
+
+    public TornadoModel(){
+        this.hazardDatasets = new LinkedList<>();
+    }
 
     public List<TornadoHazardDataset> getHazardDatasets() {
         return hazardDatasets;
