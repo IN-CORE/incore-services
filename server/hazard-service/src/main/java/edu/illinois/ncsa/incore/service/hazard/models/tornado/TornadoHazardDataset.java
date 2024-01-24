@@ -1,10 +1,8 @@
 package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import dev.morphia.annotations.Embedded;
 
-//@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hazardType")
 @Embedded
 public class TornadoHazardDataset {
     private String datasetId;

@@ -182,7 +182,6 @@ public class TornadoController {
     @Operation(summary = "Creates a new tornado, the newly created tornado is returned.",
         description = "Additionally, a GeoTiff (raster) is created by default and publish to data repository. " +
             "User can create both model tornadoes and dataset-based tornadoes with GeoTiff files uploaded.")
-
     @RequestBody(description = "Tornado json and files.", required = true,
         content = @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED,
             schema = @Schema(type = "object",
@@ -264,8 +263,15 @@ public class TornadoController {
                 // Store the dataset
                 datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups, files);
                 // Assuming only one hazardDataset will be created here.
-                TornadoHazardDataset hazardDataset = tornadoModel.getHazardDatasets().get(0);
+                // construct tornado hazardDatasets
+                TornadoHazardDataset hazardDataset = new TornadoHazardDataset();
                 hazardDataset.setDatasetId(datasetId);
+                hazardDataset.setDemandType(TornadoHazard.DEMAND_TYPE);
+                hazardDataset.setDemandUnits(TornadoHazard.WIND_MPH);
+                hazardDataset.setThreshold(null);
+                List<TornadoHazardDataset> hazardDatasetsList = new ArrayList<>();
+                hazardDatasetsList.add(0, hazardDataset);
+                tornadoModel.setHazardDatasets(hazardDatasetsList);
 
                 tornado.setCreator(this.username);
                 tornado.setOwner(this.username);
@@ -274,39 +280,34 @@ public class TornadoController {
             } else if (tornado != null && tornado instanceof TornadoDataset) {
                 TornadoDataset tornadoDataset = (TornadoDataset) tornado;
 
-                // We assume the input files in the request are in the same order listed in the tornado dataset object and zipped
-                int hazardDatasetIdx = 0;
-                if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts) &&
-                    (tornadoDataset.getHazardDatasets().size() == fileParts.size())) {
-                    for (FormDataBodyPart filePart: fileParts) {
-                        datasetId = null;
-                        // not sure if this is the right way to handle this
-                        List<FormDataBodyPart> filePartList = new ArrayList<>();
-                        filePartList.add((filePart));
+                if (fileParts != null && !fileParts.isEmpty() && TornadoUtils.validateDatasetTypes(fileParts)) {
+                    // Create dataset object representation for storing shapefile
+                    JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
+                    // Store the dataset
+                    datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups);
 
-                        TornadoHazardDataset hazardDataset = tornadoDataset.getHazardDatasets().get(hazardDatasetIdx);
-                        hazardDatasetIdx++;
-
-                        // Create dataset object representation for storing shapefile
-                        JSONObject datasetObject = TornadoUtils.getTornadoDatasetObject("Tornado Hazard", "EF Boxes representing tornado");
-                        // Store the dataset
-                        datasetId = ServiceUtil.createDataset(datasetObject, this.username, this.userGroups);
-
-                        if (datasetId != null) {
-                            // attach files to the dataset
-                            int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, this.userGroups, filePartList);
-                            if (statusCode != HttpStatus.SC_OK) {
-                                ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
-                                logger.error(tornadoErrorMsg);
-                                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
-                            }
-                        } else {
-                            logger.error(tornadoJsonErrorMsg);
-                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoJsonErrorMsg);
+                    if (datasetId != null) {
+                        // attach files to the dataset
+                        int statusCode = ServiceUtil.attachFileToTornadoDataset(datasetId, this.username, this.userGroups, fileParts);
+                        if (statusCode != HttpStatus.SC_OK) {
+                            ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
+                            logger.error(tornadoErrorMsg);
+                            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
                         }
-                        hazardDataset.setDatasetId(datasetId);
-                    }
 
+                        // construct tornado hazardDatasets
+                        TornadoHazardDataset hazardDataset = new TornadoHazardDataset();
+                        hazardDataset.setDatasetId(datasetId);
+                        hazardDataset.setDemandType(TornadoHazard.DEMAND_TYPE);
+                        hazardDataset.setDemandUnits(TornadoHazard.WIND_MPH);
+                        hazardDataset.setThreshold(null);
+                        List<TornadoHazardDataset> hazardDatasetsList = new ArrayList<>();
+                        hazardDatasetsList.add(0, hazardDataset);
+                        tornadoDataset.setHazardDatasets(hazardDatasetsList);
+                    } else {
+                        logger.error(tornadoJsonErrorMsg);
+                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoJsonErrorMsg);
+                    }
 
                     tornado.setCreator(this.username);
                     tornado.setOwner(this.username);
@@ -331,7 +332,6 @@ public class TornadoController {
         }
         ServiceUtil.deleteDataset(datasetId, this.username, this.userGroups);
         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoErrorMsg);
-
     }
 
     @GET
