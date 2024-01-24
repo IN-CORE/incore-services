@@ -269,9 +269,7 @@ public class TornadoController {
                 hazardDataset.setDemandType(TornadoHazard.DEMAND_TYPE);
                 hazardDataset.setDemandUnits(TornadoHazard.WIND_MPH);
                 hazardDataset.setThreshold(null);
-                List<TornadoHazardDataset> hazardDatasetsList = new ArrayList<>();
-                hazardDatasetsList.add(0, hazardDataset);
-                tornadoModel.setHazardDatasets(hazardDatasetsList);
+                tornadoModel.addTornadoHazardDataset(hazardDataset);
 
                 tornado.setCreator(this.username);
                 tornado.setOwner(this.username);
@@ -301,9 +299,7 @@ public class TornadoController {
                         hazardDataset.setDemandType(TornadoHazard.DEMAND_TYPE);
                         hazardDataset.setDemandUnits(TornadoHazard.WIND_MPH);
                         hazardDataset.setThreshold(null);
-                        List<TornadoHazardDataset> hazardDatasetsList = new ArrayList<>();
-                        hazardDatasetsList.add(0, hazardDataset);
-                        tornadoDataset.setHazardDatasets(hazardDatasetsList);
+                        tornadoDataset.addTornadoHazardDataset(hazardDataset);
                     } else {
                         logger.error(tornadoJsonErrorMsg);
                         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, tornadoJsonErrorMsg);
