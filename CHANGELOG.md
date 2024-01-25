@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Add `hazardDatasets` field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
+
 ### Changed 
 - Use Java models to represent semantics [#239](https://github.com/IN-CORE/incore-services/issues/239)
 - Sort Semantic Definition Alphabetically [#238](https://github.com/IN-CORE/incore-services/issues/238)
