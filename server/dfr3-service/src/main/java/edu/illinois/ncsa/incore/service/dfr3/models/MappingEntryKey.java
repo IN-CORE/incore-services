@@ -10,6 +10,7 @@
 
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Entity;
 
 @Entity("mappingEntryKeys")
@@ -17,6 +18,8 @@ public class MappingEntryKey {
     private String name;
     private String description;
     private Boolean defaultKey;
+
+    @JsonProperty("config")
     private MappingEntryKeyConfig config;
 
     public String getName() {
@@ -41,6 +44,14 @@ public class MappingEntryKey {
 
     public void setDefaultKey(Boolean defaultKey){
         this.defaultKey = defaultKey;
+    }
+
+    public MappingEntryKeyConfig getConfig(){
+        return config;
+    }
+
+    public void setConfig(MappingEntryKeyConfig config){
+        this.config = config;
     }
 
 }
