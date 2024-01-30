@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.opencsv.CSVReader;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.utils.GeoUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -983,7 +984,7 @@ public class GeotoolsUtils {
      *          3: name not matching
      * @throws IOException
      */
-    public static int isGpkgFitToService(File inFile) throws IOException {
+    public static GeoUtils.gpkgValidationResult  isGpkgFitToService(File inFile) throws IOException {
         int output = 0;
         try {
             HashMap<String, Object> map = new HashMap<>();
@@ -1005,18 +1006,18 @@ public class GeotoolsUtils {
                 String layerName = layerNames[0];
                 String fileName = inFile.getName().split("\\.")[0];
                 if (!layerName.equals(fileName)) {
-                     return 3;
+                     return GeoUtils.gpkgValidationResult.NAME_MISMATCH;
                 }
             } else if (layerNames.length == 0) {
-                return 1;
+                return GeoUtils.gpkgValidationResult.RASTER_OR_NO_VECTOR_LAYER;
             } else if (layerNames.length > 1) {
-                return 2;
+                return GeoUtils.gpkgValidationResult.MULTIPLE_VECTOR_LAYERS;
             }
         } catch (IOException e) {
             throw new IOException("Unable to open geopackage file.");
         }
 
-        return output;
+        return GeoUtils.gpkgValidationResult.VALID;
     }
 }
 

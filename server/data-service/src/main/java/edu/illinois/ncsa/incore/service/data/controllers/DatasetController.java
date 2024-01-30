@@ -27,6 +27,7 @@ import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.utils.GeoUtils;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import edu.illinois.ncsa.incore.service.data.models.FileDescriptor;
@@ -896,18 +897,18 @@ public class DatasetController {
             // check if geopackage only has a single layer
             // and the layer name is the same as file name
             // and it is not the raster data since incore-service doesn't support it yet
-            int isGpkgFit = GeotoolsUtils.isGpkgFitToService(tmpFile);
-            if (isGpkgFit != 0) {
+            GeoUtils.gpkgValidationResult isGpkgFit = GeotoolsUtils.isGpkgFitToService(tmpFile);
+            if (isGpkgFit != GeoUtils.gpkgValidationResult.VALID) {
                 FileUtils.removeFilesFromFileDescriptor(dataset.getFileDescriptors());
-                if (isGpkgFit == 1) {
+                if (isGpkgFit == GeoUtils.gpkgValidationResult.RASTER_OR_NO_VECTOR_LAYER) {
                     logger.debug("The geopackage has not vector layer or contains the raster layer that is not being supported yet.");
                     throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
                         "The geopackage has no vector layer or contains the raster layer that is not being supported yet.");
-                } else if (isGpkgFit == 2) {
+                } else if (isGpkgFit == GeoUtils.gpkgValidationResult.MULTIPLE_VECTOR_LAYERS) {
                     logger.debug("The geopackage has to have a single layer.");
                     throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
                         "The geopackage has to have a single layer.");
-                } else if (isGpkgFit == 3) {
+                } else if (isGpkgFit == GeoUtils.gpkgValidationResult.NAME_MISMATCH) {
                     logger.debug("The geopackage's'layer name should be the same as file name.");
                     throw new IncoreHTTPException(Response.Status.NOT_ACCEPTABLE,
                         "The geopackage's'layer name should be the same as file name.");
