@@ -63,7 +63,7 @@ public class TornadoCalc {
                 scenarioTornado.getTornadoParameters(), seed);
         } else {
             TornadoDataset tornadoDataset = (TornadoDataset) tornado;
-            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getDatasetId(), username, userGroups);
+            Object obj = GISUtil.getFeatureCollection(tornadoDataset.getHazardDatasets().get(0).getDatasetId(), username, userGroups);
             if (obj == null) {
                 throw new IOException(" Could not calculate the grid coverage for the raster. Possibly because the dataset files are " +
                     "unreadable or not found.");
