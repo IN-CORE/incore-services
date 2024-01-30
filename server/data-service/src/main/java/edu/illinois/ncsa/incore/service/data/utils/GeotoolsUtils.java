@@ -978,10 +978,6 @@ public class GeotoolsUtils {
      *
      * @param inFile
      * @return
-     *          0: okay
-     *          1: data is raster or no vector layer
-     *          2: multiple vector layer
-     *          3: name not matching
      * @throws IOException
      */
     public static GeoUtils.gpkgValidationResult  isGpkgFitToService(File inFile) throws IOException {
