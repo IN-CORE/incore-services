@@ -39,7 +39,7 @@ public class MappingSet {
     private String creator;
     private String owner;
 
-    private Retrofit[] retrofitDefinitions;
+    private MappingEntryKey[] mappingEntryKeys;
 
     /**
      * spaces the object belongs to. Calculated at runtime.
@@ -99,11 +99,11 @@ public class MappingSet {
         this.mappingType = mappingType;
     }
 
-    public Retrofit[] getRetrofitDefinitions() {
-        return retrofitDefinitions;
+    public MappingEntryKey[] getMappingEntryKeys() {
+        return mappingEntryKeys;
     }
 
-    public void setRetrofitDefinitions(Retrofit[] retrofitDefinitions) {
-        this.retrofitDefinitions = retrofitDefinitions;
+    public void setRetrofitDefinitions(MappingEntryKey[] mappingEntryKeys) {
+        this.mappingEntryKeys = mappingEntryKeys;
     }
 }
