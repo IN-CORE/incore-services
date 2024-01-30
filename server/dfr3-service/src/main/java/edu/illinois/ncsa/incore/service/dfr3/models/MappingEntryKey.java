@@ -11,9 +11,9 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Embedded;
 
-@Entity("mappingEntryKeys")
+@Embedded
 public class MappingEntryKey {
     private String name;
     private String description;

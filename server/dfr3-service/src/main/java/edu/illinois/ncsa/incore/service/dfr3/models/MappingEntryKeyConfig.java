@@ -1,8 +1,8 @@
 package edu.illinois.ncsa.incore.service.dfr3.models;
 
-import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Embedded;
 
-@Entity("config")
+@Embedded
 public class MappingEntryKeyConfig {
     private String unit;
     private String type;
