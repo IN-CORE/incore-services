@@ -140,9 +140,21 @@ public class GeoserverRestApi {
      * @param store
      * @param inFile
      * @param inExt
+     * @param renameLayer
      * @return
      */
-    public boolean uploadToGeoserver(String store, File inFile, String inExt) {
+    public boolean uploadToGeoserver(String store, File inFile, String inExt, Boolean renameLayer) {
+        // in here, there are two ways to upload file to geoserver
+        // 1. rename the layer name different from the file name
+        // 2. upload the file with the original file name so the layer name becomes the file name
+        // when the layer name needs to be renamed, the steps should be:
+        // 1. create datastore with the file (shapefile or geopackage)
+        // 2. create layer with xml to control the name to be changed to dataset id.
+        // the reason of using one method that is for renaming one can't be sued for the both cases is because
+        // when the datastore created with the file name and create layer without renaming it,
+        // createLayer method will make an error in GeoServer side, complaining the data with the name already exists
+        // so there should be two different methods in uploading, renaming and not renaming
+
         String fileName = FilenameUtils.getBaseName(inFile.getName());
 
         // check if workspace exists
@@ -150,36 +162,51 @@ public class GeoserverRestApi {
         boolean published = false;
 
         if (inExt.equalsIgnoreCase("shp")) {
-            String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/" + store + "/file.shp";
-            published = this.postFileToGeoserver(restUrl, inFile, "zip");
+            if (renameLayer) {
+                published =  this.uploadToGeoserverWithRenaming(fileName, store, inFile, "shapefile");
+            } else {
+                String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/" + store + "/file.shp";
+                published = this.postFileToGeoserver(restUrl, inFile, "zip");
+            }
         } else if (inExt.equalsIgnoreCase("gpkg")) {
-            // geopackage should have different steps due to its renaming convention in IN-CORE
-            // since IN-CORE uses the dataset id as a file name in geoserver, the geopackage name needs to be renamed to dataset id
-            // to rename, the POST action should create datastore first with the geopackage data,
-            // then create layer with xml to control the name to be changed to dataset id.
-            // if you don't need to rename, set renameData boolean in following line to false
-            Boolean renameData = true;
-            if (renameData) {
-                // create datastore then create layer
-                try {
-                    String restUrl = this.geoserverUrl + "/rest";
-                    String fileNameNoExt = fileName.split("\\.")[0];
-                    int datastoreResponse = createDatastore(restUrl, GEOSERVER_WORKSPACE, store, inFile.getAbsolutePath(), "geopackage");
-                    int layerResponse = createLayer(restUrl, GEOSERVER_WORKSPACE, store, store, fileNameNoExt);
-                    if (datastoreResponse == 201 && layerResponse == 201) {
-                        published = true;
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            if (renameLayer) {
+                published = this.uploadToGeoserverWithRenaming(fileName, store, inFile, "geopackage");
             } else{
                 String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/" + store +
                     "/file.gpkg?configure=all&name=" + store;
                 published = this.postFileToGeoserver(restUrl, inFile, "gpkg");
             }
         } else if (inExt.equalsIgnoreCase("tif")) {
+            // currently, renaming of the raster layer is not being supported
             String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/coveragestores/" + store + "/file.geotiff";
             published = this.postFileToGeoserver(restUrl, inFile, "tif");
+        }
+
+        return published;
+    }
+
+    /**
+     * upload file to geoserver with renaming
+     * this method is for the case when the file name is different from published layer name
+     *
+     * @param fileName
+     * @param store
+     * @param inFile
+     * @param fileForamt
+     * @return
+     */
+    public Boolean uploadToGeoserverWithRenaming(String fileName, String store, File inFile, String fileForamt) {
+        Boolean published = false;
+        try {
+            String restUrl = this.geoserverUrl + "/rest";
+            String fileNameNoExt = fileName.split("\\.")[0];
+            int datastoreResponse = createDatastore(restUrl, GEOSERVER_WORKSPACE, store, inFile.getAbsolutePath(), fileForamt);
+            int layerResponse = createLayer(restUrl, GEOSERVER_WORKSPACE, store, store, fileNameNoExt);
+            if (datastoreResponse == 201 && layerResponse == 201) {
+                published = true;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         return published;
