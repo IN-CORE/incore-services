@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - GeoPakage handling in services  [#205](https://github.com/IN-CORE/incore-services/issues/205)
 - Raster GeoPackage checker for not supporting it [#258](https://github.com/IN-CORE/incore-services/issues/258)
+- `hazardDatasets` field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
 
 ### Changed 
 - Use Java models to represent semantics [#239](https://github.com/IN-CORE/incore-services/issues/239)
+- Sort Semantic Definition Alphabetically [#238](https://github.com/IN-CORE/incore-services/issues/238)
 
 ## [1.23.0] - 2023-12-13
 

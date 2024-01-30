@@ -9,6 +9,7 @@ import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -82,19 +83,36 @@ public class MongoDBTypeDAO extends MongoDAO implements ITypeDAO {
         return matchTypeList;
     }
 
-    private Boolean checkNewType(Document newType) {
+    private Boolean validateType(Document newType) {
         return newType.get("@context") != null
             && newType.get("dc:license") != null
             && newType.get("dc:title") != null
             && newType.get("dc:description") != null
             && newType.get("url") != null
             && newType.get("openvocab:versionnumber") != null
-            && newType.get("tableSchema") != null;
+            && newType.get("tableSchema") != null
+            && validateSchema((Map<String, List>) newType.get("tableSchema"));
+    }
+
+    private Boolean validateSchema(Map<String, List> tableSchema) {
+        List<Map<String, String>> columns = tableSchema.get("columns");
+        for (Map<String, String> column : columns) {
+            if (column.get("dc:description") != null
+                && column.get("datatype") != null
+                && column.get("name") != null
+                && column.get("titles") != null
+                && column.get("qudt:unit") != null
+                && column.get("required") != null) {
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public Document postType(Document newType) {
-        if (newType != null && checkNewType(newType)) {
+        if (newType != null && validateType(newType)) {
             String name = newType.get("dc:title").toString();
             if (this.hasType(name))
                 throw new IncoreHTTPException(Response.Status.UNAUTHORIZED, name + " already exists.");
