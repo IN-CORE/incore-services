@@ -358,7 +358,9 @@ public class TypeController {
             results = new ArrayList<>();
         }
 
-        return Response.ok(results).status(200)
+        return Response.ok(results.stream()
+                .map(type -> type.constructOutput())
+                .collect(Collectors.toList())).status(200)
             .build();
     }
 

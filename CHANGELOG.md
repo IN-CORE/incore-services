@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Use Java models to represent semantics [#239](https://github.com/IN-CORE/incore-services/issues/239)
 - Sort Semantic Definition Alphabetically [#238](https://github.com/IN-CORE/incore-services/issues/238)
 
+### Fixed
+- Fix Semantic search endpoint return format [#267](https://github.com/IN-CORE/incore-services/issues/267)
+
 ## [1.23.0] - 2023-12-13
 
 ### Changed
