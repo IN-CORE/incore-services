@@ -138,7 +138,6 @@ public class GeoserverRestApi {
             return published;
         } catch (Exception e) {
             logger.error("Failed to POST to geoserver rest api", e);
-            System.out.println(e);
             return false;
         }
     }
@@ -447,7 +446,6 @@ public class GeoserverRestApi {
             }
         } catch (Exception e) {
             logger.error("Failed to Delete to geoserver rest api", e);
-            System.out.println(e);
             return false;
         }
         return isDeleted;
