@@ -215,6 +215,7 @@ public class GeoserverRestApi {
                 published = true;
             }
         } catch (IOException e) {
+            logger.error("Failed to upload to geoserver with renaming", e);
             throw new RuntimeException(e);
         }
 
