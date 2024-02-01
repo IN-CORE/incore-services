@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Add `hazardDatasets` field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
+- Renaming option for uploading geoserver layers [#259](https://github.com/IN-CORE/incore-services/issues/259)
 - GeoPakage handling in services  [#205](https://github.com/IN-CORE/incore-services/issues/205)
 - Raster GeoPackage checker for not supporting it [#258](https://github.com/IN-CORE/incore-services/issues/258)
 - `hazardDatasets` field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
