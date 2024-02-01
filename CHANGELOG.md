@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Add `hazardDatasets` field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
+- GeoPakage handling in services  [#205](https://github.com/IN-CORE/incore-services/issues/205)
+- Raster GeoPackage checker for not supporting it [#258](https://github.com/IN-CORE/incore-services/issues/258)
+- `hazardDatasets` field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
 
 ### Changed 
 - Use Java models to represent semantics [#239](https://github.com/IN-CORE/incore-services/issues/239)
@@ -31,7 +33,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.21.0] - 2023-10-11
 
 ### Added
-- Geopakage handling in services  [#205](https://github.com/IN-CORE/incore-services/issues/205)
 - Template dataset generation (CSV and Shapefile) API to semantics-service [#214](https://github.com/IN-CORE/incore-services/issues/214)
 - Owner item added to the dataset, hazard, and dfr3 object [#92](https://github.com/IN-CORE/incore-services/issues/92)
 - Attenuation model Sadigh et al. 1997 [#208](https://github.com/IN-CORE/incore-services/issues/208)
