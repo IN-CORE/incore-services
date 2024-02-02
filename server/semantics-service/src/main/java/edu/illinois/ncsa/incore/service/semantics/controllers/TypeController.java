@@ -47,7 +47,7 @@ import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeCo
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
-        version = "1.23.0",
+        version = "1.24.0",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
