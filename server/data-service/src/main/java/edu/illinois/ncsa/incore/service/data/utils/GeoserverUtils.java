@@ -59,7 +59,8 @@ public class GeoserverUtils {
                 double[] bbox = GeotoolsUtils.getBboxFromShp(new File(fileName));
                 dataset.setBoundingBox(bbox);
                 repository.addDataset(dataset);
-                published = gsApi.uploadToGeoserver(datasetId, outFile, inExt);
+                // layer in geoserver doesn't have to be renamed
+                published = gsApi.uploadToGeoserver(datasetId, outFile, inExt, false);
             } else if (isTif == true || isAsc == true) {
                 if (isTif) {
                     inExt = "tif";
@@ -70,7 +71,8 @@ public class GeoserverUtils {
                 double[] bbox = GeotoolsUtils.getBboxFromGrid(outFile);
                 dataset.setBoundingBox(bbox);
                 repository.addDataset(dataset);
-                published = gsApi.uploadToGeoserver(datasetId, outFile, inExt);
+                // layer in geoserver doesn't have to be renamed
+                published = gsApi.uploadToGeoserver(datasetId, outFile, inExt, false);
             }
         }
 
@@ -100,8 +102,9 @@ public class GeoserverUtils {
             double[] bbox = GeotoolsUtils.getBboxFromShp(new File(linkFileName));
             dataset.setBoundingBox(bbox);
             repository.addDataset(dataset);
-            link_published = gsApi.uploadToGeoserver(datasetId, outFiles[0], inExt);
-            node_published = gsApi.uploadToGeoserver(datasetId, outFiles[1], inExt);
+            // layer in geoserver doesn't have to be renamed
+            link_published = gsApi.uploadToGeoserver(datasetId, outFiles[0], inExt, false);
+            node_published = gsApi.uploadToGeoserver(datasetId, outFiles[1], inExt, false);
 
         }
 
@@ -131,7 +134,8 @@ public class GeoserverUtils {
      */
     public static boolean uploadGpkgToGeoserver(String store, File gpkgFile) {
         GeoserverRestApi gsApi = GeoserverRestApi.createGeoserverApi();
-        boolean isPublished = gsApi.uploadToGeoserver(store, gpkgFile, "gpkg");
+        // layer in geoserver doesn't have to be renamed to dataset id
+        boolean isPublished = gsApi.uploadToGeoserver(store, gpkgFile, "gpkg", true);
 
         return isPublished;
     }

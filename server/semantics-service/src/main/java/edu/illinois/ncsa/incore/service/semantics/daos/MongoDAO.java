@@ -10,13 +10,17 @@
 
 package edu.illinois.ncsa.incore.service.semantics.daos;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoClients;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
+import dev.morphia.mapping.DiscriminatorFunction;
+import dev.morphia.mapping.MapperOptions;
+import edu.illinois.ncsa.incore.service.semantics.model.Type;
 
 public abstract class MongoDAO {
     protected MongoClientURI mongoClientURI;
-    protected MongoCollection typeDataStore;
+    protected Datastore typeDataStore;
     protected String databaseName;
 
     public MongoDAO(MongoClientURI mongoClientURI) {
@@ -25,13 +29,22 @@ public abstract class MongoDAO {
     }
 
     public void initializeDataStore() {
-        MongoClient client = new MongoClient(mongoClientURI);
-        this.typeDataStore = client.getDatabase(databaseName).getCollection("Type");
+        Datastore morphiaStore = Morphia.createDatastore(MongoClients.create(mongoClientURI.getURI()),
+            mongoClientURI.getDatabase(),
+            MapperOptions
+                .builder()
+                .discriminator(DiscriminatorFunction.className())
+                .discriminatorKey("className")
+                .build()
+        );
+        morphiaStore.getMapper().map(Type.class);
+        morphiaStore.ensureIndexes();
+        this.typeDataStore = morphiaStore;
+
     }
 
-    public MongoCollection getTypeDataStore() {
+    public Datastore getTypeDataStore() {
         return this.typeDataStore;
     }
-
 
 }

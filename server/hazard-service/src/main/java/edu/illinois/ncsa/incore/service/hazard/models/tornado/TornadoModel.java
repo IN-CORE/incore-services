@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.hazard.models.tornado;
 import dev.morphia.annotations.Entity;
 import edu.illinois.ncsa.incore.service.hazard.models.tornado.types.EFBox;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity("TornadoModel")
@@ -21,7 +22,22 @@ public class TornadoModel extends Tornado {
     private TornadoParameters tornadoParameters;
     private List<Double> tornadoWidth;
     private List<EFBox> efBoxes;
-    private String datasetId;
+
+    private List<TornadoHazardDataset> hazardDatasets;
+
+    public TornadoModel(){
+        this.hazardDatasets = new LinkedList<>();
+    }
+
+    public List<TornadoHazardDataset> getHazardDatasets() {
+        return hazardDatasets;
+    }
+
+    public void setHazardDatasets(List<TornadoHazardDataset> hazardDatasets) {
+        this.hazardDatasets = hazardDatasets;
+    }
+
+    public void addTornadoHazardDataset(TornadoHazardDataset hazardDataset) { this.hazardDatasets.add(hazardDataset); }
 
     public List<Double> getTornadoWidth() {
         return tornadoWidth;
@@ -56,11 +72,4 @@ public class TornadoModel extends Tornado {
         this.tornadoModel = tornadoModel;
     }
 
-    public String getDatasetId() {
-        return datasetId;
-    }
-
-    public void setDatasetId(String datasetId) {
-        this.datasetId = datasetId;
-    }
 }

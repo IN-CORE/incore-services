@@ -12,8 +12,6 @@ package edu.illinois.ncsa.incore.service.hazard.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.morphia.annotations.Property;
-import dev.morphia.annotations.experimental.Name;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
@@ -83,7 +81,7 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.eqCompara
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami, Hurricane and Flood",
-        version = "1.23.0",
+        version = "1.24.0",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -222,7 +220,7 @@ public class EarthquakeController {
                     rasterDataset.setDemandUnits(scenarioEarthquake.getVisualizationParameters().getDemandUnits());
                     rasterDataset.setPeriod(Double.parseDouble(demandComponents[0]));
 
-                    scenarioEarthquake.setHazardDataset(rasterDataset);
+                    scenarioEarthquake.addEarthquakeHazardDataset(rasterDataset);
                     // add creator using username info
                     earthquake.setCreator(this.username);
                     earthquake.setOwner(this.username);
@@ -1080,8 +1078,10 @@ public class EarthquakeController {
             // delete associated datasets
             if (eq != null && eq instanceof EarthquakeModel) {
                 EarthquakeModel scenarioEarthquake = (EarthquakeModel) eq;
-                if (ServiceUtil.deleteDataset(scenarioEarthquake.getRasterDataset().getDatasetId(), this.username, this.userGroups) == null) {
-                    spaceRepository.addToOrphansSpace(scenarioEarthquake.getRasterDataset().getDatasetId());
+                for (HazardDataset dataset : scenarioEarthquake.getHazardDatasets()) {
+                    if (ServiceUtil.deleteDataset(dataset.getDatasetId(), this.username, this.userGroups) == null) {
+                        spaceRepository.addToOrphansSpace(dataset.getDatasetId());
+                    }
                 }
             } else if (eq != null && eq instanceof EarthquakeDataset) {
                 EarthquakeDataset eqDataset = (EarthquakeDataset) eq;
