@@ -5,16 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-
 ## [Unreleased]
+
+### Added 
+- Add retrofit information to the mapping set class [#252](https://github.com/IN-CORE/incore-services/issues/252)
+
+## [1.24.0] - 2024-02-07
 
 ### Added
 - Add `hazardDatasets` field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
-- Add retrofit information to the mapping set class [#252](https://github.com/IN-CORE/incore-services/issues/252)
+- Renaming option for uploading geoserver layers [#259](https://github.com/IN-CORE/incore-services/issues/259)
+- GeoPackage handling in services  [#205](https://github.com/IN-CORE/incore-services/issues/205)
+- Raster GeoPackage checker for not supporting it [#258](https://github.com/IN-CORE/incore-services/issues/258)
+- hazardDatasets field to TornadoDataset, TornadoModel and EarthquakeModel class [#213](https://github.com/IN-CORE/incore-services/issues/213)
 
 ### Changed 
 - Use Java models to represent semantics [#239](https://github.com/IN-CORE/incore-services/issues/239)
 - Sort Semantic Definition Alphabetically [#238](https://github.com/IN-CORE/incore-services/issues/238)
+
+### Fixed
+- Fix Semantic search endpoint return format [#267](https://github.com/IN-CORE/incore-services/issues/267)
 
 ## [1.23.0] - 2023-12-13
 
@@ -29,7 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.21.0] - 2023-10-11
 
 ### Added
-- Geopakage handling in services  [#205](https://github.com/IN-CORE/incore-services/issues/205)
 - Template dataset generation (CSV and Shapefile) API to semantics-service [#214](https://github.com/IN-CORE/incore-services/issues/214)
 - Owner item added to the dataset, hazard, and dfr3 object [#92](https://github.com/IN-CORE/incore-services/issues/92)
 - Attenuation model Sadigh et al. 1997 [#208](https://github.com/IN-CORE/incore-services/issues/208)

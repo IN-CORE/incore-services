@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.data.utils;
 
 import com.opencsv.CSVReader;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
+import edu.illinois.ncsa.incore.common.utils.GeoUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -44,6 +45,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -969,39 +971,49 @@ public class GeotoolsUtils {
     }
 
     /**
-     * check if geopackage has single layer and layer name is the same as the file name
+     * check if geopackage has single layer
+     * and layer name is the same as the file name
+     * and layer is not raster
+     * since incore-services doesn't support raster geopackage yet
      *
      * @param inFile
      * @return
      * @throws IOException
      */
-    public static boolean isGpkgSingleLayer(File inFile) throws IOException {
-        Boolean output = false;
+    public static GeoUtils.gpkgValidationResult  isGpkgFitToService(File inFile) throws IOException {
+        int output = 0;
         try {
             HashMap<String, Object> map = new HashMap<>();
             map.put(GeoPkgDataStoreFactory.DBTYPE.key, "geopkg");
             map.put(GeoPkgDataStoreFactory.DATABASE.key, inFile.getAbsoluteFile());
             DataStore dataStore = DataStoreFinder.getDataStore(map);
+
             if (dataStore == null) {
                 throw new IOException("Unable to open geopackage file");
             }
 
             // get all layer names in input geopackage file
+            // if the layerNames list is more than one, it means there are multiple vector layer
+            // if the layerNames list empty then, there is no vector layer or it could be a raster data
             String[] layerNames = dataStore.getTypeNames();
 
             if (layerNames.length == 1) {
                 // check if the layername is the same as file name
                 String layerName = layerNames[0];
                 String fileName = inFile.getName().split("\\.")[0];
-                if (layerName.equals(fileName)) {
-                    output = true;
+                if (!layerName.equals(fileName)) {
+                     return GeoUtils.gpkgValidationResult.NAME_MISMATCH;
                 }
+            } else if (layerNames.length == 0) {
+                return GeoUtils.gpkgValidationResult.RASTER_OR_NO_VECTOR_LAYER;
+            } else if (layerNames.length > 1) {
+                return GeoUtils.gpkgValidationResult.MULTIPLE_VECTOR_LAYERS;
             }
         } catch (IOException e) {
             throw new IOException("Unable to open geopackage file.");
         }
 
-        return output;
+        return GeoUtils.gpkgValidationResult.VALID;
     }
 }
 
