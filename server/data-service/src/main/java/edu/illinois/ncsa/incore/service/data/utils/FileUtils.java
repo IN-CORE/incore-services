@@ -697,7 +697,7 @@ public class FileUtils {
     public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws IncoreHTTPException, IOException {
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
-        File geoPkgFile = null;
+        File shapeFile = null;
 
         for (int i = 0; i < csvFDs.size(); i++) {
             FileDescriptor csvFd = csvFDs.get(i);
@@ -740,9 +740,9 @@ public class FileUtils {
 
         }
 
-        geoPkgFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
+        shapeFile = GeotoolsUtils.joinTableShapefile(dataset, shpfiles, csvFile, isRename);
 
-        return geoPkgFile;
+        return shapeFile;
     }
 
     /**
