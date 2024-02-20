@@ -289,7 +289,7 @@ public class GeotoolsUtils {
         SimpleFeatureType csvFeatureType = createCsvFeatureType(csvFile.getPath(), shapeFileName);
         SimpleFeatureCollection csvFeatures = createCsvFeatureFromCsvType(csvFile.getPath(), csvFeatureType);
 
-        SimpleFeatureCollection joinedFeatures = performOuterJoin(csvFeatures, shapefileSource, UNI_ID_CSV);
+        SimpleFeatureCollection joinedFeatures = performInnerJoin(csvFeatures, shapefileSource, UNI_ID_CSV);
 
         // to make an output to shapefile, use this
         File outShapefile = outToShapefile(joinedFeatures, tempDir, outFileName, shapefileSource);
@@ -413,7 +413,7 @@ public class GeotoolsUtils {
             return builtFeatureType;
         }
     }
-    public static SimpleFeatureCollection performOuterJoin(
+    public static SimpleFeatureCollection performInnerJoin(
         SimpleFeatureCollection csvFeatures,
         SimpleFeatureSource shapefileSource,
         String commonFieldName) throws IOException {
