@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.25.0] - 2024-02-28
 
 ### Changed
 - Join between CSV table and shapefile has been updated based on Geotools update [#272](https://github.com/IN-CORE/incore-services/issues/272)
