@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Changed
-- Join between CSV table and shapefile changed to outer join [#272](https://github.com/IN-CORE/incore-services/issues/272)
+- Join between CSV table and shapefile has been updated based on Geotools update [#272](https://github.com/IN-CORE/incore-services/issues/272)
+
+### Added 
+- Add retrofit information to the mapping set class [#252](https://github.com/IN-CORE/incore-services/issues/252)
+
 
 ## [1.24.0] - 2024-02-07
 
