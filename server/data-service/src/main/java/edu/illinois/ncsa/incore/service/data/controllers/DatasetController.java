@@ -935,14 +935,15 @@ public class DatasetController {
 
         if (enableGeoserver && isGeoserver) {
             if (isJoin) {
+                File joinedShapefile = null;
                 // todo: the join process for the network dataset should be added in here.
                 try {
-                    geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
-                    if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
+                    joinedShapefile = FileUtils.joinShpTable(dataset, repository, true);
+                    if (!GeoserverUtils.uploadShapefileToGeoserver(dataset.getId(), joinedShapefile)) {
                         logger.error("Fail to upload geopackage file");
                         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
                     }
-                    // GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
+//                     GeoserverUtils.uploadShpZipToGeoserver(dataset.getId(), zipFile);
                 } catch (IOException e) {
                     logger.error("Error making temp directory in joining process ", e);
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error making temp directory in joining process.");
@@ -951,7 +952,7 @@ public class DatasetController {
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
                 }
                 // clean up
-                FileUtils.deleteTmpDir(geoPkgFile);
+                FileUtils.deleteTmpDir(joinedShapefile);
             } else {
                 try {
                     if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {

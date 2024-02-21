@@ -32,6 +32,9 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.feature.visitor.UniqueVisitor;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.gce.arcgrid.ArcGridReader;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
@@ -45,7 +48,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.Name;
+import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
@@ -265,103 +268,247 @@ public class GeotoolsUtils {
      * @throws IOException
      */
     public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException {
-        // set geometry factory
-        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
         String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
-
-        // read csv file
-        String[] csvHeaders = getCsvHeader(csvFile);
-        List<String[]> csvRows = readCsvFile(csvFile);
-        int csvIdLoc = 0;
-
-        // remove quotes in header
-        for (int i = 0; i < csvHeaders.length; i++) {
-            csvHeaders[i] = csvHeaders[i].replaceAll("^\"|\"$", "");
-        }
-
-        // find column location of the unique id inCsv
-        for (int i = 0; i < csvHeaders.length - 1; i++) {
-            String header = csvHeaders[i];
-            if (header.equals(UNI_ID_CSV)) {
-                csvIdLoc = i;
-            }
-        }
 
         // create temp dir and copy files to temp dir
         String tempDir = Files.createTempDirectory(FileUtils.DATA_TEMP_DIR_PREFIX).toString();
+        String shapeFileName = FilenameUtils.getBaseName(shpfiles.get(0).getName());
         List<File> copiedFileList = null;
         if (isRename) { // this will only get the files for geoserver
             outFileName = dataset.getId() + "." + FileUtils.EXTENSION_SHP;
+            shapeFileName = dataset.getId();
             copiedFileList = performCopyFiles(shpfiles, tempDir, dataset.getId(), true, "shp");
         } else {
             copiedFileList = performCopyFiles(shpfiles, tempDir, "", false, "");
         }
 
-        SimpleFeatureCollection inputFeatures = getSimpleFeatureCollectionFromFileList(copiedFileList);
+        // create shapefile source by reading shapefile from copied file list
+        SimpleFeatureSource shapefileSource = createShapefileSource(String.valueOf(copiedFileList.get(0)));
 
-        SimpleFeatureType sft = inputFeatures.getSchema();
+        // read csv file
+        SimpleFeatureType csvFeatureType = createCsvFeatureType(csvFile.getPath(), shapeFileName);
+        SimpleFeatureCollection csvFeatures = createCsvFeatureFromCsvType(csvFile.getPath(), csvFeatureType);
 
-        SimpleFeatureTypeBuilder sftBuilder = new SimpleFeatureTypeBuilder();
-        sftBuilder.init(sft);
+        SimpleFeatureCollection joinedFeatures = performInnerJoin(csvFeatures, shapefileSource, UNI_ID_CSV);
 
-        // make sure that name of feature type is matched with name file file
-        sftBuilder.setName(dataset.getId());
+        // to make an output to shapefile, use this
+        File outShapefile = outToShapefile(joinedFeatures, tempDir, outFileName, shapefileSource);
+        return outShapefile;
 
-        for (int i = 0; i < csvHeaders.length; i++) {
-            if (i != csvIdLoc) {
-                AttributeTypeBuilder build = new AttributeTypeBuilder();
-                build.setNillable(false);
-                build.setBinding(String.class);
-                build.setLength(55);    // currently it has been set to 55 but needs to be discussed
-                sftBuilder.add(build.buildDescriptor(csvHeaders[i]));
-            }
-        }
-        SimpleFeatureType newSft = sftBuilder.buildFeatureType();
+        // to make an output to file, use this
+        // return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
 
-        DefaultFeatureCollection newCollection = new DefaultFeatureCollection();
+        // to make an output to geopackage, use this
+        //return outToGpkgFile(new File(tempDir + File.separator + dataset.getId() + "." + FileUtils.EXTENSION_GEOPACKAGE), newCollection);
+    }
 
-        FeatureIterator<SimpleFeature> inputFeatureIterator = inputFeatures.features();
-
-        // figure out the unique id column location
-        int shpUniqueColLoc = 0;
-        List<AttributeDescriptor> ads = inputFeatures.getSchema().getAttributeDescriptors();
-        for (int i = 0; i < ads.size(); i++) {
-            if (ads.get(i).getLocalName().equalsIgnoreCase(UNI_ID_SHP)) {
-                shpUniqueColLoc = i;
-            }
-        }
+    public static File outToShapefile(SimpleFeatureCollection features, String outputDir, String outputFileName, SimpleFeatureSource inputShapefileSource) throws IOException {
+        File shapefileOutputFile = new File(outputDir, outputFileName);
+        Map<String, Serializable> shapefileParams = Map.of(
+            "url", shapefileOutputFile.toURI().toURL(),
+            "create spatial index", Boolean.TRUE
+        );
 
         try {
-            while (inputFeatureIterator.hasNext()) {
-                SimpleFeature inputFeature = inputFeatureIterator.next();
-                SimpleFeatureBuilder sfb = new SimpleFeatureBuilder(newSft);
-                sfb.init(inputFeature);
-                String csvConnector = inputFeature.getAttribute(shpUniqueColLoc).toString();
-                // find matching csv rows
-                String[] matchedCsvRow = null;
-                for (int j = 0; j < csvRows.size(); j++) {
-                    if (csvRows.get(j)[csvIdLoc].equals(csvConnector)) {
-                        matchedCsvRow = csvRows.get(j);
-                        csvRows.remove(j);
-                    }
-                }
-                // insert the values in the new column
-                if (matchedCsvRow != null) {
-                    for (int j = 0; j < csvHeaders.length; j++) {
-                        if (j != csvIdLoc) {
-                            sfb.set(csvHeaders[j], matchedCsvRow[j]);
-                        }
-                    }
-                }
-                SimpleFeature newFeature = sfb.buildFeature(null);
-                newCollection.add(newFeature);
-            }
-        } finally {
-            inputFeatureIterator.close();
+            // create ShapefileDataStore
+            ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+            ShapefileDataStore shapefileDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(shapefileParams);
+
+            // set feature type
+            shapefileDataStore.createSchema(features.getSchema());
+
+            // set the same projection as the input shapefile
+            shapefileDataStore.forceSchemaCRS(inputShapefileSource.getSchema().getCoordinateReferenceSystem());
+
+            // write features to Shapefile
+            Transaction transaction = new DefaultTransaction("create");
+            String typeName = shapefileDataStore.getTypeNames()[0];
+            FeatureStore<SimpleFeatureType, SimpleFeature> featureStore = (FeatureStore<SimpleFeatureType, SimpleFeature>) shapefileDataStore.getFeatureSource(typeName);
+            featureStore.addFeatures(features);
+            transaction.commit();
+            transaction.close();
+
+        } catch (Exception e) {
+            throw new IOException("Error writing features to Shapefile", e);
+        }
+        return shapefileOutputFile;
+    }
+
+    public static SimpleFeatureSource createShapefileSource(String shapefilePath) throws IOException {
+        // convert extension to shp if it is not shp
+        String ext = FilenameUtils.getExtension(shapefilePath);
+        if (!ext.equalsIgnoreCase(FileUtils.EXTENSION_SHP)) {
+            shapefilePath = FileUtils.changeFileNameExtension(shapefilePath, FileUtils.EXTENSION_SHP);
         }
 
-        // return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
-        return outToGpkgFile(new File(tempDir + File.separator + dataset.getId() + "." + FileUtils.EXTENSION_GEOPACKAGE), newCollection);
+        // create SimpleFeatureSource from shapefile
+        Map<String, Serializable> shapefileParams = Map.of("url", new File(shapefilePath).toURI().toURL());
+
+        DataStore shapefileStore = DataStoreFinder.getDataStore(shapefileParams);
+        if (shapefileStore == null) {
+            throw new IOException("Unable to create DataStore for shapefile. Check if the file is valid.");
+        }
+
+        String typeName = shapefileStore.getTypeNames()[0];
+        SimpleFeatureSource sfs = shapefileStore.getFeatureSource(typeName);
+
+        return sfs;
+    }
+
+    public static SimpleFeatureCollection createCsvFeatureFromCsvType(String csvFilePath, SimpleFeatureType featureType)
+        throws IOException {
+        // create SimpleFeatureCollection from csv file
+        List<SimpleFeature> csvFeatures = new ArrayList<>();
+
+        try (CSVReader reader = new CSVReader(new FileReader(csvFilePath))) {
+            String[] header = reader.readNext(); // Assuming the first row is header
+
+            SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureType);
+
+            String[] line;
+            while ((line = reader.readNext()) != null) {
+                for (int i = 0; i < header.length; i++) {
+                    featureBuilder.set(header[i], convertStringToType(line[i], featureType.getDescriptor(i).getType().getBinding()));
+                }
+
+                SimpleFeature feature = featureBuilder.buildFeature(null);
+                csvFeatures.add(feature);
+            }
+        }
+
+        SimpleFeatureCollection collection = DataUtilities.collection(csvFeatures);
+
+        return collection;
+    }
+
+    public static Object convertStringToType(String value, Class<?> outType) {
+        // this is to add the correct type to the feature,
+        // currently it only supports integer, double, and string
+        if (outType.equals(Integer.class)) {
+            return Integer.parseInt(value);
+        } else if (outType.equals(Double.class)) {
+            return Double.parseDouble(value);
+        } else {
+            // if it is not interger or double, it is string,
+            // if not, there should be some additional logic should be added
+            return value;
+        }
+    }
+
+    public static SimpleFeatureType createCsvFeatureType(String csvFilePath, String sourceName) throws IOException {
+        // read CSV file to get column names and types
+        try (CSVReader reader = new CSVReader(new FileReader(csvFilePath))) {
+            String[] header = reader.readNext(); // assuming the first row is the header
+
+            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+            builder.setName("CsvFeatureType_" + sourceName);
+
+            for (String columnName : header) {
+                // assume all columns are of type String to make it simple
+                builder.add(columnName, String.class);
+            }
+
+            SimpleFeatureType builtFeatureType = builder.buildFeatureType();
+
+            return builtFeatureType;
+        }
+    }
+
+    public static SimpleFeatureCollection performInnerJoin(
+        SimpleFeatureCollection csvFeatures,
+        SimpleFeatureSource shapefileSource,
+        String commonFieldName) throws IOException {
+
+        // create an index for the CSV features
+        Map<Object, SimpleFeature> csvFeatureIndex = indexFeatures(csvFeatures, commonFieldName);
+
+        // create joined feature type
+        SimpleFeatureType joinedFeatureType = createJoinedFeatureType(csvFeatures.getSchema(), shapefileSource.getSchema());
+
+        // create a DefaultFeatureCollection to store the joined features
+        DefaultFeatureCollection joinedFeatures = new DefaultFeatureCollection(null, joinedFeatureType);
+
+        try (SimpleFeatureIterator shapefileIterator = shapefileSource.getFeatures().features()) {
+            while (shapefileIterator.hasNext()) {
+                SimpleFeature shapefileFeature = shapefileIterator.next();
+                Object commonFieldValue = shapefileFeature.getAttribute(commonFieldName);
+
+                if (csvFeatureIndex.containsKey(commonFieldValue)) {
+                    SimpleFeature csvFeature = csvFeatureIndex.get(commonFieldValue);
+                    SimpleFeature joinedFeature = createJoinedFeature(csvFeature, shapefileFeature, joinedFeatureType);
+                    joinedFeatures.add(joinedFeature);
+                }
+            }
+        }
+
+        return joinedFeatures;
+    }
+
+    public static Map<Object, SimpleFeature> indexFeatures(SimpleFeatureCollection featureCollection, String commonFieldName) {
+        Map<Object, SimpleFeature> featureIndex = new HashMap<>();
+
+        try (SimpleFeatureIterator iterator = featureCollection.features()) {
+            while (iterator.hasNext()) {
+                SimpleFeature feature = iterator.next();
+                Object commonFieldValue = feature.getAttribute(commonFieldName);
+                featureIndex.put(commonFieldValue, feature);
+            }
+        }
+
+        return featureIndex;
+    }
+
+    public static SimpleFeature createJoinedFeature(SimpleFeature csvFeature, SimpleFeature shapefileFeature, SimpleFeatureType joinedFeatureType) {
+        SimpleFeatureBuilder builder = new SimpleFeatureBuilder(joinedFeatureType);
+
+        // copy all attributes from CSV feature
+        for (int i = 0; i < csvFeature.getAttributeCount(); i++) {
+            builder.add(csvFeature.getAttribute(i));
+        }
+
+        // copy all attributes from shapefile feature
+        for (int i = 0; i < shapefileFeature.getAttributeCount(); i++) {
+            builder.add(shapefileFeature.getAttribute(i));
+        }
+
+        SimpleFeature joinedFeature = builder.buildFeature(null);
+
+        return joinedFeature;
+    }
+
+    public static SimpleFeatureType createJoinedFeatureType(SimpleFeatureType csvType, SimpleFeatureType shapefileType) {
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.setName("JoinedFeatureType");
+
+        addAttributesWithoutDuplicate(builder, csvType);
+        addAttributesWithoutDuplicate(builder, shapefileType, "guid");
+        GeometryDescriptor geometryDescriptor = shapefileType.getGeometryDescriptor();
+        if (geometryDescriptor != null) {
+            builder.setCRS(geometryDescriptor.getCoordinateReferenceSystem());
+            builder.add("geometry", geometryDescriptor.getType().getBinding());
+        }
+
+        SimpleFeatureType builtFeatureType = builder.buildFeatureType();
+
+        return builtFeatureType;
+    }
+
+    public static void addAttributesWithoutDuplicate(SimpleFeatureTypeBuilder builder, SimpleFeatureType sourceType) {
+        addAttributesWithoutDuplicate(builder, sourceType, null);
+    }
+
+    public static void addAttributesWithoutDuplicate(SimpleFeatureTypeBuilder builder, SimpleFeatureType sourceType, String excludeAttribute) {
+        Set<String> addedAttributes = new HashSet<>();
+
+        for (int i = 0; i < sourceType.getAttributeCount(); i++) {
+            String attributeName = sourceType.getDescriptor(i).getLocalName();
+
+            // Exclude the specified attribute
+            if (excludeAttribute == null || !attributeName.equals(excludeAttribute)) {
+                builder.add(attributeName, sourceType.getDescriptor(i).getType().getBinding());
+                addedAttributes.add(attributeName);
+            }
+        }
     }
 
     public static File joinTableGeopackage(Dataset dataset, String gpkgFileName, File csvFile, boolean isRename) throws IOException {

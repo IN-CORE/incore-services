@@ -81,6 +81,12 @@ public class GeoserverUtils {
         return published;
     }
 
+    public static boolean uploadShapefileToGeoserver(String datasetId, File file) {
+        GeoserverRestApi gsApi = GeoserverRestApi.createGeoserverApi();
+        boolean published = gsApi.uploadToGeoserver(datasetId, file, "shp", false);
+        return published;
+    }
+
     public static boolean networkDatasetUploadToGeoserver(Dataset dataset, IRepository repository) throws IOException, URISyntaxException {
         String datasetId = dataset.getId();
         boolean link_published = false;
