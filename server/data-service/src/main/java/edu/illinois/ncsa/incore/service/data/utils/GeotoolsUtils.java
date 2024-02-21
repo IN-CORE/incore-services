@@ -444,7 +444,7 @@ public class GeotoolsUtils {
         return joinedFeatures;
     }
 
-    private static Map<Object, SimpleFeature> indexFeatures(SimpleFeatureCollection featureCollection, String commonFieldName) {
+    public static Map<Object, SimpleFeature> indexFeatures(SimpleFeatureCollection featureCollection, String commonFieldName) {
         Map<Object, SimpleFeature> featureIndex = new HashMap<>();
 
         try (SimpleFeatureIterator iterator = featureCollection.features()) {
