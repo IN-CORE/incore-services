@@ -109,7 +109,7 @@ public class GeoserverRestApi {
         try {
             HttpURLConnection connection = createHttpConnection(apiUrl, contType);
 
-            // Write Shapefile data to request body
+            // write shapefile data to request body
             try (DataOutputStream dos = new DataOutputStream(connection.getOutputStream());
                  FileInputStream fis = new FileInputStream(inData)) {
                 byte[] buffer = new byte[1024];
