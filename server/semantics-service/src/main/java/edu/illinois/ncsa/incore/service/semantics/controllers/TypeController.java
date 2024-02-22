@@ -47,7 +47,7 @@ import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeCo
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
-        version = "1.24.0",
+        version = "1.25.0",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -223,7 +223,7 @@ public class TypeController {
         if (matchedType != null) {
             ObjectMapper objectMapper = new ObjectMapper();
             // Convert the Type to JSONObject
-            String jsonString = objectMapper.writeValueAsString(matchedType);
+            String jsonString = objectMapper.writeValueAsString(matchedType.constructOutput());
             JSONObject typeJson = new JSONObject(jsonString);
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
             JSONArray columnsArray = tableSchema.getJSONArray("columns");

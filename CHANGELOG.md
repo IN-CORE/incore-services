@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.25.0] - 2024-02-21
 
 ### Changed
 - Join between CSV table and shapefile has been updated based on Geotools update [#272](https://github.com/IN-CORE/incore-services/issues/272)
@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added 
 - Add retrofit information to the mapping set class [#252](https://github.com/IN-CORE/incore-services/issues/252)
 
+### Fixed
+- Fix broken Semantics Type embedded in data viewer [#273](https://github.com/IN-CORE/incore-services/issues/273)
 
 ## [1.24.0] - 2024-02-07
 
