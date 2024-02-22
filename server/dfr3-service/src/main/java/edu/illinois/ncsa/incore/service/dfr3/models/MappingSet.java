@@ -39,6 +39,8 @@ public class MappingSet {
     private String creator;
     private String owner;
 
+    private MappingEntryKey[] mappingEntryKeys;
+
     /**
      * spaces the object belongs to. Calculated at runtime.
      */
@@ -95,5 +97,13 @@ public class MappingSet {
 
     public void setMappingType(String mappingType) {
         this.mappingType = mappingType;
+    }
+
+    public MappingEntryKey[] getMappingEntryKeys() {
+        return mappingEntryKeys;
+    }
+
+    public void setRetrofitDefinitions(MappingEntryKey[] mappingEntryKeys) {
+        this.mappingEntryKeys = mappingEntryKeys;
     }
 }

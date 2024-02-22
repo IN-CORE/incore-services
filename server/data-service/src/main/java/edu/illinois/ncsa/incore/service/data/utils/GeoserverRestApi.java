@@ -12,18 +12,16 @@ package edu.illinois.ncsa.incore.service.data.utils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class GeoserverRestApi {
     public static final String DEFAULT_CRS = "EPSG:4326";
@@ -111,7 +109,7 @@ public class GeoserverRestApi {
         try {
             HttpURLConnection connection = createHttpConnection(apiUrl, contType);
 
-            // Write Shapefile data to request body
+            // write shapefile data to request body
             try (DataOutputStream dos = new DataOutputStream(connection.getOutputStream());
                  FileInputStream fis = new FileInputStream(inData)) {
                 byte[] buffer = new byte[1024];
@@ -174,7 +172,15 @@ public class GeoserverRestApi {
                 published =  this.uploadToGeoserverWithRenaming(fileName, store, inFile, "shapefile");
             } else {
                 String restUrl = this.geoserverUrl + "/rest/workspaces/" + GEOSERVER_WORKSPACE + "/datastores/" + store + "/file.shp";
-                published = this.postFileToGeoserver(restUrl, inFile, "zip");
+                // check if the file extension is shapefile or zip file
+                String ext = FilenameUtils.getExtension(inFile.getName());
+                if (ext.equalsIgnoreCase("shp")) {
+                    File zipFile = zipShapefileInDirectory(inFile, fileName);
+                    published = this.postFileToGeoserver(restUrl, zipFile, "zip");
+                } else {
+                    // if the file is already a zip file, just use it
+                    published = this.postFileToGeoserver(restUrl, inFile, "zip");
+                }
             }
         } else if (inExt.equalsIgnoreCase("gpkg")) {
             if (renameLayer) {
@@ -191,6 +197,42 @@ public class GeoserverRestApi {
         }
 
         return published;
+    }
+
+    /**
+     * zip shapefile in directory
+     *
+     * @param inFile
+     * @param fileName
+     * @return
+     */
+    public static File zipShapefileInDirectory(File inFile, String fileName) {
+        // create a zip file with the shapefile
+        File zipFile = new File(inFile.getParent(), fileName + ".zip");
+        try (FileOutputStream fos = new FileOutputStream(zipFile);
+             ZipOutputStream zos = new ZipOutputStream(fos)) {
+            File[] files = inFile.getParentFile().listFiles((dir, name) -> name.startsWith(fileName));
+            for (File file : files) {
+                // zip only shapefile related files that are .shp, .shx, .dbf, .prj
+                if (file.getName().endsWith(".shp") || file.getName().endsWith(".shx") || file.getName().endsWith(".dbf") || file.getName().endsWith(".prj")) {
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        ZipEntry zipEntry = new ZipEntry(file.getName());
+                        zos.putNextEntry(zipEntry);
+                        byte[] bytes = new byte[1024];
+                        int length;
+                        while ((length = fis.read(bytes)) >= 0) {
+                            zos.write(bytes, 0, length);
+                        }
+                        zos.closeEntry();
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return zipFile;
     }
 
     /**
