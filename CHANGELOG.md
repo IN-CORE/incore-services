@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added 
 - Add retrofit information to the mapping set class [#252](https://github.com/IN-CORE/incore-services/issues/252)
 
+### Fixed
+- Fix broken Semantics Type embedded in data viewer [#273](https://github.com/IN-CORE/incore-services/issues/273)
 
 ## [1.24.0] - 2024-02-07
 
@@ -28,7 +30,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Fix Semantic search endpoint return format [#267](https://github.com/IN-CORE/incore-services/issues/267)
-- Fix broken Semantics Type embedded in data viewer [#273](https://github.com/IN-CORE/incore-services/issues/273)
 
 ## [1.23.0] - 2023-12-13
 
