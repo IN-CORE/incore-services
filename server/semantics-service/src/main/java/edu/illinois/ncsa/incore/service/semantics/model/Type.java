@@ -89,8 +89,8 @@ public class Type {
                 } else if (field.getName().equals("title")) {
                     map.put("dc:title", this.getTitle());
 
-                } else if (field.getName().equals("description")) {
-                    map.put("dc:description", this.getDescription());
+//                } else if (field.getName().equals("description")) {
+//                    map.put("dc:description", this.getDescription());
 
                 } else if (field.getName().equals("version")) {
                     map.put("openvocab:versionnumber", this.getVersion());
