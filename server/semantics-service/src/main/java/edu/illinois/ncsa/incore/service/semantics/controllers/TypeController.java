@@ -223,7 +223,7 @@ public class TypeController {
         if (matchedType != null) {
             ObjectMapper objectMapper = new ObjectMapper();
             // Convert the Type to JSONObject
-            String jsonString = objectMapper.writeValueAsString(matchedType);
+            String jsonString = objectMapper.writeValueAsString(matchedType.constructOutput());
             JSONObject typeJson = new JSONObject(jsonString);
             JSONObject tableSchema = typeJson.getJSONObject("tableSchema");
             JSONArray columnsArray = tableSchema.getJSONArray("columns");
