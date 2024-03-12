@@ -14,6 +14,7 @@ import com.opencsv.CSVReader;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.GeoUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -32,9 +33,6 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.feature.visitor.UniqueVisitor;
-import org.geotools.filter.text.cql2.CQL;
-import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.gce.arcgrid.ArcGridReader;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
@@ -48,12 +46,10 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
-import jakarta.ws.rs.core.Response;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
@@ -289,20 +285,21 @@ public class GeotoolsUtils {
         SimpleFeatureType csvFeatureType = createCsvFeatureType(csvFile.getPath(), shapeFileName);
         SimpleFeatureCollection csvFeatures = createCsvFeatureFromCsvType(csvFile.getPath(), csvFeatureType);
 
-        SimpleFeatureCollection joinedFeatures = performInnerJoin(csvFeatures, shapefileSource, UNI_ID_CSV);
+        DefaultFeatureCollection newCollection = (DefaultFeatureCollection) performInnerJoin(csvFeatures, shapefileSource, UNI_ID_CSV);
 
         // to make an output to shapefile, use this
-        File outShapefile = outToShapefile(joinedFeatures, tempDir, outFileName, shapefileSource);
-        return outShapefile;
+//        File outShapefile = outToShapefile(joinedFeatures, tempDir, outFileName, shapefileSource);
+//        return outShapefile;
 
         // to make an output to file, use this
         // return outToFile(new File(tempDir + File.separator + outFileName), newSft, newCollection);
 
         // to make an output to geopackage, use this
-        //return outToGpkgFile(new File(tempDir + File.separator + dataset.getId() + "." + FileUtils.EXTENSION_GEOPACKAGE), newCollection);
+        return outToGpkgFile(new File(tempDir + File.separator + dataset.getId() + "." + FileUtils.EXTENSION_GEOPACKAGE), newCollection);
     }
 
-    public static File outToShapefile(SimpleFeatureCollection features, String outputDir, String outputFileName, SimpleFeatureSource inputShapefileSource) throws IOException {
+    public static File outToShapefile(SimpleFeatureCollection features, String outputDir, String outputFileName,
+                                      SimpleFeatureSource inputShapefileSource) throws IOException {
         File shapefileOutputFile = new File(outputDir, outputFileName);
         Map<String, Serializable> shapefileParams = Map.of(
             "url", shapefileOutputFile.toURI().toURL(),
@@ -323,7 +320,8 @@ public class GeotoolsUtils {
             // write features to Shapefile
             Transaction transaction = new DefaultTransaction("create");
             String typeName = shapefileDataStore.getTypeNames()[0];
-            FeatureStore<SimpleFeatureType, SimpleFeature> featureStore = (FeatureStore<SimpleFeatureType, SimpleFeature>) shapefileDataStore.getFeatureSource(typeName);
+            FeatureStore<SimpleFeatureType, SimpleFeature> featureStore =
+                (FeatureStore<SimpleFeatureType, SimpleFeature>) shapefileDataStore.getFeatureSource(typeName);
             featureStore.addFeatures(features);
             transaction.commit();
             transaction.close();
@@ -414,10 +412,8 @@ public class GeotoolsUtils {
         }
     }
 
-    public static SimpleFeatureCollection performInnerJoin(
-        SimpleFeatureCollection csvFeatures,
-        SimpleFeatureSource shapefileSource,
-        String commonFieldName) throws IOException {
+    public static SimpleFeatureCollection performInnerJoin(SimpleFeatureCollection csvFeatures, SimpleFeatureSource shapefileSource,
+                                                           String commonFieldName) throws IOException {
 
         // create an index for the CSV features
         Map<Object, SimpleFeature> csvFeatureIndex = indexFeatures(csvFeatures, commonFieldName);
@@ -458,17 +454,24 @@ public class GeotoolsUtils {
         return featureIndex;
     }
 
-    public static SimpleFeature createJoinedFeature(SimpleFeature csvFeature, SimpleFeature shapefileFeature, SimpleFeatureType joinedFeatureType) {
+    public static SimpleFeature createJoinedFeature(SimpleFeature csvFeature, SimpleFeature shapefileFeature,
+                                                    SimpleFeatureType joinedFeatureType) {
         SimpleFeatureBuilder builder = new SimpleFeatureBuilder(joinedFeatureType);
 
-        // copy all attributes from CSV feature
-        for (int i = 0; i < csvFeature.getAttributeCount(); i++) {
-            builder.add(csvFeature.getAttribute(i));
-        }
-
+        List<String> attributes = new LinkedList<String>();
         // copy all attributes from shapefile feature
         for (int i = 0; i < shapefileFeature.getAttributeCount(); i++) {
+            String localName = shapefileFeature.getFeatureType().getDescriptor(i).getLocalName();
+            attributes.add(localName);
             builder.add(shapefileFeature.getAttribute(i));
+        }
+
+        // copy all attributes from CSV feature that are not in the original shapefile
+        for (int i = 0; i < csvFeature.getAttributeCount(); i++) {
+            String localName = csvFeature.getFeatureType().getDescriptor(i).getLocalName();
+            if (!attributes.contains(localName)) {
+                builder.add(csvFeature.getAttribute(i));
+            }
         }
 
         SimpleFeature joinedFeature = builder.buildFeature(null);
@@ -478,15 +481,16 @@ public class GeotoolsUtils {
 
     public static SimpleFeatureType createJoinedFeatureType(SimpleFeatureType csvType, SimpleFeatureType shapefileType) {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.init(shapefileType);
         builder.setName("JoinedFeatureType");
 
-        addAttributesWithoutDuplicate(builder, csvType);
-        addAttributesWithoutDuplicate(builder, shapefileType, "guid");
-        GeometryDescriptor geometryDescriptor = shapefileType.getGeometryDescriptor();
-        if (geometryDescriptor != null) {
-            builder.setCRS(geometryDescriptor.getCoordinateReferenceSystem());
-            builder.add("geometry", geometryDescriptor.getType().getBinding());
-        }
+        addAttributesWithoutDuplicate(builder, csvType, "guid");
+//        addAttributesWithoutDuplicate(builder, shapefileType, "guid");
+//        GeometryDescriptor geometryDescriptor = shapefileType.getGeometryDescriptor();
+//        if (geometryDescriptor != null) {
+//            builder.setCRS(geometryDescriptor.getCoordinateReferenceSystem());
+//            builder.add("geometry", geometryDescriptor.getType().getBinding());
+//        }
 
         SimpleFeatureType builtFeatureType = builder.buildFeatureType();
 
@@ -497,7 +501,8 @@ public class GeotoolsUtils {
         addAttributesWithoutDuplicate(builder, sourceType, null);
     }
 
-    public static void addAttributesWithoutDuplicate(SimpleFeatureTypeBuilder builder, SimpleFeatureType sourceType, String excludeAttribute) {
+    public static void addAttributesWithoutDuplicate(SimpleFeatureTypeBuilder builder, SimpleFeatureType sourceType,
+                                                     String excludeAttribute) {
         Set<String> addedAttributes = new HashSet<>();
 
         for (int i = 0; i < sourceType.getAttributeCount(); i++) {
@@ -1127,7 +1132,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static GeoUtils.gpkgValidationResult  isGpkgFitToService(File inFile) throws IOException {
+    public static GeoUtils.gpkgValidationResult isGpkgFitToService(File inFile) throws IOException {
         int output = 0;
         try {
             HashMap<String, Object> map = new HashMap<>();
@@ -1149,7 +1154,7 @@ public class GeotoolsUtils {
                 String layerName = layerNames[0];
                 String fileName = inFile.getName().split("\\.")[0];
                 if (!layerName.equals(fileName)) {
-                     return GeoUtils.gpkgValidationResult.NAME_MISMATCH;
+                    return GeoUtils.gpkgValidationResult.NAME_MISMATCH;
                 }
             } else if (layerNames.length == 0) {
                 return GeoUtils.gpkgValidationResult.RASTER_OR_NO_VECTOR_LAYER;
