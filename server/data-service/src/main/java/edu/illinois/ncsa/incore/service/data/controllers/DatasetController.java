@@ -940,7 +940,7 @@ public class DatasetController {
                 try {
                     //joinedShapefile = FileUtils.joinShpTable(dataset, repository, true);
                     geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
-                    if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), joinedShapefile)) {
+                    if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
                         logger.error("Fail to upload geopackage file");
                         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
                     }
