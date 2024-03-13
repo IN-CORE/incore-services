@@ -285,7 +285,7 @@ public class GeotoolsUtils {
         SimpleFeatureType csvFeatureType = createCsvFeatureType(csvFile.getPath(), shapeFileName);
         SimpleFeatureCollection csvFeatures = createCsvFeatureFromCsvType(csvFile.getPath(), csvFeatureType);
 
-        DefaultFeatureCollection newCollection = (DefaultFeatureCollection) performInnerJoin(csvFeatures, shapefileSource, UNI_ID_CSV);
+        DefaultFeatureCollection newCollection = (DefaultFeatureCollection) performInnerJoin(csvFeatures, shapefileSource, UNI_ID_CSV, dataset.getId());
 
         // to make an output to shapefile, use this
 //        File outShapefile = outToShapefile(joinedFeatures, tempDir, outFileName, shapefileSource);
@@ -413,13 +413,13 @@ public class GeotoolsUtils {
     }
 
     public static SimpleFeatureCollection performInnerJoin(SimpleFeatureCollection csvFeatures, SimpleFeatureSource shapefileSource,
-                                                           String commonFieldName) throws IOException {
+                                                           String commonFieldName, String datasetId) throws IOException {
 
         // create an index for the CSV features
         Map<Object, SimpleFeature> csvFeatureIndex = indexFeatures(csvFeatures, commonFieldName);
 
         // create joined feature type
-        SimpleFeatureType joinedFeatureType = createJoinedFeatureType(csvFeatures.getSchema(), shapefileSource.getSchema());
+        SimpleFeatureType joinedFeatureType = createJoinedFeatureType(csvFeatures.getSchema(), shapefileSource.getSchema(), datasetId);
 
         // create a DefaultFeatureCollection to store the joined features
         DefaultFeatureCollection joinedFeatures = new DefaultFeatureCollection(null, joinedFeatureType);
@@ -479,10 +479,14 @@ public class GeotoolsUtils {
         return joinedFeature;
     }
 
-    public static SimpleFeatureType createJoinedFeatureType(SimpleFeatureType csvType, SimpleFeatureType shapefileType) {
+    public static SimpleFeatureType createJoinedFeatureType(SimpleFeatureType csvType, SimpleFeatureType shapefileType, String datasetId) {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.init(shapefileType);
-        builder.setName("JoinedFeatureType");
+        if (!datasetId.equals("")) {
+            builder.setName(datasetId);
+        } else {
+            builder.setName("JoinedFeatureType");
+        }
 
         addAttributesWithoutDuplicate(builder, csvType, "guid");
 //        addAttributesWithoutDuplicate(builder, shapefileType, "guid");
