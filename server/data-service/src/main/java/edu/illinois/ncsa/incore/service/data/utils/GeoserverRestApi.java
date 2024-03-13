@@ -252,8 +252,10 @@ public class GeoserverRestApi {
             String restUrl = this.geoserverUrl + "/rest";
             String fileNameNoExt = fileName.split("\\.")[0];
             int datastoreResponse = createDatastore(restUrl, GEOSERVER_WORKSPACE, store, inFile.getAbsolutePath(), fileForamt);
+            logger.info("Successfully created datastore for " + fileNameNoExt + " with response code " + datastoreResponse);
             int layerResponse = createLayer(restUrl, GEOSERVER_WORKSPACE, store, store, fileNameNoExt);
-            if (datastoreResponse == 201 && layerResponse == 201) {
+            logger.info("Successfully created layer for " + fileNameNoExt + " with response code " + layerResponse);
+            if ((datastoreResponse == 201 || datastoreResponse == 200) && (layerResponse == 201 || layerResponse == 200)){
                 published = true;
             }
         } catch (IOException e) {
@@ -363,11 +365,11 @@ public class GeoserverRestApi {
      */
     public int sendHttpRequest(String url, Map<String, String> headers, byte[] data,
                                         Map<String, String> params, String method) throws IOException {
-        HttpURLConnection connection = createHttpConnection(url, method, headers);
-
         if (params != null && !params.isEmpty()) {
             url += getQueryString(params);
         }
+
+        HttpURLConnection connection = createHttpConnection(url, method, headers);
 
         try (OutputStream outputStream = connection.getOutputStream()) {
             outputStream.write(data);
