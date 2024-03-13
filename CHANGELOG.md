@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Join Shapefile to upload GeoPackage to GeoServer instead of Shapefile [#283](https://github.com/IN-CORE/incore-services/issues/283)
+
 ## [1.25.0] - 2024-02-21
 
 ### Changed

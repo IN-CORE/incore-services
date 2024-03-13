@@ -938,8 +938,9 @@ public class DatasetController {
                 File joinedShapefile = null;
                 // todo: the join process for the network dataset should be added in here.
                 try {
-                    joinedShapefile = FileUtils.joinShpTable(dataset, repository, true);
-                    if (!GeoserverUtils.uploadShapefileToGeoserver(dataset.getId(), joinedShapefile)) {
+                    //joinedShapefile = FileUtils.joinShpTable(dataset, repository, true);
+                    geoPkgFile = FileUtils.joinShpTable(dataset, repository, true);
+                    if (!GeoserverUtils.uploadGpkgToGeoserver(dataset.getId(), geoPkgFile)) {
                         logger.error("Fail to upload geopackage file");
                         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to upload geopakcage file.");
                     }
@@ -952,7 +953,7 @@ public class DatasetController {
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
                 }
                 // clean up
-                FileUtils.deleteTmpDir(joinedShapefile);
+                FileUtils.deleteTmpDir(geoPkgFile);
             } else {
                 try {
                     if (format.equalsIgnoreCase(FileUtils.FORMAT_NETWORK)) {

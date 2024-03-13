@@ -29,7 +29,7 @@ public class GeoserverRestApi {
     public static final String GEOSERVER_USER = System.getenv("GEOSERVER_USER");
     public static final String GEOSERVER_PW = System.getenv("GEOSERVER_PW");
     public static final String GEOSERVER_WORKSPACE = System.getenv("GEOSERVER_WORKSPACE");
-    private static final Logger logger = Logger.getLogger(GeoserverUtils.class);
+    private static final Logger logger = Logger.getLogger(GeoserverRestApi.class);
     private final String geoserverUrl;
     private final String username;
     private final String password;
@@ -164,6 +164,7 @@ public class GeoserverRestApi {
         String fileName = FilenameUtils.getBaseName(inFile.getName());
 
         // check if workspace exists
+        // TODO created never been used
         boolean created = createWorkspace(this.geoserverUrl, GEOSERVER_WORKSPACE);
         boolean published = false;
 
@@ -245,14 +246,16 @@ public class GeoserverRestApi {
      * @param fileForamt
      * @return
      */
-    public Boolean uploadToGeoserverWithRenaming(String fileName, String store, File inFile, String fileForamt) {
+    public Boolean uploadToGeoserverWithRenaming(String fileName, String store, File inFile, String fileFormat) {
         Boolean published = false;
         try {
             String restUrl = this.geoserverUrl + "/rest";
             String fileNameNoExt = fileName.split("\\.")[0];
-            int datastoreResponse = createDatastore(restUrl, GEOSERVER_WORKSPACE, store, inFile.getAbsolutePath(), fileForamt);
+            int datastoreResponse = createDatastore(restUrl, GEOSERVER_WORKSPACE, store, inFile.getAbsolutePath(), fileFormat);
+            logger.debug("Successfully created datastore for " + fileNameNoExt + " with response code " + datastoreResponse);
             int layerResponse = createLayer(restUrl, GEOSERVER_WORKSPACE, store, store, fileNameNoExt);
-            if (datastoreResponse == 201 && layerResponse == 201) {
+            logger.debug("Successfully created layer for " + fileNameNoExt + " with response code " + layerResponse);
+            if ((datastoreResponse == 201 || datastoreResponse == 200) && (layerResponse == 201 || layerResponse == 200)){
                 published = true;
             }
         } catch (IOException e) {
@@ -362,11 +365,11 @@ public class GeoserverRestApi {
      */
     public int sendHttpRequest(String url, Map<String, String> headers, byte[] data,
                                         Map<String, String> params, String method) throws IOException {
-        HttpURLConnection connection = createHttpConnection(url, method, headers);
-
         if (params != null && !params.isEmpty()) {
             url += getQueryString(params);
         }
+
+        HttpURLConnection connection = createHttpConnection(url, method, headers);
 
         try (OutputStream outputStream = connection.getOutputStream()) {
             outputStream.write(data);
