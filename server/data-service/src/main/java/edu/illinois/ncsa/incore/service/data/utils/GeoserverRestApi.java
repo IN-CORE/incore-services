@@ -164,6 +164,7 @@ public class GeoserverRestApi {
         String fileName = FilenameUtils.getBaseName(inFile.getName());
 
         // check if workspace exists
+        // TODO created never been used
         boolean created = createWorkspace(this.geoserverUrl, GEOSERVER_WORKSPACE);
         boolean published = false;
 
