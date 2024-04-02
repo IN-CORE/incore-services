@@ -10,6 +10,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import mocks.MockApplication;
 import org.apache.commons.io.IOUtils;
@@ -139,5 +140,49 @@ class DatasetControllerTest extends CustomJerseyTest {
         assertNotNull(parsedObject.get("id").toString());
     }
 
+    @Test
+    public void testFindHazardDatasetType() throws IOException {
+        String dataType = "ergo:probabilisticEarthquakeRaster";
+        String subDataType;
+        if (dataType.contains(":")) {
+            // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
+            subDataType = dataType.split(":")[1];
+        } else {
+            subDataType = dataType;
+        }
+
+        // check if the dataset is hazard dataset
+        boolean isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType));
+        assertTrue(isHazardDataset);
+    }
+
+    @Test
+    public void testFindHazardDatasetTypeWithBadDataType() throws IOException {
+        String dataType = "probabilisticEarthquakeRaster";
+        String subDataType;
+        if (dataType.contains(":")) {
+            // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
+            subDataType = dataType.split(":")[1];
+        } else {
+            subDataType = dataType;
+        }
+
+        // check if the dataset is hazard dataset
+        boolean isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType));
+        assertTrue(isHazardDataset);
+
+        dataType = "ergo:buildingDamageVer4";
+        String subDataType2;
+        if (dataType.contains(":")) {
+            // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
+            subDataType2 = dataType.split(":")[1];
+        } else {
+            subDataType2 = dataType;
+        }
+
+        // check if the dataset is hazard dataset
+        isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType2));
+        assertFalse(isHazardDataset);
+    }
 
 }

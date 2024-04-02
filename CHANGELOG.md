@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Hazard dataset user quota to check type name after the namespace when determining if a dataset is a hazard dataset [#289](https://github.com/IN-CORE/incore-services/issues/289)
+
 ## [1.26.0] - 2024-03-27
 
 ### Changed
