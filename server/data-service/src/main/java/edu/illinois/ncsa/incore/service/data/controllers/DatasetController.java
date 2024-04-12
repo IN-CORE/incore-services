@@ -71,7 +71,7 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
-        version = "1.26.0",
+        version = "1.26.1",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -147,7 +147,7 @@ public class DatasetController {
             return dataset;
         }
 
-        if (authorizer.canUserReadMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
+        if (authorizer.canUserReadMember(this.username, datasetId, spaceRepository.getAllSpaces(), this.groups)) {
             return dataset;
         }
         throw new IncoreHTTPException(Response.Status.FORBIDDEN,
@@ -166,7 +166,7 @@ public class DatasetController {
                                      @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order,
                                      @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
                                      @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit,
-                                     @Parameter(name = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard ){
+                                     @Parameter(name = "Exclusion of the hazard dataset") @DefaultValue("true") @QueryParam("excludeHazard") boolean excludeHazard) {
 
         // import eq comparator
         Comparator<Dataset> comparator = datasetComparator(sortBy, order);
@@ -191,7 +191,7 @@ public class DatasetController {
             if (space == null) {
                 throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find the space " + spaceName);
             }
-            if (!authorizer.canRead(username, space.getPrivileges(),this.groups)) {
+            if (!authorizer.canRead(username, space.getPrivileges(), this.groups)) {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " is not authorized to read the space " + spaceName);
             }
             List<String> spaceMembers = space.getMembers();
@@ -209,7 +209,7 @@ public class DatasetController {
             return datasets;
         }
         //get all datasets that the user can read
-        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(),groups);
+        Set<String> userMembersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
 
         //return the intersection between all datasets and the ones the user can read
         List<Dataset> accessibleDatasets = datasets.stream()
@@ -386,8 +386,16 @@ public class DatasetController {
             dataset.setSourceDataset(sourceDataset);
             dataset.setFormat(format);
 
+            String subDataType;
+            if (dataType.contains(":")) {
+                // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
+                subDataType = dataType.split(":")[1];
+            } else {
+                subDataType = dataType;
+            }
+
             // check if the dataset is hazard dataset
-            isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
+            isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType));
 
             if (isHazardDataset) {
                 postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "hazardDatasets");
@@ -500,7 +508,14 @@ public class DatasetController {
 
         // check if the dataset is hazard dataset
         String dataType = dataset.getDataType();
-        boolean isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
+        String subDataType;
+        if (dataType.contains(":")) {
+            // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
+            subDataType = dataType.split(":")[1];
+        } else {
+            subDataType = dataType;
+        }
+        boolean isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType));
 
         // reduce the number of hazard from the space
         if (isHazardDataset) {
@@ -527,8 +542,8 @@ public class DatasetController {
     public Dataset uploadFiles(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @Parameter(name = "Form inputs representing the file(s). The id/key of each input file has to be 'file'",
                                    required = true)
-                                   FormDataMultiPart inputs) throws IOException {
-        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(),this.groups)) {
+                               FormDataMultiPart inputs) throws IOException {
+        if (!authorizer.canUserWriteMember(this.username, datasetId, spaceRepository.getAllSpaces(), this.groups)) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 this.username + " has no permission to modify the dataset " + datasetId);
         }
@@ -546,7 +561,15 @@ public class DatasetController {
 
         // check if the dataset is hazard dataset
         String dataType = dataset.getDataType();
-        isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.contains(dataType);
+        String subDataType;
+        if (dataType.contains(":")) {
+            // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
+            subDataType = dataType.split(":")[1];
+        } else {
+            subDataType = dataType;
+        }
+        isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType));
+
         long fileSize = 0;
 
         if (isHazardDataset) {
@@ -1066,7 +1089,7 @@ public class DatasetController {
             datasets = this.repository.searchDatasets(text, excludeHazard);
         }
 
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(),this.groups);
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(this.username, spaceRepository.getAllSpaces(), this.groups);
 
         datasets = datasets.stream()
             .filter(dataset -> membersSet.contains(dataset.getId()))
