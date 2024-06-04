@@ -114,7 +114,8 @@ public class FragilityController {
     @Operation(tags = "Gets list of fragilities", summary = "Apply filters to get the desired set of fragilities")
     public List<FragilitySet> getFragilities(@Parameter(name = "demand type filter", example = "PGA") @QueryParam("demand") String demandType,
                                              @Parameter(name = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                             @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                             @Parameter(name = "Inventory type filter", example = "building") @QueryParam("inventory") String inventoryType,
+                                             @Parameter(name = "Data type filter", example = "ergo:buildingInventoryVer7") @QueryParam("dataType") String dataType,
                                              @Parameter(name = "not implemented", hidden = true) @QueryParam("author") String author,
                                              @Parameter(name = "Legacy fragility Id from v1") @QueryParam("legacy_id") String legacyId,
                                              @Parameter(name = "Fragility creator's username") @QueryParam("creator") String creator,
@@ -137,6 +138,10 @@ public class FragilityController {
 
         if (inventoryType != null) {
             queryMap.put("inventoryType", inventoryType);
+        }
+
+        if (dataType != null){
+            queryMap.put("dataType", dataType);
         }
 
         if (creator != null) {

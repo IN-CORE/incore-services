@@ -87,6 +87,7 @@ public class MappingController {
     @Operation(tags = "Gets list of all inventory mappings", summary = "Apply filters to get the desired set of mappings")
     public List<MappingSet> getMappings(@Parameter(name= "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
                                         @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                        @Parameter(name = "Data type", example = "ergo:buildingInventoryVer7") @QueryParam("dataType") String dataType,
                                         @Parameter(name = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
                                             "mappingType") String mappingType,
                                         @Parameter(name = "Creator's username") @QueryParam("creator") String creator,
@@ -101,6 +102,10 @@ public class MappingController {
 
         if (inventoryType != null) {
             queryMap.put("inventoryType", inventoryType);
+        }
+
+        if (dataType != null) {
+            queryMap.put("dataType", dataType);
         }
 
         if (creator != null) {

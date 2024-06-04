@@ -4,6 +4,7 @@
     "legacyId": "NSDS_PFM_MTB_UL_475_W1_4",
     "hazardType": "earthquake",
     "inventoryType": "building",
+    "dataType": "ergo:buildingInventoryVer7",
     "authors": [
       "Amr S. Elnashai",
       "Seong-Hoon Jeong",
@@ -54,6 +55,7 @@
     "legacyId": "STR_PFM_MTB_UL_475_S2_9",
     "hazardType": "earthquake",
     "inventoryType": "building",
+    "dataType": "ergo:buildingInventoryVer7",
     "authors": [
       "Amr S. Elnashai",
       "Seong-Hoon Jeong",
@@ -111,6 +113,7 @@
     "resultType": "Limit State",
     "hazardType": "tsunami",
     "inventoryType": "electric_facility",
+    "dataType": "incore:epfVer2",
     "creator": "cwang138",
     "demandType": "Vmax",
     "demandUnits": "ft/s",
@@ -209,6 +212,7 @@
     "id": "5e99d0b3e05cb9ccbc32d6e6",
     "hazardType": "earthquake",
     "inventoryType": "bridge",
+    "dataType": "ergo:bridgesVer3",
     "authors": [
       "HAZUS"
     ],
