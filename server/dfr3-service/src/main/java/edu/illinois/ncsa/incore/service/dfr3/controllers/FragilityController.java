@@ -245,6 +245,7 @@ public class FragilityController {
                 }
             }
         }
+        // check if the parameters matches the defined data type in semantics
         String dataType = fragilitySet.getDataType();
         String inventoryType = fragilitySet.getInventoryType();
         if (dataType == null) {
@@ -270,7 +271,6 @@ public class FragilityController {
         } catch (IOException e) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the fragility curve parameter matches the dataType columns.");
         }
-
 
         fragilitySet.setCreator(username);
         fragilitySet.setOwner(username);

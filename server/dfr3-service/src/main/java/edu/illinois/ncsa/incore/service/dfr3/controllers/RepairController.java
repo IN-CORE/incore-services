@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.SemanticsConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -28,6 +29,8 @@ import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
+import edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil;
+import edu.illinois.ncsa.incore.service.dfr3.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,6 +46,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,6 +81,7 @@ public class RepairController {
 
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     IAuthorizer authorizer;
@@ -96,6 +102,7 @@ public class RepairController {
         @Parameter(name  = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
@@ -183,6 +190,25 @@ public class RepairController {
         if (!postOk) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN,
                 AllocationConstants.HAZARD_DFR3_ALLOCATION_MESSAGE);
+        }
+
+        // check if the parameters matches the defined data type in semantics
+        String dataType = repairSet.getDataType();
+        if (dataType == null) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataType is a required field.");
+        }
+        try {
+            String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
+            List<String> columns = CommonUtil.getColumnNames(semanticsDefinition);
+
+            repairSet.getCurveParameters().forEach((params) -> {
+               if(!columns.contains(params.name)) {
+                   throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Curve parameter: " + params.name + " not found in the dataType: " + dataType);
+               }
+            });
+
+        } catch (IOException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the repair curve parameter matches the dataType columns.");
         }
 
         repairSet.setCreator(username);
