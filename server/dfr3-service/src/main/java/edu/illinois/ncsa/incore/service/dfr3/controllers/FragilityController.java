@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.SemanticsConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -28,6 +29,8 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 
+import edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil;
+import edu.illinois.ncsa.incore.service.dfr3.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,6 +51,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -84,6 +89,7 @@ public class FragilityController {
 
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     IAuthorizer authorizer;
@@ -106,6 +112,7 @@ public class FragilityController {
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
         ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
@@ -237,6 +244,27 @@ public class FragilityController {
                             "Allowed demand types and units are: " + listOfDemands);
                 }
             }
+        }
+        String dataType = fragilitySet.getDataType();
+        if (dataType == null) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataType is a required field.");
+        }
+        try {
+            String SemanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
+            List<String> columns = CommonUtil.getColumnNames(SemanticsDefinition);
+
+            //  check if curve parameters matches the dataType columns
+            fragilitySet.getCurveParameters().forEach((params) -> {
+                // only check curve parameter does not belong to a part of the demand type
+                if (!demandTypes.contains(params.fullName) && !demandUnits.contains(params.name) && !SemanticsConstants.RESERVED_COLUMNS.contains(params.name)) {
+                    if (!columns.contains(params.name)){
+                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Curve parameter: " + params.name + " not found in the dataType: " + dataType);
+                    }
+                }
+            });
+
+        } catch (IOException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the fragility curve parameter matches the dataType columns.");
         }
 
         fragilitySet.setCreator(username);
