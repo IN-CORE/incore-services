@@ -201,7 +201,6 @@ public class MappingController {
         }
 
         List<Mapping> mappings = mappingSet.getMappings();
-        List<String> uniqueColumns = new ArrayList<>();
         Set<String> columnSet = new HashSet<>();
 
         int idx = 0;
@@ -232,8 +231,9 @@ public class MappingController {
             else if(mapping.getRules() instanceof HashMap) {
                 extractColumnsFromMapping((HashMap<?, ?>) mapping.getRules(), columnSet);
             }
-            uniqueColumns.addAll(columnSet);
         }
+
+        List<String> uniqueColumns = new ArrayList<>(columnSet);
 
         // check if the parameters matches the defined data type in semantics
         String dataType = mappingSet.getDataType();
@@ -247,7 +247,7 @@ public class MappingController {
             // parse mapping rules to find column names
             uniqueColumns.forEach((uniqueColumn) -> {
                 if(!columns.contains(uniqueColumn)) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Column: " + uniqueColumn + "in the Mapping Rules not found in the dataType: " + dataType);
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Column: " + uniqueColumn + " in the Mapping Rules not found in the dataType: " + dataType);
                 }
             });
 
