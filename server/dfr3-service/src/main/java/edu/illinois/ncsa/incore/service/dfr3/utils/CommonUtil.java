@@ -11,6 +11,8 @@ import org.json.simple.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class CommonUtil {
     public static JSONObject createUserStatusJson(String creator, String keyDatabase, int numDfr) {
@@ -41,5 +43,35 @@ public class CommonUtil {
         }
 
         return columnNames;
+    }
+
+    public static void extractColumnsFromMapping(Map<?, ?> rules, Set<String> columnSet) {
+        rules.forEach((key, value) -> {
+            if (value instanceof List) {
+                for (Object item : (List<?>) value) {
+                    if (item instanceof String) {
+                        String[] parts = ((String) item).split(" ");
+                        if (parts.length > 1) {
+                            columnSet.add(parts[1]);
+                        }
+                    } else if (item instanceof Map) {
+                        extractColumnsFromMapping((Map<?, ?>) item, columnSet);
+                    }
+                }
+            }
+        });
+    }
+
+    public static void extractColumnsFromMapping(ArrayList<?> rules, Set<String> columnSet) {
+        rules.forEach((rule) -> {
+            if (rule instanceof List) {
+                ((List<?>) rule).forEach((r) -> {
+                    String[] parts = r.toString().split(" ");
+                    if (parts.length > 1) {
+                        columnSet.add(parts[1]);
+                    }
+                });
+            }
+        });
     }
 }
