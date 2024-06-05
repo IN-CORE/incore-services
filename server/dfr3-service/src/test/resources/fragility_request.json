@@ -2,6 +2,7 @@
   "legacyId": "legacyId",
   "hazardType": "hazardType",
   "inventoryType": "inventoryType",
+  "dataType": "incore:dataType",
   "authors": [
     "Chen Wang"
   ],

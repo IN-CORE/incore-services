@@ -95,12 +95,14 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
                 .filter(Filters.or(
                     Filters.regex("name").pattern(text).caseInsensitive(),
                     Filters.regex("hazardType").pattern(text).caseInsensitive(),
-                    Filters.regex("inventoryType").pattern(text).caseInsensitive()));
+                    Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                    Filters.regex("dataType").pattern(text).caseInsensitive()));
         } else {
             query.filter(Filters.or(
                 Filters.regex("name").pattern(text).caseInsensitive(),
                 Filters.regex("hazardType").pattern(text).caseInsensitive(),
-                Filters.regex("inventoryType").pattern(text).caseInsensitive()));
+                Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                Filters.regex("dataType").pattern(text).caseInsensitive()));
         }
 
         List<MappingSet> sets = query.iterator().toList();

@@ -31,6 +31,7 @@ public abstract class DFR3Set {
 
     protected String hazardType;
     protected String inventoryType;
+    protected String dataType;
 
     protected String creator;
     protected String owner;
@@ -78,6 +79,8 @@ public abstract class DFR3Set {
     public String getInventoryType() {
         return inventoryType;
     }
+
+    public String getDataType() { return dataType; }
 
     public String getCreator() {
         return creator;

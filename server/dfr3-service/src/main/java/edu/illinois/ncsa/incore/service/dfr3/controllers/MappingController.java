@@ -29,6 +29,8 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.Mapping;
 import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil;
+import edu.illinois.ncsa.incore.service.dfr3.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,8 +40,12 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil.extractColumnsFromMapping;
 
 
 @Tag(name = "Mapping")
@@ -49,6 +55,7 @@ public class MappingController {
 
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IMappingDAO mappingDAO;
@@ -79,6 +86,7 @@ public class MappingController {
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
@@ -87,6 +95,7 @@ public class MappingController {
     @Operation(tags = "Gets list of all inventory mappings", summary = "Apply filters to get the desired set of mappings")
     public List<MappingSet> getMappings(@Parameter(name= "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
                                         @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                        @Parameter(name = "Data type", example = "ergo:buildingInventoryVer7") @QueryParam("dataType") String dataType,
                                         @Parameter(name = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
                                             "mappingType") String mappingType,
                                         @Parameter(name = "Creator's username") @QueryParam("creator") String creator,
@@ -101,6 +110,10 @@ public class MappingController {
 
         if (inventoryType != null) {
             queryMap.put("inventoryType", inventoryType);
+        }
+
+        if (dataType != null) {
+            queryMap.put("dataType", dataType);
         }
 
         if (creator != null) {
@@ -188,6 +201,8 @@ public class MappingController {
         }
 
         List<Mapping> mappings = mappingSet.getMappings();
+        Set<String> columnSet = new HashSet<>();
+
         int idx = 0;
         String prevRuleClassName = "";
         // This validates if the format of the "rules" being submitted is an Array or Hash. It is needed because we made "rules" attribute
@@ -208,7 +223,38 @@ public class MappingController {
                 prevRuleClassName = mapping.getRules().getClass().getName();
             }
             idx++;
+
+            // get unique column names
+            if (mapping.getRules() instanceof ArrayList) {
+                extractColumnsFromMapping((ArrayList<?>) mapping.getRules(), columnSet);
+            }
+            else if(mapping.getRules() instanceof HashMap) {
+                extractColumnsFromMapping((HashMap<?, ?>) mapping.getRules(), columnSet);
+            }
         }
+
+        List<String> uniqueColumns = new ArrayList<>(columnSet);
+
+        // check if the parameters matches the defined data type in semantics
+        String dataType = mappingSet.getDataType();
+        if (dataType == null) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataType is a required field.");
+        }
+        try {
+            String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
+            List<String> columns = CommonUtil.getColumnNames(semanticsDefinition);
+
+            // parse mapping rules to find column names
+            uniqueColumns.forEach((uniqueColumn) -> {
+                if(!columns.contains(uniqueColumn)) {
+                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Column: " + uniqueColumn + " in the Mapping Rules not found in the dataType: " + dataType);
+                }
+            });
+
+        } catch (IOException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check if the column in the mapping rules matches the dataType columns.");
+        }
+
 
         mappingSet.setCreator(username);
         mappingSet.setOwner(username);
