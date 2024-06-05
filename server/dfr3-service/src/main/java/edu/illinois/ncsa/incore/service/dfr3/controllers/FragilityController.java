@@ -246,26 +246,32 @@ public class FragilityController {
             }
         }
         String dataType = fragilitySet.getDataType();
+        String inventoryType = fragilitySet.getInventoryType();
         if (dataType == null) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataType is a required field.");
         }
         try {
-            String SemanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
-            List<String> columns = CommonUtil.getColumnNames(SemanticsDefinition);
+            String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
+            List<String> columns = CommonUtil.getColumnNames(semanticsDefinition);
 
-            //  check if curve parameters matches the dataType columns
             fragilitySet.getCurveParameters().forEach((params) -> {
-                // only check curve parameter does not belong to a part of the demand type
-                if (!demandTypes.contains(params.fullName) && !demandUnits.contains(params.name) && !SemanticsConstants.RESERVED_COLUMNS.contains(params.name)) {
-                    if (!columns.contains(params.name)){
+                // Only check curve parameter if it does not belong to a part of the demand type
+                if (!demandTypes.contains(params.fullName) && !demandUnits.contains(params.name)) {
+                    // Check if inventoryType is "building" and the column is not reserved
+                    boolean isBuildingAndNotReserved = "building".equals(inventoryType) && SemanticsConstants.RESERVED_COLUMNS.contains(params.name);
+
+                    // If it's not a building parameter that is reserved, check if it's in the columns
+                    if (!isBuildingAndNotReserved && !columns.contains(params.name)) {
                         throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Curve parameter: " + params.name + " not found in the dataType: " + dataType);
                     }
                 }
             });
 
+
         } catch (IOException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the fragility curve parameter matches the dataType columns.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the fragility curve parameter matches the dataType columns.", e);
         }
+
 
         fragilitySet.setCreator(username);
         fragilitySet.setOwner(username);
