@@ -267,9 +267,8 @@ public class FragilityController {
                 }
             });
 
-
         } catch (IOException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the fragility curve parameter matches the dataType columns.", e);
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the fragility curve parameter matches the dataType columns.");
         }
 
 
