@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Jersey to version 3.1.7 [#250](https://github.com/IN-CORE/incore-services/issues/250)
+
 ## [1.26.1] - 2024-04-08
 
 ### Fixed
