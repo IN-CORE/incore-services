@@ -10,6 +10,10 @@
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import mocks.MockApplication;
@@ -29,7 +33,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URL;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -183,6 +189,19 @@ class DatasetControllerTest extends CustomJerseyTest {
         // check if the dataset is hazard dataset
         isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType2));
         assertFalse(isHazardDataset);
+    }
+
+    @Test
+    public void testReadCSV() throws Exception {
+        // Verifies the CSV reader is parsing correctly and ignoring the header
+        StringBuilder csv = new StringBuilder();
+        csv.append("\"guid\",\"LS_0\", \"LS_1\"").append("\n");
+        csv.append("\"some-guid-1\",\"0.0\"\"0.0\"").append("\n");
+        csv.append("\"some-guid-2\",\"0.0\",\"0.0\"");
+        CSVParser parser = new CSVParserBuilder().withSeparator(',').withQuoteChar('"').build();
+        CSVReader reader = new CSVReaderBuilder(new StringReader(csv.toString())).withSkipLines(1).withCSVParser(parser).build();
+        List<String[]> rows = reader.readAll();
+        assertEquals(2, rows.size());
     }
 
 }
