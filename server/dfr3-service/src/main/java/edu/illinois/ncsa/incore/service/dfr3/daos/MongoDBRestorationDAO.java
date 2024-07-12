@@ -86,7 +86,6 @@ public class MongoDBRestorationDAO extends MongoDAO implements IRestorationDAO {
                 Filters.regex("legacyId").pattern(text).caseInsensitive(),
                 Filters.regex("hazardType").pattern(text).caseInsensitive(),
                 Filters.regex("inventoryType").pattern(text).caseInsensitive(),
-                Filters.regex("dataType").pattern(text).caseInsensitive(),
                 Filters.regex("description").pattern(text).caseInsensitive(),
                 Filters.regex("authors").pattern(text).caseInsensitive()));
         List<RestorationSet> sets = query.iterator().toList();

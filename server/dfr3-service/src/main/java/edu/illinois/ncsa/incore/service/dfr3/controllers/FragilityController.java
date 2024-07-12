@@ -122,7 +122,6 @@ public class FragilityController {
     public List<FragilitySet> getFragilities(@Parameter(name = "demand type filter", example = "PGA") @QueryParam("demand") String demandType,
                                              @Parameter(name = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
                                              @Parameter(name = "Inventory type filter", example = "building") @QueryParam("inventory") String inventoryType,
-                                             @Parameter(name = "Data type filter", example = "ergo:buildingInventoryVer7") @QueryParam("dataType") String dataType,
                                              @Parameter(name = "not implemented", hidden = true) @QueryParam("author") String author,
                                              @Parameter(name = "Legacy fragility Id from v1") @QueryParam("legacy_id") String legacyId,
                                              @Parameter(name = "Fragility creator's username") @QueryParam("creator") String creator,
@@ -145,10 +144,6 @@ public class FragilityController {
 
         if (inventoryType != null) {
             queryMap.put("inventoryType", inventoryType);
-        }
-
-        if (dataType != null){
-            queryMap.put("dataType", dataType);
         }
 
         if (creator != null) {
@@ -244,32 +239,6 @@ public class FragilityController {
                             "Allowed demand types and units are: " + listOfDemands);
                 }
             }
-        }
-        // check if the parameters matches the defined data type in semantics
-        String dataType = fragilitySet.getDataType();
-        String inventoryType = fragilitySet.getInventoryType();
-        if (dataType == null) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataType is a required field.");
-        }
-        try {
-            String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
-            List<String> columns = CommonUtil.getColumnNames(semanticsDefinition);
-
-            fragilitySet.getCurveParameters().forEach((params) -> {
-                // Only check curve parameter if it does not belong to a part of the demand type
-                if (!demandTypes.contains(params.fullName) && !demandUnits.contains(params.name)) {
-                    // Check if inventoryType is "building" and the column is not reserved
-                    boolean isBuildingAndNotReserved = "building".equals(inventoryType) && SemanticsConstants.RESERVED_COLUMNS.contains(params.name);
-
-                    // If it's not a building parameter that is reserved, check if it's in the columns
-                    if (!isBuildingAndNotReserved && !columns.contains(params.name)) {
-                        throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Curve parameter: " + params.name + " not found in the dataType: " + dataType);
-                    }
-                }
-            });
-
-        } catch (IOException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check the fragility curve parameter matches the dataType columns.");
         }
 
         fragilitySet.setCreator(username);
