@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-- Valid DFR3 set and mapping set match semantics definition [#295](https://github.com/IN-CORE/incore-services/issues/295)
+
+### Added
+
+- Valid DFR3 mapping set match semantics definition [#295](https://github.com/IN-CORE/incore-services/issues/295)
 
 ## [1.26.1] - 2024-04-08
 

@@ -112,10 +112,6 @@ public class MappingController {
             queryMap.put("inventoryType", inventoryType);
         }
 
-        if (dataType != null) {
-            queryMap.put("dataType", dataType);
-        }
-
         if (creator != null) {
             queryMap.put("creator", creator);
         }
@@ -127,7 +123,7 @@ public class MappingController {
         List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
-            mappingSets = this.mappingDAO.getMappingSets();
+            mappingSets = this.mappingDAO.getMappingSets(dataType);
         } else {
             mappingSets = this.mappingDAO.queryMappingSets(queryMap);
         }
@@ -236,23 +232,38 @@ public class MappingController {
         List<String> uniqueColumns = new ArrayList<>(columnSet);
 
         // check if the parameters matches the defined data type in semantics
-        String dataType = mappingSet.getDataType();
-        if (dataType == null) {
+        List<String> dataTypes = mappingSet.getDataTypes();
+        if (dataTypes == null || dataTypes.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataType is a required field.");
         }
-        try {
-            String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
-            List<String> columns = CommonUtil.getColumnNames(semanticsDefinition);
 
-            // parse mapping rules to find column names
-            uniqueColumns.forEach((uniqueColumn) -> {
-                if(!columns.contains(uniqueColumn)) {
-                    throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Column: " + uniqueColumn + " in the Mapping Rules not found in the dataType: " + dataType);
+        boolean columnFound = false;
+
+        for (String dataType : dataTypes) {
+            try {
+                String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
+                List<String> columnsDefinition = CommonUtil.getColumnNames(semanticsDefinition);
+
+                // Check if any uniqueColumn is found in columns
+                for (String uniqueColumn : uniqueColumns) {
+                    if (columnsDefinition.contains(uniqueColumn)) {
+                        columnFound = true;
+                        break;  // Break the inner loop
+                    }
                 }
-            });
 
-        } catch (IOException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Could not check if the column in the mapping rules matches the dataType columns.");
+                // If column is found, break the outer loop
+                if (columnFound) break;
+
+            } catch (IOException e) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
+                    "Could not check if the column in the mapping rules matches the dataType:" + dataType);
+            }
+        }
+
+        if (!columnFound) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
+                "The columns in the mapping rules do not match the columns in any of the listed dataType.");
         }
 
 

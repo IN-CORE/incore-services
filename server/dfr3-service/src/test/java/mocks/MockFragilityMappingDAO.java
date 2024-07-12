@@ -36,7 +36,7 @@ public class MockFragilityMappingDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> getMappingSets() {
+    public List<MappingSet> getMappingSets(String dataType) {
         return mappingSets;
     }
 

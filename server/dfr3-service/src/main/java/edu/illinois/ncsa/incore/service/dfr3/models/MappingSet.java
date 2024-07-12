@@ -31,7 +31,7 @@ public class MappingSet {
     private String name;
     private String hazardType;
     private String inventoryType;
-    private String dataType;
+    private List<String> dataTypes;
 
     @JsonProperty("mappingType")
     private String mappingType;
@@ -64,7 +64,7 @@ public class MappingSet {
         return inventoryType;
     }
 
-    public String getDataType() { return dataType; }
+    public List<String> getDataTypes() { return dataTypes; }
 
     public List<Mapping> getMappings() {
         return mappings;
