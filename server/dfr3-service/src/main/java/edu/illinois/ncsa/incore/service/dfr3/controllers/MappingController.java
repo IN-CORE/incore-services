@@ -233,8 +233,11 @@ public class MappingController {
 
         // check if the parameters matches the defined data type in semantics
         List<String> dataTypes = mappingSet.getDataTypes();
-        if (dataTypes == null || dataTypes.isEmpty()) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataType is a required field.");
+        if (dataTypes == null) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataTypes is a required field.");
+        }
+        else if (dataTypes.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataTypes cannot be empty.");
         }
 
         boolean columnFound = false;
@@ -263,9 +266,8 @@ public class MappingController {
 
         if (!columnFound) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
-                "The columns in the mapping rules do not match the columns in any of the listed dataType.");
+                "The columns in the mapping rules do not match the columns in any of the listed dataTypes.");
         }
-
 
         mappingSet.setCreator(username);
         mappingSet.setOwner(username);
