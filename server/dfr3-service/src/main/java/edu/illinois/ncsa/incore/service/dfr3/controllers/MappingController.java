@@ -27,8 +27,7 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
-import edu.illinois.ncsa.incore.service.dfr3.models.Mapping;
-import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.models.*;
 import edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil;
 import edu.illinois.ncsa.incore.service.dfr3.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -198,6 +197,7 @@ public class MappingController {
 
         List<Mapping> mappings = mappingSet.getMappings();
         Set<String> columnSet = new HashSet<>();
+        Set<DFR3Set> dfr3CurveSets = new HashSet<>();
 
         int idx = 0;
         String prevRuleClassName = "";
@@ -227,6 +227,25 @@ public class MappingController {
             else if(mapping.getRules() instanceof HashMap) {
                 extractColumnsFromMapping((HashMap<?, ?>) mapping.getRules(), columnSet);
             }
+
+            // get unique dfr3 curves
+            Optional.ofNullable(mapping.getEntry())
+                .ifPresent(entry -> {
+                    if ("fragility".equals(mappingSet.getMappingType())) {
+                        entry.values().forEach(id ->
+                            this.fragilityDAO.getFragilitySetById(id).ifPresent(dfr3CurveSets::add)
+                        );
+                    } else if ("restoration".equals(mappingSet.getMappingType())) {
+                        entry.values().forEach(id ->
+                            this.restorationDAO.getRestorationSetById(id).ifPresent(dfr3CurveSets::add)
+                        );
+                    } else if ("repair".equals(mappingSet.getMappingType())) {
+                        entry.values().forEach(id ->
+                            this.repairDAO.getRepairSetById(id).ifPresent(dfr3CurveSets::add)
+                        );
+                    }
+                });
+
         }
 
         List<String> uniqueColumns = new ArrayList<>(columnSet);
@@ -241,32 +260,34 @@ public class MappingController {
         }
 
         boolean columnFound = false;
-
         for (String dataType : dataTypes) {
             try {
                 String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
                 List<String> columnsDefinition = CommonUtil.getColumnNames(semanticsDefinition);
 
-                // Check if any uniqueColumn is found in columns
-                for (String uniqueColumn : uniqueColumns) {
-                    if (columnsDefinition.contains(uniqueColumn)) {
-                        columnFound = true;
-                        break;  // Break the inner loop
-                    }
+                // Check if all uniqueColumns are found in columns
+                boolean allUniqueColumnsFound = columnsDefinition.containsAll(uniqueColumns);
+
+                // Check if all curveParameters are found in columns for every curve set
+                boolean allCurveParametersFound = dfr3CurveSets.stream().allMatch(dfr3CurveSet -> {
+                    List<CurveParameter> curveParameters = dfr3CurveSet.getCurveParameters();
+                    return curveParameters != null && curveParameters.stream().allMatch(param -> columnsDefinition.contains(param.name));
+                });
+
+                // If both conditions are met, set columnFound to true
+                if (allUniqueColumnsFound && allCurveParametersFound) {
+                    columnFound = true;
+                    break;  // Break the outer loop if both conditions are met
                 }
-
-                // If column is found, break the outer loop
-                if (columnFound) break;
-
             } catch (IOException e) {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
-                    "Could not check if the column in the mapping rules matches the dataType:" + dataType);
+                    "Could not check if the column in the mapping rules matches the dataType: " + dataType);
             }
         }
 
         if (!columnFound) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
-                "The columns in the mapping rules do not match the columns in any of the listed dataTypes.");
+                "The columns in the mapping rules and/or fragility parameters do not match the columns in any of the listed dataTypes.");
         }
 
         mappingSet.setCreator(username);
