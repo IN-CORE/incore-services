@@ -266,33 +266,35 @@ public class MappingController {
                 List<String> columnsDefinition = CommonUtil.getColumnNames(semanticsDefinition);
 
                 // Check if all uniqueColumns are found in columns
-                boolean allUniqueColumnsFound = columnsDefinition.containsAll(uniqueColumns);
-
+                boolean allMappingRuleColumnsFound = columnsDefinition.containsAll(uniqueColumns);
                 // Check if all curveParameters are found in columns for every curve set
-                boolean allCurveParametersFound = dfr3CurveSets.stream().allMatch(dfr3CurveSet -> {
-                    List<CurveParameter> curveParameters = dfr3CurveSet.getCurveParameters();
-                    if (dfr3CurveSet instanceof FragilitySet) {
-                        return curveParameters != null && curveParameters.stream().allMatch(param -> {
-                            // Only check curve parameter if it does not belong to a part of the demand type
-                            if (!((FragilitySet) dfr3CurveSet).getDemandTypes().contains(param.fullName)
-                                && !((FragilitySet) dfr3CurveSet).getDemandUnits().contains(param.name)) {
-                                // Check if inventoryType is "building" and the column is not reserved
-                                boolean isBuildingAndNotReserved = "building".equals(((FragilitySet) dfr3CurveSet).getInventoryType())
-                                    && SemanticsConstants.RESERVED_COLUMNS.contains(param.name);
+                boolean allDFR3CurveParameterColumnsFound = false;
+                if (allMappingRuleColumnsFound) {
+                    allDFR3CurveParameterColumnsFound = dfr3CurveSets.stream().allMatch(dfr3CurveSet -> {
+                        List<CurveParameter> curveParameters = dfr3CurveSet.getCurveParameters();
+                        if (dfr3CurveSet instanceof FragilitySet) {
+                            return curveParameters != null && curveParameters.stream().allMatch(param -> {
+                                // Only check curve parameter if it does not belong to a part of the demand type
+                                if (!((FragilitySet) dfr3CurveSet).getDemandTypes().contains(param.fullName)
+                                    && !((FragilitySet) dfr3CurveSet).getDemandTypes().contains(param.name)) {
+                                    // Check if inventoryType is "building" and the column is not reserved
+                                    boolean isBuildingAndNotReserved = "building".equals(((FragilitySet) dfr3CurveSet).getInventoryType())
+                                        && SemanticsConstants.RESERVED_COLUMNS.contains(param.name);
 
-                                // If it's not a building parameter that is reserved, check if it's in the columns
-                                return isBuildingAndNotReserved || columnsDefinition.contains(param.name);
-                            }
-                            return true;
-                        });
-                    } else {
-                        // For RestorationSet or other types, just check if all curveParameters are in columnsDefinition
-                        return curveParameters != null && curveParameters.stream().allMatch(param -> columnsDefinition.contains(param.name));
-                    }
-                });
+                                    // If it's not a building parameter that is reserved, check if it's in the columns
+                                    return isBuildingAndNotReserved || columnsDefinition.contains(param.name);
+                                }
+                                return true;
+                            });
+                        } else {
+                            // For RestorationSet or other types, just check if all curveParameters are in columnsDefinition
+                            return curveParameters != null && curveParameters.stream().allMatch(param -> columnsDefinition.contains(param.name));
+                        }
+                    });
+                }
 
                 // If both conditions are met, set columnFound to true
-                if (allUniqueColumnsFound && allCurveParametersFound) {
+                if (allMappingRuleColumnsFound && allDFR3CurveParameterColumnsFound) {
                     columnFound = true;
                     break;  // Break the outer loop if both conditions are met
                 }
