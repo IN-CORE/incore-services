@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.SemanticsConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -19,7 +20,6 @@ import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
@@ -271,7 +271,24 @@ public class MappingController {
                 // Check if all curveParameters are found in columns for every curve set
                 boolean allCurveParametersFound = dfr3CurveSets.stream().allMatch(dfr3CurveSet -> {
                     List<CurveParameter> curveParameters = dfr3CurveSet.getCurveParameters();
-                    return curveParameters != null && curveParameters.stream().allMatch(param -> columnsDefinition.contains(param.name));
+                    if (dfr3CurveSet instanceof FragilitySet) {
+                        return curveParameters != null && curveParameters.stream().allMatch(param -> {
+                            // Only check curve parameter if it does not belong to a part of the demand type
+                            if (!((FragilitySet) dfr3CurveSet).getDemandTypes().contains(param.fullName)
+                                && !((FragilitySet) dfr3CurveSet).getDemandUnits().contains(param.name)) {
+                                // Check if inventoryType is "building" and the column is not reserved
+                                boolean isBuildingAndNotReserved = "building".equals(((FragilitySet) dfr3CurveSet).getInventoryType())
+                                    && SemanticsConstants.RESERVED_COLUMNS.contains(param.name);
+
+                                // If it's not a building parameter that is reserved, check if it's in the columns
+                                return isBuildingAndNotReserved || columnsDefinition.contains(param.name);
+                            }
+                            return true;
+                        });
+                    } else {
+                        // For RestorationSet or other types, just check if all curveParameters are in columnsDefinition
+                        return curveParameters != null && curveParameters.stream().allMatch(param -> columnsDefinition.contains(param.name));
+                    }
                 });
 
                 // If both conditions are met, set columnFound to true

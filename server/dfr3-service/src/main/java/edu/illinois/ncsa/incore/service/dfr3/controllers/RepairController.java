@@ -11,26 +11,20 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
-import edu.illinois.ncsa.incore.common.SemanticsConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
-import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
-import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.RepairSet;
-import edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil;
-import edu.illinois.ncsa.incore.service.dfr3.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +41,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,7 +92,7 @@ public class RepairController {
     @Inject
     public RepairController(
         @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @Parameter(name  = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.userGroups = userGroups;
@@ -190,7 +183,7 @@ public class RepairController {
         repairSet.setCreator(username);
         repairSet.setOwner(username);
 
-        if (repairSet.getRepairCurves().size() == 0){
+        if (repairSet.getRepairCurves().size() == 0) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No repair curves are included in the json. " +
                 "Please provide at least one.");
         }

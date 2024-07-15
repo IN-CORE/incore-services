@@ -21,7 +21,6 @@ import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
@@ -29,8 +28,6 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.models.FragilitySet;
 
-import edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil;
-import edu.illinois.ncsa.incore.service.dfr3.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,7 +49,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -110,7 +106,7 @@ public class FragilityController {
     public FragilityController(
         @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
-        ) {
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
         this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
@@ -244,7 +240,7 @@ public class FragilityController {
         fragilitySet.setCreator(username);
         fragilitySet.setOwner(username);
 
-        if (fragilitySet.getFragilityCurves().size() == 0){
+        if (fragilitySet.getFragilityCurves().size() == 0) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No fragility curves are included in the json. " +
                 "Please provide at least one.");
         }
@@ -313,7 +309,7 @@ public class FragilityController {
                     }
 
                     // remove dfr3 in the usage
-                    AllocationUtils.decreaseUsage(allocationsRepository, username,  "dfr3");
+                    AllocationUtils.decreaseUsage(allocationsRepository, username, "dfr3");
 
                     return this.fragilityDAO.deleteFragilitySetById(id);
                 }
