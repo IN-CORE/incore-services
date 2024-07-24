@@ -17,6 +17,7 @@ import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.api.geometry.Bounds;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
@@ -114,7 +115,7 @@ public class GeotoolsUtils {
 //        List<File> copiedFileList = copyFilesToTempDir(file);
 //        File file = copiedFileList.get(0);
         GridCoverage2D coverage = getGridCoverage(file);
-        org.geotools.geometry.jts.ReferencedEnvelope env = (ReferencedEnvelope) coverage.getEnvelope();
+        Bounds env = coverage.getEnvelope();
 
         bbox[0] = env.getLowerCorner().getCoordinate()[0];
         bbox[1] = env.getLowerCorner().getCoordinate()[1];
