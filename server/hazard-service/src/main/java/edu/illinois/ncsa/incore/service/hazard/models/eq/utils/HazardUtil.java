@@ -15,8 +15,9 @@ import edu.illinois.ncsa.incore.service.hazard.models.eq.HazardDataset;
 import edu.illinois.ncsa.incore.service.hazard.models.eq.Site;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.api.geometry.Position;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.geometry.Position2D;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -25,9 +26,8 @@ import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.opengis.coverage.PointOutsideCoverageException;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.operation.TransformException;
+import org.geotools.api.coverage.PointOutsideCoverageException;
+import org.geotools.api.referencing.operation.TransformException;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
@@ -520,7 +520,7 @@ public class HazardUtil {
         final Point2D.Double point = new Point2D.Double();
         point.x = location.getX();
         point.y = location.getY();
-        DirectPosition dp = new DirectPosition2D(location.getX(), location.getY());
+        Position dp = new Position2D(location.getX(), location.getY());
         dest = gc.evaluate(dp, dest);
         if (Double.isNaN(dest[0]) || dest[0] == -9999) {
             return null;

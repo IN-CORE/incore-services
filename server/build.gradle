@@ -135,13 +135,13 @@ test {
             implementation("dev.morphia.morphia:morphia-core:2.1.3")
 
             // versions
-            def geotoolsVersion = '29.0'
+            def geotoolsVersion = '31.3'
             def jerseyVersion = '3.1.7'
             def swaggerVersion = '2.2.12'
 
             //geotools
             implementation("org.geotools:gt-main:$geotoolsVersion")
-            implementation("org.geotools:gt-opengis:$geotoolsVersion")
+            implementation("org.geotools:gt-api:$geotoolsVersion")
             implementation("org.geotools:gt-coverage:$geotoolsVersion")
             implementation("org.geotools:gt-arcgrid:$geotoolsVersion")
             implementation("org.geotools:gt-geotiff:$geotoolsVersion")

@@ -33,7 +33,7 @@ import org.bson.Document;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 
 import java.io.File;
 import java.io.IOException;
