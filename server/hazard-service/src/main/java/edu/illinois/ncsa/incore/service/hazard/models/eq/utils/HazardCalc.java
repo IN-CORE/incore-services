@@ -28,19 +28,19 @@ import org.geotools.gce.arcgrid.ArcGridFormat;
 import org.geotools.gce.arcgrid.ArcGridWriteParams;
 import org.geotools.gce.geotiff.GeoTiffFormat;
 import org.geotools.gce.geotiff.GeoTiffWriteParams;
-import org.geotools.geometry.Envelope2D;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.json.JSONObject;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.coverage.PointOutsideCoverageException;
-import org.opengis.coverage.grid.GridCoverage;
-import org.opengis.coverage.grid.GridCoverageWriter;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.geometry.Envelope;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.coverage.PointOutsideCoverageException;
+import org.geotools.api.coverage.grid.GridCoverage;
+import org.geotools.api.coverage.grid.GridCoverageWriter;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.geometry.Bounds;
+import org.geotools.api.parameter.GeneralParameterValue;
+import org.geotools.api.parameter.ParameterValueGroup;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import javax.media.jai.RasterFactory;
 import java.awt.*;
@@ -423,7 +423,7 @@ public class HazardCalc {
 
         // Get default demand units for the hazard type
         String demandUnits = BaseAttenuation.getUnits(demandComponents[1]);
-        Envelope envelope = new Envelope2D(crs, minX, minY, width * cellsize, height * cellsize);
+        ReferencedEnvelope envelope = new ReferencedEnvelope(minX, minY, width * cellsize, height * cellsize, crs);
         for (int y = 0; y < height; y++) {
 
             startX = (float) minX + (cellsize / 2.0f);

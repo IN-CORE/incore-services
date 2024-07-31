@@ -59,7 +59,7 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.opengis.geometry.MismatchedDimensionException;
+import org.geotools.api.geometry.MismatchedDimensionException;
 
 import java.io.IOException;
 import java.util.ArrayList;
