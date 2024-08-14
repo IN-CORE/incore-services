@@ -32,7 +32,7 @@ public class Project {
     private List<WorkflowResource> workflows = new ArrayList<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<String> spaces;
+    private List<String> projects;
 
     public Project() {
     }
