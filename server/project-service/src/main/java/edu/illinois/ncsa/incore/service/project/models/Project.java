@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.common.models;
+package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Entity;
@@ -43,6 +43,9 @@ public class Project {
 
     // Getters and Setters
 
+    public String getId() {
+        return (id == null) ? null : id.toString();
+    }
     public String getName() {
         return name;
     }

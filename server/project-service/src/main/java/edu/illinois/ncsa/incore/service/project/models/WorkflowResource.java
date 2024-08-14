@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.incore.common.models;
+package edu.illinois.ncsa.incore.service.project.models;
 
 public class WorkflowResource extends ProjectResource {
 
