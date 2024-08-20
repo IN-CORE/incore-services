@@ -7,16 +7,20 @@ package edu.illinois.ncsa.incore.service.project.controllers;
  *******************************************************************************
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.service.project.models.Project;
+import edu.illinois.ncsa.incore.service.project.models.*;
 import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
+import edu.illinois.ncsa.incore.service.project.utils.ConversionUtils;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,8 +34,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 
 @OpenAPIDefinition(
@@ -73,6 +79,7 @@ public class ProjectController {
     private final String username;
     private final List<String> groups;
     private final String userGroups;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Inject
     private IProjectRepository projectDAO;
@@ -220,6 +227,91 @@ public class ProjectController {
         }
     }
 
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    @Path("{projectId}")
+    @Operation(description = "Update project")
+    public Project updateProjectById(
+        @Parameter(name = "project id") @PathParam("projectId") String id,
+        @Parameter(name = "JSON representing an input project", required = true) Project newProject) {
+
+        Project project = this.projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (this.username.equals(project.getOwner()) || isAdmin) {
+            return this.projectDAO.updateProject(id, newProject);
+        }
+        else {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+    }
+
+    @PATCH
+    @Path("{projectId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Patch project")
+    public Project patchProjectById(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @FormParam("name") String name,
+        @FormParam("description") String description,
+        @FormParam("owner") String owner,
+        @FormParam("region") String region,
+        @FormParam("hazards") List<String> hazardListString,
+        @FormParam("dfr3Mappings") List<String> dfr3MappingListString,
+        @FormParam("datasets") List<String> datasetListString,
+        @FormParam("workflows") List<String> workflowListString
+    ) {
+        Project project = this.projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Apply updates if present
+        if (name != null) {
+            project.setName(name);
+        }
+        if (description != null) {
+            project.setDescription(description);
+        }
+        if (owner != null) {
+            project.setOwner(owner);
+        }
+        if (region != null) {
+            project.setRegion(region);
+        }
+
+        if (hazardListString != null && hazardListString.size() > 0) {
+            List<HazardResource> hazardResources = ConversionUtils.convertToHazardResources(hazardListString);
+            project.setHazards(hazardResources);
+        }
+        if (dfr3MappingListString != null && dfr3MappingListString.size() > 0) {
+            List<DFR3MappingResource> dfr3MappingResources = ConversionUtils.convertToDFR3MappingResources(dfr3MappingListString);
+            project.setDfr3Mappings(dfr3MappingResources);
+        }
+        if (datasetListString != null && datasetListString.size() > 0) {
+            List<DatasetResource> datasetResources = ConversionUtils.convertToDatasetResources(datasetListString);
+            project.setDatasets(datasetResources);
+        }
+        if (workflowListString != null && workflowListString.size() > 0) {
+            // Convert list of IDs to WorkflowResource objects and set them
+            List<WorkflowResource> workflowResources = ConversionUtils.convertToWorkflowResources(workflowListString);
+            project.setWorkflows(workflowResources);
+        }
+
+        // Update the project
+        return this.projectDAO.updateProject(id, project);
+    }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)

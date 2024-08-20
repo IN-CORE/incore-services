@@ -3,7 +3,7 @@ package edu.illinois.ncsa.incore.service.project.models;
 public class WorkflowResource extends ProjectResource {
 
     // Enum for status
-    private enum Type {
+    public enum Type {
         workflow,
         execution
     }

@@ -16,6 +16,7 @@ import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
+import dev.morphia.query.UpdateOperations;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.project.models.Project;
 import org.bson.types.ObjectId;
@@ -137,19 +138,33 @@ public class MongoProjectDBRepository implements IProjectRepository {
         return query.iterator().toList();
     }
 
-//    TODO
     @Override
-    public Project updateProject(Project project) {
-        return null;
+    public Project updateProject(String projectId, Project newProject) {
+        // Create a query to find the project by ID
+        Query<Project> query = this.dataStore.find(Project.class)
+            .filter(Filters.eq("_id", new ObjectId(projectId)));
+
+        // Create an update operations object
+        UpdateOperations<Project> updateOps = this.dataStore.createUpdateOperations(Project.class)
+            .set("name", newProject.getName())
+            .set("description", newProject.getDescription())
+            .set("date", newProject.getDate())
+            .set("creator", newProject.getCreator())
+            .set("owner", newProject.getOwner())
+            .set("region", newProject.getRegion())
+            .set("hazards", newProject.getHazards())
+            .set("dfr3Mappings", newProject.getDfr3Mappings())
+            .set("datasets", newProject.getDatasets())
+            .set("workflows", newProject.getWorkflows());
+
+        // Perform the update operation
+        this.dataStore.update(query, updateOps);
+
+        // Retrieve and return the updated project
+        return this.dataStore.find(Project.class)
+            .filter(Filters.eq("_id", new ObjectId(projectId)))
+            .first();
     }
-//    public Project updateProject(String projectId, String propName, String propValue) {
-//        MongoClient client = new MongoClient(mongoClientURI);
-//        MongoDatabase mongodb = client.getDatabase(databaseName);
-//        mongodb.getCollection(PROJECT_COLLECTION_NAME)
-//            .updateOne(eq("_id", new ObjectId(projectId)),
-//                new Document("$set", new Document(propName, propValue)));
-//        return getProjectById(projectId);
-//    }
 
     public Project addProject(Project project) {
         String id = this.dataStore.save(project).getId();

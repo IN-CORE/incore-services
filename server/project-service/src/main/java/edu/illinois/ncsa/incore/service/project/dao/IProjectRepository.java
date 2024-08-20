@@ -30,8 +30,7 @@ public interface IProjectRepository {
 
     List<Project> searchProjects(String text);
 
-    // TODO: update project method
-    Project updateProject(Project project);
+    Project updateProject(String projectId, Project newProject);
 
     Project addProject(Project project);
 

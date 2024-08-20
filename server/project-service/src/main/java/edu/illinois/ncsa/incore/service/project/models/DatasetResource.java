@@ -2,7 +2,7 @@ package edu.illinois.ncsa.incore.service.project.models;
 
 public class DatasetResource extends ProjectResource{
 
-    private String type;
+    public String type;
 
     public DatasetResource() {
     }

@@ -3,7 +3,7 @@ package edu.illinois.ncsa.incore.service.project.models;
 public class DFR3MappingResource extends ProjectResource {
 
     // Enum for status
-    private enum Type {
+    public enum Type {
         fragility,
         restoration,
         repair,

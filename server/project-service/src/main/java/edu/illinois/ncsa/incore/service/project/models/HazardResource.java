@@ -1,9 +1,11 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import com.fasterxml.jackson.core.Base64Variants;
+
 public class HazardResource extends ProjectResource {
 
     // Enum for status
-    private enum Type {
+    public enum Type {
         earthquake,
         tornado,
         tsunami,
