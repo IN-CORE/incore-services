@@ -1,9 +1,11 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Property;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.bson.types.ObjectId;
 
@@ -62,6 +64,7 @@ public class Project {
         this.description = description;
     }
 
+    @JsonSerialize(using = JsonDateSerializer.class)
     public Date getDate() {
         return date;
     }
@@ -133,7 +136,7 @@ public class Project {
     public void setSpaces(List<String> spaces) {
         this.spaces = spaces;
     }
-    
+
     // Methods to append, delete, and update each resource
 
     public void addHazardResource(HazardResource hazard) {

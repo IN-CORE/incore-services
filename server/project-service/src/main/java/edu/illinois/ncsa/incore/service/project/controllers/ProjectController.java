@@ -7,11 +7,13 @@ package edu.illinois.ncsa.incore.service.project.controllers;
  *******************************************************************************
  */
 
+import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
+import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.service.project.models.Project;
 import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
@@ -28,6 +30,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,36 +97,6 @@ public class ProjectController {
         this.userGroups = userGroups;
         this.username = UserInfoUtils.getUsername(userInfo);
         this.groups = UserGroupUtils.getUserGroups(userGroups);
-    }
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_JSON})
-    @Operation(description = "Ingest project object as json")
-    public Project ingestProject(
-        @Parameter(name = "JSON representing an input project", required = true) Project project) {
-
-        UserInfoUtils.throwExceptionIfIdPresent(project.getId());
-
-        project.setCreator(username);
-        project.setOwner(username);
-
-        Project savedProject = this.projectDAO.addProject(project);
-
-        if (savedProject != null) {
-            Space space = spaceRepository.getSpaceByName(username);
-            if (space == null) {
-                space = new Space(username);
-                space.setPrivileges(Privileges.newWithSingleOwner(username));
-            }
-            space.addMember(savedProject.getId());
-            spaceRepository.addSpace(space);
-            project.setSpaces(spaceRepository.getSpaceNamesOfMember(project.getId()));
-
-            return project;
-        } else {
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to save project: returned null.");
-        }
     }
 
     @GET
@@ -207,7 +181,7 @@ public class ProjectController {
     @Path("{projectId}")
     @Produces({MediaType.APPLICATION_JSON})
     @Operation(tags = "Gets a project by Id", summary = "Get a particular project based on the id provided")
-    public Project getFragilityById
+    public Project getProjectById
         (@Parameter(name = "project id") @PathParam("projectId") String id) {
         Project project = this.projectDAO.getProjectById(id);
         if (project != null) {
@@ -221,4 +195,35 @@ public class ProjectController {
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project  with id " + id);
     }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_JSON})
+    @Operation(description = "Ingest project object as json")
+    public Project ingestProject(
+        @Parameter(name = "JSON representing an input project", required = true) Project project) {
+
+        UserInfoUtils.throwExceptionIfIdPresent(project.getId());
+
+        project.setCreator(username);
+        project.setOwner(username);
+
+        Project savedProject = this.projectDAO.addProject(project);
+
+        if (savedProject != null) {
+            Space space = spaceRepository.getSpaceByName(username);
+            if (space == null) {
+                space = new Space(username);
+                space.setPrivileges(Privileges.newWithSingleOwner(username));
+            }
+            space.addMember(savedProject.getId());
+            spaceRepository.addSpace(space);
+            project.setSpaces(spaceRepository.getSpaceNamesOfMember(project.getId()));
+
+            return project;
+        } else {
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to save project: returned null.");
+        }
+    }
+
 }

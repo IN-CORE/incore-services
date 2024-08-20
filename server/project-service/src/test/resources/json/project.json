@@ -1,0 +1,32 @@
+{
+  "name": "Example Project",
+  "description": "This is a description of the example project.",
+  "region": "Joplin",
+  "hazards": [
+    {
+      "id": "5b902cb273c3371e1236b36b",
+      "status": "EXISTING",
+      "type": "earthquake"
+    },
+    {
+      "id": "5c6323a0c11bb380daa9cbc1",
+      "status": "UNAUTHORIZED",
+      "type": "tornado"
+    }
+  ],
+  "dfr3Mappings": [
+    {
+      "id": "5b47b2d9337d4a36187c7563",
+      "status": "EXISTING",
+      "type": "fragility"
+    }
+  ],
+  "datasets": [
+    {
+      "id": "5a284f0bc7d30d13bc081a28",
+      "status": "EXISTING",
+      "type": "ergo:buildingInventoryVer5"
+    }
+  ],
+  "workflows": []
+}

@@ -4,6 +4,7 @@ public class DFR3MappingResource extends ProjectResource {
 
     // Enum for status
     private enum Type {
+        fragility,
         restoration,
         repair,
         recovery
