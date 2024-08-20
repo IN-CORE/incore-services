@@ -7,13 +7,12 @@ package edu.illinois.ncsa.incore.service.project.controllers;
  *******************************************************************************
  */
 
-import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.service.project.models.Project;
 import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
@@ -30,8 +29,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -70,9 +67,6 @@ public class ProjectController {
     private static final String FRAGILITY_URL = DFR3_SERVICE_URL + "/dfr3/api/fragilities/";
     private static final String MAPPING_URL = DFR3_SERVICE_URL + "/dfr3/api/mappings/";
     private static final String DATA_URL = DATA_SERVICE_URL + "/data/api/datasets/";
-
-    private static final String SPACE_MEMBERS = "members";
-    private static final String SPACE_METADATA = "metadata";
 
     private final Logger logger = Logger.getLogger(ProjectController.class);
 
@@ -193,7 +187,7 @@ public class ProjectController {
                     "project with id " + id);
             }
         }
-        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project  with id " + id);
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
     }
 
     @POST
@@ -225,5 +219,35 @@ public class ProjectController {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to save project: returned null.");
         }
     }
+
+
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{projectId}")
+    @Operation(summary = "Deletes a project by id")
+    public Project deleteProjectById(@Parameter(name = "project id") @PathParam("projectId") String id) {
+        Project project = this.projectDAO.getProjectById(id);
+
+        if (project != null) {
+            boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+            if (this.username.equals(project.getOwner()) || isAdmin) {
+                // remove from space
+                List<Space> spaces = spaceRepository.getAllSpaces();
+                for (Space space : spaces) {
+                    if (space.hasMember(id)) {
+                        space.removeMember(id);
+                        spaceRepository.addSpace(space);
+                    }
+                }
+                return this.projectDAO.deleteProject(id);
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to delete the " +
+                    "project with id " + id);
+            }
+        } else {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+    }
+
 
 }
