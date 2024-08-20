@@ -25,6 +25,7 @@ import java.util.Map;
 
 
 public class MongoProjectDBRepository implements IProjectRepository {
+    private final String PROJECT_DATABASE_NAME = "projectdb";
     private final String PROJECT_COLLECTION_NAME = "Project";
     private final String PROJECT_FIELD_NAME = "name";
     private final String PROJECT_FIELD_DESCRIPTION = "description";
@@ -41,7 +42,7 @@ public class MongoProjectDBRepository implements IProjectRepository {
     public MongoProjectDBRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
-        this.databaseName = "projectdb";
+        this.databaseName = PROJECT_DATABASE_NAME;
     }
 
     public MongoProjectDBRepository(String hostUri, String databaseName, int port) {

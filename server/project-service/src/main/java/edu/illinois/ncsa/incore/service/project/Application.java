@@ -24,26 +24,20 @@ public class Application extends ResourceConfig {
 
     public Application() {
         String mongodbProjectUri = "mongodb://localhost:27017/projectdb";
-
         String mongodbProjectUriProp = System.getenv("PROJECT_MONGODB_URI");
         if (mongodbProjectUriProp != null && !mongodbProjectUriProp.isEmpty()) {
             mongodbProjectUri = mongodbProjectUriProp;
         }
-
         IProjectRepository mongoProjectRepository = new MongoProjectDBRepository(new MongoClientURI(mongodbProjectUri));
         mongoProjectRepository.initialize();
 
-        IUserAllocationsRepository mongoUserAllocationsRepository = new MongoUserAllocationsDBRepository(new MongoClientURI(mongodbProjectUri));
-        mongoUserAllocationsRepository.initialize();
-
-        IUserFinalQuotaRepository mongoUserFinalQuotaRepository = new MongoUserFinalQuotaDBRepository(new MongoClientURI(mongodbProjectUri));
-        mongoUserFinalQuotaRepository.initialize();
-
-        IUserGroupsRepository mongoUserGroupsRepository = new MongoUserGroupsDBRepository(new MongoClientURI(mongodbProjectUri));
-        mongoUserGroupsRepository.initialize();
-
-        IGroupAllocationsRepository mongoGroupAllocationsRepository = new MongoGroupAllocationsDBRepository(new MongoClientURI(mongodbProjectUri));
-        mongoGroupAllocationsRepository.initialize();
+        String mongodbSpaceUri = "mongodb://localhost:27017/spacedb";
+        String mongodbSpaceUriProp = System.getenv("SPACE_MONGODB_URI");
+        if (mongodbSpaceUriProp != null && !mongodbSpaceUriProp.isEmpty()) {
+            mongodbSpaceUri = mongodbSpaceUriProp;
+        }
+        ISpaceRepository mongoSpaceRepository = new MongoSpaceDBRepository(new MongoClientURI(mongodbSpaceUri));
+        mongoSpaceRepository.initialize();
 
         IAuthorizer authorizer = Authorizer.getInstance();
 
@@ -52,10 +46,7 @@ public class Application extends ResourceConfig {
             @Override
             protected void configure() {
                 super.bind(mongoProjectRepository).to(IProjectRepository.class);
-                super.bind(mongoUserAllocationsRepository).to(IUserAllocationsRepository.class);
-                super.bind(mongoUserFinalQuotaRepository).to(IUserFinalQuotaRepository.class);
-                super.bind(mongoUserGroupsRepository).to(IUserGroupsRepository.class);
-                super.bind(mongoGroupAllocationsRepository).to(IGroupAllocationsRepository.class);
+                super.bind(mongoSpaceRepository).to(ISpaceRepository.class);
                 super.bind(authorizer).to(IAuthorizer.class);
             }
 
