@@ -29,9 +29,9 @@ import java.net.URL;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SpaceControllerTest extends CustomJerseyTest {
+class ProjectControllerTest extends CustomJerseyTest {
 
-    public SpaceControllerTest() {
+    public ProjectControllerTest() {
         super();
     }
 
@@ -41,7 +41,7 @@ class SpaceControllerTest extends CustomJerseyTest {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
 
-        MockApplication application = new MockApplication(SpaceController.class);
+        MockApplication application = new MockApplication(ProjectController.class);
 
         return application;
     }

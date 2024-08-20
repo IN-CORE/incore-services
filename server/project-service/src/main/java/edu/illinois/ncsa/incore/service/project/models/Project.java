@@ -22,7 +22,7 @@ public class Project {
     private String name = "";
     private String description = "";
     private Date date = new Date();
-    private final String creator = null;
+    private String creator = null;
     private String owner = null;
     private String region = null;
 
@@ -32,7 +32,7 @@ public class Project {
     private List<WorkflowResource> workflows = new ArrayList<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<String> projects;
+    private List<String> spaces;
 
     public Project() {
     }
@@ -72,6 +72,10 @@ public class Project {
 
     public String getCreator() {
         return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 
     public String getOwner() {
@@ -122,6 +126,14 @@ public class Project {
         this.workflows = workflows;
     }
 
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
+    }
+    
     // Methods to append, delete, and update each resource
 
     public void addHazardResource(HazardResource hazard) {

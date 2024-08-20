@@ -9,10 +9,8 @@
 
 package edu.illinois.ncsa.incore.service.project.dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
@@ -20,15 +18,13 @@ import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
 import dev.morphia.query.experimental.filters.Filters;
 import edu.illinois.ncsa.incore.service.project.models.Project;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.util.List;
+import java.util.Map;
 
-import static com.mongodb.client.model.Filters.eq;
 
-
-public class MongoDBRepository implements IRepository {
+public class MongoProjectDBRepository implements IProjectRepository {
     private final String PROJECT_COLLECTION_NAME = "Project";
     private final String PROJECT_FIELD_NAME = "name";
     private final String PROJECT_FIELD_DESCRIPTION = "description";
@@ -42,19 +38,19 @@ public class MongoDBRepository implements IRepository {
     private MongoClientURI mongoClientURI;
     private Datastore dataStore;
 
-    public MongoDBRepository() {
+    public MongoProjectDBRepository() {
         this.port = 27017;
         this.hostUri = "localhost";
         this.databaseName = "projectdb";
     }
 
-    public MongoDBRepository(String hostUri, String databaseName, int port) {
+    public MongoProjectDBRepository(String hostUri, String databaseName, int port) {
         this.databaseName = databaseName;
         this.hostUri = hostUri;
         this.port = port;
     }
 
-    public MongoDBRepository(MongoClientURI mongoClientURI) {
+    public MongoProjectDBRepository(MongoClientURI mongoClientURI) {
         this.mongoClientURI = mongoClientURI;
         this.databaseName = mongoClientURI.getDatabase();
     }
@@ -67,6 +63,17 @@ public class MongoDBRepository implements IRepository {
     @Override
     public List<Project> getAllProjects() {
         return this.dataStore.find(Project.class).iterator().toList();
+    }
+
+    @Override
+    public List<Project> queryAllProjects(Map<String, String> queryMap) {
+        Query<Project> query = this.dataStore.find(Project.class);
+
+        for (Map.Entry<String, String> queryEntry : queryMap.entrySet()) {
+            query.filter(Filters.eq(queryEntry.getKey(), queryEntry.getValue()));
+        }
+
+        return query.iterator().toList();
     }
 
     @Override

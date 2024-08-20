@@ -13,6 +13,8 @@ import com.mongodb.MongoClientURI;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.*;
+import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
+import edu.illinois.ncsa.incore.service.project.dao.MongoProjectDBRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;

@@ -13,11 +13,13 @@ import dev.morphia.Datastore;
 import edu.illinois.ncsa.incore.service.project.models.Project;
 
 import java.util.List;
+import java.util.Map;
 
-public interface IRepository {
+public interface IProjectRepository {
     void initialize();
 
     List<Project> getAllProjects();
+    List<Project> queryAllProjects(Map<String, String> queryMap);
     List<Project> getProjectsByType(String type);
     List<Project> getProjectsByName(String name);
     List<Project> getProjectsByCreator(String creator);
