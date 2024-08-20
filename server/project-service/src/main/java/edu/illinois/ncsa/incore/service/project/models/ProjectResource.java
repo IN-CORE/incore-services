@@ -1,5 +1,8 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class ProjectResource {
 
     // Enum for status
@@ -11,6 +14,9 @@ public class ProjectResource {
 
     private String id;
     private Status status;
+
+    public ProjectResource() {
+    }
 
     public ProjectResource(String id, Status status) {
         this.id = id;

@@ -10,6 +10,9 @@ public class DFR3MappingResource extends ProjectResource {
     }
     private DFR3MappingResource.Type type;
 
+    public DFR3MappingResource() {
+    }
+
     public DFR3MappingResource(String id, Status status, DFR3MappingResource.Type type) {
         super(id, status);
         this.type = type;

@@ -12,6 +12,9 @@ public class HazardResource extends ProjectResource {
     }
     private Type type;
 
+    public HazardResource() {
+    }
+
     public HazardResource(String id, Status status, Type type) {
         super(id, status);
         this.type = type;

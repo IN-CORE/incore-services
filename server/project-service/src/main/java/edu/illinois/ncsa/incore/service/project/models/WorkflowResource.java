@@ -9,6 +9,9 @@ public class WorkflowResource extends ProjectResource {
     }
     private WorkflowResource.Type type;
 
+    public WorkflowResource() {
+    }
+
     public WorkflowResource(String id, Status status, WorkflowResource.Type type) {
         super(id, status);
         this.type = type;

@@ -4,6 +4,9 @@ public class DatasetResource extends ProjectResource{
 
     private String type;
 
+    public DatasetResource() {
+    }
+
     public DatasetResource(String id, Status status, String type) {
         super(id, status);
         this.type = type;
