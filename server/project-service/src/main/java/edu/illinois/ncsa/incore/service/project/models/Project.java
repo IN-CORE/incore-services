@@ -140,50 +140,55 @@ public class Project {
     // Methods to append, delete, and update each resource
 
     public void addHazardResource(HazardResource hazard) {
-        this.hazards.add(hazard);
+        boolean exists = hazards.stream()
+            .anyMatch(existingHazard -> existingHazard.getId().equals(hazard.getId()));
+
+        if (!exists) {
+            this.hazards.add(hazard);
+        }
     }
 
     public void deleteHazardResource(HazardResource hazard) {
         this.hazards.remove(hazard);
     }
 
-    public void updateHazardResource(int index, HazardResource hazard) {
-        this.hazards.set(index, hazard);
-    }
-
     public void addDFR3MappingResource(DFR3MappingResource dfr3Mapping) {
-        this.dfr3Mappings.add(dfr3Mapping);
+        boolean exists = dfr3Mappings.stream()
+            .anyMatch(existingMapping -> existingMapping.getId().equals(dfr3Mapping.getId()));
+
+        if (!exists) {
+            this.dfr3Mappings.add(dfr3Mapping);
+        }
     }
 
     public void deleteDFR3MappingResource(DFR3MappingResource dfr3Mapping) {
         this.dfr3Mappings.remove(dfr3Mapping);
     }
 
-    public void updateDFR3MappingResource(int index, DFR3MappingResource dfr3Mapping) {
-        this.dfr3Mappings.set(index, dfr3Mapping);
-    }
-
     public void addDatasetResource(DatasetResource dataset) {
-        this.datasets.add(dataset);
+        boolean exists = datasets.stream()
+            .anyMatch(existingDataset -> existingDataset.getId().equals(dataset.getId()));
+
+        if (!exists) {
+            this.datasets.add(dataset);
+        }
     }
 
     public void deleteDatasetResource(DatasetResource dataset) {
         this.datasets.remove(dataset);
     }
 
-    public void updateDatasetResource(int index, DatasetResource dataset) {
-        this.datasets.set(index, dataset);
-    }
-
     public void addWorkflowResource(WorkflowResource workflow) {
-        this.workflows.add(workflow);
+        boolean exists = workflows.stream()
+            .anyMatch(existingWorkflow -> existingWorkflow.getId().equals(workflow.getId()));
+
+        if (!exists) {
+            this.workflows.add(workflow);
+        }
     }
 
     public void deleteWorkflowResource(WorkflowResource workflow) {
         this.workflows.remove(workflow);
     }
 
-    public void updateWorkflowResource(int index, WorkflowResource workflow) {
-        this.workflows.set(index, workflow);
-    }
 }
