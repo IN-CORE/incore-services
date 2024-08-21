@@ -243,11 +243,18 @@ public class ProjectController {
 
         boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
         if (this.username.equals(project.getOwner()) || isAdmin) {
-            return this.projectDAO.updateProject(id, newProject);
+            Project updatedProject = this.projectDAO.updateProject(id, newProject);
+            if (updatedProject != null) {
+                // assume if can write, can read
+                updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+                return updatedProject;
+            }
         }
-        else {
+        else{
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
         }
+
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to update project.");
     }
 
     @PATCH

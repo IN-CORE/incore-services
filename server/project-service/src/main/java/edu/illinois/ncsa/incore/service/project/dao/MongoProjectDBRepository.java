@@ -18,6 +18,7 @@ import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
 import dev.morphia.query.UpdateOperations;
 import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.experimental.updates.UpdateOperators;
 import edu.illinois.ncsa.incore.service.project.models.Project;
 import org.bson.types.ObjectId;
 
@@ -144,21 +145,25 @@ public class MongoProjectDBRepository implements IProjectRepository {
         Query<Project> query = this.dataStore.find(Project.class)
             .filter(Filters.eq("_id", new ObjectId(projectId)));
 
-        // Create an update operations object
-        UpdateOperations<Project> updateOps = this.dataStore.createUpdateOperations(Project.class)
-            .set("name", newProject.getName())
-            .set("description", newProject.getDescription())
-            .set("date", newProject.getDate())
-            .set("creator", newProject.getCreator())
-            .set("owner", newProject.getOwner())
-            .set("region", newProject.getRegion())
-            .set("hazards", newProject.getHazards())
-            .set("dfr3Mappings", newProject.getDfr3Mappings())
-            .set("datasets", newProject.getDatasets())
-            .set("workflows", newProject.getWorkflows());
+        // Retrieve the existing project
+        Project existingProject = query.first();
+        if (existingProject == null) {
+            throw new IllegalArgumentException("Project with ID " + projectId + " does not exist.");
+        }
 
-        // Perform the update operation
-        this.dataStore.update(query, updateOps);
+        // Perform the update operation using chained UpdateOperators
+        query.update(
+            newProject.getName() != null && !newProject.getName().isEmpty() ? UpdateOperators.set("name", newProject.getName()) : UpdateOperators.set("name", existingProject.getName()),
+            newProject.getDescription() != null ? UpdateOperators.set("description", newProject.getDescription()) : UpdateOperators.set("description", existingProject.getDescription()),
+            newProject.getDate() != null ? UpdateOperators.set("date", newProject.getDate()) : UpdateOperators.set("date", existingProject.getDate()),
+            newProject.getCreator() != null ? UpdateOperators.set("creator", newProject.getCreator()) : UpdateOperators.set("creator", existingProject.getCreator()),
+            newProject.getOwner() != null ? UpdateOperators.set("owner", newProject.getOwner()) : UpdateOperators.set("owner", existingProject.getOwner()),
+            newProject.getRegion() != null ? UpdateOperators.set("region", newProject.getRegion()) : UpdateOperators.set("region", existingProject.getRegion()),
+            newProject.getHazards() != null ? UpdateOperators.set("hazards", newProject.getHazards()) : UpdateOperators.set("hazards", existingProject.getHazards()),
+            newProject.getDfr3Mappings() != null ? UpdateOperators.set("dfr3Mappings", newProject.getDfr3Mappings()) : UpdateOperators.set("dfr3Mappings", existingProject.getDfr3Mappings()),
+            newProject.getDatasets() != null ? UpdateOperators.set("datasets", newProject.getDatasets()) : UpdateOperators.set("datasets", existingProject.getDatasets()),
+            newProject.getWorkflows() != null ? UpdateOperators.set("workflows", newProject.getWorkflows()) : UpdateOperators.set("workflows", existingProject.getWorkflows())
+        ).execute();
 
         // Retrieve and return the updated project
         return this.dataStore.find(Project.class)
