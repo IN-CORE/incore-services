@@ -394,5 +394,44 @@ public class ProjectController {
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add datasets to the project.");
     }
 
+    @DELETE
+    @Path("{projectId}/datasets")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add datasets to a project")
+    public Project deleteDatasetsFromeProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "datasets", description = "List of datasets to add", required = true) List<DatasetResource> datasets) {
+
+        // Validate the input
+        if (datasets == null || datasets.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No datasets provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through datasets and add each one to the project
+        for (DatasetResource dataset : datasets) {
+            project.deleteDatasetResource(dataset);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add datasets to the project.");
+    }
 
 }

@@ -149,7 +149,16 @@ public class Project {
     }
 
     public void deleteHazardResource(HazardResource hazard) {
-        this.hazards.remove(hazard);
+        int indexToRemove = -1;
+        for (int i = 0; i < hazards.size(); i++) {
+            if (hazard.getId().equals(hazards.get(i).getId())) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        if (indexToRemove != -1) {
+            hazards.remove(indexToRemove);
+        }
     }
 
     public void addDFR3MappingResource(DFR3MappingResource dfr3Mapping) {
@@ -162,7 +171,16 @@ public class Project {
     }
 
     public void deleteDFR3MappingResource(DFR3MappingResource dfr3Mapping) {
-        this.dfr3Mappings.remove(dfr3Mapping);
+        int indexToRemove = -1;
+        for (int i = 0; i < dfr3Mappings.size(); i++) {
+            if (dfr3Mapping.getId().equals(dfr3Mappings.get(i).getId())) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        if (indexToRemove != -1) {
+            dfr3Mappings.remove(indexToRemove);
+        }
     }
 
     public void addDatasetResource(DatasetResource dataset) {
@@ -175,7 +193,17 @@ public class Project {
     }
 
     public void deleteDatasetResource(DatasetResource dataset) {
-        this.datasets.remove(dataset);
+        // Find the index of the DatasetResource with the matching ID
+        int indexToRemove = -1;
+        for (int i = 0; i < datasets.size(); i++) {
+            if (dataset.getId().equals(datasets.get(i).getId())) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        if (indexToRemove != -1) {
+            datasets.remove(indexToRemove);
+        }
     }
 
     public void addWorkflowResource(WorkflowResource workflow) {
@@ -188,7 +216,16 @@ public class Project {
     }
 
     public void deleteWorkflowResource(WorkflowResource workflow) {
-        this.workflows.remove(workflow);
+        int indexToRemove = -1;
+        for (int i = 0; i < workflows.size(); i++) {
+            if (workflow.getId().equals(workflows.get(i).getId())) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        if (indexToRemove != -1) {
+            workflows.remove(indexToRemove);
+        }
     }
 
 }
