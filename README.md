@@ -14,3 +14,5 @@ The hazard service supports creating hazard objects such as earthquake, tornado,
 ## Space Service
 The space service manages groups of users and control access by those groups to certain entity throughout services.
 
+## Project Service
+The project service manages projects that are collection of data, hazard, DFR3.

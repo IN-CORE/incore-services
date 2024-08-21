@@ -13,7 +13,10 @@ public class ProjectResource {
     }
 
     private String id;
-    private Status status;
+
+    //TODO: Live calculate the status
+    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Status status=Status.EXISTING;
 
     public ProjectResource() {
     }
