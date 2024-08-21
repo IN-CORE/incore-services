@@ -284,7 +284,7 @@ public class ProjectController {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
         }
 
-        // Apply updates if present
+        // create new project
         if (name != null) {
             project.setName(name);
         }
@@ -297,7 +297,6 @@ public class ProjectController {
         if (region != null) {
             project.setRegion(region);
         }
-
         if (hazardListString != null && hazardListString.size() > 0) {
             List<HazardResource> hazardResources = ConversionUtils.convertToHazardResources(hazardListString);
             project.setHazards(hazardResources);
@@ -317,7 +316,14 @@ public class ProjectController {
         }
 
         // Update the project
-        return this.projectDAO.updateProject(id, project);
+        Project updatedProject = this.projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            return updatedProject;
+        }
+
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to patch the project.");
     }
 
     @DELETE
