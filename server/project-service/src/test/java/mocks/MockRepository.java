@@ -13,16 +13,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
-import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
-import edu.illinois.ncsa.incore.common.models.Project;
+import edu.illinois.ncsa.incore.service.project.models.Project;
+import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class MockRepository implements ISpaceRepository {
+
+public class MockRepository implements IProjectRepository {
     private final Datastore mockDataStore;
     private List<Project> projects = new ArrayList<>();
 
@@ -46,55 +48,68 @@ public class MockRepository implements ISpaceRepository {
             .thenReturn(this.projects);
     }
 
-
     @Override
-    public List<Project> getAllSpaces() {
-        return this.projects;
-    }
-
-    @Override
-    public Project getSpaceById(String id) {
-        for (int i = 0; i < this.projects.size(); i++) {
-            if (this.projects.get(i).getId().equalsIgnoreCase(id)) {
-                return this.projects.get(i);
-            }
-        }
+    public List<Project> getAllProjects() {
         return null;
     }
 
     @Override
-    public Project getSpaceByName(String name) {
-        for (int i = 0; i < this.projects.size(); i++) {
-            if (this.projects.get(i).getName().equalsIgnoreCase(name)) {
-                return this.projects.get(i);
-            }
-        }
+    public List<Project> queryAllProjects(Map<String, String> queryMap) {
         return null;
     }
 
     @Override
-    public Project addSpace(Project project) {
-        this.projects.add(project);
-        return this.projects.get(this.projects.size() - 1);
-    }
-
-    @Override
-    public Project getOrphanSpace() {
-        return getSpaceByName("orphans");
-    }
-
-    @Override
-    public Project addToOrphansSpace(String memberId) {
-        return getSpaceByName("orphans");
-    }
-
-    @Override
-    public Project deleteSpace(String id) {
+    public List<Project> getProjectsByType(String type) {
         return null;
     }
 
     @Override
-    public List<String> getSpaceNamesOfMember(String memberId) {
+    public List<Project> getProjectsByName(String name) {
+        return null;
+    }
+
+    @Override
+    public List<Project> getProjectsByCreator(String creator) {
+        return null;
+    }
+
+    @Override
+    public List<Project> getProjectsByOwner(String owner) {
+        return null;
+    }
+
+    @Override
+    public List<Project> getProjectsByRegion(String region) {
+        return null;
+    }
+
+    @Override
+    public Project getProjectById(String id) {
+        return null;
+    }
+
+    @Override
+    public List<Project> searchProjects(String text) {
+        return null;
+    }
+
+    @Override
+    public Project updateProject(String projectId, Project newProject) {
+        return null;
+    }
+
+    @Override
+    public Project addProject(Project project) {
+        return null;
+    }
+
+    @Override
+    public Project deleteProject(String id) {
+        return null;
+    }
+
+    @Override
+    public Datastore getDataStore() {
         return null;
     }
 }

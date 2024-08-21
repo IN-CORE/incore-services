@@ -12,6 +12,7 @@ package mocks;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.MockAuthorizer;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
+import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import org.apache.log4j.Logger;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.media.multipart.MultiPart;
@@ -22,7 +23,7 @@ public class MockApplication extends ResourceConfig {
     private static final Logger log = Logger.getLogger(MockApplication.class);
 
     public MockApplication(Class klass) {
-        ISpaceRepository mockRepository = new MockRepository();
+        IProjectRepository mockRepository = new MockRepository();
         mockRepository.initialize();
 
 
@@ -37,7 +38,7 @@ public class MockApplication extends ResourceConfig {
         super.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                super.bind(mockRepository).to(ISpaceRepository.class);
+                super.bind(mockRepository).to(IProjectRepository.class);
                 super.bind(mockAuthorizer).to(IAuthorizer.class);
             }
         });

@@ -354,6 +354,24 @@ public class ProjectController {
         }
     }
 
+    @GET
+    @Path("{projectId}/datasets")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add datasets to a project")
+    public List<DatasetResource> listDatasetsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getDatasets();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
     @POST
     @Path("{projectId}/datasets")
     @Consumes(MediaType.APPLICATION_JSON)
