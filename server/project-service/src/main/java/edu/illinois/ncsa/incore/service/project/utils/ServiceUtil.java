@@ -78,58 +78,59 @@ public class ServiceUtil {
     }
 
     public static ProjectResource updateResourceStatusAndSpaces(ProjectResource resource, String requestUrl, String creator, String userGroups) {
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-
-            HttpGet httpGet = new HttpGet(requestUrl);
-            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
-            httpGet.setHeader(HazardConstants.X_AUTH_USERGROUP, userGroups);
-
-            // Execute the request and handle the response
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                int statusCode = response.getStatusLine().getStatusCode();
-                ProjectResource.Status status;
-                switch (statusCode) {
-                    case 200:
-                        // set status
-                        status = ProjectResource.Status.EXISTING;
-
-                        // set space
-                        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-                        String responseStr = responseHandler.handleResponse(response);
-                        JSONObject resourceInfo = new JSONObject(responseStr);
-                        resource.setSpaces(resourceInfo.getJSONArray("spaces").toList().stream().map(Object::toString).collect(Collectors.toList()));
-
-                        // set dataset type
-                        if (resource instanceof DatasetResource) {
-                            DatasetResource datasetResource = (DatasetResource) resource;
-                            if (datasetResource.getType() == null || datasetResource.getType().isEmpty()) {
-                                datasetResource.setType(resourceInfo.getString("dataType"));
-                            }
-                        }
-
-                        break;
-                    case 404:
-                        status = ProjectResource.Status.DELETED;
-                        break;
-                    case 403:
-                        status = ProjectResource.Status.UNAUTHORIZED;
-                        break;
-                    default:
-                        status = ProjectResource.Status.UNKNOWN;
-                        break;
-                }
-                resource.setStatus(status);
-
-                return resource;
-            } catch (IOException e) {
-                logger.error("Error executing request to URL: " + requestUrl + resource.getId(), e);
-                return resource;
-            }
-
-        } catch (IOException e) {
-            logger.error("Failed to create HttpClient or process the request", e);
-            return resource;
-        }
+//        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+//
+//            HttpGet httpGet = new HttpGet(requestUrl);
+//            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
+//            httpGet.setHeader(HazardConstants.X_AUTH_USERGROUP, userGroups);
+//
+//            // Execute the request and handle the response
+//            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+//                int statusCode = response.getStatusLine().getStatusCode();
+//                ProjectResource.Status status;
+//                switch (statusCode) {
+//                    case 200:
+//                        // set status
+//                        status = ProjectResource.Status.EXISTING;
+//
+//                        // set space
+//                        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+//                        String responseStr = responseHandler.handleResponse(response);
+//                        JSONObject resourceInfo = new JSONObject(responseStr);
+//                        resource.setSpaces(resourceInfo.getJSONArray("spaces").toList().stream().map(Object::toString).collect(Collectors.toList()));
+//
+//                        // set dataset type
+//                        if (resource instanceof DatasetResource) {
+//                            DatasetResource datasetResource = (DatasetResource) resource;
+//                            if (datasetResource.getType() == null || datasetResource.getType().isEmpty()) {
+//                                datasetResource.setType(resourceInfo.getString("dataType"));
+//                            }
+//                        }
+//
+//                        break;
+//                    case 404:
+//                        status = ProjectResource.Status.DELETED;
+//                        break;
+//                    case 403:
+//                        status = ProjectResource.Status.UNAUTHORIZED;
+//                        break;
+//                    default:
+//                        status = ProjectResource.Status.UNKNOWN;
+//                        break;
+//                }
+//                resource.setStatus(status);
+//
+//                return resource;
+//            } catch (IOException e) {
+//                logger.error("Error executing request to URL: " + requestUrl + resource.getId(), e);
+//                return resource;
+//            }
+//
+//        } catch (IOException e) {
+//            logger.error("Failed to create HttpClient or process the request", e);
+//            return resource;
+//        }
+        return resource;
     }
 
     public static String constructHazardRequestUrl(String resourceType, String resourceId) {

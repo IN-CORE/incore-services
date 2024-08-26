@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DatasetResource extends ProjectResource{
 
-    // Read from dataset object
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    // TODO Read from dataset object
+    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String type;
 
     public DatasetResource() {

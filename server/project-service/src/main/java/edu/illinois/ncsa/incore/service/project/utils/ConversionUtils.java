@@ -23,7 +23,7 @@ public class ConversionUtils {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
                 HazardResource hazardResource = new HazardResource();
                 hazardResource.setId((String) jsonMap.get("id"));
-                hazardResource.setStatus(HazardResource.Status.valueOf((String) jsonMap.get("status")));
+//                hazardResource.setStatus(HazardResource.Status.valueOf((String) jsonMap.get("status")));
                 hazardResource.setType(HazardResource.Type.valueOf((String) jsonMap.get("type")));
                 hazardResources.add(hazardResource);
             } catch (IOException e) {
@@ -41,7 +41,7 @@ public class ConversionUtils {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
                 DatasetResource datasetResource = new DatasetResource();
                 datasetResource.setId((String) jsonMap.get("id"));
-                datasetResource.setStatus(DatasetResource.Status.valueOf((String) jsonMap.get("status")));
+//                datasetResource.setStatus(DatasetResource.Status.valueOf((String) jsonMap.get("status")));
                 datasetResource.setType((String) jsonMap.get("type"));
                 datasetResources.add(datasetResource);
             } catch (IOException e) {
@@ -59,7 +59,7 @@ public class ConversionUtils {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
                 WorkflowResource workflowResource = new WorkflowResource();
                 workflowResource.setId((String) jsonMap.get("id"));
-                workflowResource.setStatus(WorkflowResource.Status.valueOf((String) jsonMap.get("status")));
+//                workflowResource.setStatus(WorkflowResource.Status.valueOf((String) jsonMap.get("status")));
                 workflowResource.setType(WorkflowResource.Type.valueOf((String) jsonMap.get("type")));
                 workflowResources.add(workflowResource);
             } catch (IOException e) {
@@ -77,7 +77,7 @@ public class ConversionUtils {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
                 DFR3MappingResource dfr3MappingResource = new DFR3MappingResource();
                 dfr3MappingResource.setId((String) jsonMap.get("id"));
-                dfr3MappingResource.setStatus(DFR3MappingResource.Status.valueOf((String) jsonMap.get("status")));
+//                dfr3MappingResource.setStatus(DFR3MappingResource.Status.valueOf((String) jsonMap.get("status")));
                 dfr3MappingResource.setType(DFR3MappingResource.Type.valueOf((String) jsonMap.get("type")));
                 dfr3MappingResources.add(dfr3MappingResource);
             } catch (IOException e) {

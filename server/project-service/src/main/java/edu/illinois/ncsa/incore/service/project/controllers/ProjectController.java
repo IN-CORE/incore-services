@@ -160,21 +160,12 @@ public class ProjectController {
             .skip(offset)
             .limit(limit)
             .map(d -> {
-                // Set spaces for the project
                 d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
-
-                // Process resources within the project
-                d.getHazards().forEach(hazard -> updateResourceStatusAndSpaces(hazard, ServiceUtil.constructHazardRequestUrl("hazard", hazard.getId()), d.getCreator(), userGroups));
-                d.getDfr3Mappings().forEach(mapping -> updateResourceStatusAndSpaces(mapping, ServiceUtil.MAPPING_URL + mapping.getId(), d.getCreator(), userGroups));
-                d.getDatasets().forEach(dataset -> updateResourceStatusAndSpaces(dataset, ServiceUtil.DATA_URL, d.getCreator(), userGroups));
-//                d.getWorkflows().forEach(workflow -> updateResourceStatusAndSpaces(workflow, ServiceUtil.DATAWOLF_WORKFLOW_URL, d.getCreator(), userGroups));
-
-                return d; // Return the updated project
+                return d;
             })
             .collect(Collectors.toList());
 
         return accessibleProjects;
-
     }
 
     @GET
@@ -188,8 +179,9 @@ public class ProjectController {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 project.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
 
-                // Process all resources in the project
-                return ServiceUtil.processProjectResources(project, username, userGroups);
+                // TODO: Process all resources in the project
+                // return ServiceUtil.processProjectResources(project, username, userGroups);
+                return project;
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -221,8 +213,10 @@ public class ProjectController {
             space.addMember(savedProject.getId());
             spaceRepository.addSpace(space);
             project.setSpaces(spaceRepository.getSpaceNamesOfMember(project.getId()));
+            // TODO
+            // return ServiceUtil.processProjectResources(project, username, userGroups);
 
-            return ServiceUtil.processProjectResources(project, username, userGroups);
+            return project;
         } else {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to save project: returned null.");
         }
@@ -249,7 +243,9 @@ public class ProjectController {
                 // assume if can write, can read
                 updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
 
-                return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+                // TODO
+                // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+                return updatedProject;
             }
         }
         else{
@@ -323,7 +319,9 @@ public class ProjectController {
             // assume if can write, can read
             updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
 
-            return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
         }
 
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to patch the project.");
@@ -410,8 +408,9 @@ public class ProjectController {
         if (updatedProject != null) {
             // assume if can write, can read
             updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
-
-            return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
         }
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add datasets to the project.");
     }
@@ -451,7 +450,10 @@ public class ProjectController {
         if (updatedProject != null) {
             // assume if can write, can read
             updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
-            return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
         }
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add datasets to the project.");
     }
