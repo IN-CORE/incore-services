@@ -358,9 +358,9 @@ public class ProjectController {
     @GET
     @Path("{projectId}/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Add datasets to a project")
+    @Operation(description = "List datasets to a project")
     public List<DatasetResource> listDatasetsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
@@ -422,7 +422,7 @@ public class ProjectController {
     @Operation(description = "Delete datasets to a project")
     public Project deleteDatasetsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "datasets", description = "List of datasets to add", required = true) List<DatasetResource> datasets) {
+        @Parameter(name = "datasets", description = "List of datasets to delete", required = true) List<DatasetResource> datasets) {
 
         // Validate the input
         if (datasets == null || datasets.isEmpty()) {
@@ -455,7 +455,316 @@ public class ProjectController {
             // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
             return updatedProject;
         }
-        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add datasets to the project.");
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete datasets from the project.");
+    }
+
+    @GET
+    @Path("{projectId}/dfr3mappings")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List dfr3mappings to a project")
+    public List<DFR3MappingResource> listDfr3MappingsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getDfr3Mappings();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @POST
+    @Path("{projectId}/dfr3mappings")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add dfr3mappings to a project")
+    public Project addDfr3mappingsToProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "dfr3mappings", description = "List of dfr3mappings to add", required = true) List<DFR3MappingResource> dfr3mappings) {
+
+        // Validate the input
+        if (dfr3mappings == null || dfr3mappings.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dfr3mappings provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through dfr3mappings and add each one to the project
+        for (DFR3MappingResource dfr3mapping : dfr3mappings) {
+            project.addDFR3MappingResource(dfr3mapping);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add dfr3mappings to the project.");
+    }
+
+    @DELETE
+    @Path("{projectId}/dfr3mappings")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete dfr3mappings to a project")
+    public Project deleteDfr3mappingsFromeProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "dfr3mappings", description = "List of dfr3mappings to delete", required = true) List<DFR3MappingResource> dfr3mappings) {
+
+        // Validate the input
+        if (dfr3mappings == null || dfr3mappings.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dfr3mappings provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through dfr3mappings and delete each one to the project
+        for (DFR3MappingResource dfr3mapping : dfr3mappings) {
+            project.deleteDFR3MappingResource(dfr3mapping);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete dfr3mappings from the project.");
+    }
+
+    @GET
+    @Path("{projectId}/hazards")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List hazards to a project")
+    public List<HazardResource> listHazardsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getHazards();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @POST
+    @Path("{projectId}/hazards")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add hazards to a project")
+    public Project addHazardsToProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "hazards", description = "List of hazards to add", required = true) List<HazardResource> hazards) {
+
+        // Validate the input
+        if (hazards == null || hazards.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No hazards provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through hazards and add each one to the project
+        for (HazardResource hazard : hazards) {
+            project.addHazardResource(hazard);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add hazards to the project.");
+    }
+
+    @DELETE
+    @Path("{projectId}/hazards")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete hazards to a project")
+    public Project deleteHazardsFromeProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "hazards", description = "List of hazards to delete", required = true) List<HazardResource> hazards) {
+
+        // Validate the input
+        if (hazards == null || hazards.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No hazards provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through hazards and delete each one to the project
+        for (HazardResource hazard : hazards) {
+            project.deleteHazardResource(hazard);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete hazards from the project.");
+    }
+
+    @GET
+    @Path("{projectId}/workflows")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List workflows to a project")
+    public List<WorkflowResource> listWorkflowsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getWorkflows();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @POST
+    @Path("{projectId}/workflows")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add workflows to a project")
+    public Project addWorkflowsToProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "workflows", description = "List of workflows to add", required = true) List<WorkflowResource> workflows) {
+
+        // Validate the input
+        if (workflows == null || workflows.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No workflows provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through workflows and add each one to the project
+        for (WorkflowResource workflow : workflows) {
+            project.addWorkflowResource(workflow);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add workflows to the project.");
+    }
+
+    @DELETE
+    @Path("{projectId}/workflows")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete workflows from a project")
+    public Project deleteWorkflowsFromeProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "workflows", description = "List of workflows to delete", required = true) List<WorkflowResource> workflows) {
+
+        // Validate the input
+        if (workflows == null || workflows.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No workflows provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through workflows and delete each one to the project
+        for (WorkflowResource workflow : workflows) {
+            project.deleteWorkflowResource(workflow);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete workflows from the project.");
     }
 
 }
