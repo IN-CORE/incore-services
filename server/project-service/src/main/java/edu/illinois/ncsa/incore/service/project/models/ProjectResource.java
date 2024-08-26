@@ -1,6 +1,10 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Embedded;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Embedded
 public class ProjectResource {
@@ -10,20 +14,18 @@ public class ProjectResource {
         DELETED,
         UNAUTHORIZED,
         EXISTING,
+        UNKNOWN
     }
-
     private String id;
 
-    //TODO: Live calculate the status
-    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Status status=Status.EXISTING;
+    // Live calculate the status
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Status status;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<String> spaces;
 
     public ProjectResource() {
-    }
-
-    public ProjectResource(String id, Status status) {
-        this.id = id;
-        this.status = status;
     }
 
     public String getId() {
@@ -40,6 +42,14 @@ public class ProjectResource {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public List<String> getSpaces() {
+        return spaces;
+    }
+
+    public void setSpaces(List<String> spaces) {
+        this.spaces = spaces;
     }
 }
 

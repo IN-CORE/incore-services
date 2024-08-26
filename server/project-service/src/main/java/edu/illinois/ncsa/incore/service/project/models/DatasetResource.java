@@ -7,16 +7,10 @@ public class DatasetResource extends ProjectResource{
     public DatasetResource() {
     }
 
-    public DatasetResource(String id, Status status, String type) {
-        super(id, status);
-        this.type = type;
-    }
-
     public String getType() {
         return type;
     }
-
-    public void setHazardType(String type) {
+    public void setType(String type) {
         this.type = type;
     }
 }

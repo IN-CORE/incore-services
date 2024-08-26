@@ -7,22 +7,18 @@ public class WorkflowResource extends ProjectResource {
         workflow,
         execution
     }
-    private WorkflowResource.Type type;
+    private Type type;
 
     public WorkflowResource() {
     }
 
-    public WorkflowResource(String id, Status status, WorkflowResource.Type type) {
-        super(id, status);
-        this.type = type;
-    }
-
     // Getter and Setter for hazardType
-    public WorkflowResource.Type getType() {
+    public Type getType() {
         return type;
     }
 
-    public void setHazardType(WorkflowResource.Type type) {
+    public void setType(WorkflowResource.Type type) {
         this.type = type;
     }
+
 }

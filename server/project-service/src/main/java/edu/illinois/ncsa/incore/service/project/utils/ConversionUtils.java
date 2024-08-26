@@ -21,11 +21,10 @@ public class ConversionUtils {
         for (String jsonString : jsonStrings) {
             try {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                HazardResource hazardResource = new HazardResource(
-                    (String) jsonMap.get("id"),
-                    HazardResource.Status.valueOf((String) jsonMap.get("status")),
-                    HazardResource.Type.valueOf((String) jsonMap.get("type"))
-                );
+                HazardResource hazardResource = new HazardResource();
+                hazardResource.setId((String) jsonMap.get("id"));
+                hazardResource.setStatus(HazardResource.Status.valueOf((String) jsonMap.get("status")));
+                hazardResource.setType(HazardResource.Type.valueOf((String) jsonMap.get("type")));
                 hazardResources.add(hazardResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -40,11 +39,10 @@ public class ConversionUtils {
         for (String jsonString : jsonStrings) {
             try {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                DatasetResource datasetResource = new DatasetResource(
-                    (String) jsonMap.get("id"),
-                    DatasetResource.Status.valueOf((String) jsonMap.get("status")),
-                    (String) jsonMap.get("type")
-                );
+                DatasetResource datasetResource = new DatasetResource();
+                datasetResource.setId((String) jsonMap.get("id"));
+                datasetResource.setStatus(DatasetResource.Status.valueOf((String) jsonMap.get("status")));
+                datasetResource.setType((String) jsonMap.get("type"));
                 datasetResources.add(datasetResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -59,11 +57,10 @@ public class ConversionUtils {
         for (String jsonString : jsonStrings) {
             try {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                WorkflowResource workflowResource = new WorkflowResource(
-                    (String) jsonMap.get("id"),
-                    WorkflowResource.Status.valueOf((String) jsonMap.get("status")),
-                    WorkflowResource.Type.valueOf((String) jsonMap.get("type"))
-                );
+                WorkflowResource workflowResource = new WorkflowResource();
+                workflowResource.setId((String) jsonMap.get("id"));
+                workflowResource.setStatus(WorkflowResource.Status.valueOf((String) jsonMap.get("status")));
+                workflowResource.setType(WorkflowResource.Type.valueOf((String) jsonMap.get("type")));
                 workflowResources.add(workflowResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -72,17 +69,16 @@ public class ConversionUtils {
         return workflowResources;
     }
 
-    // Convert List of JSON strings to List of DFR3MappingResource objects
+    // Convert List of JSON strings to List of dfr3mapping objects
     public static List<DFR3MappingResource> convertToDFR3MappingResources(List<String> jsonStrings) {
         List<DFR3MappingResource> dfr3MappingResources = new ArrayList<>();
         for (String jsonString : jsonStrings) {
             try {
                 Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                DFR3MappingResource dfr3MappingResource = new DFR3MappingResource(
-                    (String) jsonMap.get("id"),
-                    DFR3MappingResource.Status.valueOf((String) jsonMap.get("status")),
-                    DFR3MappingResource.Type.valueOf((String) jsonMap.get("type"))
-                );
+                DFR3MappingResource dfr3MappingResource = new DFR3MappingResource();
+                dfr3MappingResource.setId((String) jsonMap.get("id"));
+                dfr3MappingResource.setStatus(DFR3MappingResource.Status.valueOf((String) jsonMap.get("status")));
+                dfr3MappingResource.setType(DFR3MappingResource.Type.valueOf((String) jsonMap.get("type")));
                 dfr3MappingResources.add(dfr3MappingResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -90,4 +86,5 @@ public class ConversionUtils {
         }
         return dfr3MappingResources;
     }
+
 }

@@ -9,22 +9,17 @@ public class DFR3MappingResource extends ProjectResource {
         repair,
         recovery
     }
-    private DFR3MappingResource.Type type;
+    public Type type;
 
     public DFR3MappingResource() {
     }
 
-    public DFR3MappingResource(String id, Status status, DFR3MappingResource.Type type) {
-        super(id, status);
-        this.type = type;
-    }
-
     // Getter and Setter for hazardType
-    public DFR3MappingResource.Type getType() {
+    public Type getType() {
         return type;
     }
 
-    public void setHazardType(DFR3MappingResource.Type type) {
+    public void setType(Type type) {
         this.type = type;
     }
 }

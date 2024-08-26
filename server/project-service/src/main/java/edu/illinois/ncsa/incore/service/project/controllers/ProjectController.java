@@ -21,6 +21,7 @@ import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.project.utils.ConversionUtils;
+import edu.illinois.ncsa.incore.service.project.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -61,19 +62,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 @Path("projects")
 public class ProjectController {
-    private static final String DATA_SERVICE_URL = System.getenv("DATA_SERVICE_URL");
-    private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
-    private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
-    private static final String EARTHQUAKE_URL = HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
-    private static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
-    private static final String HURRICANE_WF_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricaneWindfields/";
-    private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricanes/";
-    private static final String FLOOD_URL = HAZARD_SERVICE_URL + "/hazard/api/floods/";
-    private static final String TSUNAMI_URL = HAZARD_SERVICE_URL + "/hazard/api/tsunamis/";
-    private static final String FRAGILITY_URL = DFR3_SERVICE_URL + "/dfr3/api/fragilities/";
-    private static final String MAPPING_URL = DFR3_SERVICE_URL + "/dfr3/api/mappings/";
-    private static final String DATA_URL = DATA_SERVICE_URL + "/data/api/datasets/";
-
     private final Logger logger = Logger.getLogger(ProjectController.class);
 
     private final String username;
@@ -188,7 +176,9 @@ public class ProjectController {
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 project.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
-                return project;
+
+                // Process all resources in the project
+                return ServiceUtil.processProjectResources(project, username, userGroups);
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);

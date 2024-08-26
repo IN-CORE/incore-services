@@ -12,14 +12,9 @@ public class HazardResource extends ProjectResource {
         flood,
         hurricane,
     }
-    private Type type;
+    public Type type;
 
     public HazardResource() {
-    }
-
-    public HazardResource(String id, Status status, Type type) {
-        super(id, status);
-        this.type = type;
     }
 
     // Getter and Setter for hazardType
@@ -27,7 +22,7 @@ public class HazardResource extends ProjectResource {
         return type;
     }
 
-    public void setHazardType(Type type) {
+    public void setType(Type type) {
         this.type = type;
     }
 }
