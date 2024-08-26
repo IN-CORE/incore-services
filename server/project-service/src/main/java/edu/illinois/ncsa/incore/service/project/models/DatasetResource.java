@@ -1,7 +1,11 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class DatasetResource extends ProjectResource{
 
+    // Read from dataset object
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String type;
 
     public DatasetResource() {

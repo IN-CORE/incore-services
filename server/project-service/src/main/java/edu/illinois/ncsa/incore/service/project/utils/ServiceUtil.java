@@ -41,45 +41,6 @@ public class ServiceUtil {
 
     private static final Logger logger = Logger.getLogger(ServiceUtil.class);
 
-    /**
-     * Utility for request resource metadata based on input JSON.
-     *
-     * @param requestUrl the URL to send the request to
-     * @param id the ID associated with the request
-     * @param creator the creator's username
-     * @param userGroups the user groups to be included in the request header
-     * @return a JSONObject containing the resource information
-     * @throws IOException if an I/O error occurs
-     */
-    public static JSONObject getResourceInfo(String requestUrl, String id, String creator, String userGroups)
-        throws IOException {
-
-        // Create a CloseableHttpClient to ensure resources are properly managed
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-
-            HttpGet httpGet = new HttpGet(requestUrl + id);
-            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
-            httpGet.setHeader(HazardConstants.X_AUTH_USERGROUP, userGroups);
-
-            // Execute the request and handle the response
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                ResponseHandler<String> responseHandler = new BasicResponseHandler();
-                String responseStr = responseHandler.handleResponse(response);
-
-                return new JSONObject(responseStr);
-            } catch (IOException e) {
-                // Log the error and rethrow the exception
-                logger.error("Error executing request to URL: " + requestUrl, e);
-                throw e;
-            }
-
-        } catch (IOException e) {
-            // Log the error and rethrow it
-            logger.error("Failed to create HttpClient or process the request", e);
-            throw e;
-        }
-    }
-
     public static Project processProjectResources(Project project, String creator, String userGroups) {
         // Process hazards
         List<HazardResource> updatedHazards = new ArrayList<>();
@@ -113,37 +74,58 @@ public class ServiceUtil {
         return project;
     }
 
-    private static ProjectResource updateResourceStatusAndSpaces(ProjectResource resource, String requestUrl, String creator,
-                                                                 String userGroups) {
-        try {
-            JSONObject resourceInfo = ServiceUtil.getResourceInfo(requestUrl, resource.getId(), creator, userGroups);
-            resource.setSpaces(resourceInfo.getJSONArray("spaces").toList().stream().map(Object::toString).collect(Collectors.toList()));
+    private static ProjectResource updateResourceStatusAndSpaces(ProjectResource resource, String requestUrl, String creator, String userGroups) {
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
 
-            int statusCode = resourceInfo.getInt("statusCode");
-            switch (statusCode) {
-                case 200:
-                    resource.setStatus(ProjectResource.Status.EXISTING);
-                    break;
-                case 404:
-                    resource.setStatus(ProjectResource.Status.DELETED);
-                    break;
-                case 403:
-                    resource.setStatus(ProjectResource.Status.UNAUTHORIZED);
-                    break;
-                default:
-                    resource.setStatus(ProjectResource.Status.UNKNOWN);
-                    break;
+            HttpGet httpGet = new HttpGet(requestUrl);
+            httpGet.setHeader(HazardConstants.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creator + "\"}");
+            httpGet.setHeader(HazardConstants.X_AUTH_USERGROUP, userGroups);
+
+            // Execute the request and handle the response
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                ProjectResource.Status status;
+                switch (statusCode) {
+                    case 200:
+                        // set status
+                        status = ProjectResource.Status.EXISTING;
+
+                        // set space
+                        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                        String responseStr = responseHandler.handleResponse(response);
+                        JSONObject resourceInfo = new JSONObject(responseStr);
+                        resource.setSpaces(resourceInfo.getJSONArray("spaces").toList().stream().map(Object::toString).collect(Collectors.toList()));
+
+                        // set dataset type
+                        if (resource instanceof DatasetResource) {
+                            DatasetResource datasetResource = (DatasetResource) resource;
+                            if (datasetResource.getType() == null || datasetResource.getType().isEmpty()) {
+                                datasetResource.setType(resourceInfo.getString("dataType"));
+                            }
+                        }
+
+                        break;
+                    case 404:
+                        status = ProjectResource.Status.DELETED;
+                        break;
+                    case 403:
+                        status = ProjectResource.Status.UNAUTHORIZED;
+                        break;
+                    default:
+                        status = ProjectResource.Status.UNKNOWN;
+                        break;
+                }
+                resource.setStatus(status);
+
+                return resource;
+            } catch (IOException e) {
+                logger.error("Error executing request to URL: " + requestUrl + resource.getId(), e);
+                return resource;
             }
 
-            // Set the type only if the resource is a DatasetResource and type hasn't been set
-            if (resource instanceof DatasetResource &&
-                ( ((DatasetResource) resource).getType() == null || ((DatasetResource) resource).getType().isEmpty())) {
-                ((DatasetResource) resource).setType(resourceInfo.getString("dataType"));
-            }
-
-            return resource;
         } catch (IOException e) {
-            throw new RuntimeException("Error fetching resource information for resource ID: " + resource.getId(), e);
+            logger.error("Failed to create HttpClient or process the request", e);
+            return resource;
         }
     }
 

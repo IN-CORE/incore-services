@@ -3,7 +3,6 @@ package edu.illinois.ncsa.incore.service.project.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Embedded;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Embedded
