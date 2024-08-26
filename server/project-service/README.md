@@ -39,7 +39,7 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Request Body**: JSON representation of the project.
 - **Example**:
   ```http
-  POST /project/api/projects/66c5f70943e23b2bb24413ef
+  POST /project/api/projects
   {
         "name": "test",
         "description": "This is a description of the example project.",
@@ -47,31 +47,26 @@ system, including creating, updating, and deleting projects, as well as managing
         "hazards": [
             {
                 "id": "5c6323a0c11bb380daa9cbc1",
-                "status": "UNAUTHORIZED",
                 "type": "tornado"
             },
             {
                 "id": "5b902cb273c3371e1236b36b",
-                "status": "EXISTING",
                 "type": "earthquake"
             }
         ],
         "dfr3Mappings": [
             {
                 "id": "5b47b2d9337d4a36187c7563",
-                "status": "EXISTING",
                 "type": "fragility"
             }
         ],
         "datasets": [
             {
                 "id": "5a284f0bc7d30d13bc081a28",
-                "status": "EXISTING",
                 "type": "ergo:buildingInventoryVer5"
             },
             {
                 "id": "5a284f0bc7d30d13bc081a20",
-                "status": "EXISTING",
                 "type": "ergo:buildingInventoryVer5"
             }
         ],
@@ -119,17 +114,14 @@ system, including creating, updating, and deleting projects, as well as managing
     --data-urlencode 'name=test-patch' \
     --data-urlencode 'hazards={
         "id": "5c6323a0c11bb380daa9cbc1",
-        "status": "UNAUTHORIZED",
         "type": "tornado"
       }' \
     --data-urlencode 'hazards={
         "id": "5b902cb273c3371e1236b36b",
-        "status": "EXISTING",
         "type": "earthquake"
       }' \
     --data-urlencode 'datasets={
        "id": "5a284f0bc7d30d13bc081a28",
-       "status": "EXISTING",
        "type": "ergo:buildingInventoryVer5"
       }'
     ```
@@ -193,5 +185,165 @@ system, including creating, updating, and deleting projects, as well as managing
         "id": "5a284f0bc7d30d13bc081a20",
         "type": "ergo:buildingInventoryVer5"
     }
+  ]
+  ```
+
+
+#### **List Dfr3 mappings belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/dfr3mappings`
+- **Description**: Retrieve a list of dfr3 mappings associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Example**:
+  ```http
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
+  ```
+
+#### **Add Dfr3 mappings to a Project**
+
+- **Method**: `POST`
+- **Path**: `/project/api/projects/{projectId}/dfr3mappings`
+- **Description**: Add dfr3mappings to a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of dfr3mappings to add.
+- **Example**:
+  ```http
+  POST /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
+  [
+   {
+            "id": "5b47b2d9337d4a36187c7563",
+            "type": "fragility"
+        }
+  ]
+  ```
+
+#### **Remove Dfr3 mappings from a Project**
+
+- **Method**: `DELETE`
+- **Path**: `/project/api/projects/{projectId}/dfr3mappings`
+- **Description**: Remove dfr3mappings from a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of dfr3mappings to remove.
+- **Example**:
+  ```http
+  DELETE /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
+  [
+   {
+            "id": "5b47b2d9337d4a36187c7563",
+            "type": "fragility"
+        }
+  ]
+  ```
+
+#### **List Hazards belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/hazards`
+- **Description**: Retrieve a list of hazards associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Example**:
+  ```http
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/hazards
+  ```
+
+#### **Add Hazards to a Project**
+
+- **Method**: `POST`
+- **Path**: `/project/api/projects/{projectId}/hazards`
+- **Description**: Add hazards to a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of hazards to add.
+- **Example**:
+  ```http
+  POST /project/api/projects/66c60ba518da486b1e9c08d5/hazards
+  [
+   {
+            "id": "5b902cb273c3371e1236b36b",
+            "type": "earthquake"
+        },
+        {
+            "id": "5c6323a0c11bb380daa9cbc1",
+            "type": "tornado"
+        }
+  ]
+  ```
+
+#### **Remove Hazards from a Project**
+
+- **Method**: `DELETE`
+- **Path**: `/project/api/projects/{projectId}/hazards`
+- **Description**: Remove hazards from a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of hazards to remove.
+- **Example**:
+  ```http
+  DELETE /project/api/projects/66c60ba518da486b1e9c08d5/hazards
+  [
+   {
+            "id": "5b902cb273c3371e1236b36b",
+            "type": "earthquake"
+        }
+  ]
+  ```
+
+
+#### **List Workflows belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/workflows`
+- **Description**: Retrieve a list of workflows associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Example**:
+  ```http
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows
+  ```
+
+#### **Add Workflows to a Project**
+
+- **Method**: `POST`
+- **Path**: `/project/api/projects/{projectId}/workflows`
+- **Description**: Add workflows to a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of workflows to add.
+- **Example**:
+  ```http
+  POST /project/api/projects/66c60ba518da486b1e9c08d5/workflows
+  [
+   {
+            "id": "efc14b0f-1848-4dc7-ad0d-69ef6d7f0d9c",
+            "type": "workflow"
+        },
+        {
+            "id": "e4d1c18-4250-4cc0-8fc6-d4f2afa4b9e7",
+            "type": "execution"
+        }
+  ]
+  ```
+
+#### **Remove Workflows from a Project**
+
+- **Method**: `DELETE`
+- **Path**: `/project/api/projects/{projectId}/workflows`
+- **Description**: Remove workflows from a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of workflows to remove.
+- **Example**:
+  ```http
+  DELETE /project/api/projects/66c60ba518da486b1e9c08d5/workflows
+  [
+   {
+            "id": "e4d1c18-4250-4cc0-8fc6-d4f2afa4b9e7",
+            "type": "execution"
+        }
   ]
   ```
