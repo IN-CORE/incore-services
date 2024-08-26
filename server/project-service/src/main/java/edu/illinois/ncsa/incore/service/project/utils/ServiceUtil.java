@@ -28,16 +28,19 @@ import java.util.stream.Collectors;
 
 public class ServiceUtil {
 
-    private static final String DATA_SERVICE_URL = System.getenv("DATA_SERVICE_URL");
-    private static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
-    private static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
-    private static final String EARTHQUAKE_URL = HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
-    private static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
-    private static final String HURRICANE_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricanes/";
-    private static final String FLOOD_URL = HAZARD_SERVICE_URL + "/hazard/api/floods/";
-    private static final String TSUNAMI_URL = HAZARD_SERVICE_URL + "/hazard/api/tsunamis/";
-    private static final String MAPPING_URL = DFR3_SERVICE_URL + "/dfr3/api/mappings/";
-    private static final String DATA_URL = DATA_SERVICE_URL + "/data/api/datasets/";
+    public static final String DATA_SERVICE_URL = System.getenv("DATA_SERVICE_URL");
+    public static final String HAZARD_SERVICE_URL = System.getenv("HAZARD_SERVICE_URL");
+    public static final String DFR3_SERVICE_URL = System.getenv("DFR3_SERVICE_URL");
+    public static final String DATAWOLF_URL = System.getenv("DATAWOLF_URL");
+    public static final String EARTHQUAKE_URL = HAZARD_SERVICE_URL + "/hazard/api/earthquakes/";
+    public static final String TORNADO_URL = HAZARD_SERVICE_URL + "/hazard/api/tornadoes/";
+    public static final String HURRICANE_URL = HAZARD_SERVICE_URL + "/hazard/api/hurricanes/";
+    public static final String FLOOD_URL = HAZARD_SERVICE_URL + "/hazard/api/floods/";
+    public static final String TSUNAMI_URL = HAZARD_SERVICE_URL + "/hazard/api/tsunamis/";
+    public static final String MAPPING_URL = DFR3_SERVICE_URL + "/dfr3/api/mappings/";
+    public static final String DATA_URL = DATA_SERVICE_URL + "/data/api/datasets/";
+    public static final String DATAWOLF_WORKFLOW_URL = System.getenv("DATAWOLF_URL") + "/workflows/";
+    public static final String DATAWOLF_EXECUTION_URL = System.getenv("DATAWOLF_URL") + "/executions/";
 
     private static final Logger logger = Logger.getLogger(ServiceUtil.class);
 
@@ -74,7 +77,7 @@ public class ServiceUtil {
         return project;
     }
 
-    private static ProjectResource updateResourceStatusAndSpaces(ProjectResource resource, String requestUrl, String creator, String userGroups) {
+    public static ProjectResource updateResourceStatusAndSpaces(ProjectResource resource, String requestUrl, String creator, String userGroups) {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
 
             HttpGet httpGet = new HttpGet(requestUrl);
@@ -129,7 +132,7 @@ public class ServiceUtil {
         }
     }
 
-    private static String constructHazardRequestUrl(String resourceType, String resourceId) {
+    public static String constructHazardRequestUrl(String resourceType, String resourceId) {
         switch (resourceType) {
             case "earthquake":
                 return EARTHQUAKE_URL + resourceId;

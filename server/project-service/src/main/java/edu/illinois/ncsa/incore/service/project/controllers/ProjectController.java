@@ -40,6 +40,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import static edu.illinois.ncsa.incore.service.project.utils.ServiceUtil.updateResourceStatusAndSpaces;
+
 
 @OpenAPIDefinition(
     info = @Info(
@@ -158,12 +160,21 @@ public class ProjectController {
             .skip(offset)
             .limit(limit)
             .map(d -> {
+                // Set spaces for the project
                 d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
-                return d;
+
+                // Process resources within the project
+                d.getHazards().forEach(hazard -> updateResourceStatusAndSpaces(hazard, ServiceUtil.constructHazardRequestUrl("hazard", hazard.getId()), d.getCreator(), userGroups));
+                d.getDfr3Mappings().forEach(mapping -> updateResourceStatusAndSpaces(mapping, ServiceUtil.MAPPING_URL + mapping.getId(), d.getCreator(), userGroups));
+                d.getDatasets().forEach(dataset -> updateResourceStatusAndSpaces(dataset, ServiceUtil.DATA_URL, d.getCreator(), userGroups));
+//                d.getWorkflows().forEach(workflow -> updateResourceStatusAndSpaces(workflow, ServiceUtil.DATAWOLF_WORKFLOW_URL, d.getCreator(), userGroups));
+
+                return d; // Return the updated project
             })
             .collect(Collectors.toList());
 
         return accessibleProjects;
+
     }
 
     @GET
@@ -211,7 +222,7 @@ public class ProjectController {
             spaceRepository.addSpace(space);
             project.setSpaces(spaceRepository.getSpaceNamesOfMember(project.getId()));
 
-            return project;
+            return ServiceUtil.processProjectResources(project, username, userGroups);
         } else {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to save project: returned null.");
         }
@@ -237,7 +248,8 @@ public class ProjectController {
             if (updatedProject != null) {
                 // assume if can write, can read
                 updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
-                return updatedProject;
+
+                return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
             }
         }
         else{
@@ -310,7 +322,8 @@ public class ProjectController {
         if (updatedProject != null) {
             // assume if can write, can read
             updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
-            return updatedProject;
+
+            return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
         }
 
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to patch the project.");
@@ -397,7 +410,8 @@ public class ProjectController {
         if (updatedProject != null) {
             // assume if can write, can read
             updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
-            return updatedProject;
+
+            return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
         }
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add datasets to the project.");
     }
@@ -406,7 +420,7 @@ public class ProjectController {
     @Path("{projectId}/datasets")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Add datasets to a project")
+    @Operation(description = "Delete datasets to a project")
     public Project deleteDatasetsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
         @Parameter(name = "datasets", description = "List of datasets to add", required = true) List<DatasetResource> datasets) {
@@ -437,7 +451,7 @@ public class ProjectController {
         if (updatedProject != null) {
             // assume if can write, can read
             updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
-            return updatedProject;
+            return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
         }
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add datasets to the project.");
     }
