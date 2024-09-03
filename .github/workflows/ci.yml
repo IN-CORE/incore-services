@@ -89,7 +89,7 @@ jobs:
 
     steps:
       - name: Download build files
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: incore-services-build-files
 
