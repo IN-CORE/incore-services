@@ -32,6 +32,7 @@ public class Project {
     private List<DFR3MappingResource> dfr3Mappings = new ArrayList<>();
     private List<DatasetResource> datasets = new ArrayList<>();
     private List<WorkflowResource> workflows = new ArrayList<>();
+    private List<VisualizationResource> visualizations = new ArrayList<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<String> spaces;
@@ -127,6 +128,14 @@ public class Project {
 
     public void setWorkflows(List<WorkflowResource> workflows) {
         this.workflows = workflows;
+    }
+
+    public List<VisualizationResource> getVisualizations() {
+        return visualizations;
+    }
+
+    public void setVisualizations(List<VisualizationResource> visualizations) {
+        this.visualizations = visualizations;
     }
 
     public List<String> getSpaces() {
@@ -225,6 +234,29 @@ public class Project {
         }
         if (indexToRemove != -1) {
             workflows.remove(indexToRemove);
+        }
+    }
+
+
+    public void addVisualizationResource(VisualizationResource visualization) {
+        boolean exists = visualizations.stream()
+            .anyMatch(existingVisualizations -> existingVisualizations.getId().equals(visualization.getId()));
+
+        if (!exists) {
+            this.visualizations.add(visualization);
+        }
+    }
+
+    public void deleteVisualizationResource(VisualizationResource visualization) {
+        int indexToRemove = -1;
+        for (int i = 0; i < visualizations.size(); i++) {
+            if (visualization.getId().equals(visualizations.get(i).getId())) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        if (indexToRemove != -1) {
+            visualizations.remove(indexToRemove);
         }
     }
 

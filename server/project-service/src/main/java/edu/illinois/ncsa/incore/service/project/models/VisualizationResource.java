@@ -2,7 +2,7 @@ package edu.illinois.ncsa.incore.service.project.models;
 
 import java.util.List;
 
-public abstract class VisualizationResource {
+public class VisualizationResource extends ProjectResource{
 
     // Enum for visualization types
     public enum Type {
