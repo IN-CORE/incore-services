@@ -5,6 +5,8 @@ public class Layer {
     private String layerId;
     private String styleName;
 
+    public Layer() {}
+
     public Layer(String layerId, String styleName) {
         this.layerId = layerId;
         this.styleName = styleName;

@@ -917,8 +917,7 @@ public class ProjectController {
     @Operation(description = "Delete layers from a project")
     public Project deleteLayersFromMapVis(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "visualizations", description = "List of visualizations to delete", required = true) List<VisualizationResource> visualizations,
-        @Parameter(name = "visualizationId", description = "ID of the visualization to update") @PathParam("visualizationId") String visualizationId,
+        @Parameter(name = "visualizationId", description = "ID of the visualization to update", required = true) @PathParam("visualizationId") String visualizationId,
         @Parameter(name = "layers", description = "List of layers to delete", required = true) List<Layer> layers) {
         {
             // Check if the project exists
