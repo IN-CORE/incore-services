@@ -134,6 +134,13 @@ public class Project {
         return visualizations;
     }
 
+    public VisualizationResource getVisualization(String id) {
+        return visualizations.stream()
+            .filter(visualization -> visualization.getId().equals(id))
+            .findFirst()
+            .orElse(null);
+    }
+
     public void setVisualizations(List<VisualizationResource> visualizations) {
         this.visualizations = visualizations;
     }

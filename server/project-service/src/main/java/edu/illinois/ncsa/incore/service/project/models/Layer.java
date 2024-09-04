@@ -1,6 +1,6 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
-class Layer {
+public class Layer {
     private String workspace = "incore";
     private String layerId;
     private String styleName;
