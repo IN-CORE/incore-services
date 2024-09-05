@@ -1,5 +1,8 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import dev.morphia.annotations.Embedded;
+
+@Embedded
 public class Layer {
     private String workspace = "incore";
     private String layerId;

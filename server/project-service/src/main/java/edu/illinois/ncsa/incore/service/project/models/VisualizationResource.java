@@ -15,9 +15,9 @@ public class VisualizationResource extends ProjectResource{
 
     private Type type;
     private double[] boundingBox = null;
-    private List<Layer> layers;
-    private String vegaJson;
-    private List<String> sourceDatasetIds;
+    private List<Layer> layers = null;
+    private String vegaJson = null;
+    private List<String> sourceDatasetIds = null;
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
