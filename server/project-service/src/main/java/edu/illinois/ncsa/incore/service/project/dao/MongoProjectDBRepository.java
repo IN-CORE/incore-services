@@ -161,7 +161,8 @@ public class MongoProjectDBRepository implements IProjectRepository {
             newProject.getHazards() != null ? UpdateOperators.set("hazards", newProject.getHazards()) : UpdateOperators.set("hazards", existingProject.getHazards()),
             newProject.getDfr3Mappings() != null ? UpdateOperators.set("dfr3Mappings", newProject.getDfr3Mappings()) : UpdateOperators.set("dfr3Mappings", existingProject.getDfr3Mappings()),
             newProject.getDatasets() != null ? UpdateOperators.set("datasets", newProject.getDatasets()) : UpdateOperators.set("datasets", existingProject.getDatasets()),
-            newProject.getWorkflows() != null ? UpdateOperators.set("workflows", newProject.getWorkflows()) : UpdateOperators.set("workflows", existingProject.getWorkflows())
+            newProject.getWorkflows() != null ? UpdateOperators.set("workflows", newProject.getWorkflows()) : UpdateOperators.set("workflows", existingProject.getWorkflows()),
+            newProject.getVisualizations() != null ? UpdateOperators.set("visualizations", newProject.getVisualizations()) : UpdateOperators.set("visualizations", existingProject.getVisualizations())
         ).execute();
 
         // Retrieve and return the updated project

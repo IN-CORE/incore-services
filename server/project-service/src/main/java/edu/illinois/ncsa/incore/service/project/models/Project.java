@@ -244,32 +244,12 @@ public class Project {
         }
     }
 
-    public void addMapVisualization(MapVisualizationResource mapVisualization) {
-        visualizations.add(mapVisualization);
-    }
-
-    public void addChartVisualization(ChartVisualizationResource chartVisualization) {
-        visualizations.add(chartVisualization);
-    }
-
-    public void addTableVisualization(TableVisualizationResource tableVisualization) {
-        visualizations.add(tableVisualization);
-    }
-
     public void addVisualizationResource(VisualizationResource visualization) {
         boolean exists = visualizations.stream()
             .anyMatch(existingVisualizations -> existingVisualizations.getId().equals(visualization.getId()));
 
         if (!exists) {
-            if (visualization instanceof MapVisualizationResource) {
-                this.addMapVisualization((MapVisualizationResource) visualization);
-            } else if (visualization instanceof ChartVisualizationResource) {
-                this.addChartVisualization((ChartVisualizationResource) visualization);
-            } else if (visualization instanceof TableVisualizationResource) {
-                this.addTableVisualization((TableVisualizationResource) visualization);
-            } else {
-                throw new IllegalArgumentException("Visualization type not supported");
-            }
+            this.visualizations.add(visualization);
         }
     }
 

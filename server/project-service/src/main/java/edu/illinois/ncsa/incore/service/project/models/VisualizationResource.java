@@ -1,19 +1,9 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.List;
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
-)
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = MapVisualizationResource.class, name = "MAP"),
-    @JsonSubTypes.Type(value = ChartVisualizationResource.class, name = "CHART"),
-    @JsonSubTypes.Type(value = TableVisualizationResource.class, name = "TABLE")
-})
+
 public class VisualizationResource extends ProjectResource{
 
     // Enum for visualization types
@@ -24,6 +14,10 @@ public class VisualizationResource extends ProjectResource{
     }
 
     private Type type;
+    private double[] boundingBox = null;
+    private List<Layer> layers;
+    private String vegaJson;
+    private List<String> sourceDatasetIds;
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
@@ -36,6 +30,63 @@ public class VisualizationResource extends ProjectResource{
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+
+    public List<Layer> getLayers() {
+        return layers;
+    }
+
+    public void setLayers(List<Layer> layers) {
+        this.layers = layers;
+    }
+
+    public double[] getBoundingBox() {
+        return boundingBox;
+    }
+    public void setBoundingBox(double[] boundingBox) {
+        this.boundingBox = boundingBox;
+    }
+
+    public void addLayer(Layer layer) {
+        layers.add(layer);
+    }
+
+    public void removeLayer(Layer layer) {
+        int indexToRemove = -1;
+        for (int i = 0; i < layers.size(); i++) {
+            if (layer.getLayerId().equals(layers.get(i).getLayerId())) {
+                indexToRemove = i;
+                break;
+            }
+        }
+        if (indexToRemove != -1) {
+            layers.remove(indexToRemove);
+        }
+    }
+
+    public String getVegaJson() {
+        return vegaJson;
+    }
+
+    public void setVegaJson(String vegaJson) {
+        this.vegaJson = vegaJson;
+    }
+
+    public  List<String> getDatasetIds() {
+        return sourceDatasetIds;
+    }
+
+    public void setDatasetId(List<String> sourceDatasetIds) {
+        this.sourceDatasetIds = sourceDatasetIds;
+    }
+
+    public void addSourceDatasetId(String id) {
+        sourceDatasetIds.add(id);
+    }
+
+    public void removeSourceDatasetId(String id) {
+        sourceDatasetIds.remove(id);
     }
 }
 

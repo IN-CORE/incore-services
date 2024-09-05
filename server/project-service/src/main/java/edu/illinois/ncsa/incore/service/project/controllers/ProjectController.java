@@ -889,10 +889,9 @@ public class ProjectController {
 
         // Check if the visualization is of type Map and update layers
         VisualizationResource visualization = project.getVisualization(visualizationId);
-        if (visualization instanceof MapVisualizationResource) {
-            MapVisualizationResource mapVisualization = (MapVisualizationResource) visualization;
+        if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
             for (Layer layer : layers) {
-                mapVisualization.addLayer(layer);
+                visualization.addLayer(layer);
             }
         } else {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
@@ -934,10 +933,9 @@ public class ProjectController {
 
             // Check if the visualization is of type Map and update layers
             VisualizationResource visualization = project.getVisualization(visualizationId);
-            if (visualization instanceof MapVisualizationResource) {
-                MapVisualizationResource mapVisualization = (MapVisualizationResource) visualization;
+            if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
                 for (Layer layer : layers) {
-                    mapVisualization.removeLayer(layer);
+                    visualization.removeLayer(layer);
                 }
             } else {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
