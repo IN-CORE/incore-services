@@ -45,11 +45,18 @@ public class VisualizationResource extends ProjectResource{
         return boundingBox;
     }
     public void setBoundingBox(double[] boundingBox) {
+        // TODO: add logic to set boundingbox using the first layer if not given
         this.boundingBox = boundingBox;
     }
 
     public void addLayer(Layer layer) {
-        layers.add(layer);
+        // Check if the layer already exists in the list
+        boolean exists = layers.stream()
+            .anyMatch(existingLayer -> existingLayer.getLayerId().equals(layer.getLayerId()));
+
+        if (!exists) {
+            layers.add(layer);
+        }
     }
 
     public void removeLayer(Layer layer) {
