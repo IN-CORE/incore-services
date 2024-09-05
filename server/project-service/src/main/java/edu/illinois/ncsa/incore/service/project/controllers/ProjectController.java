@@ -35,12 +35,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import static edu.illinois.ncsa.incore.service.project.utils.ServiceUtil.updateResourceStatusAndSpaces;
 
 
 @OpenAPIDefinition(
@@ -247,8 +243,7 @@ public class ProjectController {
                 // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
                 return updatedProject;
             }
-        }
-        else{
+        } else {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
         }
 
@@ -767,4 +762,195 @@ public class ProjectController {
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete workflows from the project.");
     }
 
+    @GET
+    @Path("{projectId}/visualizations")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List visualizations to a project")
+    public List<VisualizationResource> listVisualizationsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getVisualizations();
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @POST
+    @Path("{projectId}/visualizations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add visualizations to a project")
+    public Project addVisualizationsToProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "visualizations", description = "List of visualizations to add", required = true) List<VisualizationResource> visualizations) {
+
+        // Validate the input
+        if (visualizations == null || visualizations.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No visualizations provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through visualizations and add each one to the project
+        for (VisualizationResource visualization : visualizations) {
+            project.addVisualizationResource(visualization);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add visualizations to the project.");
+    }
+
+    @DELETE
+    @Path("{projectId}/visualizations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete visualizations from a project")
+    public Project deleteVisualizationsFromeProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "visualizations", description = "List of visualizations to delete", required = true) List<VisualizationResource> visualizations) {
+
+        // Validate the input
+        if (visualizations == null || visualizations.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No visualizations provided");
+        }
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Loop through visualizations and delete each one to the project
+        for (VisualizationResource visualization : visualizations) {
+            project.deleteVisualizationResource(visualization);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete visualizations from the project.");
+    }
+
+    @POST
+    @Path("{projectId}/visualizations/{visualizationId}/layers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add new layer to visualization")
+    public Project addLayersToMapVis(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "visualizationId", description = "ID of the visualization to update") @PathParam("visualizationId") String visualizationId,
+        @Parameter(name = "layers", description = "List of layers to add", required = true) List<Layer> layers) {
+
+        // Check if the project exists
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not allowed to modify the project.");
+        }
+
+        // Check if the visualization is of type Map and update layers
+        VisualizationResource visualization = project.getVisualization(visualizationId);
+        if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
+            for (Layer layer : layers) {
+                visualization.addLayer(layer);
+            }
+        } else {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add layer.");
+    }
+
+    @DELETE
+    @Path("{projectId}/visualizations/{visualizationId}/layers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete layers from a project")
+    public Project deleteLayersFromMapVis(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "visualizationId", description = "ID of the visualization to update", required = true) @PathParam("visualizationId") String visualizationId,
+        @Parameter(name = "layers", description = "List of layers to delete", required = true) List<Layer> layers) {
+        {
+            // Check if the project exists
+            Project project = projectDAO.getProjectById(id);
+            if (project == null) {
+                throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+            }
+
+            // Authorization check
+            boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+            if (!this.username.equals(project.getOwner()) && !isAdmin) {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not allowed to modify the project.");
+            }
+
+            // Check if the visualization is of type Map and update layers
+            VisualizationResource visualization = project.getVisualization(visualizationId);
+            if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
+                for (Layer layer : layers) {
+                    visualization.removeLayer(layer);
+                }
+            } else {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
+            }
+
+            // Update the project in the database
+            Project updatedProject = projectDAO.updateProject(id, project);
+            if (updatedProject != null) {
+                updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+                // TODO
+                // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+                return updatedProject;
+            }
+
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete the layer.");
+        }
+    }
 }

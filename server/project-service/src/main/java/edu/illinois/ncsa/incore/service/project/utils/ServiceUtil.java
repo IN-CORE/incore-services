@@ -48,7 +48,7 @@ public class ServiceUtil {
         // Process hazards
         List<HazardResource> updatedHazards = new ArrayList<>();
         for (HazardResource hazard : project.getHazards()) {
-            String requestUrl = constructHazardRequestUrl(hazard.getType().toString(), hazard.getId());
+            String requestUrl = constructHazardRequestUrl(hazard.getType().toString(), hazard.getId().toString());
             ProjectResource updatedHazard = updateResourceStatusAndSpaces(hazard, requestUrl, creator, userGroups);
             updatedHazards.add((HazardResource) updatedHazard);
         }

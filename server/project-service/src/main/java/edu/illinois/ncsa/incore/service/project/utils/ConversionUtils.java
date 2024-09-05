@@ -5,6 +5,7 @@ import edu.illinois.ncsa.incore.service.project.models.DFR3MappingResource;
 import edu.illinois.ncsa.incore.service.project.models.DatasetResource;
 import edu.illinois.ncsa.incore.service.project.models.HazardResource;
 import edu.illinois.ncsa.incore.service.project.models.WorkflowResource;
+import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -1,6 +1,5 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
-import com.fasterxml.jackson.core.Base64Variants;
 
 public class HazardResource extends ProjectResource {
 
