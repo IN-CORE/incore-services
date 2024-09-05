@@ -347,3 +347,121 @@ system, including creating, updating, and deleting projects, as well as managing
         }
   ]
   ```
+
+#### **List Visualizations belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/visualizations`
+- **Description**: Retrieve a list of visualizations associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Example**:
+  ```http
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
+  ```
+
+#### **Add Visualizations to a Project**
+
+- **Method**: `POST`
+- **Path**: `/project/api/projects/{projectId}/visualizations`
+- **Description**: Add visualizations to a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of visualizations to add.
+- **Example**:
+  ```http
+  POST /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
+  [
+    {
+        "id": "6375502f3a28a17d261fd682",
+        "type": "MAP",
+        "boundingBox": [
+            -90.07376669874641,
+            35.03298062856903,
+            -89.71464767735003,
+            35.207753220358086
+        ],
+        "layers": [
+            {
+                "workspace": "incore",
+                "layerId": "6375502f3a28a17d261fd682",
+                "styleName": "incore:point"
+            },
+            {
+                "workspace": "incore",
+                "layerId": "6375502f3a28a17d261fd682",
+                "styleName": "incore:point"
+            }
+        ]
+    }
+  ]
+  ```
+
+
+#### **Remove Visualizations from a Project**
+
+- **Method**: `DELETE`
+- **Path**: `/project/api/projects/{projectId}/visualizations`
+- **Description**: Remove visualizations from a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+- **Request Body**: List of visualizations to remove.
+- **Example**:
+  ```http
+  DELETE /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
+  [
+   {
+        "id": "6375502f3a28a17d261fd682"s
+  },
+  {
+        "id": "6375502f3a28a17d261fd683"
+  ]
+  ```
+  
+#### **Add Layers to Map Visualization**
+
+- **Method**: `POST`
+- **Path**: `/project/api/projects/{projectId}/visualizations/{visualizationId}/layers`
+- **Description**: Add layers to a specific map visualization.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `visualizationId` (string) - ID of the visualization.
+- **Request Body**: List of layers to add.
+- **Example**:
+  ```http
+  POST /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682/layers
+  [
+    {
+        "workspace": "incore",
+        "layerId": "6375502f3a28a17d261fd682",
+        "styleName": "incore:point"
+    },
+    {
+        "workspace": "incore",
+        "layerId": "6375502f3a28a17d261fd683",
+        "styleName": "incore:polygon"
+    }
+  ]
+  ```
+  
+#### **Remove Layers from Map Visualization**
+
+- **Method**: `DELETE`
+- **Path**: `/project/api/projects/{projectId}/visualizations/{visualizationId}/layers`
+- **Description**: Remove layers from a specific map visualization.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `visualizationId` (string) - ID of the visualization.
+- **Request Body**: List of layers to remove.
+- **Example**:
+  ```http
+  DELETE /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682/layers
+  [
+    {
+        "layerId": "6375502f3a28a17d261fd682"
+    },
+    {
+        "layerId": "6375502f3a28a17d261fd683"
+    }
+  ]
+  ```
