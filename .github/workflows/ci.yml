@@ -88,8 +88,8 @@ jobs:
             dockerfile: Dockerfile.space
             hub_project: incore/space-jetty
           - name: project
-              dockerfile: Dockerfile.project
-              hub_project: incore/project-jetty
+            dockerfile: Dockerfile.project
+            hub_project: incore/project-jetty
 
     steps:
       - name: Download build files
