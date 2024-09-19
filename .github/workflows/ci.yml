@@ -70,6 +70,7 @@ jobs:
           - hazard
           - semantics
           - space
+          - project
         include:
           - name: data
             dockerfile: Dockerfile.data
@@ -86,6 +87,9 @@ jobs:
           - name: space
             dockerfile: Dockerfile.space
             hub_project: incore/space-jetty
+          - name: project
+              dockerfile: Dockerfile.project
+              hub_project: incore/project-jetty
 
     steps:
       - name: Download build files
