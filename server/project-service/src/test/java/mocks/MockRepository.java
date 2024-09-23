@@ -59,11 +59,6 @@ public class MockRepository implements IProjectRepository {
     }
 
     @Override
-    public List<Project> getProjectsByType(String type) {
-        return null;
-    }
-
-    @Override
     public List<Project> getProjectsByName(String name) {
         return null;
     }
