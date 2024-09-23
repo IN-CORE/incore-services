@@ -95,7 +95,6 @@ public class ProjectController {
                                          @Parameter(name = "Creator filter") @QueryParam("creator") String creator,
                                          @Parameter(name = "Owner filter") @QueryParam("owner") String owner,
                                          @Parameter(name = "Region filter") @QueryParam("region") String region,
-                                         @Parameter(name = "Type filter") @QueryParam("type") String type,
                                          @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
                                          @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
                                          @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
@@ -113,9 +112,6 @@ public class ProjectController {
         }
         if (region != null) {
             queryMap.put("region", region);
-        }
-        if (type != null) {
-            queryMap.put("type", type);
         }
 
         List<Project> projects;
