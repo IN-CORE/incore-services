@@ -30,7 +30,6 @@ public class MongoProjectDBRepository implements IProjectRepository {
     private final String PROJECT_COLLECTION_NAME = "Project";
     private final String PROJECT_FIELD_NAME = "name";
     private final String PROJECT_FIELD_DESCRIPTION = "description";
-    private final String PROJECT_FIELD_TYPE = "type";
     private final String PROJECT_FIELD_CREATOR = "creator";
     private final String PROJECT_FIELD_OWNER = "owner";
     private final String PROJECT_FIELD_REGION = "region";
@@ -87,13 +86,6 @@ public class MongoProjectDBRepository implements IProjectRepository {
     }
 
     @Override
-    public List<Project> getProjectsByType(String type) {
-        Query<Project> projectQuery = this.dataStore.find(Project.class)
-            .filter(Filters.regex(PROJECT_FIELD_TYPE).pattern(type).caseInsensitive());
-        return projectQuery.iterator().toList();
-    }
-
-    @Override
     public List<Project> getProjectsByName(String name) {
         Query<Project> projectQuery = this.dataStore.find(Project.class)
                 .filter(Filters.regex(PROJECT_FIELD_NAME).pattern(name).caseInsensitive());
@@ -132,8 +124,7 @@ public class MongoProjectDBRepository implements IProjectRepository {
                 Filters.regex(PROJECT_FIELD_DESCRIPTION).pattern(text).caseInsensitive(),
                 Filters.regex(PROJECT_FIELD_CREATOR).pattern(text).caseInsensitive(),
                 Filters.regex(PROJECT_FIELD_OWNER).pattern(text).caseInsensitive(),
-                Filters.regex(PROJECT_FIELD_REGION).pattern(text).caseInsensitive(),
-                Filters.regex(PROJECT_FIELD_TYPE).pattern(text).caseInsensitive()
+                Filters.regex(PROJECT_FIELD_REGION).pattern(text).caseInsensitive()
             ));
         return query.iterator().toList();
     }

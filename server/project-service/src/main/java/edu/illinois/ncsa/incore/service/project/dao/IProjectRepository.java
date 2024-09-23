@@ -20,7 +20,6 @@ public interface IProjectRepository {
 
     List<Project> getAllProjects();
     List<Project> queryAllProjects(Map<String, String> queryMap);
-    List<Project> getProjectsByType(String type);
     List<Project> getProjectsByName(String name);
     List<Project> getProjectsByCreator(String creator);
     List<Project> getProjectsByOwner(String owner);

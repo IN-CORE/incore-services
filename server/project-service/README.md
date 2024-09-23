@@ -18,7 +18,19 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   GET /project/api/projects?name={name}&creator={creator}&skip={skip}&limit={limit}
   ```
+  
+#### **Search All Projects**
 
+- **Method**: `GET`
+- **Path**: `/project/api/projects/search`
+- **Description**: Search for projects by name, description, creator, owner, and region.
+- **Query Parameters**:
+  - `text`, `skip`, `limit`
+- **Example**:
+  ```http
+  GET /project/api/projects/search?text={text}&skip={skip}&limit={limit}
+  ```
+  
 #### **Get Project by ID**
 
 - **Method**: `GET`

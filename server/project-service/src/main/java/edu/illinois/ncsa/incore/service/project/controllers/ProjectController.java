@@ -28,6 +28,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -143,6 +145,39 @@ public class ProjectController {
                 .collect(Collectors.toList());
 
             return projects;
+        }
+
+        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
+
+        List<Project> accessibleProjects = projects.stream()
+            .filter(b -> membersSet.contains(b.getId()))
+            .skip(offset)
+            .limit(limit)
+            .map(d -> {
+                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
+                return d;
+            })
+            .collect(Collectors.toList());
+
+        return accessibleProjects;
+    }
+
+    @GET
+    @Path("/search")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Operation(tags = "Search for a text in all projects", summary = "Gets all projects that contain a specific text")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "404", description = "No projects found with the searched text")
+    })
+    public List<Project> findProjects(@Parameter(name = "Text to search by", example = "Joplin") @QueryParam("text") String text,
+                                              @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
+                                              @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+        List<Project> projects = new ArrayList<>();
+        Project project = this.projectDAO.getProjectById(text);
+        if (project != null) {
+            projects.add(project);
+        } else {
+            projects = this.projectDAO.searchProjects(text);
         }
 
         Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
