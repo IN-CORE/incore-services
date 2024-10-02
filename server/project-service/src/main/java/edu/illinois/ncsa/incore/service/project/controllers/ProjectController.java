@@ -392,7 +392,7 @@ public class ProjectController {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return datasets = project.getDatasets().stream()
+                return project.getDatasets().stream()
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
@@ -818,11 +818,16 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List visualizations to a project")
     public List<VisualizationResource> listVisualizationsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getVisualizations();
+                return project.getVisualizations().stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
