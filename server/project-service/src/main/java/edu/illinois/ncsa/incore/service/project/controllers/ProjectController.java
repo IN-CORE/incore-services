@@ -386,11 +386,16 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List datasets to a project")
     public List<DatasetResource> listDatasetsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getDatasets();
+                return datasets = project.getDatasets().stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -489,11 +494,16 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List dfr3mappings to a project")
     public List<DFR3MappingResource> listDfr3MappingsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getDfr3Mappings();
+                return project.getDfr3Mappings().stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -592,11 +602,16 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List hazards to a project")
     public List<HazardResource> listHazardsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getHazards();
+                return project.getHazards().stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -695,11 +710,16 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List workflows to a project")
     public List<WorkflowResource> listWorkflowsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getWorkflows();
+                return project.getWorkflows().stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
