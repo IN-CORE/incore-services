@@ -177,9 +177,69 @@ system, including creating, updating, and deleting projects, as well as managing
   POST /project/api/projects/66c60ba518da486b1e9c08d5/datasets
   [
    {
-        "id": "5a284f0bc7d30d13bc081a20",
-        "type": "ergo:buildingInventoryVer5"
-    }
+    "id": "63053ddaf5438e1f8c517fed",
+    "deleted": false,
+    "title": "Galveston Buildlings",
+    "description": "Galveston Buildings",
+    "date": "2022-08-23T20:51:38+0000",
+    "creator": "cwang138",
+    "owner": "cwang138",
+    "spaces": [
+        "cwang138",
+        "incore"
+    ],
+    "contributors": [],
+    "fileDescriptors": [
+        {
+            "type":"ergo:buildingInventoryVer7",
+            "id": "63053e4085ac6b569e37713b",
+            "deleted": false,
+            "filename": "galveston_bldgs_w_guid.shx",
+            "mimeType": "application/octet-stream",
+            "size": 1380372,
+            "dataURL": "63/05/63053e4085ac6b569e37713b/galveston_bldgs_w_guid.shx",
+            "md5sum": "a94f800d57affc7d2c53e3ea7a4e7739"
+        },
+        {
+            "id": "63053e4085ac6b569e37713e",
+            "deleted": false,
+            "filename": "galveston_bldgs_w_guid.shp",
+            "mimeType": "application/octet-stream",
+            "size": 4831052,
+            "dataURL": "63/05/63053e4085ac6b569e37713e/galveston_bldgs_w_guid.shp",
+            "md5sum": "7334b46c5062d8271e2843850bd72ab5"
+        },
+        {
+            "id": "63053e4185ac6b569e377141",
+            "deleted": false,
+            "filename": "galveston_bldgs_w_guid.dbf",
+            "mimeType": "application/octet-stream",
+            "size": 73500606,
+            "dataURL": "63/05/63053e4185ac6b569e377141/galveston_bldgs_w_guid.dbf",
+            "md5sum": "8ecc68be18baf3d3c8de905f481d97d7"
+        },
+        {
+            "id": "63053e4185ac6b569e377144",
+            "deleted": false,
+            "filename": "galveston_bldgs_w_guid.prj",
+            "mimeType": "application/octet-stream",
+            "size": 145,
+            "dataURL": "63/05/63053e4185ac6b569e377144/galveston_bldgs_w_guid.prj",
+            "md5sum": "c742bee3d4edfc2948a2ad08de1790a5"
+        }
+    ],
+    "dataType": "ergo:buildingInventoryVer7",
+    "storedUrl": "",
+    "format": "shapefile",
+    "sourceDataset": "",
+    "boundingBox": [
+        -95.23305969592319,
+        29.09475403626702,
+        -94.380636631043,
+        29.59576151450004
+    ],
+    "networkDataset": null
+   }
   ]
   ```
 
@@ -228,9 +288,53 @@ system, including creating, updating, and deleting projects, as well as managing
   POST /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
   [
    {
-            "id": "5b47b2d9337d4a36187c7563",
-            "type": "fragility"
+    "id": "617c47d098c35d24cc573adc",
+    "name": "pytest - Building Mean structural repair time mapping for RES1, RES2, RES3",
+    "hazardType": "earthquake",
+    "inventoryType": "building",
+    "mappings": [
+        {
+            "legacyEntry": {},
+            "entry": {
+                "Repair ID Code": "617b79d898c35d24cc573ada"
+            },
+            "rules": {
+                "AND": [
+                    "java.lang.String occ_type EQUALS RES1"
+                ]
+            }
+        },
+        {
+            "legacyEntry": {},
+            "entry": {
+                "Repair ID Code": "617b7aa7eb5adf3936e01e47"
+            },
+            "rules": {
+                "AND": [
+                    "java.lang.String occ_type EQUALS RES2"
+                ]
+            }
+        },
+        {
+            "legacyEntry": {},
+            "entry": {
+                "Repair ID Code": "617b7ad298c35d24cc573adb"
+            },
+            "rules": {
+                "AND": [
+                    "java.lang.String occ_type EQUALS RES3"
+                ]
+            }
         }
+    ],
+    "creator": "jiateli",
+    "owner": "jiateli",
+    "mappingEntryKeys": null,
+    "spaces": [
+        "jiateli"
+    ],
+    "mappingType": "repair"
+   }
   ]
   ```
 
@@ -278,13 +382,115 @@ system, including creating, updating, and deleting projects, as well as managing
   POST /project/api/projects/66c60ba518da486b1e9c08d5/hazards
   [
    {
-            "id": "5b902cb273c3371e1236b36b",
-            "type": "earthquake"
+    "eqType": "dataset",
+    "id": "5ba8f1c0ec2309043520906d",
+    "name": "Seaside Probabilistic EQ 2500yr",
+    "description": "Seaside dataset based probabilistic earthquake hazard 2500yr",
+    "date": "2024-10-03T20:53:09+0000",
+    "creator": "ywkim",
+    "owner": "ywkim",
+    "spaces": [
+        "ywkim",
+        "coe",
+        "incore"
+    ],
+    "hazardDatasets": [
+        {
+            "hazardType": "probabilistic",
+            "datasetId": "5ba8f1beec230904354e554c",
+            "demandType": "PGA",
+            "demandUnits": "g",
+            "period": 0,
+            "threshold": null,
+            "recurrenceInterval": 2500,
+            "recurrenceUnit": "years"
         },
         {
-            "id": "5c6323a0c11bb380daa9cbc1",
-            "type": "tornado"
+            "hazardType": "probabilistic",
+            "datasetId": "5ba8f1bfec230904354e5558",
+            "demandType": "PGD",
+            "demandUnits": "g",
+            "period": 0,
+            "threshold": null,
+            "recurrenceInterval": 2500,
+            "recurrenceUnit": "years"
+        },
+        {
+            "hazardType": "probabilistic",
+            "datasetId": "5ba8f1bfec230904354e5564",
+            "demandType": "SA",
+            "demandUnits": "g",
+            "period": 0.4,
+            "threshold": null,
+            "recurrenceInterval": 2500,
+            "recurrenceUnit": "years"
+        },
+        {
+            "hazardType": "probabilistic",
+            "datasetId": "5ba8f1bfec230904354e5570",
+            "demandType": "SA",
+            "demandUnits": "g",
+            "period": 0.35,
+            "threshold": null,
+            "recurrenceInterval": 2500,
+            "recurrenceUnit": "years"
+        },
+        {
+            "hazardType": "probabilistic",
+            "datasetId": "5ba8f1bfec230904354e557c",
+            "demandType": "SA",
+            "demandUnits": "g",
+            "period": 0.75,
+            "threshold": null,
+            "recurrenceInterval": 2500,
+            "recurrenceUnit": "years"
+        },
+        {
+            "hazardType": "probabilistic",
+            "datasetId": "5ba8f1bfec230904354e5588",
+            "demandType": "SA",
+            "demandUnits": "g",
+            "period": 1,
+            "threshold": null,
+            "recurrenceInterval": 2500,
+            "recurrenceUnit": "years"
+        },
+        {
+            "hazardType": "probabilistic",
+            "datasetId": "5ba8f1c0ec230904354e5594",
+            "demandType": "SA",
+            "demandUnits": "g",
+            "period": 1.45,
+            "threshold": null,
+            "recurrenceInterval": 2500,
+            "recurrenceUnit": "years"
         }
+    ]
+   },
+   {
+    "floodType": "dataset",
+    "id": "6526c53d288963151469731d",
+    "name": "Galveston SLR - 8ft. (MHHW)",
+    "description": "Galveston Sea Level Rise (SLR) - 8ft. (above MHHW); Data from NOAA Digital Coast; SLR relative to MHHW; Map of inundation footprint in feet.",
+    "date": "2023-10-11T15:54:33+0000",
+    "creator": "sanderdy",
+    "owner": "sanderdy",
+    "spaces": [
+        "sanderdy"
+    ],
+    "hazardDatasets": [
+        {
+            "hazardType": "deterministic",
+            "datasetId": "6526c539adce7a5cb978d51d",
+            "demandType": "inundationDepth",
+            "demandUnits": "ft",
+            "threshold": null,
+            "floodParameters": {
+                "model": "NOAA SLR Inundation"
+            }
+        }
+    ]
+   }
   ]
   ```
 
@@ -333,13 +539,20 @@ system, including creating, updating, and deleting projects, as well as managing
   POST /project/api/projects/66c60ba518da486b1e9c08d5/workflows
   [
    {
-            "id": "efc14b0f-1848-4dc7-ad0d-69ef6d7f0d9c",
-            "type": "workflow"
+        "id": "efc14b0f-1848-4dc7-ad0d-69ef6d7f0d9c",
+        "deleted": false,
+        "title": "retrofit_strategy_wf",
+        "description": "",
+        "created": "2024-03-15T18:51:21+0000",
+        "creator": {
+            "id": "d39e1679-4dcc-4158-9655-a604801871a7",
+            "deleted": false,
+            "firstName": "Christopher",
+            "lastName": "Navarro",
+            "email": "cmnavarr@illinois.edu"
         },
-        {
-            "id": "e4d1c18-4250-4cc0-8fc6-d4f2afa4b9e7",
-            "type": "execution"
-        }
+        "contributors": [],
+    }
   ]
   ```
 
