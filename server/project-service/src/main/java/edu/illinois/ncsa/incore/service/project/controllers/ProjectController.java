@@ -719,11 +719,13 @@ public class ProjectController {
     public List<WorkflowResource> listWorkflowsOfProject(
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by type", description = "Filter workflow by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 return project.getWorkflows().stream()
+                    .filter(workflow -> type == null || workflow.getType().toString().equalsIgnoreCase(type))
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
@@ -827,11 +829,13 @@ public class ProjectController {
     public List<VisualizationResource> listVisualizationsOfProject(
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by type", description = "Filter visualization by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 return project.getVisualizations().stream()
+                    .filter(visualization -> type == null || visualization.getType().toString().equalsIgnoreCase(type))
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());

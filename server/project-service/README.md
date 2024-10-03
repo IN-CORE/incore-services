@@ -157,6 +157,8 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Description**: Retrieve a list of datasets associated with a specific project.
 - **Path Parameter**:
     - `projectId` (string) - ID of the project.
+- **Query Parameters**:
+  - `skip`, `limit`, `type`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets
@@ -193,10 +195,8 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   DELETE /project/api/projects/66c60ba518da486b1e9c08d5/datasets
   [
-   {
-        "id": "5a284f0bc7d30d13bc081a20",
-        "type": "ergo:buildingInventoryVer5"
-    }
+    "5a284f0bc7d30d13bc081a20",
+    "5a284f0bc7d30d13bc081a28"
   ]
   ```
 
@@ -208,6 +208,8 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Description**: Retrieve a list of dfr3 mappings associated with a specific project.
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
+- **Query Parameters**:
+  - `skip`, `limit`, `type`, `hazardType`, `inventoryType`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
@@ -244,10 +246,8 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   DELETE /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
   [
-   {
-            "id": "5b47b2d9337d4a36187c7563",
-            "type": "fragility"
-        }
+    "5b47b2d9337d4a36187c7563",
+    "5b47b2d9337d4a36187c7564"
   ]
   ```
 
@@ -258,6 +258,8 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Description**: Retrieve a list of hazards associated with a specific project.
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
+- **Query Parameters**:
+  - `skip`, `limit`, `type`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/hazards
@@ -298,10 +300,8 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   DELETE /project/api/projects/66c60ba518da486b1e9c08d5/hazards
   [
-   {
-            "id": "5b902cb273c3371e1236b36b",
-            "type": "earthquake"
-        }
+    "5b902cb273c3371e1236b36b",
+    "5c6323a0c11bb380daa9cbc1"
   ]
   ```
 
@@ -313,6 +313,8 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Description**: Retrieve a list of workflows associated with a specific project.
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
+- **Query Parameters**:
+  - `skip`, `limit`, `type`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows
@@ -353,10 +355,8 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   DELETE /project/api/projects/66c60ba518da486b1e9c08d5/workflows
   [
-   {
-            "id": "e4d1c18-4250-4cc0-8fc6-d4f2afa4b9e7",
-            "type": "execution"
-        }
+     "efc14b0f-1848-4dc7-ad0d-69ef6d7f0d9c",
+     "e4d1c18-4250-4cc0-8fc6-d4f2afa4b9e7"
   ]
   ```
 
@@ -367,6 +367,8 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Description**: Retrieve a list of visualizations associated with a specific project.
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
+- **Query Parameters**:
+  - `skip`, `limit`, `type`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
@@ -422,11 +424,8 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   DELETE /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
   [
-   {
-        "id": "6375502f3a28a17d261fd682"s
-  },
-  {
-        "id": "6375502f3a28a17d261fd683"
+   "6375502f3a28a17d261fd682",
+   "6375502f3a28a17d261fd683",
   ]
   ```
   
