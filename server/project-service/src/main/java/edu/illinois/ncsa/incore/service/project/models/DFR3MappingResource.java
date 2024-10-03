@@ -1,7 +1,6 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,21 +8,29 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DFR3MappingResource extends ProjectResource {
 
-    // Enum for status
     public enum Type {
         fragility,
         restoration,
         repair,
-        recovery
+        recovery,
+        unknown;
+
+        // Map a string to a Type, ignoring case
+        public static Type fromString(String mappingType) {
+            try {
+                return Type.valueOf(mappingType.toLowerCase());
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return unknown;
+            }
+        }
     }
-    public Type type;
+
+    private Type type;
+    private String mappingType;
 
     public String name;
     public String hazardType;
     public String inventoryType;
-
-    @JsonProperty("mappingType")
-    public String mappingType;
 
     public final List<Mapping> mappings = new ArrayList<>();
     public String creator;
@@ -34,10 +41,28 @@ public class DFR3MappingResource extends ProjectResource {
     public DFR3MappingResource() {
     }
 
-    // Getter and Setter for hazardType
+    // Getter for type with fallback to dataType if type is not set
     public Type getType() {
-        return type;
+        if (type != null) {
+            return type;
+        }
+        return Type.fromString(mappingType);
     }
+
+    // Setter for type
+    public void setType(String type) {
+        this.type = Type.fromString(type);
+    }
+
+    // Getter and setter for dataType
+    public String getMappingType() {
+        return mappingType;
+    }
+
+    public void setMappingType(String mappingType) {
+        this.mappingType = mappingType;
+    }
+
 
     public void setType(Type type) {
         this.type = type;
