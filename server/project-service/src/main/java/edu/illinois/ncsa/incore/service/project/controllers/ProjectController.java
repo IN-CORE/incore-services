@@ -453,10 +453,10 @@ public class ProjectController {
     @Operation(description = "Delete datasets to a project")
     public Project deleteDatasetsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "datasets", description = "List of datasets to delete", required = true) List<DatasetResource> datasets) {
+        @Parameter(name = "datasets", description = "List of datasets to delete", required = true) List<String> datasetIds) {
 
         // Validate the input
-        if (datasets == null || datasets.isEmpty()) {
+        if (datasetIds == null || datasetIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No datasets provided");
         }
 
@@ -472,8 +472,8 @@ public class ProjectController {
         }
 
         // Loop through datasets and add each one to the project
-        for (DatasetResource dataset : datasets) {
-            project.deleteDatasetResource(dataset);
+        for (String datasetId : datasetIds) {
+            project.deleteDatasetResource(datasetId);
         }
 
         // Update the project in the database
@@ -561,10 +561,10 @@ public class ProjectController {
     @Operation(description = "Delete dfr3mappings to a project")
     public Project deleteDfr3mappingsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "dfr3mappings", description = "List of dfr3mappings to delete", required = true) List<DFR3MappingResource> dfr3mappings) {
+        @Parameter(name = "dfr3mappings", description = "List of dfr3mappings to delete", required = true) List<String> dfr3mappingIds) {
 
         // Validate the input
-        if (dfr3mappings == null || dfr3mappings.isEmpty()) {
+        if (dfr3mappingIds == null || dfr3mappingIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dfr3mappings provided");
         }
 
@@ -580,8 +580,8 @@ public class ProjectController {
         }
 
         // Loop through dfr3mappings and delete each one to the project
-        for (DFR3MappingResource dfr3mapping : dfr3mappings) {
-            project.deleteDFR3MappingResource(dfr3mapping);
+        for (String dfr3mappingId : dfr3mappingIds) {
+            project.deleteDFR3MappingResource(dfr3mappingId);
         }
 
         // Update the project in the database
@@ -669,10 +669,10 @@ public class ProjectController {
     @Operation(description = "Delete hazards to a project")
     public Project deleteHazardsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "hazards", description = "List of hazards to delete", required = true) List<HazardResource> hazards) {
+        @Parameter(name = "hazards", description = "List of hazards to delete", required = true) List<String> hazardIds) {
 
         // Validate the input
-        if (hazards == null || hazards.isEmpty()) {
+        if (hazardIds == null || hazardIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No hazards provided");
         }
 
@@ -688,8 +688,8 @@ public class ProjectController {
         }
 
         // Loop through hazards and delete each one to the project
-        for (HazardResource hazard : hazards) {
-            project.deleteHazardResource(hazard);
+        for (String hazardId : hazardIds) {
+            project.deleteHazardResource(hazardId);
         }
 
         // Update the project in the database
@@ -777,10 +777,10 @@ public class ProjectController {
     @Operation(description = "Delete workflows from a project")
     public Project deleteWorkflowsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "workflows", description = "List of workflows to delete", required = true) List<WorkflowResource> workflows) {
+        @Parameter(name = "workflows", description = "List of workflows to delete", required = true) List<String> workflowIds) {
 
         // Validate the input
-        if (workflows == null || workflows.isEmpty()) {
+        if (workflowIds == null || workflowIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No workflows provided");
         }
 
@@ -796,8 +796,8 @@ public class ProjectController {
         }
 
         // Loop through workflows and delete each one to the project
-        for (WorkflowResource workflow : workflows) {
-            project.deleteWorkflowResource(workflow);
+        for (String workflowId : workflowIds) {
+            project.deleteWorkflowResource(workflowId);
         }
 
         // Update the project in the database
@@ -885,10 +885,10 @@ public class ProjectController {
     @Operation(description = "Delete visualizations from a project")
     public Project deleteVisualizationsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "visualizations", description = "List of visualizations to delete", required = true) List<VisualizationResource> visualizations) {
+        @Parameter(name = "visualizations", description = "List of visualizations to delete", required = true) List<String> visualizationIds) {
 
         // Validate the input
-        if (visualizations == null || visualizations.isEmpty()) {
+        if (visualizationIds == null || visualizationIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No visualizations provided");
         }
 
@@ -904,8 +904,8 @@ public class ProjectController {
         }
 
         // Loop through visualizations and delete each one to the project
-        for (VisualizationResource visualization : visualizations) {
-            project.deleteVisualizationResource(visualization);
+        for (String visualizationId : visualizationIds) {
+            project.deleteVisualizationResource(visualizationId);
         }
 
         // Update the project in the database
