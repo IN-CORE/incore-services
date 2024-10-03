@@ -1,6 +1,7 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
@@ -13,7 +14,6 @@ public class DatasetResource extends ProjectResource{
     // TODO Read from dataset object
     // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
 
-    public String type;
     public boolean deleted = false;
     public String title = "";
     public String description = "";
@@ -22,22 +22,39 @@ public class DatasetResource extends ProjectResource{
     public String owner = null;
     public List<String> contributors = null;
     public List<FileDescriptor> fileDescriptors = null;
-    public String dataType = "";
+
+    private String type;
+    private String dataType;
+
     public String storedUrl = "";
     public String format = "";
     public String sourceDataset = "";
     public double[] boundingBox = null;
-    public List<String> spaces = null;
     public NetworkDataset networkDataset = null;
 
     public DatasetResource() {
     }
 
+    // Getter for type with fallback to dataType if type is not set
     public String getType() {
-        return type;
+        if (type != null && !type.isEmpty()) {
+            return type;
+        }
+        return dataType;  // Fallback to dataType if type is null or empty
     }
+
+    // Setter for type
     public void setType(String type) {
         this.type = type;
+    }
+
+    // Getter and setter for dataType
+    public String getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     @JsonSerialize(using = JsonDateSerializer.class)

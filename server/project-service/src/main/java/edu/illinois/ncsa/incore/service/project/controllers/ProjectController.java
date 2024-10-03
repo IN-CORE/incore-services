@@ -388,11 +388,13 @@ public class ProjectController {
     public List<DatasetResource> listDatasetsOfProject(
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 return project.getDatasets().stream()
+                    .filter(dataset -> type == null || dataset.getDataType().equals(type))
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
@@ -496,7 +498,10 @@ public class ProjectController {
     public List<DFR3MappingResource> listDfr3MappingsOfProject(
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit) {
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by hazardType", description = "Filter datasets by hazardType") @QueryParam("hazardType") String hazardType,
+        @Parameter(name = "Filter by inventoryType", description = "Filter datasets by inventoryType") @QueryParam("inventoryType") String inventoryType,
+        @Parameter(name = "Filter by dataType", description = "Filter datasets by dataType") @QueryParam("dataType") String dataType) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
