@@ -1,6 +1,12 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+
+import java.util.Date;
+import java.util.List;
+
 public class HazardResource extends ProjectResource {
 
     // Enum for status
@@ -13,6 +19,14 @@ public class HazardResource extends ProjectResource {
     }
     public Type type;
 
+    // Only keep basic information for now
+    public String name;
+    public String description;
+    public Date date = new Date();
+    public String creator = null;
+    public String owner = null;
+    public List<HazardDataset> hazardDatasets;
+
     public HazardResource() {
     }
 
@@ -23,5 +37,10 @@ public class HazardResource extends ProjectResource {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
     }
 }
