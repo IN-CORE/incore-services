@@ -394,7 +394,7 @@ public class ProjectController {
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 return project.getDatasets().stream()
-                    .filter(dataset -> type == null || dataset.getDataType().equals(type))
+                    .filter(dataset -> type == null || dataset.getDataType().equalsIgnoreCase(type))
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
@@ -501,11 +501,14 @@ public class ProjectController {
         @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
         @Parameter(name = "Filter by hazardType", description = "Filter datasets by hazardType") @QueryParam("hazardType") String hazardType,
         @Parameter(name = "Filter by inventoryType", description = "Filter datasets by inventoryType") @QueryParam("inventoryType") String inventoryType,
-        @Parameter(name = "Filter by dataType", description = "Filter datasets by dataType") @QueryParam("dataType") String dataType) {
+        @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 return project.getDfr3Mappings().stream()
+                    .filter(mapping -> hazardType == null || mapping.hazardType.equalsIgnoreCase(hazardType))
+                    .filter(mapping -> inventoryType == null || mapping.inventoryType.equalsIgnoreCase(inventoryType))
+                    .filter(mapping -> type == null || mapping.getType().toString().equalsIgnoreCase(type))
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
