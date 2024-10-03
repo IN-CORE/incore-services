@@ -5,12 +5,17 @@
  * and is available at https://www.mozilla.org/en-US/MPL/2.0/
  *******************************************************************************/
 package edu.illinois.ncsa.incore.service.project.models;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.morphia.annotations.Embedded;
 
 @Embedded
-public abstract class HazardDataset {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class HazardDataset {
     public String datasetId;
     public String demandType;
     public String demandUnits;
     public Double threshold = null;
+
+    public HazardDataset() {
+    }
 }

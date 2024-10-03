@@ -8,6 +8,7 @@ import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import java.util.Date;
 import java.util.List;
 
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HazardResource extends ProjectResource {
 
@@ -19,6 +20,7 @@ public class HazardResource extends ProjectResource {
         flood,
         hurricane,
     }
+
     public Type type;
 
     // Only keep basic information for now

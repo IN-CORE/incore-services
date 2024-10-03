@@ -25,7 +25,11 @@ public class ConversionUtils {
                 HazardResource hazardResource = new HazardResource();
                 hazardResource.setId((String) jsonMap.get("id"));
 //                hazardResource.setStatus(HazardResource.Status.valueOf((String) jsonMap.get("status")));
-                hazardResource.setType(HazardResource.Type.valueOf((String) jsonMap.get("type")));
+                if (jsonMap.get("type") == null) {
+                    throw new IllegalArgumentException("Type cannot be null");
+                } else {
+                    hazardResource.setType(HazardResource.Type.valueOf((String) jsonMap.get("type")));
+                }
                 hazardResources.add(hazardResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -61,7 +65,11 @@ public class ConversionUtils {
                 WorkflowResource workflowResource = new WorkflowResource();
                 workflowResource.setId((String) jsonMap.get("id"));
 //                workflowResource.setStatus(WorkflowResource.Status.valueOf((String) jsonMap.get("status")));
-                workflowResource.setType(WorkflowResource.Type.valueOf((String) jsonMap.get("type")));
+                if (jsonMap.get("type") == null) {
+                    throw new IllegalArgumentException("Type cannot be null");
+                } else {
+                    workflowResource.setType(WorkflowResource.Type.valueOf((String) jsonMap.get("type")));
+                }
                 workflowResources.add(workflowResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed

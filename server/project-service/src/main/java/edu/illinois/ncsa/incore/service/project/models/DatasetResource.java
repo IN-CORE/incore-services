@@ -15,7 +15,7 @@ public class DatasetResource extends ProjectResource{
     // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
 
     public boolean deleted = false;
-    public String title = "";
+    public String title;
     public String description = "";
     public Date date = new Date();
     public String creator = null;
