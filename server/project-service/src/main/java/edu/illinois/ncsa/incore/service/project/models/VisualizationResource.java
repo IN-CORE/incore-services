@@ -97,5 +97,11 @@ public class VisualizationResource extends ProjectResource{
     public void removeSourceDatasetId(String id) {
         sourceDatasetIds.remove(id);
     }
+
+    public boolean matchesSearchText(String text) {
+        String lowerCaseText = text.toLowerCase();
+        return (this.vegaJson != null && this.vegaJson.toLowerCase().contains(lowerCaseText)) ||
+            (this.type != null && this.getType().toString().toLowerCase().contains(lowerCaseText));
+    }
 }
 

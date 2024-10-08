@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WorkflowResource extends ProjectResource {
@@ -37,4 +38,14 @@ public class WorkflowResource extends ProjectResource {
         this.type = type;
     }
 
+    public boolean matchesSearchText(String text) {
+        String lowerCaseText = text.toLowerCase();
+        return (this.title != null && this.title.toLowerCase().contains(lowerCaseText)) ||
+            (this.description != null && this.description.toLowerCase().contains(lowerCaseText)) ||
+            (this.creator != null && this.creator.lastName.toLowerCase().contains(lowerCaseText)) ||
+            (this.creator != null && this.creator.firstName.toLowerCase().contains(lowerCaseText)) ||
+            (this.creator != null && this.creator.email.toLowerCase().contains(lowerCaseText)) ||
+            (this.contributors != null && this.contributors.stream().anyMatch(c -> c.toLowerCase().contains(lowerCaseText))) ||
+            (this.type != null && this.getType().toString().toLowerCase().contains(lowerCaseText));
+    }
 }
