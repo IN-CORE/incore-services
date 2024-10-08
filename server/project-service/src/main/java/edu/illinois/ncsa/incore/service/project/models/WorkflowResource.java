@@ -13,7 +13,9 @@ public class WorkflowResource extends ProjectResource {
         workflow,
         execution
     }
+
     public Type type;
+    public boolean isFinalized = false;
 
     // only keep basic field
     public boolean deleted;
