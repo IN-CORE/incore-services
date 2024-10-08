@@ -70,7 +70,8 @@ public class DFR3MappingResource extends ProjectResource {
 
     public boolean matchesSearchText(String text) {
         String lowerCaseText = text.toLowerCase();
-        return (this.name != null && this.name.toLowerCase().contains(lowerCaseText)) ||
+        return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
+            (this.name != null && this.name.toLowerCase().contains(lowerCaseText)) ||
             (this.mappingType != null && this.mappingType.toLowerCase().contains(lowerCaseText)) ||
             (this.hazardType != null && this.hazardType.toLowerCase().contains(lowerCaseText)) ||
             (this.inventoryType != null && this.inventoryType.toLowerCase().contains(lowerCaseText)) ||

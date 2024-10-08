@@ -40,7 +40,8 @@ public class WorkflowResource extends ProjectResource {
 
     public boolean matchesSearchText(String text) {
         String lowerCaseText = text.toLowerCase();
-        return (this.title != null && this.title.toLowerCase().contains(lowerCaseText)) ||
+        return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
+            (this.title != null && this.title.toLowerCase().contains(lowerCaseText)) ||
             (this.description != null && this.description.toLowerCase().contains(lowerCaseText)) ||
             (this.creator != null && this.creator.lastName.toLowerCase().contains(lowerCaseText)) ||
             (this.creator != null && this.creator.firstName.toLowerCase().contains(lowerCaseText)) ||

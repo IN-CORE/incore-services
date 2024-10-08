@@ -50,7 +50,8 @@ public class HazardResource extends ProjectResource {
 
     public boolean matchesSearchText(String text) {
         String lowerCaseText = text.toLowerCase();
-        return (this.name != null && this.name.toLowerCase().contains(lowerCaseText)) ||
+        return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
+            (this.name != null && this.name.toLowerCase().contains(lowerCaseText)) ||
             (this.description != null && this.description.toLowerCase().contains(lowerCaseText)) ||
             (this.creator != null && this.creator.toLowerCase().contains(lowerCaseText)) ||
             (this.owner != null && this.owner.toLowerCase().contains(lowerCaseText)) ||
