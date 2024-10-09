@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Valid DFR3 mapping set match semantics definition [#295](https://github.com/IN-CORE/incore-services/issues/295)
+
 ### Changed
 - Geotools to version 31.3 [#249](https://github.com/IN-CORE/incore-services/issues/249)
 - Jersey to version 3.1.7 [#250](https://github.com/IN-CORE/incore-services/issues/250)
