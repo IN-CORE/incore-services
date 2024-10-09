@@ -163,6 +163,20 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets
   ```
+  
+#### **Search Datasets belong to a Project**
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/datasets/search`
+- **Description**: Search datasets associated with a specific project.
+- **Path Parameter**:
+    - `projectId` (string) - ID of the project.
+    - `text` (string) - Text to search.
+    - `limit` (int) - Number of datasets to return.
+    - `skip` (int) - Number of datasets to skip.
+- **Example**:
+  ```http
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets/search?text=galveston&limit=10&skip=0
+  ```
 
 #### **Add Datasets to a Project**
 
@@ -275,6 +289,21 @@ system, including creating, updating, and deleting projects, as well as managing
   GET /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
   ```
 
+#### **Search Dfr3 mappings belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/dfr3mappings/search`
+- **Description**: Search dfr3 mappings associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `text` (string) - Search query.
+  - `skip` (int) - Number of items to skip.
+  - `limit` (int) - Number of items to return.
+- **Example**:
+  ```http
+    GET /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings/search?text=fragility
+    ```
+
 #### **Add Dfr3 mappings to a Project**
 
 - **Method**: `POST`
@@ -368,6 +397,21 @@ system, including creating, updating, and deleting projects, as well as managing
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/hazards
   ```
+
+#### **Search Hazards belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/hazards/search`
+- **Description**: Search hazards associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `text` (string) - Search query.
+  - `skip` (int) - Number of items to skip.
+  - `limit` (int) - Number of items to return.
+- **Example**:
+  ```http
+    GET /project/api/projects/66c60ba518da486b1e9c08d5/hazards/search?text=earthquake
+    ```
 
 #### **Add Hazards to a Project**
 
@@ -526,6 +570,21 @@ system, including creating, updating, and deleting projects, as well as managing
   GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows
   ```
 
+#### **Search Workflows belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/workflows/search`
+- **Description**: Search workflows associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `text` (string) - Search query.
+  - `skip` (int) - Number of workflows to skip.
+  - `limit` (int) - Number of workflows to return.
+- **Example**:
+  ```http
+    GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows/search?text=retrofit_strategy_wf&skip=0&limit=10
+  ```
+
 #### **Add Workflows to a Project**
 
 - **Method**: `POST`
@@ -585,6 +644,21 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
+  ```
+
+#### **Search Visualizations belong to a Project**
+
+- **Method**: `GET`
+- **Path**: `/project/api/projects/{projectId}/visualizations/search`
+- **Description**: Search visualizations associated with a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `text` (string) - Search query.
+  - `skip` (int) - Number of visualizations to skip.
+  - `limit` (int) - Number of visualizations to return.
+- **Example**:
+  ```http
+    GET /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/search?text=map&skip=0&limit=10
   ```
 
 #### **Add Visualizations to a Project**

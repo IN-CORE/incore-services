@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DFR3MappingResource extends ProjectResource {
@@ -63,8 +64,19 @@ public class DFR3MappingResource extends ProjectResource {
         this.mappingType = mappingType;
     }
 
-
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public boolean matchesSearchText(String text) {
+        String lowerCaseText = text.toLowerCase();
+        return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
+            (this.name != null && this.name.toLowerCase().contains(lowerCaseText)) ||
+            (this.mappingType != null && this.mappingType.toLowerCase().contains(lowerCaseText)) ||
+            (this.hazardType != null && this.hazardType.toLowerCase().contains(lowerCaseText)) ||
+            (this.inventoryType != null && this.inventoryType.toLowerCase().contains(lowerCaseText)) ||
+            (this.creator != null && this.creator.toLowerCase().contains(lowerCaseText)) ||
+            (this.owner != null && this.owner.toLowerCase().contains(lowerCaseText)) ||
+            (this.type != null && this.getType().toString().toLowerCase().contains(lowerCaseText));
     }
 }

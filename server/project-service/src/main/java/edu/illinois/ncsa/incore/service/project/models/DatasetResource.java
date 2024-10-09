@@ -7,6 +7,7 @@ import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DatasetResource extends ProjectResource{
@@ -61,4 +62,18 @@ public class DatasetResource extends ProjectResource{
     public Date getDate() {
         return date;
     }
+
+    public boolean matchesSearchText(String text) {
+        String lowerCaseText = text.toLowerCase();
+        return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
+            (this.title != null && this.title.toLowerCase().contains(lowerCaseText)) ||
+            (this.description != null && this.description.toLowerCase().contains(lowerCaseText)) ||
+            (this.creator != null && this.creator.toLowerCase().contains(lowerCaseText)) ||
+            (this.owner != null && this.owner.toLowerCase().contains(lowerCaseText)) ||
+            (this.contributors != null && this.contributors.stream().anyMatch(c -> c.toLowerCase().contains(lowerCaseText))) ||
+            (this.type != null && this.getType().toLowerCase().contains(lowerCaseText)) ||
+            (this.dataType != null && this.getDataType().toLowerCase().contains(lowerCaseText)) ||
+            (this.format != null && this.format.toLowerCase().contains(lowerCaseText));
+    }
 }
+
