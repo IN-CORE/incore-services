@@ -292,7 +292,8 @@ public class ProjectController {
         @FormParam("hazards") List<String> hazardListString,
         @FormParam("dfr3Mappings") List<String> dfr3MappingListString,
         @FormParam("datasets") List<String> datasetListString,
-        @FormParam("workflows") List<String> workflowListString
+        @FormParam("workflows") List<String> workflowListString,
+        @FormParam("visualizations") List<String> visualizationListString
     ) {
         Project project = this.projectDAO.getProjectById(id);
         if (project == null) {
@@ -334,6 +335,10 @@ public class ProjectController {
             // Convert list of IDs to WorkflowResource objects and set them
             List<WorkflowResource> workflowResources = ConversionUtils.convertToWorkflowResources(workflowListString);
             project.setWorkflows(workflowResources);
+        }
+        if (visualizationListString !=null && visualizationListString.size() > 0) {
+            List<VisualizationResource> visualizationResources = ConversionUtils.convertToVisualizationResources(visualizationListString);
+            project.setVisualizations(visualizationResources);
         }
 
         // Update the project
