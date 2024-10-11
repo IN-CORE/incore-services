@@ -2,7 +2,10 @@ package edu.illinois.ncsa.incore.service.project.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
+import java.util.Date;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,6 +29,12 @@ public class VisualizationResource extends ProjectResource{
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
         this.type = type;
+    }
+    public Date date = new Date();
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
     }
 
     public Type getType() {
