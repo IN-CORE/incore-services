@@ -20,6 +20,8 @@ public class VisualizationResource extends ProjectResource{
     private List<Layer> layers = null;
     private String vegaJson = null;
     private List<String> sourceDatasetIds = null;
+    public String name;
+    public String description;
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
