@@ -25,12 +25,12 @@ public class VisualizationResource extends ProjectResource{
     private List<String> sourceDatasetIds = null;
     public String name;
     public String description;
+    public Date date = new Date();
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
         this.type = type;
     }
-    public Date date = new Date();
 
     @JsonSerialize(using = JsonDateSerializer.class)
     public Date getDate() {
