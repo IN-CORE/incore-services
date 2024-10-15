@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Implement Project endpoints [#307](https://github.com/IN-CORE/incore-services/issues/307)
+- Add pagination and filters to datasets, dfr3mappings, hazards, workflows, and visualizations endpoint belong to a project [#318](https://github.com/IN-CORE/incore-services/issues/318)
+- Search endpoints for resources belong to a project [#320](https://github.com/IN-CORE/incore-services/issues/320)
 
 ### Changed
 - Geotools to version 31.3 [#249](https://github.com/IN-CORE/incore-services/issues/249)

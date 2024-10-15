@@ -7,8 +7,6 @@ package edu.illinois.ncsa.incore.service.project.controllers;
  *******************************************************************************
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -21,7 +19,6 @@ import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.project.utils.ConversionUtils;
-import edu.illinois.ncsa.incore.service.project.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -295,7 +292,8 @@ public class ProjectController {
         @FormParam("hazards") List<String> hazardListString,
         @FormParam("dfr3Mappings") List<String> dfr3MappingListString,
         @FormParam("datasets") List<String> datasetListString,
-        @FormParam("workflows") List<String> workflowListString
+        @FormParam("workflows") List<String> workflowListString,
+        @FormParam("visualizations") List<String> visualizationListString
     ) {
         Project project = this.projectDAO.getProjectById(id);
         if (project == null) {
@@ -337,6 +335,10 @@ public class ProjectController {
             // Convert list of IDs to WorkflowResource objects and set them
             List<WorkflowResource> workflowResources = ConversionUtils.convertToWorkflowResources(workflowListString);
             project.setWorkflows(workflowResources);
+        }
+        if (visualizationListString !=null && visualizationListString.size() > 0) {
+            List<VisualizationResource> visualizationResources = ConversionUtils.convertToVisualizationResources(visualizationListString);
+            project.setVisualizations(visualizationResources);
         }
 
         // Update the project
@@ -386,11 +388,18 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List datasets to a project")
     public List<DatasetResource> listDatasetsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getDatasets();
+                return project.getDatasets().stream()
+                    .filter(dataset -> type == null || dataset.getDataType().equalsIgnoreCase(type))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -398,6 +407,32 @@ public class ProjectController {
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
     }
+
+    @GET
+    @Path("{projectId}/datasets/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Search datasets from a project")
+    public List<DatasetResource> searchDatasetsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getDatasets().stream()
+                    .filter(dataset -> text == null || dataset.matchesSearchText(text))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
 
     @POST
     @Path("{projectId}/datasets")
@@ -448,10 +483,10 @@ public class ProjectController {
     @Operation(description = "Delete datasets to a project")
     public Project deleteDatasetsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "datasets", description = "List of datasets to delete", required = true) List<DatasetResource> datasets) {
+        @Parameter(name = "datasets", description = "List of datasets to delete", required = true) List<String> datasetIds) {
 
         // Validate the input
-        if (datasets == null || datasets.isEmpty()) {
+        if (datasetIds == null || datasetIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No datasets provided");
         }
 
@@ -467,8 +502,8 @@ public class ProjectController {
         }
 
         // Loop through datasets and add each one to the project
-        for (DatasetResource dataset : datasets) {
-            project.deleteDatasetResource(dataset);
+        for (String datasetId : datasetIds) {
+            project.deleteDatasetResource(datasetId);
         }
 
         // Update the project in the database
@@ -489,11 +524,47 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List dfr3mappings to a project")
     public List<DFR3MappingResource> listDfr3MappingsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by hazardType", description = "Filter datasets by hazardType") @QueryParam("hazardType") String hazardType,
+        @Parameter(name = "Filter by inventoryType", description = "Filter datasets by inventoryType") @QueryParam("inventoryType") String inventoryType,
+        @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getDfr3Mappings();
+                return project.getDfr3Mappings().stream()
+                    .filter(mapping -> hazardType == null || mapping.hazardType.equalsIgnoreCase(hazardType))
+                    .filter(mapping -> inventoryType == null || mapping.inventoryType.equalsIgnoreCase(inventoryType))
+                    .filter(mapping -> type == null || mapping.getType().toString().equalsIgnoreCase(type))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @GET
+    @Path("{projectId}/dfr3mappings/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Search dfr3mapping from a project")
+    public List<DFR3MappingResource> searchDFR3MappingsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getDfr3Mappings().stream()
+                    .filter(dfr3mapping -> text == null || dfr3mapping.matchesSearchText(text))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -551,10 +622,10 @@ public class ProjectController {
     @Operation(description = "Delete dfr3mappings to a project")
     public Project deleteDfr3mappingsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "dfr3mappings", description = "List of dfr3mappings to delete", required = true) List<DFR3MappingResource> dfr3mappings) {
+        @Parameter(name = "dfr3mappings", description = "List of dfr3mappings to delete", required = true) List<String> dfr3mappingIds) {
 
         // Validate the input
-        if (dfr3mappings == null || dfr3mappings.isEmpty()) {
+        if (dfr3mappingIds == null || dfr3mappingIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No dfr3mappings provided");
         }
 
@@ -570,8 +641,8 @@ public class ProjectController {
         }
 
         // Loop through dfr3mappings and delete each one to the project
-        for (DFR3MappingResource dfr3mapping : dfr3mappings) {
-            project.deleteDFR3MappingResource(dfr3mapping);
+        for (String dfr3mappingId : dfr3mappingIds) {
+            project.deleteDFR3MappingResource(dfr3mappingId);
         }
 
         // Update the project in the database
@@ -592,11 +663,43 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List hazards to a project")
     public List<HazardResource> listHazardsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by type", description = "Filter hazards by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getHazards();
+                return project.getHazards().stream()
+                    .filter(hazard -> type == null || hazard.getType().toString().equalsIgnoreCase(type))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @GET
+    @Path("{projectId}/hazards/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Search hazards from a project")
+    public List<HazardResource> searchHazardsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getHazards().stream()
+                    .filter(hazard -> text == null || hazard.matchesSearchText(text))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -654,10 +757,10 @@ public class ProjectController {
     @Operation(description = "Delete hazards to a project")
     public Project deleteHazardsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "hazards", description = "List of hazards to delete", required = true) List<HazardResource> hazards) {
+        @Parameter(name = "hazards", description = "List of hazards to delete", required = true) List<String> hazardIds) {
 
         // Validate the input
-        if (hazards == null || hazards.isEmpty()) {
+        if (hazardIds == null || hazardIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No hazards provided");
         }
 
@@ -673,8 +776,8 @@ public class ProjectController {
         }
 
         // Loop through hazards and delete each one to the project
-        for (HazardResource hazard : hazards) {
-            project.deleteHazardResource(hazard);
+        for (String hazardId : hazardIds) {
+            project.deleteHazardResource(hazardId);
         }
 
         // Update the project in the database
@@ -695,11 +798,43 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List workflows to a project")
     public List<WorkflowResource> listWorkflowsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by type", description = "Filter workflow by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getWorkflows();
+                return project.getWorkflows().stream()
+                    .filter(workflow -> type == null || workflow.getType().toString().equalsIgnoreCase(type))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @GET
+    @Path("{projectId}/workflows/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Search workflows from a project")
+    public List<WorkflowResource> searchWorkflowsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getWorkflows().stream()
+                    .filter(workflow -> text == null || workflow.matchesSearchText(text))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -757,10 +892,10 @@ public class ProjectController {
     @Operation(description = "Delete workflows from a project")
     public Project deleteWorkflowsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "workflows", description = "List of workflows to delete", required = true) List<WorkflowResource> workflows) {
+        @Parameter(name = "workflows", description = "List of workflows to delete", required = true) List<String> workflowIds) {
 
         // Validate the input
-        if (workflows == null || workflows.isEmpty()) {
+        if (workflowIds == null || workflowIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No workflows provided");
         }
 
@@ -776,8 +911,8 @@ public class ProjectController {
         }
 
         // Loop through workflows and delete each one to the project
-        for (WorkflowResource workflow : workflows) {
-            project.deleteWorkflowResource(workflow);
+        for (String workflowId : workflowIds) {
+            project.deleteWorkflowResource(workflowId);
         }
 
         // Update the project in the database
@@ -798,11 +933,43 @@ public class ProjectController {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "List visualizations to a project")
     public List<VisualizationResource> listVisualizationsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id) {
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Filter by type", description = "Filter visualization by type") @QueryParam("type") String type) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getVisualizations();
+                return project.getVisualizations().stream()
+                    .filter(visualization -> type == null || visualization.getType().toString().equalsIgnoreCase(type))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @GET
+    @Path("{projectId}/visualizations/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Search visualizations from a project")
+    public List<VisualizationResource> searchVisualizationsOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                return project.getVisualizations().stream()
+                    .filter(visualization -> text == null || visualization.matchesSearchText(text))
+                    .skip(offset)
+                    .limit(limit)
+                    .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);
@@ -860,10 +1027,10 @@ public class ProjectController {
     @Operation(description = "Delete visualizations from a project")
     public Project deleteVisualizationsFromeProject(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
-        @Parameter(name = "visualizations", description = "List of visualizations to delete", required = true) List<VisualizationResource> visualizations) {
+        @Parameter(name = "visualizations", description = "List of visualizations to delete", required = true) List<String> visualizationIds) {
 
         // Validate the input
-        if (visualizations == null || visualizations.isEmpty()) {
+        if (visualizationIds == null || visualizationIds.isEmpty()) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No visualizations provided");
         }
 
@@ -879,8 +1046,8 @@ public class ProjectController {
         }
 
         // Loop through visualizations and delete each one to the project
-        for (VisualizationResource visualization : visualizations) {
-            project.deleteVisualizationResource(visualization);
+        for (String visualizationId : visualizationIds) {
+            project.deleteVisualizationResource(visualizationId);
         }
 
         // Update the project in the database
