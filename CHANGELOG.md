@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Geotools to version 31.3 [#249](https://github.com/IN-CORE/incore-services/issues/249)
 - Jersey to version 3.1.7 [#250](https://github.com/IN-CORE/incore-services/issues/250)
+- OpenCSV to version 5.9 [#299](https://github.com/IN-CORE/incore-services/issues/299)
 - Jackson library to 2.17.0 [#303](https://github.com/IN-CORE/incore-services/issues/303)
 
 ## [1.26.1] - 2024-04-08
