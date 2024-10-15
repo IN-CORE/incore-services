@@ -20,8 +20,8 @@ import edu.illinois.ncsa.incore.service.hazard.utils.GISUtil;
 import org.apache.log4j.Logger;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.json.JSONObject;
-import org.opengis.coverage.PointOutsideCoverageException;
-import org.opengis.coverage.grid.GridCoverage;
+import org.geotools.api.coverage.PointOutsideCoverageException;
+import org.geotools.api.coverage.grid.GridCoverage;
 
 import java.io.IOException;
 import java.util.LinkedList;

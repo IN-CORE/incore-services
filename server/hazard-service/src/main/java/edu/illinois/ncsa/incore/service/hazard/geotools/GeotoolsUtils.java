@@ -17,8 +17,8 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.data.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.geometry.jts.JTS;
@@ -29,11 +29,15 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.linearref.LinearLocation;
 import org.locationtech.jts.linearref.LocationIndexedLine;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.referencing.operation.TransformException;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.DataStoreFinder;
+import org.geotools.api.data.FileDataStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.spatial.BBOX;
+import org.geotools.api.referencing.operation.TransformException;
+import org.geotools.api.data.Transaction;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +51,7 @@ import java.util.*;
  */
 public class GeotoolsUtils {
     private static final Logger logger = Logger.getLogger(GeotoolsUtils.class);
-    private static final FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+    private static final FilterFactory ff = CommonFactoryFinder.getFilterFactory();
     static GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
     private static final DefaultGeographicCRS crs = DefaultGeographicCRS.WGS84;
 

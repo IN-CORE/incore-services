@@ -65,6 +65,7 @@ farm {
     webapp ':hazard-service'
     webapp ':semantics-service'
     webapp ':space-service'
+    webapp ':project-service'
 }
 
 task farmWars(dependsOn: war, type: Copy) {
@@ -112,7 +113,7 @@ test {
 //All of our service plugins have some common configuration.
 // (war and gretty builds, some basic jersey and mongo dependencies, etc)
 // Common configuration between them can be specified here like this.
-["dfr3-service", "data-service", "hazard-service", "semantics-service", "space-service"].each { name ->
+["dfr3-service", "data-service", "hazard-service", "semantics-service", "space-service", "project-service"].each { name ->
     project(":$name") {
 
         apply plugin: 'war'
@@ -135,13 +136,13 @@ test {
             implementation("dev.morphia.morphia:morphia-core:2.1.3")
 
             // versions
-            def geotoolsVersion = '29.0'
+            def geotoolsVersion = '31.3'
             def jerseyVersion = '3.1.7'
             def swaggerVersion = '2.2.12'
 
             //geotools
             implementation("org.geotools:gt-main:$geotoolsVersion")
-            implementation("org.geotools:gt-opengis:$geotoolsVersion")
+            implementation("org.geotools:gt-api:$geotoolsVersion")
             implementation("org.geotools:gt-coverage:$geotoolsVersion")
             implementation("org.geotools:gt-arcgrid:$geotoolsVersion")
             implementation("org.geotools:gt-geotiff:$geotoolsVersion")

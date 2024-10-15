@@ -46,7 +46,7 @@ jobs:
           ./gradlew assemble
           ./gradlew test
       - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3   # Updated to version 3
         with:
           name: incore-services-build-files
           path: |
@@ -70,6 +70,7 @@ jobs:
           - hazard
           - semantics
           - space
+          - project
         include:
           - name: data
             dockerfile: Dockerfile.data
@@ -86,10 +87,13 @@ jobs:
           - name: space
             dockerfile: Dockerfile.space
             hub_project: incore/space-jetty
+          - name: project
+            dockerfile: Dockerfile.project
+            hub_project: incore/project-jetty
 
     steps:
       - name: Download build files
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: incore-services-build-files
 
