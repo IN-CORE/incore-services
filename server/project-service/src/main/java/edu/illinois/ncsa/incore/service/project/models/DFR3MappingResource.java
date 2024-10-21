@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DFR3MappingResource extends ProjectResource {
@@ -26,7 +25,7 @@ public class DFR3MappingResource extends ProjectResource {
         }
     }
 
-    private Type type;
+    private Type type = Type.fragility;
     private String mappingType;
 
     public String name;

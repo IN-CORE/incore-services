@@ -1,13 +1,11 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DatasetResource extends ProjectResource{

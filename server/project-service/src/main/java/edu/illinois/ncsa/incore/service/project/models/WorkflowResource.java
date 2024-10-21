@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WorkflowResource extends ProjectResource {
@@ -15,7 +14,7 @@ public class WorkflowResource extends ProjectResource {
         execution
     }
 
-    public Type type;
+    public Type type = Type.workflow; // default to workflow
     public boolean isFinalized = false;
 
     // only keep basic field

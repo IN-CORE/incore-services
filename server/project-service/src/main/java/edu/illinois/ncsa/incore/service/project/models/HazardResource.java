@@ -21,7 +21,7 @@ public class HazardResource extends ProjectResource {
         hurricane,
     }
 
-    public Type type;
+    public Type type = Type.earthquake;
 
     // Only keep basic information for now
     public String name;

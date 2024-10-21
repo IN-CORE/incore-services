@@ -611,6 +611,7 @@ system, including creating, updating, and deleting projects, as well as managing
             "email": "cmnavarr@illinois.edu"
         },
         "contributors": [],
+        "type": "workflow"
     }
   ]
   ```

@@ -18,7 +18,7 @@ public class VisualizationResource extends ProjectResource{
         TABLE
     }
 
-    private Type type;
+    private Type type = Type.MAP;
     private double[] boundingBox = null;
     private List<Layer> layers = null;
     private String vegaJson = null;

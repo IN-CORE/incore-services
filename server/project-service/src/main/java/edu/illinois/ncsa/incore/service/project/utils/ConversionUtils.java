@@ -1,13 +1,10 @@
 package edu.illinois.ncsa.incore.service.project.utils;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.service.project.models.*;
-import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ConversionUtils {
 
