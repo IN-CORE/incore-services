@@ -12,6 +12,7 @@ package edu.illinois.ncsa.incore.service.data.utils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
+import com.opencsv.exceptions.CsvValidationException;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.service.data.dao.HttpDownloader;
 import edu.illinois.ncsa.incore.service.data.dao.IRepository;
@@ -694,7 +695,7 @@ public class FileUtils {
      * @throws URISyntaxException
      * @throws IOException
      */
-    public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws IncoreHTTPException, IOException {
+    public static File joinShpTable(Dataset dataset, IRepository repository, boolean isRename) throws IncoreHTTPException, IOException, CsvValidationException {
         List<FileDescriptor> csvFDs = dataset.getFileDescriptors();
         File csvFile = null;
         File shapeFile = null;

@@ -10,7 +10,12 @@
 
 package edu.illinois.ncsa.incore.service.data.utils;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvException;
+import com.opencsv.exceptions.CsvValidationException;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.GeoUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
@@ -269,7 +274,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException {
+    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException, CsvValidationException {
         String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
 
         // create temp dir and copy files to temp dir
@@ -360,7 +365,7 @@ public class GeotoolsUtils {
     }
 
     public static SimpleFeatureCollection createCsvFeatureFromCsvType(String csvFilePath, SimpleFeatureType featureType)
-        throws IOException {
+        throws IOException, CsvValidationException {
         // create SimpleFeatureCollection from csv file
         List<SimpleFeature> csvFeatures = new ArrayList<>();
 
@@ -399,7 +404,7 @@ public class GeotoolsUtils {
         }
     }
 
-    public static SimpleFeatureType createCsvFeatureType(String csvFilePath, String sourceName) throws IOException {
+    public static SimpleFeatureType createCsvFeatureType(String csvFilePath, String sourceName) throws IOException, CsvValidationException {
         // read CSV file to get column names and types
         try (CSVReader reader = new CSVReader(new FileReader(csvFilePath))) {
             String[] header = reader.readNext(); // assuming the first row is the header
@@ -526,7 +531,7 @@ public class GeotoolsUtils {
         }
     }
 
-    public static File joinTableGeopackage(Dataset dataset, String gpkgFileName, File csvFile, boolean isRename) throws IOException {
+    public static File joinTableGeopackage(Dataset dataset, String gpkgFileName, File csvFile, boolean isRename) throws IOException, CsvException {
         // set geometry factory
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
         String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
@@ -933,8 +938,9 @@ public class GeotoolsUtils {
      * @throws IOException
      */
     @SuppressWarnings("resource")
-    public static List<String[]> readCsvFile(File inCsv) throws IOException {
-        CSVReader reader = new CSVReader(new FileReader(inCsv), ',', '"', 1);
+    public static List<String[]> readCsvFile(File inCsv) throws IOException, CsvException {
+	CSVParser parser = new CSVParserBuilder().withSeparator(',').withQuoteChar('"').build();
+	CSVReader reader = new CSVReaderBuilder(new FileReader(inCsv)).withSkipLines(1).withCSVParser(parser).build();
         List<String[]> rows = reader.readAll();
         return rows;
     }
