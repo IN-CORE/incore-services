@@ -1,16 +1,10 @@
 package edu.illinois.ncsa.incore.service.project.utils;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.service.project.models.DFR3MappingResource;
-import edu.illinois.ncsa.incore.service.project.models.DatasetResource;
-import edu.illinois.ncsa.incore.service.project.models.HazardResource;
-import edu.illinois.ncsa.incore.service.project.models.WorkflowResource;
-import org.bson.types.ObjectId;
+import edu.illinois.ncsa.incore.service.project.models.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ConversionUtils {
 
@@ -21,11 +15,7 @@ public class ConversionUtils {
         List<HazardResource> hazardResources = new ArrayList<>();
         for (String jsonString : jsonStrings) {
             try {
-                Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                HazardResource hazardResource = new HazardResource();
-                hazardResource.setId((String) jsonMap.get("id"));
-//                hazardResource.setStatus(HazardResource.Status.valueOf((String) jsonMap.get("status")));
-                hazardResource.setType(HazardResource.Type.valueOf((String) jsonMap.get("type")));
+                HazardResource hazardResource = objectMapper.readValue(jsonString, HazardResource.class);
                 hazardResources.add(hazardResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -39,11 +29,7 @@ public class ConversionUtils {
         List<DatasetResource> datasetResources = new ArrayList<>();
         for (String jsonString : jsonStrings) {
             try {
-                Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                DatasetResource datasetResource = new DatasetResource();
-                datasetResource.setId((String) jsonMap.get("id"));
-//                datasetResource.setStatus(DatasetResource.Status.valueOf((String) jsonMap.get("status")));
-                datasetResource.setType((String) jsonMap.get("type"));
+                DatasetResource datasetResource = objectMapper.readValue(jsonString, DatasetResource.class);
                 datasetResources.add(datasetResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -57,11 +43,7 @@ public class ConversionUtils {
         List<WorkflowResource> workflowResources = new ArrayList<>();
         for (String jsonString : jsonStrings) {
             try {
-                Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                WorkflowResource workflowResource = new WorkflowResource();
-                workflowResource.setId((String) jsonMap.get("id"));
-//                workflowResource.setStatus(WorkflowResource.Status.valueOf((String) jsonMap.get("status")));
-                workflowResource.setType(WorkflowResource.Type.valueOf((String) jsonMap.get("type")));
+                WorkflowResource workflowResource = objectMapper.readValue(jsonString, WorkflowResource.class);
                 workflowResources.add(workflowResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
@@ -75,17 +57,27 @@ public class ConversionUtils {
         List<DFR3MappingResource> dfr3MappingResources = new ArrayList<>();
         for (String jsonString : jsonStrings) {
             try {
-                Map<String, Object> jsonMap = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-                DFR3MappingResource dfr3MappingResource = new DFR3MappingResource();
-                dfr3MappingResource.setId((String) jsonMap.get("id"));
-//                dfr3MappingResource.setStatus(DFR3MappingResource.Status.valueOf((String) jsonMap.get("status")));
-                dfr3MappingResource.setType(DFR3MappingResource.Type.valueOf((String) jsonMap.get("type")));
+                DFR3MappingResource dfr3MappingResource = objectMapper.readValue(jsonString, DFR3MappingResource.class);
                 dfr3MappingResources.add(dfr3MappingResource);
             } catch (IOException e) {
                 e.printStackTrace(); // Handle or log the exception as needed
             }
         }
         return dfr3MappingResources;
+    }
+
+    // Convert List of JSON strings to List of visualization objects
+    public static List<VisualizationResource> convertToVisualizationResources(List<String> jsonStrings) {
+        List<VisualizationResource> visualizationResources = new ArrayList<>();
+        for (String jsonString : jsonStrings) {
+            try {
+                VisualizationResource visualizationResource = objectMapper.readValue(jsonString, VisualizationResource.class);
+                visualizationResources.add(visualizationResource);
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle or log the exception as needed
+            }
+        }
+        return visualizationResources;
     }
 
 }

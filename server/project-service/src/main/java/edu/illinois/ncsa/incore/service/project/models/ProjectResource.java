@@ -1,9 +1,6 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Embedded;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 

@@ -164,10 +164,10 @@ public class Project {
         }
     }
 
-    public void deleteHazardResource(HazardResource hazard) {
+    public void deleteHazardResource(String hazardId) {
         int indexToRemove = -1;
         for (int i = 0; i < hazards.size(); i++) {
-            if (hazard.getId().equals(hazards.get(i).getId())) {
+            if (hazardId.equals(hazards.get(i).getId())) {
                 indexToRemove = i;
                 break;
             }
@@ -186,10 +186,10 @@ public class Project {
         }
     }
 
-    public void deleteDFR3MappingResource(DFR3MappingResource dfr3Mapping) {
+    public void deleteDFR3MappingResource(String dfr3mappingId) {
         int indexToRemove = -1;
         for (int i = 0; i < dfr3Mappings.size(); i++) {
-            if (dfr3Mapping.getId().equals(dfr3Mappings.get(i).getId())) {
+            if (dfr3mappingId.equals(dfr3Mappings.get(i).getId())) {
                 indexToRemove = i;
                 break;
             }
@@ -208,11 +208,11 @@ public class Project {
         }
     }
 
-    public void deleteDatasetResource(DatasetResource dataset) {
+    public void deleteDatasetResource(String datasetId) {
         // Find the index of the DatasetResource with the matching ID
         int indexToRemove = -1;
         for (int i = 0; i < datasets.size(); i++) {
-            if (dataset.getId().equals(datasets.get(i).getId())) {
+            if (datasetId.equals(datasets.get(i).getId())) {
                 indexToRemove = i;
                 break;
             }
@@ -231,10 +231,10 @@ public class Project {
         }
     }
 
-    public void deleteWorkflowResource(WorkflowResource workflow) {
+    public void deleteWorkflowResource(String workflowId) {
         int indexToRemove = -1;
         for (int i = 0; i < workflows.size(); i++) {
-            if (workflow.getId().equals(workflows.get(i).getId())) {
+            if (workflowId.equals(workflows.get(i).getId())) {
                 indexToRemove = i;
                 break;
             }
@@ -253,10 +253,10 @@ public class Project {
         }
     }
 
-    public void deleteVisualizationResource(VisualizationResource visualization) {
+    public void deleteVisualizationResource(String visualizationId) {
         int indexToRemove = -1;
         for (int i = 0; i < visualizations.size(); i++) {
-            if (visualization.getId().equals(visualizations.get(i).getId())) {
+            if (visualizationId.equals(visualizations.get(i).getId())) {
                 indexToRemove = i;
                 break;
             }

@@ -1,9 +1,14 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
+
+import java.util.Date;
 import java.util.List;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class VisualizationResource extends ProjectResource{
 
     // Enum for visualization types
@@ -13,15 +18,23 @@ public class VisualizationResource extends ProjectResource{
         TABLE
     }
 
-    private Type type;
+    private Type type = Type.MAP;
     private double[] boundingBox = null;
     private List<Layer> layers = null;
     private String vegaJson = null;
     private List<String> sourceDatasetIds = null;
+    public String name;
+    public String description;
+    public Date date = new Date();
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
         this.type = type;
+    }
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
     }
 
     public Type getType() {
@@ -94,6 +107,15 @@ public class VisualizationResource extends ProjectResource{
 
     public void removeSourceDatasetId(String id) {
         sourceDatasetIds.remove(id);
+    }
+
+    public boolean matchesSearchText(String text) {
+        String lowerCaseText = text.toLowerCase();
+        return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
+            (this.name != null && this.name.toLowerCase().contains(lowerCaseText)) ||
+            (this.description != null && this.description.toLowerCase().contains(lowerCaseText)) ||
+            (this.vegaJson != null && this.vegaJson.toLowerCase().contains(lowerCaseText)) ||
+            (this.type != null && this.getType().toString().toLowerCase().contains(lowerCaseText));
     }
 }
 
