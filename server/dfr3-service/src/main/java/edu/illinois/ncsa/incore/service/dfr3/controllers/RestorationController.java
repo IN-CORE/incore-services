@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 
 @OpenAPIDefinition(
     info = @Info(
-        version = "1.26.1",
+        version = "1.27.0",
         description = "IN-CORE Service For Restoration and Restoration mappings",
 
         title = "IN-CORE v2 DFR3 Service API",

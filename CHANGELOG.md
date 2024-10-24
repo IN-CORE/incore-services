@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.27.0] - 2024-10-24
+### Added
+- Implement Project endpoints [#307](https://github.com/IN-CORE/incore-services/issues/307)
+- Add pagination and filters to datasets, dfr3mappings, hazards, workflows, and visualizations endpoint belong to a project [#318](https://github.com/IN-CORE/incore-services/issues/318)
+- Search endpoints for resources belong to a project [#320](https://github.com/IN-CORE/incore-services/issues/320)
+
+### Changed
+- Geotools to version 31.3 [#249](https://github.com/IN-CORE/incore-services/issues/249)
+- Jersey to version 3.1.7 [#250](https://github.com/IN-CORE/incore-services/issues/250)
+- OpenCSV to version 5.9 [#299](https://github.com/IN-CORE/incore-services/issues/299)
+- Jackson library to 2.17.0 [#303](https://github.com/IN-CORE/incore-services/issues/303)
+
 ## [1.26.1] - 2024-04-08
 
 ### Fixed

@@ -12,6 +12,7 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import com.opencsv.exceptions.CsvValidationException;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -71,7 +72,7 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
-        version = "1.26.1",
+        version = "1.27.0",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -974,6 +975,9 @@ public class DatasetController {
                 } catch (IncoreHTTPException e) {
                     logger.error(e.getMessage());
                     throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
+                } catch (CsvValidationException e) {
+                    logger.error(e.getMessage());
+                    throw new RuntimeException(e);
                 }
                 // clean up
                 FileUtils.deleteTmpDir(geoPkgFile);

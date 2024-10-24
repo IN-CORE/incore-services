@@ -10,24 +10,35 @@
 
 package edu.illinois.ncsa.incore.service.data.utils;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvException;
+import com.opencsv.exceptions.CsvValidationException;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.utils.GeoUtils;
 import edu.illinois.ncsa.incore.service.data.models.Dataset;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.api.geometry.Bounds;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.data.*;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.DataStoreFinder;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.FeatureStore;
+import org.geotools.api.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.data.SimpleFeatureStore;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -43,12 +54,12 @@ import org.geotools.geopkg.FeatureEntry;
 import org.geotools.geopkg.GeoPackage;
 import org.geotools.geopkg.GeoPkgDataStoreFactory;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.filter.Filter;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValueGroup;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.parameter.GeneralParameterValue;
+import org.geotools.api.parameter.ParameterValueGroup;
 
 import java.io.*;
 import java.net.URL;
@@ -109,7 +120,7 @@ public class GeotoolsUtils {
 //        List<File> copiedFileList = copyFilesToTempDir(file);
 //        File file = copiedFileList.get(0);
         GridCoverage2D coverage = getGridCoverage(file);
-        org.opengis.geometry.Envelope env = coverage.getEnvelope();
+        Bounds env = coverage.getEnvelope();
 
         bbox[0] = env.getLowerCorner().getCoordinate()[0];
         bbox[1] = env.getLowerCorner().getCoordinate()[1];
@@ -263,7 +274,7 @@ public class GeotoolsUtils {
      * @return
      * @throws IOException
      */
-    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException {
+    public static File joinTableShapefile(Dataset dataset, List<File> shpfiles, File csvFile, boolean isRename) throws IOException, CsvValidationException {
         String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
 
         // create temp dir and copy files to temp dir
@@ -354,7 +365,7 @@ public class GeotoolsUtils {
     }
 
     public static SimpleFeatureCollection createCsvFeatureFromCsvType(String csvFilePath, SimpleFeatureType featureType)
-        throws IOException {
+        throws IOException, CsvValidationException {
         // create SimpleFeatureCollection from csv file
         List<SimpleFeature> csvFeatures = new ArrayList<>();
 
@@ -393,7 +404,7 @@ public class GeotoolsUtils {
         }
     }
 
-    public static SimpleFeatureType createCsvFeatureType(String csvFilePath, String sourceName) throws IOException {
+    public static SimpleFeatureType createCsvFeatureType(String csvFilePath, String sourceName) throws IOException, CsvValidationException {
         // read CSV file to get column names and types
         try (CSVReader reader = new CSVReader(new FileReader(csvFilePath))) {
             String[] header = reader.readNext(); // assuming the first row is the header
@@ -520,7 +531,7 @@ public class GeotoolsUtils {
         }
     }
 
-    public static File joinTableGeopackage(Dataset dataset, String gpkgFileName, File csvFile, boolean isRename) throws IOException {
+    public static File joinTableGeopackage(Dataset dataset, String gpkgFileName, File csvFile, boolean isRename) throws IOException, CsvException {
         // set geometry factory
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
         String outFileName = FilenameUtils.getBaseName(csvFile.getName()) + "." + FileUtils.EXTENSION_SHP;
@@ -927,8 +938,9 @@ public class GeotoolsUtils {
      * @throws IOException
      */
     @SuppressWarnings("resource")
-    public static List<String[]> readCsvFile(File inCsv) throws IOException {
-        CSVReader reader = new CSVReader(new FileReader(inCsv), ',', '"', 1);
+    public static List<String[]> readCsvFile(File inCsv) throws IOException, CsvException {
+	CSVParser parser = new CSVParserBuilder().withSeparator(',').withQuoteChar('"').build();
+	CSVReader reader = new CSVReaderBuilder(new FileReader(inCsv)).withSkipLines(1).withCSVParser(parser).build();
         List<String[]> rows = reader.readAll();
         return rows;
     }

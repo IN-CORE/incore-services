@@ -33,7 +33,7 @@ import org.bson.Document;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +47,7 @@ import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeCo
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
-        version = "1.26.1",
+        version = "1.27.0",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
