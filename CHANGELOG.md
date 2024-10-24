@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.27.0] - 2024-10-24
 ### Added
 - Implement Project endpoints [#307](https://github.com/IN-CORE/incore-services/issues/307)
 - Add pagination and filters to datasets, dfr3mappings, hazards, workflows, and visualizations endpoint belong to a project [#318](https://github.com/IN-CORE/incore-services/issues/318)
