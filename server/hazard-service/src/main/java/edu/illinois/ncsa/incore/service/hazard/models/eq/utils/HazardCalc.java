@@ -423,7 +423,7 @@ public class HazardCalc {
 
         // Get default demand units for the hazard type
         String demandUnits = BaseAttenuation.getUnits(demandComponents[1]);
-        ReferencedEnvelope envelope = new ReferencedEnvelope(minX, minY, width * cellsize, height * cellsize, crs);
+        ReferencedEnvelope envelope = new ReferencedEnvelope(minX, minX + width * cellsize, minY, minY + height * cellsize, crs);
         for (int y = 0; y < height; y++) {
 
             startX = (float) minX + (cellsize / 2.0f);
