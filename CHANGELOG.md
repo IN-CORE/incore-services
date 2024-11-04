@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.27.1] - 2024-11-01
+### Fixed
+- Earthquake hazard visualization bounding box [#325](https://github.com/IN-CORE/incore-services/issues/325)
+
 ## [1.27.0] - 2024-10-24
 ### Added
 - Implement Project endpoints [#307](https://github.com/IN-CORE/incore-services/issues/307)
