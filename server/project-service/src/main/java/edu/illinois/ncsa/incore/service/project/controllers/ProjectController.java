@@ -19,6 +19,7 @@ import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.project.utils.ConversionUtils;
+import edu.illinois.ncsa.incore.service.project.models.HazardResource;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,6 +37,8 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.project.utils.CommonUtil.projectComparator;
 
 
 @OpenAPIDefinition(
@@ -88,15 +91,19 @@ public class ProjectController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gets the list of all available projects", description = "For member parameter, it will return projects that the" +
-        " " +
-        "user has read privileges on.")
+        " user has read privileges on.")
     public List<Project> getProjectsList(@Parameter(name = "Name filter") @QueryParam("name") String name,
                                          @Parameter(name = "Creator filter") @QueryParam("creator") String creator,
                                          @Parameter(name = "Owner filter") @QueryParam("owner") String owner,
                                          @Parameter(name = "Region filter") @QueryParam("region") String region,
                                          @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                         @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.")
+                                             @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                         @Parameter(name = "Specify the order of sorting, either ascending or descending.")
+                                             @DefaultValue("desc") @QueryParam("order") String order,
                                          @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
-                                         @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                         @Parameter(name = "Limit no of results to return") @DefaultValue("100")
+                                             @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -121,6 +128,9 @@ public class ProjectController {
             projects = this.projectDAO.queryAllProjects(queryMap);
         }
 
+        // Define the comparator based on the sortBy and order
+        Comparator<Project> comparator = projectComparator(sortBy, order);
+
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
             if (space == null) {
@@ -133,6 +143,7 @@ public class ProjectController {
 
             projects = projects.stream()
                 .filter(project -> spaceMembers.contains(project.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -148,6 +159,7 @@ public class ProjectController {
 
         List<Project> accessibleProjects = projects.stream()
             .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -213,6 +225,55 @@ public class ProjectController {
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
     }
+
+    @GET
+    @Path("{projectId}/hazards")
+    @Produces(MediaType.APPLICATION_JSON)
+// @Operation(description = "List hazards to a project")  // Comment out for testing
+    public List<HazardResource> listHazardsOfProject(
+        // @Parameter(name = "projectId", description = "ID of the project.")  // Comment out for testing
+        @PathParam("projectId") String id) {
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        if (!authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, username + " does not have privileges to access project " + id);
+        }
+
+        return project.getHazards();
+    }
+
+
+
+//    @GET
+//    @Path("{projectId}/visualizations")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @Operation(description = "List visualizations to a project")
+//    public List<VisualizationResource> listVisualizationsOfProject(
+//        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+//        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
+//        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+//        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+//        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
+//
+//        Project project = projectDAO.getProjectById(id);
+//        if (project != null) {
+//            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+//                Comparator<VisualizationResource> comparator = projectComparator(sortBy, order);
+//                return project.getVisualizations().stream()
+//                    .sorted(comparator)
+//                    .skip(offset)
+//                    .limit(limit)
+//                    .collect(Collectors.toList());
+//            } else {
+//                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
+//            }
+//        }
+//        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+//    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
