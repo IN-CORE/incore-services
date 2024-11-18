@@ -35,6 +35,17 @@ public class ProjectResource {
         this.id = id;
     }
 
+    public Date date = new Date();
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
 //    public Status getStatus() {
 //        return status;
 //    }

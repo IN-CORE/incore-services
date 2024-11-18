@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
-import java.util.Date;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,16 +24,10 @@ public class VisualizationResource extends ProjectResource{
     private List<String> sourceDatasetIds = null;
     public String name;
     public String description;
-    public Date date = new Date();
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
         this.type = type;
-    }
-
-    @JsonSerialize(using = JsonDateSerializer.class)
-    public Date getDate() {
-        return date;
     }
 
     public Type getType() {
