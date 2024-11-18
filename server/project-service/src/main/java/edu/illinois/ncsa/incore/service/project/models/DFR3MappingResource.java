@@ -67,6 +67,22 @@ public class DFR3MappingResource extends ProjectResource {
         this.type = type;
     }
 
+    public void setHazardType(String hazardType) {
+        this.hazardType = hazardType;
+    }
+
+    public String getHazardType() {
+        return hazardType;
+    }
+
+    public void setInventoryType(String inventoryType) {
+        this.inventoryType = inventoryType;
+    }
+
+    public String getInventoryType() {
+        return inventoryType;
+    }
+
     public boolean matchesSearchText(String text) {
         String lowerCaseText = text.toLowerCase();
         return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
