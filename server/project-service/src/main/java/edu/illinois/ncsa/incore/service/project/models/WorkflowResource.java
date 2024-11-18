@@ -18,7 +18,7 @@ public class WorkflowResource extends ProjectResource {
     public Type type = Type.workflow; // default to workflow
     public boolean isFinalized = false;
 
-    // Only keep basic fields
+    // only keep basic field
     public boolean deleted;
     public String title;
     public String description;
