@@ -19,5 +19,4 @@ import java.util.Map;
 public class Mapping {
     public final Map<String, String> legacyEntry = new HashMap<>();
     public final Map<String, String> entry = new HashMap<>();
-    public final Object rules = new Object();
 }
