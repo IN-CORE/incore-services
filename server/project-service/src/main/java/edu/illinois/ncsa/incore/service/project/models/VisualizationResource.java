@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,7 +20,7 @@ public class VisualizationResource extends ProjectResource{
 
     private Type type = Type.MAP;
     private double[] boundingBox = null;
-    private List<Layer> layers = null;
+    private List<Layer> layers = new ArrayList<>();
     private String vegaJson = null;
     private List<String> sourceDatasetIds = null;
     public String name;
