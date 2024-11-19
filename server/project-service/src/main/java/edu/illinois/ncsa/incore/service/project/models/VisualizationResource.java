@@ -57,6 +57,10 @@ public class VisualizationResource extends ProjectResource{
     }
 
     public void addLayer(Layer layer) {
+        if (layers == null) {
+            layers = new ArrayList<>();
+        }
+
         // Check if the layer already exists in the list
         boolean exists = layers.stream()
             .anyMatch(existingLayer -> existingLayer.getLayerId().equals(layer.getLayerId()));

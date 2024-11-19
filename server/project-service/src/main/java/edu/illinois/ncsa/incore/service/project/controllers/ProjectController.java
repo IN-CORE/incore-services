@@ -954,6 +954,31 @@ public class ProjectController {
     }
 
     @GET
+    @Path("{projectId}/visualizations/{visualizationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get a specific visualization belongs to a project")
+    public VisualizationResource getVisualizationOfProject(
+        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
+        @Parameter(name = "visualizationId", description = "ID of the visualization.") @PathParam("visualizationId") String visualizationId) {
+        Project project = projectDAO.getProjectById(id);
+        if (project != null) {
+            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                Optional<VisualizationResource> projectFound = project.getVisualizations().stream()
+                    .filter(visualization -> visualization.getId().toString().equalsIgnoreCase(visualizationId)).findFirst();
+                if (projectFound.isPresent()) {
+                    return projectFound.get();
+                } else {
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a visualization with id " + visualizationId);
+                }
+            } else {
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
+                    "project with id " + id);
+            }
+        }
+        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+    }
+
+    @GET
     @Path("{projectId}/visualizations/search")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Search visualizations from a project")
