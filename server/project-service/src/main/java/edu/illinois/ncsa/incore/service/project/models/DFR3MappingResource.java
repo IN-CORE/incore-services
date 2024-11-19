@@ -3,6 +3,7 @@ package edu.illinois.ncsa.incore.service.project.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -27,6 +28,8 @@ public class DFR3MappingResource extends ProjectResource {
 
     private Type type = Type.fragility;
     private String mappingType;
+
+    public Date date = new Date();
 
     public String name;
     public String hazardType;
@@ -65,6 +68,14 @@ public class DFR3MappingResource extends ProjectResource {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Date getDate() {
+        return date;
     }
 
     public void setHazardType(String hazardType) {

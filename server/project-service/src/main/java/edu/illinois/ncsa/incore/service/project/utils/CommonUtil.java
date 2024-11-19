@@ -97,11 +97,14 @@ public class CommonUtil {
                 comparator = Comparator.comparing(DFR3MappingResource::getInventoryType, Comparator.nullsLast(String::compareToIgnoreCase));
                 break;
             case "type":
-            default:
                 comparator = Comparator.comparing(DFR3MappingResource::getType);
                 break;
             case "id":
                 comparator = Comparator.comparing(DFR3MappingResource::getId);
+                break;
+            case "date":
+            default:
+                comparator = Comparator.comparing(DFR3MappingResource::getDate);
                 break;
         }
 
