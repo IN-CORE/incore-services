@@ -109,6 +109,14 @@ public class VisualizationResource extends ProjectResource{
         sourceDatasetIds.remove(id);
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public boolean matchesSearchText(String text) {
         String lowerCaseText = text.toLowerCase();
         return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
