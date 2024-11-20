@@ -117,8 +117,6 @@ public class VisualizationResource extends ProjectResource{
         return name;
     }
 
-
-
     public boolean matchesSearchText(String text) {
         String lowerCaseText = text.toLowerCase();
         return (this.getId() != null && this.getId().equals(lowerCaseText)) ||
