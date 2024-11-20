@@ -102,6 +102,9 @@ public class CommonUtil {
             case "id":
                 comparator = Comparator.comparing(DFR3MappingResource::getId);
                 break;
+            case "name":
+                comparator = Comparator.comparing(DFR3MappingResource::getName);
+                break;
             case "date":
             default:
                 comparator = Comparator.comparing(DFR3MappingResource::getDate);

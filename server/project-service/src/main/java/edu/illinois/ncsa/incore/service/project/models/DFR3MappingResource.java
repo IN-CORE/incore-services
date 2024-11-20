@@ -78,6 +78,14 @@ public class DFR3MappingResource extends ProjectResource {
         return date;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public void setHazardType(String hazardType) {
         this.hazardType = hazardType;
     }
