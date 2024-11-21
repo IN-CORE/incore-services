@@ -23,7 +23,7 @@ public class HazardResource extends ProjectResource {
     public Type type = Type.earthquake;
 
     // Only keep basic information for now
-    public String name;
+    public String name = null;
     public String description;
     public String creator = null;
     public String owner = null;
@@ -39,6 +39,27 @@ public class HazardResource extends ProjectResource {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
     }
 
     public boolean matchesSearchText(String text) {

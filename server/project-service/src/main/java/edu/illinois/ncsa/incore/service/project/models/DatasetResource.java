@@ -40,6 +40,14 @@ public class DatasetResource extends ProjectResource{
         return dataType;  // Fallback to dataType if type is null or empty
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
     // Setter for type
     public void setType(String type) {
         this.type = type;
