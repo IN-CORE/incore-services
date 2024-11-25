@@ -915,7 +915,7 @@ public class ProjectController {
     }
 
     @POST
-    @Path("{projectId}/workflows/{workflowId}")
+    @Path("{projectId}/workflows/{workflowId}/finalize")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Add workflows to a project")
     public Project finalizeWorkflowInProject(
