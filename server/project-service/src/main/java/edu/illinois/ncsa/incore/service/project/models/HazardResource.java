@@ -1,6 +1,7 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
 
@@ -51,11 +52,6 @@ public class HazardResource extends ProjectResource {
 
     public String getCreator() {
         return creator;
-    }
-
-    @JsonSerialize(using = JsonDateSerializer.class)
-    public Date getDate() {
-        return date;
     }
 
     public boolean matchesSearchText(String text) {
