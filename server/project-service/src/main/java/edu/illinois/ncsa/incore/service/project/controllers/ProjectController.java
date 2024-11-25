@@ -914,6 +914,58 @@ public class ProjectController {
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add workflows to the project.");
     }
 
+    @POST
+    @Path("{projectId}/workflows/{workflowId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add workflows to a project")
+    public Project finalizeWorkflowInProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "workflowId", description = "ID of the workflow to finalize") @PathParam("workflowId") String workflowId) {
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // find the workflow to finalize
+        WorkflowResource workflow = project.getWorkflow(workflowId);
+
+        if (workflow == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a workflow with id " + workflowId);
+        }
+
+        // check if the isFinalized is already true
+        if (workflow.getIsFinalized()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Workflow is already finalized.");
+        }
+
+        // finalize the workflow by making isFinalized true
+        boolean success = project.finalizeWorkflow(workflowId);
+
+        if (success) {
+            System.out.println("Workflow finalized successfully.");
+        } else {
+            System.out.println("Workflow not found.");
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add workflows to the project.");
+    }
+
     @DELETE
     @Path("{projectId}/workflows")
     @Consumes(MediaType.APPLICATION_JSON)
