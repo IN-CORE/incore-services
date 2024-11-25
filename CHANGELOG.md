@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)
 
+### Fixed
+- Bug when adding visualization layers to an empty layer list [#331](https://github.com/IN-CORE/incore-services/issues/331)
+
 ## [1.27.1] - 2024-11-01
 ### Fixed
 - Earthquake hazard visualization bounding box [#325](https://github.com/IN-CORE/incore-services/issues/325)
