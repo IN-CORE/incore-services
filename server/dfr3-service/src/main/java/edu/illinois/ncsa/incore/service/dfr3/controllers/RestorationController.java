@@ -41,6 +41,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,6 +77,7 @@ public class RestorationController {
 
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     IAuthorizer authorizer;
@@ -95,6 +98,7 @@ public class RestorationController {
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
