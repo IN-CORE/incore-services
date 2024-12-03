@@ -141,6 +141,22 @@ public class Project {
             .orElse(null);
     }
 
+    public WorkflowResource getWorkflow(String id) {
+        return workflows.stream()
+            .filter(workflow -> workflow.getId().equals(id))
+            .findFirst()
+            .orElse(null);
+    }
+
+    public boolean finalizeWorkflow(String workflowId) {
+        WorkflowResource workflow = getWorkflow(workflowId);
+        if (workflow != null) {
+            workflow.isFinalized = true;
+            return true;
+        }
+        return false;
+    }
+
     public void setVisualizations(List<VisualizationResource> visualizations) {
         this.visualizations = visualizations;
     }

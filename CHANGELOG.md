@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)
+- Endpoint to finalized a workflow [#335](https://github.com/IN-CORE/incore-services/issues/335)
 
 ## [1.27.1] - 2024-11-01
 ### Fixed

@@ -53,6 +53,10 @@ public class WorkflowResource extends ProjectResource {
         return title;
     }
 
+    public boolean getIsFinalized() {
+        return isFinalized;
+    }
+
     public void setTitle(String title) {
         this.title = title;
     }

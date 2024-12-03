@@ -616,6 +616,18 @@ system, including creating, updating, and deleting projects, as well as managing
   ]
   ```
 
+#### **Finalize Workflows belong to a Project**
+
+- **Method**: `POST`
+- **Path**: `/project/api/projects/{projectId}/workflows/{workflowId}/finalize`
+- **Description**: Finalize workflow a specific workflow in a specific project.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `workflowId` (string) - ID of the workflow.
+- **Example**:
+  ```http
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows/c81ab517-77a3-472a-a1a6-db08d1fadb35/finalize
+
 #### **Remove Workflows from a Project**
 
 - **Method**: `DELETE`
