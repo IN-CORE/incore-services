@@ -1,7 +1,11 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Embedded;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
+
+import java.util.Date;
 
 
 @Embedded
@@ -33,6 +37,17 @@ public class ProjectResource {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Date date = new Date();
+
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 
 //    public Status getStatus() {

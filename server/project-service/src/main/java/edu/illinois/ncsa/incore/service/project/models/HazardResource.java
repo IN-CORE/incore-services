@@ -1,11 +1,7 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
-import java.util.Date;
 import java.util.List;
 
 
@@ -26,7 +22,6 @@ public class HazardResource extends ProjectResource {
     // Only keep basic information for now
     public String name = null;
     public String description;
-    public Date date = new Date();
     public String creator = null;
     public String owner = null;
     public List<HazardDataset> hazardDatasets;
@@ -57,11 +52,6 @@ public class HazardResource extends ProjectResource {
 
     public String getCreator() {
         return creator;
-    }
-
-    @JsonSerialize(using = JsonDateSerializer.class)
-    public Date getDate() {
-        return date;
     }
 
     public boolean matchesSearchText(String text) {

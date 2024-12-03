@@ -2,10 +2,8 @@ package edu.illinois.ncsa.incore.service.project.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,21 +18,15 @@ public class VisualizationResource extends ProjectResource{
 
     private Type type = Type.MAP;
     private double[] boundingBox = null;
-    private List<Layer> layers = null;
+    private List<Layer> layers = new ArrayList<>();
     private String vegaJson = null;
     private List<String> sourceDatasetIds = null;
     public String name;
     public String description;
-    public Date date = new Date();
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
         this.type = type;
-    }
-
-    @JsonSerialize(using = JsonDateSerializer.class)
-    public Date getDate() {
-        return date;
     }
 
     public Type getType() {
@@ -63,6 +55,10 @@ public class VisualizationResource extends ProjectResource{
     }
 
     public void addLayer(Layer layer) {
+        if (layers == null) {
+            layers = new ArrayList<>();
+        }
+
         // Check if the layer already exists in the list
         boolean exists = layers.stream()
             .anyMatch(existingLayer -> existingLayer.getLayerId().equals(layer.getLayerId()));
