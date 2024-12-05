@@ -16,9 +16,11 @@ package edu.illinois.ncsa.incore.service.project.models;
  * This is from NCSA's DataWolf
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.morphia.annotations.Embedded;
 
 @Embedded
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FileDescriptor {
     public static final long serialVersionUID = 1L;
 

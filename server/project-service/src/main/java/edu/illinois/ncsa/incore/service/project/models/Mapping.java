@@ -10,12 +10,14 @@
 
 package edu.illinois.ncsa.incore.service.project.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.morphia.annotations.Embedded;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Embedded
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Mapping {
     public final Map<String, String> legacyEntry = new HashMap<>();
     public final Map<String, String> entry = new HashMap<>();

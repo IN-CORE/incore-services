@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Bug when adding visualization layers to an empty layer list [#331](https://github.com/IN-CORE/incore-services/issues/331)
+- Bug when posting additional fields which need to be ignored [#338](https://github.com/IN-CORE/incore-services/issues/338) 
 
 ## [1.27.1] - 2024-11-01
 ### Fixed
