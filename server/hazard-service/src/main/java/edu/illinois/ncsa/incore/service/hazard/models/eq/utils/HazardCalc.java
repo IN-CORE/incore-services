@@ -204,7 +204,6 @@ public class HazardCalc {
                         "PGA", spectrumOverride, amplifyHazard, creator, userGroups, null);
                 Double updatedHazardVal = null;
                 if (result.getHazardValue() != null) {
-                    System.out.println("demand units are " + demandUnits);
                     updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 0.0, HazardUtil.PGA, demandUnits,
                             HazardUtil.PGD);
                 }
