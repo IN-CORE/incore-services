@@ -483,7 +483,7 @@ public class DatasetController {
                 }
             }
             // remove dataset
-	    logger.debug("Deleting dataset " + datasetId);
+            logger.debug("Deleting dataset " + datasetId);
             dataset = repository.deleteDataset(datasetId);
             if (dataset != null) {
                 logger.debug("Removing files from dataset " + datasetId);
