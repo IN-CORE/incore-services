@@ -483,11 +483,9 @@ public class DatasetController {
                 }
             }
             // remove dataset
-            logger.debug("Deleting dataset " + datasetId);
-            dataset = repository.deleteDataset(datasetId);
             if (dataset != null) {
                 logger.debug("Removing files from dataset " + datasetId);
-                // remove files
+                // First - remove the files from the dataset
                 List<FileDescriptor> fds = dataset.getFileDescriptors();
                 if (fds.size() > 0) {
                     for (FileDescriptor fd : fds) {
@@ -499,6 +497,10 @@ public class DatasetController {
                         }
                     }
                 }
+
+                // Files removed - delete the dataset entry
+                logger.debug("Deleting dataset " + datasetId);
+                dataset = repository.deleteDataset(datasetId);
 
                 // Adjust user quota after removing the dataset and files
                 // check if the dataset is hazard dataset

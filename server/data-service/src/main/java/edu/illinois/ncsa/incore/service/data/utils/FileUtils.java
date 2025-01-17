@@ -180,7 +180,7 @@ public class FileUtils {
                 logger.error("file or directory did not deleted: " + delFileName);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error deleting files.", e);
         }
     }
 
