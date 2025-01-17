@@ -174,10 +174,12 @@ public class FileUtils {
      */
     public static void deleteFiles(File delFile, String delFileName) {
         try {
-            if (delFile.delete()) {
-                logger.debug("file or directory deleted: " + delFileName);
-            } else {
-                logger.error("file or directory did not deleted: " + delFileName);
+            if (delFile.exists()) {
+                if (delFile.delete()) {
+                    logger.debug("file or directory deleted: " + delFileName);
+                } else {
+                    logger.error("file or directory did not deleted: " + delFileName);
+                }
             }
         } catch (Exception e) {
             logger.error("Error deleting files.", e);
