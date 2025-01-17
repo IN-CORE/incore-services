@@ -500,7 +500,7 @@ public class DatasetController {
                     }
                 }
 
-		// Adjust user quota after removing the dataset and files
+                // Adjust user quota after removing the dataset and files
                 // check if the dataset is hazard dataset
                 String dataType = dataset.getDataType();
                 String subDataType;
@@ -514,10 +514,10 @@ public class DatasetController {
 
                 // reduce the number of hazard from the space
                 if (isHazardDataset) {
-	            logger.debug("Decreasing hazard dataset quota");
+                    logger.debug("Decreasing hazard dataset quota");
                     AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazardDatasets");
                 } else {
-		    logger.debug("Decreasing dataset quota");
+                    logger.debug("Decreasing dataset quota");
                     AllocationUtils.decreaseUsage(allocationsRepository, this.username, "datasets");
                 }
 
