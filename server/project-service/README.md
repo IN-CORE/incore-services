@@ -13,7 +13,7 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path**: `/project/api/projects`
 - **Description**: Retrieve a list of all available projects, optionally filtered by parameters.
 - **Query Parameters**:
-    - `name`, `creator`, `owner`, `region`, `type`, `searchText`, `space`, `skip`, `limit`
+    - `name`, `creator`, `owner`, `region`, `type`, `text`, `space`, `skip`, `limit`
 - **Example**:
   ```http
   GET /project/api/projects?name={name}&creator={creator}&skip={skip}&limit={limit}
@@ -146,10 +146,10 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
     - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`, `searchText`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
-  GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets?searchText=Building Inventory
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets?text=Building Inventory
   ```
   
 
@@ -258,7 +258,7 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`, `hazardType`, `inventoryType`, `searchText`
+  - `skip`, `limit`, `type`, `hazardType`, `inventoryType`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
@@ -352,7 +352,7 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`, `searchText`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/hazards
@@ -509,7 +509,7 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`, `searchText`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows
@@ -584,7 +584,7 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`, `searchText`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
