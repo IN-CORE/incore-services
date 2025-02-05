@@ -46,7 +46,7 @@ jobs:
           ./gradlew assemble
           ./gradlew test
       - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v3   # Updated to version 3
+        uses: actions/upload-artifact@v4   # Updated to version 4
         with:
           name: incore-services-build-files
           path: |
