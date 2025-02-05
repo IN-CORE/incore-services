@@ -139,7 +139,7 @@ jobs:
         if: |
           github.repository == env.MAIN_REPO &&
           (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'main' || env.GITHUB_BRANCH == 'release')
-        uses: elgohr/Publish-Docker-Github-Action@3.04
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           dockerfile: ${{ matrix.dockerfile }}
           name: ${{ matrix.hub_project }}
@@ -149,7 +149,7 @@ jobs:
         if: |
           github.repository == env.MAIN_REPO &&
           (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'main'|| env.GITHUB_BRANCH == 'release')
-        uses: elgohr/Publish-Docker-Github-Action@3.04
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           dockerfile: ${{ matrix.dockerfile }}
           registry: hub.ncsa.illinois.edu
