@@ -52,7 +52,7 @@ import static edu.illinois.ncsa.incore.service.semantics.utils.CommonUtil.typeCo
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore.ncsa.illinois.edu"
+            url = "https://tools.in-core.org"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
