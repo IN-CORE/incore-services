@@ -483,9 +483,9 @@ public class DatasetController {
                 }
             }
             // remove dataset
-            dataset = repository.deleteDataset(datasetId);
             if (dataset != null) {
-                // remove files
+                logger.debug("Removing files from dataset " + datasetId);
+                // First - remove the files from the dataset
                 List<FileDescriptor> fds = dataset.getFileDescriptors();
                 if (fds.size() > 0) {
                     for (FileDescriptor fd : fds) {
@@ -497,6 +497,36 @@ public class DatasetController {
                         }
                     }
                 }
+
+                // Files removed - delete the dataset entry
+                logger.debug("Deleting dataset " + datasetId);
+                dataset = repository.deleteDataset(datasetId);
+
+                // Adjust user quota after removing the dataset and files
+                // check if the dataset is hazard dataset
+                String dataType = dataset.getDataType();
+                String subDataType;
+                if (dataType.contains(":")) {
+                    // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
+                    subDataType = dataType.split(":")[1];
+                } else {
+                    subDataType = dataType;
+                }
+                boolean isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType));
+
+                // reduce the number of hazard from the space
+                if (isHazardDataset) {
+                    logger.debug("Decreasing hazard dataset quota");
+                    AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazardDatasets");
+                } else {
+                    logger.debug("Decreasing dataset quota");
+                    AllocationUtils.decreaseUsage(allocationsRepository, this.username, "datasets");
+                }
+
+                // decrease file size to usage
+                UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
+                AllocationUtils.decreaseDatasetFileSize(allocation, allocationsRepository, fileSize, isHazardDataset);
+
                 // remove geoserver layer
                 if (geoserverUsed) {
                     boolean isRemoved = GeoserverUtils.removeStoreFromGeoserver(datasetId);
@@ -507,27 +537,6 @@ public class DatasetController {
                 this.username + " is not authorized to delete the dataset " + datasetId);
         }
 
-        // check if the dataset is hazard dataset
-        String dataType = dataset.getDataType();
-        String subDataType;
-        if (dataType.contains(":")) {
-            // Compare what comes after the name space (e.g. probabilisticEarthquakeRaster from ergo:probabilisticEarthquakeRaster)
-            subDataType = dataType.split(":")[1];
-        } else {
-            subDataType = dataType;
-        }
-        boolean isHazardDataset = HazardConstants.DATA_TYPE_HAZARD.stream().anyMatch(s1 -> s1.contains(subDataType));
-
-        // reduce the number of hazard from the space
-        if (isHazardDataset) {
-            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "hazardDatasets");
-        } else {
-            AllocationUtils.decreaseUsage(allocationsRepository, this.username, "datasets");
-        }
-
-        // decrease file size to usage
-        UserAllocations allocation = allocationsRepository.getAllocationByUsername(username);
-        AllocationUtils.decreaseDatasetFileSize(allocation, allocationsRepository, fileSize, isHazardDataset);
 
         return dataset;
 
