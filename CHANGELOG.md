@@ -51,7 +51,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Join between CSV table and shapefile has been updated based on Geotools update [#272](https://github.com/IN-CORE/incore-services/issues/272)
-
+- Add "format" filter for dataset in project [#351](https://github.com/IN-CORE/incore-services/issues/351)
+- 
 ### Added 
 - Add retrofit information to the mapping set class [#252](https://github.com/IN-CORE/incore-services/issues/252)
 

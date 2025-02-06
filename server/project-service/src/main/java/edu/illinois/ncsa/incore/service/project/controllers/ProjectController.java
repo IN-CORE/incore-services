@@ -401,6 +401,7 @@ public class ProjectController {
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
         @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
         @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type,
+        @Parameter(name = "Filter by format", description = "Filter datasets by format") @QueryParam("format") String format,
         @Parameter(name = "Text to search ") @QueryParam("text") String text,
         @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
         @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
@@ -412,6 +413,7 @@ public class ProjectController {
                 return project.getDatasets().stream()
                     .filter(dataset -> text == null || dataset.matchesSearchText(text))
                     .filter(dataset -> type == null || dataset.getDataType().equalsIgnoreCase(type))
+                    .filter(dataset -> format == null || dataset.format.equalsIgnoreCase(format))
                     .sorted(comparator)
                     .skip(offset)
                     .limit(limit)
