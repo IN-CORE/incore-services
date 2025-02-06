@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Combine search and filter endpoints in project service [#344](https://github.com/IN-CORE/incore-services/issues/344)
+- Order of delete dataset operations [#347](https://github.com/IN-CORE/incore-services/issues/347)
 - GeoTools to version 32.1 [#341](https://github.com/IN-CORE/incore-services/issues/341)
 
 ## [1.27.1] - 2024-11-01
