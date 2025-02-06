@@ -1,8 +1,8 @@
-@prefix unit:    <http://incore.ncsa.illinois.edu/semantic/elements/units/> .
-@prefix def:     <http://incore.ncsa.illinois.edu/semantic/schema/units/> .
+@prefix unit:    <http://tools.in-core.org/semantic/elements/units/> .
+@prefix def:     <http://tools.in-core.org/semantic/schema/units/> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix prefix:  <http://incore.ncsa.illinois.edu/semantic/elements/prefixes/> .
-@prefix dim:     <http://incore.ncsa.illinois.edu/semantic/elements/dimensions/> .
+@prefix prefix:  <http://tools.in-core.org/semantic/elements/prefixes/> .
+@prefix dim:     <http://tools.in-core.org/semantic/elements/dimensions/> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 
 unit:centimetre

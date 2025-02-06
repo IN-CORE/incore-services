@@ -15,12 +15,12 @@ public final class RDFModel {
     }
 
     // URI - Instances
-    public static final String unitURI = "http://incore.ncsa.illinois.edu/semantic/elements/units/";
-    public static final String dimensionURI = "http://incore.ncsa.illinois.edu/semantic/elements/dimensions/";
-    public static final String prefixURI = "http://incore.ncsa.illinois.edu/semantic/elements/prefixes/";
+    public static final String unitURI = "http://tools.in-core.org/semantic/elements/units/";
+    public static final String dimensionURI = "http://tools.in-core.org/semantic/elements/dimensions/";
+    public static final String prefixURI = "http://tools.in-core.org/semantic/elements/prefixes/";
 
     // URI - OWL Schema
-    public static final String schemaURI = "http://incore.ncsa.illinois.edu/semantic/schema/units/";
+    public static final String schemaURI = "http://tools.in-core.org/semantic/schema/units/";
 
     // Properties - Units
     public static final Property symbol = new PropertyImpl(schemaURI, "symbol");
