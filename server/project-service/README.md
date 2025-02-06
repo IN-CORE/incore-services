@@ -13,22 +13,10 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path**: `/project/api/projects`
 - **Description**: Retrieve a list of all available projects, optionally filtered by parameters.
 - **Query Parameters**:
-    - `name`, `creator`, `owner`, `region`, `type`, `space`, `skip`, `limit`
+    - `name`, `creator`, `owner`, `region`, `type`, `text`, `space`, `skip`, `limit`
 - **Example**:
   ```http
   GET /project/api/projects?name={name}&creator={creator}&skip={skip}&limit={limit}
-  ```
-  
-#### **Search All Projects**
-
-- **Method**: `GET`
-- **Path**: `/project/api/projects/search`
-- **Description**: Search for projects by name, description, creator, owner, and region.
-- **Query Parameters**:
-  - `text`, `skip`, `limit`
-- **Example**:
-  ```http
-  GET /project/api/projects/search?text={text}&skip={skip}&limit={limit}
   ```
   
 #### **Get Project by ID**
@@ -158,25 +146,12 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
     - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
-  GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets
+  GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets?text=Building Inventory
   ```
   
-#### **Search Datasets belong to a Project**
-- **Method**: `GET`
-- **Path**: `/project/api/projects/{projectId}/datasets/search`
-- **Description**: Search datasets associated with a specific project.
-- **Path Parameter**:
-    - `projectId` (string) - ID of the project.
-    - `text` (string) - Text to search.
-    - `limit` (int) - Number of datasets to return.
-    - `skip` (int) - Number of datasets to skip.
-- **Example**:
-  ```http
-  GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets/search?text=galveston&limit=10&skip=0
-  ```
 
 #### **Add Datasets to a Project**
 
@@ -283,26 +258,11 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`, `hazardType`, `inventoryType`
+  - `skip`, `limit`, `type`, `hazardType`, `inventoryType`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings
   ```
-
-#### **Search Dfr3 mappings belong to a Project**
-
-- **Method**: `GET`
-- **Path**: `/project/api/projects/{projectId}/dfr3mappings/search`
-- **Description**: Search dfr3 mappings associated with a specific project.
-- **Path Parameter**:
-  - `projectId` (string) - ID of the project.
-  - `text` (string) - Search query.
-  - `skip` (int) - Number of items to skip.
-  - `limit` (int) - Number of items to return.
-- **Example**:
-  ```http
-    GET /project/api/projects/66c60ba518da486b1e9c08d5/dfr3mappings/search?text=fragility
-    ```
 
 #### **Add Dfr3 mappings to a Project**
 
@@ -392,26 +352,11 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/hazards
   ```
-
-#### **Search Hazards belong to a Project**
-
-- **Method**: `GET`
-- **Path**: `/project/api/projects/{projectId}/hazards/search`
-- **Description**: Search hazards associated with a specific project.
-- **Path Parameter**:
-  - `projectId` (string) - ID of the project.
-  - `text` (string) - Search query.
-  - `skip` (int) - Number of items to skip.
-  - `limit` (int) - Number of items to return.
-- **Example**:
-  ```http
-    GET /project/api/projects/66c60ba518da486b1e9c08d5/hazards/search?text=earthquake
-    ```
 
 #### **Add Hazards to a Project**
 
@@ -564,26 +509,12 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows
   ```
 
-#### **Search Workflows belong to a Project**
-
-- **Method**: `GET`
-- **Path**: `/project/api/projects/{projectId}/workflows/search`
-- **Description**: Search workflows associated with a specific project.
-- **Path Parameter**:
-  - `projectId` (string) - ID of the project.
-  - `text` (string) - Search query.
-  - `skip` (int) - Number of workflows to skip.
-  - `limit` (int) - Number of workflows to return.
-- **Example**:
-  ```http
-    GET /project/api/projects/66c60ba518da486b1e9c08d5/workflows/search?text=retrofit_strategy_wf&skip=0&limit=10
-  ```
 
 #### **Add Workflows to a Project**
 
@@ -653,26 +584,12 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
 - **Query Parameters**:
-  - `skip`, `limit`, `type`
+  - `skip`, `limit`, `type`, `text`
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/visualizations
   ```
 
-#### **Search Visualizations belong to a Project**
-
-- **Method**: `GET`
-- **Path**: `/project/api/projects/{projectId}/visualizations/search`
-- **Description**: Search visualizations associated with a specific project.
-- **Path Parameter**:
-  - `projectId` (string) - ID of the project.
-  - `text` (string) - Search query.
-  - `skip` (int) - Number of visualizations to skip.
-  - `limit` (int) - Number of visualizations to return.
-- **Example**:
-  ```http
-    GET /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/search?text=map&skip=0&limit=10
-  ```
 
 #### **Add Visualizations to a Project**
 
