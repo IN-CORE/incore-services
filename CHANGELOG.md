@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)
 - Endpoint to finalized a workflow [#335](https://github.com/IN-CORE/incore-services/issues/335)
+- Support for PGD from earthquake hazards [#339](https://github.com/IN-CORE/incore-services/issues/339)
 
 ### Fixed
 - Bug when adding visualization layers to an empty layer list [#331](https://github.com/IN-CORE/incore-services/issues/331)

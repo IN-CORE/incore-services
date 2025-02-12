@@ -187,6 +187,40 @@ public class HazardCalc {
                 return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
             }
 
+        } else if (HazardUtil.PGD.equalsIgnoreCase(hazardType)) {
+            // First, check if the hazard is directly from the attenuation models or datasets
+            boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, true);
+            // If not supported, check if it supports PGA to convert PGA to PGD
+            if (!supported) {
+                supported = supportsHazard(earthquake, attenuations, "0.0", "PGA", true);
+
+                if (!supported) {
+                    throw new UnsupportedHazardException(hazardType + " is not supported and cannot be converted to given the defined " +
+                            "earthquake");
+                }
+                logger.debug(hazardType + " is not directly supported by the earthquake, using PGA to derive " + hazardType);
+
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, "0.0",
+                        "PGA", spectrumOverride, amplifyHazard, creator, userGroups, null);
+                Double updatedHazardVal = null;
+                if (result.getHazardValue() != null) {
+                    updatedHazardVal = HazardUtil.convertHazard(result.getHazardValue(), "g", 0.0, HazardUtil.PGA, demandUnits,
+                            HazardUtil.PGD);
+                }
+                return new SeismicHazardResult(updatedHazardVal, "0.0", HazardUtil.PGD, demandUnits);
+            } else {
+                // Before returning the result, make sure the requested demand unit matches the demand unit produced by the EQ
+                SeismicHazardResult result = computeGroundMotionAtSite(earthquake, attenuations, site, period, hazardType,
+                        spectrumOverride, amplifyHazard, creator, userGroups, demandUnits);
+                Double updatedHazardValue = null;
+                if (result.getHazardValue() != null) {
+                    updatedHazardValue = HazardUtil.convertHazard(result.getHazardValue(), result.getUnits(),
+                            Double.parseDouble(result.getPeriod()), result.getDemand(), demandUnits, result.getDemand());
+                }
+
+                return new SeismicHazardResult(updatedHazardValue, result.getPeriod(), result.getDemand(), demandUnits);
+            }
+
         } else {
             // TODO we need to modify this when we support spectrum methods
             boolean supported = supportsHazard(earthquake, attenuations, period, hazardType, false);
