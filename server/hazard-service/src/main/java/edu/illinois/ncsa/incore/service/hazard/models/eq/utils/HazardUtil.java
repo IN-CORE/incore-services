@@ -336,11 +336,13 @@ public class HazardUtil {
     public static double getCorrectUnitsOfPGD(double pgd, String units0, String units1) {
         if (units0 != null && units0.equalsIgnoreCase(units1)) {
             return pgd;
-        } else if (units_m.equalsIgnoreCase(units0) || "m".equalsIgnoreCase(units0) && units_ft.equalsIgnoreCase(units1)) {
+        } else if (units_m.equalsIgnoreCase(units0) || "m".equalsIgnoreCase(units0) && (units_ft.equalsIgnoreCase(units1) || "ft".equalsIgnoreCase(units1))) {
             return pgd * 3.2808399;
         } else if (units_m.equalsIgnoreCase(units0) || "m".equalsIgnoreCase(units0) && units_cm.equalsIgnoreCase(units1)) {
             return pgd * 100.0;
-        } else {
+	} else if (units_m.equalsIgnoreCase(units0) || "m".equalsIgnoreCase(units0) && units_in.equalsIgnoreCase(units1)) {
+            return pgd * 39.3701;
+	} else {
             // Unknown type
             logger.warn("PGD unit type was " + units0 + ", but no conversion is implemented for units of " + units1);
             return pgd;

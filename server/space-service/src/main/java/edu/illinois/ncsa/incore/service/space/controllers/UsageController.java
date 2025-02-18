@@ -40,12 +40,12 @@ import java.util.*;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Usage Service for getting the user's usage information.",
-        version = "1.27.1",
+        version = "1.28.0",
         title = "IN-CORE v2 Usage Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore.ncsa.illinois.edu"
+            url = "https://tools.in-core.org"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",

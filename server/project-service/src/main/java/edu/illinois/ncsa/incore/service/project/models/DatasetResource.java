@@ -1,10 +1,7 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
-import java.util.Date;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -16,7 +13,6 @@ public class DatasetResource extends ProjectResource{
     public boolean deleted = false;
     public String title;
     public String description = "";
-    public Date date = new Date();
     public String creator = null;
     public String owner = null;
     public List<String> contributors = null;
@@ -42,6 +38,14 @@ public class DatasetResource extends ProjectResource{
         return dataType;  // Fallback to dataType if type is null or empty
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
     // Setter for type
     public void setType(String type) {
         this.type = type;
@@ -54,11 +58,6 @@ public class DatasetResource extends ProjectResource{
 
     public void setDataType(String dataType) {
         this.dataType = dataType;
-    }
-
-    @JsonSerialize(using = JsonDateSerializer.class)
-    public Date getDate() {
-        return date;
     }
 
     public boolean matchesSearchText(String text) {

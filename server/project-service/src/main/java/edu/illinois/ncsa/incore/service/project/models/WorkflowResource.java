@@ -1,6 +1,8 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 
 import java.util.Date;
 import java.util.List;
@@ -21,14 +23,16 @@ public class WorkflowResource extends ProjectResource {
     public boolean deleted;
     public String title;
     public String description;
-    public Date created;
+
+    public Date created = new Date();
+
     public WorkflowCreator creator;
     public List<String> contributors;
 
     public WorkflowResource() {
     }
 
-    // Getter and Setter for hazardType
+    // Getter and Setter for type
     public Type getType() {
         return type;
     }
@@ -37,6 +41,28 @@ public class WorkflowResource extends ProjectResource {
         this.type = type;
     }
 
+    @JsonSerialize(using = JsonDateSerializer.class)
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public boolean getIsFinalized() {
+        return isFinalized;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    // Search functionality
     public boolean matchesSearchText(String text) {
         String lowerCaseText = text.toLowerCase();
         return (this.getId() != null && this.getId().equals(lowerCaseText)) ||

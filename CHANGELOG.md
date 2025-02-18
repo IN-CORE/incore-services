@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.28.0] - 2025-02-20
+### Added
+- Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)
+- Endpoint to finalized a workflow [#335](https://github.com/IN-CORE/incore-services/issues/335)
+- Support for PGD from earthquake hazards [#339](https://github.com/IN-CORE/incore-services/issues/339)
+
+### Fixed
+- Bug when adding visualization layers to an empty layer list [#331](https://github.com/IN-CORE/incore-services/issues/331)
+- Bug when posting additional fields which need to be ignored [#338](https://github.com/IN-CORE/incore-services/issues/338) 
+
+### Changed
+- Combine search and filter endpoints in project service [#344](https://github.com/IN-CORE/incore-services/issues/344)
+- Order of delete dataset operations [#347](https://github.com/IN-CORE/incore-services/issues/347)
+- GeoTools to version 32.1 [#341](https://github.com/IN-CORE/incore-services/issues/341)
+- Update production URL references to tools.in-core.org [#333](https://github.com/IN-CORE/incore-services/issues/333)
+
 ## [1.27.1] - 2024-11-01
 ### Fixed
 - Earthquake hazard visualization bounding box [#325](https://github.com/IN-CORE/incore-services/issues/325)
@@ -36,7 +52,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Join between CSV table and shapefile has been updated based on Geotools update [#272](https://github.com/IN-CORE/incore-services/issues/272)
-
+- Add "format" filter for dataset in project [#351](https://github.com/IN-CORE/incore-services/issues/351)
+- 
 ### Added 
 - Add retrofit information to the mapping set class [#252](https://github.com/IN-CORE/incore-services/issues/252)
 

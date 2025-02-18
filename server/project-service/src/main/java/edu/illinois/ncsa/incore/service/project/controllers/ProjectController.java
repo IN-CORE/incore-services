@@ -19,14 +19,13 @@ import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.project.utils.ConversionUtils;
+import edu.illinois.ncsa.incore.service.project.models.HazardResource;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -37,16 +36,18 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static edu.illinois.ncsa.incore.service.project.utils.CommonUtil.*;
+
 
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Project Service for creating and accessing projects",
-        version = "1.27.1",
+        version = "1.28.0",
         title = "IN-CORE v2 Project Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore.ncsa.illinois.edu"
+            url = "https://tools.in-core.org"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",
@@ -88,15 +89,20 @@ public class ProjectController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gets the list of all available projects", description = "For member parameter, it will return projects that the" +
-        " " +
-        "user has read privileges on.")
+        " user has read privileges on.")
     public List<Project> getProjectsList(@Parameter(name = "Name filter") @QueryParam("name") String name,
                                          @Parameter(name = "Creator filter") @QueryParam("creator") String creator,
                                          @Parameter(name = "Owner filter") @QueryParam("owner") String owner,
                                          @Parameter(name = "Region filter") @QueryParam("region") String region,
                                          @Parameter(name = "Name of space") @DefaultValue("") @QueryParam("space") String spaceName,
+                                         @Parameter(name = "Text to search ") @QueryParam("text") String text,
+                                         @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.")
+                                             @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+                                         @Parameter(name = "Specify the order of sorting, either ascending or descending.")
+                                             @DefaultValue("desc") @QueryParam("order") String order,
                                          @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
-                                         @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
+                                         @Parameter(name = "Limit no of results to return") @DefaultValue("100")
+                                             @QueryParam("limit") int limit) {
 
         Map<String, String> queryMap = new HashMap<>();
 
@@ -113,13 +119,45 @@ public class ProjectController {
             queryMap.put("region", region);
         }
 
-        List<Project> projects;
+        List<Project> projects = new ArrayList<>();
 
-        if (queryMap.isEmpty()) {
-            projects = this.projectDAO.getAllProjects();
-        } else {
-            projects = this.projectDAO.queryAllProjects(queryMap);
+        if (text != null && !text.isEmpty()) {
+            Project project = this.projectDAO.getProjectById(text);
+            if (project != null) {
+                projects.add(project);
+            } else {
+                projects = this.projectDAO.searchProjects(text);
+            }
         }
+        else {
+            projects = this.projectDAO.getAllProjects();
+        }
+
+        // Apply additional filters on top of search results
+        if (!queryMap.isEmpty()) {
+            projects = projects.stream()
+                .filter(project -> queryMap.entrySet().stream()
+                    .allMatch(entry -> {
+                        String key = entry.getKey();
+                        String value = entry.getValue();
+                        switch (key) {
+                            case "name":
+                                return project.getName().contains(value);
+                            case "creator":
+                                return project.getCreator().contains(value);
+                            case "owner":
+                                return project.getOwner().contains(value);
+                            case "region":
+                                return project.getRegion().contains(value);
+                            default:
+                                return true;
+                        }
+                    }))
+                .collect(Collectors.toList());
+        }
+
+        // Define the comparator based on the sortBy and order
+        Comparator<Project> comparator = projectComparator(sortBy, order);
 
         if (!spaceName.equals("")) {
             Space space = spaceRepository.getSpaceByName(spaceName);
@@ -133,6 +171,7 @@ public class ProjectController {
 
             projects = projects.stream()
                 .filter(project -> spaceMembers.contains(project.getId()))
+                .sorted(comparator)
                 .skip(offset)
                 .limit(limit)
                 .map(d -> {
@@ -148,39 +187,7 @@ public class ProjectController {
 
         List<Project> accessibleProjects = projects.stream()
             .filter(b -> membersSet.contains(b.getId()))
-            .skip(offset)
-            .limit(limit)
-            .map(d -> {
-                d.setSpaces(spaceRepository.getSpaceNamesOfMember(d.getId()));
-                return d;
-            })
-            .collect(Collectors.toList());
-
-        return accessibleProjects;
-    }
-
-    @GET
-    @Path("/search")
-    @Produces({MediaType.APPLICATION_JSON})
-    @Operation(tags = "Search for a text in all projects", summary = "Gets all projects that contain a specific text")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "404", description = "No projects found with the searched text")
-    })
-    public List<Project> findProjects(@Parameter(name = "Text to search by", example = "Joplin") @QueryParam("text") String text,
-                                              @Parameter(name = "Skip the first n results") @QueryParam("skip") int offset,
-                                              @Parameter(name = "Limit no of results to return") @DefaultValue("100") @QueryParam("limit") int limit) {
-        List<Project> projects = new ArrayList<>();
-        Project project = this.projectDAO.getProjectById(text);
-        if (project != null) {
-            projects.add(project);
-        } else {
-            projects = this.projectDAO.searchProjects(text);
-        }
-
-        Set<String> membersSet = authorizer.getAllMembersUserHasReadAccessTo(username, spaceRepository.getAllSpaces(), groups);
-
-        List<Project> accessibleProjects = projects.stream()
-            .filter(b -> membersSet.contains(b.getId()))
+            .sorted(comparator)
             .skip(offset)
             .limit(limit)
             .map(d -> {
@@ -391,48 +398,30 @@ public class ProjectController {
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
         @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type) {
-        Project project = projectDAO.getProjectById(id);
-        if (project != null) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getDatasets().stream()
-                    .filter(dataset -> type == null || dataset.getDataType().equalsIgnoreCase(type))
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList());
-            } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
-            }
-        }
-        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
-    }
+        @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type,
+        @Parameter(name = "Filter by format", description = "Filter datasets by format") @QueryParam("format") String format,
+        @Parameter(name = "Text to search ") @QueryParam("text") String text,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
 
-    @GET
-    @Path("{projectId}/datasets/search")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Search datasets from a project")
-    public List<DatasetResource> searchDatasetsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
-        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                Comparator<DatasetResource> comparator = datasetComparator(sortBy, order);
                 return project.getDatasets().stream()
                     .filter(dataset -> text == null || dataset.matchesSearchText(text))
+                    .filter(dataset -> type == null || dataset.getDataType().equalsIgnoreCase(type))
+                    .filter(dataset -> format == null || dataset.format.equalsIgnoreCase(format))
+                    .sorted(comparator)
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
             }
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
     }
-
 
     @POST
     @Path("{projectId}/datasets")
@@ -527,47 +516,28 @@ public class ProjectController {
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
         @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "Filter by hazardType", description = "Filter datasets by hazardType") @QueryParam("hazardType") String hazardType,
-        @Parameter(name = "Filter by inventoryType", description = "Filter datasets by inventoryType") @QueryParam("inventoryType") String inventoryType,
-        @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type) {
+        @Parameter(name = "Filter by hazardType", description = "Filter dfr3 mappings by hazardType") @QueryParam("hazardType") String hazardType,
+        @Parameter(name = "Filter by inventoryType", description = "Filter dfr3 mappings by inventoryType") @QueryParam("inventoryType") String inventoryType,
+        @Parameter(name = "Filter by text", description = "Filter dfr3 mappings by text") @QueryParam("text") String text,
+        @Parameter(name = "Filter by type", description = "Filter dfr3 mappings by type") @QueryParam("type") String type,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
+
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                Comparator<DFR3MappingResource> comparator = dfr3MappingComparator(sortBy, order);
                 return project.getDfr3Mappings().stream()
+                    .filter(dfr3mapping -> text == null || dfr3mapping.matchesSearchText(text))
                     .filter(mapping -> hazardType == null || mapping.hazardType.equalsIgnoreCase(hazardType))
                     .filter(mapping -> inventoryType == null || mapping.inventoryType.equalsIgnoreCase(inventoryType))
                     .filter(mapping -> type == null || mapping.getType().toString().equalsIgnoreCase(type))
+                    .sorted(comparator)
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
-            }
-        }
-        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
-    }
-
-    @GET
-    @Path("{projectId}/dfr3mappings/search")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Search dfr3mapping from a project")
-    public List<DFR3MappingResource> searchDFR3MappingsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
-        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
-        Project project = projectDAO.getProjectById(id);
-        if (project != null) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getDfr3Mappings().stream()
-                    .filter(dfr3mapping -> text == null || dfr3mapping.matchesSearchText(text))
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList());
-            } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
             }
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
@@ -666,43 +636,24 @@ public class ProjectController {
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
         @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "Filter by type", description = "Filter hazards by type") @QueryParam("type") String type) {
-        Project project = projectDAO.getProjectById(id);
-        if (project != null) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getHazards().stream()
-                    .filter(hazard -> type == null || hazard.getType().toString().equalsIgnoreCase(type))
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList());
-            } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
-            }
-        }
-        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
-    }
+        @Parameter(name = "Filter by type", description = "Filter hazards by type") @QueryParam("type") String type,
+        @Parameter(name = "Search text", description = "Search text to filter hazards") @QueryParam("text") String text,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
 
-    @GET
-    @Path("{projectId}/hazards/search")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Search hazards from a project")
-    public List<HazardResource> searchHazardsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
-        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                Comparator<HazardResource> comparator = hazardComparator(sortBy, order);
                 return project.getHazards().stream()
                     .filter(hazard -> text == null || hazard.matchesSearchText(text))
+                    .filter(hazard -> type == null || hazard.getType().toString().equalsIgnoreCase(type))
+                    .sorted(comparator)
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
             }
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
@@ -801,43 +752,24 @@ public class ProjectController {
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
         @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "Filter by type", description = "Filter workflow by type") @QueryParam("type") String type) {
-        Project project = projectDAO.getProjectById(id);
-        if (project != null) {
-            if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getWorkflows().stream()
-                    .filter(workflow -> type == null || workflow.getType().toString().equalsIgnoreCase(type))
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList());
-            } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
-            }
-        }
-        throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
-    }
+        @Parameter(name = "Filter by type", description = "Filter workflow by type") @QueryParam("type") String type,
+        @Parameter(name = "Search text", description = "Search text") @QueryParam("text") String text,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
 
-    @GET
-    @Path("{projectId}/workflows/search")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Search workflows from a project")
-    public List<WorkflowResource> searchWorkflowsOfProject(
-        @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
-        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                Comparator<WorkflowResource> comparator = workflowComparator(sortBy, order);
                 return project.getWorkflows().stream()
                     .filter(workflow -> text == null || workflow.matchesSearchText(text))
+                    .filter(workflow -> type == null || workflow.getType().toString().equalsIgnoreCase(type))
+                    .sorted(comparator)
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
             }
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
@@ -871,6 +803,58 @@ public class ProjectController {
         // Loop through workflows and add each one to the project
         for (WorkflowResource workflow : workflows) {
             project.addWorkflowResource(workflow);
+        }
+
+        // Update the project in the database
+        Project updatedProject = projectDAO.updateProject(id, project);
+        if (updatedProject != null) {
+            // assume if can write, can read
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(id));
+            // TODO
+            // return ServiceUtil.processProjectResources(updatedProject, username, userGroups);
+            return updatedProject;
+        }
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add workflows to the project.");
+    }
+
+    @POST
+    @Path("{projectId}/workflows/{workflowId}/finalize")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add workflows to a project")
+    public Project finalizeWorkflowInProject(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
+        @Parameter(name = "workflowId", description = "ID of the workflow to finalize") @PathParam("workflowId") String workflowId) {
+
+        Project project = projectDAO.getProjectById(id);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // find the workflow to finalize
+        WorkflowResource workflow = project.getWorkflow(workflowId);
+
+        if (workflow == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a workflow with id " + workflowId);
+        }
+
+        // check if the isFinalized is already true
+        if (workflow.getIsFinalized()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Workflow is already finalized.");
+        }
+
+        // finalize the workflow by making isFinalized true
+        boolean success = project.finalizeWorkflow(workflowId);
+
+        if (success) {
+            System.out.println("Workflow finalized successfully.");
+        } else {
+            System.out.println("Workflow not found.");
         }
 
         // Update the project in the database
@@ -936,40 +920,47 @@ public class ProjectController {
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
         @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "Filter by type", description = "Filter visualization by type") @QueryParam("type") String type) {
+        @Parameter(name = "Filter by type", description = "Filter visualization by type") @QueryParam("type") String type,
+        @Parameter(name = "Filter by search text", description = "Filter visualization by search text") @QueryParam("text") String text,
+        @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
+        @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
+
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
+                Comparator<VisualizationResource> comparator = visualizationComparator(sortBy, order);
                 return project.getVisualizations().stream()
+                    .filter(visualization -> text == null || visualization.matchesSearchText(text))
                     .filter(visualization -> type == null || visualization.getType().toString().equalsIgnoreCase(type))
+                    .sorted(comparator)
                     .skip(offset)
                     .limit(limit)
                     .collect(Collectors.toList());
             } else {
-                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
-                    "project with id " + id);
+                throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
             }
         }
         throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + id);
     }
 
+
     @GET
-    @Path("{projectId}/visualizations/search")
+    @Path("{projectId}/visualizations/{visualizationId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Search visualizations from a project")
-    public List<VisualizationResource> searchVisualizationsOfProject(
+    @Operation(description = "Get a specific visualization belongs to a project")
+    public VisualizationResource getVisualizationOfProject(
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
-        @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
-        @Parameter(name = "text", description = "text to search") @QueryParam("text") String text) {
+        @Parameter(name = "visualizationId", description = "ID of the visualization.") @PathParam("visualizationId") String visualizationId) {
         Project project = projectDAO.getProjectById(id);
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
-                return project.getVisualizations().stream()
-                    .filter(visualization -> text == null || visualization.matchesSearchText(text))
-                    .skip(offset)
-                    .limit(limit)
-                    .collect(Collectors.toList());
+                Optional<VisualizationResource> projectFound = project.getVisualizations().stream()
+                    .filter(visualization -> visualization.getId().toString().equalsIgnoreCase(visualizationId)).findFirst();
+                if (projectFound.isPresent()) {
+                    return projectFound.get();
+                } else {
+                    throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a visualization with id " + visualizationId);
+                }
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the " +
                     "project with id " + id);

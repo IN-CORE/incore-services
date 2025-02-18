@@ -46,7 +46,7 @@ jobs:
           ./gradlew assemble
           ./gradlew test
       - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v3   # Updated to version 3
+        uses: actions/upload-artifact@v4   # Updated to version 4
         with:
           name: incore-services-build-files
           path: |
@@ -93,7 +93,7 @@ jobs:
 
     steps:
       - name: Download build files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: incore-services-build-files
 
@@ -139,7 +139,7 @@ jobs:
         if: |
           github.repository == env.MAIN_REPO &&
           (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'main' || env.GITHUB_BRANCH == 'release')
-        uses: elgohr/Publish-Docker-Github-Action@3.04
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           dockerfile: ${{ matrix.dockerfile }}
           name: ${{ matrix.hub_project }}
@@ -149,7 +149,7 @@ jobs:
         if: |
           github.repository == env.MAIN_REPO &&
           (github.event_name == 'pull_request' || env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'main'|| env.GITHUB_BRANCH == 'release')
-        uses: elgohr/Publish-Docker-Github-Action@3.04
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           dockerfile: ${{ matrix.dockerfile }}
           registry: hub.ncsa.illinois.edu

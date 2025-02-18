@@ -47,14 +47,14 @@ import java.util.stream.Collectors;
 
 @OpenAPIDefinition(
     info = @Info(
-        version = "1.27.1",
+        version = "1.28.0",
         description = "IN-CORE Service For Restoration and Restoration mappings",
 
         title = "IN-CORE v2 DFR3 Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore.ncsa.illinois.edu"
+            url = "https://tools.in-core.org"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",

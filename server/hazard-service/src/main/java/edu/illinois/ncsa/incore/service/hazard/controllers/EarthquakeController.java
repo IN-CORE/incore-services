@@ -81,12 +81,12 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.eqCompara
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami, Hurricane and Flood",
-        version = "1.27.1",
+        version = "1.28.0",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
             email = "incore-dev@lists.illinois.edu",
-            url = "https://incore.ncsa.illinois.edu"
+            url = "https://tools.in-core.org"
         ),
         license = @License(
             name = "Mozilla Public License 2.0 (MPL 2.0)",

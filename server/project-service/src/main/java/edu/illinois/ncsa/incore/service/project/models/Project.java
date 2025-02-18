@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Entity;
@@ -139,6 +140,22 @@ public class Project {
             .filter(visualization -> visualization.getId().equals(id))
             .findFirst()
             .orElse(null);
+    }
+
+    public WorkflowResource getWorkflow(String id) {
+        return workflows.stream()
+            .filter(workflow -> workflow.getId().equals(id))
+            .findFirst()
+            .orElse(null);
+    }
+
+    public boolean finalizeWorkflow(String workflowId) {
+        WorkflowResource workflow = getWorkflow(workflowId);
+        if (workflow != null) {
+            workflow.isFinalized = true;
+            return true;
+        }
+        return false;
     }
 
     public void setVisualizations(List<VisualizationResource> visualizations) {

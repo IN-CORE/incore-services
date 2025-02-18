@@ -62,13 +62,25 @@ public class AtkinsonBoore1995Test {
         // TODO this should come from a mock eq
         Earthquake eq = new EarthquakeModel();
         SeismicHazardResult result = HazardCalc.getGroundMotionAtSite(eq, attenuations, site, period, demand, HazardUtil.units_g,
-            0, true, null, "incrtest", "{\"groups\": [\"incore_user\"]}");
+                0, true, null, "incrtest", "{\"groups\": [\"incore_user\"]}");
 
         double expected = 0.5322;
         assertEquals(expected, result.getHazardValue(), expected * 0.05);
         assertEquals(result.getDemand(), HazardUtil.SA);
         assertEquals(result.getPeriod(), period);
         assertEquals(result.getUnits(), HazardUtil.units_g);
+
+        // Test PGD from PGA
+        period = "0.0";
+        demand = HazardUtil.PGD;
+        SeismicHazardResult result_pgd = HazardCalc.getGroundMotionAtSite(eq, attenuations, site, period, demand, HazardUtil.units_in,
+                0, true, null, "incrtest", "{\"groups\": [\"incore_user\"]}");
+
+        double expected_pgd = 3.269564;
+        assertEquals(expected_pgd, result_pgd.getHazardValue(), expected * 0.05);
+        assertEquals(result_pgd.getDemand(), HazardUtil.PGD);
+        assertEquals(result_pgd.getPeriod(), period);
+        assertEquals(result_pgd.getUnits(), HazardUtil.units_in);
     }
 
     @Test
