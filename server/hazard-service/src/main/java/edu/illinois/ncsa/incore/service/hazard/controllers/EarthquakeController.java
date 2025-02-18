@@ -81,7 +81,7 @@ import static edu.illinois.ncsa.incore.service.hazard.utils.CommonUtil.eqCompara
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Hazard Service For Earthquake, Tornado, Tsunami, Hurricane and Flood",
-        version = "1.27.1",
+        version = "1.28.0",
         title = "IN-CORE v2 Hazard Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",

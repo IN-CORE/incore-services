@@ -72,7 +72,7 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
-        version = "1.27.1",
+        version = "1.28.0",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
