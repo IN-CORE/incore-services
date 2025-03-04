@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Changed
-Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
+- Gradle to version 8.13 [#343](https://github.com/IN-CORE/incore-services/issues/343)
+- Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
 
 ## [1.28.0] - 2025-02-20
 ### Added
