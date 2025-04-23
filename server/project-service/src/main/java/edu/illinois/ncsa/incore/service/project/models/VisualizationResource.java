@@ -68,10 +68,25 @@ public class VisualizationResource extends ProjectResource{
         }
     }
 
-    public void removeLayer(Layer layer) {
+    public void updateLayer(Layer layer) {
+        boolean updated = false;
+        // if it exist, replace the existing layer with new one same order
+        for (int i = 0; i < layers.size(); i++) {
+            if (layers.get(i).getLayerId().equals(layer.getLayerId())) {
+                layers.set(i, layer);
+                updated = true;
+                break;
+            }
+        }
+       if (!updated) {
+            throw new IllegalArgumentException("Layer with ID " + layer.getLayerId() + " does not exist.");
+        }
+    }
+
+    public void removeLayerbyId(String layerId) {
         int indexToRemove = -1;
         for (int i = 0; i < layers.size(); i++) {
-            if (layer.getLayerId().equals(layers.get(i).getLayerId())) {
+            if (layerId.equals(layers.get(i).getLayerId())) {
                 indexToRemove = i;
                 break;
             }

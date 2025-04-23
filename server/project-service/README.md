@@ -671,6 +671,25 @@ system, including creating, updating, and deleting projects, as well as managing
     }
   ]
   ```
+
+#### **Update Layer in Map Visualization**
+
+- **Method**: `PUT`
+- **Path**: `/project/api/projects/{projectId}/visualizations/{visualizationId}/layers`
+- **Description**: Update layer in a specific map visualization.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `visualizationId` (string) - ID of the visualization.
+- **Request Body**: New layer.
+- **Example**:
+  ```http
+  PUT /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682/layers
+    {
+        "workspace": "incore",
+        "layerId": "6375502f3a28a17d261fd682",
+        "styleName": "incore:polygon"
+    }
+  ```
   
 #### **Remove Layers from Map Visualization**
 
@@ -680,16 +699,12 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
   - `visualizationId` (string) - ID of the visualization.
-- **Request Body**: List of layers to remove.
+- **Request Body**: List of layers IDs to remove.
 - **Example**:
   ```http
   DELETE /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682/layers
   [
-    {
-        "layerId": "6375502f3a28a17d261fd682"
-    },
-    {
-        "layerId": "6375502f3a28a17d261fd683"
-    }
+    "6375502f3a28a17d261fd682",
+    "6375502f3a28a17d261fd683"
   ]
   ```
