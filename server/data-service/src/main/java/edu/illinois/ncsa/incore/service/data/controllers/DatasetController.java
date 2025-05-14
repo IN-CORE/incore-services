@@ -1034,9 +1034,9 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    @Operation(summary = "Updates the dataset's JSON associated with a dataset id", description = "Only allows updating string attributes of " +
-        "the dataset. This will " +
-        "not upload file content of the dataset to the server, they should be done separately using {id}/files endpoint")
+    @Operation(summary = "Updates the dataset's JSON associated with a dataset id", description = "Only allows updating string attributes " +
+        "of the dataset. This will not upload file content of the dataset to the server, they should be done separately using " +
+        "{id}/files endpoint")
     public Object updateObject(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @Parameter(name = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
@@ -1048,17 +1048,49 @@ public class DatasetController {
 
         Dataset dataset = repository.getDatasetById(datasetId);
 
-        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
-        if (!this.username.equals(dataset.getOwner()) && isAdmin != true) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
-                this.username + " has no permission to modify the dataset " + datasetId);
-        }
-
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a dataset with id " + datasetId);
         }
 
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(dataset.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                this.username + " has no permission to modify the dataset " + datasetId);
+        }
+
         String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+        String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
+
+        // Handle special logic for sourceDataset update (i.e., setting parent ID)
+        if ("sourceDataset".equalsIgnoreCase(propName)) {
+            Dataset parentDataset = repository.getDatasetById(propVal);
+            if (parentDataset == null) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Parent dataset not found: " + propVal);
+            }
+            boolean isCompatible = ServiceUtils.validateJoinCompatibility(dataset, parentDataset, repository);
+            if (!isCompatible) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
+                    "Parent and child datasets are not join-compatible (e.g., mismatched GUIDs).");
+            }
+            dataset.setSourceDataset(propVal);
+            Dataset updatedDataset = repository.updateDataset(datasetId, "sourceDataset", propVal);
+            // GeoServer logic (only if format is 'table')
+            String format = updatedDataset.getFormat();
+            if (format != null && format.equalsIgnoreCase("table")) {
+                try {
+                    File geoPkgFile = FileUtils.joinShpTable(updatedDataset, repository, true);
+                    boolean success = GeoserverUtils.uploadGpkgToGeoserver(updatedDataset.getId(), geoPkgFile);
+                    if (!success) {
+                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer upload failed.");
+                    }
+                    FileUtils.deleteTmpDir(geoPkgFile); // Clean up
+                } catch (Exception e) {
+                    logger.error("Error during GeoServer upload process: " + e.getMessage(), e);
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer layer creation failed.");
+                }
+            }
+            return updatedDataset;
+        }
 
         try {
             Field f = dataset.getClass().getDeclaredField(propName); // Get the passed field from Dataset class
@@ -1072,7 +1104,6 @@ public class DatasetController {
                 + UPDATE_OBJECT_NAME + " does not exist in the dataset. ");
         }
 
-        String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
         dataset = repository.updateDataset(datasetId, propName, propVal);
         return dataset;
 
