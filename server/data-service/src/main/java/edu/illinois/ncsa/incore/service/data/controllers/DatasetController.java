@@ -1067,27 +1067,45 @@ public class DatasetController {
             if (parentDataset == null) {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Parent dataset not found: " + propVal);
             }
-            boolean isCompatible = ServiceUtils.validateJoinCompatibility(dataset, parentDataset, repository);
-            if (!isCompatible) {
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
-                    "Parent and child datasets are not join-compatible (e.g., mismatched GUIDs).");
+
+            // Check if the parent dataset is compatible with the child dataset for join
+            String childFormat = dataset.getFormat();
+            String parentFormat = parentDataset.getFormat();
+
+            boolean isChildCompatible = true;
+            boolean isParentCompatible = true;
+            if (childFormat == null || !childFormat.equalsIgnoreCase("table")) {
+                isChildCompatible = false;
             }
+            if ( parentDataset.getFormat() == null || !parentDataset.getFormat().equalsIgnoreCase("shapefile")) {
+                isParentCompatible = false;
+            }
+
+            // check compatibility of the datasets by GUID
+            boolean isGuidCompatible = ServiceUtils.validateJoinCompatibilityByGuid(dataset, parentDataset, repository);
+
             dataset.setSourceDataset(propVal);
             Dataset updatedDataset = repository.updateDataset(datasetId, "sourceDataset", propVal);
+
             // GeoServer logic (only if format is 'table')
-            String format = updatedDataset.getFormat();
-            if (format != null && format.equalsIgnoreCase("table")) {
-                try {
-                    File geoPkgFile = FileUtils.joinShpTable(updatedDataset, repository, true);
-                    boolean success = GeoserverUtils.uploadGpkgToGeoserver(updatedDataset.getId(), geoPkgFile);
-                    if (!success) {
-                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer upload failed.");
+            if ( isChildCompatible && isParentCompatible && isGuidCompatible) {
+                String format = updatedDataset.getFormat();
+                if (format != null && format.equalsIgnoreCase("table")) {
+                    try {
+                        File geoPkgFile = FileUtils.joinShpTable(updatedDataset, repository, true);
+                        boolean success = GeoserverUtils.uploadGpkgToGeoserver(updatedDataset.getId(), geoPkgFile);
+                        if (!success) {
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer upload failed.");
+                        }
+                        FileUtils.deleteTmpDir(geoPkgFile); // Clean up
+                        logger.info("Dataset joined to source dataset and uploaded to geoserver.");
+                    } catch (Exception e) {
+                        logger.error("Error during GeoServer upload process: " + e.getMessage(), e);
+                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer layer creation failed.");
                     }
-                    FileUtils.deleteTmpDir(geoPkgFile); // Clean up
-                } catch (Exception e) {
-                    logger.error("Error during GeoServer upload process: " + e.getMessage(), e);
-                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer layer creation failed.");
                 }
+            } else {
+                logger.info("Dataset not joined to parent dataset.");
             }
             return updatedDataset;
         }
