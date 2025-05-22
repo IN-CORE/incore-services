@@ -83,7 +83,7 @@ public class VisualizationResource extends ProjectResource{
         }
     }
 
-    public void removeLayerbyId(String layerId) {
+    public void removeLayerById(String layerId) {
         int indexToRemove = -1;
         for (int i = 0; i < layers.size(); i++) {
             if (layerId.equals(layers.get(i).getLayerId())) {

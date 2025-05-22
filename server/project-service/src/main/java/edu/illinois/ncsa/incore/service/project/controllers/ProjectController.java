@@ -1124,7 +1124,7 @@ public class ProjectController {
             VisualizationResource visualization = project.getVisualization(visualizationId);
             if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
                 for (String layerId : layerIds) {
-                    visualization.removeLayerbyId(layerId);
+                    visualization.removeLayerById(layerId);
                 }
             } else {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
@@ -1144,7 +1144,7 @@ public class ProjectController {
     }
 
     @PUT
-    @Path("{projectId}/visualizations/{visualizationId}/layers/{layerId}")
+    @Path("{projectId}/visualizations/{visualizationId}/layers")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Update a specific layer in a visualization")
