@@ -1061,6 +1061,19 @@ public class DatasetController {
         String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
         String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
 
+        // Check if the field exists and is of type String
+        try {
+            Field f = dataset.getClass().getDeclaredField(propName); // Get the passed field from Dataset class
+            f.setAccessible(true);
+            if (!f.getType().isAssignableFrom(String.class)) {  // check if the dataset field passed accepts strings
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The field provided in " + UPDATE_OBJECT_NAME
+                    + " is not a string. This method only allows updating properties of string type.");
+            }
+        } catch (NoSuchFieldException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The field provided in "
+                + UPDATE_OBJECT_NAME + " does not exist in the dataset. ");
+        }
+
         // Handle special logic for sourceDataset update (i.e., setting parent ID)
         if ("sourceDataset".equalsIgnoreCase(propName)) {
             Dataset parentDataset = repository.getDatasetById(propVal);
@@ -1108,23 +1121,10 @@ public class DatasetController {
                 logger.info("Dataset not joined to parent dataset.");
             }
             return updatedDataset;
+        } else {
+            dataset = repository.updateDataset(datasetId, propName, propVal);
+            return dataset;
         }
-
-        try {
-            Field f = dataset.getClass().getDeclaredField(propName); // Get the passed field from Dataset class
-            f.setAccessible(true);
-            if (!f.getType().isAssignableFrom(String.class)) {  // check if the dataset field passed accepts strings
-                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The field provided in " + UPDATE_OBJECT_NAME
-                    + " is not a string. This method only allows updating properties of string type.");
-            }
-        } catch (NoSuchFieldException e) {
-            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "The field provided in "
-                + UPDATE_OBJECT_NAME + " does not exist in the dataset. ");
-        }
-
-        dataset = repository.updateDataset(datasetId, propName, propVal);
-        return dataset;
-
     }
 
     @GET
