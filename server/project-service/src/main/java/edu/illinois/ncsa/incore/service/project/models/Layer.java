@@ -49,7 +49,7 @@ public class Layer {
 
     public void setDatasetCategoryType(String datasetCategoryType){ this.datasetCategoryType = datasetCategoryType; }
 
-    public String displayName(){ return displayName; }
+    public String getDisplayName(){ return displayName; }
 
     public void setDisplayName(String displayName){ this.displayName = displayName; }
 
