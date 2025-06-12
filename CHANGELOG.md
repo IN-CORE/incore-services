@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
 - Swagger to version 2.2.28 [#251](https://github.com/IN-CORE/incore-services/issues/251)
 
+### Added
+- More fields in the visualziation layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
+
 ## [1.28.0] - 2025-02-20
 ### Added
 - Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)
