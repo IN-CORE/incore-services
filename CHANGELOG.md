@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Swagger to version 2.2.28 [#251](https://github.com/IN-CORE/incore-services/issues/251)
 - Endpoint to delete and edit layers in visualization [#360](https://github.com/IN-CORE/incore-services/issues/360)
 
+### Added
+- More fields in the visualziation layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
+
 ## [1.28.0] - 2025-02-20
 ### Added
 - Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)
