@@ -1106,7 +1106,7 @@ public class ProjectController {
     public Project deleteLayersFromMapVis(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
         @Parameter(name = "visualizationId", description = "ID of the visualization to update", required = true) @PathParam("visualizationId") String visualizationId,
-        @Parameter(name = "layers", description = "List of layers to delete", required = true) List<Layer> layers) {
+        @Parameter(name = "layerIds", description = "List of layer IDs to delete", required = true) List<String> layerIds) {
         {
             // Check if the project exists
             Project project = projectDAO.getProjectById(id);
@@ -1123,8 +1123,8 @@ public class ProjectController {
             // Check if the visualization is of type Map and update layers
             VisualizationResource visualization = project.getVisualization(visualizationId);
             if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
-                for (Layer layer : layers) {
-                    visualization.removeLayer(layer);
+                for (String layerId : layerIds) {
+                    visualization.removeLayerById(layerId);
                 }
             } else {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
@@ -1142,4 +1142,45 @@ public class ProjectController {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete the layer.");
         }
     }
+
+    @PUT
+    @Path("{projectId}/visualizations/{visualizationId}/layers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Update a specific layer in a visualization")
+    public Project updateLayerInMapVis(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String projectId,
+        @Parameter(name = "visualizationId", description = "ID of the visualization to update", required = true) @PathParam("visualizationId") String visualizationId,
+        @Parameter(description = "Updated layer object", required = true) Layer newLayer) {
+
+        // Check if the project exists
+        Project project = projectDAO.getProjectById(projectId);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Project with id " + projectId + " not found.");
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to modify this project.");
+        }
+
+        // Check if the visualization is of type Map and update layers
+        VisualizationResource visualization = project.getVisualization(visualizationId);
+        if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
+            visualization.updateLayer(newLayer);
+        } else {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
+        }
+
+        // Persist the updated project
+        Project updatedProject = projectDAO.updateProject(projectId, project);
+        if (updatedProject != null) {
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(projectId));
+            return updatedProject;
+        }
+
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to update the layer.");
+    }
+
 }
