@@ -1255,7 +1255,6 @@ public class DatasetController {
             SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi");
             SimpleFeatureCollection originalFeatures = featureSource.getFeatures(filter);
             CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4326", true);
-            SimpleFeatureCollection reprojectedFeatures = new ReprojectingFeatureCollection(originalFeatures, targetCRS);
 
             // Step 5: Create shapefile schema
             File shpFile = new File(tempDir, "export.shp");
@@ -1315,17 +1314,15 @@ public class DatasetController {
 
             try {
                 writer = shpDataStore.getFeatureWriterAppend(shpDataStore.getTypeNames()[0], transaction);
-                iterator = reprojectedFeatures.features();
+                iterator = originalFeatures.features();
 
                 while (iterator.hasNext()) {
                     SimpleFeature sourceFeature = iterator.next();
                     SimpleFeature targetFeature = writer.next();
 
-//                    System.out.println("----- Writing feature -----");
                     for (Property property : sourceFeature.getProperties()) {
                         String name = property.getName().toString();
                         Object value = property.getValue();
-//                        System.out.println("Property: " + name + " = " + value);
 
                         if ("ground_elv_m".equals(name)) {
                             continue; // Skip column that was removed
