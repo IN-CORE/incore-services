@@ -53,7 +53,10 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.store.ReprojectingFeatureCollection;
+import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.referencing.CRS;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.feature.AttributeTypeBuilder;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -1213,6 +1216,13 @@ public class DatasetController {
         description = "Generates a zipped shapefile from PostGIS for given FIPS codes."
     )
     public Response exportShapefileByFips(List<String> fipsCodes) {
+    // IMPORTANT: GeoTools requires that the geometry field (e.g., "geom") is explicitly added
+    // and registered as the default geometry in the shapefile schema.
+    // If this is not done, you may get the error: "Unknown attribute geom"
+    // This happens because GeoTools can't implicitly detect geometry fields from PostGIS schema.
+    // Therefore, we must:
+    // 1. Add the geometry field with a specific geometry type (e.g., Point.class)
+    // 2. Set it as the default geometry before building the schema
         File tempDir = null;
         File zipFile = null;
 
@@ -1259,40 +1269,43 @@ public class DatasetController {
             SimpleFeatureType originalSchema = originalFeatures.getSchema();
             SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
             builder.setName("export");
-            builder.setCRS(targetCRS); // Force CRS on geometry
+            builder.setCRS(targetCRS); // Force EPSG:4326
 
+            AttributeTypeBuilder attrBuilder = new AttributeTypeBuilder();
             String defaultGeometryName = null;
 
             for (AttributeDescriptor descriptor : originalSchema.getAttributeDescriptors()) {
                 String attrName = descriptor.getLocalName();
 
-                if ("ground_elv_m".equals(attrName)) {
-                    // Skip field not needed
-                    continue;
-                }
-
-                if ("exact_match".equals(attrName)) {
-                    // Truncate name to 10 characters for shapefile compatibility
-                    builder.add("exact_mat", descriptor.getType().getBinding());
-                    continue;
-                }
-
                 if (descriptor instanceof GeometryDescriptor) {
-                    builder.add(attrName, Point.class); // Force to Point
+                    builder.add(attrName, Point.class);
                     builder.setDefaultGeometry(attrName);
                     defaultGeometryName = attrName;
-                    System.out.println("Set default geometry to: " + attrName);
+                } else if ("ground_elv_m".equals(attrName)) {
+                    continue;
+                } else if ("exact_match".equals(attrName)) {
+                    attrBuilder.setBinding(String.class);
+                    attrBuilder.setLength(10);
+                    builder.add(attrBuilder.buildDescriptor("exact_mat"));
+                } else if ("no_stories".equals(attrName)) {
+                    attrBuilder.setBinding(Integer.class);
+                    attrBuilder.setLength(3);  // width = 3 digits
+                    builder.add(attrBuilder.buildDescriptor(attrName));
+                } else if ("year_built".equals(attrName)) {
+                    attrBuilder.setBinding(Integer.class);
+                    attrBuilder.setLength(4);  // width = 4 digits
+                    builder.add(attrBuilder.buildDescriptor(attrName));
                 } else {
-                    builder.add(attrName, descriptor.getType().getBinding());
+                    builder.add(descriptor);
                 }
             }
 
-            // Fail early if no geometry
             if (defaultGeometryName == null) {
-                throw new IllegalStateException("No geometry field found in schema.");
+                throw new IllegalStateException("No geometry field found in original schema.");
             }
 
             SimpleFeatureType newSchema = builder.buildFeatureType();
+
             shpDataStore.createSchema(newSchema);
 
             // Step 6: Write shapefile
