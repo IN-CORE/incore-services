@@ -1224,115 +1224,96 @@ public class DatasetController {
             tempDir = Files.createTempDirectory("shapefile_export_").toFile();
 
             // Step 2: Connect to PostGIS
-            Map<String, Object> params = Map.of(
-                "dbtype", "postgis",
-                "host", PG_HOST,
-                "port", Integer.parseInt(PG_PORT),
-                "database", PG_DATABASE,
-                "user", PG_USER,
-                "passwd", PG_PASSWORD
-            );
+            Map<String, Object> params = new HashMap<>();
+            params.put("dbtype", "postgis");
+            params.put("host", PG_HOST);
+            params.put("port", Integer.parseInt(PG_PORT));
+            params.put("database", PG_DATABASE);
+            params.put("user", PG_USER);
+            params.put("passwd", PG_PASSWORD);
+
             DataStore dataStore = DataStoreFinder.getDataStore(params);
             if (dataStore == null) {
                 throw new IOException("Failed to connect to PostGIS.");
             }
 
-            // Step 3: Filter by FIPS
+            // Step 3: Build CQL filter
             String filterStr = fipsCodes.stream()
                 .map(code -> "cbfips LIKE '" + code + "%'")
                 .reduce((a, b) -> a + " OR " + b)
                 .orElse("FALSE");
             Filter filter = CQL.toFilter(filterStr);
 
-            // Step 4: Fetch filtered features
-            SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi");
-            SimpleFeatureCollection originalFeatures = featureSource.getFeatures(filter);
-            SimpleFeatureType originalSchema = originalFeatures.getSchema();
+            // Step 4: Query features from the optimized view
+            SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi_export_view");
+            SimpleFeatureCollection features = featureSource.getFeatures(filter);
 
-            // Step 5: Create schema
+            // Step 5: Build shapefile schema
             File shpFile = new File(tempDir, "export.shp");
-            Map<String, Serializable> shpParams = Map.of(
-                "url", shpFile.toURI().toURL(),
-                "create spatial index", Boolean.TRUE
-            );
+            Map<String, Serializable> shpParams = new HashMap<>();
+            shpParams.put("url", shpFile.toURI().toURL());
+            shpParams.put("create spatial index", Boolean.TRUE);
 
             ShapefileDataStoreFactory shpFactory = new ShapefileDataStoreFactory();
             ShapefileDataStore shpDataStore = (ShapefileDataStore) shpFactory.createNewDataStore(shpParams);
 
+            SimpleFeatureType originalSchema = features.getSchema();
             SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
             builder.setName("export");
             builder.setCRS(originalSchema.getCoordinateReferenceSystem());
 
-            AttributeTypeBuilder attrBuilder = new AttributeTypeBuilder();
             String defaultGeometryName = null;
-
-            Map<String, String> renamedAttrs = new HashMap<>();
-
+            AttributeTypeBuilder attrBuilder = new AttributeTypeBuilder();
             for (AttributeDescriptor descriptor : originalSchema.getAttributeDescriptors()) {
-                String attrName = descriptor.getLocalName();
+                String name = descriptor.getLocalName();
 
                 if (descriptor instanceof GeometryDescriptor) {
-                    builder.add(attrName, Point.class);
-                    builder.setDefaultGeometry(attrName);
-                    defaultGeometryName = attrName;
-                } else if ("ground_elv_m".equals(attrName)) {
-                    continue;
-                } else if ("exact_match".equals(attrName)) {
-                    attrBuilder.setBinding(String.class);
-                    attrBuilder.setLength(10);
-                    builder.add(attrBuilder.buildDescriptor("exact_mat"));
-                    renamedAttrs.put("exact_match", "exact_mat");
-                } else if ("no_stories".equals(attrName)) {
+                    builder.add(name, Point.class);
+                    builder.setDefaultGeometry(name);
+                    defaultGeometryName = name;
+                } else if ("no_stories".equals(name)) {
                     attrBuilder.setBinding(Integer.class);
-                    attrBuilder.setLength(3);
-                    builder.add(attrBuilder.buildDescriptor(attrName));
-                } else if ("year_built".equals(attrName)) {
+                    attrBuilder.setLength(3);  // set width to 3 digits
+                    builder.add(attrBuilder.buildDescriptor(name));
+                } else if ("year_built".equals(name)) {
                     attrBuilder.setBinding(Integer.class);
-                    attrBuilder.setLength(4);
-                    builder.add(attrBuilder.buildDescriptor(attrName));
+                    attrBuilder.setLength(4);  // set width to 4 digits
+                    builder.add(attrBuilder.buildDescriptor(name));
                 } else {
                     builder.add(descriptor);
                 }
             }
 
             if (defaultGeometryName == null) {
-                throw new IllegalStateException("No geometry field found in original schema.");
+                throw new IllegalStateException("No geometry field found in schema.");
             }
 
             SimpleFeatureType newSchema = builder.buildFeatureType();
             shpDataStore.createSchema(newSchema);
 
-            // Step 6: Write features
+            // Step 6: Write shapefile
             Transaction tx = new DefaultTransaction("create");
             try (
                 FeatureWriter<SimpleFeatureType, SimpleFeature> writer = shpDataStore.getFeatureWriterAppend(shpDataStore.getTypeNames()[0], tx);
-                SimpleFeatureIterator iterator = originalFeatures.features()
+                SimpleFeatureIterator iterator = features.features()
             ) {
                 while (iterator.hasNext()) {
                     SimpleFeature source = iterator.next();
                     SimpleFeature target = writer.next();
 
-                    for (AttributeDescriptor descriptor : originalSchema.getAttributeDescriptors()) {
-                        String name = descriptor.getLocalName();
-                        if ("ground_elv_m".equals(name)) continue;
-
-                        Object value = source.getAttribute(name);
-                        String targetName = renamedAttrs.getOrDefault(name, name);
+                    for (Property property : source.getProperties()) {
+                        String name = property.getName().toString();
+                        Object value = property.getValue();
 
                         if (name.equals(defaultGeometryName)) {
                             target.setDefaultGeometry(value);
-                        } else if ("no_stories".equals(name)) {
-                            target.setAttribute("no_stories", Math.min(toInt(value), 999));
-                        } else if ("year_built".equals(name)) {
-                            target.setAttribute("year_built", Math.min(toInt(value), 9999));
-                        } else if (newSchema.getDescriptor(targetName) != null) {
-                            target.setAttribute(targetName, value);
+                        } else if (newSchema.getDescriptor(name) != null) {
+                            target.setAttribute(name, value);
                         }
                     }
 
                     writer.write();
                 }
-
                 tx.commit();
             } catch (Exception e) {
                 tx.rollback();
@@ -1341,16 +1322,19 @@ public class DatasetController {
                 tx.close();
             }
 
-            // Step 7: Zip result
+            // Step 7: Zip files
             zipFile = new File(tempDir.getParent(), "shapefile_export.zip");
-            try (
-                FileOutputStream fos = new FileOutputStream(zipFile);
-                ZipOutputStream zos = new ZipOutputStream(fos)
-            ) {
+            try (FileOutputStream fos = new FileOutputStream(zipFile);
+                 ZipOutputStream zos = new ZipOutputStream(fos)) {
+
                 for (File file : Objects.requireNonNull(tempDir.listFiles())) {
                     try (FileInputStream fis = new FileInputStream(file)) {
                         zos.putNextEntry(new ZipEntry(file.getName()));
-                        fis.transferTo(zos);
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = fis.read(buffer)) >= 0) {
+                            zos.write(buffer, 0, length);
+                        }
                         zos.closeEntry();
                     }
                 }
@@ -1373,8 +1357,5 @@ public class DatasetController {
         }
     }
 
-    private int toInt(Object value) {
-        return value instanceof Number ? ((Number) value).intValue() : 0;
-    }
 
 }
