@@ -45,9 +45,41 @@ import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.api.data.*;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.feature.type.GeometryDescriptor;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.store.ReprojectingFeatureCollection;
+import org.geotools.referencing.CRS;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+//import org.geotools.api.filter.FilterFactory2;
+
+import org.geotools.data.DefaultTransaction;
+//import org.geotools.data.DefaultTransaction;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+
+
+import org.geotools.filter.text.cql2.CQL;
+
+import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -92,6 +124,11 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
 public class DatasetController {
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
     private static final String GEOSERVER_ENABLE = System.getenv("GEOSERVER_ENABLE");
+    private static final String PG_HOST = System.getenv("PG_HOST");
+    private static final String PG_PORT = System.getenv("PG_PORT"); // string because it's an env var
+    private static final String PG_DATABASE = System.getenv("PG_DATABASE");
+    private static final String PG_USER = System.getenv("PG_USER");
+    private static final String PG_PASSWORD = System.getenv("PG_PASSWORD");
     private static final String POST_PARAMETER_NAME = "name";
     private static final String POST_PARAMETER_FILE = "file";
     private static final String POST_PARAMETER_FILE_LINK = "link-file";
@@ -1167,4 +1204,128 @@ public class DatasetController {
         return datasets;
     }
 
+    @POST
+    @Path("export-fips")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(
+        summary = "Export features from PostGIS by 5-digit FIPS code",
+        description = "Generates a zipped shapefile from PostGIS for given FIPS codes."
+    )
+    public Response exportShapefileByFips(List<String> fipsCodes) {
+        File tempDir = null;
+        File zipFile = null;
+
+        try {
+            // Step 1: Create temp directory for shapefile components
+            tempDir = Files.createTempDirectory("shapefile_export_").toFile();
+
+            // Step 2: Connect to PostGIS
+            Map<String, Object> params = new HashMap<>();
+            params.put("dbtype", "postgis");
+            params.put("host", PG_HOST);
+            params.put("port", Integer.parseInt(PG_PORT));
+            params.put("database", PG_DATABASE);
+            params.put("user", PG_USER);
+            params.put("passwd", PG_PASSWORD);
+
+            DataStore dataStore = DataStoreFinder.getDataStore(params);
+            if (dataStore == null) {
+                throw new IOException("Failed to connect to PostGIS.");
+            }
+
+            // Step 3: Build CQL filter from FIPS codes
+            String filterStr = fipsCodes.stream()
+                .map(code -> "cbfips LIKE '" + code + "%'")
+                .reduce((a, b) -> a + " OR " + b)
+                .orElse("FALSE");
+
+            Filter filter = CQL.toFilter(filterStr);
+
+            // Step 4: Query the features
+            SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi");
+            SimpleFeatureCollection collection = featureSource.getFeatures(filter);
+
+            // Step 5: Reproject to EPSG:4326 (force axis order Lon/Lat)
+            CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4326", true);
+            SimpleFeatureCollection reprojected = new ReprojectingFeatureCollection(collection, targetCRS);
+
+            // Step 6: Define shapefile path
+            File shpFile = new File(tempDir, "export.shp");
+            Map<String, Serializable> shpParams = new HashMap<>();
+            shpParams.put("url", shpFile.toURI().toURL());
+            shpParams.put("create spatial index", Boolean.TRUE);
+
+            // Step 7: Create shapefile with correct schema and CRS
+            ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
+            ShapefileDataStore shpDataStore = (ShapefileDataStore) factory.createNewDataStore(shpParams);
+
+            // Copy schema and set CRS explicitly
+            SimpleFeatureType originalSchema = collection.getSchema();
+            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+            builder.setName("export");
+            builder.setCRS(targetCRS);  // Force CRS
+
+            for (AttributeDescriptor desc : originalSchema.getAttributeDescriptors()) {
+                if (desc instanceof GeometryDescriptor) {
+                    builder.add("geom", desc.getType().getBinding());
+                    builder.setDefaultGeometry("geom");
+                } else {
+                    builder.add(desc);
+                }
+            }
+
+            SimpleFeatureType newSchema = builder.buildFeatureType();
+            shpDataStore.createSchema(newSchema);
+
+            // Step 8: Write features to shapefile
+            Transaction transaction = new DefaultTransaction("create");
+            try {
+                SimpleFeatureStore featureStore = (SimpleFeatureStore) shpDataStore.getFeatureSource();
+                featureStore.setTransaction(transaction);
+                featureStore.addFeatures(reprojected);
+                transaction.commit();
+            } catch (Exception e) {
+                transaction.rollback();
+                throw new RuntimeException("Failed to write shapefile", e);
+            } finally {
+                transaction.close();
+            }
+
+            // Step 9: Zip shapefile components
+            zipFile = new File(tempDir.getParent(), "shapefile_export.zip");
+            try (FileOutputStream fos = new FileOutputStream(zipFile);
+                 ZipOutputStream zos = new ZipOutputStream(fos)) {
+
+                for (File file : Objects.requireNonNull(tempDir.listFiles())) {
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        ZipEntry zipEntry = new ZipEntry(file.getName());
+                        zos.putNextEntry(zipEntry);
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = fis.read(buffer)) >= 0) {
+                            zos.write(buffer, 0, length);
+                        }
+                        zos.closeEntry();
+                    }
+                }
+            }
+
+            // Step 10: Return shapefile zip
+            return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
+                .header("Content-Disposition", "attachment; filename=\"shapefile_export.zip\"")
+                .build();
+
+        } catch (Exception e) {
+            logger.error("Failed to export shapefile", e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error exporting shapefile: " + e.getMessage());
+        } finally {
+            if (tempDir != null && tempDir.exists()) {
+                for (File file : Objects.requireNonNull(tempDir.listFiles())) {
+                    file.delete();
+                }
+                tempDir.delete();
+            }
+        }
+    }
 }
