@@ -1242,43 +1242,42 @@ public class DatasetController {
 
             Filter filter = CQL.toFilter(filterStr);
 
-            // Step 4: Query the features
+            // Step 4: Query and reproject features
             SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi");
             SimpleFeatureCollection collection = featureSource.getFeatures(filter);
-
-            // Step 5: Reproject to EPSG:4326 (force axis order Lon/Lat)
             CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4326", true);
             SimpleFeatureCollection reprojected = new ReprojectingFeatureCollection(collection, targetCRS);
 
-            // Step 6: Define shapefile path
+            // Step 5: Build explicit schema with geometry field "geom"
+            SimpleFeatureType originalSchema = reprojected.getSchema();
+            SimpleFeatureTypeBuilder typeBuilder = new SimpleFeatureTypeBuilder();
+            typeBuilder.setName("export");
+            typeBuilder.setCRS(targetCRS);
+
+            for (AttributeDescriptor descriptor : originalSchema.getAttributeDescriptors()) {
+                String name = descriptor.getLocalName();
+                if (descriptor instanceof GeometryDescriptor) {
+                    // Force geometry name to "geom"
+                    typeBuilder.add("geom", descriptor.getType().getBinding());
+                    typeBuilder.setDefaultGeometry("geom");
+                } else {
+                    typeBuilder.add(descriptor);
+                }
+            }
+
+            SimpleFeatureType exportSchema = typeBuilder.buildFeatureType();
+
+            // Step 6: Create shapefile with proper schema
             File shpFile = new File(tempDir, "export.shp");
             Map<String, Serializable> shpParams = new HashMap<>();
             shpParams.put("url", shpFile.toURI().toURL());
             shpParams.put("create spatial index", Boolean.TRUE);
 
-            // Step 7: Create shapefile with correct schema and CRS
-            ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
-            ShapefileDataStore shpDataStore = (ShapefileDataStore) factory.createNewDataStore(shpParams);
+            ShapefileDataStoreFactory shpFactory = new ShapefileDataStoreFactory();
+            ShapefileDataStore shpDataStore = (ShapefileDataStore) shpFactory.createNewDataStore(shpParams);
+            shpDataStore.createSchema(exportSchema);
 
-            // Copy schema and set CRS explicitly
-            SimpleFeatureType originalSchema = collection.getSchema();
-            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-            builder.setName("export");
-            builder.setCRS(targetCRS);  // Force CRS
-
-            for (AttributeDescriptor desc : originalSchema.getAttributeDescriptors()) {
-                if (desc instanceof GeometryDescriptor) {
-                    builder.add("geom", desc.getType().getBinding());
-                    builder.setDefaultGeometry("geom");
-                } else {
-                    builder.add(desc);
-                }
-            }
-
-            SimpleFeatureType newSchema = builder.buildFeatureType();
-            shpDataStore.createSchema(newSchema);
-
-            // Step 8: Write features to shapefile
+            // Step 7: Write features to shapefile
             Transaction transaction = new DefaultTransaction("create");
             try {
                 SimpleFeatureStore featureStore = (SimpleFeatureStore) shpDataStore.getFeatureSource();
@@ -1292,11 +1291,10 @@ public class DatasetController {
                 transaction.close();
             }
 
-            // Step 9: Zip shapefile components
+            // Step 8: Zip shapefile components
             zipFile = new File(tempDir.getParent(), "shapefile_export.zip");
             try (FileOutputStream fos = new FileOutputStream(zipFile);
                  ZipOutputStream zos = new ZipOutputStream(fos)) {
-
                 for (File file : Objects.requireNonNull(tempDir.listFiles())) {
                     try (FileInputStream fis = new FileInputStream(file)) {
                         ZipEntry zipEntry = new ZipEntry(file.getName());
@@ -1311,7 +1309,7 @@ public class DatasetController {
                 }
             }
 
-            // Step 10: Return shapefile zip
+            // Step 9: Return downloadable zip file
             return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
                 .header("Content-Disposition", "attachment; filename=\"shapefile_export.zip\"")
                 .build();
@@ -1320,6 +1318,7 @@ public class DatasetController {
             logger.error("Failed to export shapefile", e);
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error exporting shapefile: " + e.getMessage());
         } finally {
+            // Step 10: Clean up temporary shapefile directory
             if (tempDir != null && tempDir.exists()) {
                 for (File file : Objects.requireNonNull(tempDir.listFiles())) {
                     file.delete();
