@@ -46,10 +46,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.api.data.*;
+import org.geotools.api.feature.Property;
 import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.referencing.CRS;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -59,6 +61,8 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.api.filter.Filter;
+import org.locationtech.jts.geom.Point;
+
 import org.geotools.api.filter.FilterFactory;
 //import org.geotools.api.filter.FilterFactory2;
 
@@ -68,8 +72,6 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-
-
 import org.geotools.filter.text.cql2.CQL;
 
 import java.io.*;
@@ -78,8 +80,6 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -1217,7 +1217,7 @@ public class DatasetController {
         File zipFile = null;
 
         try {
-            // Step 1: Create temp directory for shapefile components
+            // Step 1: Create temporary directory
             tempDir = Files.createTempDirectory("shapefile_export_").toFile();
 
             // Step 2: Connect to PostGIS
@@ -1234,73 +1234,136 @@ public class DatasetController {
                 throw new IOException("Failed to connect to PostGIS.");
             }
 
-            // Step 3: Build CQL filter from FIPS codes
+            // Step 3: Build CQL filter
             String filterStr = fipsCodes.stream()
                 .map(code -> "cbfips LIKE '" + code + "%'")
                 .reduce((a, b) -> a + " OR " + b)
                 .orElse("FALSE");
-
             Filter filter = CQL.toFilter(filterStr);
 
-            // Step 4: Query the features
+            // Step 4: Fetch and reproject features
             SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi");
-            SimpleFeatureCollection collection = featureSource.getFeatures(filter);
-
-            // Step 5: Reproject to EPSG:4326 (force axis order Lon/Lat)
+            SimpleFeatureCollection originalFeatures = featureSource.getFeatures(filter);
             CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4326", true);
-            SimpleFeatureCollection reprojected = new ReprojectingFeatureCollection(collection, targetCRS);
+            SimpleFeatureCollection reprojectedFeatures = new ReprojectingFeatureCollection(originalFeatures, targetCRS);
 
-            // Step 6: Define shapefile path
+            // Step 5: Create shapefile schema
             File shpFile = new File(tempDir, "export.shp");
             Map<String, Serializable> shpParams = new HashMap<>();
             shpParams.put("url", shpFile.toURI().toURL());
             shpParams.put("create spatial index", Boolean.TRUE);
 
-            // Step 7: Create shapefile with correct schema and CRS
-            ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
-            ShapefileDataStore shpDataStore = (ShapefileDataStore) factory.createNewDataStore(shpParams);
+            ShapefileDataStoreFactory shpFactory = new ShapefileDataStoreFactory();
+            ShapefileDataStore shpDataStore = (ShapefileDataStore) shpFactory.createNewDataStore(shpParams);
 
-            // Copy schema and set CRS explicitly
-            SimpleFeatureType originalSchema = collection.getSchema();
+            SimpleFeatureType originalSchema = originalFeatures.getSchema();
             SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
             builder.setName("export");
-            builder.setCRS(targetCRS);  // Force CRS
+            builder.setCRS(targetCRS); // Force CRS on geometry
 
-            for (AttributeDescriptor desc : originalSchema.getAttributeDescriptors()) {
-                if (desc instanceof GeometryDescriptor) {
-                    builder.add("geom", desc.getType().getBinding());
-                    builder.setDefaultGeometry("geom");
-                } else {
-                    builder.add(desc);
+            String defaultGeometryName = null;
+
+            for (AttributeDescriptor descriptor : originalSchema.getAttributeDescriptors()) {
+                String attrName = descriptor.getLocalName();
+
+                if ("ground_elv_m".equals(attrName)) {
+                    // Skip field not needed
+                    continue;
                 }
+
+                if ("exact_match".equals(attrName)) {
+                    // Truncate name to 10 characters for shapefile compatibility
+                    builder.add("exact_mat", descriptor.getType().getBinding());
+                    continue;
+                }
+
+                if (descriptor instanceof GeometryDescriptor) {
+                    builder.add(attrName, Point.class); // Force to Point
+                    builder.setDefaultGeometry(attrName);
+                    defaultGeometryName = attrName;
+                    System.out.println("Set default geometry to: " + attrName);
+                } else {
+                    builder.add(attrName, descriptor.getType().getBinding());
+                }
+            }
+
+            // Fail early if no geometry
+            if (defaultGeometryName == null) {
+                throw new IllegalStateException("No geometry field found in schema.");
             }
 
             SimpleFeatureType newSchema = builder.buildFeatureType();
             shpDataStore.createSchema(newSchema);
 
-            // Step 8: Write features to shapefile
+            // Step 6: Write shapefile
             Transaction transaction = new DefaultTransaction("create");
+            FeatureWriter<SimpleFeatureType, SimpleFeature> writer = null;
+            SimpleFeatureIterator iterator = null;
+
             try {
-                SimpleFeatureStore featureStore = (SimpleFeatureStore) shpDataStore.getFeatureSource();
-                featureStore.setTransaction(transaction);
-                featureStore.addFeatures(reprojected);
+                writer = shpDataStore.getFeatureWriterAppend(shpDataStore.getTypeNames()[0], transaction);
+                iterator = reprojectedFeatures.features();
+
+                while (iterator.hasNext()) {
+                    SimpleFeature sourceFeature = iterator.next();
+                    SimpleFeature targetFeature = writer.next();
+
+//                    System.out.println("----- Writing feature -----");
+                    for (Property property : sourceFeature.getProperties()) {
+                        String name = property.getName().toString();
+                        Object value = property.getValue();
+//                        System.out.println("Property: " + name + " = " + value);
+
+                        if ("ground_elv_m".equals(name)) {
+                            continue; // Skip column that was removed
+                        }
+
+                        if (name.equals(defaultGeometryName)) {
+                            targetFeature.setDefaultGeometry(value); // Set geometry explicitly
+                            continue;
+                        }
+
+                        if ("exact_match".equals(name)) {
+                            targetFeature.setAttribute("exact_mat", value);
+                        } else if ("no_stories".equals(name)) {
+                            // Ensure no_stories is 3 digits max (truncate if necessary)
+                            if (value instanceof Number) {
+                                int val = ((Number) value).intValue();
+                                targetFeature.setAttribute("no_stories", Math.min(val, 999));
+                            }
+                        } else if ("year_built".equals(name)) {
+                            // Ensure year_built is 4 digits max
+                            if (value instanceof Number) {
+                                int val = ((Number) value).intValue();
+                                targetFeature.setAttribute("year_built", Math.min(val, 9999));
+                            }
+                        } else if (newSchema.getDescriptor(name) != null) {
+                            targetFeature.setAttribute(name, value);
+                        } else {
+                            System.out.println("!!! Skipped unknown property: " + name);
+                        }
+                    }
+                    writer.write();
+                }
+
                 transaction.commit();
             } catch (Exception e) {
                 transaction.rollback();
-                throw new RuntimeException("Failed to write shapefile", e);
+                throw new RuntimeException("Failed to write shapefile: " + e.getMessage(), e);
             } finally {
+                if (writer != null) writer.close();
+                if (iterator != null) iterator.close();
                 transaction.close();
             }
 
-            // Step 9: Zip shapefile components
+            // Step 7: Zip files
             zipFile = new File(tempDir.getParent(), "shapefile_export.zip");
             try (FileOutputStream fos = new FileOutputStream(zipFile);
                  ZipOutputStream zos = new ZipOutputStream(fos)) {
 
                 for (File file : Objects.requireNonNull(tempDir.listFiles())) {
                     try (FileInputStream fis = new FileInputStream(file)) {
-                        ZipEntry zipEntry = new ZipEntry(file.getName());
-                        zos.putNextEntry(zipEntry);
+                        zos.putNextEntry(new ZipEntry(file.getName()));
                         byte[] buffer = new byte[1024];
                         int length;
                         while ((length = fis.read(buffer)) >= 0) {
@@ -1311,7 +1374,6 @@ public class DatasetController {
                 }
             }
 
-            // Step 10: Return shapefile zip
             return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
                 .header("Content-Disposition", "attachment; filename=\"shapefile_export.zip\"")
                 .build();
@@ -1328,4 +1390,5 @@ public class DatasetController {
             }
         }
     }
+
 }
