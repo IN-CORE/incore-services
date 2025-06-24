@@ -1208,7 +1208,7 @@ public class DatasetController {
     }
 
     @POST
-    @Path("export-fips")
+    @Path("nsi/bld-inventory/blob")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Operation(
@@ -1249,7 +1249,7 @@ public class DatasetController {
             SimpleFeatureCollection features = featureSource.getFeatures(filter);
 
             // Step 5: Build shapefile schema
-            File shpFile = new File(tempDir, "export.shp");
+            File shpFile = new File(tempDir, "nsi_building_inventory.shp");
             Map<String, Serializable> shpParams = new HashMap<>();
             shpParams.put("url", shpFile.toURI().toURL());
             shpParams.put("create spatial index", Boolean.TRUE);
@@ -1259,7 +1259,7 @@ public class DatasetController {
 
             SimpleFeatureType originalSchema = features.getSchema();
             SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-            builder.setName("export");
+            builder.setName("nsi_building_inventory");
             builder.setCRS(originalSchema.getCoordinateReferenceSystem());
 
             String defaultGeometryName = null;
@@ -1323,7 +1323,7 @@ public class DatasetController {
             }
 
             // Step 7: Zip files
-            zipFile = new File(tempDir.getParent(), "shapefile_export.zip");
+            zipFile = new File(tempDir.getParent(), "nsi_building_inventory.zip");
             try (FileOutputStream fos = new FileOutputStream(zipFile);
                  ZipOutputStream zos = new ZipOutputStream(fos)) {
 
@@ -1341,7 +1341,7 @@ public class DatasetController {
             }
 
             return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"shapefile_export.zip\"")
+                .header("Content-Disposition", "attachment; filename=\"nsi_building_inventory.zip\"")
                 .build();
 
         } catch (Exception e) {
