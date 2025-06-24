@@ -1220,142 +1220,41 @@ public class DatasetController {
         File zipFile = null;
 
         try {
-            // Step 1: Create temporary directory
+            // Generate unique base name
+            String baseName = "nsi_building_inventory_" + UUID.randomUUID().toString().replace("-", "");
+
+            // Create temp directory
             tempDir = Files.createTempDirectory("shapefile_export_").toFile();
 
-            // Step 2: Connect to PostGIS
-            Map<String, Object> params = new HashMap<>();
-            params.put("dbtype", "postgis");
-            params.put("host", PG_HOST);
-            params.put("port", Integer.parseInt(PG_PORT));
-            params.put("database", PG_DATABASE);
-            params.put("user", PG_USER);
-            params.put("passwd", PG_PASSWORD);
+            // Connect to PostGIS
+            DataStore dataStore = GeotoolsUtils.connectToPostGIS(
+                PG_HOST, PG_PORT, PG_DATABASE, PG_USER, PG_PASSWORD
+            );
 
-            DataStore dataStore = DataStoreFinder.getDataStore(params);
-            if (dataStore == null) {
-                throw new IOException("Failed to connect to PostGIS.");
-            }
-
-            // Step 3: Build CQL filter
-            String filterStr = fipsCodes.stream()
-                .map(code -> "cbfips LIKE '" + code + "%'")
-                .reduce((a, b) -> a + " OR " + b)
-                .orElse("FALSE");
-            Filter filter = CQL.toFilter(filterStr);
-
-            // Step 4: Query features from the optimized view
+            // Build FIPS filter and fetch features
+            Filter filter = GeotoolsUtils.buildFipsFilter(fipsCodes);
             SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi_export_view");
             SimpleFeatureCollection features = featureSource.getFeatures(filter);
 
-            // Step 5: Build shapefile schema
-            File shpFile = new File(tempDir, "nsi_building_inventory.shp");
-            Map<String, Serializable> shpParams = new HashMap<>();
-            shpParams.put("url", shpFile.toURI().toURL());
-            shpParams.put("create spatial index", Boolean.TRUE);
+            // Build regulated schema and write shapefile
+            File shpFile = new File(tempDir, baseName + ".shp");
+            SimpleFeatureType schema = GeotoolsUtils.createRegulatedSchema(features.getSchema(), baseName);
+            GeotoolsUtils.writeFeaturesToShapefile(features, schema, shpFile);
 
-            ShapefileDataStoreFactory shpFactory = new ShapefileDataStoreFactory();
-            ShapefileDataStore shpDataStore = (ShapefileDataStore) shpFactory.createNewDataStore(shpParams);
-
-            SimpleFeatureType originalSchema = features.getSchema();
-            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-            builder.setName("nsi_building_inventory");
-            builder.setCRS(originalSchema.getCoordinateReferenceSystem());
-
-            String defaultGeometryName = null;
-            AttributeTypeBuilder attrBuilder = new AttributeTypeBuilder();
-            for (AttributeDescriptor descriptor : originalSchema.getAttributeDescriptors()) {
-                String name = descriptor.getLocalName();
-
-                if (descriptor instanceof GeometryDescriptor) {
-                    builder.add(name, Point.class);
-                    builder.setDefaultGeometry(name);
-                    defaultGeometryName = name;
-                } else if ("no_stories".equals(name)) {
-                    attrBuilder.setBinding(Integer.class);
-                    attrBuilder.setLength(3);  // set width to 3 digits
-                    builder.add(attrBuilder.buildDescriptor(name));
-                } else if ("year_built".equals(name)) {
-                    attrBuilder.setBinding(Integer.class);
-                    attrBuilder.setLength(4);  // set width to 4 digits
-                    builder.add(attrBuilder.buildDescriptor(name));
-                } else {
-                    builder.add(descriptor);
-                }
-            }
-
-            if (defaultGeometryName == null) {
-                throw new IllegalStateException("No geometry field found in schema.");
-            }
-
-            SimpleFeatureType newSchema = builder.buildFeatureType();
-            shpDataStore.createSchema(newSchema);
-
-            // Step 6: Write shapefile
-            Transaction tx = new DefaultTransaction("create");
-            try (
-                FeatureWriter<SimpleFeatureType, SimpleFeature> writer = shpDataStore.getFeatureWriterAppend(shpDataStore.getTypeNames()[0], tx);
-                SimpleFeatureIterator iterator = features.features()
-            ) {
-                while (iterator.hasNext()) {
-                    SimpleFeature source = iterator.next();
-                    SimpleFeature target = writer.next();
-
-                    for (Property property : source.getProperties()) {
-                        String name = property.getName().toString();
-                        Object value = property.getValue();
-
-                        if (name.equals(defaultGeometryName)) {
-                            target.setDefaultGeometry(value);
-                        } else if (newSchema.getDescriptor(name) != null) {
-                            target.setAttribute(name, value);
-                        }
-                    }
-
-                    writer.write();
-                }
-                tx.commit();
-            } catch (Exception e) {
-                tx.rollback();
-                throw new RuntimeException("Failed to write shapefile: " + e.getMessage(), e);
-            } finally {
-                tx.close();
-            }
-
-            // Step 7: Zip files
-            zipFile = new File(tempDir.getParent(), "nsi_building_inventory.zip");
-            try (FileOutputStream fos = new FileOutputStream(zipFile);
-                 ZipOutputStream zos = new ZipOutputStream(fos)) {
-
-                for (File file : Objects.requireNonNull(tempDir.listFiles())) {
-                    try (FileInputStream fis = new FileInputStream(file)) {
-                        zos.putNextEntry(new ZipEntry(file.getName()));
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        while ((length = fis.read(buffer)) >= 0) {
-                            zos.write(buffer, 0, length);
-                        }
-                        zos.closeEntry();
-                    }
-                }
-            }
+            // Zip shapefile
+            zipFile = new File(tempDir.getParent(), baseName + ".zip");
+            GeotoolsUtils.zipDirectory(tempDir, baseName);
 
             return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"nsi_building_inventory.zip\"")
+                .header("Content-Disposition", "attachment; filename=\"" + zipFile.getName() + "\"")
                 .build();
 
         } catch (Exception e) {
             logger.error("Failed to export shapefile", e);
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error exporting shapefile: " + e.getMessage());
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR,
+                "Error exporting shapefile: " + e.getMessage());
         } finally {
-            if (tempDir != null && tempDir.exists()) {
-                for (File file : Objects.requireNonNull(tempDir.listFiles())) {
-                    file.delete();
-                }
-                tempDir.delete();
-            }
+            GeotoolsUtils.cleanupDirectory(tempDir);
         }
     }
-
-
 }
