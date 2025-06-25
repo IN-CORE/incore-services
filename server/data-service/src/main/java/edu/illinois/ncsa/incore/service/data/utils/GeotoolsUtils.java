@@ -1335,4 +1335,14 @@ public class GeotoolsUtils {
             file.delete();
         }
     }
+
+    public static Map<String, Object> buildDatasetPayload(String title, String description, String creator) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("title", title);
+        payload.put("description", description);
+        payload.put("creator", creator);
+        payload.put("dataType", "ergo:buildingInventoryVer6");
+        payload.put("format", "shapefile");
+        return payload;
+    }
 }
