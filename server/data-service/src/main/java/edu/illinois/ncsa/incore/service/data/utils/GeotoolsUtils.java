@@ -1329,4 +1329,10 @@ public class GeotoolsUtils {
             directory.delete();
         }
     }
+
+    public static void deleteFile(File file) {
+        if (file != null && file.exists()) {
+            file.delete();
+        }
+    }
 }
