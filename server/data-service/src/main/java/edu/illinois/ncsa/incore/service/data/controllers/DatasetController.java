@@ -1235,7 +1235,7 @@ public class DatasetController {
     }
 
     @POST
-    @Path("nsi/bldg-inventory/blob")
+    @Path("tools/bldg-inventory/blob")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Operation(
