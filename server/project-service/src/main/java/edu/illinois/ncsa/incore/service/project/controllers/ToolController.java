@@ -1,17 +1,16 @@
 package edu.illinois.ncsa.incore.service.project.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
-import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
-import edu.illinois.ncsa.incore.common.models.Space;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
 import edu.illinois.ncsa.incore.service.project.dao.IProjectRepository;
-import edu.illinois.ncsa.incore.service.project.models.BldInventoryRequest;
-import edu.illinois.ncsa.incore.service.project.models.Project;
+import edu.illinois.ncsa.incore.service.project.models.*;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,11 +20,19 @@ import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @OpenAPIDefinition(
     info = @Info(
@@ -99,8 +106,92 @@ public class ToolController {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to modify this project.");
         }
 
-        // TODO: perform the actual logic of processing FIPS and adding data
+        // Make internal call to /data/api/datasets/tools/bldg-inventory
+        Client client = ClientBuilder.newBuilder()
+            .register(MultiPartFeature.class)
+            .build();
+        try {
+            FormDataMultiPart multipart = new FormDataMultiPart()
+                .field("dataset", objectMapper.writeValueAsString(request), MediaType.APPLICATION_JSON_TYPE);
+            Response response = client
+                // TODO clean the hardcode later
+                .target("http://localhost:8080/data/api/datasets/tools/bldg-inventory")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(multipart, multipart.getMediaType()));
 
-        return Response.ok().entity("{\"message\": \"NSI Building Inventory successfully added.\"}").build();
+            if (response.getStatus() != 200) {
+                throw new RuntimeException("Dataset creation failed: " + response.readEntity(String.class));
+            }
+            String responseJson = response.readEntity(String.class);
+
+            // Parse dataset JSON string into <Map<String, Object>>
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> datasetMap = objectMapper.readValue(responseJson, new TypeReference<Map<String, Object>>() {});
+
+            // Construct DatasetResource list
+            DatasetResource dataset = new DatasetResource();
+            dataset.setId((String) datasetMap.get("id"));
+            dataset.title = ((String) datasetMap.get("title"));
+            dataset.description = ((String) datasetMap.get("description"));
+            dataset.setType((String) datasetMap.get("dataType"));
+            dataset.setDataType((String) datasetMap.get("dataType"));
+            dataset.format = ((String) datasetMap.get("format"));
+            dataset.creator = ((String) datasetMap.get("creator"));
+            dataset.owner = ((String) datasetMap.get("owner"));
+            // Contributors
+            Object contributorsObj = datasetMap.get("contributors");
+            if (contributorsObj instanceof List<?>) {
+                List<?> rawList = (List<?>) contributorsObj;
+                dataset.contributors = rawList.stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .collect(Collectors.toList());
+            }
+
+            // FileDescriptors
+            Object fileDescObj = datasetMap.get("fileDescriptors");
+            if (fileDescObj instanceof List<?>) {
+                List<Map<String, Object>> fileDescList = (List<Map<String, Object>>) fileDescObj;
+                List<FileDescriptor> fileDescriptors = new ArrayList<>();
+                for (Map<String, Object> fdMap : fileDescList) {
+                    FileDescriptor fd = new FileDescriptor();
+                    fd.id = ((String) fdMap.get("id"));
+                    fd.filename = ((String) fdMap.get("filename"));
+                    fd.deleted = ((Boolean) fdMap.get("deleted"));
+                    fd.mimeType = ((String) fdMap.get("mimeType"));
+                    fd.size = ((long) fdMap.get("size"));
+                    fd.dataURL = ((String) fdMap.get("dataURL"));
+                    fd.md5sum = ((String) fdMap.get("md5sum"));
+                    fileDescriptors.add(fd);
+                }
+                dataset.fileDescriptors = fileDescriptors;
+            }
+
+            // BoundingBox
+            Object bbox = datasetMap.get("boundingBox");
+            if (bbox instanceof List<?>) {
+                List<?> bboxList = (List<?>) bbox;
+                double[] bbArray = bboxList.stream()
+                    .filter(Number.class::isInstance)
+                    .mapToDouble(v -> ((Number) v).doubleValue())
+                    .toArray();
+                dataset.boundingBox = bbArray;
+            }
+
+            // Add to project
+            project.addDatasetResource(dataset);
+
+            // Add to project
+            project.addDatasetResource(dataset);
+
+            // Update the project in the database
+            projectDAO.updateProject(projectId, project);
+
+            return Response.ok().entity("{\"message\": \"NSI Building Inventory successfully added.\"}").build();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize dataset request to JSON", e);
+        }
+
+
     }
 }

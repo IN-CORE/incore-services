@@ -49,4 +49,4 @@ public class BldInventoryRequest {
     public void setFips_list(List<String> fips_list) {
         this.fips_list = fips_list;
     }
-}}
+}
