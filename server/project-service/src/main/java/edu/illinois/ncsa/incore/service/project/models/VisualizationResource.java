@@ -20,6 +20,7 @@ public class VisualizationResource extends ProjectResource{
 
     private Type type = Type.MAP;
     private double[] boundingBox = null;
+    private double zoom = 4;
     private List<String> layerOrder = new ArrayList<>();
     private List<Layer> layers = new ArrayList<>();
     private String vegaJson = null;
@@ -31,6 +32,14 @@ public class VisualizationResource extends ProjectResource{
         this.type = type;
     }
 
+    public double getZoom() {
+        return zoom;
+    }
+
+    public void setZoom(double zoom){
+        this.zoom = zoom;
+    }
+
     public Type getType() {
         return type;
     }
@@ -38,7 +47,6 @@ public class VisualizationResource extends ProjectResource{
     public void setType(Type type) {
         this.type = type;
     }
-
 
     public List<Layer> getLayers() {
         return layers;

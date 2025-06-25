@@ -1028,6 +1028,7 @@ public class ProjectController {
         @FormParam("description") String description,
         @FormParam("type") String type,
         @FormParam("boundingBox") List<Double> boundingBox,
+        @FormParam("zoom") Double zoom,
         @FormParam("vegaJson") String vegaJson,
         @FormParam("layerOrder") String layerOrderJson,
         @FormParam("layers") String layersJson
@@ -1054,6 +1055,7 @@ public class ProjectController {
         if (name != null) visualization.setName(name);
         if (description != null) visualization.description = description;
         if (type != null) visualization.setType(VisualizationResource.Type.valueOf(type));
+        if (zoom != null) visualization.setZoom(zoom);
         if (boundingBox != null && boundingBox.size() == 4) {
             double[] bbox = boundingBox.stream().mapToDouble(Double::doubleValue).toArray();
             visualization.setBoundingBox(bbox);

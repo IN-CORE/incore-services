@@ -12,9 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
 - Swagger to version 2.2.28 [#251](https://github.com/IN-CORE/incore-services/issues/251)
 - Endpoint to delete and edit layers in visualization [#360](https://github.com/IN-CORE/incore-services/issues/360)
-
 ### Added
 - More fields in the visualziation layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
+- Added PATCH endpoint to update visualization fields, including layer order and layers [#373](https://github.com/IN-CORE/incore-services/issues/373)
 
 ## [1.28.0] - 2025-02-20
 ### Added

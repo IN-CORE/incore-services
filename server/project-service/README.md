@@ -642,6 +642,7 @@ system, including creating, updating, and deleting projects, as well as managing
   - description (string) – Description of the visualization.
   - type (string) – Visualization type: MAP, CHART, or TABLE.
   - boundingBox (repeated double) – Array of 4 values: [minX, minY, maxX, maxY].
+  - zoom (double) - Zoom level
   - vegaJson (string) – Vega JSON spec for CHART/TABLE visualizations.
   - layerOrder (string of JSON array) – Ordered list of layer IDs.
   - layers (string of JSON array) – List of serialized Layer objects in JSON string format.
@@ -652,6 +653,7 @@ system, including creating, updating, and deleting projects, as well as managing
 
   name=Building Footprints Map&
   type=MAP&
+  zoom=6&
   boundingBox=10.0&boundingBox=20.0&boundingBox=30.0&boundingBox=40.0&
   layerOrder=["layer1","layer2"]&
   layers=[{"layerId":"layer1","displayName":"Buildings"},{"layerId":"layer2","displayName":"Roads"}]
