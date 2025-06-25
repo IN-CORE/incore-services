@@ -1236,6 +1236,18 @@ public class GeotoolsUtils {
                 attrBuilder.setBinding(Integer.class);
                 attrBuilder.setLength(4);
                 builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("appr_bldg".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("sq_foot".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("cont_val".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
             } else {
                 builder.add(descriptor);
             }
@@ -1257,13 +1269,6 @@ public class GeotoolsUtils {
         ShapefileDataStore shpDataStore = (ShapefileDataStore) factory.createNewDataStore(shpParams);
         shpDataStore.createSchema(schema);
 
-        // Map DB field names to expected shapefile output field names
-        Map<String, String> fieldMapping = Map.of(
-            "occtype", "occ_type",
-            "occtyp2", "occ_typ2"
-            // Add more mappings here as needed
-        );
-
         Transaction tx = new DefaultTransaction("create");
         try (
             FeatureWriter<SimpleFeatureType, SimpleFeature> writer = shpDataStore.getFeatureWriterAppend(shpDataStore.getTypeNames()[0], tx);
@@ -1274,14 +1279,13 @@ public class GeotoolsUtils {
                 SimpleFeature target = writer.next();
 
                 for (Property property : source.getProperties()) {
-                    String sourceName = property.getName().toString();
-                    String targetName = fieldMapping.getOrDefault(sourceName, sourceName);
+                    String name = property.getName().toString();
                     Object value = property.getValue();
 
-                    if (targetName.equals(schema.getGeometryDescriptor().getLocalName())) {
+                    if (name.equals(schema.getGeometryDescriptor().getLocalName())) {
                         target.setDefaultGeometry(value);
-                    } else if (schema.getDescriptor(targetName) != null) {
-                        target.setAttribute(targetName, value);
+                    } else if (schema.getDescriptor(name) != null) {
+                        target.setAttribute(name, value);
                     }
                 }
 
@@ -1295,6 +1299,7 @@ public class GeotoolsUtils {
             tx.close();
         }
     }
+
 
     public static File zipDirectory(File directory, String baseName) throws IOException {
         File zipFile = new File(directory.getParent(), baseName + ".zip");
