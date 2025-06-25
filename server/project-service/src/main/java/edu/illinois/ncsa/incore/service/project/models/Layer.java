@@ -79,7 +79,7 @@ public class Layer {
     }
 
     public void setVisible(Boolean visible){
-        this.setVisible(visible);
+        this.visible = visible;
     }
 
 }
