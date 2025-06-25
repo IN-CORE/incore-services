@@ -1019,7 +1019,7 @@ public class ProjectController {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Patch a single visualization within a project")
-    public Project patchVisualizationById(
+    public VisualizationResource patchVisualizationById(
         @Parameter(name = "projectId", description = "ID of the project to update")
         @PathParam("projectId") String projectId,
         @Parameter(name = "visualizationId", description = "ID of the visualization to update")
@@ -1091,7 +1091,8 @@ public class ProjectController {
             visualization.syncLayerOrder();
         }
 
-        return projectDAO.updateProject(projectId, project);
+        projectDAO.updateProject(projectId, project);
+        return visualization;
     }
 
     @DELETE
