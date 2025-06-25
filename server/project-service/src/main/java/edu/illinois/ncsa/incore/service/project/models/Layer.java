@@ -14,6 +14,7 @@ public class Layer {
     private String description;
     private String styleName;
     private String unit;
+    private Boolean visible;
 
 //    TODO: save for later if we have temporal data
 //    private String[] timestamps = null;
@@ -71,6 +72,14 @@ public class Layer {
 
     public void setStyleName(String styleName) {
         this.styleName = styleName;
+    }
+
+    public Boolean getVisible(){
+        return visible;
+    }
+
+    public void setVisible(Boolean visible){
+        this.setVisible(visible);
     }
 
 }
