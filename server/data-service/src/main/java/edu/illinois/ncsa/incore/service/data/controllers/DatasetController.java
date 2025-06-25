@@ -1374,6 +1374,32 @@ public class DatasetController {
 
             // Return enriched dataset
             dataset.setSpaces(spaceRepository.getSpaceNamesOfMember(dataset.getId()));
+
+            // === Optional GeoServer Upload ===
+            boolean enableGeoserver = GEOSERVER_ENABLE.equalsIgnoreCase("true");
+            boolean isShp = true;
+            boolean isPrj = false;
+
+            // Check if the dataset has required shapefile components
+            for (FileDescriptor fd : dataset.getFileDescriptors()) {
+                String filename = fd.getFilename().toLowerCase();
+                if (filename.endsWith(".prj")) {
+                    isPrj = true;
+                }
+            }
+
+            if (enableGeoserver && isShp && isPrj) {
+                try {
+                    GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, false, false);
+                } catch (IOException | URISyntaxException e) {
+                    logger.error("Error uploading dataset to GeoServer: " + dataset.getId(), e);
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer upload failed for dataset: " + dataset.getId());
+                }
+            } else {
+                logger.info("GeoServer upload skipped (GEOSERVER_ENABLE=false or missing .prj file).");
+            }
+
+
             return dataset;
 
         } catch (Exception e) {
