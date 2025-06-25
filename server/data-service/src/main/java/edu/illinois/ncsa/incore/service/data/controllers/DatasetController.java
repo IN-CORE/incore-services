@@ -1235,7 +1235,7 @@ public class DatasetController {
     }
 
     @POST
-    @Path("nsi/bld-inventory/blob")
+    @Path("nsi/bldg-inventory/blob")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Operation(
@@ -1286,7 +1286,7 @@ public class DatasetController {
     }
 
     @POST
-    @Path("/tools/bld-inventory")
+    @Path("/tools/bldg-inventory")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Generate NSI building inventory dataset from FIPS codes", description = "Creates a dataset and uploads a shapefile based on provided FIPS list")
