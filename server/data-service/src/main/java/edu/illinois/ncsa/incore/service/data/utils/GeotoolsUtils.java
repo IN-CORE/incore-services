@@ -1299,8 +1299,7 @@ public class GeotoolsUtils {
             tx.close();
         }
     }
-
-
+    
     public static File zipDirectory(File directory, String baseName) throws IOException {
         File zipFile = new File(directory.getParent(), baseName + ".zip");
         try (FileOutputStream fos = new FileOutputStream(zipFile);
