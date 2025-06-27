@@ -12,7 +12,6 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.opencsv.exceptions.CsvValidationException;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
@@ -44,81 +43,24 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 import org.geotools.api.data.*;
-import org.geotools.api.feature.Property;
-import org.geotools.api.feature.type.AttributeDescriptor;
-import org.geotools.api.feature.type.GeometryDescriptor;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.store.ReprojectingFeatureCollection;
-import org.geotools.feature.AttributeTypeBuilder;
-import org.geotools.referencing.CRS;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.feature.AttributeTypeBuilder;
 import org.glassfish.jersey.media.multipart.*;
-
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.api.filter.Filter;
-import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-import org.locationtech.jts.geom.Point;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.illinois.ncsa.incore.common.HazardConstants;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import org.geotools.api.filter.FilterFactory;
-//import org.geotools.api.filter.FilterFactory2;
-
-import org.geotools.data.DefaultTransaction;
-//import org.geotools.data.DefaultTransaction;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.filter.text.cql2.CQL;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
