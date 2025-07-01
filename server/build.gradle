@@ -152,6 +152,9 @@ test {
             implementation("org.geotools:gt-epsg-hsql:$geotoolsVersion")
             implementation("org.geotools:gt-process-feature:$geotoolsVersion")
             implementation("org.geotools:gt-geopkg:$geotoolsVersion")
+            implementation("org.geotools.jdbc:gt-jdbc-postgis:$geotoolsVersion")
+            implementation("org.postgresql:postgresql:42.7.3")
+
 
             //misc other dependencies
             implementation("javax.media:jai_core:1.1.3")

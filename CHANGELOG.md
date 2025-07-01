@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - More fields in the visualization layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
 - Project tool endpoint that initiate NSI data creation and registration [#377](https://github.com/IN-CORE/incore-services/issues/377)
+- Endpoint to generate NSI based building inventory dataset by fips code [#370](https://github.com/IN-CORE/incore-services/issues/370)
+- Endpoint to download the generated NSI based building inventory dataset by fips code [#377](https://github.com/IN-CORE/incore-services/issues/377)
 
 ## [1.28.0] - 2025-02-20
 ### Added
