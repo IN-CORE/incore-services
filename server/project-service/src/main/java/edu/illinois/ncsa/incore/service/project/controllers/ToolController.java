@@ -30,9 +30,11 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -131,13 +133,12 @@ public class ToolController {
             // Execute the request
             HttpClient httpclient = HttpClientBuilder.create().build();
             HttpResponse response = httpclient.execute(httpPost);
-            ResponseHandler<String> responseHandler = new BasicResponseHandler();
-            String responseStr = responseHandler.handleResponse(response);
+            String responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
             int statusCode = response.getStatusLine().getStatusCode();
 
             if (statusCode != 200) {
                 logger.error("Dataset creation failed. Status: " + statusCode + ", Body: " + responseStr);
-                throw new RuntimeException("Dataset creation failed: " + responseStr);
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Dataset creation failed: " + responseStr);
             }
 
             logger.debug("Dataset created successfully. Response: " + responseStr);
@@ -204,9 +205,10 @@ public class ToolController {
             return Response.ok().entity(Map.of("message", "NSI Building Inventory successfully added.")).build();
 
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize dataset request to JSON", e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to serialize dataset request to JSON " + e.getMessage());
         } catch (IOException e) {
-            throw new RuntimeException("Internal request to dataset service failed", e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Internal request to dataset service failed " + e.getMessage());
+
         }
     }
 }
