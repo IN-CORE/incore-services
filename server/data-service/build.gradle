@@ -21,6 +21,10 @@ dependencies {
 
     implementation("junit:junit:4.13.2")
 
+    implementation("org.apache.httpcomponents:httpmime:4.5.5")
+    implementation("org.apache.commons:commons-collections4:4.0")
+
+
     // the packages below are not used in the code, but we need to test it
 
     //implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.5'
