@@ -122,8 +122,7 @@ public class ToolController {
                 .filter(s -> !s.isEmpty())
                 .map(url -> url.endsWith("/") ? url : url + "/")
                 .orElse(defaultDataEndpoint);
-
-            String requestUrl = dataEndpoint + "api/datasets/tools/bldg-inventory";
+            String requestUrl = dataEndpoint + "data/api/datasets/tools/bldg-inventory";
 
             // Build HTTP POST with Authorization
             HttpPost httpPost = new HttpPost(requestUrl);
