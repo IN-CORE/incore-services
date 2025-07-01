@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @OpenAPIDefinition(
@@ -115,8 +116,14 @@ public class ToolController {
         logger.debug("Making internal call to /data/api/datasets/tools/bldg-inventory");
 
         try {
-            // TODO: clean up hardcoded url
-            String requestUrl = "http://localhost:8080/data/api/datasets/tools/bldg-inventory";
+            // Resolve dataset service endpoint
+            String defaultDataEndpoint = "http://localhost:8080/";
+            String dataEndpoint = Optional.ofNullable(System.getenv("DATA_SERVICE_URL"))
+                .filter(s -> !s.isEmpty())
+                .map(url -> url.endsWith("/") ? url : url + "/")
+                .orElse(defaultDataEndpoint);
+
+            String requestUrl = dataEndpoint + "api/datasets/tools/bldg-inventory";
 
             // Build HTTP POST with Authorization
             HttpPost httpPost = new HttpPost(requestUrl);
