@@ -20,15 +20,19 @@ import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -100,35 +104,48 @@ public class ToolController {
         if (project == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Project not found with id: " + projectId);
         }
-        // Authorization check
+
         boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
         if (!this.username.equals(project.getOwner()) && !isAdmin) {
             throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to modify this project.");
         }
 
-        // Make internal call to /data/api/datasets/tools/bldg-inventory
-        Client client = ClientBuilder.newBuilder()
-            .register(MultiPartFeature.class)
-            .build();
-        try {
-            FormDataMultiPart multipart = new FormDataMultiPart()
-                .field("dataset", objectMapper.writeValueAsString(request), MediaType.APPLICATION_JSON_TYPE);
-            Response response = client
-                // TODO clean the hardcode later
-                .target("http://localhost:8080/data/api/datasets/tools/bldg-inventory")
-                .request()
-                .header("x-auth-userinfo", "{\"preferred_username\": \"" + this.username + "\"}")
-                .header("x-auth-usergroup", this.userGroups)
-                .post(Entity.entity(multipart, multipart.getMediaType()));
+        logger.debug("Making internal call to /data/api/datasets/tools/bldg-inventory");
 
-            if (response.getStatus() != 200) {
-                throw new RuntimeException("Dataset creation failed: " + response.readEntity(String.class));
+        try {
+            // TODO: clean up hardcoded url
+            String requestUrl = "http://localhost:8080/data/api/datasets/tools/bldg-inventory";
+
+            // Build HTTP POST with Authorization
+            HttpPost httpPost = new HttpPost(requestUrl);
+            httpPost.setHeader("x-auth-userinfo", "{\"preferred_username\": \"" + this.username + "\"}");
+            httpPost.setHeader("x-auth-usergroup", this.userGroups );
+
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(request);
+
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+            entityBuilder.addTextBody("dataset", json, ContentType.APPLICATION_JSON);
+            httpPost.setEntity(entityBuilder.build());
+
+            // Execute the request
+            HttpClient httpclient = HttpClientBuilder.create().build();
+            HttpResponse response = httpclient.execute(httpPost);
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseStr = responseHandler.handleResponse(response);
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if (statusCode != 200) {
+                logger.error("Dataset creation failed. Status: " + statusCode + ", Body: " + responseStr);
+                throw new RuntimeException("Dataset creation failed: " + responseStr);
             }
-            String responseJson = response.readEntity(String.class);
+
+            logger.debug("Dataset created successfully. Response: " + responseStr);
 
             // Parse dataset JSON string into <Map<String, Object>>
             ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> datasetMap = objectMapper.readValue(responseJson, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> datasetMap = objectMapper.readValue(responseStr, new TypeReference<Map<String, Object>>() {
+            });
 
             // Construct DatasetResource list
             DatasetResource dataset = new DatasetResource();
@@ -140,6 +157,7 @@ public class ToolController {
             dataset.format = ((String) datasetMap.get("format"));
             dataset.creator = ((String) datasetMap.get("creator"));
             dataset.owner = ((String) datasetMap.get("owner"));
+
             // Contributors
             Object contributorsObj = datasetMap.get("contributors");
             if (contributorsObj instanceof List<?>) {
@@ -161,7 +179,7 @@ public class ToolController {
                     fd.filename = ((String) fdMap.get("filename"));
                     fd.deleted = ((Boolean) fdMap.get("deleted"));
                     fd.mimeType = ((String) fdMap.get("mimeType"));
-                    fd.size = ((long) fdMap.get("size"));
+                    fd.size = ((Number) fdMap.get("size")).longValue();
                     fd.dataURL = ((String) fdMap.get("dataURL"));
                     fd.md5sum = ((String) fdMap.get("md5sum"));
                     fileDescriptors.add(fd);
@@ -180,18 +198,15 @@ public class ToolController {
                 dataset.boundingBox = bbArray;
             }
 
-            // Add to project
             project.addDatasetResource(dataset);
-
-            // Add to project
-            project.addDatasetResource(dataset);
-
-            // Update the project in the database
             projectDAO.updateProject(projectId, project);
 
-            return Response.ok().entity("{\"message\": \"NSI Building Inventory successfully added.\"}").build();
+            return Response.ok().entity(Map.of("message", "NSI Building Inventory successfully added.")).build();
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize dataset request to JSON", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Internal request to dataset service failed", e);
         }
     }
 }
