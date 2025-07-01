@@ -116,7 +116,9 @@ public class ToolController {
             Response response = client
                 // TODO clean the hardcode later
                 .target("http://localhost:8080/data/api/datasets/tools/bldg-inventory")
-                .request(MediaType.APPLICATION_JSON_TYPE)
+                .request()
+                .header("x-auth-userinfo", "{\"preferred_username\": \"" + this.username + "\"}")
+                .header("x-auth-usergroup", this.userGroups)
                 .post(Entity.entity(multipart, multipart.getMediaType()));
 
             if (response.getStatus() != 200) {
@@ -191,7 +193,5 @@ public class ToolController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize dataset request to JSON", e);
         }
-
-
     }
 }
