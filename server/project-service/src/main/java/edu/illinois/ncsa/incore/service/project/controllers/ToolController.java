@@ -24,11 +24,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
@@ -93,7 +91,7 @@ public class ToolController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Add NSI Building Inventory to existing project")
-    public Response addBldInventoryToProject(
+    public Project addBldInventoryToProject(
         @Parameter(description = "Project ID", required = true)
         @QueryParam("projectid") String projectId,
         @Parameter(description = "JSON payload with title, description, and FIPS list", required = true)
@@ -208,7 +206,7 @@ public class ToolController {
             project.addDatasetResource(dataset);
             projectDAO.updateProject(projectId, project);
 
-            return Response.ok().entity(Map.of("message", "NSI Building Inventory successfully added.")).build();
+            return project;
 
         } catch (JsonProcessingException e) {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to serialize dataset request to JSON " + e.getMessage());
