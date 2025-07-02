@@ -87,7 +87,7 @@ public class ToolController {
     }
 
     @POST
-    @Path("/bld-inventory")
+    @Path("/bldg-inventory")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Add NSI Building Inventory to existing project")
