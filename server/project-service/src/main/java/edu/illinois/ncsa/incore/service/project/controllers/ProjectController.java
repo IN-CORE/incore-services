@@ -7,6 +7,7 @@ package edu.illinois.ncsa.incore.service.project.controllers;
  *******************************************************************************
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -33,6 +34,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -996,6 +998,7 @@ public class ProjectController {
 
         // Loop through visualizations and add each one to the project
         for (VisualizationResource visualization : visualizations) {
+            visualization.syncLayerOrder();
             project.addVisualizationResource(visualization);
         }
 
@@ -1009,6 +1012,87 @@ public class ProjectController {
             return updatedProject;
         }
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add visualizations to the project.");
+    }
+
+    @PATCH
+    @Path("{projectId}/visualizations/{visualizationId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Patch a single visualization within a project")
+    public VisualizationResource patchVisualizationById(
+        @Parameter(name = "projectId", description = "ID of the project to update")
+        @PathParam("projectId") String projectId,
+        @Parameter(name = "visualizationId", description = "ID of the visualization to update")
+        @PathParam("visualizationId") String visualizationId,
+        @FormParam("name") String name,
+        @FormParam("description") String description,
+        @FormParam("type") String type,
+        @FormParam("boundingBox") List<Double> boundingBox,
+        @FormParam("zoom") Double zoom,
+        @FormParam("vegaJson") String vegaJson,
+        @FormParam("layerOrder") String layerOrderJson,
+        @FormParam("layers") String layersJson
+    ) {
+        Project project = projectDAO.getProjectById(projectId);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + projectId);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Locate the target visualization
+        VisualizationResource visualization = project.getVisualizations().stream()
+            .filter(v -> v.getId().equals(visualizationId))
+            .findFirst()
+            .orElseThrow(() -> new IncoreHTTPException(Response.Status.NOT_FOUND, "Visualization not found: " + visualizationId));
+
+        boolean syncNeeded = false;
+
+        if (name != null) visualization.setName(name);
+        if (description != null) visualization.description = description;
+        if (type != null) visualization.setType(VisualizationResource.Type.valueOf(type));
+        if (zoom != null) visualization.setZoom(zoom);
+        if (boundingBox != null && boundingBox.size() == 4) {
+            double[] bbox = boundingBox.stream().mapToDouble(Double::doubleValue).toArray();
+            visualization.setBoundingBox(bbox);
+        }
+        if (vegaJson != null) visualization.setVegaJson(vegaJson);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            if (layerOrderJson != null) {
+                List<String> layerOrder = mapper.readValue(layerOrderJson, new TypeReference<>() {
+                });
+                visualization.setLayerOrder(layerOrder);
+                syncNeeded = true;
+            }
+        }
+        catch (IOException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid layerOrder input: " + e.getMessage());
+        }
+
+        try{
+            if (layersJson != null) {
+                List<Layer> parsedLayers = mapper.readValue(layersJson, new TypeReference<>() {});
+                visualization.setLayers(parsedLayers);
+                syncNeeded = true;
+            }
+        }
+        catch (IOException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid layer input: " + e.getMessage());
+        }
+
+        if (syncNeeded) {
+            visualization.syncLayerOrder();
+        }
+
+        projectDAO.updateProject(projectId, project);
+        return visualization;
     }
 
     @DELETE
@@ -1086,6 +1170,9 @@ public class ProjectController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
         }
 
+        // sync layer with layer order
+        visualization.syncLayerOrder();
+
         // Update the project in the database
         Project updatedProject = projectDAO.updateProject(id, project);
         if (updatedProject != null) {
@@ -1129,6 +1216,9 @@ public class ProjectController {
             } else {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
             }
+
+            // sync visualization order
+            visualization.syncLayerOrder();
 
             // Update the project in the database
             Project updatedProject = projectDAO.updateProject(id, project);

@@ -628,6 +628,39 @@ system, including creating, updating, and deleting projects, as well as managing
   ]
   ```
 
+#### **Update Fields in a Visualization**
+
+- **Method**: `PATCH`
+- **Path**: `/project/api/projects/{projectId}/visualizations/{visualizationId}`
+- **Description**: Patch fields of a specific visualization within a project. Supports partial updates via form parameters. Automatically synchronizes layerOrder if layers or layerOrder is modified.
+- **Path Parameters**:
+  - projectId (string) – ID of the project. 
+  - visualizationId (string) – ID of the visualization to update.
+- **Request Type**: application/x-www-form-urlencoded
+- **Form Parameters (all optional)**:
+  - name (string) – Name of the visualization. 
+  - description (string) – Description of the visualization.
+  - type (string) – Visualization type: MAP, CHART, or TABLE.
+  - boundingBox (repeated double) – Array of 4 values: [minX, minY, maxX, maxY].
+  - zoom (double) - Zoom level
+  - vegaJson (string) – Vega JSON spec for CHART/TABLE visualizations.
+  - layerOrder (string of JSON array) – Ordered list of layer IDs.
+  - layers (string of JSON array) – List of serialized Layer objects in JSON string format.
+- **Example**:
+```http
+  PATCH /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682
+  Content-Type: application/x-www-form-urlencoded
+
+  name=Building Footprints Map&
+  type=MAP&
+  zoom=6&
+  boundingBox=10.0&boundingBox=20.0&boundingBox=30.0&boundingBox=40.0&
+  layerOrder=["layer1","layer2"]&
+  layers=[{"layerId":"layer1","displayName":"Buildings"},{"layerId":"layer2","displayName":"Roads"}]
+```
+
+
+
 
 #### **Remove Visualizations from a Project**
 
