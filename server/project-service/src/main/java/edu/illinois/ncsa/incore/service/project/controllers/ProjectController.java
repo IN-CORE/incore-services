@@ -563,33 +563,33 @@ public class ProjectController {
         if (workflowMetadataJson != null) {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                WorkflowMetadata[] metadataArray = mapper.readValue(workflowMetadataJson, WorkflowMetadata[].class);
-                for (WorkflowMetadata newMetadata : metadataArray) {
+
+                List<WorkflowMetadata> newMetadataList = Arrays.asList(
+                    mapper.readValue(workflowMetadataJson, WorkflowMetadata[].class)
+                );
+
+                for (WorkflowMetadata newMetadata : newMetadataList) {
                     if (dataset.workflowMetadata == null) {
-                        dataset.workflowMetadata = new WorkflowMetadata[]{newMetadata};
-                    } else {
-                        List<WorkflowMetadata> metadataList = new ArrayList<>(Arrays.asList(dataset.workflowMetadata));
+                        dataset.workflowMetadata = new ArrayList<>();
+                    }
 
-                        boolean updated = false;
+                    List<WorkflowMetadata> metadataList = dataset.workflowMetadata;
+                    boolean updated = false;
 
-                        for (int i = 0; i < metadataList.size(); i++) {
-                            WorkflowMetadata existing = metadataList.get(i);
-                            if (Objects.equals(existing.getWorkflowId(), newMetadata.getWorkflowId()) &&
-                                Objects.equals(existing.getExecutionId(), newMetadata.getExecutionId())) {
+                    for (WorkflowMetadata existing : metadataList) {
+                        if (Objects.equals(existing.getWorkflowId(), newMetadata.getWorkflowId()) &&
+                            Objects.equals(existing.getExecutionId(), newMetadata.getExecutionId())) {
 
-                                WorkflowMetadata.Role newRole = newMetadata.mergeRoles(existing.getRole(), newMetadata.getRole());
-                                existing.setRole(newRole);
-                                metadataList.set(i, existing);
-                                updated = true;
-                                break;
-                            }
+                            WorkflowMetadata.Role newRole =
+                                newMetadata.mergeRoles(existing.getRole(), newMetadata.getRole());
+                            existing.setRole(newRole);
+                            updated = true;
+                            break;
                         }
+                    }
 
-                        if (!updated) {
-                            metadataList.add(newMetadata);
-                        }
-
-                        dataset.workflowMetadata = metadataList.toArray(new WorkflowMetadata[0]);
+                    if (!updated) {
+                        metadataList.add(newMetadata);
                     }
                 }
 

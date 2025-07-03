@@ -27,7 +27,7 @@ public class DatasetResource extends ProjectResource{
     public String sourceDataset = "";
     public double[] boundingBox = null;
     public NetworkDataset networkDataset = null;
-    public WorkflowMetadata[] workflowMetadata = null;
+    public List<WorkflowMetadata> workflowMetadata = null;
 
     public DatasetResource() {
     }
@@ -76,14 +76,14 @@ public class DatasetResource extends ProjectResource{
     }
 
     public boolean hasWorkflowId(DatasetResource dataset, String workflowId) {
-        if (dataset.workflowMetadata == null) return false;
-        return Arrays.stream(dataset.workflowMetadata)
+        if (dataset.workflowMetadata== null) return false;
+        return dataset.workflowMetadata.stream()
             .anyMatch(meta -> workflowId.equals(meta.getWorkflowId()));
     }
 
     public boolean hasExecutionId(DatasetResource dataset, String executionId) {
         if (dataset.workflowMetadata == null) return false;
-        return Arrays.stream(dataset.workflowMetadata)
+        return dataset.workflowMetadata.stream()
             .anyMatch(meta -> executionId.equals(meta.getExecutionId()));
     }
 }
