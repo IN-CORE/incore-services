@@ -60,12 +60,12 @@ apply plugin: 'org.gretty'
 //a "farm" is the gretty term for multiple webapps that can be run
 //in the same webapp service.
 farm {
-    webapp ':dfr3-service'
+//    webapp ':dfr3-service'
     webapp ':data-service'
-    webapp ':hazard-service'
-    webapp ':semantics-service'
-    webapp ':space-service'
-    webapp ':project-service'
+//    webapp ':hazard-service'
+//    webapp ':semantics-service'
+//    webapp ':space-service'
+//    webapp ':project-service'
 }
 
 task farmWars(dependsOn: war, type: Copy) {
@@ -92,6 +92,7 @@ subprojects {
     dependencies {
         implementation("log4j:log4j:1.2.17.norce")
         implementation("org.json:json:20171018")
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
 
         // JUnit 5
         testImplementation(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.1.0')
