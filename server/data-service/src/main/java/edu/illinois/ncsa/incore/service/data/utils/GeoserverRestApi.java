@@ -495,5 +495,4 @@ public class GeoserverRestApi {
         }
         return isDeleted;
     }
-
 }
