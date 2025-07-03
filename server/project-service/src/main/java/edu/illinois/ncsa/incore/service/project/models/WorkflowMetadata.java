@@ -64,4 +64,14 @@ public class WorkflowMetadata {
     public void setRole(Role role) {
         this.role = role;
     }
+
+    public WorkflowMetadata.Role mergeRoles(WorkflowMetadata.Role existing, WorkflowMetadata.Role incoming) {
+        if (existing == WorkflowMetadata.Role.INPUT && incoming == WorkflowMetadata.Role.OUTPUT ||
+            existing == WorkflowMetadata.Role.OUTPUT && incoming == WorkflowMetadata.Role.INPUT ||
+            existing == WorkflowMetadata.Role.IO) {
+            return WorkflowMetadata.Role.IO;
+        }
+
+        return (existing == null || existing == WorkflowMetadata.Role.NONE) ? incoming : existing;
+    }
 }

@@ -516,6 +516,91 @@ public class ProjectController {
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete datasets from the project.");
     }
 
+    @PATCH
+    @Path("{projectId}/datasets/{datasetId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Patch a single dataset within a project")
+    public DatasetResource patchDatasetById(
+        @Parameter(name = "projectId", description = "ID of the project to update")
+        @PathParam("projectId") String projectId,
+        @Parameter(name = "datasetId", description = "ID of the dataset to update")
+        @PathParam("datasetId") String datasetId,
+        @FormParam("title") String title,
+        @FormParam("description") String description,
+        @FormParam("creator") String creator,
+        @FormParam("owner") String owner,
+        @FormParam("format") String format,
+        @FormParam("type") String type,
+        @FormParam("sourceDataset") String sourceDataset,
+        @FormParam("workflowMetadata") String workflowMetadataJson
+    ) {
+        Project project = projectDAO.getProjectById(projectId);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + projectId);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not allowed to modify the project.");
+        }
+
+        DatasetResource dataset = project.getDatasets().stream()
+            .filter(d -> d.getId().equals(datasetId))
+            .findFirst()
+            .orElseThrow(() -> new IncoreHTTPException(Response.Status.NOT_FOUND, "Dataset not found: " + datasetId));
+
+        if (title != null) dataset.title = title;
+        if (description != null) dataset.description = description;
+        if (format != null) dataset.format = format;
+        if (type != null) dataset.setDataType(type);
+        if (creator != null) dataset.setDataType(creator);
+        if (owner != null) dataset.setDataType(owner);
+        if (sourceDataset != null) dataset.setDataType(sourceDataset);
+
+        // patch metadata
+        if (workflowMetadataJson != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                WorkflowMetadata newMetadata = mapper.readValue(workflowMetadataJson, WorkflowMetadata.class);
+
+                if (dataset.workflowMetadata == null) {
+                    dataset.workflowMetadata = new WorkflowMetadata[] { newMetadata };
+                } else {
+                    List<WorkflowMetadata> metadataList = new ArrayList<>(Arrays.asList(dataset.workflowMetadata));
+
+                    boolean updated = false;
+
+                    for (int i = 0; i < metadataList.size(); i++) {
+                        WorkflowMetadata existing = metadataList.get(i);
+                        if (Objects.equals(existing.getWorkflowId(), newMetadata.getWorkflowId()) &&
+                            Objects.equals(existing.getExecutionId(), newMetadata.getExecutionId())) {
+
+                            WorkflowMetadata.Role newRole = newMetadata.mergeRoles(existing.getRole(), newMetadata.getRole());
+                            existing.setRole(newRole);
+                            metadataList.set(i, existing);
+                            updated = true;
+                            break;
+                        }
+                    }
+
+                    if (!updated) {
+                        metadataList.add(newMetadata);
+                    }
+
+                    dataset.workflowMetadata = metadataList.toArray(new WorkflowMetadata[0]);
+                }
+
+            } catch (IOException e) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid workflowMetadata input: " + e.getMessage());
+            }
+        }
+
+        projectDAO.updateProject(projectId, project);
+        return dataset;
+    }
+
     @GET
     @Path("{projectId}/dfr3mappings")
     @Produces(MediaType.APPLICATION_JSON)
