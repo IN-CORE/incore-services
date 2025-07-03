@@ -1,5 +1,7 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public class WorkflowMetadata {
 
     private String workflowId;
@@ -22,14 +24,16 @@ public class WorkflowMetadata {
             return value;
         }
 
+        @JsonCreator
         public static Role fromString(String value) {
             if (value == null) return NONE;
-            for (Role role : Role.values()) {
-                if (value.equalsIgnoreCase(role.value)) {
-                    return role;
-                }
+            switch (value.toLowerCase()) {
+                case "input": return INPUT;
+                case "output": return OUTPUT;
+                case "i/o":
+                case "io": return IO;
+                default: throw new IllegalArgumentException("Unknown role: " + value);
             }
-            throw new IllegalArgumentException("Unknown role value: " + value);
         }
     }
 
