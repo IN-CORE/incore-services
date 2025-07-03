@@ -399,7 +399,7 @@ public class ProjectController {
     public List<DatasetResource> listDatasetsOfProject(
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return. Use -1 to return all results.") @QueryParam("limit") @DefaultValue("100") int limit,
         @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type,
         @Parameter(name = "Filter by workflowId", description = "Filter datasets by workflow id") @QueryParam("workflowId") String workflowId,
         @Parameter(name = "Filter by executionId", description = "Filter datasets by execution id") @QueryParam("executionId") String executionId,
@@ -409,6 +409,8 @@ public class ProjectController {
         @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
 
         Project project = projectDAO.getProjectById(id);
+        int effectiveLimit = (limit < 0) ? Integer.MAX_VALUE : limit;
+
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 Comparator<DatasetResource> comparator = datasetComparator(sortBy, order);
@@ -420,7 +422,7 @@ public class ProjectController {
                     .filter(dataset -> executionId == null || dataset.hasExecutionId(dataset, executionId))
                     .sorted(comparator)
                     .skip(offset)
-                    .limit(limit)
+                    .limit(effectiveLimit)
                     .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
