@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
 - Swagger to version 2.2.28 [#251](https://github.com/IN-CORE/incore-services/issues/251)
 - Endpoint to delete and edit layers in visualization [#360](https://github.com/IN-CORE/incore-services/issues/360)
+- NSI building inventory field regulation for 4 new fields [#384](https://github.com/IN-CORE/incore-services/issues/384)
 
 ### Added
 - More fields in the visualziation layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
