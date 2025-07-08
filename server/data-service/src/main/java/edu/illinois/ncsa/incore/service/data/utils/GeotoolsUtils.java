@@ -1235,7 +1235,6 @@ public class GeotoolsUtils {
     }
 
 
-
     public static SimpleFeatureType createRegulatedSchema(SimpleFeatureType originalSchema, String baseName) {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.setName(baseName);
@@ -1270,6 +1269,22 @@ public class GeotoolsUtils {
             } else if ("cont_val".equals(name)) {
                 attrBuilder.setBinding(Integer.class);
                 attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("archetype".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_flood".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_flood".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_sw".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
                 builder.add(attrBuilder.buildDescriptor(name));
             } else {
                 builder.add(descriptor);
