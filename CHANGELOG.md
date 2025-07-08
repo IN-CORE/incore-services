@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Valid DFR3 mapping set match semantics definition [#295](https://github.com/IN-CORE/incore-services/issues/295)
+
 ### Changed
 - Gradle to version 8.13 [#343](https://github.com/IN-CORE/incore-services/issues/343)
 - Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
