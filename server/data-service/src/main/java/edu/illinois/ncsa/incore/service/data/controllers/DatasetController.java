@@ -1201,11 +1201,11 @@ public class DatasetController {
 
             List<String> fipsList = JsonUtils.extractValueListFromJsonString("fips_list", queryJson);
 
-            List<List<Double>> boundingBox = null;
+            List<Double> boundingBox = null;
             if (JsonUtils.hasKey(queryJson, "bounding_box")) {
                 boundingBox = mapper.readValue(
                     JsonUtils.extractRawJsonString("bounding_box", queryJson),
-                    new TypeReference<List<List<Double>>>() {}
+                    new TypeReference<List<Double>>() {}
                 );
             }
 
@@ -1300,9 +1300,9 @@ public class DatasetController {
                 filter = GeotoolsUtils.buildFipsFilter(fipsList);
             } else if (JsonUtils.hasKey(inDatasetJson, "bounding_box")) {
                 ObjectMapper mapper = new ObjectMapper();
-                List<List<Double>> boundingBox = mapper.readValue(
+                List<Double> boundingBox = mapper.readValue(
                     JsonUtils.extractRawJsonString("bounding_box", inDatasetJson),
-                    new TypeReference<List<List<Double>>>() {}
+                    new TypeReference<List<Double>>() {}
                 );
                 filter = GeotoolsUtils.buildBoundingBoxFilter(boundingBox);
             } else {

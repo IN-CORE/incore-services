@@ -1213,26 +1213,41 @@ public class GeotoolsUtils {
         return CQL.toFilter(filterStr);
     }
 
-    public static Filter buildBoundingBoxFilter(List<List<Double>> boundingBox) throws Exception {
-        if (boundingBox.size() != 2) {
-            throw new IllegalArgumentException("Bounding box must contain exactly 2 coordinate pairs.");
+//    public static Filter buildBoundingBoxFilter(List<List<Double>> boundingBox) throws Exception {
+//        if (boundingBox.size() != 2) {
+//            throw new IllegalArgumentException("Bounding box must contain exactly 2 coordinate pairs.");
+//        }
+//
+//        List<Double> bottomLeft = boundingBox.get(0);
+//        List<Double> topRight = boundingBox.get(1);
+//
+//        if (bottomLeft.size() != 2 || topRight.size() != 2) {
+//            throw new IllegalArgumentException("Each bounding box coordinate must be a pair of [lat, lon].");
+//        }
+//
+//        double minY = bottomLeft.get(0); // lat1
+//        double minX = bottomLeft.get(1); // lon1
+//        double maxY = topRight.get(0);   // lat2
+//        double maxX = topRight.get(1);   // lon2
+//
+//        String cql = String.format("BBOX(geom, %f, %f, %f, %f)", minX, minY, maxX, maxY);
+//        return CQL.toFilter(cql);
+//    }
+
+    public static Filter buildBoundingBoxFilter(List<Double> boundingBox) throws Exception {
+        if (boundingBox == null || boundingBox.size() != 4) {
+            throw new IllegalArgumentException("Bounding box must be a list of four coordinates: [minLat, minLon, maxLat, maxLon].");
         }
 
-        List<Double> bottomLeft = boundingBox.get(0);
-        List<Double> topRight = boundingBox.get(1);
-
-        if (bottomLeft.size() != 2 || topRight.size() != 2) {
-            throw new IllegalArgumentException("Each bounding box coordinate must be a pair of [lat, lon].");
-        }
-
-        double minY = bottomLeft.get(0); // lat1
-        double minX = bottomLeft.get(1); // lon1
-        double maxY = topRight.get(0);   // lat2
-        double maxX = topRight.get(1);   // lon2
+        double minY = boundingBox.get(0); // lat1
+        double minX = boundingBox.get(1); // lon1
+        double maxY = boundingBox.get(2); // lat2
+        double maxX = boundingBox.get(3); // lon2
 
         String cql = String.format("BBOX(geom, %f, %f, %f, %f)", minX, minY, maxX, maxY);
         return CQL.toFilter(cql);
     }
+
 
 
     public static SimpleFeatureType createRegulatedSchema(SimpleFeatureType originalSchema, String baseName) {
