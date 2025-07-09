@@ -1270,6 +1270,10 @@ public class GeotoolsUtils {
                 attrBuilder.setBinding(Integer.class);
                 attrBuilder.setLength(10);
                 builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("ff_elev".equals(name)) {
+                attrBuilder.setBinding(Double.class);
+                attrBuilder.setLength(6);
+                builder.add(attrBuilder.buildDescriptor(name));
             } else if ("archetype".equals(name)) {
                 attrBuilder.setBinding(Integer.class);
                 attrBuilder.setLength(4);
