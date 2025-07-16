@@ -147,6 +147,7 @@ system, including creating, updating, and deleting projects, as well as managing
     - `projectId` (string) - ID of the project.
 - **Query Parameters**:
   - `skip`, `limit`, `type`, `text`
+  - If `limit=-1`, list all datasets
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets?text=Building Inventory
@@ -248,6 +249,49 @@ system, including creating, updating, and deleting projects, as well as managing
     "5a284f0bc7d30d13bc081a28"
   ]
   ```
+
+
+#### **Patch a Dataset within a Project**
+- **Method**: `PATCH`
+- **Path**: `/project/api/projects/{projectId}/datasets/{datasetId}`
+- **Description**: Update a dataset’s metadata or workflow metadata in a given project. Supports partial updates using form parameters. 
+If a workflow metadata entry with the same workflowId and executionId exists, the role will be merged intelligently (e.g., INPUT + OUTPUT → I/O).
+- **Path Parameters**:
+  - `projectId`	(string) - ID of the project. 
+  - `datasetId`	(string) - ID of the dataset to update.
+- **Form Parameters**:
+  - `title` (string) - New dataset title
+  - `description` (string) - New dataset description
+  - `creator` (string) - Username of the dataset creator
+  - `owner` (string) - Dataset owner
+  - `format` (string) -	Dataset format (e.g., shapefile)
+  - `type` (string) - Dataset type (e.g., ergo:buildingInventoryVer4)
+  - `sourceDataset`	(string) - ID of the dataset this one is derived from
+  - `workflowMetadata` (string of JSON) - A WorkflowMetadata object in JSON format:
+  ```json
+  { "workflowId": "workflow-id", "executionId": "execution-id", "role": "INPUT" }
+  ```
+- **Example**:
+```http request
+PATCH /project/api/projects/66c60ba518da486b1e9c08d5/datasets/abc123
+Content-Type: application/x-www-form-urlencoded
+
+Body:
+
+title=Galveston+Buildings
+&description=Updated+description+for+Galveston+Buildings
+&creator=cwang138
+&owner=cwang138
+&format=shapefile
+&type=buildingInventory
+&sourceDataset=xyz789
+&workflowMetadata={"workflowId":"7b4f3738-fcb4-48cf-b2b8-64a2ba1dda2b","executionId":"75021954-6e7a-49c8-941f-bd2df659dae6","role":"INPUT"}
+```
+- **Behavior**:
+  - If a matching workflowId + executionId exists:
+  - If the existing role and new role are different (INPUT, OUTPUT), it will be merged to IO.
+  - If existing role is null or NONE, it will be updated.
+  - If no match is found, a new WorkflowMetadata object is appended.
 
 
 #### **List Dfr3 mappings belong to a Project**

@@ -2,6 +2,7 @@ package edu.illinois.ncsa.incore.service.project.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Arrays;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,6 +27,7 @@ public class DatasetResource extends ProjectResource{
     public String sourceDataset = "";
     public double[] boundingBox = null;
     public NetworkDataset networkDataset = null;
+    public List<WorkflowMetadata> workflowMetadata = null;
 
     public DatasetResource() {
     }
@@ -71,6 +73,18 @@ public class DatasetResource extends ProjectResource{
             (this.type != null && this.getType().toLowerCase().contains(lowerCaseText)) ||
             (this.dataType != null && this.getDataType().toLowerCase().contains(lowerCaseText)) ||
             (this.format != null && this.format.toLowerCase().contains(lowerCaseText));
+    }
+
+    public boolean hasWorkflowId(DatasetResource dataset, String workflowId) {
+        if (dataset.workflowMetadata== null) return false;
+        return dataset.workflowMetadata.stream()
+            .anyMatch(meta -> workflowId.equals(meta.getWorkflowId()));
+    }
+
+    public boolean hasExecutionId(DatasetResource dataset, String executionId) {
+        if (dataset.workflowMetadata == null) return false;
+        return dataset.workflowMetadata.stream()
+            .anyMatch(meta -> executionId.equals(meta.getExecutionId()));
     }
 }
 
