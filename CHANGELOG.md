@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
 - Swagger to version 2.2.28 [#251](https://github.com/IN-CORE/incore-services/issues/251)
 - Endpoint to delete and edit layers in visualization [#360](https://github.com/IN-CORE/incore-services/issues/360)
+- NSI building inventory field regulation for 4 new fields [#384](https://github.com/IN-CORE/incore-services/issues/384)
 
 ### Added
 - More fields in the visualziation layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Project tool endpoint that initiate NSI data creation and registration [#377](https://github.com/IN-CORE/incore-services/issues/377)
 - Endpoint to generate NSI based building inventory dataset by fips code [#370](https://github.com/IN-CORE/incore-services/issues/370)
 - Endpoint to download the generated NSI based building inventory dataset by fips code [#377](https://github.com/IN-CORE/incore-services/issues/377)
+- Endpoint to query NSI based building inventory by bounding box [#379](https://github.com/IN-CORE/incore-services/issues/379)
 - Workflow metadata support, including filtering datasets by workflow ID and execution ID, and a new PATCH endpoint to update individual dataset metadata. [#380](https://github.com/IN-CORE/incore-services/issues/380)
 
 ## [1.28.0] - 2025-02-20

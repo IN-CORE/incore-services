@@ -92,6 +92,7 @@ subprojects {
     dependencies {
         implementation("log4j:log4j:1.2.17.norce")
         implementation("org.json:json:20171018")
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
 
         // JUnit 5
         testImplementation(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.1.0')

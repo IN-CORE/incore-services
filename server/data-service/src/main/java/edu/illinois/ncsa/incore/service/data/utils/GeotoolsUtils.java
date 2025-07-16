@@ -1213,6 +1213,22 @@ public class GeotoolsUtils {
         return CQL.toFilter(filterStr);
     }
 
+    public static Filter buildBoundingBoxFilter(List<Double> boundingBox) throws Exception {
+        if (boundingBox == null || boundingBox.size() != 4) {
+            throw new IllegalArgumentException("Bounding box must be a list of four coordinates: [minLat, minLon, maxLat, maxLon].");
+        }
+
+        double minY = boundingBox.get(0); // lat1
+        double minX = boundingBox.get(1); // lon1
+        double maxY = boundingBox.get(2); // lat2
+        double maxX = boundingBox.get(3); // lon2
+
+        String cql = String.format("BBOX(geom, %f, %f, %f, %f)", minX, minY, maxX, maxY);
+        return CQL.toFilter(cql);
+    }
+
+
+
     public static SimpleFeatureType createRegulatedSchema(SimpleFeatureType originalSchema, String baseName) {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.setName(baseName);
@@ -1247,6 +1263,30 @@ public class GeotoolsUtils {
             } else if ("cont_val".equals(name)) {
                 attrBuilder.setBinding(Integer.class);
                 attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("ffe_elev".equals(name)) {
+                attrBuilder.setBinding(Double.class);
+                attrBuilder.setLength(5);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("g_elev".equals(name)) {
+                attrBuilder.setBinding(Double.class);
+                attrBuilder.setLength(5);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("archetype".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_flood".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_flood".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_sw".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
                 builder.add(attrBuilder.buildDescriptor(name));
             } else {
                 builder.add(descriptor);
@@ -1299,7 +1339,7 @@ public class GeotoolsUtils {
             tx.close();
         }
     }
-    
+
     public static File zipDirectory(File directory, String baseName) throws IOException {
         File zipFile = new File(directory.getParent(), baseName + ".zip");
         try (FileOutputStream fos = new FileOutputStream(zipFile);

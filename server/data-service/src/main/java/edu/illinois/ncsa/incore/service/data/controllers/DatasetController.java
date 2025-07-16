@@ -12,6 +12,8 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.exceptions.CsvValidationException;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
@@ -1181,37 +1183,59 @@ public class DatasetController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Operation(
-        summary = "Export features from PostGIS by 5-digit FIPS code",
-        description = "Generates a zipped shapefile from PostGIS for given FIPS codes."
+        summary = "Export NSI building inventory shapefile",
+        description = "Generates a zipped shapefile from PostGIS for given FIPS codes or bounding box."
     )
-    public Response exportShapefileByFips(List<String> fipsCodes) {
+    public Response exportShapefileFromPostGIS(String queryJson) {
         File tempDir = null;
         File zipFile = null;
-        DataStore dataStore = null; // ADD: Declare outside for disposal
+        DataStore dataStore = null;
 
         try {
-            // Generate unique base name
-            String baseName = "nsi_building_inventory_" + UUID.randomUUID().toString().replace("-", "");
+            // Validate input JSON
+            if (!JsonUtils.isJSONValid(queryJson)) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid JSON input.");
+            }
 
-            // Create temp directory
+            ObjectMapper mapper = new ObjectMapper();
+
+            List<String> fipsList = JsonUtils.extractValueListFromJsonString("fips_list", queryJson);
+
+            List<Double> boundingBox = null;
+            if (JsonUtils.hasKey(queryJson, "bounding_box")) {
+                boundingBox = mapper.readValue(
+                    JsonUtils.extractRawJsonString("bounding_box", queryJson),
+                    new TypeReference<List<Double>>() {}
+                );
+            }
+
+            if ((fipsList == null || fipsList.isEmpty()) && (boundingBox == null || boundingBox.isEmpty())) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Either 'fips_list' or 'bounding_box' must be provided.");
+            }
+
+            // Generate base name and temp directory
+            String baseName = "nsi_building_inventory_" + UUID.randomUUID().toString().replace("-", "");
             tempDir = Files.createTempDirectory("shapefile_export_").toFile();
 
             // Connect to PostGIS
-            dataStore = GeotoolsUtils.connectToPostGIS(
-                PG_HOST, PG_PORT, PG_DATABASE, PG_USER, PG_PASSWORD
-            );
-
-            // Build FIPS filter and fetch features
-            Filter filter = GeotoolsUtils.buildFipsFilter(fipsCodes);
+            dataStore = GeotoolsUtils.connectToPostGIS(PG_HOST, PG_PORT, PG_DATABASE, PG_USER, PG_PASSWORD);
             SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi_export_view");
-            SimpleFeatureCollection features = featureSource.getFeatures(filter);
 
-            // Build regulated schema and write shapefile
-            File shpFile = new File(tempDir, baseName + ".shp");
+            // Create filter by priority: FIPS > Bounding Box
+            Filter filter;
+            if (fipsList != null && !fipsList.isEmpty()) {
+                filter = GeotoolsUtils.buildFipsFilter(fipsList);
+            } else {
+                filter = GeotoolsUtils.buildBoundingBoxFilter(boundingBox);
+            }
+
+            SimpleFeatureCollection features = featureSource.getFeatures(filter);
             SimpleFeatureType schema = GeotoolsUtils.createRegulatedSchema(features.getSchema(), baseName);
+
+            // Write shapefile and zip
+            File shpFile = new File(tempDir, baseName + ".shp");
             GeotoolsUtils.writeFeaturesToShapefile(features, schema, shpFile);
 
-            // Zip shapefile
             zipFile = new File(tempDir.getParent(), baseName + ".zip");
             GeotoolsUtils.zipDirectory(tempDir, baseName);
 
@@ -1221,14 +1245,11 @@ public class DatasetController {
 
         } catch (Exception e) {
             logger.error("Failed to export shapefile", e);
-            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR,
-                "Error exporting shapefile: " + e.getMessage());
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error exporting shapefile: " + e.getMessage());
         } finally {
-            // ADD: Dispose datastore to avoid connection leaks
             if (dataStore != null) {
                 dataStore.dispose();
             }
-            // ADD: Ensure shapefile resources are cleaned up
             GeotoolsUtils.cleanupDirectory(tempDir);
         }
     }
@@ -1273,7 +1294,21 @@ public class DatasetController {
             // Query PostGIS and write shapefile components
             DataStore dataStore = GeotoolsUtils.connectToPostGIS(PG_HOST, PG_PORT, PG_DATABASE, PG_USER, PG_PASSWORD);
             SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi_export_view");
-            Filter filter = GeotoolsUtils.buildFipsFilter(fipsList);
+
+            Filter filter;
+            if (!fipsList.isEmpty()) {
+                filter = GeotoolsUtils.buildFipsFilter(fipsList);
+            } else if (JsonUtils.hasKey(inDatasetJson, "bounding_box")) {
+                ObjectMapper mapper = new ObjectMapper();
+                List<Double> boundingBox = mapper.readValue(
+                    JsonUtils.extractRawJsonString("bounding_box", inDatasetJson),
+                    new TypeReference<List<Double>>() {}
+                );
+                filter = GeotoolsUtils.buildBoundingBoxFilter(boundingBox);
+            } else {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Either 'fips_list' or 'bounding_box' must be provided.");
+            }
+
             SimpleFeatureCollection features = featureSource.getFeatures(filter);
             SimpleFeatureType schema = GeotoolsUtils.createRegulatedSchema(featureSource.getSchema(), baseName);
             File shpFile = new File(tempDir, baseName + ".shp");

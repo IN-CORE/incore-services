@@ -1,5 +1,7 @@
 package edu.illinois.ncsa.incore.common.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.AllocationConstants;
 import edu.illinois.ncsa.incore.common.dao.IGroupAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
@@ -14,6 +16,7 @@ import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -98,4 +101,22 @@ public class JsonUtils {
 
         return isAdmin;
     }
+
+    public static boolean hasKey(String jsonString, String key) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(jsonString);
+            return node.has(key);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static String extractRawJsonString(String key, String json) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(json);
+        JsonNode node = root.get(key);
+        return node != null ? node.toString() : null;
+    }
+
 }
