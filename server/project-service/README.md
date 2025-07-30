@@ -147,6 +147,7 @@ system, including creating, updating, and deleting projects, as well as managing
     - `projectId` (string) - ID of the project.
 - **Query Parameters**:
   - `skip`, `limit`, `type`, `text`
+  - If `limit=-1`, list all datasets
 - **Example**:
   ```http
   GET /project/api/projects/66c60ba518da486b1e9c08d5/datasets?text=Building Inventory
@@ -248,6 +249,49 @@ system, including creating, updating, and deleting projects, as well as managing
     "5a284f0bc7d30d13bc081a28"
   ]
   ```
+
+
+#### **Patch a Dataset within a Project**
+- **Method**: `PATCH`
+- **Path**: `/project/api/projects/{projectId}/datasets/{datasetId}`
+- **Description**: Update a dataset’s metadata or workflow metadata in a given project. Supports partial updates using form parameters. 
+If a workflow metadata entry with the same workflowId and executionId exists, the role will be merged intelligently (e.g., INPUT + OUTPUT → I/O).
+- **Path Parameters**:
+  - `projectId`	(string) - ID of the project. 
+  - `datasetId`	(string) - ID of the dataset to update.
+- **Form Parameters**:
+  - `title` (string) - New dataset title
+  - `description` (string) - New dataset description
+  - `creator` (string) - Username of the dataset creator
+  - `owner` (string) - Dataset owner
+  - `format` (string) -	Dataset format (e.g., shapefile)
+  - `type` (string) - Dataset type (e.g., ergo:buildingInventoryVer4)
+  - `sourceDataset`	(string) - ID of the dataset this one is derived from
+  - `workflowMetadata` (string of JSON) - A WorkflowMetadata object in JSON format:
+  ```json
+  { "workflowId": "workflow-id", "executionId": "execution-id", "role": "INPUT" }
+  ```
+- **Example**:
+```http request
+PATCH /project/api/projects/66c60ba518da486b1e9c08d5/datasets/abc123
+Content-Type: application/x-www-form-urlencoded
+
+Body:
+
+title=Galveston+Buildings
+&description=Updated+description+for+Galveston+Buildings
+&creator=cwang138
+&owner=cwang138
+&format=shapefile
+&type=buildingInventory
+&sourceDataset=xyz789
+&workflowMetadata={"workflowId":"7b4f3738-fcb4-48cf-b2b8-64a2ba1dda2b","executionId":"75021954-6e7a-49c8-941f-bd2df659dae6","role":"INPUT"}
+```
+- **Behavior**:
+  - If a matching workflowId + executionId exists:
+  - If the existing role and new role are different (INPUT, OUTPUT), it will be merged to IO.
+  - If existing role is null or NONE, it will be updated.
+  - If no match is found, a new WorkflowMetadata object is appended.
 
 
 #### **List Dfr3 mappings belong to a Project**
@@ -628,6 +672,39 @@ system, including creating, updating, and deleting projects, as well as managing
   ]
   ```
 
+#### **Update Fields in a Visualization**
+
+- **Method**: `PATCH`
+- **Path**: `/project/api/projects/{projectId}/visualizations/{visualizationId}`
+- **Description**: Patch fields of a specific visualization within a project. Supports partial updates via form parameters. Automatically synchronizes layerOrder if layers or layerOrder is modified.
+- **Path Parameters**:
+  - projectId (string) – ID of the project. 
+  - visualizationId (string) – ID of the visualization to update.
+- **Request Type**: application/x-www-form-urlencoded
+- **Form Parameters (all optional)**:
+  - name (string) – Name of the visualization. 
+  - description (string) – Description of the visualization.
+  - type (string) – Visualization type: MAP, CHART, or TABLE.
+  - boundingBox (repeated double) – Array of 4 values: [minX, minY, maxX, maxY].
+  - zoom (double) - Zoom level
+  - vegaJson (string) – Vega JSON spec for CHART/TABLE visualizations.
+  - layerOrder (string of JSON array) – Ordered list of layer IDs.
+  - layers (string of JSON array) – List of serialized Layer objects in JSON string format.
+- **Example**:
+```http
+  PATCH /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682
+  Content-Type: application/x-www-form-urlencoded
+
+  name=Building Footprints Map&
+  type=MAP&
+  zoom=6&
+  boundingBox=10.0&boundingBox=20.0&boundingBox=30.0&boundingBox=40.0&
+  layerOrder=["layer1","layer2"]&
+  layers=[{"layerId":"layer1","displayName":"Buildings"},{"layerId":"layer2","displayName":"Roads"}]
+```
+
+
+
 
 #### **Remove Visualizations from a Project**
 
@@ -671,6 +748,25 @@ system, including creating, updating, and deleting projects, as well as managing
     }
   ]
   ```
+
+#### **Update Layer in Map Visualization**
+
+- **Method**: `PUT`
+- **Path**: `/project/api/projects/{projectId}/visualizations/{visualizationId}/layers`
+- **Description**: Update layer in a specific map visualization.
+- **Path Parameter**:
+  - `projectId` (string) - ID of the project.
+  - `visualizationId` (string) - ID of the visualization.
+- **Request Body**: New layer.
+- **Example**:
+  ```http
+  PUT /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682/layers
+    {
+        "workspace": "incore",
+        "layerId": "6375502f3a28a17d261fd682",
+        "styleName": "incore:polygon"
+    }
+  ```
   
 #### **Remove Layers from Map Visualization**
 
@@ -680,16 +776,12 @@ system, including creating, updating, and deleting projects, as well as managing
 - **Path Parameter**:
   - `projectId` (string) - ID of the project.
   - `visualizationId` (string) - ID of the visualization.
-- **Request Body**: List of layers to remove.
+- **Request Body**: List of layers IDs to remove.
 - **Example**:
   ```http
   DELETE /project/api/projects/66c60ba518da486b1e9c08d5/visualizations/6375502f3a28a17d261fd682/layers
   [
-    {
-        "layerId": "6375502f3a28a17d261fd682"
-    },
-    {
-        "layerId": "6375502f3a28a17d261fd683"
-    }
+    "6375502f3a28a17d261fd682",
+    "6375502f3a28a17d261fd683"
   ]
   ```

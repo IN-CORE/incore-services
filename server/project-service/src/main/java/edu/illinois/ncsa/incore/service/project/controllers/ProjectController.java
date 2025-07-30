@@ -7,6 +7,7 @@ package edu.illinois.ncsa.incore.service.project.controllers;
  *******************************************************************************
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
@@ -33,6 +34,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,7 +44,7 @@ import static edu.illinois.ncsa.incore.service.project.utils.CommonUtil.*;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Project Service for creating and accessing projects",
-        version = "1.28.0",
+        version = "1.29.0",
         title = "IN-CORE v2 Project Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -397,14 +399,18 @@ public class ProjectController {
     public List<DatasetResource> listDatasetsOfProject(
         @Parameter(name = "projectId", description = "ID of the project.") @PathParam("projectId") String id,
         @Parameter(name = "Skip the first n results", description = "Number of results to skip.") @QueryParam("skip") @DefaultValue("0") int offset,
-        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return.") @QueryParam("limit") @DefaultValue("100") int limit,
+        @Parameter(name = "Limit the number of results", description = "Maximum number of results to return. Use -1 to return all results.") @QueryParam("limit") @DefaultValue("100") int limit,
         @Parameter(name = "Filter by type", description = "Filter datasets by type") @QueryParam("type") String type,
+        @Parameter(name = "Filter by workflowId", description = "Filter datasets by workflow id") @QueryParam("workflowId") String workflowId,
+        @Parameter(name = "Filter by executionId", description = "Filter datasets by execution id") @QueryParam("executionId") String executionId,
         @Parameter(name = "Filter by format", description = "Filter datasets by format") @QueryParam("format") String format,
         @Parameter(name = "Text to search ") @QueryParam("text") String text,
         @Parameter(name = "Specify the field or attribute on which the sorting is to be performed.") @DefaultValue("date") @QueryParam("sortBy") String sortBy,
         @Parameter(name = "Specify the order of sorting, either ascending or descending.") @DefaultValue("desc") @QueryParam("order") String order) {
 
         Project project = projectDAO.getProjectById(id);
+        int effectiveLimit = (limit < 0) ? Integer.MAX_VALUE : limit;
+
         if (project != null) {
             if (authorizer.canUserReadMember(username, id, spaceRepository.getAllSpaces(), groups)) {
                 Comparator<DatasetResource> comparator = datasetComparator(sortBy, order);
@@ -412,9 +418,11 @@ public class ProjectController {
                     .filter(dataset -> text == null || dataset.matchesSearchText(text))
                     .filter(dataset -> type == null || dataset.getDataType().equalsIgnoreCase(type))
                     .filter(dataset -> format == null || dataset.format.equalsIgnoreCase(format))
+                    .filter(dataset -> workflowId == null || dataset.hasWorkflowId(dataset, workflowId))
+                    .filter(dataset -> executionId == null || dataset.hasExecutionId(dataset, executionId))
                     .sorted(comparator)
                     .skip(offset)
-                    .limit(limit)
+                    .limit(effectiveLimit)
                     .collect(Collectors.toList());
             } else {
                 throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " does not have privileges to access the project with id " + id);
@@ -506,6 +514,92 @@ public class ProjectController {
             return updatedProject;
         }
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete datasets from the project.");
+    }
+
+    @PATCH
+    @Path("{projectId}/datasets/{datasetId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Patch a single dataset within a project")
+    public DatasetResource patchDatasetById(
+        @Parameter(name = "projectId", description = "ID of the project to update")
+        @PathParam("projectId") String projectId,
+        @Parameter(name = "datasetId", description = "ID of the dataset to update")
+        @PathParam("datasetId") String datasetId,
+        @FormParam("title") String title,
+        @FormParam("description") String description,
+        @FormParam("creator") String creator,
+        @FormParam("owner") String owner,
+        @FormParam("format") String format,
+        @FormParam("type") String type,
+        @FormParam("sourceDataset") String sourceDataset,
+        @FormParam("workflowMetadata") String workflowMetadataJson
+    ) {
+        Project project = projectDAO.getProjectById(projectId);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + projectId);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not allowed to modify the project.");
+        }
+
+        DatasetResource dataset = project.getDatasets().stream()
+            .filter(d -> d.getId().equals(datasetId))
+            .findFirst()
+            .orElseThrow(() -> new IncoreHTTPException(Response.Status.NOT_FOUND, "Dataset not found: " + datasetId));
+
+        if (title != null) dataset.title = title;
+        if (description != null) dataset.description = description;
+        if (format != null) dataset.format = format;
+        if (type != null) dataset.setDataType(type);
+        if (creator != null) dataset.setDataType(creator);
+        if (owner != null) dataset.setDataType(owner);
+        if (sourceDataset != null) dataset.setDataType(sourceDataset);
+
+        // patch metadata
+        if (workflowMetadataJson != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+
+                List<WorkflowMetadata> newMetadataList = Arrays.asList(
+                    mapper.readValue(workflowMetadataJson, WorkflowMetadata[].class)
+                );
+
+                for (WorkflowMetadata newMetadata : newMetadataList) {
+                    if (dataset.workflowMetadata == null) {
+                        dataset.workflowMetadata = new ArrayList<>();
+                    }
+
+                    List<WorkflowMetadata> metadataList = dataset.workflowMetadata;
+                    boolean updated = false;
+
+                    for (WorkflowMetadata existing : metadataList) {
+                        if (Objects.equals(existing.getWorkflowId(), newMetadata.getWorkflowId()) &&
+                            Objects.equals(existing.getExecutionId(), newMetadata.getExecutionId())) {
+
+                            WorkflowMetadata.Role newRole =
+                                newMetadata.mergeRoles(existing.getRole(), newMetadata.getRole());
+                            existing.setRole(newRole);
+                            updated = true;
+                            break;
+                        }
+                    }
+
+                    if (!updated) {
+                        metadataList.add(newMetadata);
+                    }
+                }
+
+            } catch (IOException e) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid workflowMetadata input: " + e.getMessage());
+            }
+        }
+
+        projectDAO.updateProject(projectId, project);
+        return dataset;
     }
 
     @GET
@@ -996,6 +1090,7 @@ public class ProjectController {
 
         // Loop through visualizations and add each one to the project
         for (VisualizationResource visualization : visualizations) {
+            visualization.syncLayerOrder();
             project.addVisualizationResource(visualization);
         }
 
@@ -1009,6 +1104,87 @@ public class ProjectController {
             return updatedProject;
         }
         throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to add visualizations to the project.");
+    }
+
+    @PATCH
+    @Path("{projectId}/visualizations/{visualizationId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Patch a single visualization within a project")
+    public VisualizationResource patchVisualizationById(
+        @Parameter(name = "projectId", description = "ID of the project to update")
+        @PathParam("projectId") String projectId,
+        @Parameter(name = "visualizationId", description = "ID of the visualization to update")
+        @PathParam("visualizationId") String visualizationId,
+        @FormParam("name") String name,
+        @FormParam("description") String description,
+        @FormParam("type") String type,
+        @FormParam("boundingBox") List<Double> boundingBox,
+        @FormParam("zoom") Double zoom,
+        @FormParam("vegaJson") String vegaJson,
+        @FormParam("layerOrder") String layerOrderJson,
+        @FormParam("layers") String layersJson
+    ) {
+        Project project = projectDAO.getProjectById(projectId);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a project with id " + projectId);
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + "is not allowed to modify the project ");
+        }
+
+        // Locate the target visualization
+        VisualizationResource visualization = project.getVisualizations().stream()
+            .filter(v -> v.getId().equals(visualizationId))
+            .findFirst()
+            .orElseThrow(() -> new IncoreHTTPException(Response.Status.NOT_FOUND, "Visualization not found: " + visualizationId));
+
+        boolean syncNeeded = false;
+
+        if (name != null) visualization.setName(name);
+        if (description != null) visualization.description = description;
+        if (type != null) visualization.setType(VisualizationResource.Type.valueOf(type));
+        if (zoom != null) visualization.setZoom(zoom);
+        if (boundingBox != null && boundingBox.size() == 4) {
+            double[] bbox = boundingBox.stream().mapToDouble(Double::doubleValue).toArray();
+            visualization.setBoundingBox(bbox);
+        }
+        if (vegaJson != null) visualization.setVegaJson(vegaJson);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            if (layerOrderJson != null) {
+                List<String> layerOrder = mapper.readValue(layerOrderJson, new TypeReference<>() {
+                });
+                visualization.setLayerOrder(layerOrder);
+                syncNeeded = true;
+            }
+        }
+        catch (IOException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid layerOrder input: " + e.getMessage());
+        }
+
+        try{
+            if (layersJson != null) {
+                List<Layer> parsedLayers = mapper.readValue(layersJson, new TypeReference<>() {});
+                visualization.setLayers(parsedLayers);
+                syncNeeded = true;
+            }
+        }
+        catch (IOException e) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid layer input: " + e.getMessage());
+        }
+
+        if (syncNeeded) {
+            visualization.syncLayerOrder();
+        }
+
+        projectDAO.updateProject(projectId, project);
+        return visualization;
     }
 
     @DELETE
@@ -1086,6 +1262,9 @@ public class ProjectController {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
         }
 
+        // sync layer with layer order
+        visualization.syncLayerOrder();
+
         // Update the project in the database
         Project updatedProject = projectDAO.updateProject(id, project);
         if (updatedProject != null) {
@@ -1106,7 +1285,7 @@ public class ProjectController {
     public Project deleteLayersFromMapVis(
         @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String id,
         @Parameter(name = "visualizationId", description = "ID of the visualization to update", required = true) @PathParam("visualizationId") String visualizationId,
-        @Parameter(name = "layers", description = "List of layers to delete", required = true) List<Layer> layers) {
+        @Parameter(name = "layerIds", description = "List of layer IDs to delete", required = true) List<String> layerIds) {
         {
             // Check if the project exists
             Project project = projectDAO.getProjectById(id);
@@ -1123,12 +1302,15 @@ public class ProjectController {
             // Check if the visualization is of type Map and update layers
             VisualizationResource visualization = project.getVisualization(visualizationId);
             if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
-                for (Layer layer : layers) {
-                    visualization.removeLayer(layer);
+                for (String layerId : layerIds) {
+                    visualization.removeLayerById(layerId);
                 }
             } else {
                 throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
             }
+
+            // sync visualization order
+            visualization.syncLayerOrder();
 
             // Update the project in the database
             Project updatedProject = projectDAO.updateProject(id, project);
@@ -1142,4 +1324,45 @@ public class ProjectController {
             throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to delete the layer.");
         }
     }
+
+    @PUT
+    @Path("{projectId}/visualizations/{visualizationId}/layers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Update a specific layer in a visualization")
+    public Project updateLayerInMapVis(
+        @Parameter(name = "projectId", description = "ID of the project to update") @PathParam("projectId") String projectId,
+        @Parameter(name = "visualizationId", description = "ID of the visualization to update", required = true) @PathParam("visualizationId") String visualizationId,
+        @Parameter(description = "Updated layer object", required = true) Layer newLayer) {
+
+        // Check if the project exists
+        Project project = projectDAO.getProjectById(projectId);
+        if (project == null) {
+            throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Project with id " + projectId + " not found.");
+        }
+
+        // Authorization check
+        boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(project.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN, this.username + " is not authorized to modify this project.");
+        }
+
+        // Check if the visualization is of type Map and update layers
+        VisualizationResource visualization = project.getVisualization(visualizationId);
+        if (visualization.getType().equals(VisualizationResource.Type.MAP)) {
+            visualization.updateLayer(newLayer);
+        } else {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Visualization with id " + visualizationId + " is not a Map.");
+        }
+
+        // Persist the updated project
+        Project updatedProject = projectDAO.updateProject(projectId, project);
+        if (updatedProject != null) {
+            updatedProject.setSpaces(spaceRepository.getSpaceNamesOfMember(projectId));
+            return updatedProject;
+        }
+
+        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to update the layer.");
+    }
+
 }

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VisualizationResource extends ProjectResource{
@@ -18,15 +20,24 @@ public class VisualizationResource extends ProjectResource{
 
     private Type type = Type.MAP;
     private double[] boundingBox = null;
+    private double zoom = 4;
+    private List<String> layerOrder = new ArrayList<>();
     private List<Layer> layers = new ArrayList<>();
     private String vegaJson = null;
-    private List<String> sourceDatasetIds = null;
     public String name;
     public String description;
 
     public VisualizationResource() {}
     public VisualizationResource(Type type) {
         this.type = type;
+    }
+
+    public double getZoom() {
+        return zoom;
+    }
+
+    public void setZoom(double zoom){
+        this.zoom = zoom;
     }
 
     public Type getType() {
@@ -36,7 +47,6 @@ public class VisualizationResource extends ProjectResource{
     public void setType(Type type) {
         this.type = type;
     }
-
 
     public List<Layer> getLayers() {
         return layers;
@@ -65,19 +75,68 @@ public class VisualizationResource extends ProjectResource{
 
         if (!exists) {
             layers.add(layer);
+
+            if (layerOrder == null) {
+                layerOrder = new ArrayList<>();
+            }
+
+            // Add layerId to layerOrder if not already present
+            if (!layerOrder.contains(layer.getLayerId())) {
+                layerOrder.add(layer.getLayerId());
+            }
         }
     }
 
-    public void removeLayer(Layer layer) {
+    public void updateLayer(Layer layer) {
+        boolean updated = false;
+        // if it exist, replace the existing layer with new one same order
+        for (int i = 0; i < layers.size(); i++) {
+            if (layers.get(i).getLayerId().equals(layer.getLayerId())) {
+                layers.set(i, layer);
+                updated = true;
+                break;
+            }
+        }
+       if (!updated) {
+            throw new IllegalArgumentException("Layer with ID " + layer.getLayerId() + " does not exist.");
+        }
+    }
+
+    public void removeLayerById(String layerId) {
         int indexToRemove = -1;
         for (int i = 0; i < layers.size(); i++) {
-            if (layer.getLayerId().equals(layers.get(i).getLayerId())) {
+            if (layerId.equals(layers.get(i).getLayerId())) {
                 indexToRemove = i;
                 break;
             }
         }
         if (indexToRemove != -1) {
             layers.remove(indexToRemove);
+        }
+
+        if (layerOrder != null) {
+            layerOrder.remove(layerId);
+        }
+    }
+
+    public void syncLayerOrder() {
+        if (layerOrder == null) {
+            layerOrder = new ArrayList<>();
+        }
+
+        Set<String> validLayerIds = layers.stream()
+            .map(Layer::getLayerId)
+            .collect(Collectors.toSet());
+
+        // Step 1: Remove stale IDs
+        layerOrder.removeIf(id -> !validLayerIds.contains(id));
+
+        // Step 2: Add missing valid layer IDs (preserve order in `layers`)
+        for (Layer layer : layers) {
+            String id = layer.getLayerId();
+            if (!layerOrder.contains(id)) {
+                layerOrder.add(id);
+            }
         }
     }
 
@@ -89,28 +148,20 @@ public class VisualizationResource extends ProjectResource{
         this.vegaJson = vegaJson;
     }
 
-    public  List<String> getDatasetIds() {
-        return sourceDatasetIds;
-    }
-
-    public void setDatasetId(List<String> sourceDatasetIds) {
-        this.sourceDatasetIds = sourceDatasetIds;
-    }
-
-    public void addSourceDatasetId(String id) {
-        sourceDatasetIds.add(id);
-    }
-
-    public void removeSourceDatasetId(String id) {
-        sourceDatasetIds.remove(id);
-    }
-
     public void setName(String name) {
         this.name = name;
     }
 
     public String getName() {
         return name;
+    }
+
+    public List<String> getLayerOrder() {
+        return layerOrder;
+    }
+
+    public void setLayerOrder(List<String> layerOrder) {
+        this.layerOrder = layerOrder;
     }
 
     public boolean matchesSearchText(String text) {

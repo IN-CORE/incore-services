@@ -60,12 +60,22 @@ import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.api.filter.Filter;
 import org.geotools.api.parameter.GeneralParameterValue;
 import org.geotools.api.parameter.ParameterValueGroup;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.api.data.*;
+import org.geotools.api.feature.Property;
+import org.geotools.api.feature.type.GeometryDescriptor;
+import org.locationtech.jts.geom.Point;
+import org.geotools.data.DefaultTransaction;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -1183,5 +1193,195 @@ public class GeotoolsUtils {
 
         return GeoUtils.gpkgValidationResult.VALID;
     }
-}
 
+    public static DataStore connectToPostGIS(String host, String port, String database, String user, String password) throws IOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("dbtype", "postgis");
+        params.put("host", host);
+        params.put("port", Integer.parseInt(port));
+        params.put("database", database);
+        params.put("user", user);
+        params.put("passwd", password);
+        return DataStoreFinder.getDataStore(params);
+    }
+
+    public static Filter buildFipsFilter(List<String> fipsCodes) throws Exception {
+        String filterStr = fipsCodes.stream()
+            .map(code -> "cbfips LIKE '" + code + "%'")
+            .reduce((a, b) -> a + " OR " + b)
+            .orElse("FALSE");
+        return CQL.toFilter(filterStr);
+    }
+
+    public static Filter buildBoundingBoxFilter(List<Double> boundingBox) throws Exception {
+        if (boundingBox == null || boundingBox.size() != 4) {
+            throw new IllegalArgumentException("Bounding box must be a list of four coordinates: [minLat, minLon, maxLat, maxLon].");
+        }
+
+        double minY = boundingBox.get(0); // lat1
+        double minX = boundingBox.get(1); // lon1
+        double maxY = boundingBox.get(2); // lat2
+        double maxX = boundingBox.get(3); // lon2
+
+        String cql = String.format("BBOX(geom, %f, %f, %f, %f)", minX, minY, maxX, maxY);
+        return CQL.toFilter(cql);
+    }
+
+
+
+    public static SimpleFeatureType createRegulatedSchema(SimpleFeatureType originalSchema, String baseName) {
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.setName(baseName);
+        builder.setCRS(originalSchema.getCoordinateReferenceSystem());
+
+        AttributeTypeBuilder attrBuilder = new AttributeTypeBuilder();
+        String defaultGeometryName = null;
+
+        for (AttributeDescriptor descriptor : originalSchema.getAttributeDescriptors()) {
+            String name = descriptor.getLocalName();
+
+            if (descriptor instanceof GeometryDescriptor) {
+                builder.add(name, Point.class);
+                builder.setDefaultGeometry(name);
+                defaultGeometryName = name;
+            } else if ("no_stories".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(3);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("year_built".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("appr_bldg".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("sq_foot".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("cont_val".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(10);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("ffe_elev".equals(name)) {
+                attrBuilder.setBinding(Double.class);
+                attrBuilder.setLength(5);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("g_elev".equals(name)) {
+                attrBuilder.setBinding(Double.class);
+                attrBuilder.setLength(5);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("archetype".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_flood".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_flood".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else if ("arch_sw".equals(name)) {
+                attrBuilder.setBinding(Integer.class);
+                attrBuilder.setLength(4);
+                builder.add(attrBuilder.buildDescriptor(name));
+            } else {
+                builder.add(descriptor);
+            }
+        }
+
+        if (defaultGeometryName == null) {
+            throw new IllegalStateException("No geometry field found in schema.");
+        }
+
+        return builder.buildFeatureType();
+    }
+
+    public static void writeFeaturesToShapefile(SimpleFeatureCollection features, SimpleFeatureType schema, File shpFile) throws IOException {
+        Map<String, Serializable> shpParams = new HashMap<>();
+        shpParams.put("url", shpFile.toURI().toURL());
+        shpParams.put("create spatial index", Boolean.TRUE);
+
+        ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
+        ShapefileDataStore shpDataStore = (ShapefileDataStore) factory.createNewDataStore(shpParams);
+        shpDataStore.createSchema(schema);
+
+        Transaction tx = new DefaultTransaction("create");
+        try (
+            FeatureWriter<SimpleFeatureType, SimpleFeature> writer = shpDataStore.getFeatureWriterAppend(shpDataStore.getTypeNames()[0], tx);
+            SimpleFeatureIterator iterator = features.features()
+        ) {
+            while (iterator.hasNext()) {
+                SimpleFeature source = iterator.next();
+                SimpleFeature target = writer.next();
+
+                for (Property property : source.getProperties()) {
+                    String name = property.getName().toString();
+                    Object value = property.getValue();
+
+                    if (name.equals(schema.getGeometryDescriptor().getLocalName())) {
+                        target.setDefaultGeometry(value);
+                    } else if (schema.getDescriptor(name) != null) {
+                        target.setAttribute(name, value);
+                    }
+                }
+
+                writer.write();
+            }
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
+            throw new RuntimeException("Failed to write shapefile: " + e.getMessage(), e);
+        } finally {
+            tx.close();
+        }
+    }
+
+    public static File zipDirectory(File directory, String baseName) throws IOException {
+        File zipFile = new File(directory.getParent(), baseName + ".zip");
+        try (FileOutputStream fos = new FileOutputStream(zipFile);
+             ZipOutputStream zos = new ZipOutputStream(fos)) {
+
+            for (File file : Objects.requireNonNull(directory.listFiles())) {
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    zos.putNextEntry(new ZipEntry(file.getName()));
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = fis.read(buffer)) >= 0) {
+                        zos.write(buffer, 0, length);
+                    }
+                    zos.closeEntry();
+                }
+            }
+        }
+        return zipFile;
+    }
+
+    public static void cleanupDirectory(File directory) {
+        if (directory != null && directory.exists()) {
+            for (File file : Objects.requireNonNull(directory.listFiles())) {
+                file.delete();
+            }
+            directory.delete();
+        }
+    }
+
+    public static void deleteFile(File file) {
+        if (file != null && file.exists()) {
+            file.delete();
+        }
+    }
+
+    public static Map<String, Object> buildDatasetPayload(String title, String description, String creator) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("title", title);
+        payload.put("description", description);
+        payload.put("creator", creator);
+        payload.put("dataType", "ergo:buildingInventoryVer6");
+        payload.put("format", "shapefile");
+        return payload;
+    }
+}

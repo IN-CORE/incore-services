@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.29.0] - 2025-07-24
+
+### Changed
+- Gradle to version 8.13 [#343](https://github.com/IN-CORE/incore-services/issues/343)
+- Jersey to version 3.1.10 [#340](https://github.com/IN-CORE/incore-services/issues/340)
+- Swagger to version 2.2.28 [#251](https://github.com/IN-CORE/incore-services/issues/251)
+- Endpoint to delete and edit layers in visualization [#360](https://github.com/IN-CORE/incore-services/issues/360)
+- NSI building inventory field regulation for 4 new fields [#384](https://github.com/IN-CORE/incore-services/issues/384)
+
+### Added
+- More fields in the visualziation layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
+- Added PATCH endpoint to update visualization fields, including layer order and layers [#373](https://github.com/IN-CORE/incore-services/issues/373)
+- Project tool endpoint that initiate NSI data creation and registration [#377](https://github.com/IN-CORE/incore-services/issues/377)
+- Endpoints to generate NSI based building inventory dataset by fips code and to download as a shapefile [#370](https://github.com/IN-CORE/incore-services/issues/370)
+- Endpoint to query NSI based building inventory by bounding box [#379](https://github.com/IN-CORE/incore-services/issues/379)
+- Workflow metadata support, including filtering datasets by workflow ID and execution ID, and a new PATCH endpoint to update individual dataset metadata. [#380](https://github.com/IN-CORE/incore-services/issues/380)
+- Support joining with sourceDataset on PUT and publishing the result to GeoServer [#362](https://github.com/IN-CORE/incore-services/issues/362)
+
 ## [1.28.0] - 2025-02-20
 ### Added
 - Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)

@@ -12,6 +12,8 @@
 
 package edu.illinois.ncsa.incore.service.data.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.exceptions.CsvValidationException;
 import edu.illinois.ncsa.incore.common.HazardConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
@@ -45,18 +47,22 @@ import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+import org.geotools.api.data.*;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.*;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.util.*;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -72,7 +78,7 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Data Service for creating and accessing datasets",
-        version = "1.28.0",
+        version = "1.29.0",
         title = "IN-CORE v2 Data Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
@@ -92,6 +98,11 @@ import static edu.illinois.ncsa.incore.service.data.utils.CommonUtil.datasetComp
 public class DatasetController {
     private static final String DATA_REPO_FOLDER = System.getenv("DATA_REPO_DATA_DIR");
     private static final String GEOSERVER_ENABLE = System.getenv("GEOSERVER_ENABLE");
+    private static final String PG_HOST = System.getenv("PG_HOST");
+    private static final String PG_PORT = System.getenv("PG_PORT"); // string because it's an env var
+    private static final String PG_DATABASE = System.getenv("PG_DATABASE");
+    private static final String PG_USER = System.getenv("PG_USER");
+    private static final String PG_PASSWORD = System.getenv("PG_PASSWORD");
     private static final String POST_PARAMETER_NAME = "name";
     private static final String POST_PARAMETER_FILE = "file";
     private static final String POST_PARAMETER_FILE_LINK = "link-file";
@@ -1034,9 +1045,9 @@ public class DatasetController {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    @Operation(summary = "Updates the dataset's JSON associated with a dataset id", description = "Only allows updating string attributes of " +
-        "the dataset. This will " +
-        "not upload file content of the dataset to the server, they should be done separately using {id}/files endpoint")
+    @Operation(summary = "Updates the dataset's JSON associated with a dataset id", description = "Only allows updating string attributes " +
+        "of the dataset. This will not upload file content of the dataset to the server, they should be done separately using " +
+        "{id}/files endpoint")
     public Object updateObject(@Parameter(name = "Dataset Id from data service", required = true) @PathParam("id") String datasetId,
                                @Parameter(name = "JSON representing an input dataset", required = true) @FormDataParam("update") String inDatasetJson) {
         boolean isJsonValid = JsonUtils.isJSONValid(inDatasetJson);
@@ -1048,18 +1059,20 @@ public class DatasetController {
 
         Dataset dataset = repository.getDatasetById(datasetId);
 
-        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
-        if (!this.username.equals(dataset.getOwner()) && isAdmin != true) {
-            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
-                this.username + " has no permission to modify the dataset " + datasetId);
-        }
-
         if (dataset == null) {
             throw new IncoreHTTPException(Response.Status.NOT_FOUND, "Could not find a dataset with id " + datasetId);
         }
 
-        String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+        Boolean isAdmin = Authorizer.getInstance().isUserAdmin(this.groups);
+        if (!this.username.equals(dataset.getOwner()) && !isAdmin) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                this.username + " has no permission to modify the dataset " + datasetId);
+        }
 
+        String propName = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_NAME, inDatasetJson);
+        String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
+
+        // Check if the field exists and is of type String
         try {
             Field f = dataset.getClass().getDeclaredField(propName); // Get the passed field from Dataset class
             f.setAccessible(true);
@@ -1072,10 +1085,57 @@ public class DatasetController {
                 + UPDATE_OBJECT_NAME + " does not exist in the dataset. ");
         }
 
-        String propVal = JsonUtils.extractValueFromJsonString(UPDATE_OBJECT_VALUE, inDatasetJson);
-        dataset = repository.updateDataset(datasetId, propName, propVal);
-        return dataset;
+        // Handle special logic for sourceDataset update (i.e., setting parent ID)
+        if ("sourceDataset".equalsIgnoreCase(propName)) {
+            Dataset parentDataset = repository.getDatasetById(propVal);
+            if (parentDataset == null) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Parent dataset not found: " + propVal);
+            }
 
+            // Check if the parent dataset is compatible with the child dataset for join
+            String childFormat = dataset.getFormat();
+            String parentFormat = parentDataset.getFormat();
+
+            boolean isChildCompatible = true;
+            boolean isParentCompatible = true;
+            if (childFormat == null || !childFormat.equalsIgnoreCase("table")) {
+                isChildCompatible = false;
+            }
+            if ( parentDataset.getFormat() == null || !parentDataset.getFormat().equalsIgnoreCase("shapefile")) {
+                isParentCompatible = false;
+            }
+
+            // check compatibility of the datasets by GUID
+            boolean isGuidCompatible = ServiceUtils.validateJoinCompatibilityByGuid(dataset, parentDataset, repository);
+
+            dataset.setSourceDataset(propVal);
+            Dataset updatedDataset = repository.updateDataset(datasetId, "sourceDataset", propVal);
+
+            // GeoServer logic (only if format is 'table')
+            if ( isChildCompatible && isParentCompatible && isGuidCompatible) {
+                String format = updatedDataset.getFormat();
+                if (format != null && format.equalsIgnoreCase("table")) {
+                    try {
+                        File geoPkgFile = FileUtils.joinShpTable(updatedDataset, repository, true);
+                        boolean success = GeoserverUtils.uploadGpkgToGeoserver(updatedDataset.getId(), geoPkgFile);
+                        if (!success) {
+                            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer upload failed.");
+                        }
+                        FileUtils.deleteTmpDir(geoPkgFile); // Clean up
+                        logger.info("Dataset joined to source dataset and uploaded to geoserver.");
+                    } catch (Exception e) {
+                        logger.error("Error during GeoServer upload process: " + e.getMessage(), e);
+                        throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer layer creation failed.");
+                    }
+                }
+            } else {
+                logger.info("Dataset not joined to parent dataset.");
+            }
+            return updatedDataset;
+        } else {
+            dataset = repository.updateDataset(datasetId, propName, propVal);
+            return dataset;
+        }
     }
 
     @GET
@@ -1118,4 +1178,226 @@ public class DatasetController {
         return datasets;
     }
 
+    @POST
+    @Path("tools/bldg-inventory/blob")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(
+        summary = "Export NSI building inventory shapefile",
+        description = "Generates a zipped shapefile from PostGIS for given FIPS codes or bounding box."
+    )
+    public Response exportShapefileFromPostGIS(String queryJson) {
+        File tempDir = null;
+        File zipFile = null;
+        DataStore dataStore = null;
+
+        try {
+            // Validate input JSON
+            if (!JsonUtils.isJSONValid(queryJson)) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid JSON input.");
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            List<String> fipsList = JsonUtils.extractValueListFromJsonString("fips_list", queryJson);
+
+            List<Double> boundingBox = null;
+            if (JsonUtils.hasKey(queryJson, "bounding_box")) {
+                boundingBox = mapper.readValue(
+                    JsonUtils.extractRawJsonString("bounding_box", queryJson),
+                    new TypeReference<List<Double>>() {}
+                );
+            }
+
+            if ((fipsList == null || fipsList.isEmpty()) && (boundingBox == null || boundingBox.isEmpty())) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Either 'fips_list' or 'bounding_box' must be provided.");
+            }
+
+            // Generate base name and temp directory
+            String baseName = "nsi_building_inventory_" + UUID.randomUUID().toString().replace("-", "");
+            tempDir = Files.createTempDirectory("shapefile_export_").toFile();
+
+            // Connect to PostGIS
+            dataStore = GeotoolsUtils.connectToPostGIS(PG_HOST, PG_PORT, PG_DATABASE, PG_USER, PG_PASSWORD);
+            SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi_export_view");
+
+            // Create filter by priority: FIPS > Bounding Box
+            Filter filter;
+            if (fipsList != null && !fipsList.isEmpty()) {
+                filter = GeotoolsUtils.buildFipsFilter(fipsList);
+            } else {
+                filter = GeotoolsUtils.buildBoundingBoxFilter(boundingBox);
+            }
+
+            SimpleFeatureCollection features = featureSource.getFeatures(filter);
+            SimpleFeatureType schema = GeotoolsUtils.createRegulatedSchema(features.getSchema(), baseName);
+
+            // Write shapefile and zip
+            File shpFile = new File(tempDir, baseName + ".shp");
+            GeotoolsUtils.writeFeaturesToShapefile(features, schema, shpFile);
+
+            zipFile = new File(tempDir.getParent(), baseName + ".zip");
+            GeotoolsUtils.zipDirectory(tempDir, baseName);
+
+            return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
+                .header("Content-Disposition", "attachment; filename=\"" + zipFile.getName() + "\"")
+                .build();
+
+        } catch (Exception e) {
+            logger.error("Failed to export shapefile", e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Error exporting shapefile: " + e.getMessage());
+        } finally {
+            if (dataStore != null) {
+                dataStore.dispose();
+            }
+            GeotoolsUtils.cleanupDirectory(tempDir);
+        }
+    }
+
+    @POST
+    @Path("/tools/bldg-inventory")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Generate NSI building inventory dataset from FIPS codes", description = "Creates a dataset and uploads a shapefile based on provided FIPS list")
+    public Dataset createDatasetFromFipsExport(
+        @Parameter(name = "JSON representing an input dataset", required = true)
+        @FormDataParam("dataset") String inDatasetJson) {
+        // Validate input JSON
+        if (!JsonUtils.isJSONValid(inDatasetJson)) {
+            logger.error("Posted json is not a valid json.");
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Invalid input dataset, please verify that the dataset is a valid JSON.");
+        }
+
+        if (!JsonUtils.extractValueFromJsonString("id", inDatasetJson).isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Ids are auto-generated by the system. Setting an id is not allowed.");
+        }
+
+        Boolean postOk = AllocationUtils.canCreateAnyDataset(allocationsRepository, quotaRepository, username, "datasets");
+
+        if (!postOk) {
+            throw new IncoreHTTPException(Response.Status.FORBIDDEN,
+                AllocationConstants.DATASET_ALLOCATION_MESSAGE);
+        }
+
+        File tempDir = null;
+
+        try {
+            // Extract fields
+            String title = JsonUtils.extractValueFromJsonString("title", inDatasetJson);
+            String description = JsonUtils.extractValueFromJsonString("description", inDatasetJson);
+            List<String> fipsList = JsonUtils.extractValueListFromJsonString("fips_list", inDatasetJson);
+
+            // Generate filenames and temp directory
+            String baseName = "nsi_building_inventory_" + UUID.randomUUID().toString().replace("-", "");
+            tempDir = Files.createTempDirectory("shp_").toFile();
+
+            // Query PostGIS and write shapefile components
+            DataStore dataStore = GeotoolsUtils.connectToPostGIS(PG_HOST, PG_PORT, PG_DATABASE, PG_USER, PG_PASSWORD);
+            SimpleFeatureSource featureSource = dataStore.getFeatureSource("nsi_export_view");
+
+            Filter filter;
+            if (!fipsList.isEmpty()) {
+                filter = GeotoolsUtils.buildFipsFilter(fipsList);
+            } else if (JsonUtils.hasKey(inDatasetJson, "bounding_box")) {
+                ObjectMapper mapper = new ObjectMapper();
+                List<Double> boundingBox = mapper.readValue(
+                    JsonUtils.extractRawJsonString("bounding_box", inDatasetJson),
+                    new TypeReference<List<Double>>() {}
+                );
+                filter = GeotoolsUtils.buildBoundingBoxFilter(boundingBox);
+            } else {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "Either 'fips_list' or 'bounding_box' must be provided.");
+            }
+
+            SimpleFeatureCollection features = featureSource.getFeatures(filter);
+            SimpleFeatureType schema = GeotoolsUtils.createRegulatedSchema(featureSource.getSchema(), baseName);
+            File shpFile = new File(tempDir, baseName + ".shp");
+            GeotoolsUtils.writeFeaturesToShapefile(features, schema, shpFile);
+
+            // Create dataset object
+            Dataset dataset = new Dataset();
+            dataset.setTitle(title);
+            dataset.setDescription(description);
+            dataset.setCreator(this.username);
+            dataset.setOwner(this.username);
+            dataset.setDataType("ergo:buildingInventoryVer6");
+            dataset.setFormat("shapefile");
+
+            dataset = repository.addDataset(dataset);
+            if (dataset == null) {
+                logger.error("Failed to create dataset.");
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to create dataset.");
+            }
+
+            // Add dataset to user space
+            String id = dataset.getId();
+            Space space = spaceRepository.getSpaceByName(this.username);
+            if (space == null) {
+                space = new Space(this.username);
+                space.addMember(id);
+                space.setPrivileges(Privileges.newWithSingleOwner(this.username));
+            } else {
+                space.addMember(id);
+            }
+
+            Space updatedSpace = spaceRepository.addSpace(space);
+            if (updatedSpace == null) {
+                throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to update user's space.");
+            }
+
+            // Upload each shapefile component directly
+            for (String ext : List.of("shp", "shx", "dbf", "prj")) {
+                File component = new File(tempDir, baseName + "." + ext);
+                if (component.exists()) {
+                    InputStream is = new FileInputStream(component);
+                    FileDescriptor fd;
+                    FileStorageDisk fsDisk = new FileStorageDisk();
+                    fsDisk.setFolder(DATA_REPO_FOLDER);
+                    fd = fsDisk.storeFile(component.getName(), is);
+                    fd.setFilename(component.getName());
+                    dataset.addFileDescriptor(fd);
+                }
+            }
+
+            repository.addDataset(dataset);
+
+            // Return enriched dataset
+            dataset.setSpaces(spaceRepository.getSpaceNamesOfMember(dataset.getId()));
+
+            // === Optional GeoServer Upload ===
+            boolean enableGeoserver = GEOSERVER_ENABLE.equalsIgnoreCase("true");
+            boolean isShp = true;
+            boolean isPrj = false;
+
+            // Check if the dataset has required shapefile components
+            for (FileDescriptor fd : dataset.getFileDescriptors()) {
+                String filename = fd.getFilename().toLowerCase();
+                if (filename.endsWith(".prj")) {
+                    isPrj = true;
+                }
+            }
+
+            if (enableGeoserver && isShp && isPrj) {
+                try {
+                    GeoserverUtils.datasetUploadToGeoserver(dataset, repository, isShp, false, false);
+                } catch (IOException | URISyntaxException e) {
+                    logger.error("Error uploading dataset to GeoServer: " + dataset.getId(), e);
+                    throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, "GeoServer upload failed for dataset: " + dataset.getId());
+                }
+            } else {
+                logger.info("GeoServer upload skipped (GEOSERVER_ENABLE=false or missing .prj file).");
+            }
+
+            return dataset;
+
+        } catch (Exception e) {
+            logger.error("Error while creating dataset from FIPS export", e);
+            throw new IncoreHTTPException(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
+        } finally {
+            // Cleanup shapefile components
+            if (tempDir != null && tempDir.exists()) {
+                GeotoolsUtils.cleanupDirectory(tempDir);
+            }
+        }
+    }
 }
