@@ -38,7 +38,7 @@ import java.util.*;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Allocations Service for getting the user's allocation information.",
-        version = "1.28.0",
+        version = "1.29.0",
         title = "IN-CORE v2 Allocation Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",

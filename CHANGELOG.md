@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.29.0] - 2025-07-24
 
 ### Changed
 - Gradle to version 8.13 [#343](https://github.com/IN-CORE/incore-services/issues/343)
@@ -18,17 +18,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - More fields in the visualziation layer model [#365](https://github.com/IN-CORE/incore-services/issues/365)
 - Added PATCH endpoint to update visualization fields, including layer order and layers [#373](https://github.com/IN-CORE/incore-services/issues/373)
 - Project tool endpoint that initiate NSI data creation and registration [#377](https://github.com/IN-CORE/incore-services/issues/377)
-- Endpoint to generate NSI based building inventory dataset by fips code [#370](https://github.com/IN-CORE/incore-services/issues/370)
-- Endpoint to download the generated NSI based building inventory dataset by fips code [#377](https://github.com/IN-CORE/incore-services/issues/377)
+- Endpoints to generate NSI based building inventory dataset by fips code and to download as a shapefile [#370](https://github.com/IN-CORE/incore-services/issues/370)
 - Endpoint to query NSI based building inventory by bounding box [#379](https://github.com/IN-CORE/incore-services/issues/379)
 - Workflow metadata support, including filtering datasets by workflow ID and execution ID, and a new PATCH endpoint to update individual dataset metadata. [#380](https://github.com/IN-CORE/incore-services/issues/380)
+- Support joining with sourceDataset on PUT and publishing the result to GeoServer [#362](https://github.com/IN-CORE/incore-services/issues/362)
 
 ## [1.28.0] - 2025-02-20
 ### Added
 - Sorted by option and order to the all project endpoints [#330](https://github.com/IN-CORE/incore-services/issues/330)
 - Endpoint to finalized a workflow [#335](https://github.com/IN-CORE/incore-services/issues/335)
 - Support for PGD from earthquake hazards [#339](https://github.com/IN-CORE/incore-services/issues/339)
-- Support joining with sourceDataset on PUT and publishing the result to GeoServer [#362](https://github.com/IN-CORE/incore-services/issues/362)
 
 ### Fixed
 - Bug when adding visualization layers to an empty layer list [#331](https://github.com/IN-CORE/incore-services/issues/331)

@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Space Service for creating and accessing spaces",
-        version = "1.28.0",
+        version = "1.29.0",
         title = "IN-CORE v2 Space Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
