@@ -2,6 +2,7 @@
   "name": "Default Building Fragility Mapping 1.0",
   "hazardType": "earthquake",
   "inventoryType": "building",
+  "dataTypes": ["ergo:buildingInventoryVer6","ergo:buildingInventoryVer7"],
   "mappings": [
     {
       "legacyEntry": {

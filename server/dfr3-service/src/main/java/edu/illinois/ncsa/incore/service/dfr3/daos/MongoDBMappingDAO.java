@@ -20,6 +20,7 @@ import org.bson.types.ObjectId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
 
@@ -33,8 +34,19 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
     }
 
     @Override
-    public List<MappingSet> getMappingSets() {
-        return this.dataStore.find(MappingSet.class).iterator().toList();
+    public List<MappingSet> getMappingSets(String dataType) {
+        // Fetch all MappingSets
+        List<MappingSet> allMappingSets = this.dataStore.find(MappingSet.class).iterator().toList();
+
+        // If dataType is null, return all MappingSets without filtering
+        if (dataType == null) {
+            return allMappingSets;
+        }
+
+        // Filter the MappingSets based on the dataType parameter
+        return allMappingSets.stream()
+            .filter(mappingSet -> mappingSet.getDataTypes().contains(dataType))
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -95,12 +107,14 @@ public class MongoDBMappingDAO extends MongoDAO implements IMappingDAO {
                 .filter(Filters.or(
                     Filters.regex("name").pattern(text).caseInsensitive(),
                     Filters.regex("hazardType").pattern(text).caseInsensitive(),
-                    Filters.regex("inventoryType").pattern(text).caseInsensitive()));
+                    Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                    Filters.regex("dataType").pattern(text).caseInsensitive()));
         } else {
             query.filter(Filters.or(
                 Filters.regex("name").pattern(text).caseInsensitive(),
                 Filters.regex("hazardType").pattern(text).caseInsensitive(),
-                Filters.regex("inventoryType").pattern(text).caseInsensitive()));
+                Filters.regex("inventoryType").pattern(text).caseInsensitive(),
+                Filters.regex("dataType").pattern(text).caseInsensitive()));
         }
 
         List<MappingSet> sets = query.iterator().toList();

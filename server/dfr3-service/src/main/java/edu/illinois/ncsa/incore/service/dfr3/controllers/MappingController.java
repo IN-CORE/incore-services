@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.SemanticsConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -19,7 +20,6 @@ import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
@@ -27,8 +27,9 @@ import edu.illinois.ncsa.incore.service.dfr3.daos.IFragilityDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IMappingDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRepairDAO;
 import edu.illinois.ncsa.incore.service.dfr3.daos.IRestorationDAO;
-import edu.illinois.ncsa.incore.service.dfr3.models.Mapping;
-import edu.illinois.ncsa.incore.service.dfr3.models.MappingSet;
+import edu.illinois.ncsa.incore.service.dfr3.models.*;
+import edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil;
+import edu.illinois.ncsa.incore.service.dfr3.utils.ServiceUtil;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,8 +39,12 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static edu.illinois.ncsa.incore.service.dfr3.utils.CommonUtil.extractColumnsFromMapping;
 
 
 @Tag(name = "Mapping")
@@ -49,6 +54,7 @@ public class MappingController {
 
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     private IMappingDAO mappingDAO;
@@ -79,6 +85,7 @@ public class MappingController {
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
@@ -87,6 +94,7 @@ public class MappingController {
     @Operation(tags = "Gets list of all inventory mappings", summary = "Apply filters to get the desired set of mappings")
     public List<MappingSet> getMappings(@Parameter(name= "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
                                         @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                        @Parameter(name = "Data type", example = "ergo:buildingInventoryVer7") @QueryParam("dataType") String dataType,
                                         @Parameter(name = "DFR3 Mapping type", example = "fragility, restoration, repair") @QueryParam(
                                             "mappingType") String mappingType,
                                         @Parameter(name = "Creator's username") @QueryParam("creator") String creator,
@@ -114,7 +122,7 @@ public class MappingController {
         List<MappingSet> mappingSets;
 
         if (queryMap.isEmpty()) {
-            mappingSets = this.mappingDAO.getMappingSets();
+            mappingSets = this.mappingDAO.getMappingSets(dataType);
         } else {
             mappingSets = this.mappingDAO.queryMappingSets(queryMap);
         }
@@ -188,6 +196,9 @@ public class MappingController {
         }
 
         List<Mapping> mappings = mappingSet.getMappings();
+        Set<String> columnSet = new HashSet<>();
+        Set<DFR3Set> dfr3CurveSets = new HashSet<>();
+
         int idx = 0;
         String prevRuleClassName = "";
         // This validates if the format of the "rules" being submitted is an Array or Hash. It is needed because we made "rules" attribute
@@ -208,6 +219,94 @@ public class MappingController {
                 prevRuleClassName = mapping.getRules().getClass().getName();
             }
             idx++;
+
+            // get unique column names
+            if (mapping.getRules() instanceof ArrayList) {
+                extractColumnsFromMapping((ArrayList<?>) mapping.getRules(), columnSet);
+            }
+            else if(mapping.getRules() instanceof HashMap) {
+                extractColumnsFromMapping((HashMap<?, ?>) mapping.getRules(), columnSet);
+            }
+
+            // get unique dfr3 curves
+            Optional.ofNullable(mapping.getEntry())
+                .ifPresent(entry -> {
+                    if ("fragility".equals(mappingSet.getMappingType())) {
+                        entry.values().forEach(id ->
+                            this.fragilityDAO.getFragilitySetById(id).ifPresent(dfr3CurveSets::add)
+                        );
+                    } else if ("restoration".equals(mappingSet.getMappingType())) {
+                        entry.values().forEach(id ->
+                            this.restorationDAO.getRestorationSetById(id).ifPresent(dfr3CurveSets::add)
+                        );
+                    } else if ("repair".equals(mappingSet.getMappingType())) {
+                        entry.values().forEach(id ->
+                            this.repairDAO.getRepairSetById(id).ifPresent(dfr3CurveSets::add)
+                        );
+                    }
+                });
+
+        }
+
+        List<String> uniqueColumns = new ArrayList<>(columnSet);
+
+        // check if the parameters matches the defined data type in semantics
+        List<String> dataTypes = mappingSet.getDataTypes();
+        if (dataTypes == null) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataTypes is a required field.");
+        }
+        else if (dataTypes.isEmpty()) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "dataTypes cannot be empty.");
+        }
+
+        boolean columnFound = false;
+        for (String dataType : dataTypes) {
+            try {
+                String semanticsDefinition = ServiceUtil.getJsonFromSemanticsEndpoint(dataType, username, userGroups);
+                List<String> columnsDefinition = CommonUtil.getColumnNames(semanticsDefinition);
+
+                // Check if all uniqueColumns are found in columns
+                boolean allMappingRuleColumnsFound = columnsDefinition.containsAll(uniqueColumns);
+                // Check if all curveParameters are found in columns for every curve set
+                boolean allDFR3CurveParameterColumnsFound = false;
+                if (allMappingRuleColumnsFound) {
+                    allDFR3CurveParameterColumnsFound = dfr3CurveSets.stream().allMatch(dfr3CurveSet -> {
+                        List<CurveParameter> curveParameters = dfr3CurveSet.getCurveParameters();
+                        if (dfr3CurveSet instanceof FragilitySet) {
+                            return curveParameters != null && curveParameters.stream().allMatch(param -> {
+                                // Only check curve parameter if it does not belong to a part of the demand type
+                                if (!((FragilitySet) dfr3CurveSet).getDemandTypes().contains(param.fullName)
+                                    && !((FragilitySet) dfr3CurveSet).getDemandTypes().contains(param.name)) {
+                                    // Check if inventoryType is "building" and the column is not reserved
+                                    boolean isBuildingAndNotReserved = "building".equals(((FragilitySet) dfr3CurveSet).getInventoryType())
+                                        && SemanticsConstants.RESERVED_COLUMNS.contains(param.name);
+
+                                    // If it's not a building parameter that is reserved, check if it's in the columns
+                                    return isBuildingAndNotReserved || columnsDefinition.contains(param.name);
+                                }
+                                return true;
+                            });
+                        } else {
+                            // For RestorationSet or other types, just check if all curveParameters are in columnsDefinition
+                            return curveParameters != null && curveParameters.stream().allMatch(param -> columnsDefinition.contains(param.name));
+                        }
+                    });
+                }
+
+                // If both conditions are met, set columnFound to true
+                if (allMappingRuleColumnsFound && allDFR3CurveParameterColumnsFound) {
+                    columnFound = true;
+                    break;  // Break the outer loop if both conditions are met
+                }
+            } catch (IOException e) {
+                throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
+                    "Could not check if the column in the mapping rules matches the dataType: " + dataType);
+            }
+        }
+
+        if (!columnFound) {
+            throw new IncoreHTTPException(Response.Status.BAD_REQUEST,
+                "The columns in the mapping rules and/or fragility parameters do not match the columns in any of the listed dataTypes.");
         }
 
         mappingSet.setCreator(username);
