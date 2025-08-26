@@ -13,7 +13,6 @@ package edu.illinois.ncsa.incore.service.dfr3.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -25,7 +24,6 @@ import java.util.List;
 public class MappingSet {
 
     @Id
-    @Property("_id")
     private ObjectId id;
 
     private String name;

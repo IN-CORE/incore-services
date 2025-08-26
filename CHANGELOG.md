@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Internal server error creating new studio project by upgrading morphia to 2.4.18[#388](https://github.com/IN-CORE/incore-services/issues/388)
+
 ## [1.29.0] - 2025-07-24
 
 ### Changed

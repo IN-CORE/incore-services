@@ -17,7 +17,7 @@ import dev.morphia.Morphia;
 import dev.morphia.mapping.DiscriminatorFunction;
 import dev.morphia.mapping.MapperOptions;
 import dev.morphia.query.Query;
-import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.filters.Filters;
 import edu.illinois.ncsa.incore.common.models.GroupAllocations;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;

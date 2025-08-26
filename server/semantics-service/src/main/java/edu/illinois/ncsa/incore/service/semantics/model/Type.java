@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 @Entity("Type")
 public class Type {
     @Id
-    @Property("_id")
     private ObjectId id;
 
     @Property("@context")

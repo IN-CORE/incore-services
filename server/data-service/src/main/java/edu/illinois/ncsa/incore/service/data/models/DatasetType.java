@@ -2,7 +2,6 @@ package edu.illinois.ncsa.incore.service.data.models;
 
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -15,7 +14,6 @@ public class DatasetType {
      * Unique identifier for this bean, used by persistence layer
      */
     @Id
-    @Property("_id")
     private final ObjectId id = new ObjectId();
 
     private String dataType;
