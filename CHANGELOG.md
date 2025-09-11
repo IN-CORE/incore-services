@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Sadigh et al 1997 attenuation model was missing from the list of available models [#390](https://github.com/IN-CORE/incore-services/issues/390)
+
+
 ## [1.29.0] - 2025-07-24
 
 ### Changed
