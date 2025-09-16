@@ -40,7 +40,7 @@ import java.util.*;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Usage Service for getting the user's usage information.",
-        version = "1.29.0",
+        version = "1.30.0",
         title = "IN-CORE v2 Usage Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",

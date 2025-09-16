@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 
 @OpenAPIDefinition(
     info = @Info(
-        version = "1.29.0",
+        version = "1.30.0",
         description = "IN-CORE Service For Repair and Repair mappings",
 
         title = "IN-CORE v2 DFR3 Service API",

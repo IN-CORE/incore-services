@@ -16,7 +16,7 @@ import jakarta.ws.rs.core.MediaType;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Semantics Services for type and data type",
-        version = "1.29.0",
+        version = "1.30.0",
         title = "IN-CORE v2 Semantics Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",
