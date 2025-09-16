@@ -134,7 +134,7 @@ test {
             implementation project(":tools-common")
 
             //mongo
-            implementation("dev.morphia.morphia:morphia-core:2.1.3")
+            implementation("dev.morphia.morphia:morphia-core:2.4.18")
 
             // versions
             def geotoolsVersion = '32.1'

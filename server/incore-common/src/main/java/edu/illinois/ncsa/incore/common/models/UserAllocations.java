@@ -13,7 +13,6 @@ package edu.illinois.ncsa.incore.common.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.bson.types.ObjectId;
 
@@ -21,7 +20,6 @@ import org.bson.types.ObjectId;
 @Entity("UserAllocations")
 public class UserAllocations {
     @Id
-    @Property("_id")
     private ObjectId id;
 
     private String username;

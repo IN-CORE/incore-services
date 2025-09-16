@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 
@@ -27,7 +26,6 @@ import java.util.List;
 @XmlRootElement
 public abstract class Flood {
     @Id
-    @Property("_id")
     private ObjectId id;
     // Friendly name of Tsunami
     private String name;
