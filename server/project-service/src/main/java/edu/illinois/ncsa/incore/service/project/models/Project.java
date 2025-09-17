@@ -1,11 +1,9 @@
 package edu.illinois.ncsa.incore.service.project.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.bson.types.ObjectId;
@@ -19,7 +17,6 @@ import java.util.List;
 public class Project {
 
     @Id
-    @Property("_id")
     private ObjectId id;
 
     private String name = "";

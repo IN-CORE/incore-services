@@ -2,7 +2,6 @@ package edu.illinois.ncsa.incore.service.dfr3.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import org.bson.types.ObjectId;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -13,7 +12,6 @@ import java.util.List;
 @XmlRootElement
 public abstract class DFR3Set {
     @Id
-    @Property("_id")
     protected ObjectId id;
 
     @XmlTransient

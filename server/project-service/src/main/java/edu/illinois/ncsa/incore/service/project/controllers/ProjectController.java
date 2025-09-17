@@ -44,7 +44,7 @@ import static edu.illinois.ncsa.incore.service.project.utils.CommonUtil.*;
 @OpenAPIDefinition(
     info = @Info(
         description = "IN-CORE Project Service for creating and accessing projects",
-        version = "1.29.0",
+        version = "1.30.0",
         title = "IN-CORE v2 Project Service API",
         contact = @Contact(
             name = "IN-CORE Dev Team",

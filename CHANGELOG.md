@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.30.0] - 2025-09-19
+
+### Fixed
+- Internal server error creating new studio project by upgrading morphia to 2.4.18[#388](https://github.com/IN-CORE/incore-services/issues/388)
+- Sadigh et al 1997 attenuation model was missing from the list of available models [#390](https://github.com/IN-CORE/incore-services/issues/390)
+
 ## [1.29.0] - 2025-07-24
 
 ### Changed

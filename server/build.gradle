@@ -48,7 +48,7 @@ apply plugin: 'war'
 // This will not apply to the war files we build unless we put it within project loop
 // at the end of this file. This is only for the docker build to pull a version
 war {
-    archiveVersion = '1.29.0'
+    archiveVersion = '1.30.0'
 }
 
 apply plugin: 'org.gretty'
@@ -134,7 +134,7 @@ test {
             implementation project(":tools-common")
 
             //mongo
-            implementation("dev.morphia.morphia:morphia-core:2.1.3")
+            implementation("dev.morphia.morphia:morphia-core:2.4.18")
 
             // versions
             def geotoolsVersion = '32.1'

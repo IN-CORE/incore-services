@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
-import dev.morphia.annotations.Property;
 import edu.illinois.ncsa.incore.common.data.models.jackson.JsonDateSerializer;
 import org.bson.types.ObjectId;
 
@@ -40,7 +39,6 @@ public class Dataset {
      * Unique identifier for this bean, used by persistence layer
      */
     @Id
-    @Property("_id")
     private ObjectId id;
 
     /**
