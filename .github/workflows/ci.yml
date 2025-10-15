@@ -157,3 +157,16 @@ jobs:
           username: ${{ secrets.HUB_USERNAME }}
           password: ${{ secrets.HUB_PASSWORD }}
           tags: "${{ env.TAGS }}"
+
+      - name: Publish docker image to GitHub registry
+        if: |
+          github.repository == env.MAIN_REPO &&
+          (env.GITHUB_BRANCH == 'develop' || env.GITHUB_BRANCH == 'main'|| env.GITHUB_BRANCH == 'release')
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          name: ${{ matrix.hub_project }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          tags: "${{ env.TAGS }}"
