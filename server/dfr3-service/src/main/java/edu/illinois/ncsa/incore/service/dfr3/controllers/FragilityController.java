@@ -11,6 +11,7 @@
 package edu.illinois.ncsa.incore.service.dfr3.controllers;
 
 import edu.illinois.ncsa.incore.common.AllocationConstants;
+import edu.illinois.ncsa.incore.common.SemanticsConstants;
 import edu.illinois.ncsa.incore.common.auth.Authorizer;
 import edu.illinois.ncsa.incore.common.auth.IAuthorizer;
 import edu.illinois.ncsa.incore.common.auth.Privileges;
@@ -20,7 +21,6 @@ import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
@@ -48,6 +48,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -84,6 +85,7 @@ public class FragilityController {
 
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     IAuthorizer authorizer;
@@ -104,8 +106,9 @@ public class FragilityController {
     public FragilityController(
         @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
         @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
-        ) {
+    ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
@@ -114,7 +117,7 @@ public class FragilityController {
     @Operation(tags = "Gets list of fragilities", summary = "Apply filters to get the desired set of fragilities")
     public List<FragilitySet> getFragilities(@Parameter(name = "demand type filter", example = "PGA") @QueryParam("demand") String demandType,
                                              @Parameter(name = "hazard type  filter", example = "earthquake") @QueryParam("hazard") String hazardType,
-                                             @Parameter(name = "Inventory type", example = "building") @QueryParam("inventory") String inventoryType,
+                                             @Parameter(name = "Inventory type filter", example = "building") @QueryParam("inventory") String inventoryType,
                                              @Parameter(name = "not implemented", hidden = true) @QueryParam("author") String author,
                                              @Parameter(name = "Legacy fragility Id from v1") @QueryParam("legacy_id") String legacyId,
                                              @Parameter(name = "Fragility creator's username") @QueryParam("creator") String creator,
@@ -237,7 +240,7 @@ public class FragilityController {
         fragilitySet.setCreator(username);
         fragilitySet.setOwner(username);
 
-        if (fragilitySet.getFragilityCurves().size() == 0){
+        if (fragilitySet.getFragilityCurves().size() == 0) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No fragility curves are included in the json. " +
                 "Please provide at least one.");
         }
@@ -306,7 +309,7 @@ public class FragilityController {
                     }
 
                     // remove dfr3 in the usage
-                    AllocationUtils.decreaseUsage(allocationsRepository, username,  "dfr3");
+                    AllocationUtils.decreaseUsage(allocationsRepository, username, "dfr3");
 
                     return this.fragilityDAO.deleteFragilitySetById(id);
                 }

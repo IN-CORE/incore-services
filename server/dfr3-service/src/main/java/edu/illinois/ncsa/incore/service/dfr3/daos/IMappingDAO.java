@@ -19,7 +19,7 @@ import java.util.Optional;
 public interface IMappingDAO {
     void initialize();
 
-    List<MappingSet> getMappingSets();
+    List<MappingSet> getMappingSets(String dataType);
 
     Optional<MappingSet> getMappingSetById(String id);
 

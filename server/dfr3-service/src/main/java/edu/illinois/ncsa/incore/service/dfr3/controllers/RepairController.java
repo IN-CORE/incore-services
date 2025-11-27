@@ -17,11 +17,8 @@ import edu.illinois.ncsa.incore.common.auth.Privileges;
 import edu.illinois.ncsa.incore.common.dao.ISpaceRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
 import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
-import edu.illinois.ncsa.incore.common.dao.IUserAllocationsRepository;
-import edu.illinois.ncsa.incore.common.dao.IUserFinalQuotaRepository;
 import edu.illinois.ncsa.incore.common.exceptions.IncoreHTTPException;
 import edu.illinois.ncsa.incore.common.models.Space;
-import edu.illinois.ncsa.incore.common.models.UserAllocations;
 import edu.illinois.ncsa.incore.common.utils.AllocationUtils;
 import edu.illinois.ncsa.incore.common.utils.UserGroupUtils;
 import edu.illinois.ncsa.incore.common.utils.UserInfoUtils;
@@ -43,6 +40,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,6 +74,7 @@ public class RepairController {
 
     private final String username;
     private final List<String> groups;
+    private final String userGroups;
 
     @Inject
     IAuthorizer authorizer;
@@ -93,9 +92,10 @@ public class RepairController {
     @Inject
     public RepairController(
         @Parameter(name = "User credentials.", required = true) @HeaderParam("x-auth-userinfo") String userInfo,
-        @Parameter(name  = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
+        @Parameter(name = "User groups.", required = false) @HeaderParam("x-auth-usergroup") String userGroups
     ) {
         this.username = UserInfoUtils.getUsername(userInfo);
+        this.userGroups = userGroups;
         this.groups = UserGroupUtils.getUserGroups(userGroups);
     }
 
@@ -183,7 +183,7 @@ public class RepairController {
         repairSet.setCreator(username);
         repairSet.setOwner(username);
 
-        if (repairSet.getRepairCurves().size() == 0){
+        if (repairSet.getRepairCurves().size() == 0) {
             throw new IncoreHTTPException(Response.Status.BAD_REQUEST, "No repair curves are included in the json. " +
                 "Please provide at least one.");
         }
