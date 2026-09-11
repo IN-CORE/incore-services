@@ -13,7 +13,7 @@ WORKDIR $APP_HOME
 COPY server/ /usr/app/
 
 # Run gradle clean and build
-RUN ./gradlew dfr3-service:clean dfr3-service:build
+RUN /usr/app/gradlew dfr3-service:clean dfr3-service:build
 
 # ==============================================================================
 # Stage 2: Production Runtime

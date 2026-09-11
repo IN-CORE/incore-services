@@ -12,7 +12,7 @@ WORKDIR $APP_HOME
 # Copy the service source files
 COPY server/ /usr/app/
 # Run gradle clean and build
-RUN ./gradlew semantics-service:clean semantics-service:build
+RUN /usr/app/gradlew semantics-service:clean semantics-service:build
 
 # ==============================================================================
 # Stage 2: Production Runtime
