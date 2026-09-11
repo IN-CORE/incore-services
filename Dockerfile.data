@@ -10,7 +10,7 @@ ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 
 # Copy the service source files
-COPY server* /usr/app/
+COPY server/ /usr/app/
 
 # Run gradle clean and build
 RUN ./gradlew data-service:clean data-service:build
