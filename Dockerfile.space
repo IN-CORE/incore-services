@@ -11,9 +11,10 @@ WORKDIR $APP_HOME
 
 # Copy the service source files
 COPY server/ /usr/app/
+COPY server/gradlew /usr/app/
 
 # Run gradle clean and build
-RUN /usr/app/gradlew space-service:clean space-service:build
+RUN ./gradlew space-service:clean space-service:build
 
 # ==============================================================================
 # Stage 2: Production Runtime
