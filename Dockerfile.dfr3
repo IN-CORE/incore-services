@@ -12,8 +12,8 @@ WORKDIR $APP_HOME
 # Copy the service source files
 COPY server* /usr/app/
 
-# Run gradle clean and build
-RUN ./gradlew dfr3-service:clean dfr3-service:build
+# Run gradle assemble
+RUN ./gradlew dfr3-service:assemble
 
 # ==============================================================================
 # Stage 2: Production Runtime

@@ -12,8 +12,8 @@ WORKDIR $APP_HOME
 # Copy the service source files
 COPY server* /usr/app/
 
-# Run gradle clean and build
-RUN ./gradlew hazard-service:clean hazard-service:build
+# Run gradle assemble
+RUN ./gradlew hazard-service:assemble
 
 # ==============================================================================
 # Stage 2: Production Runtime
