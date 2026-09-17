@@ -1,0 +1,12 @@
+# Version control
+.git
+.gitignore
+
+# Gradle build outputs and caches
+server/**/build/
+server/**/.gradle/
+
+# Docker-related files that don't need to be in the build context
+Dockerfile*
+docker-compose*.yml
+.dockerignore
