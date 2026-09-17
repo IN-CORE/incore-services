@@ -92,10 +92,13 @@ jobs:
             hub_project: incore/project-jetty
 
     steps:
-      - name: Download build files
-        uses: actions/download-artifact@v4
-        with:
-          name: incore-services-build-files
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+#      - name: Download build files
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: incore-services-build-files
 
       - name: version information and set envs
         run: |
