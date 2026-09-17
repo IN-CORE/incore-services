@@ -5,7 +5,6 @@
 # Gradle build outputs and caches
 server/**/build/
 server/**/.gradle/
-!server/gradle/wrapper/gradle-wrapper.jar   # keep wrapper jar, needed to run gradlew
 
 # Docker-related files that don't need to be in the build context
 Dockerfile*
