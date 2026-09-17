@@ -45,19 +45,6 @@ jobs:
           ./gradlew clean
           ./gradlew assemble
           ./gradlew test
-      - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v4   # Updated to version 4
-        with:
-          name: incore-services-build-files
-          path: |
-            server/build.gradle
-            server/*/build/libs/*.war
-            ./Dockerfile.*
-            docker/**
-            clear_cache.sh
-            clear_cache_cron
-          retention-days: 1
-
   docker:
     runs-on: ubuntu-latest
     needs: unit_tests
@@ -94,11 +81,6 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
-
-#      - name: Download build files
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: incore-services-build-files
 
       - name: version information and set envs
         run: |

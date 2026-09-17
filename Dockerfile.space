@@ -3,7 +3,7 @@
 # Purpose: Compile source code and assemble build artifacts.
 # Note   : Uses full JDK/SDK; discarded in final image
 # ==============================================================================
-FROM eclipse-temurin:11-jdk AS BUILD
+FROM eclipse-temurin:11.0.26_4-jdk AS build
 
 # Set the working directory for the build stage
 ENV APP_HOME=/usr/app/
@@ -29,7 +29,7 @@ USER root
 WORKDIR /home/incore
 
 # Copy service war
-COPY --from=BUILD /usr/app/space-service/build/libs/space-service.war /home/incore/lib/
+COPY --from=build /usr/app/space-service/build/libs/space-service.war /home/incore/lib/
 
 # Copy service context to jetty webapps
 COPY docker/space.xml /var/lib/jetty/webapps/
@@ -40,7 +40,7 @@ RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
 # Reset WORKDIR so jetty runs correctly
 WORKDIR /var/lib/jetty
 
-ENV JETTY_PORT 8888
+ENV JETTY_PORT=8888
 
 EXPOSE 8888
 CMD ["java", "-Djava.io.tmpdir=/home/incore/", "-jar", "/usr/local/jetty/start.jar", "jetty.http.port=8888"]
