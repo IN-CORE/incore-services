@@ -1,15 +1,35 @@
-FROM jetty:11.0.15-jre11
+# ==============================================================================
+# Stage 1: Build & Package
+# Purpose: Compile source code and assemble build artifacts.
+# Note   : Uses full JDK/SDK; discarded in final image
+# ==============================================================================
+FROM eclipse-temurin:11.0.26_4-jdk AS build
+
+# Set the working directory for the build stage
+ENV APP_HOME=/usr/app/
+WORKDIR $APP_HOME
+
+# Copy the service source files
+COPY server* /usr/app/
+
+# Run gradle assemble
+RUN ./gradlew dfr3-service:assemble
+
+# ==============================================================================
+# Stage 2: Production Runtime
+# Purpose: Minimal execution environment for running the application.
+# Artifacts: Copies compiled WAR from the 'build' stage.
+# ==============================================================================
+FROM jetty:11.0.26-jre11
 
 # Set user to root so logs store in previous location
 USER root
-
-# TODO we could compile the service here so this works standalone
 
 # Working Directory
 WORKDIR /home/incore
 
 # Copy service war
-COPY server/dfr3-service/build/libs/dfr3-service.war /home/incore/lib/
+COPY --from=build /usr/app/dfr3-service/build/libs/dfr3-service.war /home/incore/lib/
 
 # Copy service context to jetty webapps
 COPY docker/dfr3.xml /var/lib/jetty/webapps/
@@ -20,8 +40,8 @@ RUN mkdir /home/incore/data && mkdir /home/incore/data/incore_data
 # Reset WORKDIR so jetty runs correctly
 WORKDIR /var/lib/jetty
 
-ENV JETTY_PORT 8080
+ENV JETTY_PORT=8888
 
-EXPOSE 8080
+EXPOSE 8888
 CMD ["java", "-Djava.io.tmpdir=/home/incore/", "-jar", "/usr/local/jetty/start.jar", "jetty.http.port=8888"]
 
