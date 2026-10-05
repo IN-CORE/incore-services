@@ -3,7 +3,7 @@
 # Purpose: Compile source code and assemble build artifacts.
 # Note   : Uses full JDK/SDK; discarded in final image
 # ==============================================================================
-FROM eclipse-temurin:11.0.26_4-jdk AS build
+FROM eclipse-temurin:21-jdk AS build
 
 # Set the working directory for the build stage
 ENV APP_HOME=/usr/app/
@@ -20,7 +20,7 @@ RUN ./gradlew dfr3-service:assemble
 # Purpose: Minimal execution environment for running the application.
 # Artifacts: Copies compiled WAR from the 'build' stage.
 # ==============================================================================
-FROM jetty:11.0.26-jre11
+FROM jetty:11.0.26-jre21
 
 # Set user to root so logs store in previous location
 USER root

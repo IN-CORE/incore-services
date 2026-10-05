@@ -1,8 +1,8 @@
 apply plugin: 'java'
 
 compileJava {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
 }
 
 //add dependencies for plugins needed to run the build
@@ -26,7 +26,7 @@ apply plugin: 'idea'
 
 idea {
     module {
-        jdkName = '11'
+        jdkName = '21'
     }
 }
 
