@@ -10,20 +10,32 @@ package edu.illinois.ncsa.incore.semantic.units.serializer.units;
 import edu.illinois.ncsa.incore.semantic.units.model.PrefixedUnit;
 import edu.illinois.ncsa.incore.semantic.units.model.Unit;
 import org.apache.commons.io.FileUtils;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 
 import static edu.illinois.ncsa.incore.semantic.units.instances.Prefixes.centi;
 import static edu.illinois.ncsa.incore.semantic.units.instances.Prefixes.kilo;
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIDerivedUnits.*;
 import static edu.illinois.ncsa.incore.semantic.units.instances.SIUnits.metre;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class UnitSerializationTests {
     ClassLoader loader = this.getClass().getClassLoader();
+
+    /**
+     * Compares two Turtle documents as RDF graphs, since Jena does not guarantee the order of @prefix declarations
+     */
+    private static void assertSameGraph(String expected, String actual) {
+        Model expectedModel = ModelFactory.createDefaultModel().read(new StringReader(expected), null, "TURTLE");
+        Model actualModel = ModelFactory.createDefaultModel().read(new StringReader(actual), null, "TURTLE");
+        assertTrue(expectedModel.isIsomorphicWith(actualModel), () -> "expected: <" + expected + "> but was: <" + actual + ">");
+    }
 
     @Test
     @DisplayName("Serialize Prefixed Unit - centimetre")
@@ -34,7 +46,7 @@ public class UnitSerializationTests {
         Unit unit = new PrefixedUnit(centi, metre);
         String expected = unit.serialize();
 
-        assertEquals(expected, actual);
+        assertSameGraph(expected, actual);
     }
 
     @Test
@@ -46,7 +58,7 @@ public class UnitSerializationTests {
         Unit unit = new PrefixedUnit(kilo, joule);
         String expected = unit.serialize();
 
-        assertEquals(expected, actual);
+        assertSameGraph(expected, actual);
     }
 
     @Test
@@ -57,7 +69,7 @@ public class UnitSerializationTests {
 
         String expected = metre.serialize();
 
-        assertEquals(expected, actual);
+        assertSameGraph(expected, actual);
     }
 
     @Test
@@ -68,7 +80,7 @@ public class UnitSerializationTests {
 
         String expected = volt.serialize();
 
-        assertEquals(expected, actual);
+        assertSameGraph(expected, actual);
     }
 
     @Test
@@ -79,7 +91,7 @@ public class UnitSerializationTests {
 
         String expected = newtonMetreSecond.serialize();
 
-        assertEquals(expected, actual);
+        assertSameGraph(expected, actual);
     }
 
     @Test
@@ -90,6 +102,6 @@ public class UnitSerializationTests {
 
         String expected = radian.serialize();
 
-        assertEquals(expected, actual);
+        assertSameGraph(expected, actual);
     }
 }

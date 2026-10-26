@@ -1,8 +1,8 @@
 apply plugin: 'java'
 
 compileJava {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
 }
 
 //add dependencies for plugins needed to run the build
@@ -15,7 +15,7 @@ buildscript {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
     dependencies {
-        classpath 'org.gretty:gretty:4.0.3'
+        classpath 'org.gretty:gretty:5.0.2'
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
     }
 }
@@ -26,7 +26,7 @@ apply plugin: 'idea'
 
 idea {
     module {
-        jdkName = '11'
+        jdkName = '21'
     }
 }
 
